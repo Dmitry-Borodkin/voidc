@@ -1,0 +1,30 @@
+{
+    v_import("printf");
+}
+
+{
+    char_ptr_type = LLVMPointerType(v_char_type, 0);
+
+    arg = v_alloca(v_LLVMTypeRef_type);
+
+    v_store(char_ptr_type, arg);
+
+    puts_ft = LLVMFunctionType(v_int_type, arg, 1, 0);
+
+    v_add_symbol_type("puts", puts_ft);
+}
+
+{
+    puts("Hello, world!");
+}
+
+{
+    puts("Hello again!");
+
+    printf("Hi %d times!\n", 10000);
+}
+
+{
+    puts("Превед!");
+}
+

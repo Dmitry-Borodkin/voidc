@@ -1,0 +1,233 @@
+#include "voidc_ast.h"
+
+#include <cassert>
+
+
+//----------------------------------------------------------------------
+//- Поддержка PEG...
+//----------------------------------------------------------------------
+value_t mk_unit(auxil_t auxil, value_t stmt_list, int pos)
+{
+    return auxil->do_unit(stmt_list, pos);
+}
+
+value_t mk_stmt_list(auxil_t auxil, value_t stmt, value_t stmt_list)
+{
+    return auxil->do_stmt_list(stmt, stmt_list);
+}
+
+value_t mk_stmt(auxil_t auxil, value_t var, value_t call)
+{
+    return auxil->do_stmt(var, call);
+}
+
+value_t mk_call(auxil_t auxil, value_t fun, value_t arg_list)
+{
+    return auxil->do_call(fun, arg_list);
+}
+
+value_t mk_arg_list(auxil_t auxil, value_t arg, value_t arg_list)
+{
+    return auxil->do_arg_list(arg, arg_list);
+}
+
+value_t mk_arg_identifier(auxil_t auxil, value_t ident)
+{
+    return auxil->do_arg_identifier(ident);
+}
+
+value_t mk_arg_integer(auxil_t auxil, value_t num)
+{
+    return auxil->do_arg_integer(num);
+}
+
+value_t mk_arg_string(auxil_t auxil, value_t str)
+{
+    return auxil->do_arg_string(str);
+}
+
+value_t mk_arg_char(auxil_t auxil, value_t c)
+{
+    return auxil->do_arg_char(c);
+}
+
+void mk_newline(auxil_t auxil, int pos)
+{
+    return auxil->do_newline(pos);
+}
+
+int voidc_getchar(auxil_t auxil)
+{
+    return auxil->do_getchar();
+}
+
+
+//----------------------------------------------------------------------
+//- AST builder ...
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_unit(value_t stmt_list, int pos)
+{
+    std::shared_ptr<const ast_stmt_list_t> sl;
+
+    if (stmt_list)
+    {
+        sl = std::dynamic_pointer_cast<const ast_stmt_list_t>(*stmt_list);
+
+        assert(sl);
+    }
+
+    int line;
+    int column;
+
+    {   int the_pos = unit_pos + pos;
+
+        auto it = newlines.upper_bound(the_pos);
+
+        if (it != newlines.end())   line = it->second;
+        else                        line = line_number;
+
+        column = 1 + the_pos - (--it)->first;
+    }
+
+    return  do_util<ast_unit_t>(sl, line, column);
+}
+
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_stmt_list(value_t stmt, value_t stmt_list)
+{
+    auto s = std::dynamic_pointer_cast<const ast_stmt_t>(*stmt);
+    assert(s);
+
+    std::shared_ptr<const ast_stmt_list_t> sl;
+
+    if (stmt_list)
+    {
+        sl = std::dynamic_pointer_cast<const ast_stmt_list_t>(*stmt_list);
+
+        assert(sl);
+    }
+
+    return  do_util<ast_stmt_list_t>(s, sl);
+}
+
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_stmt(value_t var, value_t call)
+{
+    auto s = (var ? (const char *)var : "");
+
+    auto c = std::dynamic_pointer_cast<const ast_call_t>(*call);
+    assert(c);
+
+    return  do_util<ast_stmt_t>(s, c);
+}
+
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_call(value_t fun, value_t arg_list)
+{
+    auto f = (const char *)fun;
+
+    std::shared_ptr<const ast_arg_list_t> al;
+
+    if (arg_list)
+    {
+        al = std::dynamic_pointer_cast<const ast_arg_list_t>(*arg_list);
+
+        assert(al);
+    }
+
+    return  do_util<ast_call_t>(f, al);
+}
+
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_arg_list(value_t arg, value_t arg_list)
+{
+    auto a = std::dynamic_pointer_cast<const ast_argument_t>(*arg);
+    assert(a);
+
+    std::shared_ptr<const ast_arg_list_t> al;
+
+    if (arg_list)
+    {
+        al = std::dynamic_pointer_cast<const ast_arg_list_t>(*arg_list);
+
+        assert(al);
+    }
+
+    return  do_util<ast_arg_list_t>(a, al);
+}
+
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_arg_identifier(value_t ident)
+{
+    return  do_util<ast_arg_identifier_t>((const char *)ident);
+}
+
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_arg_integer(value_t num)
+{
+    return  do_util<ast_arg_integer_t>((intptr_t)num);
+}
+
+//----------------------------------------------------------------------
+static
+char get_character(const char * &p)
+{
+    assert(*p);
+
+    char c = *p++;
+
+    if (c == '\\')
+    {
+        c = *p++;
+
+        switch(c)
+        {
+        case 'n':   c = '\n'; break;
+        case 'r':   c = '\r'; break;
+        case 't':   c = '\t'; break;
+        }
+    }
+
+    return  c;
+}
+
+//----------------------------------------------------------------------
+ast_arg_string_t::ast_arg_string_t(const char *str)
+{
+    int len = 0;
+
+    for (auto p=str; *p; ++p)
+    {
+        if (*p != '\\') ++len;
+    }
+
+    string_private.resize(len);
+
+    for (int i=0; i<len; ++i) string_private[i] = get_character(str);
+}
+
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_arg_string(value_t str)
+{
+    return  do_util<ast_arg_string_t>((const char *)str);
+}
+
+//----------------------------------------------------------------------
+value_t
+ast_builder_t::do_arg_char(value_t c)
+{
+    char r = get_character((const char * &)c);
+
+    return  do_util<ast_arg_char_t>(r);
+}
+
+
+

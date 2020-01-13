@@ -1,0 +1,115 @@
+%prefix "voidc"
+
+%value "value_t"
+%auxil "auxil_t"
+
+
+#-----------------------------------------------------------------------
+%header
+{
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+typedef struct value_opaque_t *value_t;
+typedef struct auxil_opaque_t *auxil_t;
+
+
+//----------------------------------------------------------------------
+value_t mk_unit(auxil_t auxil, value_t stmt_list, int pos);
+
+value_t mk_stmt_list(auxil_t auxil, value_t stmt, value_t stmt_list);
+
+value_t mk_stmt(auxil_t auxil, value_t var, value_t call);
+
+value_t mk_call(auxil_t auxil, value_t fun, value_t arg_list);
+
+value_t mk_arg_list(auxil_t auxil, value_t arg, value_t arg_list);
+
+value_t mk_arg_identifier(auxil_t auxil, value_t ident);
+value_t mk_arg_integer(auxil_t auxil, value_t num);
+value_t mk_arg_string(auxil_t auxil, value_t str);
+value_t mk_arg_char(auxil_t auxil, value_t c);
+
+//----------------------------------------------------------------------
+void mk_newline(auxil_t auxil, int pos);
+
+//----------------------------------------------------------------------
+int voidc_getchar(auxil_t auxil);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+}
+
+#-----------------------------------------------------------------------
+%source
+{
+#define PCC_GETCHAR(auxil)  voidc_getchar(auxil)
+}
+
+
+#-----------------------------------------------------------------------
+unit        <- _ <'{'> _ l:stmt_list '}'                    { $$ = mk_unit(auxil, l, $1s); }
+             / _ !.
+
+stmt_list   <- s:stmt l:stmt_list                           { $$ = mk_stmt_list(auxil, s, l); }
+             /                                              { $$ = (value_t)0; }
+
+stmt        <- v:identifier _ '=' _ c:call                  { $$ = mk_stmt(auxil, v, c); }
+             / c:call                                       { $$ = mk_stmt(auxil, (value_t)0, c); }
+
+call        <- f:identifier _ '(' _ a:arg_list ')' _ ';' _  { $$ = mk_call(auxil, f, a); }
+
+arg_list    <- a:arg ',' _ l:arg_list                       { $$ = mk_arg_list(auxil, a, l); }
+             / a:arg                                        { $$ = mk_arg_list(auxil, a, (value_t)0); }
+             /                                              { $$ = (value_t)0; }
+
+arg         <- i:identifier _                               { $$ = mk_arg_identifier(auxil, i); }
+             / n:integer _                                  { $$ = mk_arg_integer(auxil, n); }
+             / s:string _                                   { $$ = mk_arg_string(auxil, s); }
+             / c:char _                                     { $$ = mk_arg_char(auxil, c); }
+
+
+#-----------------------------------------------------------------------
+identifier  <- <ident_start ident_cont*>                    { $$ = (value_t)$1; }
+
+ident_start <- [a-zA-Z_]
+ident_cont  <- ident_start / dec_digit
+
+
+integer     <- n:dec_integer                                { $$ = n; }
+             / '-' n:dec_integer                            { $$ = (value_t)(-(intptr_t)n); }
+             / '0'                                          { $$ = (value_t)0; }
+
+dec_integer <- n:dec_integer d:dec_digit                    { $$ = (value_t)(10*((intptr_t)n) + (intptr_t)d); }
+             / [1-9]                                        { $$ = (value_t)(intptr_t)($0[0] - '0'); }
+
+dec_digit   <- [0-9]                                        { $$ = (value_t)(intptr_t)($0[0] - '0'); }
+
+
+string      <- ["] <str_char*> ["]                          { $$ = (value_t)$1; }
+
+str_char    <- ![\n\r\t'"] character
+
+char        <- ['] <str_char> [']                           { $$ = (value_t)$1; }
+
+character   <- '\\' [nrt'"\\]
+             / !'\\' .
+
+
+_           <- (space / comment)*
+
+comment     <- "//" (!EOL .)* EOL
+
+space       <- ' ' / '\t' / EOL
+
+EOL         <- <("\r\n" / '\n' / '\r')>                     { mk_newline(auxil, $1e); }
+
+
+
