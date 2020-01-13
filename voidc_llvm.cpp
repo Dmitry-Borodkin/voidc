@@ -152,6 +152,22 @@ void v_store(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &a
     cctx.stmts.push_front(v);
 }
 
+//---------------------------------------------------------------------
+static
+void v_load(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+{
+    assert(args);
+    assert(!args->tail);
+
+    args->head->compile(cctx);
+
+    auto v = LLVMBuildLoad(cctx.builder, cctx.args[0], cctx.ret_name);
+
+    cctx.args.clear();
+
+    cctx.stmts.push_front(v);
+}
+
 
 //---------------------------------------------------------------------
 static
@@ -361,6 +377,7 @@ void compile_ctx_t::initialize(void)
     intrinsics["v_array_alloca"]       = v_array_alloca;
     intrinsics["v_getelementptr"]      = v_getelementptr;
     intrinsics["v_store"]              = v_store;
+    intrinsics["v_load"]               = v_load;
     intrinsics["v_add_local_symbol"]   = v_add_local_symbol;
     intrinsics["v_add_local_constant"] = v_add_local_constant;
 
