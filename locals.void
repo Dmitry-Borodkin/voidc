@@ -1,18 +1,18 @@
 {
-    args = v_array_alloca(v_LLVMTypeRef_type, 3);
+    args = v_array_alloca(LLVMTypeRef, 3);
     arg1 = v_getelementptr(args, 1);
     arg2 = v_getelementptr(args, 2);
 
-    v_store(v_LLVMTypeRef_type, args);
-    v_store(v_long_long_type,   arg1);
-    v_store(v_int_type,         arg2);
+    v_store(LLVMTypeRef, args);
+    v_store(long_long,   arg1);
+    v_store(int,         arg2);
 
-    ft = LLVMFunctionType(v_LLVMValueRef_type, args, 3, 0);
+    ft = LLVMFunctionType(LLVMValueRef, args, 3, 0);
     v_add_symbol_type("LLVMConstInt", ft);
 }
 
 {
-    c5 = LLVMConstInt(v_int_type, 5, 0);
+    c5 = LLVMConstInt(int, 5, 0);
 
     v_add_constant("QWERTY", c5);
 

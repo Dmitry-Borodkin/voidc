@@ -3,13 +3,13 @@
 }
 
 {
-    char_ptr_type = LLVMPointerType(v_char_type, 0);
+    char_ptr = LLVMPointerType(char, 0);
 
-    arg = v_alloca(v_LLVMTypeRef_type);
+    arg = v_alloca(LLVMTypeRef);
 
-    v_store(char_ptr_type, arg);
+    v_store(char_ptr, arg);
 
-    puts_ft = LLVMFunctionType(v_int_type, arg, 1, 0);
+    puts_ft = LLVMFunctionType(int, arg, 1, 0);
 
     v_add_symbol_type("puts", puts_ft);
 }

@@ -47,8 +47,8 @@ public:
     static LLVMTypeRef int_type;
     static LLVMTypeRef long_type;
     static LLVMTypeRef long_long_type;
-    static LLVMTypeRef intptr_type;
-    static LLVMTypeRef size_type;
+    static LLVMTypeRef intptr_t_type;
+    static LLVMTypeRef size_t_type;
 
     static LLVMTypeRef LLVMOpaqueType_type;
     static LLVMTypeRef LLVMTypeRef_type;

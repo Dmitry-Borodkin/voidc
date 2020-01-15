@@ -24,8 +24,8 @@ LLVMTypeRef compile_ctx_t::short_type;
 LLVMTypeRef compile_ctx_t::int_type;
 LLVMTypeRef compile_ctx_t::long_type;
 LLVMTypeRef compile_ctx_t::long_long_type;
-LLVMTypeRef compile_ctx_t::intptr_type;
-LLVMTypeRef compile_ctx_t::size_type;
+LLVMTypeRef compile_ctx_t::intptr_t_type;
+LLVMTypeRef compile_ctx_t::size_t_type;
 LLVMTypeRef compile_ctx_t::LLVMTypeRef_type;
 LLVMTypeRef compile_ctx_t::LLVMOpaqueType_type;
 LLVMTypeRef compile_ctx_t::LLVMValueRef_type;
@@ -339,8 +339,8 @@ void compile_ctx_t::initialize(void)
     int_type       = mk_type(sizeof(int));
     long_type      = mk_type(sizeof(long));
     long_long_type = mk_type(sizeof(long long));
-    intptr_type    = mk_type(sizeof(intptr_t));
-    size_type      = mk_type(sizeof(size_t));
+    intptr_t_type  = mk_type(sizeof(intptr_t));
+    size_t_type    = mk_type(sizeof(size_t));
 
     {   auto gctx = LLVMGetGlobalContext();
 
@@ -353,22 +353,22 @@ void compile_ctx_t::initialize(void)
         LLVMValueRef_type = LLVMPointerType(LLVMOpaqueValue_type, 0);
 
 #define DEF(name) \
-        symbol_types["v_" #name] = LLVMOpaqueType_type; \
-        LLVMAddSymbol("v_" #name, (void *)name);
+        symbol_types[#name] = LLVMOpaqueType_type; \
+        LLVMAddSymbol(#name, (void *)name##_type);
 
-        DEF(void_type)
-        DEF(char_type)
-        DEF(short_type)
-        DEF(int_type)
-        DEF(long_type)
-        DEF(long_long_type)
-        DEF(intptr_type)
-        DEF(size_type)
+        DEF(void)
+        DEF(char)
+        DEF(short)
+        DEF(int)
+        DEF(long)
+        DEF(long_long)
+        DEF(intptr_t)
+        DEF(size_t)
 
-        DEF(LLVMOpaqueType_type)
-        DEF(LLVMTypeRef_type)
-        DEF(LLVMOpaqueValue_type)
-        DEF(LLVMValueRef_type)
+        DEF(LLVMOpaqueType)
+        DEF(LLVMTypeRef)
+        DEF(LLVMOpaqueValue)
+        DEF(LLVMValueRef)
 
 #undef DEF
     }
