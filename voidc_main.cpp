@@ -192,6 +192,21 @@ int main()
 
     voidc_destroy(ctx);
 
+
+//    for (auto &it : compile_ctx_t::symbol_types)
+//    {
+//        printf("%s : ", it.first.c_str());
+//
+//        fflush(stdout);     //- WTF ?
+//
+//        auto s = LLVMPrintTypeToString(it.second);
+//
+//        printf("%s\n", s);
+//
+//        LLVMDisposeMessage(s);
+//    }
+
+
     compile_ctx_t::terminate();
 
     return 0;

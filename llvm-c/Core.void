@@ -1,0 +1,4523 @@
+//- Imports ------------------------------------------------
+{
+    v_import("llvm-c/ErrorHandling");
+    v_import("llvm-c/Types");
+}
+
+//- Values -------------------------------------------------
+{
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMModuleFlagBehaviorAppend", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMBasicBlockValueKind", val);
+
+    val = LLVMConstInt(int, 10, 0);
+    v_add_constant("LLVMAtomicRMWBinOpUMin", val);
+
+    val = LLVMConstInt(int, 10, 0);
+    v_add_constant("LLVMGHCCallConv", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMRealPredicateFalse", val);
+
+    val = LLVMConstInt(int, 27, 0);
+    v_add_constant("LLVMLoad", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMDefaultVisibility", val);
+
+    val = LLVMConstInt(int, 60, 0);
+    v_add_constant("LLVMAddrSpaceCast", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMSwitch", val);
+
+    val = LLVMConstInt(int, 91, 0);
+    v_add_constant("LLVMAMDGPUKERNELCallConv", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMNotThreadLocal", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMDLLExportStorageClass", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMAtomicRMWBinOpAdd", val);
+
+    val = LLVMConstInt(int, 21, 0);
+    v_add_constant("LLVMLShr", val);
+
+    val = LLVMConstInt(int, 14, 0);
+    v_add_constant("LLVMCommonLinkage", val);
+
+    val = LLVMConstInt(int, 41, 0);
+    v_add_constant("LLVMIntSLE", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMModuleFlagBehaviorRequire", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMProtectedVisibility", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMIndirectBr", val);
+
+    val = LLVMConstInt(int, 34, 0);
+    v_add_constant("LLVMIntUGT", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMBr", val);
+
+    val = LLVMConstInt(int, 66, 0);
+    v_add_constant("LLVMFNeg", val);
+
+    val = LLVMConstInt(int, 46, 0);
+    v_add_constant("LLVMSelect", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMLocalDynamicTLSModel", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMNoUnnamedAddr", val);
+
+    val = LLVMConstInt(int, 37, 0);
+    v_add_constant("LLVMFPTrunc", val);
+
+    val = LLVMConstInt(int, 64, 0);
+    v_add_constant("LLVMX86StdcallCallConv", val);
+
+    val = LLVMConstInt(int, 9, 0);
+    v_add_constant("LLVMAtomicRMWBinOpUMax", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMModuleFlagBehaviorWarning", val);
+
+    val = LLVMConstInt(int, 20, 0);
+    v_add_constant("LLVMShl", val);
+
+    val = LLVMConstInt(int, 16, 0);
+    v_add_constant("LLVMConstantDataArrayValueKind", val);
+
+    val = LLVMConstInt(int, 11, 0);
+    v_add_constant("LLVMArrayTypeKind", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMAtomicRMWBinOpOr", val);
+
+    val = LLVMConstInt(int, 33, 0);
+    v_add_constant("LLVMIntNE", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMFP128TypeKind", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMVoidTypeKind", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMGeneralDynamicTLSModel", val);
+
+    val = LLVMConstInt(int, 83, 0);
+    v_add_constant("LLVMX86INTRCallConv", val);
+
+    val = LLVMConstInt(int, 22, 0);
+    v_add_constant("LLVMAShr", val);
+
+    val = LLVMConstInt(int, 9, 0);
+    v_add_constant("LLVMPrivateLinkage", val);
+
+    val = LLVMConstInt(int, 11, 0);
+    v_add_constant("LLVMDLLExportLinkage", val);
+
+    val = LLVMConstInt(int, 68, 0);
+    v_add_constant("LLVMARMAAPCSVFPCallConv", val);
+
+    val = LLVMConstInt(int, 40, 0);
+    v_add_constant("LLVMIntSLT", val);
+
+    val = LLVMConstInt(int, 13, 0);
+    v_add_constant("LLVMConstantVectorValueKind", val);
+
+    val = LLVMConstInt(int, 57, 0);
+    v_add_constant("LLVMAtomicRMW", val);
+
+    val = LLVMConstInt(int, 7, 0);
+    v_add_constant("LLVMUnreachable", val);
+
+    val = LLVMConstInt(int, 15, 0);
+    v_add_constant("LLVMPreserveAllCallConv", val);
+
+    val = LLVMConstInt(int, 87, 0);
+    v_add_constant("LLVMAMDGPUVSCallConv", val);
+
+    val = LLVMConstInt(int, 6, 0);
+    v_add_constant("LLVMAtomicRMWBinOpXor", val);
+
+    val = LLVMConstInt(int, 95, 0);
+    v_add_constant("LLVMAMDGPULSCallConv", val);
+
+    val = LLVMConstInt(int, 9, 0);
+    v_add_constant("LLVMFunctionTypeKind", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMInvoke", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMAtomicOrderingRelease", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMLinkOnceODRAutoHideLinkage", val);
+
+    val = LLVMConstInt(int, 8, 0);
+    v_add_constant("LLVMGlobalVariableValueKind", val);
+
+    val = LLVMConstInt(int, 67, 0);
+    v_add_constant("LLVMCallBr", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMHalfTypeKind", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMLandingPadCatch", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMInlineAsmDialectATT", val);
+
+    val = LLVMConstInt(int, 42, 0);
+    v_add_constant("LLVMICmp", val);
+
+    val = LLVMConstInt(int, 65, 0);
+    v_add_constant("LLVMCatchSwitch", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMModuleFlagBehaviorAppendUnique", val);
+
+    val = LLVMConstInt(int, 14, 0);
+    v_add_constant("LLVMRealUNE", val);
+
+    val = LLVMConstInt(int, 41, 0);
+    v_add_constant("LLVMBitCast", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMAtomicOrderingMonotonic", val);
+
+    val = LLVMConstInt(int, 6, 0);
+    v_add_constant("LLVMPPC_FP128TypeKind", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMAtomicRMWBinOpSub", val);
+
+    val = LLVMConstInt(int, 62, 0);
+    v_add_constant("LLVMCatchRet", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMInlineAsmDialectIntel", val);
+
+    val = LLVMConstInt(int, 85, 0);
+    v_add_constant("LLVMAVRSIGNALCallConv", val);
+
+    val = LLVMConstInt(int, 72, 0);
+    v_add_constant("LLVMPTXDeviceCallConv", val);
+
+    val = LLVMConstInt(int, 34, 0);
+    v_add_constant("LLVMFPToSI", val);
+
+    val = LLVMConstInt(int, 33, 0);
+    v_add_constant("LLVMFPToUI", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMX86_FP80TypeKind", val);
+
+    val = LLVMConstInt(int, 92, 0);
+    v_add_constant("LLVMX86RegCallCallConv", val);
+
+    val = LLVMConstInt(int, 78, 0);
+    v_add_constant("LLVMX8664SysVCallConv", val);
+
+    val = LLVMConstInt(int, 7, 0);
+    v_add_constant("LLVMGlobalIFuncValueKind", val);
+
+    val = LLVMConstInt(int, 6, 0);
+    v_add_constant("LLVMAtomicOrderingAcquireRelease", val);
+
+    val = LLVMConstInt(int, 94, 0);
+    v_add_constant("LLVMMSP430BUILTINCallConv", val);
+
+    val = LLVMConstInt(int, 63, 0);
+    v_add_constant("LLVMCatchPad", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMAtomicOrderingUnordered", val);
+
+    val = LLVMConstInt(int, 9, 0);
+    v_add_constant("LLVMColdCallConv", val);
+
+    val = LLVMConstInt(int, 9, 0);
+    v_add_constant("LLVMRealUEQ", val);
+
+    val = LLVMConstInt(int, 23, 0);
+    v_add_constant("LLVMInlineAsmValueKind", val);
+
+    val = LLVMConstInt(int, 32, 0);
+    v_add_constant("LLVMIntEQ", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMMemoryPhiValueKind", val);
+
+    val = LLVMConstInt(int, 67, 0);
+    v_add_constant("LLVMARMAAPCSCallConv", val);
+
+    val = LLVMConstInt(int, 8, 0);
+    v_add_constant("LLVMInternalLinkage", val);
+
+    val = LLVMConstInt(int, 7, 0);
+    v_add_constant("LLVMAtomicRMWBinOpMax", val);
+
+    val = LLVMConstInt(int, 96, 0);
+    v_add_constant("LLVMAMDGPUESCallConv", val);
+
+    val = LLVMConstInt(int, 70, 0);
+    v_add_constant("LLVMX86ThisCallCallConv", val);
+
+    val = LLVMConstInt(int, 12, 0);
+    v_add_constant("LLVMRealULT", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMAtomicRMWBinOpAnd", val);
+
+    val = LLVMConstInt(int, 52, 0);
+    v_add_constant("LLVMShuffleVector", val);
+
+    val = LLVMConstInt(int, 9, 0);
+    v_add_constant("LLVMFAdd", val);
+
+    val = LLVMConstInt(int, 19, 0);
+    v_add_constant("LLVMFRem", val);
+
+    val = LLVMConstInt(int, 8, 0);
+    v_add_constant("LLVMIntegerTypeKind", val);
+
+    val = LLVMConstInt(int, 11, 0);
+    v_add_constant("LLVMFSub", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMLocalExecTLSModel", val);
+
+    val = LLVMConstInt(int, -1, 0);
+    v_add_constant("LLVMAttributeFunctionIndex", val);
+
+    val = LLVMConstInt(int, 20, 0);
+    v_add_constant("LLVMConstantPointerNullValueKind", val);
+
+    val = LLVMConstInt(int, 16, 0);
+    v_add_constant("LLVMTokenTypeKind", val);
+
+    val = LLVMConstInt(int, 7, 0);
+    v_add_constant("LLVMLabelTypeKind", val);
+
+    val = LLVMConstInt(int, 13, 0);
+    v_add_constant("LLVMRealULE", val);
+
+    val = LLVMConstInt(int, 53, 0);
+    v_add_constant("LLVMExtractValue", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMAvailableExternallyLinkage", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMArgumentValueKind", val);
+
+    val = LLVMConstInt(int, 12, 0);
+    v_add_constant("LLVMMul", val);
+
+    val = LLVMConstInt(int, 15, 0);
+    v_add_constant("LLVMX86_MMXTypeKind", val);
+
+    val = LLVMConstInt(int, 16, 0);
+    v_add_constant("LLVMFDiv", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMDSRemark", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMGlobalUnnamedAddr", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMInitialExecTLSModel", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMFunctionValueKind", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMRealOGE", val);
+
+    val = LLVMConstInt(int, 56, 0);
+    v_add_constant("LLVMAtomicCmpXchg", val);
+
+    val = LLVMConstInt(int, 89, 0);
+    v_add_constant("LLVMAMDGPUPSCallConv", val);
+
+    val = LLVMConstInt(int, 81, 0);
+    v_add_constant("LLVMHHVMCallConv", val);
+
+    val = LLVMConstInt(int, 12, 0);
+    v_add_constant("LLVMPointerTypeKind", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMDSError", val);
+
+    val = LLVMConstInt(int, 24, 0);
+    v_add_constant("LLVMOr", val);
+
+    val = LLVMConstInt(int, 15, 0);
+    v_add_constant("LLVMRealPredicateTrue", val);
+
+    val = LLVMConstInt(int, 65, 0);
+    v_add_constant("LLVMX86FastcallCallConv", val);
+
+    val = LLVMConstInt(int, 28, 0);
+    v_add_constant("LLVMStore", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMDSWarning", val);
+
+    val = LLVMConstInt(int, 36, 0);
+    v_add_constant("LLVMIntULT", val);
+
+    val = LLVMConstInt(int, 18, 0);
+    v_add_constant("LLVMSRem", val);
+
+    val = LLVMConstInt(int, 55, 0);
+    v_add_constant("LLVMFence", val);
+
+    val = LLVMConstInt(int, 22, 0);
+    v_add_constant("LLVMMetadataAsValueValueKind", val);
+
+    val = LLVMConstInt(int, 12, 0);
+    v_add_constant("LLVMConstantStructValueKind", val);
+
+    val = LLVMConstInt(int, 82, 0);
+    v_add_constant("LLVMHHVMCCallConv", val);
+
+    val = LLVMConstInt(int, 37, 0);
+    v_add_constant("LLVMIntULE", val);
+
+    val = LLVMConstInt(int, 19, 0);
+    v_add_constant("LLVMConstantFPValueKind", val);
+
+    val = LLVMConstInt(int, 35, 0);
+    v_add_constant("LLVMUIToFP", val);
+
+    val = LLVMConstInt(int, 75, 0);
+    v_add_constant("LLVMSPIRFUNCCallConv", val);
+
+    val = LLVMConstInt(int, 69, 0);
+    v_add_constant("LLVMMSP430INTRCallConv", val);
+
+    val = LLVMConstInt(int, 29, 0);
+    v_add_constant("LLVMGetElementPtr", val);
+
+    val = LLVMConstInt(int, 39, 0);
+    v_add_constant("LLVMPtrToInt", val);
+
+    val = LLVMConstInt(int, 14, 0);
+    v_add_constant("LLVMUndefValueValueKind", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMCCallConv", val);
+
+    val = LLVMConstInt(int, 10, 0);
+    v_add_constant("LLVMRealUGT", val);
+
+    val = LLVMConstInt(int, 17, 0);
+    v_add_constant("LLVMConstantDataVectorValueKind", val);
+
+    val = LLVMConstInt(int, 17, 0);
+    v_add_constant("LLVMURem", val);
+
+    val = LLVMConstInt(int, 14, 0);
+    v_add_constant("LLVMMetadataTypeKind", val);
+
+    val = LLVMConstInt(int, 45, 0);
+    v_add_constant("LLVMCall", val);
+
+    val = LLVMConstInt(int, 13, 0);
+    v_add_constant("LLVMAnyRegCallConv", val);
+
+    val = LLVMConstInt(int, 38, 0);
+    v_add_constant("LLVMIntSGT", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMHiddenVisibility", val);
+
+    val = LLVMConstInt(int, 15, 0);
+    v_add_constant("LLVMConstantAggregateZeroValueKind", val);
+
+    val = LLVMConstInt(int, 11, 0);
+    v_add_constant("LLVMRealUGE", val);
+
+    val = LLVMConstInt(int, 79, 0);
+    v_add_constant("LLVMWin64CallConv", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMDefaultStorageClass", val);
+
+    val = LLVMConstInt(int, 10, 0);
+    v_add_constant("LLVMDLLImportLinkage", val);
+
+    val = LLVMConstInt(int, 31, 0);
+    v_add_constant("LLVMZExt", val);
+
+    val = LLVMConstInt(int, 18, 0);
+    v_add_constant("LLVMConstantIntValueKind", val);
+
+    val = LLVMConstInt(int, 14, 0);
+    v_add_constant("LLVMPreserveMostCallConv", val);
+
+    val = LLVMConstInt(int, 16, 0);
+    v_add_constant("LLVMSwiftCallConv", val);
+
+    val = LLVMConstInt(int, 58, 0);
+    v_add_constant("LLVMResume", val);
+
+    val = LLVMConstInt(int, 49, 0);
+    v_add_constant("LLVMVAArg", val);
+
+    val = LLVMConstInt(int, 6, 0);
+    v_add_constant("LLVMRealONE", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMAttributeReturnIndex", val);
+
+    val = LLVMConstInt(int, 48, 0);
+    v_add_constant("LLVMUserOp2", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMAtomicOrderingAcquire", val);
+
+    val = LLVMConstInt(int, 47, 0);
+    v_add_constant("LLVMUserOp1", val);
+
+    val = LLVMConstInt(int, 10, 0);
+    v_add_constant("LLVMSub", val);
+
+    val = LLVMConstInt(int, 9, 0);
+    v_add_constant("LLVMBlockAddressValueKind", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMMemoryUseValueKind", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMModuleFlagBehaviorError", val);
+
+    val = LLVMConstInt(int, 77, 0);
+    v_add_constant("LLVMIntelOCLBICallConv", val);
+
+    val = LLVMConstInt(int, 6, 0);
+    v_add_constant("LLVMGlobalAliasValueKind", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMExternalLinkage", val);
+
+    val = LLVMConstInt(int, 17, 0);
+    v_add_constant("LLVMCXXFASTTLSCallConv", val);
+
+    val = LLVMConstInt(int, 13, 0);
+    v_add_constant("LLVMFMul", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMLocalUnnamedAddr", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMDLLImportStorageClass", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMDoubleTypeKind", val);
+
+    val = LLVMConstInt(int, 8, 0);
+    v_add_constant("LLVMRealUNO", val);
+
+    val = LLVMConstInt(int, 14, 0);
+    v_add_constant("LLVMUDiv", val);
+
+    val = LLVMConstInt(int, 61, 0);
+    v_add_constant("LLVMCleanupRet", val);
+
+    val = LLVMConstInt(int, 6, 0);
+    v_add_constant("LLVMWeakODRLinkage", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMRealOGT", val);
+
+    val = LLVMConstInt(int, 13, 0);
+    v_add_constant("LLVMVectorTypeKind", val);
+
+    val = LLVMConstInt(int, 50, 0);
+    v_add_constant("LLVMExtractElement", val);
+
+    val = LLVMConstInt(int, 64, 0);
+    v_add_constant("LLVMCleanupPad", val);
+
+    val = LLVMConstInt(int, 21, 0);
+    v_add_constant("LLVMConstantTokenNoneValueKind", val);
+
+    val = LLVMConstInt(int, 93, 0);
+    v_add_constant("LLVMAMDGPUHSCallConv", val);
+
+    val = LLVMConstInt(int, 39, 0);
+    v_add_constant("LLVMIntSGE", val);
+
+    val = LLVMConstInt(int, 84, 0);
+    v_add_constant("LLVMAVRINTRCallConv", val);
+
+    val = LLVMConstInt(int, 30, 0);
+    v_add_constant("LLVMTrunc", val);
+
+    val = LLVMConstInt(int, 23, 0);
+    v_add_constant("LLVMAnd", val);
+
+    val = LLVMConstInt(int, 7, 0);
+    v_add_constant("LLVMRealORD", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMWeakAnyLinkage", val);
+
+    val = LLVMConstInt(int, 54, 0);
+    v_add_constant("LLVMInsertValue", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMAtomicRMWBinOpXchg", val);
+
+    val = LLVMConstInt(int, 8, 0);
+    v_add_constant("LLVMFastCallConv", val);
+
+    val = LLVMConstInt(int, 90, 0);
+    v_add_constant("LLVMAMDGPUCSCallConv", val);
+
+    val = LLVMConstInt(int, 10, 0);
+    v_add_constant("LLVMConstantExprValueKind", val);
+
+    val = LLVMConstInt(int, 51, 0);
+    v_add_constant("LLVMInsertElement", val);
+
+    val = LLVMConstInt(int, 80, 0);
+    v_add_constant("LLVMX86VectorCallCallConv", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMModuleFlagBehaviorOverride", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMFloatTypeKind", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMLinkOnceAnyLinkage", val);
+
+    val = LLVMConstInt(int, 26, 0);
+    v_add_constant("LLVMAlloca", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMRet", val);
+
+    val = LLVMConstInt(int, 11, 0);
+    v_add_constant("LLVMConstantArrayValueKind", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMAtomicOrderingNotAtomic", val);
+
+    val = LLVMConstInt(int, 8, 0);
+    v_add_constant("LLVMAtomicRMWBinOpMin", val);
+
+    val = LLVMConstInt(int, 8, 0);
+    v_add_constant("LLVMAdd", val);
+
+    val = LLVMConstInt(int, 25, 0);
+    v_add_constant("LLVMXor", val);
+
+    val = LLVMConstInt(int, 66, 0);
+    v_add_constant("LLVMARMAPCSCallConv", val);
+
+    val = LLVMConstInt(int, 43, 0);
+    v_add_constant("LLVMFCmp", val);
+
+    val = LLVMConstInt(int, 38, 0);
+    v_add_constant("LLVMFPExt", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMDSNote", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMRealOLE", val);
+
+    val = LLVMConstInt(int, 16, 0);
+    v_add_constant("LLVMLinkerPrivateWeakLinkage", val);
+
+    val = LLVMConstInt(int, 59, 0);
+    v_add_constant("LLVMLandingPad", val);
+
+    val = LLVMConstInt(int, 86, 0);
+    v_add_constant("LLVMAVRBUILTINCallConv", val);
+
+    val = LLVMConstInt(int, 15, 0);
+    v_add_constant("LLVMLinkerPrivateLinkage", val);
+
+    val = LLVMConstInt(int, 24, 0);
+    v_add_constant("LLVMInstructionValueKind", val);
+
+    val = LLVMConstInt(int, 32, 0);
+    v_add_constant("LLVMSExt", val);
+
+    val = LLVMConstInt(int, 35, 0);
+    v_add_constant("LLVMIntUGE", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMRealOLT", val);
+
+    val = LLVMConstInt(int, 76, 0);
+    v_add_constant("LLVMSPIRKERNELCallConv", val);
+
+    val = LLVMConstInt(int, 40, 0);
+    v_add_constant("LLVMIntToPtr", val);
+
+    val = LLVMConstInt(int, 13, 0);
+    v_add_constant("LLVMGhostLinkage", val);
+
+    val = LLVMConstInt(int, 11, 0);
+    v_add_constant("LLVMHiPECallConv", val);
+
+    val = LLVMConstInt(int, 44, 0);
+    v_add_constant("LLVMPHI", val);
+
+    val = LLVMConstInt(int, 10, 0);
+    v_add_constant("LLVMStructTypeKind", val);
+
+    val = LLVMConstInt(int, 88, 0);
+    v_add_constant("LLVMAMDGPUGSCallConv", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMMemoryDefValueKind", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMRealOEQ", val);
+
+    val = LLVMConstInt(int, 7, 0);
+    v_add_constant("LLVMAtomicOrderingSequentiallyConsistent", val);
+
+    val = LLVMConstInt(int, 15, 0);
+    v_add_constant("LLVMSDiv", val);
+
+    val = LLVMConstInt(int, 36, 0);
+    v_add_constant("LLVMSIToFP", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMLinkOnceODRLinkage", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMLandingPadFilter", val);
+
+    val = LLVMConstInt(int, 12, 0);
+    v_add_constant("LLVMWebKitJSCallConv", val);
+
+    val = LLVMConstInt(int, 12, 0);
+    v_add_constant("LLVMExternalWeakLinkage", val);
+
+    val = LLVMConstInt(int, 71, 0);
+    v_add_constant("LLVMPTXKernelCallConv", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMAtomicRMWBinOpNand", val);
+
+    val = LLVMConstInt(int, 7, 0);
+    v_add_constant("LLVMAppendingLinkage", val);
+
+}
+
+//- Known types --------------------------------------------
+{
+    v = LLVMInt64Type();
+    v_add_local_symbol("uint64_t", LLVMOpaqueType, v);
+
+    v_add_local_symbol("uint8_t", LLVMOpaqueType, char);
+
+    v = LLVMDoubleType();
+    v_add_local_symbol("double", LLVMOpaqueType, v);
+}
+
+//- Types --------------------------------------------------
+{
+    v_add_symbol_type("LLVMLinkage", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMLinkage", int);
+
+    v_add_symbol_type("LLVMLandingPadClauseTy", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMLandingPadClauseTy", int);
+
+    v_add_symbol_type("LLVMAtomicRMWBinOp", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMAtomicRMWBinOp", int);
+
+    arg0 = v_array_alloca(LLVMTypeRef, 10);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+    arg4 = v_getelementptr(arg0, 4);
+    arg5 = v_getelementptr(arg0, 5);
+    arg6 = v_getelementptr(arg0, 6);
+    arg7 = v_getelementptr(arg0, 7);
+    arg8 = v_getelementptr(arg0, 8);
+    arg9 = v_getelementptr(arg0, 9);
+    v_store(LLVMDiagnosticInfoRef, arg0);
+    v0 = LLVMPointerType(void, 0);
+    v_store(v0, arg1);
+    v1 = LLVMFunctionType(void, arg0, 2, 0);
+    v2 = LLVMPointerType(v1, 0);
+    v_add_symbol_type("LLVMDiagnosticHandler", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMDiagnosticHandler", v2);
+
+    v_add_symbol_type("LLVMAtomicOrdering", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMAtomicOrdering", int);
+
+    v_add_symbol_type("LLVMDiagnosticSeverity", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMDiagnosticSeverity", int);
+
+    v_add_symbol_type("LLVMUnnamedAddr", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMUnnamedAddr", int);
+
+    v_add_symbol_type("LLVMCallConv", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMCallConv", int);
+
+    v_add_symbol_type("LLVMOpcode", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMOpcode", int);
+
+    v_add_symbol_type("LLVMTypeKind", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMTypeKind", int);
+
+    v_store(LLVMContextRef, arg0);
+    v3 = LLVMPointerType(void, 0);
+    v_store(v3, arg1);
+    v4 = LLVMFunctionType(void, arg0, 2, 0);
+    v5 = LLVMPointerType(v4, 0);
+    v_add_symbol_type("LLVMYieldCallback", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMYieldCallback", v5);
+
+    v_add_symbol_type("LLVMDLLStorageClass", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMDLLStorageClass", int);
+
+    v_add_symbol_type("LLVMThreadLocalMode", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMThreadLocalMode", int);
+
+    v_add_symbol_type("LLVMModuleFlagBehavior", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMModuleFlagBehavior", int);
+
+    v_add_symbol_type("LLVMIntPredicate", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMIntPredicate", int);
+
+    v_add_symbol_type("LLVMValueKind", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMValueKind", int);
+
+    v_add_symbol_type("LLVMInlineAsmDialect", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMInlineAsmDialect", int);
+
+    v_add_symbol_type("LLVMRealPredicate", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMRealPredicate", int);
+
+    v_add_symbol_type("LLVMAttributeIndex", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMAttributeIndex", int);
+
+    v_add_symbol_type("LLVMVisibility", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMVisibility", int);
+
+}
+
+//- Functions ----------------------------------------------
+{
+    arg0 = v_array_alloca(LLVMTypeRef, 10);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+    arg4 = v_getelementptr(arg0, 4);
+    arg5 = v_getelementptr(arg0, 5);
+    arg6 = v_getelementptr(arg0, 6);
+    arg7 = v_getelementptr(arg0, 7);
+    arg8 = v_getelementptr(arg0, 8);
+    arg9 = v_getelementptr(arg0, 9);
+    v_store(LLVMContextRef, arg0);
+    v0 = LLVMFunctionType(LLVMBuilderRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMCreateBuilderInContext", v0);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v1 = LLVMPointerType(char, 0);
+    v_store(v1, arg2);
+    v2 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildNSWNeg", v2);
+
+    v_store(LLVMValueRef, arg0);
+    v3 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMCountIncoming", v3);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(int, arg1);
+    v4 = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMVectorType", v4);
+
+    v5 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMInt1Type", v5);
+
+    v_store(LLVMTypeRef, arg0);
+    v6 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetReturnType", v6);
+
+    v_store(LLVMValueRef, arg0);
+    v7 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsALoadInst", v7);
+
+    v_store(LLVMValueRef, arg0);
+    v8 = LLVMFunctionType(LLVMLinkage, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLinkage", v8);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v9 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetMetadata", v9);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v10 = LLVMPointerType(char, 0);
+    v_store(v10, arg3);
+    v11 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildSDiv", v11);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMBasicBlockRef, arg2);
+    v12 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildCleanupRet", v12);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v13 = LLVMPointerType(char, 0);
+    v_store(v13, arg3);
+    v14 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFPExt", v14);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v15 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v15, arg3);
+    v_store(int, arg4);
+    v16 = LLVMPointerType(char, 0);
+    v_store(v16, arg5);
+    v17 = LLVMFunctionType(LLVMValueRef, arg0, 6, 0);
+    v_add_symbol_type("LLVMBuildCall2", v17);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMBasicBlockRef, arg2);
+    v_store(int, arg3);
+    v18 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildSwitch", v18);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v19 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetInstructionCallConv", v19);
+
+    v_store(LLVMModuleRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v20 = LLVMPointerType(char, 0);
+    v_store(v20, arg2);
+    v_store(int, arg3);
+    v21 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMAddGlobalInAddressSpace", v21);
+
+    v22 = LLVMPointerType(char, 0);
+    v_store(LLVMModuleRef, arg0);
+    v23 = LLVMFunctionType(v22, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTarget", v23);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v24 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstPtrToInt", v24);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v25 = LLVMPointerType(char, 0);
+    v_store(v25, arg3);
+    v26 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildTrunc", v26);
+
+    v_store(LLVMValueRef, arg0);
+    v27 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAUser", v27);
+
+    v_store(LLVMValueRef, arg0);
+    v28 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAResumeInst", v28);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v29 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstTrunc", v29);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v30 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v30, arg3);
+    v_store(int, arg4);
+    v31 = LLVMPointerType(char, 0);
+    v_store(v31, arg5);
+    v32 = LLVMFunctionType(LLVMValueRef, arg0, 6, 0);
+    v_add_symbol_type("LLVMBuildInBoundsGEP2", v32);
+
+    v33 = LLVMPointerType(char, 0);
+    v_store(v33, arg0);
+    v_store(int, arg1);
+    v_store(LLVMBool, arg2);
+    v34 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstString", v34);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v35 = LLVMPointerType(char, 0);
+    v_store(v35, arg3);
+    v36 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildUDiv", v36);
+
+    v_store(LLVMIntPredicate, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v37 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstICmp", v37);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v38 = LLVMPointerType(char, 0);
+    v_store(v38, arg3);
+    v39 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildLoad2", v39);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v_store(int, arg2);
+    v40 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetInstrParamAlignment", v40);
+
+    v_store(LLVMValueRef, arg0);
+    v41 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAMemCpyInst", v41);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v42 = LLVMPointerType(char, 0);
+    v_store(v42, arg2);
+    v43 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildAlloca", v43);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v44 = LLVMPointerType(char, 0);
+    v_store(v44, arg3);
+    v45 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFMul", v45);
+
+    v_store(LLVMValueRef, arg0);
+    v46 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetVolatile", v46);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v47 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstNUWMul", v47);
+
+    v_store(LLVMValueRef, arg0);
+    v48 = LLVMPointerType(LLVMBasicBlockRef, 0);
+    v_store(v48, arg1);
+    v49 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetHandlers", v49);
+
+    v_store(LLVMValueRef, arg0);
+    v50 = LLVMFunctionType(LLVMModuleRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetGlobalParent", v50);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v51 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMMoveBasicBlockBefore", v51);
+
+    v_store(LLVMRealPredicate, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v52 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstFCmp", v52);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMVisibility, arg1);
+    v53 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetVisibility", v53);
+
+    v_store(LLVMValueRef, arg0);
+    v54 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsThreadLocal", v54);
+
+    v55 = LLVMPointerType(char, 0);
+    v_store(LLVMAttributeRef, arg0);
+    v56 = LLVMPointerType(int, 0);
+    v_store(v56, arg1);
+    v57 = LLVMFunctionType(v55, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetStringAttributeValue", v57);
+
+    v58 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMX86FP80Type", v58);
+
+    v_store(LLVMValueRef, arg0);
+    v59 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAUndefValue", v59);
+
+    v_store(LLVMValueRef, arg0);
+    v60 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAInstruction", v60);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v61 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFPTrunc", v61);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMOpcode, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v62 = LLVMPointerType(char, 0);
+    v_store(v62, arg4);
+    v63 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildBinOp", v63);
+
+    v_store(LLVMModuleRef, arg0);
+    v64 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstFunction", v64);
+
+    v_store(LLVMValueRef, arg0);
+    v65 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetInstructionParent", v65);
+
+    v66 = LLVMPointerType(LLVMValueMetadataEntry, 0);
+    v_store(LLVMValueRef, arg0);
+    v67 = LLVMPointerType(size_t, 0);
+    v_store(v67, arg1);
+    v68 = LLVMFunctionType(v66, arg0, 2, 0);
+    v_add_symbol_type("LLVMGlobalCopyAllMetadata", v68);
+
+    v_store(LLVMTypeRef, arg0);
+    v69 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMAlignOf", v69);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v70 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetExternallyInitialized", v70);
+
+    v_store(LLVMValueRef, arg0);
+    v71 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsUndef", v71);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v72 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMMoveBasicBlockAfter", v72);
+
+    v_store(LLVMContextRef, arg0);
+    v73 = LLVMPointerType(char, 0);
+    v_store(v73, arg1);
+    v_store(int, arg2);
+    v74 = LLVMFunctionType(int, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetMDKindIDInContext", v74);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v75 = LLVMPointerType(char, 0);
+    v_store(v75, arg3);
+    v76 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildSExtOrBitCast", v76);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v77 = LLVMPointerType(char, 0);
+    v_store(v77, arg2);
+    v_store(int, arg3);
+    v78 = LLVMFunctionType(void, arg0, 4, 0);
+    v_add_symbol_type("LLVMRemoveStringAttributeAtIndex", v78);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v79 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetCurrentDebugLocation", v79);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v80 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetPersonalityFn", v80);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v81 = LLVMPointerType(char, 0);
+    v_store(v81, arg3);
+    v82 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildNSWAdd", v82);
+
+    v_store(LLVMModuleRef, arg0);
+    v83 = LLVMPointerType(char, 0);
+    v_store(v83, arg1);
+    v_store(size_t, arg2);
+    v84 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetModuleInlineAsm2", v84);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v85 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFMul", v85);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v86 = LLVMPointerType(char, 0);
+    v_store(v86, arg3);
+    v87 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildSIToFP", v87);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v_store(LLVMBool, arg3);
+    v88 = LLVMPointerType(char, 0);
+    v_store(v88, arg4);
+    v89 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildIntCast2", v89);
+
+    v_store(LLVMValueRef, arg0);
+    v90 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAGlobalValue", v90);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMBasicBlockRef, arg2);
+    v91 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMAddCase", v91);
+
+    v_store(LLVMTypeRef, arg0);
+    v92 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsOpaqueStruct", v92);
+
+    v_store(LLVMContextRef, arg0);
+    v93 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMContextDispose", v93);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(int, arg1);
+    v94 = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMPointerType", v94);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v95 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstZExtOrBitCast", v95);
+
+    v_store(LLVMValueRef, arg0);
+    v96 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsASIToFPInst", v96);
+
+    v_store(LLVMDiagnosticInfoRef, arg0);
+    v97 = LLVMFunctionType(LLVMDiagnosticSeverity, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetDiagInfoSeverity", v97);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(int, arg3);
+    v98 = LLVMPointerType(char, 0);
+    v_store(v98, arg4);
+    v99 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildStructGEP2", v99);
+
+    v_store(LLVMTypeRef, arg0);
+    v100 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v100, arg1);
+    v101 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetSubtypes", v101);
+
+    v_store(LLVMValueRef, arg0);
+    v102 = LLVMPointerType(char, 0);
+    v_store(v102, arg1);
+    v103 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetGC", v103);
+
+    v_store(LLVMTypeRef, arg0);
+    v104 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetArrayLength", v104);
+
+    v_store(LLVMValueRef, arg0);
+    v105 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMTypeOf", v105);
+
+    v_store(LLVMTypeRef, arg0);
+    v106 = LLVMFunctionType(LLVMContextRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTypeContext", v106);
+
+    v107 = LLVMPointerType(int, 0);
+    v_store(LLVMValueRef, arg0);
+    v108 = LLVMFunctionType(v107, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetIndices", v108);
+
+    v_store(LLVMContextRef, arg0);
+    v109 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMMetadataTypeInContext", v109);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v_store(LLVMMetadataRef, arg2);
+    v110 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMGlobalSetMetadata", v110);
+
+    v_store(LLVMModuleRef, arg0);
+    v111 = LLVMPointerType(char, 0);
+    v_store(v111, arg1);
+    v_store(LLVMValueRef, arg2);
+    v112 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMAddNamedMetadataOperand", v112);
+
+    v_store(LLVMModuleRef, arg0);
+    v113 = LLVMPointerType(char, 0);
+    v_store(v113, arg1);
+    v114 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetModuleInlineAsm", v114);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v115 = LLVMPointerType(char, 0);
+    v_store(v115, arg3);
+    v116 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildAShr", v116);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v117 = LLVMPointerType(char, 0);
+    v_store(v117, arg3);
+    v118 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildOr", v118);
+
+    v_store(LLVMValueRef, arg0);
+    v119 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v119, arg1);
+    v120 = LLVMPointerType(LLVMBasicBlockRef, 0);
+    v_store(v120, arg2);
+    v_store(int, arg3);
+    v121 = LLVMFunctionType(void, arg0, 4, 0);
+    v_add_symbol_type("LLVMAddIncoming", v121);
+
+    v_store(LLVMTypeRef, arg0);
+    v122 = LLVMPointerType(char, 0);
+    v_store(v122, arg1);
+    v_store(int, arg2);
+    v_store(uint8_t, arg3);
+    v123 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMConstIntOfStringAndSize", v123);
+
+    v_store(LLVMModuleRef, arg0);
+    v124 = LLVMPointerType(char, 0);
+    v_store(v124, arg1);
+    v_store(size_t, arg2);
+    v125 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetSourceFileName", v125);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(int, arg1);
+    v126 = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMStructGetTypeAtIndex", v126);
+
+    v_store(LLVMValueRef, arg0);
+    v127 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDeleteGlobal", v127);
+
+    v_store(LLVMValueRef, arg0);
+    v128 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v128, arg1);
+    v_store(int, arg2);
+    v129 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstGEP", v129);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v130 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMPositionBuilder", v130);
+
+    v_store(LLVMModuleRef, arg0);
+    v131 = LLVMPointerType(char, 0);
+    v_store(v131, arg1);
+    v132 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetNamedFunction", v132);
+
+    v133 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v134 = LLVMFunctionType(v133, arg0, 1, 0);
+    v_add_symbol_type("LLVMPrintValueToString", v134);
+
+    v135 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMDoubleType", v135);
+
+    v_store(LLVMModuleRef, arg0);
+    v_store(LLVMModuleFlagBehavior, arg1);
+    v136 = LLVMPointerType(char, 0);
+    v_store(v136, arg2);
+    v_store(size_t, arg3);
+    v_store(LLVMMetadataRef, arg4);
+    v137 = LLVMFunctionType(void, arg0, 5, 0);
+    v_add_symbol_type("LLVMAddModuleFlag", v137);
+
+    v_store(LLVMModuleRef, arg0);
+    v138 = LLVMFunctionType(LLVMModuleRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMCloneModule", v138);
+
+    v_store(LLVMValueRef, arg0);
+    v139 = LLVMPointerType(char, 0);
+    v_store(v139, arg1);
+    v140 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMAppendBasicBlock", v140);
+
+    v_store(LLVMValueRef, arg0);
+    v141 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstNUWNeg", v141);
+
+    v_store(LLVMValueRef, arg0);
+    v142 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAMemSetInst", v142);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMThreadLocalMode, arg1);
+    v143 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetThreadLocalMode", v143);
+
+    v_store(LLVMValueRef, arg0);
+    v144 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetIntrinsicID", v144);
+
+    v_store(LLVMValueRef, arg0);
+    v145 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsConditional", v145);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v146 = LLVMPointerType(char, 0);
+    v_store(v146, arg4);
+    v147 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildInsertElement", v147);
+
+    v_store(LLVMModuleRef, arg0);
+    v148 = LLVMPointerType(char, 0);
+    v_store(v148, arg1);
+    v_store(size_t, arg2);
+    v149 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetNamedGlobalAlias", v149);
+
+    v_store(LLVMBuilderRef, arg0);
+    v150 = LLVMPointerType(char, 0);
+    v_store(v150, arg1);
+    v151 = LLVMPointerType(char, 0);
+    v_store(v151, arg2);
+    v152 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildGlobalString", v152);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v153 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFPToUI", v153);
+
+    v_store(LLVMValueRef, arg0);
+    v154 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantVector", v154);
+
+    v_store(LLVMValueRef, arg0);
+    v155 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetUnwindDest", v155);
+
+    v156 = LLVMPointerType(char, 0);
+    v_store(v156, arg0);
+    v_store(LLVMContextRef, arg1);
+    v157 = LLVMFunctionType(LLVMModuleRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMModuleCreateWithNameInContext", v157);
+
+    v158 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v158, arg0);
+    v_store(int, arg1);
+    v159 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstVector", v159);
+
+    v160 = LLVMFunctionType(LLVMPassManagerRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMCreatePassManager", v160);
+
+    v_store(LLVMValueRef, arg0);
+    v161 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAIntrinsicInst", v161);
+
+    v_store(LLVMValueRef, arg0);
+    v162 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMValueIsBasicBlock", v162);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v163 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstExactSDiv", v163);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v164 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetGlobalIFuncResolver", v164);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v165 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMBuildRet", v165);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v166 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetSuccessor", v166);
+
+    v_store(LLVMValueRef, arg0);
+    v167 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsABinaryOperator", v167);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v168 = LLVMPointerType(char, 0);
+    v_store(v168, arg3);
+    v169 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildArrayAlloca", v169);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMDLLStorageClass, arg1);
+    v170 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetDLLStorageClass", v170);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v_store(LLVMValueRef, arg2);
+    v171 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetMetadata", v171);
+
+    v_store(LLVMTypeRef, arg0);
+    v172 = LLVMPointerType(char, 0);
+    v_store(v172, arg1);
+    v_store(uint8_t, arg2);
+    v173 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstIntOfString", v173);
+
+    v_store(LLVMContextRef, arg0);
+    v174 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMInt64TypeInContext", v174);
+
+    v175 = LLVMPointerType(char, 0);
+    v_store(v175, arg0);
+    v_store(int, arg1);
+    v176 = LLVMFunctionType(int, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetMDKindID", v176);
+
+    v_store(LLVMValueRef, arg0);
+    v177 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantArray", v177);
+
+    v178 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v179 = LLVMPointerType(int, 0);
+    v_store(v179, arg1);
+    v180 = LLVMFunctionType(v178, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetDebugLocFilename", v180);
+
+    v_store(LLVMValueRef, arg0);
+    v181 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAShuffleVectorInst", v181);
+
+    v_store(LLVMValueRef, arg0);
+    v182 = LLVMPointerType(int, 0);
+    v_store(v182, arg1);
+    v_store(int, arg2);
+    v183 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstExtractValue", v183);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v184 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMRemoveBasicBlockFromParent", v184);
+
+    v_store(LLVMValueRef, arg0);
+    v185 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsABranchInst", v185);
+
+    v186 = LLVMPointerType(char, 0);
+    v_store(v186, arg0);
+    v187 = LLVMFunctionType(LLVMModuleRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMModuleCreateWithName", v187);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v188 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v188, arg3);
+    v_store(int, arg4);
+    v_store(LLVMBasicBlockRef, arg5);
+    v_store(LLVMBasicBlockRef, arg6);
+    v189 = LLVMPointerType(char, 0);
+    v_store(v189, arg7);
+    v190 = LLVMFunctionType(LLVMValueRef, arg0, 8, 0);
+    v_add_symbol_type("LLVMBuildInvoke2", v190);
+
+    v_store(LLVMValueRef, arg0);
+    v191 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v191, arg1);
+    v_store(int, arg2);
+    v192 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstInBoundsGEP", v192);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v193 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstAddrSpaceCast", v193);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v194 = LLVMPointerType(char, 0);
+    v_store(v194, arg3);
+    v195 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildIntToPtr", v195);
+
+    v_store(LLVMBuilderRef, arg0);
+    v196 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeBuilder", v196);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v197 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetNormalDest", v197);
+
+    v_store(LLVMTypeRef, arg0);
+    v198 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetElementType", v198);
+
+    v199 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v200 = LLVMPointerType(size_t, 0);
+    v_store(v200, arg1);
+    v201 = LLVMFunctionType(v199, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetAsString", v201);
+
+    v_store(LLVMContextRef, arg0);
+    v202 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v202, arg1);
+    v_store(int, arg2);
+    v_store(LLVMBool, arg3);
+    v203 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMConstStructInContext", v203);
+
+    v204 = LLVMPointerType(char, 0);
+    v_store(LLVMModuleRef, arg0);
+    v205 = LLVMPointerType(size_t, 0);
+    v_store(v205, arg1);
+    v206 = LLVMFunctionType(v204, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetModuleInlineAsm", v206);
+
+    v_store(LLVMModuleRef, arg0);
+    v207 = LLVMPointerType(char, 0);
+    v_store(v207, arg1);
+    v208 = LLVMPointerType(char, 0);
+    v209 = LLVMPointerType(v208, 0);
+    v_store(v209, arg2);
+    v210 = LLVMFunctionType(LLVMBool, arg0, 3, 0);
+    v_add_symbol_type("LLVMPrintModuleToFile", v210);
+
+    v_store(LLVMValueRef, arg0);
+    v211 = LLVMFunctionType(LLVMAtomicOrdering, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetCmpXchgFailureOrdering", v211);
+
+    v212 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMInt128Type", v212);
+
+    v_store(LLVMModuleRef, arg0);
+    v213 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstGlobalAlias", v213);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v214 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstURem", v214);
+
+    v_store(LLVMValueRef, arg0);
+    v215 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetCalledFunctionType", v215);
+
+    v_store(LLVMTypeRef, arg0);
+    v216 = LLVMFunctionType(LLVMTypeKind, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTypeKind", v216);
+
+    v_store(LLVMValueRef, arg0);
+    v217 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMValueAsBasicBlock", v217);
+
+    v_store(LLVMValueRef, arg0);
+    v218 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantDataVector", v218);
+
+    v_store(LLVMValueRef, arg0);
+    v219 = LLVMFunctionType(LLVMIntPredicate, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetICmpPredicate", v219);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v220 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFPCast", v220);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v221 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetGlobalConstant", v221);
+
+    v_store(LLVMValueRef, arg0);
+    v222 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPreviousFunction", v222);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(int, arg2);
+    v_store(LLVMValueRef, arg3);
+    v_store(int, arg4);
+    v_store(LLVMValueRef, arg5);
+    v223 = LLVMFunctionType(LLVMValueRef, arg0, 6, 0);
+    v_add_symbol_type("LLVMBuildMemCpy", v223);
+
+    v_store(LLVMValueRef, arg0);
+    v224 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAIntToPtrInst", v224);
+
+    v_store(LLVMValueRef, arg0);
+    v225 = LLVMPointerType(char, 0);
+    v_store(v225, arg1);
+    v226 = LLVMPointerType(char, 0);
+    v_store(v226, arg2);
+    v227 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMAddTargetDependentFunctionAttr", v227);
+
+    v228 = LLVMPointerType(char, 0);
+    v_store(v228, arg0);
+    v229 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeMessage", v229);
+
+    v_store(LLVMBuilderRef, arg0);
+    v230 = LLVMFunctionType(LLVMMetadataRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetCurrentDebugLocation2", v230);
+
+    v231 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v232 = LLVMPointerType(int, 0);
+    v_store(v232, arg1);
+    v233 = LLVMFunctionType(v231, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetMDString", v233);
+
+    v_store(LLVMValueRef, arg0);
+    v234 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAMDNode", v234);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v235 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstLShr", v235);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v236 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstNSWAdd", v236);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v237 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMPositionBuilderBefore", v237);
+
+    v_store(LLVMTypeRef, arg0);
+    v238 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v238, arg1);
+    v_store(int, arg2);
+    v239 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstArray", v239);
+
+    v_store(LLVMValueRef, arg0);
+    v240 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNumArgOperands", v240);
+
+    v241 = LLVMFunctionType(LLVMContextRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetGlobalContext", v241);
+
+    v_store(LLVMModuleRef, arg0);
+    v242 = LLVMPointerType(char, 0);
+    v_store(v242, arg1);
+    v_store(size_t, arg2);
+    v243 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetNamedGlobalIFunc", v243);
+
+    v_store(LLVMValueRef, arg0);
+    v244 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantInt", v244);
+
+    v_store(LLVMValueRef, arg0);
+    v245 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v245, arg1);
+    v246 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetParams", v246);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v247 = LLVMPointerType(char, 0);
+    v_store(v247, arg3);
+    v248 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildNUWMul", v248);
+
+    v249 = LLVMPointerType(void, 0);
+    v_store(LLVMContextRef, arg0);
+    v250 = LLVMFunctionType(v249, arg0, 1, 0);
+    v_add_symbol_type("LLVMContextGetDiagnosticContext", v250);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v251 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMAddHandler", v251);
+
+    v_store(LLVMValueRef, arg0);
+    v252 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetAllocatedType", v252);
+
+    v_store(LLVMContextRef, arg0);
+    v253 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v253, arg1);
+    v_store(int, arg2);
+    v_store(LLVMBool, arg3);
+    v254 = LLVMFunctionType(LLVMTypeRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMStructTypeInContext", v254);
+
+    v_store(LLVMValueRef, arg0);
+    v255 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsACatchPadInst", v255);
+
+    v_store(LLVMValueRef, arg0);
+    v256 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstParam", v256);
+
+    v_store(LLVMValueRef, arg0);
+    v257 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLastBasicBlock", v257);
+
+    v_store(LLVMValueRef, arg0);
+    v258 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAFPToSIInst", v258);
+
+    v_store(LLVMValueRef, arg0);
+    v259 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsABitCastInst", v259);
+
+    v_store(LLVMValueRef, arg0);
+    v260 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsCleanup", v260);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v261 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetParamAlignment", v261);
+
+    v_store(LLVMValueRef, arg0);
+    v262 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAAddrSpaceCastInst", v262);
+
+    v_store(LLVMValueRef, arg0);
+    v263 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsACmpInst", v263);
+
+    v_store(LLVMValueRef, arg0);
+    v264 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetDebugLocColumn", v264);
+
+    v_store(LLVMModuleRef, arg0);
+    v265 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLastGlobalAlias", v265);
+
+    v_store(LLVMModuleRef, arg0);
+    v266 = LLVMPointerType(char, 0);
+    v_store(v266, arg1);
+    v267 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetTarget", v267);
+
+    v_store(LLVMModuleRef, arg0);
+    v268 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLastGlobal", v268);
+
+    v_store(LLVMValueRef, arg0);
+    v269 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNumIndices", v269);
+
+    v_store(LLVMValueRef, arg0);
+    v270 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAGlobalIFunc", v270);
+
+    v_store(LLVMValueRef, arg0);
+    v271 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantStruct", v271);
+
+    v_store(LLVMValueRef, arg0);
+    v272 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNormalDest", v272);
+
+    v_store(LLVMValueRef, arg0);
+    v273 = LLVMPointerType(char, 0);
+    v_store(v273, arg1);
+    v_store(size_t, arg2);
+    v274 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetValueName2", v274);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v275 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstSExt", v275);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v276 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMInsertExistingBasicBlockAfterInsertBlock", v276);
+
+    v277 = LLVMPointerType(LLVMModuleFlagEntry, 0);
+    v_store(v277, arg0);
+    v278 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeModuleFlagsMetadata", v278);
+
+    v_store(LLVMContextRef, arg0);
+    v279 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMInt8TypeInContext", v279);
+
+    v_store(LLVMValueRef, arg0);
+    v280 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMInstructionRemoveFromParent", v280);
+
+    v281 = LLVMPointerType(char, 0);
+    v_store(v281, arg0);
+    v_store(int, arg1);
+    v282 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMMDString", v282);
+
+    v_store(LLVMModuleRef, arg0);
+    v283 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDumpModule", v283);
+
+    v_store(LLVMValueRef, arg0);
+    v284 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetAlignment", v284);
+
+    v_store(LLVMValueRef, arg0);
+    v285 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantPointerNull", v285);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(int, arg2);
+    v286 = LLVMPointerType(char, 0);
+    v_store(v286, arg3);
+    v287 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildStructGEP", v287);
+
+    v_store(LLVMValueRef, arg0);
+    v288 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAMDString", v288);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v_store(LLVMValueRef, arg2);
+    v289 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetOperand", v289);
+
+    v_store(LLVMValueRef, arg0);
+    v290 = LLVMPointerType(char, 0);
+    v_store(v290, arg1);
+    v291 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetSection", v291);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v292 = LLVMPointerType(char, 0);
+    v_store(v292, arg3);
+    v293 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildMul", v293);
+
+    v_store(LLVMContextRef, arg0);
+    v294 = LLVMPointerType(char, 0);
+    v_store(v294, arg1);
+    v295 = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMStructCreateNamed", v295);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMMetadataRef, arg1);
+    v296 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMBuilderSetDefaultFPMathTag", v296);
+
+    v_store(LLVMTypeRef, arg0);
+    v297 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPointerAddressSpace", v297);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v_store(int, arg2);
+    v298 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMRemoveCallSiteEnumAttribute", v298);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAtomicOrdering, arg1);
+    v299 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetOrdering", v299);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v300 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFPExt", v300);
+
+    v_store(LLVMValueRef, arg0);
+    v301 = LLVMFunctionType(LLVMOpcode, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetConstOpcode", v301);
+
+    v_store(LLVMValueRef, arg0);
+    v302 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMCountBasicBlocks", v302);
+
+    v_store(LLVMValueRef, arg0);
+    v303 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsATruncInst", v303);
+
+    v_store(LLVMValueRef, arg0);
+    v304 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAInlineAsm", v304);
+
+    v_store(LLVMValueRef, arg0);
+    v305 = LLVMFunctionType(LLVMRealPredicate, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFCmpPredicate", v305);
+
+    v_store(LLVMValueRef, arg0);
+    v306 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantDataSequential", v306);
+
+    v_store(LLVMPassManagerRef, arg0);
+    v307 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMInitializeFunctionPassManager", v307);
+
+    v_store(LLVMValueRef, arg0);
+    v308 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAUnreachableInst", v308);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v309 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetIncomingBlock", v309);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v_store(LLVMAttributeRef, arg2);
+    v310 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMAddAttributeAtIndex", v310);
+
+    v_store(LLVMValueRef, arg0);
+    v311 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAGlobalObject", v311);
+
+    v_store(LLVMModuleRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v312 = LLVMPointerType(char, 0);
+    v_store(v312, arg3);
+    v313 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMAddAlias", v313);
+
+    v_store(LLVMModuleRef, arg0);
+    v_store(int, arg1);
+    v314 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v314, arg2);
+    v_store(size_t, arg3);
+    v315 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMGetIntrinsicDeclaration", v315);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v316 = LLVMPointerType(char, 0);
+    v_store(v316, arg3);
+    v317 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildAnd", v317);
+
+    v318 = LLVMPointerType(char, 0);
+    v_store(v318, arg0);
+    v_store(size_t, arg1);
+    v319 = LLVMPointerType(char, 0);
+    v_store(v319, arg2);
+    v320 = LLVMFunctionType(LLVMMemoryBufferRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMCreateMemoryBufferWithMemoryRangeCopy", v320);
+
+    v_store(LLVMPassManagerRef, arg0);
+    v321 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMFinalizeFunctionPassManager", v321);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v322 = LLVMPointerType(char, 0);
+    v_store(v322, arg3);
+    v323 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildSub", v323);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v324 = LLVMPointerType(char, 0);
+    v_store(v324, arg2);
+    v_store(int, arg3);
+    v325 = LLVMFunctionType(void, arg0, 4, 0);
+    v_add_symbol_type("LLVMRemoveCallSiteStringAttribute", v325);
+
+    v_store(LLVMBuilderRef, arg0);
+    v326 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetCurrentDebugLocation", v326);
+
+    v_store(LLVMValueRef, arg0);
+    v327 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsADbgVariableIntrinsic", v327);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v328 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v328, arg2);
+    v_store(int, arg3);
+    v329 = LLVMPointerType(char, 0);
+    v_store(v329, arg4);
+    v330 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildGEP", v330);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(int, arg1);
+    v331 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v331, arg2);
+    v_store(size_t, arg3);
+    v332 = LLVMFunctionType(LLVMTypeRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMIntrinsicGetType", v332);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v333 = LLVMPointerType(char, 0);
+    v_store(v333, arg3);
+    v334 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildLShr", v334);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v335 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetClause", v335);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v336 = LLVMPointerType(char, 0);
+    v_store(v336, arg1);
+    v337 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMInsertBasicBlock", v337);
+
+    v_store(LLVMTypeRef, arg0);
+    v338 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsPackedStruct", v338);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v339 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstAnd", v339);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v340 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstSDiv", v340);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v341 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstPointerCast", v341);
+
+    v_store(LLVMValueRef, arg0);
+    v342 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDeleteFunction", v342);
+
+    v_store(LLVMValueRef, arg0);
+    v343 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextGlobalIFunc", v343);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v344 = LLVMPointerType(char, 0);
+    v_store(v344, arg3);
+    v345 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildTruncOrBitCast", v345);
+
+    v_store(LLVMValueRef, arg0);
+    v346 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetCondition", v346);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v_store(LLVMBasicBlockRef, arg2);
+    v347 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetSuccessor", v347);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v348 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetAlignment", v348);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAtomicOrdering, arg1);
+    v349 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetCmpXchgFailureOrdering", v349);
+
+    v_store(LLVMContextRef, arg0);
+    v350 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMX86MMXTypeInContext", v350);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMLinkage, arg1);
+    v351 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetLinkage", v351);
+
+    v_store(LLVMUseRef, arg0);
+    v352 = LLVMFunctionType(LLVMUseRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextUse", v352);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v353 = LLVMPointerType(char, 0);
+    v_store(v353, arg3);
+    v354 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildZExtOrBitCast", v354);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v355 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildStore", v355);
+
+    v_store(LLVMContextRef, arg0);
+    v356 = LLVMPointerType(char, 0);
+    v_store(v356, arg1);
+    v_store(size_t, arg2);
+    v357 = LLVMFunctionType(LLVMMetadataRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMMDStringInContext2", v357);
+
+    v358 = LLVMPointerType(char, 0);
+    v_store(LLVMModuleRef, arg0);
+    v359 = LLVMPointerType(size_t, 0);
+    v_store(v359, arg1);
+    v360 = LLVMFunctionType(v358, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetModuleIdentifier", v360);
+
+    v_store(LLVMValueRef, arg0);
+    v361 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsABlockAddress", v361);
+
+    v_store(LLVMBuilderRef, arg0);
+    v362 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMBuildRetVoid", v362);
+
+    v363 = LLVMPointerType(LLVMValueMetadataEntry, 0);
+    v_store(LLVMValueRef, arg0);
+    v364 = LLVMPointerType(size_t, 0);
+    v_store(v364, arg1);
+    v365 = LLVMFunctionType(v363, arg0, 2, 0);
+    v_add_symbol_type("LLVMInstructionGetAllMetadataOtherThanDebugLoc", v365);
+
+    v_store(LLVMValueRef, arg0);
+    v366 = LLVMFunctionType(LLVMVisibility, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetVisibility", v366);
+
+    v_store(LLVMContextRef, arg0);
+    v367 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMInt32TypeInContext", v367);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v368 = LLVMPointerType(char, 0);
+    v_store(v368, arg2);
+    v369 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildPhi", v369);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v370 = LLVMFunctionType(LLVMUseRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetOperandUse", v370);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v371 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetCondition", v371);
+
+    v_store(LLVMValueRef, arg0);
+    v372 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAInsertElementInst", v372);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v373 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstSExtOrBitCast", v373);
+
+    v_store(LLVMValueRef, arg0);
+    v374 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAGlobalVariable", v374);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(int, arg1);
+    v375 = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMIntTypeInContext", v375);
+
+    v376 = LLVMPointerType(char, 0);
+    v_store(LLVMModuleRef, arg0);
+    v377 = LLVMFunctionType(v376, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetDataLayout", v377);
+
+    v_store(LLVMModuleRef, arg0);
+    v378 = LLVMFunctionType(LLVMModuleProviderRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMCreateModuleProviderForExistingModule", v378);
+
+    v_store(LLVMTypeRef, arg0);
+    v379 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v379, arg1);
+    v_store(int, arg2);
+    v380 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstNamedStruct", v380);
+
+    v_store(LLVMModuleProviderRef, arg0);
+    v381 = LLVMFunctionType(LLVMPassManagerRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMCreateFunctionPassManager", v381);
+
+    v_store(LLVMModuleRef, arg0);
+    v382 = LLVMPointerType(char, 0);
+    v_store(v382, arg1);
+    v_store(size_t, arg2);
+    v383 = LLVMFunctionType(LLVMMetadataRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetModuleFlag", v383);
+
+    v_store(LLVMUseRef, arg0);
+    v384 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetUsedValue", v384);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v385 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstTruncOrBitCast", v385);
+
+    v_store(LLVMValueRef, arg0);
+    v386 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetParamParent", v386);
+
+    v_store(LLVMValueRef, arg0);
+    v387 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAFPExtInst", v387);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v388 = LLVMFunctionType(int, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetAttributeCountAtIndex", v388);
+
+    v_store(LLVMValueRef, arg0);
+    v389 = LLVMFunctionType(LLVMThreadLocalMode, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetThreadLocalMode", v389);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v390 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMBasicBlockAsValue", v390);
+
+    v_store(LLVMContextRef, arg0);
+    v391 = LLVMPointerType(char, 0);
+    v_store(v391, arg1);
+    v_store(int, arg2);
+    v392 = LLVMPointerType(char, 0);
+    v_store(v392, arg3);
+    v_store(int, arg4);
+    v393 = LLVMFunctionType(LLVMAttributeRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMCreateStringAttribute", v393);
+
+    v_store(LLVMContextRef, arg0);
+    v394 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMTokenTypeInContext", v394);
+
+    v_store(LLVMValueRef, arg0);
+    v395 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetInitializer", v395);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v396 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstSub", v396);
+
+    v_store(LLVMModuleRef, arg0);
+    v397 = LLVMPointerType(char, 0);
+    v_store(v397, arg1);
+    v398 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetNamedGlobal", v398);
+
+    v_store(LLVMValueRef, arg0);
+    v399 = LLVMFunctionType(LLVMDLLStorageClass, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetDLLStorageClass", v399);
+
+    v_store(LLVMValueRef, arg0);
+    v400 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAMemMoveInst", v400);
+
+    v_store(LLVMModuleRef, arg0);
+    v401 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstGlobal", v401);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(int, arg2);
+    v_store(LLVMValueRef, arg3);
+    v_store(int, arg4);
+    v_store(LLVMValueRef, arg5);
+    v402 = LLVMFunctionType(LLVMValueRef, arg0, 6, 0);
+    v_add_symbol_type("LLVMBuildMemMove", v402);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAtomicOrdering, arg1);
+    v403 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetCmpXchgSuccessOrdering", v403);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v404 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLastInstruction", v404);
+
+    v405 = LLVMPointerType(char, 0);
+    v_store(LLVMTypeRef, arg0);
+    v406 = LLVMFunctionType(v405, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetStructName", v406);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v407 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstUDiv", v407);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMBasicBlockRef, arg2);
+    v_store(LLVMBasicBlockRef, arg3);
+    v408 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildCondBr", v408);
+
+    v_store(LLVMValueRef, arg0);
+    v409 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAPHINode", v409);
+
+    v_store(LLVMUseRef, arg0);
+    v410 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetUser", v410);
+
+    v_store(LLVMValueRef, arg0);
+    v411 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsExternallyInitialized", v411);
+
+    v_store(LLVMValueRef, arg0);
+    v412 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAFCmpInst", v412);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v413 = LLVMPointerType(char, 0);
+    v_store(v413, arg3);
+    v414 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFPCast", v414);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v415 = LLVMPointerType(char, 0);
+    v_store(v415, arg3);
+    v416 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildUIToFP", v416);
+
+    v_store(LLVMValueRef, arg0);
+    v417 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNumOperands", v417);
+
+    v_store(LLVMValueRef, arg0);
+    v418 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMRemoveGlobalIFunc", v418);
+
+    v419 = LLVMFunctionType(void, arg0, 0, 0);
+    v_add_symbol_type("LLVMShutdown", v419);
+
+    v420 = LLVMPointerType(char, 0);
+    v_store(LLVMNamedMDNodeRef, arg0);
+    v421 = LLVMPointerType(size_t, 0);
+    v_store(v421, arg1);
+    v422 = LLVMFunctionType(v420, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetNamedMetadataName", v422);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v423 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetUnwindDest", v423);
+
+    v_store(LLVMValueRef, arg0);
+    v424 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMInstructionClone", v424);
+
+    v425 = LLVMPointerType(LLVMMemoryBufferRef, 0);
+    v_store(v425, arg0);
+    v426 = LLVMPointerType(char, 0);
+    v427 = LLVMPointerType(v426, 0);
+    v_store(v427, arg1);
+    v428 = LLVMFunctionType(LLVMBool, arg0, 2, 0);
+    v_add_symbol_type("LLVMCreateMemoryBufferWithSTDIN", v428);
+
+    v_store(int, arg0);
+    v429 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIntType", v429);
+
+    v_store(LLVMPassRegistryRef, arg0);
+    v430 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMInitializeCore", v430);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v431 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstZExt", v431);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v432 = LLVMPointerType(char, 0);
+    v_store(v432, arg2);
+    v433 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildNUWNeg", v433);
+
+    v_store(LLVMTypeRef, arg0);
+    v434 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsLiteralStruct", v434);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v435 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetBasicBlockParent", v435);
+
+    v436 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v437 = LLVMFunctionType(v436, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetGC", v437);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v438 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMBuildFree", v438);
+
+    v_store(LLVMValueRef, arg0);
+    v439 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsACleanupPadInst", v439);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMBool, arg1);
+    v440 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMContextSetDiscardValueNames", v440);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v441 = LLVMPointerType(char, 0);
+    v_store(v441, arg3);
+    v442 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFPToSI", v442);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMUnnamedAddr, arg1);
+    v443 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetUnnamedAddress", v443);
+
+    v_store(LLVMModuleRef, arg0);
+    v444 = LLVMPointerType(char, 0);
+    v_store(v444, arg1);
+    v_store(size_t, arg2);
+    v_store(LLVMTypeRef, arg3);
+    v_store(int, arg4);
+    v_store(LLVMValueRef, arg5);
+    v445 = LLVMFunctionType(LLVMValueRef, arg0, 6, 0);
+    v_add_symbol_type("LLVMAddGlobalIFunc", v445);
+
+    v_store(LLVMModuleRef, arg0);
+    v446 = LLVMPointerType(char, 0);
+    v_store(v446, arg1);
+    v_store(size_t, arg2);
+    v447 = LLVMFunctionType(LLVMNamedMDNodeRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetOrInsertNamedMetadata", v447);
+
+    v_store(LLVMContextRef, arg0);
+    v448 = LLVMFunctionType(LLVMDiagnosticHandler, arg0, 1, 0);
+    v_add_symbol_type("LLVMContextGetDiagnosticHandler", v448);
+
+    v_store(LLVMTypeRef, arg0);
+    v449 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetIntTypeWidth", v449);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v450 = LLVMPointerType(char, 0);
+    v_store(v450, arg2);
+    v451 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildLoad", v451);
+
+    v_store(LLVMNamedMDNodeRef, arg0);
+    v452 = LLVMFunctionType(LLVMNamedMDNodeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextNamedMetadata", v452);
+
+    v453 = LLVMPointerType(char, 0);
+    v_store(LLVMModuleRef, arg0);
+    v454 = LLVMFunctionType(v453, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetDataLayoutStr", v454);
+
+    v_store(LLVMContextRef, arg0);
+    v455 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMDoubleTypeInContext", v455);
+
+    v_store(LLVMValueRef, arg0);
+    v456 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsConstant", v456);
+
+    v_store(LLVMValueRef, arg0);
+    v457 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstNeg", v457);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(int, arg3);
+    v458 = LLVMPointerType(char, 0);
+    v_store(v458, arg4);
+    v459 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildInsertValue", v459);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v460 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetTailCall", v460);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v461 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstInstruction", v461);
+
+    v_store(LLVMContextRef, arg0);
+    v462 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMLabelTypeInContext", v462);
+
+    v_store(LLVMModuleRef, arg0);
+    v463 = LLVMPointerType(char, 0);
+    v_store(v463, arg1);
+    v464 = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetTypeByName", v464);
+
+    v_store(LLVMValueRef, arg0);
+    v465 = LLVMFunctionType(LLVMUnnamedAddr, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetUnnamedAddress", v465);
+
+    v_store(LLVMBuilderRef, arg0);
+    v466 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMBuildUnreachable", v466);
+
+    v_store(LLVMBuilderRef, arg0);
+    v467 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v467, arg1);
+    v_store(int, arg2);
+    v468 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildAggregateRet", v468);
+
+    v_store(LLVMValueRef, arg0);
+    v469 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsGlobalConstant", v469);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v470 = LLVMPointerType(char, 0);
+    v_store(v470, arg3);
+    v471 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildExtractElement", v471);
+
+    v_store(LLVMContextRef, arg0);
+    v472 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMFloatTypeInContext", v472);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v473 = LLVMPointerType(char, 0);
+    v_store(v473, arg3);
+    v474 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildShl", v474);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v475 = LLVMPointerType(LLVMAttributeRef, 0);
+    v_store(v475, arg2);
+    v476 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetAttributesAtIndex", v476);
+
+    v_store(LLVMValueRef, arg0);
+    v477 = LLVMPointerType(char, 0);
+    v_store(v477, arg1);
+    v478 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetValueName", v478);
+
+    v_store(LLVMValueRef, arg0);
+    v479 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMHasPersonalityFn", v479);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v480 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstXor", v480);
+
+    v_store(LLVMContextRef, arg0);
+    v481 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMInt16TypeInContext", v481);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMBool, arg2);
+    v482 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstIntCast", v482);
+
+    v_store(LLVMValueRef, arg0);
+    v483 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstNSWNeg", v483);
+
+    v_store(LLVMContextRef, arg0);
+    v484 = LLVMPointerType(char, 0);
+    v_store(v484, arg1);
+    v_store(int, arg2);
+    v485 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMMDStringInContext", v485);
+
+    v486 = LLVMPointerType(LLVMValueMetadataEntry, 0);
+    v_store(v486, arg0);
+    v487 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeValueMetadataEntries", v487);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v488 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetIncomingValue", v488);
+
+    v_store(LLVMValueRef, arg0);
+    v489 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNumClauses", v489);
+
+    v_store(LLVMValueRef, arg0);
+    v490 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAIndirectBrInst", v490);
+
+    v_store(LLVMValueRef, arg0);
+    v491 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAUnaryInstruction", v491);
+
+    v_store(LLVMContextRef, arg0);
+    v492 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMInt1TypeInContext", v492);
+
+    v_store(LLVMValueRef, arg0);
+    v493 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v493, arg1);
+    v494 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetMDNodeOperands", v494);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v495 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstAdd", v495);
+
+    v_store(LLVMBuilderRef, arg0);
+    v496 = LLVMPointerType(char, 0);
+    v_store(v496, arg1);
+    v497 = LLVMPointerType(char, 0);
+    v_store(v497, arg2);
+    v498 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildGlobalStringPtr", v498);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v499 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstExactUDiv", v499);
+
+    v_store(LLVMValueRef, arg0);
+    v500 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAReturnInst", v500);
+
+    v_store(LLVMValueRef, arg0);
+    v501 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAArgument", v501);
+
+    v_store(LLVMContextRef, arg0);
+    v502 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMHalfTypeInContext", v502);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v503 = LLVMPointerType(char, 0);
+    v_store(v503, arg2);
+    v504 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMAppendBasicBlockInContext", v504);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v505 = LLVMPointerType(char, 0);
+    v_store(v505, arg3);
+    v506 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildExactUDiv", v506);
+
+    v507 = LLVMFunctionType(LLVMPassRegistryRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetGlobalPassRegistry", v507);
+
+    v_store(LLVMTypeRef, arg0);
+    v508 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v508, arg1);
+    v_store(int, arg2);
+    v_store(LLVMBool, arg3);
+    v509 = LLVMFunctionType(void, arg0, 4, 0);
+    v_add_symbol_type("LLVMStructSetBody", v509);
+
+    v_store(LLVMValueRef, arg0);
+    v510 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetParentCatchSwitch", v510);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(int, arg1);
+    v511 = LLVMPointerType(uint64_t, 0);
+    v_store(v511, arg2);
+    v512 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstIntOfArbitraryPrecision", v512);
+
+    v_store(LLVMContextRef, arg0);
+    v513 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMX86FP80TypeInContext", v513);
+
+    v514 = LLVMPointerType(LLVMModuleFlagEntry, 0);
+    v_store(v514, arg0);
+    v_store(int, arg1);
+    v515 = LLVMFunctionType(LLVMMetadataRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMModuleFlagEntriesGetMetadata", v515);
+
+    v516 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMPPCFP128Type", v516);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v517 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstSIToFP", v517);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v518 = LLVMPointerType(char, 0);
+    v_store(v518, arg3);
+    v519 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFPTrunc", v519);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v520 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetBasicBlockTerminator", v520);
+
+    v_store(LLVMValueRef, arg0);
+    v521 = LLVMFunctionType(LLVMUseRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstUse", v521);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v522 = LLVMPointerType(char, 0);
+    v_store(v522, arg3);
+    v523 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildExactSDiv", v523);
+
+    v524 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMInt64Type", v524);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v525 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMAddClause", v525);
+
+    v526 = LLVMPointerType(LLVMModuleFlagEntry, 0);
+    v_store(v526, arg0);
+    v_store(int, arg1);
+    v527 = LLVMFunctionType(LLVMModuleFlagBehavior, arg0, 2, 0);
+    v_add_symbol_type("LLVMModuleFlagEntriesGetFlagBehavior", v527);
+
+    v_store(LLVMValueRef, arg0);
+    v528 = LLVMFunctionType(long_long, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstIntGetSExtValue", v528);
+
+    v529 = LLVMPointerType(char, 0);
+    v530 = LLVMPointerType(char, 0);
+    v_store(v530, arg0);
+    v531 = LLVMFunctionType(v529, arg0, 1, 0);
+    v_add_symbol_type("LLVMCreateMessage", v531);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v532 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetOperand", v532);
+
+    v533 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v534 = LLVMFunctionType(v533, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetValueName", v534);
+
+    v535 = LLVMPointerType(char, 0);
+    v_store(v535, arg0);
+    v_store(size_t, arg1);
+    v536 = LLVMFunctionType(int, arg0, 2, 0);
+    v_add_symbol_type("LLVMLookupIntrinsicID", v536);
+
+    v_store(LLVMValueRef, arg0);
+    v537 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMHasMetadata", v537);
+
+    v_store(LLVMTypeRef, arg0);
+    v538 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNumContainedTypes", v538);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v539 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstNUWSub", v539);
+
+    v_store(LLVMValueRef, arg0);
+    v540 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsADbgInfoIntrinsic", v540);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v541 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMAppendExistingBasicBlock", v541);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v542 = LLVMPointerType(char, 0);
+    v_store(v542, arg3);
+    v543 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildBitCast", v543);
+
+    v544 = LLVMFunctionType(LLVMContextRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMContextCreate", v544);
+
+    v_store(LLVMValueRef, arg0);
+    v545 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMInstructionEraseFromParent", v545);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v546 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetIsInBounds", v546);
+
+    v_store(LLVMValueRef, arg0);
+    v547 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsALandingPadInst", v547);
+
+    v_store(LLVMValueRef, arg0);
+    v548 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsACleanupReturnInst", v548);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v549 = LLVMPointerType(char, 0);
+    v_store(v549, arg2);
+    v550 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildNeg", v550);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMMetadataRef, arg1);
+    v551 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMMetadataAsValue", v551);
+
+    v_store(LLVMValueRef, arg0);
+    v552 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetInstructionCallConv", v552);
+
+    v_store(LLVMValueRef, arg0);
+    v553 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextFunction", v553);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v554 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMReplaceAllUsesWith", v554);
+
+    v_store(LLVMValueRef, arg0);
+    v555 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantExpr", v555);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v556 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetAtomicSingleThread", v556);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v557 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetCleanup", v557);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v558 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextBasicBlock", v558);
+
+    v_store(LLVMModuleRef, arg0);
+    v559 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLastFunction", v559);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v560 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstBitCast", v560);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v561 = LLVMPointerType(char, 0);
+    v_store(v561, arg3);
+    v562 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildIntCast", v562);
+
+    v_store(LLVMModuleRef, arg0);
+    v563 = LLVMFunctionType(LLVMNamedMDNodeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstNamedMetadata", v563);
+
+    v_store(LLVMValueRef, arg0);
+    v564 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetEntryBasicBlock", v564);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v565 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v565, arg3);
+    v_store(int, arg4);
+    v566 = LLVMPointerType(char, 0);
+    v_store(v566, arg5);
+    v567 = LLVMFunctionType(LLVMValueRef, arg0, 6, 0);
+    v_add_symbol_type("LLVMBuildGEP2", v567);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMOpcode, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMTypeRef, arg3);
+    v568 = LLVMPointerType(char, 0);
+    v_store(v568, arg4);
+    v569 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildCast", v569);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v570 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstShuffleVector", v570);
+
+    v571 = LLVMPointerType(char, 0);
+    v_store(LLVMTypeRef, arg0);
+    v572 = LLVMFunctionType(v571, arg0, 1, 0);
+    v_add_symbol_type("LLVMPrintTypeToString", v572);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v573 = LLVMPointerType(char, 0);
+    v_store(v573, arg3);
+    v574 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildZExt", v574);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v575 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstShl", v575);
+
+    v_store(LLVMTypeRef, arg0);
+    v576 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetUndef", v576);
+
+    v_store(LLVMNamedMDNodeRef, arg0);
+    v577 = LLVMFunctionType(LLVMNamedMDNodeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPreviousNamedMetadata", v577);
+
+    v_store(LLVMValueRef, arg0);
+    v578 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsACallInst", v578);
+
+    v_store(LLVMValueRef, arg0);
+    v579 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPreviousGlobalIFunc", v579);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v580 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetFunctionCallConv", v580);
+
+    v_store(LLVMModuleRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v581 = LLVMPointerType(char, 0);
+    v_store(v581, arg2);
+    v582 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMAddGlobal", v582);
+
+    v583 = LLVMPointerType(char, 0);
+    v_store(v583, arg0);
+    v_store(size_t, arg1);
+    v584 = LLVMFunctionType(int, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetEnumAttributeKindForName", v584);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMAtomicRMWBinOp, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v_store(LLVMAtomicOrdering, arg4);
+    v_store(LLVMBool, arg5);
+    v585 = LLVMFunctionType(LLVMValueRef, arg0, 6, 0);
+    v_add_symbol_type("LLVMBuildAtomicRMW", v585);
+
+    v_store(LLVMPassManagerRef, arg0);
+    v_store(LLVMModuleRef, arg1);
+    v586 = LLVMFunctionType(LLVMBool, arg0, 2, 0);
+    v_add_symbol_type("LLVMRunPassManager", v586);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(int, arg1);
+    v_store(uint64_t, arg2);
+    v587 = LLVMFunctionType(LLVMAttributeRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMCreateEnumAttribute", v587);
+
+    v_store(LLVMModuleRef, arg0);
+    v588 = LLVMPointerType(char, 0);
+    v_store(v588, arg1);
+    v589 = LLVMFunctionType(int, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetNamedMetadataNumOperands", v589);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v590 = LLVMPointerType(char, 0);
+    v_store(v590, arg2);
+    v591 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildIsNull", v591);
+
+    v_store(LLVMValueRef, arg0);
+    v592 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantAggregateZero", v592);
+
+    v_store(LLVMValueRef, arg0);
+    v593 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetDebugLocLine", v593);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v594 = LLVMPointerType(char, 0);
+    v_store(v594, arg3);
+    v595 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFPToUI", v595);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v596 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v596, arg2);
+    v_store(int, arg3);
+    v597 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMConstInBoundsGEP2", v597);
+
+    v_store(LLVMValueRef, arg0);
+    v598 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAFunction", v598);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v599 = LLVMPointerType(char, 0);
+    v_store(v599, arg2);
+    v600 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMInsertBasicBlockInContext", v600);
+
+    v_store(LLVMValueRef, arg0);
+    v601 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAInvokeInst", v601);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v602 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMPositionBuilderAtEnd", v602);
+
+    v_store(LLVMValueRef, arg0);
+    v603 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAICmpInst", v603);
+
+    v604 = LLVMPointerType(char, 0);
+    v_store(int, arg0);
+    v605 = LLVMPointerType(size_t, 0);
+    v_store(v605, arg1);
+    v606 = LLVMFunctionType(v604, arg0, 2, 0);
+    v_add_symbol_type("LLVMIntrinsicGetName", v606);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v607 = LLVMPointerType(char, 0);
+    v_store(v607, arg3);
+    v608 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildArrayMalloc", v608);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v_store(LLVMAttributeRef, arg2);
+    v609 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMAddCallSiteAttribute", v609);
+
+    v_store(LLVMContextRef, arg0);
+    v610 = LLVMPointerType(LLVMMetadataRef, 0);
+    v_store(v610, arg1);
+    v_store(size_t, arg2);
+    v611 = LLVMFunctionType(LLVMMetadataRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMMDNodeInContext2", v611);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(long_long, arg1);
+    v_store(LLVMBool, arg2);
+    v612 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstInt", v612);
+
+    v_store(LLVMValueRef, arg0);
+    v613 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPreviousInstruction", v613);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v_store(int, arg2);
+    v614 = LLVMFunctionType(LLVMAttributeRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetEnumAttributeAtIndex", v614);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v615 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v615, arg2);
+    v_store(int, arg3);
+    v_store(LLVMBasicBlockRef, arg4);
+    v_store(LLVMBasicBlockRef, arg5);
+    v616 = LLVMPointerType(char, 0);
+    v_store(v616, arg6);
+    v617 = LLVMFunctionType(LLVMValueRef, arg0, 7, 0);
+    v_add_symbol_type("LLVMBuildInvoke", v617);
+
+    v_store(LLVMContextRef, arg0);
+    v618 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMVoidTypeInContext", v618);
+
+    v_store(LLVMValueRef, arg0);
+    v619 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAFPToUIInst", v619);
+
+    v_store(LLVMValueRef, arg0);
+    v620 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsASwitchInst", v620);
+
+    v_store(LLVMValueRef, arg0);
+    v621 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMAliasGetAliasee", v621);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v622 = LLVMPointerType(char, 0);
+    v_store(v622, arg3);
+    v623 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildPtrToInt", v623);
+
+    v624 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMVoidType", v624);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v_store(int, arg2);
+    v625 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMRemoveEnumAttributeAtIndex", v625);
+
+    v_store(LLVMModuleRef, arg0);
+    v626 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLastGlobalIFunc", v626);
+
+    v_store(LLVMValueRef, arg0);
+    v627 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGlobalGetValueType", v627);
+
+    v_store(LLVMValueRef, arg0);
+    v628 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAZExtInst", v628);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v629 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstIntToPtr", v629);
+
+    v630 = LLVMPointerType(char, 0);
+    v_store(LLVMDiagnosticInfoRef, arg0);
+    v631 = LLVMFunctionType(v630, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetDiagInfoDescription", v631);
+
+    v_store(LLVMValueRef, arg0);
+    v632 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAExtractElementInst", v632);
+
+    v_store(LLVMValueRef, arg0);
+    v633 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsASelectInst", v633);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v634 = LLVMPointerType(char, 0);
+    v_store(v634, arg3);
+    v635 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildAdd", v635);
+
+    v_store(LLVMValueRef, arg0);
+    v636 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsASExtInst", v636);
+
+    v_store(LLVMValueRef, arg0);
+    v637 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsADbgDeclareInst", v637);
+
+    v_store(LLVMTypeRef, arg0);
+    v638 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMSizeOf", v638);
+
+    v_store(LLVMTypeRef, arg0);
+    v639 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstNull", v639);
+
+    v_store(LLVMValueRef, arg0);
+    v640 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextGlobal", v640);
+
+    v_store(LLVMValueRef, arg0);
+    v641 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstNot", v641);
+
+    v_store(LLVMValueRef, arg0);
+    v642 = LLVMFunctionType(LLVMMetadataRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMValueAsMetadata", v642);
+
+    v_store(LLVMValueRef, arg0);
+    v643 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsACatchReturnInst", v643);
+
+    v_store(LLVMValueRef, arg0);
+    v644 = LLVMFunctionType(LLVMAtomicOrdering, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetOrdering", v644);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMRealPredicate, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v645 = LLVMPointerType(char, 0);
+    v_store(v645, arg4);
+    v646 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildFCmp", v646);
+
+    v_store(LLVMValueRef, arg0);
+    v647 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDumpValue", v647);
+
+    v648 = LLVMPointerType(char, 0);
+    v_store(LLVMAttributeRef, arg0);
+    v649 = LLVMPointerType(int, 0);
+    v_store(v649, arg1);
+    v650 = LLVMFunctionType(v648, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetStringAttributeKind", v650);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v651 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetElementAsConstant", v651);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v652 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v652, arg2);
+    v_store(int, arg3);
+    v653 = LLVMPointerType(char, 0);
+    v_store(v653, arg4);
+    v654 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildCall", v654);
+
+    v_store(LLVMTypeRef, arg0);
+    v655 = LLVMPointerType(char, 0);
+    v_store(v655, arg1);
+    v_store(int, arg2);
+    v656 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstRealOfStringAndSize", v656);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v657 = LLVMPointerType(char, 0);
+    v_store(v657, arg2);
+    v658 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildFNeg", v658);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMYieldCallback, arg1);
+    v659 = LLVMPointerType(void, 0);
+    v_store(v659, arg2);
+    v660 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMContextSetYieldCallback", v660);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v661 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstUIToFP", v661);
+
+    v_store(LLVMValueRef, arg0);
+    v662 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetGlobalIFuncResolver", v662);
+
+    v663 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v663, arg0);
+    v_store(int, arg1);
+    v_store(LLVMBool, arg2);
+    v664 = LLVMFunctionType(LLVMTypeRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMStructType", v664);
+
+    v665 = LLVMPointerType(char, 0);
+    v_store(int, arg0);
+    v666 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v666, arg1);
+    v_store(size_t, arg2);
+    v667 = LLVMPointerType(size_t, 0);
+    v_store(v667, arg3);
+    v668 = LLVMFunctionType(v665, arg0, 4, 0);
+    v_add_symbol_type("LLVMIntrinsicCopyOverloadedName", v668);
+
+    v_store(LLVMContextRef, arg0);
+    v669 = LLVMPointerType(char, 0);
+    v_store(v669, arg1);
+    v670 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMCreateBasicBlockInContext", v670);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(int, arg3);
+    v671 = LLVMPointerType(char, 0);
+    v_store(v671, arg4);
+    v672 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildLandingPad", v672);
+
+    v673 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v674 = LLVMPointerType(int, 0);
+    v_store(v674, arg1);
+    v675 = LLVMFunctionType(v673, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetDebugLocDirectory", v675);
+
+    v_store(LLVMValueRef, arg0);
+    v676 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsACastInst", v676);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v677 = LLVMPointerType(char, 0);
+    v_store(v677, arg3);
+    v678 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildAddrSpaceCast", v678);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v679 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFSub", v679);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v680 = LLVMPointerType(char, 0);
+    v_store(v680, arg3);
+    v681 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFAdd", v681);
+
+    v_store(LLVMValueRef, arg0);
+    v682 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantDataArray", v682);
+
+    v_store(LLVMContextRef, arg0);
+    v683 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMFP128TypeInContext", v683);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v684 = LLVMPointerType(char, 0);
+    v_store(v684, arg3);
+    v685 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildNSWSub", v685);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v686 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFPToSI", v686);
+
+    v_store(int, arg0);
+    v687 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIntrinsicIsOverloaded", v687);
+
+    v_store(LLVMTypeRef, arg0);
+    v688 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstPointerNull", v688);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v689 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstNSWMul", v689);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v690 = LLVMPointerType(char, 0);
+    v_store(v690, arg3);
+    v691 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFRem", v691);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v692 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstAShr", v692);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v693 = LLVMPointerType(char, 0);
+    v_store(v693, arg2);
+    v694 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildIsNotNull", v694);
+
+    v_store(LLVMTypeRef, arg0);
+    v695 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMCountStructElementTypes", v695);
+
+    v_store(LLVMAttributeRef, arg0);
+    v696 = LLVMFunctionType(uint64_t, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetEnumAttributeValue", v696);
+
+    v_store(LLVMModuleRef, arg0);
+    v697 = LLVMPointerType(char, 0);
+    v_store(v697, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v698 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMAddFunction", v698);
+
+    v_store(LLVMModuleProviderRef, arg0);
+    v699 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeModuleProvider", v699);
+
+    v_store(LLVMValueRef, arg0);
+    v700 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFunctionCallConv", v700);
+
+    v_store(LLVMValueRef, arg0);
+    v701 = LLVMFunctionType(long_long, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstIntGetZExtValue", v701);
+
+    v_store(LLVMValueRef, arg0);
+    v702 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNumSuccessors", v702);
+
+    v_store(LLVMValueRef, arg0);
+    v703 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLastParam", v703);
+
+    v_store(LLVMTypeRef, arg0);
+    v704 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstAllOnes", v704);
+
+    v_store(LLVMValueRef, arg0);
+    v705 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetCalledValue", v705);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v706 = LLVMPointerType(char, 0);
+    v_store(v706, arg3);
+    v707 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFDiv", v707);
+
+    v_store(LLVMValueRef, arg0);
+    v708 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPreviousGlobalAlias", v708);
+
+    v_store(LLVMValueRef, arg0);
+    v709 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsATerminatorInst", v709);
+
+    v_store(LLVMModuleRef, arg0);
+    v710 = LLVMPointerType(char, 0);
+    v_store(v710, arg1);
+    v711 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetDataLayout", v711);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(int, arg1);
+    v712 = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMArrayType", v712);
+
+    v713 = LLVMPointerType(char, 0);
+    v_store(v713, arg0);
+    v714 = LLVMPointerType(LLVMMemoryBufferRef, 0);
+    v_store(v714, arg1);
+    v715 = LLVMPointerType(char, 0);
+    v716 = LLVMPointerType(v715, 0);
+    v_store(v716, arg2);
+    v717 = LLVMFunctionType(LLVMBool, arg0, 3, 0);
+    v_add_symbol_type("LLVMCreateMemoryBufferWithContentsOfFile", v717);
+
+    v_store(LLVMTypeRef, arg0);
+    v718 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsFunctionVarArg", v718);
+
+    v_store(LLVMModuleRef, arg0);
+    v719 = LLVMFunctionType(LLVMPassManagerRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMCreateFunctionPassManagerForModule", v719);
+
+    v_store(LLVMModuleRef, arg0);
+    v720 = LLVMPointerType(char, 0);
+    v_store(v720, arg1);
+    v_store(size_t, arg2);
+    v721 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetModuleIdentifier", v721);
+
+    v_store(LLVMValueRef, arg0);
+    v722 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPreviousParam", v722);
+
+    v_store(LLVMValueRef, arg0);
+    v723 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsABasicBlock", v723);
+
+    v_store(LLVMValueRef, arg0);
+    v724 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAFuncletPadInst", v724);
+
+    v_store(LLVMModuleRef, arg0);
+    v725 = LLVMFunctionType(LLVMContextRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetModuleContext", v725);
+
+    v_store(LLVMTypeRef, arg0);
+    v726 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v726, arg1);
+    v_store(int, arg2);
+    v_store(LLVMBool, arg3);
+    v727 = LLVMFunctionType(LLVMTypeRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMFunctionType", v727);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v728 = LLVMPointerType(char, 0);
+    v_store(v728, arg3);
+    v729 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildSExt", v729);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v730 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v730, arg2);
+    v_store(int, arg3);
+    v731 = LLVMPointerType(char, 0);
+    v_store(v731, arg4);
+    v732 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildCleanupPad", v732);
+
+    v_store(LLVMTypeRef, arg0);
+    v733 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v733, arg1);
+    v734 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetParamTypes", v734);
+
+    v735 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMX86MMXType", v735);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMBasicBlockRef, arg2);
+    v_store(int, arg3);
+    v736 = LLVMPointerType(char, 0);
+    v_store(v736, arg4);
+    v737 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildCatchSwitch", v737);
+
+    v_store(LLVMTypeRef, arg0);
+    v738 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMCountParamTypes", v738);
+
+    v_store(LLVMValueRef, arg0);
+    v739 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstBasicBlock", v739);
+
+    v740 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMInt32Type", v740);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v741 = LLVMPointerType(char, 0);
+    v_store(v741, arg2);
+    v_store(int, arg3);
+    v742 = LLVMFunctionType(LLVMAttributeRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMGetCallSiteStringAttribute", v742);
+
+    v_store(LLVMValueRef, arg0);
+    v743 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMCountParams", v743);
+
+    v_store(LLVMBuilderRef, arg0);
+    v744 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetInsertBlock", v744);
+
+    v745 = LLVMFunctionType(LLVMBool, arg0, 0, 0);
+    v_add_symbol_type("LLVMStartMultithreaded", v745);
+
+    v746 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMHalfType", v746);
+
+    v_store(LLVMValueRef, arg0);
+    v747 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantTokenNone", v747);
+
+    v_store(LLVMValueRef, arg0);
+    v748 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsInBounds", v748);
+
+    v_store(LLVMModuleRef, arg0);
+    v749 = LLVMFunctionType(LLVMNamedMDNodeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetLastNamedMetadata", v749);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v750 = LLVMPointerType(char, 0);
+    v_store(v750, arg2);
+    v751 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildNot", v751);
+
+    v_store(LLVMTypeRef, arg0);
+    v752 = LLVMPointerType(char, 0);
+    v_store(v752, arg1);
+    v753 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstRealOfString", v753);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v754 = LLVMPointerType(char, 0);
+    v_store(v754, arg3);
+    v755 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildNUWSub", v755);
+
+    v756 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v757 = LLVMFunctionType(v756, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetSection", v757);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v758 = LLVMPointerType(char, 0);
+    v_store(v758, arg3);
+    v759 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildSRem", v759);
+
+    v_store(LLVMValueRef, arg0);
+    v760 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAGetElementPtrInst", v760);
+
+    v_store(LLVMValueRef, arg0);
+    v761 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsDeclaration", v761);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v762 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPreviousBasicBlock", v762);
+
+    v_store(LLVMPassManagerRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v763 = LLVMFunctionType(LLVMBool, arg0, 2, 0);
+    v_add_symbol_type("LLVMRunFunctionPassManager", v763);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(int, arg2);
+    v764 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildIndirectBr", v764);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v765 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstMul", v765);
+
+    v_store(LLVMTypeRef, arg0);
+    v766 = LLVMPointerType(char, 0);
+    v_store(v766, arg1);
+    v_store(size_t, arg2);
+    v767 = LLVMPointerType(char, 0);
+    v_store(v767, arg3);
+    v_store(size_t, arg4);
+    v_store(LLVMBool, arg5);
+    v_store(LLVMBool, arg6);
+    v_store(LLVMInlineAsmDialect, arg7);
+    v768 = LLVMFunctionType(LLVMValueRef, arg0, 8, 0);
+    v_add_symbol_type("LLVMGetInlineAsm", v768);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v769 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetParam", v769);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v770 = LLVMPointerType(char, 0);
+    v_store(v770, arg2);
+    v771 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMInsertIntoBuilderWithName", v771);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v772 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMAliasSetAliasee", v772);
+
+    v_store(LLVMTypeRef, arg0);
+    v773 = LLVMPointerType(char, 0);
+    v_store(v773, arg1);
+    v774 = LLVMPointerType(char, 0);
+    v_store(v774, arg2);
+    v_store(LLVMBool, arg3);
+    v_store(LLVMBool, arg4);
+    v775 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMConstInlineAsm", v775);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v776 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMInsertIntoBuilder", v776);
+
+    v777 = LLVMPointerType(char, 0);
+    v_store(LLVMModuleRef, arg0);
+    v778 = LLVMFunctionType(v777, arg0, 1, 0);
+    v_add_symbol_type("LLVMPrintModuleToString", v778);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v779 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetInitializer", v779);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v780 = LLVMPointerType(char, 0);
+    v_store(v780, arg3);
+    v781 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildXor", v781);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v782 = LLVMPointerType(char, 0);
+    v_store(v782, arg3);
+    v783 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildURem", v783);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v784 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetUnnamedAddr", v784);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMMetadataRef, arg1);
+    v785 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetCurrentDebugLocation2", v785);
+
+    v_store(LLVMContextRef, arg0);
+    v786 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMInt128TypeInContext", v786);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v787 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstOr", v787);
+
+    v_store(LLVMValueRef, arg0);
+    v788 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAMemIntrinsic", v788);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v_store(int, arg2);
+    v789 = LLVMFunctionType(LLVMAttributeRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetCallSiteEnumAttribute", v789);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v790 = LLVMPointerType(int, 0);
+    v_store(v790, arg2);
+    v_store(int, arg3);
+    v791 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMConstInsertValue", v791);
+
+    v_store(LLVMValueRef, arg0);
+    v792 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAAllocaInst", v792);
+
+    v_store(LLVMValueRef, arg0);
+    v793 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsNull", v793);
+
+    v794 = LLVMFunctionType(void, arg0, 0, 0);
+    v_add_symbol_type("LLVMStopMultithreaded", v794);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v795 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstExtractElement", v795);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v_store(LLVMValueRef, arg2);
+    v796 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMSetArgOperand", v796);
+
+    v797 = LLVMPointerType(LLVMModuleFlagEntry, 0);
+    v_store(LLVMModuleRef, arg0);
+    v798 = LLVMPointerType(size_t, 0);
+    v_store(v798, arg1);
+    v799 = LLVMFunctionType(v797, arg0, 2, 0);
+    v_add_symbol_type("LLVMCopyModuleFlagsMetadata", v799);
+
+    v800 = LLVMFunctionType(LLVMBool, arg0, 0, 0);
+    v_add_symbol_type("LLVMIsMultithreaded", v800);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(double, arg1);
+    v801 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstReal", v801);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v802 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetThreadLocal", v802);
+
+    v_store(LLVMValueRef, arg0);
+    v803 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextInstruction", v803);
+
+    v804 = LLVMFunctionType(LLVMBuilderRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMCreateBuilder", v804);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v805 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMBuildBr", v805);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v806 = LLVMPointerType(char, 0);
+    v_store(v806, arg3);
+    v807 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildNSWMul", v807);
+
+    v_store(LLVMModuleRef, arg0);
+    v808 = LLVMPointerType(char, 0);
+    v_store(v808, arg1);
+    v_store(size_t, arg2);
+    v809 = LLVMFunctionType(LLVMNamedMDNodeRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetNamedMetadata", v809);
+
+    v810 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMInt8Type", v810);
+
+    v_store(LLVMValueRef, arg0);
+    v811 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAStoreInst", v811);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v812 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstNUWAdd", v812);
+
+    v813 = LLVMPointerType(LLVMValueMetadataEntry, 0);
+    v_store(v813, arg0);
+    v_store(int, arg1);
+    v814 = LLVMFunctionType(LLVMMetadataRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMValueMetadataEntriesGetMetadata", v814);
+
+    v_store(LLVMTypeRef, arg0);
+    v815 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMTypeIsSized", v815);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMIntPredicate, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v816 = LLVMPointerType(char, 0);
+    v_store(v816, arg4);
+    v817 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildICmp", v817);
+
+    v_store(LLVMModuleRef, arg0);
+    v818 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeModule", v818);
+
+    v819 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v819, arg0);
+    v_store(int, arg1);
+    v_store(LLVMBool, arg2);
+    v820 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstStruct", v820);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v821 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstNSWSub", v821);
+
+    v_store(LLVMValueRef, arg0);
+    v822 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAInsertValueInst", v822);
+
+    v_store(LLVMValueRef, arg0);
+    v823 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsADbgLabelInst", v823);
+
+    v824 = LLVMPointerType(char, 0);
+    v_store(LLVMMemoryBufferRef, arg0);
+    v825 = LLVMFunctionType(v824, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetBufferStart", v825);
+
+    v826 = LLVMPointerType(char, 0);
+    v827 = LLVMPointerType(LLVMModuleFlagEntry, 0);
+    v_store(v827, arg0);
+    v_store(int, arg1);
+    v828 = LLVMPointerType(size_t, 0);
+    v_store(v828, arg2);
+    v829 = LLVMFunctionType(v826, arg0, 3, 0);
+    v_add_symbol_type("LLVMModuleFlagEntriesGetKey", v829);
+
+    v_store(LLVMContextRef, arg0);
+    v830 = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMPPCFP128TypeInContext", v830);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBool, arg1);
+    v831 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetVolatile", v831);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v832 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstInsertElement", v832);
+
+    v_store(LLVMValueRef, arg0);
+    v833 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsTailCall", v833);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMTypeRef, arg1);
+    v834 = LLVMPointerType(char, 0);
+    v_store(v834, arg2);
+    v835 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildMalloc", v835);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v836 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v836, arg2);
+    v_store(int, arg3);
+    v837 = LLVMPointerType(char, 0);
+    v_store(v837, arg4);
+    v838 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildCatchPad", v838);
+
+    v_store(LLVMValueRef, arg0);
+    v839 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextParam", v839);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v_store(int, arg4);
+    v840 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildMemSet", v840);
+
+    v_store(LLVMValueRef, arg0);
+    v841 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetMDNodeNumOperands", v841);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v842 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMBuildResume", v842);
+
+    v_store(LLVMValueRef, arg0);
+    v843 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAtomicSingleThread", v843);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v844 = LLVMFunctionType(int, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetCallSiteAttributeCount", v844);
+
+    v_store(LLVMValueRef, arg0);
+    v845 = LLVMFunctionType(LLVMValueKind, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetValueKind", v845);
+
+    v_store(LLVMTypeRef, arg0);
+    v846 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetVectorSize", v846);
+
+    v_store(LLVMValueRef, arg0);
+    v847 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMGlobalClearMetadata", v847);
+
+    v_store(LLVMTypeRef, arg0);
+    v848 = LLVMPointerType(LLVMTypeRef, 0);
+    v_store(v848, arg1);
+    v849 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetStructElementTypes", v849);
+
+    v_store(LLVMValueRef, arg0);
+    v850 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAGlobalAlias", v850);
+
+    v_store(LLVMBuilderRef, arg0);
+    v851 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMClearInsertionPosition", v851);
+
+    v_store(LLVMContextRef, arg0);
+    v852 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v852, arg1);
+    v_store(int, arg2);
+    v853 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMMDNodeInContext", v853);
+
+    v_store(LLVMValueRef, arg0);
+    v854 = LLVMFunctionType(LLVMOpcode, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetInstructionOpcode", v854);
+
+    v_store(LLVMTypeRef, arg0);
+    v855 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDumpType", v855);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v856 = LLVMPointerType(char, 0);
+    v_store(v856, arg4);
+    v857 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildShuffleVector", v857);
+
+    v858 = LLVMFunctionType(int, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetLastEnumAttributeKind", v858);
+
+    v_store(LLVMValueRef, arg0);
+    v859 = LLVMPointerType(LLVMBool, 0);
+    v_store(v859, arg1);
+    v860 = LLVMFunctionType(double, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstRealGetDouble", v860);
+
+    v_store(LLVMModuleRef, arg0);
+    v861 = LLVMPointerType(char, 0);
+    v_store(v861, arg1);
+    v862 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v862, arg2);
+    v863 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetNamedMetadataOperands", v863);
+
+    v864 = LLVMPointerType(char, 0);
+    v_store(LLVMValueRef, arg0);
+    v865 = LLVMPointerType(size_t, 0);
+    v_store(v865, arg1);
+    v866 = LLVMFunctionType(v864, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetValueName2", v866);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v867 = LLVMPointerType(char, 0);
+    v_store(v867, arg3);
+    v868 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFSub", v868);
+
+    v_store(LLVMMemoryBufferRef, arg0);
+    v869 = LLVMFunctionType(size_t, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetBufferSize", v869);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v870 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v870, arg2);
+    v_store(int, arg3);
+    v871 = LLVMPointerType(char, 0);
+    v_store(v871, arg4);
+    v872 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildInBoundsGEP", v872);
+
+    v_store(LLVMModuleRef, arg0);
+    v873 = LLVMPointerType(char, 0);
+    v_store(v873, arg1);
+    v_store(size_t, arg2);
+    v874 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMAppendModuleInlineAsm", v874);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v875 = LLVMPointerType(char, 0);
+    v_store(v875, arg4);
+    v876 = LLVMFunctionType(LLVMValueRef, arg0, 5, 0);
+    v_add_symbol_type("LLVMBuildSelect", v876);
+
+    v_store(LLVMBuilderRef, arg0);
+    v877 = LLVMFunctionType(LLVMMetadataRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMBuilderGetDefaultFPMathTag", v877);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v878 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMBlockAddress", v878);
+
+    v_store(LLVMValueRef, arg0);
+    v879 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPersonalityFn", v879);
+
+    v_store(LLVMValueRef, arg0);
+    v880 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMHasUnnamedAddr", v880);
+
+    v881 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMFP128Type", v881);
+
+    v_store(LLVMMemoryBufferRef, arg0);
+    v882 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeMemoryBuffer", v882);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v883 = LLVMPointerType(char, 0);
+    v_store(v883, arg2);
+    v_store(int, arg3);
+    v884 = LLVMFunctionType(LLVMAttributeRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMGetStringAttributeAtIndex", v884);
+
+    v885 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v885, arg0);
+    v_store(int, arg1);
+    v886 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMMDNode", v886);
+
+    v_store(LLVMValueRef, arg0);
+    v887 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNumHandlers", v887);
+
+    v888 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMInt16Type", v888);
+
+    v_store(LLVMBasicBlockRef, arg0);
+    v889 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDeleteBasicBlock", v889);
+
+    v890 = LLVMPointerType(LLVMValueMetadataEntry, 0);
+    v_store(v890, arg0);
+    v_store(int, arg1);
+    v891 = LLVMFunctionType(int, arg0, 2, 0);
+    v_add_symbol_type("LLVMValueMetadataEntriesGetKind", v891);
+
+    v_store(LLVMValueRef, arg0);
+    v892 = LLVMPointerType(LLVMBasicBlockRef, 0);
+    v_store(v892, arg1);
+    v893 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetBasicBlocks", v893);
+
+    v894 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMFloatType", v894);
+
+    v_store(LLVMValueRef, arg0);
+    v895 = LLVMFunctionType(LLVMBasicBlockRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetSwitchDefaultDest", v895);
+
+    v896 = LLVMPointerType(char, 0);
+    v_store(v896, arg0);
+    v_store(size_t, arg1);
+    v897 = LLVMPointerType(char, 0);
+    v_store(v897, arg2);
+    v_store(LLVMBool, arg3);
+    v898 = LLVMFunctionType(LLVMMemoryBufferRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMCreateMemoryBufferWithMemoryRange", v898);
+
+    v_store(LLVMValueRef, arg0);
+    v899 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAExtractValueInst", v899);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v900 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstSRem", v900);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v901 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetArgOperand", v901);
+
+    v_store(LLVMValueRef, arg0);
+    v902 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMEraseGlobalIFunc", v902);
+
+    v_store(LLVMValueRef, arg0);
+    v903 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstantFP", v903);
+
+    v_store(LLVMAttributeRef, arg0);
+    v904 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsStringAttribute", v904);
+
+    v_store(LLVMValueRef, arg0);
+    v905 = LLVMFunctionType(LLVMAtomicOrdering, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetCmpXchgSuccessOrdering", v905);
+
+    v_store(LLVMValueRef, arg0);
+    v906 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMConstFNeg", v906);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v_store(LLVMValueRef, arg3);
+    v_store(LLVMAtomicOrdering, arg4);
+    v_store(LLVMAtomicOrdering, arg5);
+    v_store(LLVMBool, arg6);
+    v907 = LLVMFunctionType(LLVMValueRef, arg0, 7, 0);
+    v_add_symbol_type("LLVMBuildAtomicCmpXchg", v907);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v908 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstSelect", v908);
+
+    v_store(LLVMValueRef, arg0);
+    v909 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsConstantString", v909);
+
+    v_store(LLVMValueRef, arg0);
+    v910 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAFPTruncInst", v910);
+
+    v_store(LLVMAttributeRef, arg0);
+    v911 = LLVMFunctionType(int, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetEnumAttributeKind", v911);
+
+    v_store(LLVMValueRef, arg0);
+    v912 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetPreviousGlobal", v912);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v913 = LLVMPointerType(char, 0);
+    v_store(v913, arg3);
+    v914 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildVAArg", v914);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(int, arg1);
+    v915 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMGlobalEraseMetadata", v915);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v916 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetParentCatchSwitch", v916);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v917 = LLVMPointerType(char, 0);
+    v_store(v917, arg3);
+    v918 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildNUWAdd", v918);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v919 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFDiv", v919);
+
+    v_store(LLVMValueRef, arg0);
+    v920 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAConstant", v920);
+
+    v_store(LLVMPassManagerRef, arg0);
+    v921 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposePassManager", v921);
+
+    v_store(LLVMValueRef, arg0);
+    v922 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAPtrToIntInst", v922);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMAttributeIndex, arg1);
+    v923 = LLVMPointerType(LLVMAttributeRef, 0);
+    v_store(v923, arg2);
+    v924 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetCallSiteAttributes", v924);
+
+    v_store(LLVMValueRef, arg0);
+    v925 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextGlobalAlias", v925);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMTypeRef, arg2);
+    v926 = LLVMPointerType(char, 0);
+    v_store(v926, arg3);
+    v927 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildPointerCast", v927);
+
+    v928 = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMLabelType", v928);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMValueRef, arg2);
+    v929 = LLVMPointerType(char, 0);
+    v_store(v929, arg3);
+    v930 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildPtrDiff", v930);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMBasicBlockRef, arg1);
+    v931 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMAddDestination", v931);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMDiagnosticHandler, arg1);
+    v932 = LLVMPointerType(void, 0);
+    v_store(v932, arg2);
+    v933 = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("LLVMContextSetDiagnosticHandler", v933);
+
+    v_store(LLVMValueRef, arg0);
+    v934 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAVAArgInst", v934);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMAtomicOrdering, arg1);
+    v_store(LLVMBool, arg2);
+    v935 = LLVMPointerType(char, 0);
+    v_store(v935, arg3);
+    v936 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildFence", v936);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v937 = LLVMPointerType(LLVMValueRef, 0);
+    v_store(v937, arg2);
+    v_store(int, arg3);
+    v938 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMConstGEP2", v938);
+
+    v939 = LLVMPointerType(char, 0);
+    v_store(LLVMBasicBlockRef, arg0);
+    v940 = LLVMFunctionType(v939, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetBasicBlockName", v940);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(LLVMBasicBlockRef, arg2);
+    v941 = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMBuildCatchRet", v941);
+
+    v_store(LLVMContextRef, arg0);
+    v942 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMContextShouldDiscardValueNames", v942);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v943 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFRem", v943);
+
+    v944 = LLVMPointerType(char, 0);
+    v_store(LLVMModuleRef, arg0);
+    v945 = LLVMPointerType(size_t, 0);
+    v_store(v945, arg1);
+    v946 = LLVMFunctionType(v944, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetSourceFileName", v946);
+
+    v_store(LLVMValueRef, arg0);
+    v947 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsAUIToFPInst", v947);
+
+    v_store(LLVMAttributeRef, arg0);
+    v948 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMIsEnumAttribute", v948);
+
+    v_store(LLVMModuleRef, arg0);
+    v949 = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetFirstGlobalIFunc", v949);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v950 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetInstDebugLocation", v950);
+
+    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v951 = LLVMFunctionType(LLVMValueRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMConstFAdd", v951);
+
+    v_store(LLVMContextRef, arg0);
+    v952 = LLVMPointerType(char, 0);
+    v_store(v952, arg1);
+    v_store(int, arg2);
+    v_store(LLVMBool, arg3);
+    v953 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMConstStringInContext", v953);
+
+    v_store(LLVMBuilderRef, arg0);
+    v_store(LLVMValueRef, arg1);
+    v_store(int, arg2);
+    v954 = LLVMPointerType(char, 0);
+    v_store(v954, arg3);
+    v955 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
+    v_add_symbol_type("LLVMBuildExtractValue", v955);
+
+}
+

@@ -1,0 +1,245 @@
+//- Imports ------------------------------------------------
+{
+    v_import("llvm-c/Target");
+    v_import("llvm-c/Types");
+}
+
+//- Values -------------------------------------------------
+{
+    val = LLVMConstInt(int, 6, 0);
+    v_add_constant("LLVMCodeModelLarge", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMRelocStatic", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMRelocDynamicNoPic", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMCodeGenLevelAggressive", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMRelocRWPI", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMRelocDefault", val);
+
+    val = LLVMConstInt(int, 3, 0);
+    v_add_constant("LLVMCodeModelSmall", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMCodeModelTiny", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMRelocROPI", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMAssemblyFile", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMCodeModelDefault", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMCodeGenLevelLess", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMCodeModelJITDefault", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMRelocPIC", val);
+
+    val = LLVMConstInt(int, 6, 0);
+    v_add_constant("LLVMRelocROPI_RWPI", val);
+
+    val = LLVMConstInt(int, 1, 0);
+    v_add_constant("LLVMObjectFile", val);
+
+    val = LLVMConstInt(int, 4, 0);
+    v_add_constant("LLVMCodeModelKernel", val);
+
+    val = LLVMConstInt(int, 2, 0);
+    v_add_constant("LLVMCodeGenLevelDefault", val);
+
+    val = LLVMConstInt(int, 5, 0);
+    v_add_constant("LLVMCodeModelMedium", val);
+
+    val = LLVMConstInt(int, 0, 0);
+    v_add_constant("LLVMCodeGenLevelNone", val);
+
+}
+
+//- Types --------------------------------------------------
+{
+    v_add_symbol_type("LLVMCodeGenFileType", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMCodeGenFileType", int);
+
+    v_add_symbol_type("LLVMCodeModel", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMCodeModel", int);
+
+    v_add_symbol_type("LLVMCodeGenOptLevel", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMCodeGenOptLevel", int);
+
+    v0 = LLVMGetGlobalContext();
+    v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueTargetMachine");
+    v2 = LLVMPointerType(v1, 0);
+    v_add_symbol_type("LLVMTargetMachineRef", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMTargetMachineRef", v2);
+
+    v_add_symbol_type("LLVMRelocMode", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMRelocMode", int);
+
+    v3 = LLVMStructCreateNamed(v0, "struct.LLVMTarget");
+    v4 = LLVMPointerType(v3, 0);
+    v_add_symbol_type("LLVMTargetRef", LLVMOpaqueType);
+    LLVMAddSymbol("LLVMTargetRef", v4);
+
+}
+
+//- Functions ----------------------------------------------
+{
+    arg0 = v_array_alloca(LLVMTypeRef, 10);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+    arg4 = v_getelementptr(arg0, 4);
+    arg5 = v_getelementptr(arg0, 5);
+    arg6 = v_getelementptr(arg0, 6);
+    arg7 = v_getelementptr(arg0, 7);
+    arg8 = v_getelementptr(arg0, 8);
+    arg9 = v_getelementptr(arg0, 9);
+    v_store(LLVMTargetMachineRef, arg0);
+    v_store(LLVMModuleRef, arg1);
+    v0 = LLVMPointerType(char, 0);
+    v_store(v0, arg2);
+    v_store(LLVMCodeGenFileType, arg3);
+    v1 = LLVMPointerType(char, 0);
+    v2 = LLVMPointerType(v1, 0);
+    v_store(v2, arg4);
+    v3 = LLVMFunctionType(LLVMBool, arg0, 5, 0);
+    v_add_symbol_type("LLVMTargetMachineEmitToFile", v3);
+
+    v4 = LLVMPointerType(char, 0);
+    v_store(v4, arg0);
+    v5 = LLVMFunctionType(LLVMTargetRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTargetFromName", v5);
+
+    v_store(LLVMTargetRef, arg0);
+    v6 = LLVMPointerType(char, 0);
+    v_store(v6, arg1);
+    v7 = LLVMPointerType(char, 0);
+    v_store(v7, arg2);
+    v8 = LLVMPointerType(char, 0);
+    v_store(v8, arg3);
+    v_store(LLVMCodeGenOptLevel, arg4);
+    v_store(LLVMRelocMode, arg5);
+    v_store(LLVMCodeModel, arg6);
+    v9 = LLVMFunctionType(LLVMTargetMachineRef, arg0, 7, 0);
+    v_add_symbol_type("LLVMCreateTargetMachine", v9);
+
+    v_store(LLVMTargetRef, arg0);
+    v10 = LLVMFunctionType(LLVMTargetRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetNextTarget", v10);
+
+    v_store(LLVMTargetMachineRef, arg0);
+    v_store(LLVMPassManagerRef, arg1);
+    v11 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMAddAnalysisPasses", v11);
+
+    v12 = LLVMPointerType(char, 0);
+    v_store(LLVMTargetMachineRef, arg0);
+    v13 = LLVMFunctionType(v12, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTargetMachineFeatureString", v13);
+
+    v_store(LLVMTargetRef, arg0);
+    v14 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMTargetHasTargetMachine", v14);
+
+    v15 = LLVMPointerType(char, 0);
+    v_store(LLVMTargetMachineRef, arg0);
+    v16 = LLVMFunctionType(v15, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTargetMachineTriple", v16);
+
+    v_store(LLVMTargetRef, arg0);
+    v17 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMTargetHasAsmBackend", v17);
+
+    v_store(LLVMTargetMachineRef, arg0);
+    v18 = LLVMFunctionType(LLVMTargetRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTargetMachineTarget", v18);
+
+    v19 = LLVMPointerType(char, 0);
+    v_store(LLVMTargetRef, arg0);
+    v20 = LLVMFunctionType(v19, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTargetName", v20);
+
+    v_store(LLVMTargetMachineRef, arg0);
+    v21 = LLVMFunctionType(LLVMTargetDataRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMCreateTargetDataLayout", v21);
+
+    v_store(LLVMTargetMachineRef, arg0);
+    v_store(LLVMBool, arg1);
+    v22 = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("LLVMSetTargetMachineAsmVerbosity", v22);
+
+    v_store(LLVMTargetMachineRef, arg0);
+    v23 = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeTargetMachine", v23);
+
+    v24 = LLVMPointerType(char, 0);
+    v_store(v24, arg0);
+    v25 = LLVMPointerType(LLVMTargetRef, 0);
+    v_store(v25, arg1);
+    v26 = LLVMPointerType(char, 0);
+    v27 = LLVMPointerType(v26, 0);
+    v_store(v27, arg2);
+    v28 = LLVMFunctionType(LLVMBool, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetTargetFromTriple", v28);
+
+    v29 = LLVMPointerType(char, 0);
+    v30 = LLVMPointerType(char, 0);
+    v_store(v30, arg0);
+    v31 = LLVMFunctionType(v29, arg0, 1, 0);
+    v_add_symbol_type("LLVMNormalizeTargetTriple", v31);
+
+    v32 = LLVMPointerType(char, 0);
+    v33 = LLVMFunctionType(v32, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetHostCPUName", v33);
+
+    v34 = LLVMPointerType(char, 0);
+    v35 = LLVMFunctionType(v34, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetHostCPUFeatures", v35);
+
+    v36 = LLVMPointerType(char, 0);
+    v_store(LLVMTargetMachineRef, arg0);
+    v37 = LLVMFunctionType(v36, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTargetMachineCPU", v37);
+
+    v38 = LLVMPointerType(char, 0);
+    v_store(LLVMTargetRef, arg0);
+    v39 = LLVMFunctionType(v38, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetTargetDescription", v39);
+
+    v40 = LLVMFunctionType(LLVMTargetRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetFirstTarget", v40);
+
+    v_store(LLVMTargetRef, arg0);
+    v41 = LLVMFunctionType(LLVMBool, arg0, 1, 0);
+    v_add_symbol_type("LLVMTargetHasJIT", v41);
+
+    v_store(LLVMTargetMachineRef, arg0);
+    v_store(LLVMModuleRef, arg1);
+    v_store(LLVMCodeGenFileType, arg2);
+    v42 = LLVMPointerType(char, 0);
+    v43 = LLVMPointerType(v42, 0);
+    v_store(v43, arg3);
+    v44 = LLVMPointerType(LLVMMemoryBufferRef, 0);
+    v_store(v44, arg4);
+    v45 = LLVMFunctionType(LLVMBool, arg0, 5, 0);
+    v_add_symbol_type("LLVMTargetMachineEmitToMemoryBuffer", v45);
+
+    v46 = LLVMPointerType(char, 0);
+    v47 = LLVMFunctionType(v46, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetDefaultTargetTriple", v47);
+
+}
+

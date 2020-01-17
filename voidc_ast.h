@@ -231,7 +231,11 @@ public:
 
     void do_newline(int pos) override
     {
-        _newlines[unit_pos+pos] = line_number++;
+        auto upos = unit_pos + pos;
+
+        if (newlines.count(upos)) return;
+
+        _newlines[upos] = line_number++;
     }
 
 public:
@@ -270,7 +274,7 @@ private:
     std::istream &input;
 
 private:
-    std::map<int, int> _newlines = {{0, 1}};
+    std::map<int, int> _newlines = {{0, 0}};
 
     int line_number = 1;
 

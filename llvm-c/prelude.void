@@ -1,0 +1,55 @@
+{
+    arg0 = v_array_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMInt64Type", ft);
+    v_add_symbol_type("LLVMDoubleType", ft);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(int, arg1);
+
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMPointerType", ft);
+}
+
+{
+    arg0 = v_array_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    cp = LLVMPointerType(char, 0);
+    vp = LLVMPointerType(void, 0);
+
+    v_store(cp, arg0);
+    v_store(vp, arg1);
+
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMAddSymbol", ft);
+}
+
+{
+    arg0 = v_array_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    ft = LLVMFunctionType(LLVMContextRef, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetGlobalContext", ft);
+
+    v_store(LLVMContextRef, arg0);
+    cp = LLVMPointerType(char, 0);
+    v_store(cp, arg1);
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMStructCreateNamed", ft);
+}
+
+{
+    arg0 = v_array_alloca(LLVMTypeRef, 3);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(long_long, arg1);
+    v_store(int, arg2);
+    ft = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    v_add_symbol_type("LLVMConstInt", ft);
+}
+

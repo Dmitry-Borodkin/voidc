@@ -30,6 +30,8 @@ LLVMTypeRef compile_ctx_t::LLVMTypeRef_type;
 LLVMTypeRef compile_ctx_t::LLVMOpaqueType_type;
 LLVMTypeRef compile_ctx_t::LLVMValueRef_type;
 LLVMTypeRef compile_ctx_t::LLVMOpaqueValue_type;
+LLVMTypeRef compile_ctx_t::LLVMContextRef_type;
+LLVMTypeRef compile_ctx_t::LLVMOpaqueContext_type;
 
 std::map<std::string, LLVMTypeRef>  compile_ctx_t::symbol_types;
 std::map<std::string, LLVMValueRef> compile_ctx_t::constants;
@@ -305,7 +307,7 @@ void compile_ctx_t::initialize(void)
             triple,
             cpu_name,
             cpu_features,
-            LLVMCodeGenLevelDefault,
+            LLVMCodeGenLevelAggressive,
             LLVMRelocDefault,
             LLVMCodeModelJITDefault
         );
@@ -352,6 +354,10 @@ void compile_ctx_t::initialize(void)
 
         LLVMValueRef_type = LLVMPointerType(LLVMOpaqueValue_type, 0);
 
+        LLVMOpaqueContext_type = LLVMStructCreateNamed(gctx, "struct.LLVMOpaqueContext");
+
+        LLVMContextRef_type = LLVMPointerType(LLVMOpaqueContext_type, 0);
+
 #define DEF(name) \
         symbol_types[#name] = LLVMOpaqueType_type; \
         LLVMAddSymbol(#name, (void *)name##_type);
@@ -369,6 +375,8 @@ void compile_ctx_t::initialize(void)
         DEF(LLVMTypeRef)
         DEF(LLVMOpaqueValue)
         DEF(LLVMValueRef)
+        DEF(LLVMOpaqueContext)
+        DEF(LLVMContextRef)
 
 #undef DEF
     }
@@ -664,6 +672,8 @@ void ast_call_t::compile(compile_ctx_t &cctx) const
 
     bool ok = cctx.find_function(fun_name, ft, f);
 
+    if (!ok)  puts(fun_name.c_str());
+
     assert(ok && "function not found");
 
     cctx.arg_types.resize(LLVMCountParamTypes(ft));
@@ -689,6 +699,8 @@ void ast_call_t::compile(compile_ctx_t &cctx) const
 void ast_arg_identifier_t::compile(compile_ctx_t &cctx) const
 {
     LLVMValueRef v = cctx.find_identifier(name);
+
+    if (!v)  puts(name.c_str());
 
     assert(v && "identifier not found");
 

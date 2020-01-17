@@ -54,6 +54,8 @@ public:
     static LLVMTypeRef LLVMTypeRef_type;
     static LLVMTypeRef LLVMOpaqueValue_type;
     static LLVMTypeRef LLVMValueRef_type;
+    static LLVMTypeRef LLVMOpaqueContext_type;
+    static LLVMTypeRef LLVMContextRef_type;
 
 public:
     static std::map<std::string, LLVMTypeRef> symbol_types;
