@@ -635,6 +635,23 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 
     assert(cctx.unit_buffer);
 
+
+//    {   LLVMMemoryBufferRef asm_buffer = nullptr;
+//
+//        LLVMTargetMachineEmitToMemoryBuffer(cctx.target_machine,
+//                                            cctx.module,
+//                                            LLVMAssemblyFile,
+//                                            &msg,
+//                                            &asm_buffer);
+//
+//        assert(asm_buffer);
+//
+//        printf("\n%s\n", LLVMGetBufferStart(asm_buffer));
+//
+//        LLVMDisposeMemoryBuffer(asm_buffer);
+//    }
+
+
     LLVMDisposeModule(cctx.module);
 
     cctx.stmts.clear();

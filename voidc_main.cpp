@@ -5,6 +5,7 @@
 #include <list>
 #include <memory>
 #include <cassert>
+#include <cstring>
 #include <filesystem>
 
 #include "voidc_llvm.h"
@@ -75,6 +76,8 @@ void v_import(const char *name)
         if (st > bt)  use_binary = false;
     }
 
+    static const char magic[8] = ".voidc\n";
+
     std::ifstream infs;
 
     compile_ctx_t cctx;
@@ -83,38 +86,59 @@ void v_import(const char *name)
     {
         infs.open(bin_filename, std::ios::binary);
 
-        std::unique_ptr<char[]> buf;
-        size_t buf_len = 0;
+        size_t buf_len = sizeof(magic);
+        auto buf = std::make_unique<char[]>(buf_len);
 
-        while(!infs.eof())
+        std::memset(buf.get(), 0, buf_len);
+
+        infs.read(buf.get(), buf_len);
+
+        if (std::strcmp(magic, buf.get()) == 0)
         {
-            size_t len;
-
-            infs.read((char *)&len, sizeof(len));
-
-            if (infs.eof()) break;      //- WTF ?!?!?
-
-            if (buf_len < len)
+            while(!infs.eof())
             {
-                buf = std::make_unique<char[]>(len);
+                size_t len;
 
-                buf_len = len;
+                infs.read((char *)&len, sizeof(len));
+
+                if (infs.eof()) break;      //- WTF ?!?!?
+
+                if (buf_len < len)
+                {
+                    buf = std::make_unique<char[]>(len);
+
+                    buf_len = len;
+                }
+
+                infs.read(buf.get(), len);
+
+                cctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRangeCopy(buf.get(), len, "unit_buffer");
+
+                cctx.run_unit_action();
             }
+        }
+        else
+        {
+            infs.close();
 
-            infs.read(buf.get(), len);
-
-            cctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRangeCopy(buf.get(), len, "unit_buffer");
-
-            cctx.run_unit_action();
+            use_binary = false;
         }
     }
-    else
+
+    if (!use_binary)
     {
         infs.open(src_filename, std::ios::binary);
 
         std::ofstream  outfs;
 
         outfs.open(bin_filename, std::ios::binary|std::ios::trunc);
+
+        {   char buf[sizeof(magic)];
+
+            std::memset(buf, 0, sizeof(magic));
+
+            outfs.write(buf, sizeof(magic));
+        }
 
         ast_builder_t auxil(infs);
 
@@ -145,6 +169,10 @@ void v_import(const char *name)
         }
 
         voidc_destroy(ctx);
+
+        outfs.seekp(0);
+
+        outfs.write(magic, sizeof(magic));
 
         outfs.close();
     }
