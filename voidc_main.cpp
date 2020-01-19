@@ -25,13 +25,24 @@ static std::list<fs::path> import_paths =
 };
 
 static
-fs::path find_file_for_import(const fs::path &filename)
+fs::path find_file_for_import(const fs::path &parent, const fs::path &filename)
 {
-    for (auto it : import_paths)
+    if (filename.is_relative())
     {
-        auto p = it / filename;
+        auto p = parent / filename;
 
-        if (fs::exists(p))  return  fs::absolute(p);
+        if (fs::exists(p))  return  fs::canonical(p);
+
+        for (auto it : import_paths)
+        {
+            auto p = it / filename;
+
+            if (fs::exists(p))  return  fs::canonical(p);
+        }
+    }
+    else if (fs::exists(filename))
+    {
+        return  fs::canonical(filename);
     }
 
     return  "";
@@ -44,13 +55,15 @@ static std::set<fs::path> already_imported;
 
 //---------------------------------------------------------------------
 static
-void v_import(const char *name)
+void voidc_intrinsic_import(void *void_cctx, const char *name)
 {
+    auto *parent_cctx = (compile_ctx_t *)void_cctx;
+
     fs::path src_filename = name;
 
-    src_filename += ".void";
+    fs::path parent_path = fs::path(parent_cctx->filename).parent_path();
 
-    src_filename = find_file_for_import(src_filename);
+    src_filename = find_file_for_import(parent_path, src_filename);
 
     assert(fs::exists(src_filename));
 
@@ -80,7 +93,7 @@ void v_import(const char *name)
 
     std::ifstream infs;
 
-    compile_ctx_t cctx;
+    compile_ctx_t cctx(src_filename);
 
     if (use_binary)
     {
@@ -180,6 +193,13 @@ void v_import(const char *name)
     infs.close();
 }
 
+//---------------------------------------------------------------------
+static
+void v_import(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+{
+    cctx.call_intrinsic_helper("voidc_intrinsic_import", args);
+}
+
 
 //---------------------------------------------------------------------
 //- As is...
@@ -188,12 +208,18 @@ int main()
 {
     compile_ctx_t::initialize();
 
-    compile_ctx_t cctx;
+    compile_ctx_t cctx("<stdin>");
 
-    {   auto arg = LLVMPointerType(cctx.char_type, 0);
+    {   LLVMTypeRef args[] =
+        {
+            LLVMPointerType(cctx.void_type, 0),
+            LLVMPointerType(cctx.char_type, 0)
+        };
 
-        cctx.symbol_types["v_import"] = LLVMFunctionType(cctx.void_type, &arg, 1, false);
-        LLVMAddSymbol("v_import", (void *)v_import);
+        cctx.symbol_types["voidc_intrinsic_import"] = LLVMFunctionType(cctx.void_type, args, 2, false);
+        LLVMAddSymbol("voidc_intrinsic_import", (void *)voidc_intrinsic_import);
+
+        cctx.intrinsics["v_import"] = &v_import;
     }
 
     ast_builder_t auxil(std::cin);

@@ -16,7 +16,7 @@
 class compile_ctx_t
 {
 public:
-    explicit compile_ctx_t();
+    explicit compile_ctx_t(const std::string filename);
     ~compile_ctx_t();
 
 public:
@@ -33,6 +33,8 @@ public:
     LLVMBuilderRef builder;
 
     LLVMModuleRef module;
+
+    const std::string filename;
 
 public:
     LLVMMemoryBufferRef unit_buffer;
@@ -75,6 +77,8 @@ public:
     typedef void (*intrinsic_t)(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args);
 
     static std::map<std::string, intrinsic_t> intrinsics;
+
+    void call_intrinsic_helper(const char *helper, const std::shared_ptr<const ast_arg_list_t> &args);
 
 public:
     std::forward_list<LLVMValueRef> stmts;

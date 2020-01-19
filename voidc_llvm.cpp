@@ -38,7 +38,8 @@ std::map<std::string, LLVMValueRef> compile_ctx_t::constants;
 std::map<std::string, compile_ctx_t::intrinsic_t> compile_ctx_t::intrinsics;
 
 //---------------------------------------------------------------------
-compile_ctx_t::compile_ctx_t()
+compile_ctx_t::compile_ctx_t(const std::string _filename)
+  : filename(_filename)
 {
     local_symbols["voidc_intrinsic_compilation_context"] = {LLVMPointerType(void_type, 0), this};
 
@@ -172,65 +173,48 @@ void v_load(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &ar
 
 
 //---------------------------------------------------------------------
-static
-void v_add_local_symbol(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+void
+compile_ctx_t::call_intrinsic_helper(const char *helper, const std::shared_ptr<const ast_arg_list_t> &_args)
 {
     auto id_cctx = std::make_shared<const ast_arg_identifier_t>("voidc_intrinsic_compilation_context");
 
-    auto arg_list = std::make_shared<const ast_arg_list_t>(id_cctx, args);
+    auto arg_list = std::make_shared<const ast_arg_list_t>(id_cctx, _args);
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx.find_function("voidc_intrinsic_add_local_symbol", ft, f);
+    bool ok = find_function(helper, ft, f);
 
     assert(ok && "intrinsic function not found");
 
-    cctx.arg_types.resize(LLVMCountParamTypes(ft));
+    arg_types.resize(LLVMCountParamTypes(ft));
 
-    LLVMGetParamTypes(ft, cctx.arg_types.data());
+    LLVMGetParamTypes(ft, arg_types.data());
 
-    assert(cctx.args.empty());
+    assert(args.empty());
 
-    arg_list->compile(cctx);
+    arg_list->compile(*this);
 
-    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
+    auto v = LLVMBuildCall(builder, f, args.data(), args.size(), ret_name);
 
-    cctx.args.clear();
-    cctx.arg_types.clear();
+    args.clear();
+    arg_types.clear();
 
-    cctx.stmts.push_front(v);
+    stmts.push_front(v);
+}
+
+//---------------------------------------------------------------------
+static
+void v_add_local_symbol(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+{
+    cctx.call_intrinsic_helper("voidc_intrinsic_add_local_symbol", args);
 }
 
 //---------------------------------------------------------------------
 static
 void v_add_local_constant(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
 {
-    auto id_cctx = std::make_shared<const ast_arg_identifier_t>("voidc_intrinsic_compilation_context");
-
-    auto arg_list = std::make_shared<const ast_arg_list_t>(id_cctx, args);
-
-    LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
-
-    bool ok = cctx.find_function("voidc_intrinsic_add_local_constant", ft, f);
-
-    assert(ok && "intrinsic function not found");
-
-    cctx.arg_types.resize(LLVMCountParamTypes(ft));
-
-    LLVMGetParamTypes(ft, cctx.arg_types.data());
-
-    assert(cctx.args.empty());
-
-    arg_list->compile(cctx);
-
-    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
-
-    cctx.args.clear();
-    cctx.arg_types.clear();
-
-    cctx.stmts.push_front(v);
+    cctx.call_intrinsic_helper ("voidc_intrinsic_add_local_constant", args);
 }
 
 
@@ -603,6 +587,8 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 
     cctx.module = LLVMModuleCreateWithName(mod_name.c_str());
 
+    LLVMSetSourceFileName(cctx.module, cctx.filename.c_str(), cctx.filename.size());
+
     LLVMTypeRef  unit_ft = LLVMFunctionType(LLVMVoidType(), nullptr, 0, false);
     LLVMValueRef unit_f  = LLVMAddFunction(cctx.module, fun_name.c_str(), unit_ft);
 
@@ -756,7 +742,16 @@ void ast_arg_integer_t::compile(compile_ctx_t &cctx) const
         t = cctx.arg_types[idx];
     }
 
-    auto v = LLVMConstInt(t, number, false);     //- ?
+    LLVMValueRef v;
+
+    if (LLVMGetTypeKind(t) == LLVMPointerTypeKind  &&  number == 0)
+    {
+        v = LLVMConstPointerNull(t);
+    }
+    else
+    {
+        v = LLVMConstInt(t, number, false);     //- ?
+    }
 
     cctx.args.push_back(v);
 }
