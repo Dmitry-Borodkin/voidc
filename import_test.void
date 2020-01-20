@@ -1,6 +1,4 @@
 {
-    v_import("llvm-c/prelude.void");
-
     v_import("llvm-c/Core.void");
 }
 
@@ -11,7 +9,7 @@
 {
     t = LLVMDoubleType();
 
-    v = LLVMConstRealOfString(t, "3.1415");
+    v = LLVMConstRealOfString(t, "3.14159265358979323846264338327950288419716939937510582");
 
     s = LLVMPrintValueToString(v);
 
@@ -25,7 +23,7 @@
 
     e = v_load(err);
 
-    printf("%g (%d)\n", d, e);
+    printf("%f (%d)\n", d, e);
 }
 
 

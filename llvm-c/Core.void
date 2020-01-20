@@ -828,7 +828,7 @@
 
 //- Functions ----------------------------------------------
 {
-    arg0 = v_array_alloca(LLVMTypeRef, 10);
+    arg0 = v_array_alloca(LLVMTypeRef, 8);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
@@ -836,8 +836,7 @@
     arg5 = v_getelementptr(arg0, 5);
     arg6 = v_getelementptr(arg0, 6);
     arg7 = v_getelementptr(arg0, 7);
-    arg8 = v_getelementptr(arg0, 8);
-    arg9 = v_getelementptr(arg0, 9);
+
     v_store(LLVMContextRef, arg0);
     v0 = LLVMFunctionType(LLVMBuilderRef, arg0, 1, 0);
     v_add_symbol_type("LLVMCreateBuilderInContext", v0);
