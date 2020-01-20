@@ -1,6 +1,7 @@
 #include "voidc_llvm.h"
 
 #include <regex>
+#include <iostream>
 
 #include <cassert>
 
@@ -603,7 +604,9 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 
     LLVMBuildRetVoid(cctx.builder);
 
-    char *msg = LLVMPrintModuleToString(cctx.module);
+    char *msg;
+
+    msg = LLVMPrintModuleToString(cctx.module);
 
     printf("\n%s\n", msg);
     LLVMDisposeMessage(msg);

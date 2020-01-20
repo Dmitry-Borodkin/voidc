@@ -93,7 +93,7 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
     std::ifstream infs;
 
-    compile_ctx_t cctx(src_filename);
+    compile_ctx_t cctx(src_filename.string());
 
     if (use_binary)
     {
@@ -164,6 +164,8 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
             if (auto unit = std::dynamic_pointer_cast<const ast_unit_t>(*value))
             {
                 unit->compile(cctx);
+
+                unit.reset();
 
                 auxil.clear();
 
