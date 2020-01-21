@@ -205,7 +205,9 @@ ast_arg_string_t::ast_arg_string_t(const char *str)
 
     for (auto p=str; *p; ++p)
     {
-        if (*p != '\\') ++len;
+        if (*p == '\\') ++p;
+
+        ++len;
     }
 
     string_private.resize(len);

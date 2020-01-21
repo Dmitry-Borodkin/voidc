@@ -37,7 +37,7 @@ public:
     const std::string filename;
 
 public:
-    LLVMMemoryBufferRef unit_buffer;
+    LLVMMemoryBufferRef unit_buffer = nullptr;
 
     void run_unit_action(void);
 

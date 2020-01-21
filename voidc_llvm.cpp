@@ -42,7 +42,7 @@ std::map<std::string, compile_ctx_t::intrinsic_t> compile_ctx_t::intrinsics;
 compile_ctx_t::compile_ctx_t(const std::string _filename)
   : filename(_filename)
 {
-    local_symbols["voidc_intrinsic_compilation_context"] = {LLVMPointerType(void_type, 0), this};
+    local_symbols["voidc_intrinsic_compilation_context"] = {void_type, this};
 
     builder = LLVMCreateBuilder();
 }
@@ -428,6 +428,8 @@ void compile_ctx_t::terminate(void)
 //---------------------------------------------------------------------
 void compile_ctx_t::run_unit_action(void)
 {
+    if (!unit_buffer) return;
+
     char *msg;
 
     std::string fun_name;
@@ -471,6 +473,8 @@ void compile_ctx_t::run_unit_action(void)
 
         puts(LLVMOrcGetErrorMsg(jit));
     }
+
+    unit_buffer = nullptr;
 
     LLVMOrcTargetAddress addr = 0;
 

@@ -125,7 +125,7 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
                 infs.read(buf.get(), len);
 
-                cctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRangeCopy(buf.get(), len, "unit_buffer");
+                cctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
 
                 cctx.run_unit_action();
             }
@@ -169,13 +169,16 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
                 auxil.clear();
 
-                size_t len = LLVMGetBufferSize(cctx.unit_buffer);
+                if (cctx.unit_buffer)
+                {
+                    size_t len = LLVMGetBufferSize(cctx.unit_buffer);
 
-                outfs.write((char *)&len, sizeof(len));
+                    outfs.write((char *)&len, sizeof(len));
 
-                outfs.write(LLVMGetBufferStart(cctx.unit_buffer), len);
+                    outfs.write(LLVMGetBufferStart(cctx.unit_buffer), len);
 
-                cctx.run_unit_action();
+                    cctx.run_unit_action();
+                }
             }
             else
             {
@@ -235,6 +238,8 @@ int main()
         if (auto unit = std::dynamic_pointer_cast<const ast_unit_t>(*value))
         {
             unit->compile(cctx);
+
+            unit.reset();
 
             auxil.clear();
 
