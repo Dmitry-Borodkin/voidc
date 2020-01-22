@@ -11,38 +11,7 @@
 
 
 //----------------------------------------------------------------------
-//- Поддержка PEG...
-//----------------------------------------------------------------------
-class auxil_opaque_t
-{
-public:
-    explicit auxil_opaque_t() = default;
-    virtual ~auxil_opaque_t() = default;
-
-public:
-    virtual value_t do_unit(value_t stmt_list, int pos) = 0;
-
-    virtual value_t do_stmt_list(value_t stmt, value_t stmt_list) = 0;
-
-    virtual value_t do_stmt(value_t var, value_t call) = 0;
-
-    virtual value_t do_call(value_t fun, value_t arg_list) = 0;
-
-    virtual value_t do_arg_list(value_t arg, value_t arg_list) = 0;
-
-    virtual value_t do_arg_identifier(value_t ident) = 0;
-    virtual value_t do_arg_integer(value_t num) = 0;
-    virtual value_t do_arg_string(value_t str) = 0;
-    virtual value_t do_arg_char(value_t c) = 0;
-
-    virtual void do_newline(int pos) = 0;
-
-    virtual int do_getchar(void) = 0;
-};
-
-
-//----------------------------------------------------------------------
-//- Классы AST
+//- AST classes
 //----------------------------------------------------------------------
 class compile_ctx_t;
 
@@ -202,51 +171,35 @@ struct value_opaque_t : public std::shared_ptr<const ast_base_t>
 //----------------------------------------------------------------------
 //- AST builder ...
 //----------------------------------------------------------------------
-class ast_builder_t : public auxil_opaque_t
+class auxil_opaque_t
 {
+    friend value_t mk_unit(auxil_t auxil, value_t stmt_list, int pos);
+
+    friend value_t mk_stmt_list(auxil_t auxil, value_t stmt, value_t stmt_list);
+
+    friend value_t mk_stmt(auxil_t auxil, value_t var, value_t call);
+
+    friend value_t mk_call(auxil_t auxil, value_t fun, value_t arg_list);
+
+    friend value_t mk_arg_list(auxil_t auxil, value_t arg, value_t arg_list);
+
+    friend value_t mk_arg_identifier(auxil_t auxil, value_t ident);
+    friend value_t mk_arg_integer(auxil_t auxil, value_t num);
+    friend value_t mk_arg_string(auxil_t auxil, value_t str);
+    friend value_t mk_arg_char(auxil_t auxil, value_t c);
+
+    friend void mk_newline(auxil_t auxil, int pos);
+
+    friend int voidc_getchar(auxil_t auxil);
+
 public:
-    explicit ast_builder_t(std::istream &_input)
+    explicit auxil_opaque_t(std::istream &_input)
       : input(_input)
     {}
-    virtual ~ast_builder_t() = default;
-
-public:
-    value_t do_unit(value_t stmt_list, int pos) override;
-
-    value_t do_stmt_list(value_t stmt, value_t stmt_list) override;
-
-    value_t do_stmt(value_t var, value_t call) override;
-
-    value_t do_call(value_t fun, value_t arg_list) override;
-
-    value_t do_arg_list(value_t arg, value_t arg_list) override;
-
-    value_t do_arg_identifier(value_t ident) override;
-    value_t do_arg_integer(value_t num) override;
-    value_t do_arg_string(value_t str) override;
-    value_t do_arg_char(value_t c) override;
+    virtual ~auxil_opaque_t() = default;
 
 public:
     const std::map<int, int> &newlines = _newlines;
-
-    void do_newline(int pos) override
-    {
-        auto upos = unit_pos + pos;
-
-        if (newlines.count(upos)) return;
-
-        _newlines[upos] = line_number++;
-    }
-
-public:
-    int do_getchar(void) override
-    {
-        if (input.eof())  return -1;
-
-        input_pos++;
-
-        return  input.get();
-    }
 
 public:
     void clear(void)
@@ -254,6 +207,23 @@ public:
         values.clear();
 
         unit_pos = input_pos;
+    }
+
+private:
+    void do_newline(int pos)
+    {
+        auto upos = unit_pos + pos;
+
+        _newlines[upos] = line_number++;
+    }
+
+    int do_getchar(void)
+    {
+        if (input.eof())  return -1;
+
+        input_pos++;
+
+        return  input.get();
     }
 
 private:

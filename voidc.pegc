@@ -105,11 +105,13 @@ character   <- '\\' [nrt'"\\]
 
 _           <- (space / comment)*
 
-comment     <- "//" (!EOL .)* EOL
+comment     <- "//" (!eol .)* EOL
 
 space       <- ' ' / '\t' / EOL
 
-EOL         <- <("\r\n" / '\n' / '\r')>                     { mk_newline(auxil, $1e); }
+eol         <- "\r\n" / '\n' / '\r'
+
+EOL         <- <eol>                                        { mk_newline(auxil, $1e); }
 
 
 

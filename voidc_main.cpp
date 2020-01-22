@@ -153,7 +153,7 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
-        ast_builder_t auxil(infs);
+        auxil_opaque_t auxil(infs);
 
         voidc_context_t *ctx = voidc_create(&auxil);
 
@@ -227,7 +227,7 @@ int main()
         cctx.intrinsics["v_import"] = &v_import;
     }
 
-    ast_builder_t auxil(std::cin);
+    auxil_opaque_t auxil(std::cin);
 
     voidc_context_t *ctx = voidc_create(&auxil);
 
