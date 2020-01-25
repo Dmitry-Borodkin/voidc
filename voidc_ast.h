@@ -36,12 +36,12 @@ typedef ast_list_t<ast_argument_t> ast_arg_list_t;
 //----------------------------------------------------------------------
 struct ast_unit_t : public ast_base_t
 {
-    const std::shared_ptr<const ast_stmt_list_t> stmt_list;
+    const ast_stmt_list_t * const stmt_list;
 
     const int line;
     const int column;
 
-    explicit ast_unit_t(const std::shared_ptr<const ast_stmt_list_t> &_stmt_list,
+    explicit ast_unit_t(const ast_stmt_list_t *_stmt_list,
                         int _line, int _column
                         )
       : stmt_list(_stmt_list),
@@ -57,20 +57,19 @@ struct ast_unit_t : public ast_base_t
 template<typename T>
 struct ast_list_t : public ast_base_t
 {
-    const std::shared_ptr<const T>             head;
-    const std::shared_ptr<const ast_list_t<T>> tail;
+    const T &head;
+    const ast_list_t<T> * const tail;
 
-    explicit ast_list_t(const std::shared_ptr<const T>             &_head,
-                        const std::shared_ptr<const ast_list_t<T>> &_tail)
+    explicit ast_list_t(const T &_head, const ast_list_t<T> *_tail)
       : head(_head),
         tail(_tail)
     {}
 
     void compile(compile_ctx_t &cctx) const override
     {
-        for (auto t=this; t; t=t->tail.get())
+        for (auto t=this; t; t=t->tail)
         {
-            t->head->compile(cctx);
+            t->head.compile(cctx);
         }
     }
 };
@@ -80,10 +79,9 @@ struct ast_list_t : public ast_base_t
 struct ast_stmt_t : public ast_base_t
 {
     const std::string var_name;
-    const std::shared_ptr<const ast_call_t> call;
+    const ast_call_t &call;
 
-    explicit ast_stmt_t(const char *var,
-                        const std::shared_ptr<const ast_call_t> &_call)
+    explicit ast_stmt_t(const char *var, const ast_call_t &_call)
       : var_name(var),
         call(_call)
     {}
@@ -95,10 +93,9 @@ struct ast_stmt_t : public ast_base_t
 struct ast_call_t : public ast_base_t
 {
     const std::string fun_name;
-    const std::shared_ptr<const ast_arg_list_t> arg_list;
+    const ast_arg_list_t * const arg_list;
 
-    explicit ast_call_t(const char *fun,
-                        const std::shared_ptr<const ast_arg_list_t> &_arg_list)
+    explicit ast_call_t(const char *fun, const ast_arg_list_t *_arg_list)
       : fun_name(fun),
         arg_list(_arg_list)
     {}
@@ -158,20 +155,9 @@ struct ast_arg_char_t : public ast_argument_t
 
 
 //----------------------------------------------------------------------
-//- ...
-//----------------------------------------------------------------------
-struct value_opaque_t : public std::shared_ptr<const ast_base_t>
-{
-    explicit value_opaque_t(const std::shared_ptr<const ast_base_t> &v)
-      : std::shared_ptr<const ast_base_t>(v)
-    {}
-};
-
-
-//----------------------------------------------------------------------
 //- AST builder ...
 //----------------------------------------------------------------------
-class auxil_opaque_t
+class ast_builder_t
 {
     friend value_t mk_unit(auxil_t auxil, value_t stmt_list, int pos);
 
@@ -193,10 +179,10 @@ class auxil_opaque_t
     friend int voidc_getchar(auxil_t auxil);
 
 public:
-    explicit auxil_opaque_t(std::istream &_input)
+    explicit ast_builder_t(std::istream &_input)
       : input(_input)
     {}
-    virtual ~auxil_opaque_t() = default;
+    virtual ~ast_builder_t() = default;
 
 public:
     const std::map<int, int> &newlines = _newlines;
@@ -230,15 +216,15 @@ private:
     template<typename T, typename... Args>
     value_t do_util(Args&&... args)
     {
-        auto v = std::make_shared<const T>(std::forward<Args>(args)...);
+        auto v = std::make_unique<const T>(std::forward<Args>(args)...);
 
-        values.push_front(value_opaque_t(v));
+        values.push_front(std::move(v));
 
-        return &values.front();
+        return values.front().get();
     }
 
 private:
-    std::forward_list<value_opaque_t> values;
+    std::forward_list<std::unique_ptr<const ast_base_t>> values;
 
 private:
     std::istream &input;

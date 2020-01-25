@@ -74,11 +74,11 @@ public:
     LLVMValueRef find_identifier(const std::string &name);
 
 public:
-    typedef void (*intrinsic_t)(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args);
+    typedef void (*intrinsic_t)(compile_ctx_t &cctx, const ast_arg_list_t *args);
 
     static std::map<std::string, intrinsic_t> intrinsics;
 
-    void call_intrinsic_helper(const char *helper, const std::shared_ptr<const ast_arg_list_t> &args);
+    void call_intrinsic_helper(const char *helper, const ast_arg_list_t *args);
 
 public:
     std::forward_list<LLVMValueRef> stmts;

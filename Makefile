@@ -1,15 +1,15 @@
 #!/usr/bin/make -f
 
 
-#MYFLAGS=
-MYFLAGS=-fsanitize=address -fno-omit-frame-pointer
+#MYFLAGS=-O3
+MYFLAGS=-g -fsanitize=address -fno-omit-frame-pointer
 
 
 CC=clang
-CFLAGS=-g `llvm-config --cflags` $(MYFLAGS)
+CFLAGS=`llvm-config --cflags` $(MYFLAGS)
 
 CXX=clang++
-CXXFLAGS=-g `llvm-config --cxxflags` -std=c++17 $(MYFLAGS)
+CXXFLAGS= `llvm-config --cxxflags` -std=c++17 $(MYFLAGS)
 
 LD=clang++
 LDFLAGS=`llvm-config --cxxflags --ldflags --libs all --system-libs` $(MYFLAGS)
