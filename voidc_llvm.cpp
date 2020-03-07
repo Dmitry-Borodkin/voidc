@@ -213,7 +213,7 @@ void v_add_local_symbol(compile_ctx_t &cctx, const ast_arg_list_t *args)
 static
 void v_add_local_constant(compile_ctx_t &cctx, const ast_arg_list_t *args)
 {
-    cctx.call_intrinsic_helper ("voidc_intrinsic_add_local_constant", args);
+    cctx.call_intrinsic_helper("voidc_intrinsic_add_local_constant", args);
 }
 
 
