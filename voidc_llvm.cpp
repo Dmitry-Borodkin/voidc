@@ -14,7 +14,7 @@
 
 
 //---------------------------------------------------------------------
-//- Контекст компиляции
+//- Compilation context
 //---------------------------------------------------------------------
 LLVMTargetMachineRef compile_ctx_t::target_machine;
 LLVMOrcJITStackRef   compile_ctx_t::jit;
