@@ -10,6 +10,9 @@
 #include <map>
 
 
+#include <cstdio>
+
+
 //----------------------------------------------------------------------
 //- AST classes
 //----------------------------------------------------------------------
@@ -193,6 +196,11 @@ public:
         values.clear();
 
         unit_pos = input_pos;
+
+
+//      printf("\nclear: 0x%X, 0x%02X\n", input_pos, input.peek());
+
+
     }
 
 private:

@@ -34,6 +34,10 @@ voidc.o \
 voidc_ast.o \
 voidc_llvm.o \
 voidc_main.o \
+vpeg_parser.o \
+vpeg_grammar.o \
+vpeg_context.o \
+tinyutf8.o \
 
 
 voidc: $(OBJS)
