@@ -10,6 +10,8 @@ namespace vpeg
 
 static struct {} const dummy;       //- Sic!
 
+std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>> action_t::functions;
+
 
 //---------------------------------------------------------------------
 //- Parsers...
@@ -264,7 +266,16 @@ std::any dot_parser_t::parse(context_t &ctx) const
 //-----------------------------------------------------------------
 std::any call_action_t::act(context_t &ctx) const
 {
-    return dummy;       //- ?!?!?!?!?!?
+    size_t N = args.size();
+
+    auto a = std::make_unique<std::any[]>(N);
+
+    for (uint i=0; i<N; ++i)
+    {
+        a[i] = args[i]->value(ctx);
+    }
+
+    return functions[fun](ctx, a.get(), N);
 }
 
 

@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <any>
+#include <map>
+#include <functional>
 #include <cstdint>
 
 #include <immer/array.hpp>
@@ -16,8 +18,6 @@ namespace vpeg
 {
 
 using string = utf8_string;
-
-using value_t = void *;
 
 
 //---------------------------------------------------------------------
@@ -55,18 +55,24 @@ public:
         k_dot,
     };
 
-    const kind_t kind;
+    virtual kind_t kind(void) const = 0;
 
 public:
     virtual std::any parse(context_t &ctx) const = 0;
-
-protected:
-    explicit parser_t(kind_t _kind)
-      : kind(_kind)
-    {}
 };
 
 typedef std::shared_ptr<const parser_t> parser_ptr_t;
+
+//---------------------------------------------------------------------
+template<parser_t::kind_t tag>
+class parser_tag_t : public parser_t
+{
+public:
+    kind_t kind(void) const override
+    {
+        return tag;
+    }
+};
 
 
 //---------------------------------------------------------------------
@@ -84,18 +90,27 @@ public:
         k_return,
     };
 
-    const kind_t kind;
+    virtual kind_t kind(void) const = 0;
 
 public:
     virtual std::any act(context_t &ctx) const = 0;
 
-protected:
-    explicit action_t(kind_t _kind)
-      : kind(_kind)
-    {}
+public:
+    static std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>> functions;
 };
 
 typedef std::shared_ptr<const action_t> action_ptr_t;
+
+//---------------------------------------------------------------------
+template<action_t::kind_t tag>
+class action_tag_t : public action_t
+{
+public:
+    kind_t kind(void) const override
+    {
+        return tag;
+    }
+};
 
 
 //---------------------------------------------------------------------
@@ -116,34 +131,39 @@ public:
         k_character,
     };
 
-    const kind_t kind;
+    virtual kind_t kind(void) const = 0;
 
 public:
     virtual std::any value(context_t &ctx) const = 0;
-
-protected:
-    explicit argument_t(kind_t _kind)
-      : kind(_kind)
-    {}
 };
 
 typedef std::shared_ptr<const argument_t> argument_ptr_t;
+
+//---------------------------------------------------------------------
+template<argument_t::kind_t tag>
+class argument_tag_t : public argument_t
+{
+public:
+    kind_t kind(void) const override
+    {
+        return tag;
+    }
+};
 
 
 //---------------------------------------------------------------------
 //- Parsers...
 //---------------------------------------------------------------------
-class parser_array_t : public parser_t
+template<parser_t::kind_t tag>
+class parser_array_t : public parser_tag_t<tag>
 {
 protected:
-    parser_array_t(kind_t _kind, const std::initializer_list<parser_ptr_t> &list)
-      : parser_t(_kind),
-        array(list)
+    explicit parser_array_t(const std::initializer_list<parser_ptr_t> &list)
+      : array(list)
     {}
 
-    parser_array_t(kind_t _kind, const parser_ptr_t *list, size_t count)
-      : parser_t(_kind),
-        array(list, list+count)
+    parser_array_t(const parser_ptr_t *list, size_t count)
+      : array(list, list+count)
     {}
 
 public:
@@ -152,15 +172,15 @@ public:
 
 
 //---------------------------------------------------------------------
-class choice_parser_t : public parser_array_t
+class choice_parser_t : public parser_array_t<parser_t::k_choice>
 {
 public:
     explicit choice_parser_t(const std::initializer_list<parser_ptr_t> &list)
-      : parser_array_t(k_choice, list)
+      : parser_array_t<k_choice>(list)
     {}
 
     choice_parser_t(const parser_ptr_t *list, size_t count)
-      : parser_array_t(k_choice, list, count)
+      : parser_array_t<k_choice>(list, count)
     {}
 
 public:
@@ -183,15 +203,15 @@ mk_choice_parser(const parser_ptr_t *list, size_t count)
 
 
 //---------------------------------------------------------------------
-class sequence_parser_t : public parser_array_t
+class sequence_parser_t : public parser_array_t<parser_t::k_sequence>
 {
 public:
     explicit sequence_parser_t(const std::initializer_list<parser_ptr_t> &list)
-      : parser_array_t(k_sequence, list)
+      : parser_array_t<k_sequence>(list)
     {}
 
     sequence_parser_t(const parser_ptr_t *list, size_t count)
-      : parser_array_t(k_sequence, list, count)
+      : parser_array_t<k_sequence>(list, count)
     {}
 
 public:
@@ -214,12 +234,12 @@ mk_sequence_parser(const parser_ptr_t *list, size_t count)
 
 
 //---------------------------------------------------------------------
-class parser_unary_t : public parser_t
+template<parser_t::kind_t tag>
+class parser_unary_t : public parser_tag_t<tag>
 {
 protected:
-    parser_unary_t(kind_t _kind, const parser_ptr_t &_parser)
-      : parser_t(_kind),
-        parser(_parser)
+    explicit parser_unary_t(const parser_ptr_t &_parser)
+      : parser(_parser)
     {}
 
 public:
@@ -228,11 +248,11 @@ public:
 
 
 //---------------------------------------------------------------------
-class and_parser_t : public parser_unary_t
+class and_parser_t : public parser_unary_t<parser_t::k_and>
 {
 public:
     explicit and_parser_t(const parser_ptr_t &_parser)
-      : parser_unary_t(k_and, _parser)
+      : parser_unary_t<k_and>(_parser)
     {}
 
 public:
@@ -247,11 +267,11 @@ mk_and_parser(const parser_ptr_t &_parser)
 }
 
 //---------------------------------------------------------------------
-class not_parser_t : public parser_unary_t
+class not_parser_t : public parser_unary_t<parser_t::k_not>
 {
 public:
     explicit not_parser_t(const parser_ptr_t &_parser)
-      : parser_unary_t(k_not, _parser)
+      : parser_unary_t<k_not>(_parser)
     {}
 
 public:
@@ -266,11 +286,11 @@ mk_not_parser(const parser_ptr_t &_parser)
 }
 
 //---------------------------------------------------------------------
-class question_parser_t : public parser_unary_t
+class question_parser_t : public parser_unary_t<parser_t::k_question>
 {
 public:
     explicit question_parser_t(const parser_ptr_t &_parser)
-      : parser_unary_t(k_question, _parser)
+      : parser_unary_t<k_question>(_parser)
     {}
 
 public:
@@ -285,11 +305,11 @@ mk_question_parser(const parser_ptr_t &_parser)
 }
 
 //---------------------------------------------------------------------
-class star_parser_t : public parser_unary_t
+class star_parser_t : public parser_unary_t<parser_t::k_star>
 {
 public:
     explicit star_parser_t(const parser_ptr_t &_parser)
-      : parser_unary_t(k_star, _parser)
+      : parser_unary_t<k_star>(_parser)
     {}
 
 public:
@@ -304,11 +324,11 @@ mk_star_parser(const parser_ptr_t &_parser)
 }
 
 //---------------------------------------------------------------------
-class plus_parser_t : public parser_unary_t
+class plus_parser_t : public parser_unary_t<parser_t::k_plus>
 {
 public:
     explicit plus_parser_t(const parser_ptr_t &_parser)
-      : parser_unary_t(k_plus, _parser)
+      : parser_unary_t<k_plus>(_parser)
     {}
 
 public:
@@ -323,11 +343,11 @@ mk_plus_parser(const parser_ptr_t &_parser)
 }
 
 //---------------------------------------------------------------------
-class catch_variable_parser_t : public parser_unary_t
+class catch_variable_parser_t : public parser_unary_t<parser_t::k_catch_variable>
 {
 public:
     catch_variable_parser_t(const string &_name, const parser_ptr_t &_parser)
-      : parser_unary_t(k_catch_variable, _parser),
+      : parser_unary_t<k_catch_variable>(_parser),
         name(_name)
     {}
 
@@ -346,11 +366,11 @@ mk_catch_variable_parser(const string &_name, const parser_ptr_t &_parser)
 }
 
 //---------------------------------------------------------------------
-class catch_string_parser_t : public parser_unary_t
+class catch_string_parser_t : public parser_unary_t<parser_t::k_catch_string>
 {
 public:
     explicit catch_string_parser_t(const parser_ptr_t &_parser)
-      : parser_unary_t(k_catch_string, _parser)
+      : parser_unary_t<k_catch_string>(_parser)
     {}
 
 public:
@@ -366,12 +386,11 @@ mk_catch_string_parser(const parser_ptr_t &_parser)
 
 
 //---------------------------------------------------------------------
-class identifier_parser_t : public parser_t
+class identifier_parser_t : public parser_tag_t<parser_t::k_identifier>
 {
 public:
     explicit identifier_parser_t(const string &_ident)
-      : parser_t(k_identifier),
-        ident(_ident)
+      : ident(_ident)
     {}
 
 public:
@@ -389,12 +408,11 @@ mk_identifier_parser(const string &_ident)
 }
 
 //---------------------------------------------------------------------
-class backref_parser_t : public parser_t
+class backref_parser_t : public parser_tag_t<parser_t::k_backref>
 {
 public:
     explicit backref_parser_t(size_t _number)
-      : parser_t(k_backref),
-        number(_number)
+      : number(_number)
     {}
 
 public:
@@ -412,12 +430,11 @@ mk_backref_parser(size_t _number)
 }
 
 //---------------------------------------------------------------------
-class action_parser_t : public parser_t
+class action_parser_t : public parser_tag_t<parser_t::k_action>
 {
 public:
     explicit action_parser_t(const action_ptr_t &_action)
-      : parser_t(k_action),
-        action(_action)
+      : action(_action)
     {}
 
 public:
@@ -435,12 +452,11 @@ mk_action_parser(const action_ptr_t &_action)
 }
 
 //---------------------------------------------------------------------
-class literal_parser_t : public parser_t
+class literal_parser_t : public parser_tag_t<parser_t::k_literal>
 {
 public:
     explicit literal_parser_t(const string &_utf8)
-      : parser_t(k_literal),
-        utf8(_utf8)
+      : utf8(_utf8)
     {}
 
 public:
@@ -458,12 +474,11 @@ mk_literal_parser(const string &_utf8)
 }
 
 //---------------------------------------------------------------------
-class character_parser_t : public parser_t
+class character_parser_t : public parser_tag_t<parser_t::k_character>
 {
 public:
     explicit character_parser_t(char32_t _ucs4)
-      : parser_t(k_character),
-        ucs4(_ucs4)
+      : ucs4(_ucs4)
     {}
 
 public:
@@ -481,20 +496,18 @@ mk_character_parser(char32_t _ucs4)
 }
 
 //---------------------------------------------------------------------
-class class_parser_t : public parser_t
+class class_parser_t : public parser_tag_t<parser_t::k_class>
 {
 public:
     using range_t = std::array<char32_t, 2>;
 
 public:
     explicit class_parser_t(const std::initializer_list<range_t> &list)
-      : parser_t(k_class),
-        ranges(list)
+      : ranges(list)
     {}
 
     class_parser_t(const range_t *list, size_t count)
-      : parser_t(k_class),
-        ranges(list, list+count)
+      : ranges(list, list+count)
     {}
 
 public:
@@ -512,11 +525,8 @@ mk_class_parser(const std::initializer_list<class_parser_t::range_t> &list)
 }
 
 //---------------------------------------------------------------------
-class dot_parser_t : public parser_t
+class dot_parser_t : public parser_tag_t<parser_t::k_dot>
 {
-public:
-    dot_parser_t() : parser_t(k_dot) {}
-
 public:
     std::any parse(context_t &ctx) const override;
 };
@@ -532,18 +542,16 @@ mk_dot_parser(void)
 //---------------------------------------------------------------------
 //- Actions...
 //---------------------------------------------------------------------
-class call_action_t : public action_t
+class call_action_t : public action_tag_t<action_t::k_call>
 {
 public:
     call_action_t(const string &_fun, const std::initializer_list<argument_ptr_t> &list)
-      : action_t(k_call),
-        fun(_fun),
+      : fun(_fun),
         args(list)
     {}
 
     call_action_t(const string &_fun, const argument_ptr_t *list, size_t count)
-      : action_t(k_call),
-        fun(_fun),
+      : fun(_fun),
         args(list, list+count)
     {}
 
@@ -564,12 +572,11 @@ mk_call_action(const string &fun, const std::initializer_list<argument_ptr_t> &l
 }
 
 //---------------------------------------------------------------------
-class return_action_t : public action_t
+class return_action_t : public action_tag_t<action_t::k_return>
 {
 public:
     explicit return_action_t(const argument_ptr_t &_arg)
-      : action_t(k_return),
-        arg(_arg)
+      : arg(_arg)
     {}
 
 public:
@@ -593,12 +600,11 @@ mk_return_action(const argument_ptr_t &arg)
 //---------------------------------------------------------------------
 //- Arguments...
 //---------------------------------------------------------------------
-class identifier_argument_t : public argument_t
+class identifier_argument_t : public argument_tag_t<argument_t::k_identifier>
 {
 public:
     explicit identifier_argument_t(const string &_ident)
-      : argument_t(k_identifier),
-        ident(_ident)
+      : ident(_ident)
     {}
 
 public:
@@ -616,7 +622,7 @@ mk_identifier_argument(const string &ident)
 }
 
 //---------------------------------------------------------------------
-class backref_argument_t : public argument_t
+class backref_argument_t : public argument_tag_t<argument_t::k_backref>
 {
 public:
     enum b_kind_t
@@ -628,8 +634,7 @@ public:
 
 public:
     explicit backref_argument_t(size_t _number, b_kind_t _b_kind=bk_string)
-      : argument_t(k_backref),
-        number(_number),
+      : number(_number),
         b_kind(_b_kind)
     {}
 
@@ -649,12 +654,11 @@ mk_backref_argument(size_t number, backref_argument_t::b_kind_t b_kind=backref_a
 }
 
 //---------------------------------------------------------------------
-class integer_argument_t : public argument_t
+class integer_argument_t : public argument_tag_t<argument_t::k_integer>
 {
 public:
     explicit integer_argument_t(intptr_t _number)
-      : argument_t(k_integer),
-        number(_number)
+      : number(_number)
     {}
 
 public:
@@ -675,12 +679,11 @@ mk_integer_argument(intptr_t number)
 }
 
 //---------------------------------------------------------------------
-class literal_argument_t : public argument_t
+class literal_argument_t : public argument_tag_t<argument_t::k_literal>
 {
 public:
     explicit literal_argument_t(const string &_utf8)
-      : argument_t(k_literal),
-        utf8(_utf8)
+      : utf8(_utf8)
     {}
 
 public:
@@ -701,12 +704,11 @@ mk_literal_argument(const string &utf8)
 }
 
 //---------------------------------------------------------------------
-class character_argument_t : public argument_t
+class character_argument_t : public argument_tag_t<argument_t::k_character>
 {
 public:
     explicit character_argument_t(char32_t _ucs4)
-      : argument_t(k_character),
-        ucs4(_ucs4)
+      : ucs4(_ucs4)
     {}
 
 public:
