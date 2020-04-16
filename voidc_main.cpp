@@ -153,7 +153,7 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
-        ast_builder_t auxil(infs);
+        auxil_opaque_t auxil(infs);
 
         voidc_context_t *ctx = voidc_create(&auxil);
 
@@ -161,9 +161,11 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
         while(voidc_parse(ctx, &value))
         {
-            if (auto unit = dynamic_cast<const ast_unit_t *>(value))
+            if (auto unit = std::dynamic_pointer_cast<const ast_unit_t>(*value))
             {
                 unit->compile(cctx);
+
+                unit.reset();
 
                 auxil.clear();
 
@@ -198,7 +200,7 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
 //---------------------------------------------------------------------
 static
-void v_import(compile_ctx_t &cctx, const ast_arg_list_t *args)
+void v_import(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
 {
     cctx.call_intrinsic_helper("voidc_intrinsic_import", args);
 }
@@ -225,7 +227,7 @@ int main()
         cctx.intrinsics["v_import"] = &v_import;
     }
 
-    ast_builder_t auxil(std::cin);
+    auxil_opaque_t auxil(std::cin);
 
     voidc_context_t *ctx = voidc_create(&auxil);
 
@@ -233,9 +235,11 @@ int main()
 
     while(voidc_parse(ctx, &value))
     {
-        if (auto unit = dynamic_cast<const ast_unit_t *>(value))
+        if (auto unit = std::dynamic_pointer_cast<const ast_unit_t>(*value))
         {
             unit->compile(cctx);
+
+            unit.reset();
 
             auxil.clear();
 
