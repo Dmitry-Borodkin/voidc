@@ -25,14 +25,32 @@ class context_t;
 
 
 //---------------------------------------------------------------------
+//- "Node" base class...
+//---------------------------------------------------------------------
+template<typename K>
+struct node_t : public K
+{
+    virtual ~node_t() = default;
+
+    virtual typename K::kind_t kind(void) const = 0;
+};
+
+//---------------------------------------------------------------------
+template<typename N, typename N::kind_t tag>
+struct node_tag_t : public N
+{
+    typename N::kind_t kind(void) const override
+    {
+        return tag;
+    }
+};
+
+
+//---------------------------------------------------------------------
 //- Parser base class
 //---------------------------------------------------------------------
-class parser_t
+struct parser_kind_t
 {
-public:
-    virtual ~parser_t() = default;
-
-public:
     enum kind_t
     {
         k_choice,
@@ -54,74 +72,51 @@ public:
         k_class,
         k_dot,
     };
+};
 
-    virtual kind_t kind(void) const = 0;
-
-public:
+//---------------------------------------------------------------------
+struct parser_t : public node_t<parser_kind_t>
+{
     virtual std::any parse(context_t &ctx) const = 0;
 };
 
 typedef std::shared_ptr<const parser_t> parser_ptr_t;
 
-//---------------------------------------------------------------------
 template<parser_t::kind_t tag>
-class parser_tag_t : public parser_t
-{
-public:
-    kind_t kind(void) const override
-    {
-        return tag;
-    }
-};
+using parser_tag_t = node_tag_t<parser_t, tag>;
 
 
 //---------------------------------------------------------------------
 //- Action base class
 //---------------------------------------------------------------------
-class action_t
+struct action_kind_t
 {
-public:
-    virtual ~action_t() = default;
-
-public:
     enum kind_t
     {
         k_call,
         k_return,
     };
+};
 
-    virtual kind_t kind(void) const = 0;
-
-public:
+//---------------------------------------------------------------------
+struct action_t : public node_t<action_kind_t>
+{
     virtual std::any act(context_t &ctx) const = 0;
 
-public:
     static std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>> functions;
 };
 
 typedef std::shared_ptr<const action_t> action_ptr_t;
 
-//---------------------------------------------------------------------
 template<action_t::kind_t tag>
-class action_tag_t : public action_t
-{
-public:
-    kind_t kind(void) const override
-    {
-        return tag;
-    }
-};
+using action_tag_t = node_tag_t<action_t, tag>;
 
 
 //---------------------------------------------------------------------
 //- Argument base class
 //---------------------------------------------------------------------
-class argument_t
+struct argument_kind_t
 {
-public:
-    virtual ~argument_t() = default;
-
-public:
     enum kind_t
     {
         k_identifier,
@@ -130,25 +125,18 @@ public:
         k_literal,
         k_character,
     };
+};
 
-    virtual kind_t kind(void) const = 0;
-
-public:
+//---------------------------------------------------------------------
+struct argument_t : public node_t<argument_kind_t>
+{
     virtual std::any value(context_t &ctx) const = 0;
 };
 
 typedef std::shared_ptr<const argument_t> argument_ptr_t;
 
-//---------------------------------------------------------------------
 template<argument_t::kind_t tag>
-class argument_tag_t : public argument_t
-{
-public:
-    kind_t kind(void) const override
-    {
-        return tag;
-    }
-};
+using argument_tag_t = node_tag_t<argument_t, tag>;
 
 
 //---------------------------------------------------------------------
