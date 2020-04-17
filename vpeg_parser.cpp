@@ -10,8 +10,6 @@ namespace vpeg
 
 static struct {} const dummy;       //- Sic!
 
-std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>> action_t::functions;
-
 
 //---------------------------------------------------------------------
 //- Parsers...

@@ -1,5 +1,177 @@
 #include "vpeg_voidc.h"
 
+#include "voidc_ast.h"
+
+
+//---------------------------------------------------------------------
+namespace vpeg
+{
+
+static
+char get_character(const char * &p)
+{
+    assert(*p);
+
+    char c = *p++;
+
+    if (c == '\\')
+    {
+        c = *p++;
+
+        switch(c)
+        {
+        case 'n':   c = '\n'; break;
+        case 'r':   c = '\r'; break;
+        case 't':   c = '\t'; break;
+        }
+    }
+
+    return  c;
+}
+
+std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>> action_t::functions =
+{
+    {"mk_unit", [](context_t &ctx, const std::any *args, size_t){
+
+        auto sl = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args[0]);
+
+        auto pos = std::any_cast<size_t>(args[1]);
+
+        return std::make_shared<const ast_unit_t>(sl, 0, pos);
+    }},
+
+    {"mk_stmt_list", [](context_t &ctx, const std::any *args, size_t){
+
+        auto h = std::any_cast<std::shared_ptr<const ast_stmt_t>>(args[0]);
+
+        auto t = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+1);
+
+        if (!t)
+        {
+            static const std::shared_ptr<const ast_stmt_list_t> nil;
+
+            t = &nil;
+        }
+
+        return std::make_shared<const ast_stmt_list_t>(h, *t);
+    }},
+
+    {"mk_stmt", [](context_t &ctx, const std::any *args, size_t){
+
+        const char *s = "";
+
+        if (auto p = std::any_cast<const string>(args+0)) { s = p->c_str(); }
+
+        auto c = std::any_cast<std::shared_ptr<const ast_call_t>>(args[1]);
+
+        return std::make_shared<const ast_stmt_t>(s, c);
+    }},
+
+    {"mk_call", [](context_t &ctx, const std::any *args, size_t){
+
+        auto f = std::any_cast<const string>(args[0]).c_str();
+
+        auto a = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args[1]);
+
+        return std::make_shared<const ast_call_t>(f, a);
+    }},
+
+    {"mk_arg_list", [](context_t &ctx, const std::any *args, size_t){
+
+        auto h = std::any_cast<std::shared_ptr<const ast_argument_t>>(args[0]);
+
+        auto t = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+1);
+
+        if (!t)
+        {
+            static const std::shared_ptr<const ast_arg_list_t> nil;
+
+            t = &nil;
+        }
+
+        return std::make_shared<const ast_arg_list_t>(h, *t);
+    }},
+
+    {"mk_arg_identifier", [](context_t &ctx, const std::any *args, size_t){
+
+        auto n = std::any_cast<const string>(args[0]).c_str();
+
+        std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_identifier_t>(n);
+
+        return r;
+    }},
+
+    {"mk_arg_integer", [](context_t &ctx, const std::any *args, size_t){
+
+        auto n = std::any_cast<intptr_t>(args[0]);
+
+        std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_integer_t>(n);
+
+        return r;
+    }},
+
+    {"mk_arg_string", [](context_t &ctx, const std::any *args, size_t){
+
+        auto s = std::any_cast<const string>(args[0]).c_str();
+
+        std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_string_t>(s);
+
+        return r;
+    }},
+
+    {"mk_arg_char", [](context_t &ctx, const std::any *args, size_t){
+
+        auto p = std::any_cast<const string>(args[0]).c_str();
+
+        char c = *p++;
+
+        if (c == '\\')
+        {
+            c = *p++;
+
+            switch(c)
+            {
+            case 'n':   c = '\n'; break;
+            case 'r':   c = '\r'; break;
+            case 't':   c = '\t'; break;
+            }
+        }
+
+        std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_char_t>(c);
+
+        return r;
+    }},
+
+    {"mk_neg_integer", [](context_t &ctx, const std::any *args, size_t){
+
+        auto n = std::any_cast<intptr_t>(args[0]);
+
+        return -n;
+    }},
+
+    {"mk_dec_integer", [](context_t &ctx, const std::any *args, size_t){
+
+        auto n = std::any_cast<intptr_t>(args[0]);
+
+        intptr_t d = U'0' - std::any_cast<char32_t>(args[1]);
+
+        return intptr_t(n ? 10*n+d : d);
+    }},
+
+    {"mk_newline", [](context_t &ctx, const std::any *args, size_t){
+
+        auto n = std::any_cast<size_t>(args[0]);
+
+        printf("mk_newline: %d\n", (int)n);
+
+        return std::any();      //- ?..
+    }},
+
+};
+
+//---------------------------------------------------------------------
+}   //- namespace vpeg
+
 
 //---------------------------------------------------------------------
 vpeg::grammar_t make_voidc_grammar(void)
