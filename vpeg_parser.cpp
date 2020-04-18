@@ -273,6 +273,8 @@ std::any call_action_t::act(context_t &ctx) const
         a[i] = args[i]->value(ctx);
     }
 
+//  printf("%s\n", fun.c_str());
+
     return functions[fun](ctx, a.get(), N);
 }
 

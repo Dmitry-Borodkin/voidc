@@ -9,6 +9,8 @@
 #include <filesystem>
 
 #include "voidc_llvm.h"
+#include "vpeg_context.h"
+#include "vpeg_voidc.h"
 
 #include <llvm-c/Core.h>
 #include <llvm-c/Support.h>
@@ -153,6 +155,8 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
+#if 0
+
         auxil_opaque_t auxil(infs);
 
         voidc_context_t *ctx = voidc_create(&auxil);
@@ -187,6 +191,44 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
         }
 
         voidc_destroy(ctx);
+
+#else
+
+        {   vpeg::grammar_t gr = make_voidc_grammar();
+
+            vpeg::context_t ctx(infs, gr);
+
+            for(;;)
+            {
+                auto v = ctx.grammar.parse("unit", ctx);
+
+                if (!ctx.is_ok()) break;
+
+                if (auto unit = std::any_cast<std::shared_ptr<const ast_unit_t>>(v))
+                {
+                    unit->compile(cctx);
+
+                    unit.reset();
+
+                    if (cctx.unit_buffer)
+                    {
+                        size_t len = LLVMGetBufferSize(cctx.unit_buffer);
+
+                        outfs.write((char *)&len, sizeof(len));
+
+                        outfs.write(LLVMGetBufferStart(cctx.unit_buffer), len);
+
+                        cctx.run_unit_action();
+                    }
+                }
+                else
+                {
+                    assert(false && "Unit parse error!");
+                }
+            }
+        }
+
+#endif
 
         outfs.seekp(0);
 
@@ -227,6 +269,9 @@ int main()
         cctx.intrinsics["v_import"] = &v_import;
     }
 
+
+#if 0
+
     auxil_opaque_t auxil(std::cin);
 
     voidc_context_t *ctx = voidc_create(&auxil);
@@ -253,6 +298,34 @@ int main()
 
     voidc_destroy(ctx);
 
+#else
+
+    {   vpeg::grammar_t gr = make_voidc_grammar();
+
+        vpeg::context_t ctx(std::cin, gr);
+
+        for(;;)
+        {
+            auto v = ctx.grammar.parse("unit", ctx);
+
+            if (!ctx.is_ok()) break;
+
+            if (auto unit = std::any_cast<std::shared_ptr<const ast_unit_t>>(v))
+            {
+                unit->compile(cctx);
+
+                unit.reset();
+
+                cctx.run_unit_action();
+            }
+            else
+            {
+                assert(false && "Unit parse error!");
+            }
+        }
+    }
+
+#endif
 
 //    for (auto &it : compile_ctx_t::symbol_types)
 //    {

@@ -13,7 +13,8 @@ namespace vpeg
 grammar_t &grammar_t::operator=(const grammar_t &gr)
 {
     _map  = gr.map;
-    _hash = gr.hash;
+//  _hash = gr.hash;
+    hash = gr.hash;
 
     return *this;
 }
@@ -34,7 +35,10 @@ void grammar_t::check_hash(void)
 
     static size_t static_hash = 0;
 
-    _hash = static_hash++ ;
+//  _hash = static_hash++ ;
+    hash = static_hash++ ;
+
+//  printf("%s: %p %p\n", __FUNCTION__, &hash_, &_hash);
 }
 
 
@@ -110,7 +114,7 @@ std::any grammar_t::parse(const string &symbol, context_t &ctx) const
 
 //    if (ret.has_value())
 //    {
-//        printf("(%d,%d): %s\n", (int)st.position, (int)ctx.get_state().position, symbol.c_str());
+//        printf("(%d,%d): %p %s\n", (int)st.position, (int)ctx.get_state().position, &saved_vars, symbol.c_str());
 //    }
 
     ctx.variables = saved_vars;                 //- restore saved

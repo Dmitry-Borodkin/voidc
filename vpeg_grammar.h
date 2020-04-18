@@ -34,15 +34,16 @@ public:
     std::any parse(const string &symbol, context_t &ctx) const;
 
 public:
-    const size_t &hash = _hash;
+//  const size_t &hash = _hash;
 
     void check_hash(void);
 
 public:
     const immer::map<string, std::pair<parser_ptr_t, bool>> &map = _map;
 
-private:
-    size_t _hash = size_t(-1);
+//private:
+//    size_t _hash = size_t(-1);
+    size_t hash = size_t(-1);
 
 private:
     immer::map<string, std::pair<parser_ptr_t, bool>> _map;

@@ -7,37 +7,22 @@
 namespace vpeg
 {
 
-static
-char get_character(const char * &p)
-{
-    assert(*p);
-
-    char c = *p++;
-
-    if (c == '\\')
-    {
-        c = *p++;
-
-        switch(c)
-        {
-        case 'n':   c = '\n'; break;
-        case 'r':   c = '\r'; break;
-        case 't':   c = '\t'; break;
-        }
-    }
-
-    return  c;
-}
-
 std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>> action_t::functions =
 {
     {"mk_unit", [](context_t &ctx, const std::any *args, size_t){
 
-        auto sl = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args[0]);
+        auto p = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+0);
+
+        if (!p)
+        {
+            static const std::shared_ptr<const ast_stmt_list_t> nil;
+
+            p = &nil;
+        }
 
         auto pos = std::any_cast<size_t>(args[1]);
 
-        return std::make_shared<const ast_unit_t>(sl, 0, pos);
+        return std::make_shared<const ast_unit_t>(*p, 0, pos);
     }},
 
     {"mk_stmt_list", [](context_t &ctx, const std::any *args, size_t){
@@ -69,11 +54,18 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_call", [](context_t &ctx, const std::any *args, size_t){
 
-        auto f = std::any_cast<const string>(args[0]).c_str();
+        auto f = std::any_cast<const string>(args+0)->c_str();
 
-        auto a = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args[1]);
+        auto a = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+1);
 
-        return std::make_shared<const ast_call_t>(f, a);
+        if (!a)
+        {
+            static const std::shared_ptr<const ast_arg_list_t> nil;
+
+            a = &nil;
+        }
+
+        return std::make_shared<const ast_call_t>(f, *a);
     }},
 
     {"mk_arg_list", [](context_t &ctx, const std::any *args, size_t){
@@ -94,7 +86,9 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_identifier", [](context_t &ctx, const std::any *args, size_t){
 
-        auto n = std::any_cast<const string>(args[0]).c_str();
+        auto n = std::any_cast<const string>(args+0)->c_str();
+
+//      printf("ident: %s\n", n);
 
         std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_identifier_t>(n);
 
@@ -112,7 +106,7 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_string", [](context_t &ctx, const std::any *args, size_t){
 
-        auto s = std::any_cast<const string>(args[0]).c_str();
+        auto s = std::any_cast<const string>(args+0)->c_str();
 
         std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_string_t>(s);
 
@@ -121,7 +115,7 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_char", [](context_t &ctx, const std::any *args, size_t){
 
-        auto p = std::any_cast<const string>(args[0]).c_str();
+        auto p = std::any_cast<const string>(args+0)->c_str();
 
         char c = *p++;
 
@@ -153,18 +147,22 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
         auto n = std::any_cast<intptr_t>(args[0]);
 
-        intptr_t d = U'0' - std::any_cast<char32_t>(args[1]);
+        intptr_t d = std::any_cast<char32_t>(args[1]) - U'0';
 
-        return intptr_t(n ? 10*n+d : d);
+//      printf("dec_int: %d %d\n", (int)n, (int)d);
+
+        if (n)  d += 10*n;
+
+        return d;
     }},
 
     {"mk_newline", [](context_t &ctx, const std::any *args, size_t){
 
         auto n = std::any_cast<size_t>(args[0]);
 
-        printf("mk_newline: %d\n", (int)n);
+//      printf("mk_newline: %d\n", (int)n);
 
-        return std::any();      //- ?..
+        return true;            //- ?..
     }},
 
 };
@@ -503,11 +501,7 @@ vpeg::grammar_t make_voidc_grammar(void)
                     ),
 
                     mk_action_parser(
-                        mk_call_action("mk_dec_integer",
-                        {
-                            mk_integer_argument(0),
-                            mk_identifier_argument("d")
-                        })
+                        mk_return_action(mk_identifier_argument("d"))
                     )
                 })
                );
@@ -531,7 +525,7 @@ vpeg::grammar_t make_voidc_grammar(void)
                 mk_sequence_parser(
                 {
                     mk_not_parser(
-                        mk_class_parser({{'\n','\n'},{'\r','\r'},{'\t','\t'},{'\'','\''},{'\"','\"'},{'\\','\\'}})
+                        mk_class_parser({{'\n','\n'},{'\r','\r'},{'\t','\t'},{'\'','\''},{'\"','\"'}})
                     ),
                     ip_character
                 })
