@@ -81,11 +81,7 @@ std::any not_parser_t::parse(context_t &ctx) const
 //-------------------------------------------------------------
 std::any question_parser_t::parse(context_t &ctx) const
 {
-    auto st = ctx.get_state();
-
-    auto r = parser->parse(ctx);
-
-    if (!r.has_value())   ctx.set_state(st);
+    parser->parse(ctx);
 
     return dummy;
 }
@@ -95,16 +91,9 @@ std::any star_parser_t::parse(context_t &ctx) const
 {
     for(;;)
     {
-        auto st = ctx.get_state();
-
         auto r = parser->parse(ctx);
 
-        if (!r.has_value())
-        {
-            ctx.set_state(st);
-
-            break;
-        }
+        if (!r.has_value()) break;
     }
 
     return dummy;
@@ -117,16 +106,9 @@ std::any plus_parser_t::parse(context_t &ctx) const
 
     for(;;)
     {
-        auto st = ctx.get_state();
-
         auto r = parser->parse(ctx);
 
-        if (!r.has_value())
-        {
-            ctx.set_state(st);
-
-            break;
-        }
+        if (!r.has_value()) break;
 
         ret = dummy;
     }
