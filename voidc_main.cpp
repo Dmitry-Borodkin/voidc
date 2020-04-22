@@ -155,45 +155,6 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
-#if 0
-
-        auxil_opaque_t auxil(infs);
-
-        voidc_context_t *ctx = voidc_create(&auxil);
-
-        value_t value;
-
-        while(voidc_parse(ctx, &value))
-        {
-            if (auto unit = std::dynamic_pointer_cast<const ast_unit_t>(*value))
-            {
-                unit->compile(cctx);
-
-                unit.reset();
-
-                auxil.clear();
-
-                if (cctx.unit_buffer)
-                {
-                    size_t len = LLVMGetBufferSize(cctx.unit_buffer);
-
-                    outfs.write((char *)&len, sizeof(len));
-
-                    outfs.write(LLVMGetBufferStart(cctx.unit_buffer), len);
-
-                    cctx.run_unit_action();
-                }
-            }
-            else
-            {
-                assert(false && "Unit parse error!");
-            }
-        }
-
-        voidc_destroy(ctx);
-
-#else
-
         {   vpeg::grammar_t gr = make_voidc_grammar();
 
             vpeg::context_t ctx(infs, gr);
@@ -227,8 +188,6 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
                 }
             }
         }
-
-#endif
 
         outfs.seekp(0);
 
@@ -269,37 +228,6 @@ int main()
         cctx.intrinsics["v_import"] = &v_import;
     }
 
-
-#if 0
-
-    auxil_opaque_t auxil(std::cin);
-
-    voidc_context_t *ctx = voidc_create(&auxil);
-
-    value_t value;
-
-    while(voidc_parse(ctx, &value))
-    {
-        if (auto unit = std::dynamic_pointer_cast<const ast_unit_t>(*value))
-        {
-            unit->compile(cctx);
-
-            unit.reset();
-
-            auxil.clear();
-
-            cctx.run_unit_action();
-        }
-        else
-        {
-            assert(false && "Unit parse error!");
-        }
-    }
-
-    voidc_destroy(ctx);
-
-#else
-
     {   vpeg::grammar_t gr = make_voidc_grammar();
 
         vpeg::context_t ctx(std::cin, gr);
@@ -324,8 +252,6 @@ int main()
             }
         }
     }
-
-#endif
 
 //    for (auto &it : compile_ctx_t::symbol_types)
 //    {

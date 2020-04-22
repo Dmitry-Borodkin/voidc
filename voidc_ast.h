@@ -1,8 +1,6 @@
 #ifndef VOIDC_AST_H
 #define VOIDC_AST_H
 
-#include "voidc.h"
-
 #include <memory>
 #include <string>
 #include <forward_list>
@@ -157,107 +155,6 @@ struct ast_arg_char_t : public ast_argument_t
     {}
 
     void compile(compile_ctx_t &cctx) const override;
-};
-
-
-//----------------------------------------------------------------------
-//- ...
-//----------------------------------------------------------------------
-struct value_opaque_t : public std::shared_ptr<const ast_base_t>
-{
-    explicit value_opaque_t(const std::shared_ptr<const ast_base_t> &v)
-      : std::shared_ptr<const ast_base_t>(v)
-    {}
-};
-
-
-//----------------------------------------------------------------------
-//- AST builder ...
-//----------------------------------------------------------------------
-class auxil_opaque_t
-{
-    friend value_t mk_unit(auxil_t auxil, value_t stmt_list, int pos);
-
-    friend value_t mk_stmt_list(auxil_t auxil, value_t stmt, value_t stmt_list);
-
-    friend value_t mk_stmt(auxil_t auxil, value_t var, value_t call);
-
-    friend value_t mk_call(auxil_t auxil, value_t fun, value_t arg_list);
-
-    friend value_t mk_arg_list(auxil_t auxil, value_t arg, value_t arg_list);
-
-    friend value_t mk_arg_identifier(auxil_t auxil, value_t ident);
-    friend value_t mk_arg_integer(auxil_t auxil, value_t num);
-    friend value_t mk_arg_string(auxil_t auxil, value_t str);
-    friend value_t mk_arg_char(auxil_t auxil, value_t c);
-
-    friend void mk_newline(auxil_t auxil, int pos);
-
-    friend int voidc_getchar(auxil_t auxil);
-
-public:
-    explicit auxil_opaque_t(std::istream &_input)
-      : input(_input)
-    {}
-    virtual ~auxil_opaque_t() = default;
-
-public:
-    const std::map<int, int> &newlines = _newlines;
-
-public:
-    void clear(void)
-    {
-        values.clear();
-
-        unit_pos = input_pos;
-
-
-//      printf("\nclear: 0x%X, 0x%02X\n", input_pos, input.peek());
-
-
-    }
-
-private:
-    void do_newline(int pos)
-    {
-        auto upos = unit_pos + pos;
-
-        _newlines[upos] = line_number++;
-    }
-
-    int do_getchar(void)
-    {
-        if (input.eof())  return -1;
-
-        input_pos++;
-
-        return  input.get();
-    }
-
-private:
-    template<typename T, typename... Args>
-    value_t do_util(Args&&... args)
-    {
-        auto v = std::make_shared<const T>(std::forward<Args>(args)...);
-
-        values.push_front(value_opaque_t(v));
-
-        return &values.front();
-    }
-
-private:
-    std::forward_list<value_opaque_t> values;
-
-private:
-    std::istream &input;
-
-private:
-    std::map<int, int> _newlines = {{0, 0}};
-
-    int line_number = 1;
-
-    int input_pos = 0;
-    int unit_pos  = 0;
 };
 
 
