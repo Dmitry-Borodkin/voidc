@@ -16,7 +16,7 @@
 class compile_ctx_t
 {
 public:
-    explicit compile_ctx_t(const std::string filename);
+    explicit compile_ctx_t(const vpeg::string filename);
     ~compile_ctx_t();
 
 public:
@@ -34,7 +34,7 @@ public:
 
     LLVMModuleRef module;
 
-    const std::string filename;
+    const vpeg::string filename;
 
 public:
     LLVMMemoryBufferRef unit_buffer = nullptr;
@@ -60,30 +60,30 @@ public:
     static LLVMTypeRef LLVMContextRef_type;
 
 public:
-    static std::map<std::string, LLVMTypeRef> symbol_types;
+    static std::map<vpeg::string, LLVMTypeRef> symbol_types;
 
-    std::map<std::string, std::pair<LLVMTypeRef, void *>> local_symbols;
+    std::map<vpeg::string, std::pair<LLVMTypeRef, void *>> local_symbols;
 
-    static std::map<std::string, LLVMValueRef> constants;
+    static std::map<vpeg::string, LLVMValueRef> constants;
 
-    std::map<std::string, LLVMValueRef> local_constants;
+    std::map<vpeg::string, LLVMValueRef> local_constants;
 
 public:
-    bool find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
+    bool find_function(const vpeg::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
 
-    LLVMValueRef find_identifier(const std::string &name);
+    LLVMValueRef find_identifier(const vpeg::string &name);
 
 public:
     typedef void (*intrinsic_t)(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args);
 
-    static std::map<std::string, intrinsic_t> intrinsics;
+    static std::map<vpeg::string, intrinsic_t> intrinsics;
 
     void call_intrinsic_helper(const char *helper, const std::shared_ptr<const ast_arg_list_t> &args);
 
 public:
     std::forward_list<LLVMValueRef> stmts;
 
-    std::map<std::string, LLVMValueRef> vars;
+    std::map<vpeg::string, LLVMValueRef> vars;
 
     std::vector<LLVMTypeRef>  arg_types;
     std::vector<LLVMValueRef> args;

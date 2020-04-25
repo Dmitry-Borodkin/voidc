@@ -63,7 +63,7 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
     fs::path src_filename = name;
 
-    fs::path parent_path = fs::path(parent_cctx->filename).parent_path();
+    fs::path parent_path = fs::path(parent_cctx->filename.cpp_str()).parent_path();
 
     src_filename = find_file_for_import(parent_path, src_filename);
 

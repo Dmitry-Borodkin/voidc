@@ -2,13 +2,12 @@
 #define VOIDC_AST_H
 
 #include <memory>
-#include <string>
 #include <forward_list>
 #include <istream>
 #include <map>
-
-
 #include <cstdio>
+
+#include "vpeg_parser.h"
 
 
 //----------------------------------------------------------------------
@@ -80,10 +79,10 @@ struct ast_list_t : public ast_base_t
 //----------------------------------------------------------------------
 struct ast_stmt_t : public ast_base_t
 {
-    const std::string var_name;
+    const vpeg::string var_name;
     const std::shared_ptr<const ast_call_t> call;
 
-    explicit ast_stmt_t(const char *var,
+    explicit ast_stmt_t(const vpeg::string &var,
                         const std::shared_ptr<const ast_call_t> &_call)
       : var_name(var),
         call(_call)
@@ -95,10 +94,10 @@ struct ast_stmt_t : public ast_base_t
 //----------------------------------------------------------------------
 struct ast_call_t : public ast_base_t
 {
-    const std::string fun_name;
+    const vpeg::string fun_name;
     const std::shared_ptr<const ast_arg_list_t> arg_list;
 
-    explicit ast_call_t(const char *fun,
+    explicit ast_call_t(const vpeg::string &fun,
                         const std::shared_ptr<const ast_arg_list_t> &_arg_list)
       : fun_name(fun),
         arg_list(_arg_list)
@@ -111,9 +110,9 @@ struct ast_call_t : public ast_base_t
 //----------------------------------------------------------------------
 struct ast_arg_identifier_t : public ast_argument_t
 {
-    const std::string name;
+    const vpeg::string name;
 
-    explicit ast_arg_identifier_t(const char *_name)
+    explicit ast_arg_identifier_t(const vpeg::string &_name)
       : name(_name)
     {}
 
@@ -135,22 +134,22 @@ struct ast_arg_integer_t : public ast_argument_t
 //----------------------------------------------------------------------
 struct ast_arg_string_t : public ast_argument_t
 {
-    const std::string &string = string_private;
+    const vpeg::string &string = string_private;
 
-    explicit ast_arg_string_t(const char *_string);     //- Sic!
+    explicit ast_arg_string_t(const vpeg::string &_string);     //- Sic!
 
     void compile(compile_ctx_t &cctx) const override;
 
 private:
-    std::string string_private;
+    vpeg::string string_private;
 };
 
 //----------------------------------------------------------------------
 struct ast_arg_char_t : public ast_argument_t
 {
-    const char c;
+    const char32_t c;
 
-    explicit ast_arg_char_t(char _c)
+    explicit ast_arg_char_t(char32_t _c)
       : c(_c)
     {}
 

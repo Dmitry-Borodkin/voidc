@@ -43,9 +43,9 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_stmt", [](context_t &ctx, const std::any *args, size_t){
 
-        const char *s = "";
+        string s = "";
 
-        if (auto p = std::any_cast<const string>(args+0)) { s = p->c_str(); }
+        if (auto p = std::any_cast<const string>(args+0)) { s = *p; }
 
         auto c = std::any_cast<std::shared_ptr<const ast_call_t>>(args[1]);
 
@@ -54,7 +54,7 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_call", [](context_t &ctx, const std::any *args, size_t){
 
-        auto f = std::any_cast<const string>(args+0)->c_str();
+        auto f = std::any_cast<const string>(args[0]);
 
         auto a = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+1);
 
@@ -86,9 +86,7 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_identifier", [](context_t &ctx, const std::any *args, size_t){
 
-        auto n = std::any_cast<const string>(args+0)->c_str();
-
-//      printf("ident: %s\n", n);
+        auto n = std::any_cast<const string>(args[0]);
 
         std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_identifier_t>(n);
 
@@ -106,7 +104,7 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_string", [](context_t &ctx, const std::any *args, size_t){
 
-        auto s = std::any_cast<const string>(args+0)->c_str();
+        auto s = std::any_cast<const string>(args[0]);
 
         std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_string_t>(s);
 
@@ -115,19 +113,19 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_char", [](context_t &ctx, const std::any *args, size_t){
 
-        auto p = std::any_cast<const string>(args+0)->c_str();
+        auto p = std::any_cast<const string>(args[0]);
 
-        char c = *p++;
+        auto c = p[0];
 
-        if (c == '\\')
+        if (c == U'\\')
         {
-            c = *p++;
+            c = p[1];
 
             switch(c)
             {
-            case 'n':   c = '\n'; break;
-            case 'r':   c = '\r'; break;
-            case 't':   c = '\t'; break;
+            case U'n':  c = U'\n'; break;
+            case U'r':  c = U'\r'; break;
+            case U't':  c = U'\t'; break;
             }
         }
 

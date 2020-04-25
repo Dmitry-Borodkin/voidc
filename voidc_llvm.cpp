@@ -34,12 +34,12 @@ LLVMTypeRef compile_ctx_t::LLVMOpaqueValue_type;
 LLVMTypeRef compile_ctx_t::LLVMContextRef_type;
 LLVMTypeRef compile_ctx_t::LLVMOpaqueContext_type;
 
-std::map<std::string, LLVMTypeRef>  compile_ctx_t::symbol_types;
-std::map<std::string, LLVMValueRef> compile_ctx_t::constants;
-std::map<std::string, compile_ctx_t::intrinsic_t> compile_ctx_t::intrinsics;
+std::map<vpeg::string, LLVMTypeRef>  compile_ctx_t::symbol_types;
+std::map<vpeg::string, LLVMValueRef> compile_ctx_t::constants;
+std::map<vpeg::string, compile_ctx_t::intrinsic_t> compile_ctx_t::intrinsics;
 
 //---------------------------------------------------------------------
-compile_ctx_t::compile_ctx_t(const std::string _filename)
+compile_ctx_t::compile_ctx_t(const vpeg::string _filename)
   : filename(_filename)
 {
     local_symbols["voidc_intrinsic_compilation_context"] = {void_type, this};
@@ -505,7 +505,7 @@ void compile_ctx_t::run_unit_action(void)
 
 //---------------------------------------------------------------------
 bool
-compile_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
+compile_ctx_t::find_function(const vpeg::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
 {
     if (vars.count(fun_name))
     {
@@ -543,7 +543,7 @@ compile_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_type,
 
 //---------------------------------------------------------------------
 LLVMValueRef
-compile_ctx_t::find_identifier(const std::string &name)
+compile_ctx_t::find_identifier(const vpeg::string &name)
 {
     LLVMValueRef value = nullptr;
 
@@ -794,7 +794,8 @@ void ast_arg_string_t::compile(compile_ctx_t &cctx) const
 //----------------------------------------------------------------------
 void ast_arg_char_t::compile(compile_ctx_t &cctx) const
 {
-    auto v = LLVMConstInt(cctx.char_type, c, false);     //- ?
+//  auto v = LLVMConstInt(cctx.char_type, c, false);     //- ?
+    auto v = LLVMConstInt(cctx.int_type, c, false);      //- ?
 
     cctx.args.push_back(v);
 }

@@ -5,7 +5,7 @@
 
 //----------------------------------------------------------------------
 static
-char get_character(const char * &p)
+char get_raw_character(const char * &p)
 {
     assert(*p);
 
@@ -27,9 +27,11 @@ char get_character(const char * &p)
 }
 
 //----------------------------------------------------------------------
-ast_arg_string_t::ast_arg_string_t(const char *str)
+ast_arg_string_t::ast_arg_string_t(const vpeg::string &vstr)
 {
-    int len = 0;
+    const char *str = vstr.c_str();
+
+    size_t len = 0;
 
     for (auto p=str; *p; ++p)
     {
@@ -38,9 +40,11 @@ ast_arg_string_t::ast_arg_string_t(const char *str)
         ++len;
     }
 
-    string_private.resize(len);
+    string_private = vpeg::string(len, ' ');
 
-    for (int i=0; i<len; ++i) string_private[i] = get_character(str);
+    char *dst = string_private.data();
+
+    for (int i=0; i<len; ++i) dst[i] = get_raw_character(str);
 }
 
 
