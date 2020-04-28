@@ -250,7 +250,7 @@ std::any call_action_t::act(context_t &ctx) const
 
     auto a = std::make_unique<std::any[]>(N);
 
-    for (uint i=0; i<N; ++i)
+    for (size_t i=0; i<N; ++i)
     {
         a[i] = args[i]->value(ctx);
     }

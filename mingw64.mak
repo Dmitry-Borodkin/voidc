@@ -1,5 +1,5 @@
 
-MYFLAGS=
+MYFLAGS=-fcxx-exceptions -IC:/Tools/include
 #MYFLAGS=-fsanitize=address -fno-omit-frame-pointer
 
 
@@ -24,6 +24,11 @@ OBJS = \
 voidc_ast.o \
 voidc_llvm.o \
 voidc_main.o \
+tinyutf8.o \
+vpeg_parser.o \
+vpeg_grammar.o \
+vpeg_context.o \
+vpeg_voidc.o \
 
 
 voidc: $(OBJS)

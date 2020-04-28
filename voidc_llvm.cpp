@@ -414,6 +414,12 @@ void compile_ctx_t::initialize(void)
     }
 
     LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
+
+#ifdef _WIN32
+
+    LLVMLoadLibraryPermanently("libLLVM");
+
+#endif
 }
 
 //---------------------------------------------------------------------
