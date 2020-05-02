@@ -135,13 +135,13 @@ std::any catch_variable_parser_t::parse(context_t &ctx) const
 //-------------------------------------------------------------
 std::any catch_string_parser_t::parse(context_t &ctx) const
 {
-    auto pos = ctx.get_state().position;
+    auto pos = ctx.get_position();
 
     auto ret = parser->parse(ctx);
 
     if (ret.has_value())
     {
-        auto epos = ctx.get_state().position;
+        auto epos = ctx.get_position();
 
         auto &svec = ctx.variables.strings;
 

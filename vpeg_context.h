@@ -45,6 +45,8 @@ public:
     };
 
 public:
+    size_t get_position(void) const { return position; }
+
     state_t get_state(void) const
     {
         return {position, variables, grammar};
