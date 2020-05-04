@@ -16,6 +16,8 @@ static struct {} const dummy;       //- Sic!
 //---------------------------------------------------------------------
 std::any choice_parser_t::parse(context_t &ctx) const
 {
+//  printf("(%d): choice?\n", (int)ctx.get_position());
+
     std::any r;
 
     for (auto &it : array)
@@ -31,6 +33,8 @@ std::any choice_parser_t::parse(context_t &ctx) const
 //---------------------------------------------------------------------
 std::any sequence_parser_t::parse(context_t &ctx) const
 {
+//  printf("(%d): sequence?\n", (int)ctx.get_position());
+
     auto st = ctx.get_state();
 
     std::any r(dummy);      //- Sic!

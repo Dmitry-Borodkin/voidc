@@ -44,6 +44,8 @@ void grammar_t::check_hash(void)
 
 std::any grammar_t::parse(const string &symbol, context_t &ctx) const
 {
+//  printf("(%d): %s ?\n", (int)ctx.get_position(), symbol.c_str());
+
     context_t::variables_t saved_vars;      //- empty(!)
 
     std::swap(ctx.variables, saved_vars);       //- save (and clear)
@@ -114,7 +116,7 @@ std::any grammar_t::parse(const string &symbol, context_t &ctx) const
 
 //    if (ret.has_value())
 //    {
-//        printf("(%d,%d): %p %s\n", (int)st.position, (int)ctx.get_state().position, &saved_vars, symbol.c_str());
+//        printf("(%d,%d): %p %s\n", (int)st.position, (int)ctx.get_position(), &saved_vars, symbol.c_str());
 //    }
 
     ctx.variables = saved_vars;                 //- restore saved

@@ -13,19 +13,23 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
         auto p = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+0);
 
-        if (!p)
-        {
-            static const std::shared_ptr<const ast_stmt_list_t> nil;
+        std::shared_ptr<const ast_stmt_list_t> tmp;     //- Empty list
 
-            p = &nil;
+        while(p && *p)      //- Reverse stmt list ...
+        {
+            tmp = std::make_shared<const ast_stmt_list_t>((*p)->head, tmp);
+
+            p = &(*p)->tail;
         }
+
+        p = &tmp;
 
         auto pos = std::any_cast<size_t>(args[1]);
 
         return std::make_shared<const ast_unit_t>(*p, 0, pos);
     }},
 
-    {"mk_stmt_list", [](context_t &ctx, const std::any *args, size_t){
+    {"mk_stmt_list_reversed", [](context_t &ctx, const std::any *args, size_t){
 
         auto h = std::any_cast<std::shared_ptr<const ast_stmt_t>>(args[0]);
 
@@ -222,6 +226,21 @@ vpeg::grammar_t make_voidc_grammar(void)
                     mk_sequence_parser(
                     {
                         ip__,
+                        mk_catch_string_parser(mk_character_parser('{')),
+                        ip__,
+                        mk_character_parser('}'),
+
+                        mk_action_parser(
+                            mk_call_action("mk_unit",
+                            {
+                                mk_integer_argument(0),
+                                mk_backref_argument(1, backref_argument_t::bk_start)
+                            })
+                        )
+                    }),
+                    mk_sequence_parser(
+                    {
+                        ip__,
                         mk_not_parser(mk_dot_parser())
                     })
                 })
@@ -232,22 +251,32 @@ vpeg::grammar_t make_voidc_grammar(void)
                 {
                     mk_sequence_parser(
                     {
-                        mk_catch_variable_parser("s", ip_stmt),
-                        ip__,
                         mk_catch_variable_parser("l", ip_stmt_list),
+                        ip__,
+                        mk_catch_variable_parser("s", ip_stmt),
 
                         mk_action_parser(
-                            mk_call_action("mk_stmt_list",
+                            mk_call_action("mk_stmt_list_reversed",
                             {
                                 mk_identifier_argument("s"),
                                 mk_identifier_argument("l")
                             })
                         )
                     }),
-                    mk_action_parser(
-                        mk_return_action(mk_integer_argument(0))
-                    )
-                })
+                    mk_sequence_parser(
+                    {
+                        mk_catch_variable_parser("s", ip_stmt),
+
+                        mk_action_parser(
+                            mk_call_action("mk_stmt_list_reversed",
+                            {
+                                mk_identifier_argument("s"),
+                                mk_integer_argument(0)
+                            })
+                        )
+                    })
+                }),
+                true    //- Left recursion!
                );
 
     gr = gr.set("stmt",
