@@ -417,7 +417,7 @@ void compile_ctx_t::initialize(void)
 
 #ifdef _WIN32
 
-    LLVMLoadLibraryPermanently("libLLVM");
+//  LLVMLoadLibraryPermanently("libLLVM");
 
 #endif
 }
