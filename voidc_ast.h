@@ -7,6 +7,8 @@
 #include <map>
 #include <cstdio>
 
+#include <immer/vector.hpp>
+
 #include "vpeg_parser.h"
 
 
@@ -57,20 +59,18 @@ struct ast_unit_t : public ast_base_t
 template<typename T>
 struct ast_list_t : public ast_base_t
 {
-    const std::shared_ptr<const T>             head;
-    const std::shared_ptr<const ast_list_t<T>> tail;
+    const immer::vector<std::shared_ptr<const T>> data;
 
-    explicit ast_list_t(const std::shared_ptr<const T>             &_head,
-                        const std::shared_ptr<const ast_list_t<T>> &_tail)
-      : head(_head),
-        tail(_tail)
+    ast_list_t(const std::shared_ptr<const ast_list_t<T>> &_list,
+               const std::shared_ptr<const T>             &_item)
+      : data(_list ? _list->data.push_back(_item) : immer::vector({_item}))
     {}
 
     void compile(compile_ctx_t &cctx) const override
     {
-        for (auto t=this; t; t=t->tail.get())
+        for (auto &it : data)
         {
-            t->head->compile(cctx);
+            it->compile(cctx);
         }
     }
 };

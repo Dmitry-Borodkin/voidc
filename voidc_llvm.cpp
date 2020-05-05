@@ -76,9 +76,9 @@ static
 void v_alloca(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
 {
     assert(args);
-    assert(!args->tail);
+    assert(args->data.size() == 1);
 
-    auto ident = std::dynamic_pointer_cast<const ast_arg_identifier_t>(args->head);
+    auto ident = std::dynamic_pointer_cast<const ast_arg_identifier_t>(args->data[0]);
     assert(ident);
 
     auto type = (LLVMTypeRef)cctx.resolver(ident->name.c_str(), &cctx);      //- Sic !!!
@@ -94,16 +94,15 @@ static
 void v_array_alloca(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
 {
     assert(args);
-    assert(args->tail);
-    assert(!args->tail->tail);
+    assert(args->data.size() == 2);
 
-    auto ident = std::dynamic_pointer_cast<const ast_arg_identifier_t>(args->head);
+    auto ident = std::dynamic_pointer_cast<const ast_arg_identifier_t>(args->data[0]);
     assert(ident);
 
     auto type = (LLVMTypeRef)cctx.resolver(ident->name.c_str(), &cctx);      //- Sic !!!
     assert(type);
 
-    args->tail->head->compile(cctx);    //- Количество...
+    args->data[1]->compile(cctx);       //- Количество...
 
     auto v = LLVMBuildArrayAlloca(cctx.builder, type, cctx.args[0], cctx.ret_name);
 
@@ -117,7 +116,7 @@ static
 void v_getelementptr(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
 {
     assert(args);
-    assert(args->tail);
+    assert(args->data.size() >= 2);
 
     assert(cctx.arg_types.empty());
 
@@ -135,18 +134,17 @@ static
 void v_store(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
 {
     assert(args);
-    assert(args->tail);
-    assert(!args->tail->tail);
+    assert(args->data.size() == 2);
 
     assert(cctx.arg_types.empty());
 
-    args->tail->head->compile(cctx);    //- Сначала "куда"
+    args->data[1]->compile(cctx);       //- Сначала "куда"
 
     cctx.arg_types.resize(2);
 
     cctx.arg_types[1] = LLVMGetElementType(LLVMTypeOf(cctx.args[0]));
 
-    args->head->compile(cctx);          //- Теперь "что"
+    args->data[0]->compile(cctx);       //- Теперь "что"
 
     auto v = LLVMBuildStore(cctx.builder, cctx.args[1], cctx.args[0]);
 
@@ -161,9 +159,9 @@ static
 void v_load(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
 {
     assert(args);
-    assert(!args->tail);
+    assert(args->data.size() == 1);
 
-    args->head->compile(cctx);
+    args->data[0]->compile(cctx);
 
     auto v = LLVMBuildLoad(cctx.builder, cctx.args[0], cctx.ret_name);
 
@@ -179,8 +177,6 @@ compile_ctx_t::call_intrinsic_helper(const char *helper, const std::shared_ptr<c
 {
     auto id_cctx = std::make_shared<const ast_arg_identifier_t>("voidc_intrinsic_compilation_context");
 
-    auto arg_list = std::make_shared<const ast_arg_list_t>(id_cctx, _args);
-
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
@@ -194,7 +190,9 @@ compile_ctx_t::call_intrinsic_helper(const char *helper, const std::shared_ptr<c
 
     assert(args.empty());
 
-    arg_list->compile(*this);
+    id_cctx->compile(*this);
+
+    _args->compile(*this);
 
     auto v = LLVMBuildCall(builder, f, args.data(), args.size(), ret_name);
 

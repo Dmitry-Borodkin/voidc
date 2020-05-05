@@ -13,36 +13,32 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
         auto p = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+0);
 
-        std::shared_ptr<const ast_stmt_list_t> tmp;     //- Empty list
-
-        while(p && *p)      //- Reverse stmt list ...
+        if (!p)
         {
-            tmp = std::make_shared<const ast_stmt_list_t>((*p)->head, tmp);
+            static const std::shared_ptr<const ast_stmt_list_t> nil;
 
-            p = &(*p)->tail;
+            p = &nil;
         }
-
-        p = &tmp;
 
         auto pos = std::any_cast<size_t>(args[1]);
 
         return std::make_shared<const ast_unit_t>(*p, 0, pos);
     }},
 
-    {"mk_stmt_list_reversed", [](context_t &ctx, const std::any *args, size_t){
+    {"mk_stmt_list", [](context_t &ctx, const std::any *args, size_t){
 
-        auto h = std::any_cast<std::shared_ptr<const ast_stmt_t>>(args[0]);
+        auto item = std::any_cast<std::shared_ptr<const ast_stmt_t>>(args[1]);
 
-        auto t = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+1);
+        auto plst = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+0);
 
-        if (!t)
+        if (!plst)
         {
             static const std::shared_ptr<const ast_stmt_list_t> nil;
 
-            t = &nil;
+            plst = &nil;
         }
 
-        return std::make_shared<const ast_stmt_list_t>(h, *t);
+        return std::make_shared<const ast_stmt_list_t>(*plst, item);
     }},
 
     {"mk_stmt", [](context_t &ctx, const std::any *args, size_t){
@@ -74,18 +70,18 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_list", [](context_t &ctx, const std::any *args, size_t){
 
-        auto h = std::any_cast<std::shared_ptr<const ast_argument_t>>(args[0]);
+        auto item = std::any_cast<std::shared_ptr<const ast_argument_t>>(args[1]);
 
-        auto t = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+1);
+        auto plst = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+0);
 
-        if (!t)
+        if (!plst)
         {
             static const std::shared_ptr<const ast_arg_list_t> nil;
 
-            t = &nil;
+            plst = &nil;
         }
 
-        return std::make_shared<const ast_arg_list_t>(h, *t);
+        return std::make_shared<const ast_arg_list_t>(*plst, item);
     }},
 
     {"mk_arg_identifier", [](context_t &ctx, const std::any *args, size_t){
@@ -183,6 +179,7 @@ vpeg::grammar_t make_voidc_grammar(void)
     auto ip_stmt        = mk_identifier_parser("stmt");
     auto ip_call        = mk_identifier_parser("call");
     auto ip_arg_list    = mk_identifier_parser("arg_list");
+    auto ip_arg_list_lr = mk_identifier_parser("arg_list_lr");
     auto ip_arg         = mk_identifier_parser("arg");
     auto ip_identifier  = mk_identifier_parser("identifier");
     auto ip_ident_start = mk_identifier_parser("ident_start");
@@ -256,10 +253,10 @@ vpeg::grammar_t make_voidc_grammar(void)
                         mk_catch_variable_parser("s", ip_stmt),
 
                         mk_action_parser(
-                            mk_call_action("mk_stmt_list_reversed",
+                            mk_call_action("mk_stmt_list",
                             {
-                                mk_identifier_argument("s"),
-                                mk_identifier_argument("l")
+                                mk_identifier_argument("l"),
+                                mk_identifier_argument("s")
                             })
                         )
                     }),
@@ -268,10 +265,10 @@ vpeg::grammar_t make_voidc_grammar(void)
                         mk_catch_variable_parser("s", ip_stmt),
 
                         mk_action_parser(
-                            mk_call_action("mk_stmt_list_reversed",
+                            mk_call_action("mk_stmt_list",
                             {
-                                mk_identifier_argument("s"),
-                                mk_integer_argument(0)
+                                mk_integer_argument(0),
+                                mk_identifier_argument("s")
                             })
                         )
                     })
@@ -341,17 +338,34 @@ vpeg::grammar_t make_voidc_grammar(void)
                 {
                     mk_sequence_parser(
                     {
-                        mk_catch_variable_parser("a", ip_arg),
+                        mk_catch_variable_parser("l", ip_arg_list_lr),
+
+                        mk_action_parser(
+                            mk_return_action(mk_identifier_argument("l"))
+                        )
+                    }),
+                    mk_action_parser(
+                        mk_return_action(mk_integer_argument(0))
+                    )
+                })
+               );
+
+    gr = gr.set("arg_list_lr",
+                mk_choice_parser(
+                {
+                    mk_sequence_parser(
+                    {
+                        mk_catch_variable_parser("l", ip_arg_list_lr),
                         ip__,
                         mk_character_parser(','),
                         ip__,
-                        mk_catch_variable_parser("l", ip_arg_list),
+                        mk_catch_variable_parser("a", ip_arg),
 
                         mk_action_parser(
                             mk_call_action("mk_arg_list",
                             {
-                                mk_identifier_argument("a"),
-                                mk_identifier_argument("l")
+                                mk_identifier_argument("l"),
+                                mk_identifier_argument("a")
                             })
                         )
                     }),
@@ -362,15 +376,13 @@ vpeg::grammar_t make_voidc_grammar(void)
                         mk_action_parser(
                             mk_call_action("mk_arg_list",
                             {
-                                mk_identifier_argument("a"),
-                                mk_integer_argument(0)
+                                mk_integer_argument(0),
+                                mk_identifier_argument("a")
                             })
                         )
-                    }),
-                    mk_action_parser(
-                        mk_return_action(mk_integer_argument(0))
-                    )
-                })
+                    })
+                }),
+                true    //- Left recursion!
                );
 
     gr = gr.set("arg",
