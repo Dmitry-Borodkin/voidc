@@ -27,8 +27,6 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_stmt_list", [](context_t &ctx, const std::any *args, size_t){
 
-        auto item = std::any_cast<std::shared_ptr<const ast_stmt_t>>(args[1]);
-
         auto plst = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+0);
 
         if (!plst)
@@ -37,6 +35,8 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
             plst = &nil;
         }
+
+        auto item = std::any_cast<std::shared_ptr<const ast_stmt_t>>(args[1]);
 
         return std::make_shared<const ast_stmt_list_t>(*plst, item);
     }},
@@ -70,8 +70,6 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_list", [](context_t &ctx, const std::any *args, size_t){
 
-        auto item = std::any_cast<std::shared_ptr<const ast_argument_t>>(args[1]);
-
         auto plst = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+0);
 
         if (!plst)
@@ -80,6 +78,8 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
             plst = &nil;
         }
+
+        auto item = std::any_cast<std::shared_ptr<const ast_argument_t>>(args[1]);
 
         return std::make_shared<const ast_arg_list_t>(*plst, item);
     }},
@@ -174,28 +174,29 @@ vpeg::grammar_t make_voidc_grammar(void)
 {
     using namespace vpeg;
 
-    auto ip_unit        = mk_identifier_parser("unit");
-    auto ip_stmt_list   = mk_identifier_parser("stmt_list");
-    auto ip_stmt        = mk_identifier_parser("stmt");
-    auto ip_call        = mk_identifier_parser("call");
-    auto ip_arg_list    = mk_identifier_parser("arg_list");
-    auto ip_arg_list_lr = mk_identifier_parser("arg_list_lr");
-    auto ip_arg         = mk_identifier_parser("arg");
-    auto ip_identifier  = mk_identifier_parser("identifier");
-    auto ip_ident_start = mk_identifier_parser("ident_start");
-    auto ip_ident_cont  = mk_identifier_parser("ident_cont");
-    auto ip_integer     = mk_identifier_parser("integer");
-    auto ip_dec_integer = mk_identifier_parser("dec_integer");
-    auto ip_dec_digit   = mk_identifier_parser("dec_digit");
-    auto ip_string      = mk_identifier_parser("string");
-    auto ip_str_char    = mk_identifier_parser("str_char");
-    auto ip_char        = mk_identifier_parser("char");
-    auto ip_character   = mk_identifier_parser("character");
-    auto ip__           = mk_identifier_parser("_");
-    auto ip_comment     = mk_identifier_parser("comment");
-    auto ip_space       = mk_identifier_parser("space");
-    auto ip_eol         = mk_identifier_parser("eol");
-    auto ip_EOL         = mk_identifier_parser("EOL");
+    auto ip_unit         = mk_identifier_parser("unit");
+    auto ip_stmt_list    = mk_identifier_parser("stmt_list");
+    auto ip_stmt_list_lr = mk_identifier_parser("stmt_list_lr");
+    auto ip_stmt         = mk_identifier_parser("stmt");
+    auto ip_call         = mk_identifier_parser("call");
+    auto ip_arg_list     = mk_identifier_parser("arg_list");
+    auto ip_arg_list_lr  = mk_identifier_parser("arg_list_lr");
+    auto ip_arg          = mk_identifier_parser("arg");
+    auto ip_identifier   = mk_identifier_parser("identifier");
+    auto ip_ident_start  = mk_identifier_parser("ident_start");
+    auto ip_ident_cont   = mk_identifier_parser("ident_cont");
+    auto ip_integer      = mk_identifier_parser("integer");
+    auto ip_dec_integer  = mk_identifier_parser("dec_integer");
+    auto ip_dec_digit    = mk_identifier_parser("dec_digit");
+    auto ip_string       = mk_identifier_parser("string");
+    auto ip_str_char     = mk_identifier_parser("str_char");
+    auto ip_char         = mk_identifier_parser("char");
+    auto ip_character    = mk_identifier_parser("character");
+    auto ip__            = mk_identifier_parser("_");
+    auto ip_comment      = mk_identifier_parser("comment");
+    auto ip_space        = mk_identifier_parser("space");
+    auto ip_eol          = mk_identifier_parser("eol");
+    auto ip_EOL          = mk_identifier_parser("EOL");
 
     grammar_t gr;
 
@@ -223,32 +224,35 @@ vpeg::grammar_t make_voidc_grammar(void)
                     mk_sequence_parser(
                     {
                         ip__,
-                        mk_catch_string_parser(mk_character_parser('{')),
-                        ip__,
-                        mk_character_parser('}'),
-
-                        mk_action_parser(
-                            mk_call_action("mk_unit",
-                            {
-                                mk_integer_argument(0),
-                                mk_backref_argument(1, backref_argument_t::bk_start)
-                            })
-                        )
-                    }),
-                    mk_sequence_parser(
-                    {
-                        ip__,
                         mk_not_parser(mk_dot_parser())
                     })
                 })
                );
+
 
     gr = gr.set("stmt_list",
                 mk_choice_parser(
                 {
                     mk_sequence_parser(
                     {
-                        mk_catch_variable_parser("l", ip_stmt_list),
+                        mk_catch_variable_parser("l", ip_stmt_list_lr),
+
+                        mk_action_parser(
+                            mk_return_action(mk_identifier_argument("l"))
+                        )
+                    }),
+                    mk_action_parser(
+                        mk_return_action(mk_integer_argument(0))
+                    )
+                })
+               );
+
+    gr = gr.set("stmt_list_lr",
+                mk_choice_parser(
+                {
+                    mk_sequence_parser(
+                    {
+                        mk_catch_variable_parser("l", ip_stmt_list_lr),
                         ip__,
                         mk_catch_variable_parser("s", ip_stmt),
 
