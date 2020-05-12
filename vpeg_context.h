@@ -1,6 +1,7 @@
 #ifndef VPEG_CONTEXT_H
 #define VPEG_CONTEXT_H
 
+#include <istream>
 #include <utility>
 #include <array>
 #include <map>
@@ -33,7 +34,7 @@ public:
 public:
     struct variables_t
     {
-        immer::map<string, std::any>        values;
+        immer::map<std::string, std::any>   values;
         immer::vector<std::array<size_t,2>> strings;
     };
 
@@ -85,12 +86,7 @@ public:
     }
 
 public:
-    string take_string(size_t from, size_t to) const
-    {
-        auto bb = buffer.begin();
-
-        return string(bb+from, bb+to);
-    }
+    std::string take_string(size_t from, size_t to) const;
 
 public:
     bool expect(char32_t c)
@@ -110,7 +106,7 @@ public:
     grammar_t   grammar;        //- ?...
 
 public:     //- ?...
-    std::map<std::tuple<size_t, size_t, string>, std::pair<std::any, state_t>> memo;
+    std::map<std::tuple<size_t, size_t, std::string>, std::pair<std::any, state_t>> memo;
 
 private:
     std::istream &input;

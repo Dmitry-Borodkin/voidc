@@ -2,6 +2,10 @@
 
 #include "vpeg_context.h"
 
+#include "voidc_llvm.h"
+
+#include <llvm-c/Core.h>
+#include <llvm-c/Support.h>
 
 
 //---------------------------------------------------------------------
@@ -19,12 +23,12 @@ grammar_t &grammar_t::operator=(const grammar_t &gr)
     return *this;
 }
 
-grammar_t grammar_t::set(const string &symbol, const parser_ptr_t &parser, bool leftrec) const
+grammar_t grammar_t::set(const std::string &symbol, const parser_ptr_t &parser, bool leftrec) const
 {
     return  grammar_t(map.set(symbol, {parser, leftrec}));
 }
 
-const std::pair<parser_ptr_t, bool> &grammar_t::get(const string &symbol) const
+const std::pair<parser_ptr_t, bool> &grammar_t::get(const std::string &symbol) const
 {
     return  map.at(symbol);
 }
@@ -42,7 +46,7 @@ void grammar_t::check_hash(void)
 }
 
 
-std::any grammar_t::parse(const string &symbol, context_t &ctx) const
+std::any grammar_t::parse(const std::string &symbol, context_t &ctx) const
 {
 //  printf("(%d): %s ?\n", (int)ctx.get_position(), symbol.c_str());
 
@@ -122,6 +126,417 @@ std::any grammar_t::parse(const string &symbol, context_t &ctx) const
     ctx.variables = saved_vars;                 //- restore saved
 
     return ret;
+}
+
+
+//-----------------------------------------------------------------
+static
+void v_peg_initialize_parser_ptr(parser_ptr_t *ptr, int count)
+{
+    std::uninitialized_default_construct_n(ptr, size_t(count));
+}
+
+static
+void v_peg_initialize_action_ptr(action_ptr_t *ptr, int count)
+{
+    std::uninitialized_default_construct_n(ptr, size_t(count));
+}
+
+static
+void v_peg_initialize_argument_ptr(argument_ptr_t *ptr, int count)
+{
+    std::uninitialized_default_construct_n(ptr, size_t(count));
+}
+
+//-----------------------------------------------------------------
+static
+void v_peg_reset_parser_ptr(parser_ptr_t *ptr)
+{
+    ptr->reset();
+}
+
+static
+void v_peg_reset_action_ptr(action_ptr_t *ptr)
+{
+    ptr->reset();
+}
+
+static
+void v_peg_reset_argument_ptr(argument_ptr_t *ptr)
+{
+    ptr->reset();
+}
+
+//-----------------------------------------------------------------
+static
+void v_peg_copy_parser_ptr(const parser_ptr_t *src, parser_ptr_t *dst)
+{
+    *dst = *src;
+}
+
+static
+void v_peg_copy_action_ptr(const action_ptr_t *src, action_ptr_t *dst)
+{
+    *dst = *src;
+}
+
+static
+void v_peg_copy_argument_ptr(const argument_ptr_t *src, argument_ptr_t *dst)
+{
+    *dst = *src;
+}
+
+//-----------------------------------------------------------------
+static
+int v_peg_parser_get_kind(const parser_ptr_t *ptr)
+{
+    return (*ptr)->kind();
+}
+
+static
+int v_peg_action_get_kind(const action_ptr_t *ptr)
+{
+    return (*ptr)->kind();
+}
+
+static
+int v_peg_argument_get_kind(const argument_ptr_t *ptr)
+{
+    return (*ptr)->kind();
+}
+
+
+//-----------------------------------------------------------------
+static
+int v_peg_parser_get_parsers_count(const parser_ptr_t *ptr)
+{
+    return int((*ptr)->parsers_count());
+}
+
+static
+void v_peg_parser_get_parsers(const parser_ptr_t *ptr, parser_ptr_t *list)
+{
+    (*ptr)->get_parsers(list);
+}
+
+//-----------------------------------------------------------------
+static
+void v_peg_make_choice_parser(parser_ptr_t *ret, const parser_ptr_t *list, int count)
+{
+    *ret = std::make_shared<choice_parser_t>(list, size_t(count));
+}
+
+static
+void v_peg_make_sequence_parser(parser_ptr_t *ret, const parser_ptr_t *list, int count)
+{
+    *ret = std::make_shared<sequence_parser_t>(list, size_t(count));
+}
+
+
+static
+void v_peg_make_and_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
+{
+    *ret = std::make_shared<and_parser_t>(*ptr);
+}
+
+static
+void v_peg_make_not_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
+{
+    *ret = std::make_shared<not_parser_t>(*ptr);
+}
+
+static
+void v_peg_make_question_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
+{
+    *ret = std::make_shared<question_parser_t>(*ptr);
+}
+
+static
+void v_peg_make_star_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
+{
+    *ret = std::make_shared<star_parser_t>(*ptr);
+}
+
+static
+void v_peg_make_plus_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
+{
+    *ret = std::make_shared<plus_parser_t>(*ptr);
+}
+
+static
+void v_peg_make_catch_variable_parser(parser_ptr_t *ret, const char *name, const parser_ptr_t *ptr)
+{
+    *ret = std::make_shared<catch_variable_parser_t>(name, *ptr);
+}
+
+static
+const char *v_peg_catch_variable_parser_get_name(const parser_ptr_t *ptr)
+{
+    auto pp = std::dynamic_pointer_cast<const catch_variable_parser_t>(*ptr);
+
+    assert(pp);
+
+    return pp->name.c_str();
+}
+
+static
+void v_peg_make_catch_string_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
+{
+    *ret = std::make_shared<catch_string_parser_t>(*ptr);
+}
+
+
+static
+void v_peg_make_identifier_parser(parser_ptr_t *ret, const char *ident)
+{
+    *ret = std::make_shared<identifier_parser_t>(ident);
+}
+
+static
+const char *v_peg_identifier_parser_get_identifier(const parser_ptr_t *ptr)
+{
+    auto pp = std::dynamic_pointer_cast<const identifier_parser_t>(*ptr);
+
+    assert(pp);
+
+    return pp->ident.c_str();
+}
+
+static
+void v_peg_make_backref_parser(parser_ptr_t *ret, int number)
+{
+    *ret = std::make_shared<backref_parser_t>(size_t(number));
+}
+
+static
+int v_peg_backref_parser_get_number(const parser_ptr_t *ptr)
+{
+    auto pp = std::dynamic_pointer_cast<const backref_parser_t>(*ptr);
+
+    assert(pp);
+
+    return int(pp->number);
+}
+
+static
+void v_peg_make_action_parser(parser_ptr_t *ret, const action_ptr_t *ptr)
+{
+    *ret = std::make_shared<action_parser_t>(*ptr);
+}
+
+static
+void v_peg_action_parser_get_action(const parser_ptr_t *ptr, action_ptr_t *action)
+{
+    auto pp = std::dynamic_pointer_cast<const action_parser_t>(*ptr);
+
+    assert(pp);
+
+    *action = pp->action;
+}
+
+static
+void v_peg_make_literal_parser(parser_ptr_t *ret, const char *utf8)
+{
+    *ret = std::make_shared<literal_parser_t>(utf8);
+}
+
+static
+const char *v_peg_literal_parser_get_literal(const parser_ptr_t *ptr)
+{
+    auto pp = std::dynamic_pointer_cast<const literal_parser_t>(*ptr);
+
+    assert(pp);
+
+    return pp->utf8.c_str();
+}
+
+static
+void v_peg_make_character_parser(parser_ptr_t *ret, char32_t ucs4)
+{
+    *ret = std::make_shared<character_parser_t>(ucs4);
+}
+
+static
+char32_t v_peg_character_parser_get_character(const parser_ptr_t *ptr)
+{
+    auto pp = std::dynamic_pointer_cast<const character_parser_t>(*ptr);
+
+    assert(pp);
+
+    return pp->ucs4;
+}
+
+static
+void v_peg_make_class_parser(parser_ptr_t *ret, const char32_t (*ranges)[2], int count)
+{
+    *ret = std::make_shared<class_parser_t>(ranges, size_t(count));
+}
+
+static
+int v_peg_class_parser_get_ranges_count(const parser_ptr_t *ptr)
+{
+    auto pp = std::dynamic_pointer_cast<const class_parser_t>(*ptr);
+
+    assert(pp);
+
+    return  int(pp->ranges.size());
+}
+
+static
+void v_peg_class_parser_get_ranges(const parser_ptr_t *ptr, char32_t (*ranges)[2])
+{
+    auto pp = std::dynamic_pointer_cast<const class_parser_t>(*ptr);
+
+    assert(pp);
+
+    size_t count = pp->ranges.size();
+
+    for (size_t i=0; i<count; ++i)
+    {
+        ranges[i][0] = pp->ranges[i][0];
+        ranges[i][1] = pp->ranges[i][1];
+    }
+}
+
+static
+void v_peg_make_dot_parser(parser_ptr_t *ret)
+{
+    static const auto p = std::make_shared<dot_parser_t>();
+
+    *ret = p;
+}
+
+
+//---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//-----------------------------------------------------------------
+void grammar_t::static_initialize(void)
+{
+    assert(sizeof(parser_ptr_t) == sizeof(action_ptr_t));
+    assert(sizeof(parser_ptr_t) == sizeof(argument_ptr_t));
+
+    auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
+
+    auto content_type = LLVMArrayType(char_ptr_type, sizeof(parser_ptr_t)/sizeof(char *));
+
+    auto gctx = LLVMGetGlobalContext();
+
+    LLVMTypeRef args[3];
+
+#define DEF(name) \
+    auto opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_peg_opaque_" #name "_ptr"); \
+    LLVMStructSetBody(opaque_##name##_ptr_type,   &content_type, 1, false); \
+    auto name##_ref_type = LLVMPointerType(opaque_##name##_ptr_type,   0); \
+\
+    compile_ctx_t::symbol_types["v_peg_" #name "_ref"] = compile_ctx_t::LLVMOpaqueType_type; \
+    LLVMAddSymbol("v_peg_" #name "_ref", (void *)name##_ref_type); \
+\
+    args[0] = name##_ref_type; \
+    args[1] = compile_ctx_t::int_type; \
+\
+    compile_ctx_t::symbol_types["v_peg_initialize_" #name "_ptr"] = LLVMFunctionType(compile_ctx_t::void_type, args, 2, false); \
+    LLVMAddSymbol("v_peg_initialize_" #name "_ptr", (void *)v_peg_initialize_##name##_ptr); \
+\
+    compile_ctx_t::symbol_types["v_peg_reset_" #name "_ptr"] = LLVMFunctionType(compile_ctx_t::void_type, args, 1, false); \
+    LLVMAddSymbol("v_peg_reset_" #name "_ptr", (void *)v_peg_reset_##name##_ptr); \
+\
+    args[1] = name##_ref_type; \
+\
+    compile_ctx_t::symbol_types["v_peg_copy_" #name "_ptr"] = LLVMFunctionType(compile_ctx_t::void_type, args, 2, false); \
+    LLVMAddSymbol("v_peg_copy_" #name "_ptr", (void *)v_peg_copy_##name##_ptr); \
+\
+    compile_ctx_t::symbol_types["v_peg_" #name "_get_kind"] = LLVMFunctionType(compile_ctx_t::int_type, args, 1, false); \
+    LLVMAddSymbol("v_peg_" #name "_get_kind", (void *)v_peg_##name##_get_kind); \
+
+
+    DEF(parser)
+    DEF(action)
+    DEF(argument)
+
+#undef DEF
+
+#define DEF(name, ret, num) \
+    compile_ctx_t::symbol_types[#name] = LLVMFunctionType(ret, args, num, false); \
+    LLVMAddSymbol(#name, (void *)name);
+
+    args[0] = parser_ref_type;
+
+    DEF(v_peg_parser_get_parsers_count, compile_ctx_t::int_type, 1);
+
+    args[1] = parser_ref_type;
+
+    DEF(v_peg_parser_get_parsers, compile_ctx_t::void_type, 2);
+
+    args[2] = compile_ctx_t::int_type;
+
+    DEF(v_peg_make_choice_parser, compile_ctx_t::void_type, 3);
+    DEF(v_peg_make_sequence_parser, compile_ctx_t::void_type, 3);
+
+    DEF(v_peg_make_and_parser, compile_ctx_t::void_type, 2);
+    DEF(v_peg_make_not_parser, compile_ctx_t::void_type, 2);
+    DEF(v_peg_make_question_parser, compile_ctx_t::void_type, 2);
+    DEF(v_peg_make_star_parser, compile_ctx_t::void_type, 2);
+    DEF(v_peg_make_plus_parser, compile_ctx_t::void_type, 2);
+
+    args[1] = char_ptr_type;
+    args[2] = parser_ref_type;
+
+    DEF(v_peg_make_catch_variable_parser, compile_ctx_t::void_type, 3);
+    DEF(v_peg_catch_variable_parser_get_name, char_ptr_type, 1);
+
+    args[1] = parser_ref_type;
+
+    DEF(v_peg_make_catch_string_parser, compile_ctx_t::void_type, 2);
+
+    args[1] = char_ptr_type;
+
+    DEF(v_peg_make_identifier_parser, compile_ctx_t::void_type, 2);
+    DEF(v_peg_identifier_parser_get_identifier, char_ptr_type, 1);
+
+    args[1] = compile_ctx_t::int_type;
+
+    DEF(v_peg_make_backref_parser, compile_ctx_t::void_type, 2);
+
+
+/*
+
+void v_peg_make_backref_parser(parser_ptr_t *ret, int number)
+int v_peg_backref_parser_get_number(const parser_ptr_t *ptr)
+void v_peg_make_action_parser(parser_ptr_t *ret, const action_ptr_t *ptr)
+void v_peg_action_parser_get_action(const parser_ptr_t *ptr, action_ptr_t *action)
+void v_peg_make_literal_parser(parser_ptr_t *ret, const char *utf8)
+const char *v_peg_literal_parser_get_literal(const parser_ptr_t *ptr)
+void v_peg_make_character_parser(parser_ptr_t *ret, char32_t ucs4)
+char32_t v_peg_character_parser_get_character(const parser_ptr_t *ptr)
+void v_peg_make_class_parser(parser_ptr_t *ret, const char32_t (*ranges)[2], int count)
+int v_peg_class_parser_get_ranges_count(const parser_ptr_t *ptr)
+void v_peg_class_parser_get_ranges(const parser_ptr_t *ptr, char32_t (*ranges)[2])
+void v_peg_make_dot_parser(parser_ptr_t *ret)
+
+*/
+
+
+#undef DEF
+
+
+}
+
+//-----------------------------------------------------------------
+void grammar_t::static_terminate(void)
+{
 }
 
 

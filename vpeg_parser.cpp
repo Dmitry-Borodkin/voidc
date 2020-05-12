@@ -3,6 +3,8 @@
 #include "vpeg_grammar.h"
 #include "vpeg_context.h"
 
+#include <immer/array_transient.hpp>
+
 
 //---------------------------------------------------------------------
 namespace vpeg
@@ -217,6 +219,26 @@ std::any character_parser_t::parse(context_t &ctx) const
 }
 
 //-------------------------------------------------------------
+static
+immer::array<class_parser_t::range_t>
+make_ranges_array(const char32_t (*list)[2], size_t count)
+{
+    auto tr = immer::array<class_parser_t::range_t>(count).transient();
+
+    auto tmp = tr.data_mut();
+
+    for (size_t i=0; i<count; ++i)
+    {
+        tmp[i] = {list[i][0], list[i][1]};
+    }
+
+    return tr.persistent();
+}
+
+class_parser_t::class_parser_t(const char32_t (*list)[2], size_t count)
+  : ranges(make_ranges_array(list, count))
+{}
+
 std::any class_parser_t::parse(context_t &ctx) const
 {
     auto ucs4 = ctx.peek_character();

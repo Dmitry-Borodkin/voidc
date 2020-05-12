@@ -23,7 +23,6 @@ OBJS = \
 voidc_ast.o \
 voidc_llvm.o \
 voidc_main.o \
-tinyutf8.o \
 vpeg_parser.o \
 vpeg_grammar.o \
 vpeg_context.o \

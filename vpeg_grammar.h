@@ -26,30 +26,34 @@ public:
     grammar_t &operator=(const grammar_t &gr);
 
 public:
-    grammar_t set(const string &symbol, const parser_ptr_t &parser, bool leftrec=false) const;
-
-    const std::pair<parser_ptr_t, bool> &get(const string &symbol) const;
-
-public:
-    std::any parse(const string &symbol, context_t &ctx) const;
+    static void static_initialize(void);
+    static void static_terminate(void);
 
 public:
-//  const size_t &hash = _hash;
+    grammar_t set(const std::string &symbol, const parser_ptr_t &parser, bool leftrec=false) const;
+
+    const std::pair<parser_ptr_t, bool> &get(const std::string &symbol) const;
+
+public:
+    std::any parse(const std::string &symbol, context_t &ctx) const;
+
+public:
+//    const size_t &hash = _hash;
 
     void check_hash(void);
 
 public:
-    const immer::map<string, std::pair<parser_ptr_t, bool>> &map = _map;
+    const immer::map<std::string, std::pair<parser_ptr_t, bool>> &map = _map;
 
 //private:
 //    size_t _hash = size_t(-1);
     size_t hash = size_t(-1);
 
 private:
-    immer::map<string, std::pair<parser_ptr_t, bool>> _map;
+    immer::map<std::string, std::pair<parser_ptr_t, bool>> _map;
 
 private:
-    explicit grammar_t(const immer::map<string, std::pair<parser_ptr_t, bool>> &m)
+    explicit grammar_t(const immer::map<std::string, std::pair<parser_ptr_t, bool>> &m)
       : _map(m)
     {}
 };

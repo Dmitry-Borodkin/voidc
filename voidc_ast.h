@@ -79,10 +79,10 @@ struct ast_list_t : public ast_base_t
 //----------------------------------------------------------------------
 struct ast_stmt_t : public ast_base_t
 {
-    const vpeg::string var_name;
+    const std::string var_name;
     const std::shared_ptr<const ast_call_t> call;
 
-    explicit ast_stmt_t(const vpeg::string &var,
+    explicit ast_stmt_t(const std::string &var,
                         const std::shared_ptr<const ast_call_t> &_call)
       : var_name(var),
         call(_call)
@@ -94,10 +94,10 @@ struct ast_stmt_t : public ast_base_t
 //----------------------------------------------------------------------
 struct ast_call_t : public ast_base_t
 {
-    const vpeg::string fun_name;
+    const std::string fun_name;
     const std::shared_ptr<const ast_arg_list_t> arg_list;
 
-    explicit ast_call_t(const vpeg::string &fun,
+    explicit ast_call_t(const std::string &fun,
                         const std::shared_ptr<const ast_arg_list_t> &_arg_list)
       : fun_name(fun),
         arg_list(_arg_list)
@@ -110,9 +110,9 @@ struct ast_call_t : public ast_base_t
 //----------------------------------------------------------------------
 struct ast_arg_identifier_t : public ast_argument_t
 {
-    const vpeg::string name;
+    const std::string name;
 
-    explicit ast_arg_identifier_t(const vpeg::string &_name)
+    explicit ast_arg_identifier_t(const std::string &_name)
       : name(_name)
     {}
 
@@ -134,14 +134,14 @@ struct ast_arg_integer_t : public ast_argument_t
 //----------------------------------------------------------------------
 struct ast_arg_string_t : public ast_argument_t
 {
-    const vpeg::string &string = string_private;
+    const std::string &string = string_private;
 
-    explicit ast_arg_string_t(const vpeg::string &_string);     //- Sic!
+    explicit ast_arg_string_t(const std::string &_string);     //- Sic!
 
     void compile(compile_ctx_t &cctx) const override;
 
 private:
-    vpeg::string string_private;
+    std::string string_private;
 };
 
 //----------------------------------------------------------------------

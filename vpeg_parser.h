@@ -1,24 +1,22 @@
 #ifndef VPEG_PARSER_H
 #define VPEG_PARSER_H
 
+#include <string>
 #include <memory>
 #include <any>
 #include <map>
 #include <functional>
 #include <cstdint>
 
+#include <stdexcept>
+
 #include <immer/array.hpp>
 #include <immer/vector.hpp>
-
-#include "tinyutf8.hpp"
 
 
 //---------------------------------------------------------------------
 namespace vpeg
 {
-
-using string = utf8_string;
-
 
 //---------------------------------------------------------------------
 class context_t;
@@ -78,6 +76,11 @@ struct parser_kind_t
 struct parser_t : public node_t<parser_kind_t>
 {
     virtual std::any parse(context_t &ctx) const = 0;
+
+public:
+    virtual size_t parsers_count(void) const { return 0; }
+
+    virtual void get_parsers(std::shared_ptr<const parser_t> *p) const {}
 };
 
 typedef std::shared_ptr<const parser_t> parser_ptr_t;
@@ -103,7 +106,7 @@ struct action_t : public node_t<action_kind_t>
 {
     virtual std::any act(context_t &ctx) const = 0;
 
-    static std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>> functions;
+    static std::map<std::string, std::function<std::any(context_t &, const std::any *, size_t)>> functions;
 };
 
 typedef std::shared_ptr<const action_t> action_ptr_t;
@@ -156,6 +159,17 @@ protected:
 
 public:
     const immer::array<parser_ptr_t> array;
+
+public:
+    size_t parsers_count(void) const override
+    {
+        return array.size();
+    }
+
+    void get_parsers(parser_ptr_t *p) const override
+    {
+        std::copy(array.begin(), array.end(), p);
+    }
 };
 
 
@@ -232,6 +246,11 @@ protected:
 
 public:
     const parser_ptr_t parser;
+
+public:
+    size_t parsers_count(void) const override { return 1; }
+
+    void get_parsers(parser_ptr_t *p) const override { *p = parser; }
 };
 
 
@@ -334,7 +353,7 @@ mk_plus_parser(const parser_ptr_t &_parser)
 class catch_variable_parser_t : public parser_unary_t<parser_t::k_catch_variable>
 {
 public:
-    catch_variable_parser_t(const string &_name, const parser_ptr_t &_parser)
+    catch_variable_parser_t(const std::string &_name, const parser_ptr_t &_parser)
       : parser_unary_t<k_catch_variable>(_parser),
         name(_name)
     {}
@@ -343,12 +362,12 @@ public:
     std::any parse(context_t &ctx) const override;
 
 public:
-    const string name;
+    const std::string name;
 };
 
 inline
 std::shared_ptr<catch_variable_parser_t>
-mk_catch_variable_parser(const string &_name, const parser_ptr_t &_parser)
+mk_catch_variable_parser(const std::string &_name, const parser_ptr_t &_parser)
 {
     return std::make_shared<catch_variable_parser_t>(_name, _parser);
 }
@@ -377,7 +396,7 @@ mk_catch_string_parser(const parser_ptr_t &_parser)
 class identifier_parser_t : public parser_tag_t<parser_t::k_identifier>
 {
 public:
-    explicit identifier_parser_t(const string &_ident)
+    explicit identifier_parser_t(const std::string &_ident)
       : ident(_ident)
     {}
 
@@ -385,12 +404,12 @@ public:
     std::any parse(context_t &ctx) const override;
 
 public:
-    const string ident;
+    const std::string ident;
 };
 
 inline
 std::shared_ptr<identifier_parser_t>
-mk_identifier_parser(const string &_ident)
+mk_identifier_parser(const std::string &_ident)
 {
     return std::make_shared<identifier_parser_t>(_ident);
 }
@@ -443,7 +462,7 @@ mk_action_parser(const action_ptr_t &_action)
 class literal_parser_t : public parser_tag_t<parser_t::k_literal>
 {
 public:
-    explicit literal_parser_t(const string &_utf8)
+    explicit literal_parser_t(const std::string &_utf8)
       : utf8(_utf8)
     {}
 
@@ -451,12 +470,12 @@ public:
     std::any parse(context_t &ctx) const override;
 
 public:
-    const string utf8;
+    const std::string utf8;
 };
 
 inline
 std::shared_ptr<literal_parser_t>
-mk_literal_parser(const string &_utf8)
+mk_literal_parser(const std::string &_utf8)
 {
     return std::make_shared<literal_parser_t>(_utf8);
 }
@@ -494,9 +513,7 @@ public:
       : ranges(list)
     {}
 
-    class_parser_t(const range_t *list, size_t count)
-      : ranges(list, list+count)
-    {}
+    class_parser_t(const char32_t (*list)[2], size_t count);
 
 public:
     std::any parse(context_t &ctx) const override;
@@ -533,12 +550,12 @@ mk_dot_parser(void)
 class call_action_t : public action_tag_t<action_t::k_call>
 {
 public:
-    call_action_t(const string &_fun, const std::initializer_list<argument_ptr_t> &list)
+    call_action_t(const std::string &_fun, const std::initializer_list<argument_ptr_t> &list)
       : fun(_fun),
         args(list)
     {}
 
-    call_action_t(const string &_fun, const argument_ptr_t *list, size_t count)
+    call_action_t(const std::string &_fun, const argument_ptr_t *list, size_t count)
       : fun(_fun),
         args(list, list+count)
     {}
@@ -547,14 +564,14 @@ public:
     std::any act(context_t &ctx) const override;
 
 public:
-    const string fun;
+    const std::string fun;
 
     const immer::vector<argument_ptr_t> args;       //- WTF !?!?!
 };
 
 inline
 std::shared_ptr<call_action_t>
-mk_call_action(const string &fun, const std::initializer_list<argument_ptr_t> &list)
+mk_call_action(const std::string &fun, const std::initializer_list<argument_ptr_t> &list)
 {
     return std::make_shared<call_action_t>(fun, list);
 }
@@ -591,7 +608,7 @@ mk_return_action(const argument_ptr_t &arg)
 class identifier_argument_t : public argument_tag_t<argument_t::k_identifier>
 {
 public:
-    explicit identifier_argument_t(const string &_ident)
+    explicit identifier_argument_t(const std::string &_ident)
       : ident(_ident)
     {}
 
@@ -599,12 +616,12 @@ public:
     std::any value(context_t &ctx) const override;
 
 public:
-    const string ident;
+    const std::string ident;
 };
 
 inline
 std::shared_ptr<identifier_argument_t>
-mk_identifier_argument(const string &ident)
+mk_identifier_argument(const std::string &ident)
 {
     return std::make_shared<identifier_argument_t>(ident);
 }
@@ -670,7 +687,7 @@ mk_integer_argument(intptr_t number)
 class literal_argument_t : public argument_tag_t<argument_t::k_literal>
 {
 public:
-    explicit literal_argument_t(const string &_utf8)
+    explicit literal_argument_t(const std::string &_utf8)
       : utf8(_utf8)
     {}
 
@@ -681,12 +698,12 @@ public:
     }
 
 public:
-    const string utf8;
+    const std::string utf8;
 };
 
 inline
 std::shared_ptr<literal_argument_t>
-mk_literal_argument(const string &utf8)
+mk_literal_argument(const std::string &utf8)
 {
     return std::make_shared<literal_argument_t>(utf8);
 }

@@ -27,6 +27,7 @@ LLVMTypeRef compile_ctx_t::long_type;
 LLVMTypeRef compile_ctx_t::long_long_type;
 LLVMTypeRef compile_ctx_t::intptr_t_type;
 LLVMTypeRef compile_ctx_t::size_t_type;
+LLVMTypeRef compile_ctx_t::char32_t_type;
 LLVMTypeRef compile_ctx_t::LLVMTypeRef_type;
 LLVMTypeRef compile_ctx_t::LLVMOpaqueType_type;
 LLVMTypeRef compile_ctx_t::LLVMValueRef_type;
@@ -34,12 +35,12 @@ LLVMTypeRef compile_ctx_t::LLVMOpaqueValue_type;
 LLVMTypeRef compile_ctx_t::LLVMContextRef_type;
 LLVMTypeRef compile_ctx_t::LLVMOpaqueContext_type;
 
-std::map<vpeg::string, LLVMTypeRef>  compile_ctx_t::symbol_types;
-std::map<vpeg::string, LLVMValueRef> compile_ctx_t::constants;
-std::map<vpeg::string, compile_ctx_t::intrinsic_t> compile_ctx_t::intrinsics;
+std::map<std::string, LLVMTypeRef>  compile_ctx_t::symbol_types;
+std::map<std::string, LLVMValueRef> compile_ctx_t::constants;
+std::map<std::string, compile_ctx_t::intrinsic_t> compile_ctx_t::intrinsics;
 
 //---------------------------------------------------------------------
-compile_ctx_t::compile_ctx_t(const vpeg::string _filename)
+compile_ctx_t::compile_ctx_t(const std::string _filename)
   : filename(_filename)
 {
     local_symbols["voidc_intrinsic_compilation_context"] = {void_type, this};
@@ -253,7 +254,7 @@ void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMV
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-void compile_ctx_t::initialize(void)
+void compile_ctx_t::static_initialize(void)
 {
     LLVMInitializeAllTargetInfos();
     LLVMInitializeAllTargets();
@@ -326,6 +327,7 @@ void compile_ctx_t::initialize(void)
     long_long_type = mk_type(sizeof(long long));
     intptr_t_type  = mk_type(sizeof(intptr_t));
     size_t_type    = mk_type(sizeof(size_t));
+    char32_t_type  = mk_type(sizeof(char32_t));
 
     {   auto gctx = LLVMGetGlobalContext();
 
@@ -353,6 +355,7 @@ void compile_ctx_t::initialize(void)
         DEF(long_long)
         DEF(intptr_t)
         DEF(size_t)
+        DEF(char32_t)
 
         DEF(LLVMOpaqueType)
         DEF(LLVMTypeRef)
@@ -412,16 +415,10 @@ void compile_ctx_t::initialize(void)
     }
 
     LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
-
-#ifdef _WIN32
-
-//  LLVMLoadLibraryPermanently("libLLVM");
-
-#endif
 }
 
 //---------------------------------------------------------------------
-void compile_ctx_t::terminate(void)
+void compile_ctx_t::static_terminate(void)
 {
     LLVMOrcDisposeInstance(jit);
 
@@ -509,7 +506,7 @@ void compile_ctx_t::run_unit_action(void)
 
 //---------------------------------------------------------------------
 bool
-compile_ctx_t::find_function(const vpeg::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
+compile_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
 {
     if (vars.count(fun_name))
     {
@@ -547,7 +544,7 @@ compile_ctx_t::find_function(const vpeg::string &fun_name, LLVMTypeRef &fun_type
 
 //---------------------------------------------------------------------
 LLVMValueRef
-compile_ctx_t::find_identifier(const vpeg::string &name)
+compile_ctx_t::find_identifier(const std::string &name)
 {
     LLVMValueRef value = nullptr;
 

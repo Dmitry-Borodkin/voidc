@@ -63,7 +63,8 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
     fs::path src_filename = name;
 
-    fs::path parent_path = fs::path(parent_cctx->filename.cpp_str()).parent_path();
+//  fs::path parent_path = fs::path(parent_cctx->filename.cpp_str()).parent_path();
+    fs::path parent_path = fs::path(parent_cctx->filename).parent_path();
 
     src_filename = find_file_for_import(parent_path, src_filename);
 
@@ -212,7 +213,7 @@ void v_import(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &
 //---------------------------------------------------------------------
 int main()
 {
-    compile_ctx_t::initialize();
+    compile_ctx_t::static_initialize();
 
     compile_ctx_t cctx("<stdin>");
 
@@ -227,6 +228,8 @@ int main()
 
         cctx.intrinsics["v_import"] = &v_import;
     }
+
+    vpeg::grammar_t::static_initialize();
 
     {   vpeg::grammar_t gr = make_voidc_grammar();
 
@@ -267,7 +270,9 @@ int main()
 //    }
 
 
-    compile_ctx_t::terminate();
+    vpeg::grammar_t::static_terminate();
+
+    compile_ctx_t::static_terminate();
 
     return 0;
 }

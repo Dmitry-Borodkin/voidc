@@ -7,7 +7,7 @@
 namespace vpeg
 {
 
-std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>> action_t::functions =
+std::map<std::string, std::function<std::any(context_t &, const std::any *, size_t)>> action_t::functions =
 {
     {"mk_unit", [](context_t &ctx, const std::any *args, size_t){
 
@@ -43,9 +43,9 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_stmt", [](context_t &ctx, const std::any *args, size_t){
 
-        string s = "";
+        std::string s = "";
 
-        if (auto p = std::any_cast<const string>(args+0)) { s = *p; }
+        if (auto p = std::any_cast<const std::string>(args+0)) { s = *p; }
 
         auto c = std::any_cast<std::shared_ptr<const ast_call_t>>(args[1]);
 
@@ -54,7 +54,7 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_call", [](context_t &ctx, const std::any *args, size_t){
 
-        auto f = std::any_cast<const string>(args[0]);
+        auto f = std::any_cast<const std::string>(args[0]);
 
         auto a = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+1);
 
@@ -86,7 +86,7 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_identifier", [](context_t &ctx, const std::any *args, size_t){
 
-        auto n = std::any_cast<const string>(args[0]);
+        auto n = std::any_cast<const std::string>(args[0]);
 
         std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_identifier_t>(n);
 
@@ -104,7 +104,7 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_string", [](context_t &ctx, const std::any *args, size_t){
 
-        auto s = std::any_cast<const string>(args[0]);
+        auto s = std::any_cast<const std::string>(args[0]);
 
         std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_string_t>(s);
 
@@ -113,13 +113,44 @@ std::map<string, std::function<std::any(context_t &, const std::any *, size_t)>>
 
     {"mk_arg_char", [](context_t &ctx, const std::any *args, size_t){
 
-        auto p = std::any_cast<const string>(args[0]);
+        auto p = std::any_cast<const std::string>(args[0]);
 
-        auto c = p[0];
+        auto get_character = [](const char * &str)
+        {
+            uint8_t c0 = *((const uint8_t * &)str)++;
+
+            int n;
+
+            char32_t r;
+
+            if (c0 < 0xE0)
+            {
+                if (c0 < 0xC0)  { r = c0;           n = 0; }
+                else            { r = (c0 & 0x1F);  n = 1; }
+            }
+            else
+            {
+                if (c0 < 0xF0)  { r = (c0 & 0x0F);  n = 2; }
+                else            { r = (c0 & 0x07);  n = 3; }
+            }
+
+            for(; n; --n)
+            {
+                c0 = *((const uint8_t * &)str)++;
+
+                r = (r << 6) | (c0 & 0x3F);
+            }
+
+            return r;
+        };
+
+        auto src = p.c_str();
+
+        auto c = get_character(src);
 
         if (c == U'\\')
         {
-            c = p[1];
+            c = get_character(src);
 
             switch(c)
             {

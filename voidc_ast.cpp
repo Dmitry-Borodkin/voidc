@@ -27,7 +27,7 @@ char get_raw_character(const char * &p)
 }
 
 //----------------------------------------------------------------------
-ast_arg_string_t::ast_arg_string_t(const vpeg::string &vstr)
+ast_arg_string_t::ast_arg_string_t(const std::string &vstr)
 {
     const char *str = vstr.c_str();
 
@@ -40,7 +40,7 @@ ast_arg_string_t::ast_arg_string_t(const vpeg::string &vstr)
         ++len;
     }
 
-    string_private = vpeg::string(len, ' ');
+    string_private = std::string(len, ' ');
 
     char *dst = string_private.data();
 
