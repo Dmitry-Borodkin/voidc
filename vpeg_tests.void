@@ -1,0 +1,75 @@
+{
+    v_import("printf.void");
+}
+
+{
+    gr0 = v_array_alloca(v_peg_opaque_grammar_ptr, 2);
+    v_peg_initialize_grammar_ptrs(gr0, 2);
+
+    gr1 = v_getelementptr(gr0, 1);
+
+    v_peg_get_grammar(gr0);
+
+    pp0 = v_array_alloca(v_peg_opaque_parser_ptr, 10);
+    v_peg_initialize_parser_ptrs(pp0, 10);
+
+    pp1 = v_getelementptr(pp0, 1);
+    pp2 = v_getelementptr(pp0, 2);
+    pp3 = v_getelementptr(pp0, 3);
+    pp4 = v_getelementptr(pp0, 4);
+    pp5 = v_getelementptr(pp0, 5);
+    pp6 = v_getelementptr(pp0, 6);
+    pp7 = v_getelementptr(pp0, 7);
+    pp8 = v_getelementptr(pp0, 8);
+    pp9 = v_getelementptr(pp0, 9);
+
+    v_peg_grammar_get_parser(gr0, "comment", pp0, 0);
+
+
+    arg = v_alloca(v_peg_opaque_argument_ptr);
+    v_peg_initialize_argument_ptrs(arg, 1);
+
+    v_peg_make_backref_argument(arg, 0, 0);     //- backref_argument_t::bk_string ...
+
+
+    act = v_alloca(v_peg_opaque_action_ptr);
+    v_peg_initialize_action_ptrs(act, 1);
+
+    v_peg_make_call_action(act, "mk_echo", arg, 1);
+
+    v_peg_make_action_parser(pp1, act);
+
+
+    v_peg_make_sequence_parser(pp2, pp0, 2);
+
+
+    v_peg_grammar_set_parser(gr1, gr0, "comment", pp2, 0);
+
+
+    v_peg_set_grammar(gr1);
+
+
+    v_peg_reset_action_ptrs(act, 1);
+    v_peg_reset_argument_ptrs(arg, 1);
+    v_peg_reset_parser_ptrs(pp0, 10);
+    v_peg_reset_grammar_ptrs(gr0, 2);
+}
+
+
+//---------------------------------------------------------------------
+//- It works !!!
+//---------------------------------------------------------------------
+
+{
+    printf("Hello world!\n");
+}
+
+//═════════════════════════════════════════════════════════════════════
+//- And now, for something completely different!
+//═════════════════════════════════════════════════════════════════════
+
+
+
+
+
+

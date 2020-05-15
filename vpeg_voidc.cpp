@@ -194,6 +194,19 @@ std::map<std::string, std::function<std::any(context_t &, const std::any *, size
         return true;            //- ?..
     }},
 
+
+
+    {"mk_echo", [](context_t &ctx, const std::any *args, size_t){
+
+        auto s = std::any_cast<const std::string>(args[0]);
+
+        printf("%s", s.c_str());    //- ?...
+
+        return true;                //- ?...
+    }},
+
+
+
 };
 
 //---------------------------------------------------------------------

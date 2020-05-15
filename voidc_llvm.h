@@ -2,12 +2,14 @@
 #define VOIDC_LLVM_H
 
 #include "voidc_ast.h"
+#include "vpeg_context.h"
 
 #include <string>
 #include <vector>
 #include <utility>
 
 #include <llvm-c/OrcBindings.h>
+
 
 
 //---------------------------------------------------------------------
@@ -25,6 +27,9 @@ public:
 public:
     static void static_initialize(void);
     static void static_terminate(void);
+
+public:
+    vpeg::context_t *parser_context = 0;
 
 public:
     static LLVMTargetMachineRef target_machine;

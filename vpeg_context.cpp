@@ -1,9 +1,103 @@
 #include "vpeg_context.h"
 
+#include "voidc_llvm.h"
+
+#include <llvm-c/Core.h>
+#include <llvm-c/Support.h>
+
 
 //---------------------------------------------------------------------
 namespace vpeg
 {
+
+
+//-----------------------------------------------------------------
+context_t::context_t(std::istream &_input, const grammar_t &_grammar, compile_ctx_t &cctx)
+  : input(_input),
+    grammar(_grammar)
+{
+    grammar.check_hash();
+
+    cctx.parser_context = this;
+}
+
+
+//---------------------------------------------------------------------
+//- Intrinsics (true)
+//---------------------------------------------------------------------
+static
+void v_peg_get_grammar(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+{
+    cctx.call_intrinsic_helper("voidc_intrinsic_peg_get_grammar", args);
+}
+
+static
+void v_peg_set_grammar(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+{
+    cctx.call_intrinsic_helper("voidc_intrinsic_peg_set_grammar", args);
+}
+
+
+extern "C" {
+
+//---------------------------------------------------------------------
+//- Intrinsics (functions)
+//---------------------------------------------------------------------
+static
+void voidc_intrinsic_peg_get_grammar(void *void_cctx, grammar_ptr_t *ptr)
+{
+    auto *cctx = (compile_ctx_t *)void_cctx;
+
+    assert(cctx->parser_context);
+
+    *ptr = std::make_shared<const grammar_t>(cctx->parser_context->grammar);
+}
+
+static
+void voidc_intrinsic_peg_set_grammar(void *void_cctx, const grammar_ptr_t *ptr)
+{
+    auto *cctx = (compile_ctx_t *)void_cctx;
+
+    assert(cctx->parser_context);
+
+    auto pctx = cctx->parser_context;
+
+    pctx->grammar = **ptr;
+
+    pctx->grammar.check_hash();
+}
+
+}
+
+
+//-----------------------------------------------------------------
+void context_t::static_initialize(void)
+{
+    compile_ctx_t::intrinsics["v_peg_get_grammar"] = v_peg_get_grammar;
+    compile_ctx_t::intrinsics["v_peg_set_grammar"] = v_peg_set_grammar;
+
+    auto grammar_ref_type =  (LLVMTypeRef)LLVMSearchForAddressOfSymbol("v_peg_grammar_ref");
+
+    auto &void_type = compile_ctx_t::void_type;
+
+    LLVMTypeRef args[] =
+    {
+        LLVMPointerType(void_type, 0),
+        grammar_ref_type
+    };
+
+    compile_ctx_t::symbol_types["voidc_intrinsic_peg_get_grammar"] = LLVMFunctionType(void_type, args, 2, false);
+    LLVMAddSymbol("voidc_intrinsic_peg_get_grammar", (void *)voidc_intrinsic_peg_get_grammar);
+
+    compile_ctx_t::symbol_types["voidc_intrinsic_peg_set_grammar"] = LLVMFunctionType(void_type, args, 2, false);
+    LLVMAddSymbol("voidc_intrinsic_peg_set_grammar", (void *)voidc_intrinsic_peg_set_grammar);
+}
+
+//-----------------------------------------------------------------
+void context_t::static_terminate(void)
+{
+}
+
 
 
 //-----------------------------------------------------------------

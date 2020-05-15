@@ -14,6 +14,10 @@
 
 
 //---------------------------------------------------------------------
+class compile_ctx_t;
+
+
+//---------------------------------------------------------------------
 namespace vpeg
 {
 
@@ -24,12 +28,11 @@ namespace vpeg
 class context_t
 {
 public:
-    context_t(std::istream &_input, const grammar_t &_grammar)
-      : input(_input),
-        grammar(_grammar)
-    {
-        grammar.check_hash();
-    }
+    context_t(std::istream &_input, const grammar_t &_grammar, compile_ctx_t &cctx);
+
+public:
+    static void static_initialize(void);
+    static void static_terminate(void);
 
 public:
     struct variables_t

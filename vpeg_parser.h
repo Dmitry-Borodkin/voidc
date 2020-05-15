@@ -632,7 +632,7 @@ class backref_argument_t : public argument_tag_t<argument_t::k_backref>
 public:
     enum b_kind_t
     {
-        bk_string,
+        bk_string = 0,
         bk_start,
         bk_end,
     };

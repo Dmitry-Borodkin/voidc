@@ -63,7 +63,6 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
     fs::path src_filename = name;
 
-//  fs::path parent_path = fs::path(parent_cctx->filename.cpp_str()).parent_path();
     fs::path parent_path = fs::path(parent_cctx->filename).parent_path();
 
     src_filename = find_file_for_import(parent_path, src_filename);
@@ -158,13 +157,13 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
         {   vpeg::grammar_t gr = make_voidc_grammar();
 
-            vpeg::context_t ctx(infs, gr);
+            vpeg::context_t pctx(infs, gr, cctx);
 
             for(;;)
             {
-                auto v = ctx.grammar.parse("unit", ctx);
+                auto v = pctx.grammar.parse("unit", pctx);
 
-                if (!ctx.is_ok()) break;
+                if (!pctx.is_ok())  break;
 
                 if (auto unit = std::any_cast<std::shared_ptr<const ast_unit_t>>(v))
                 {
@@ -230,16 +229,17 @@ int main()
     }
 
     vpeg::grammar_t::static_initialize();
+    vpeg::context_t::static_initialize();
 
     {   vpeg::grammar_t gr = make_voidc_grammar();
 
-        vpeg::context_t ctx(std::cin, gr);
+        vpeg::context_t pctx(std::cin, gr, cctx);
 
         for(;;)
         {
-            auto v = ctx.grammar.parse("unit", ctx);
+            auto v = pctx.grammar.parse("unit", pctx);
 
-            if (!ctx.is_ok()) break;
+            if (!pctx.is_ok())  break;
 
             if (auto unit = std::any_cast<std::shared_ptr<const ast_unit_t>>(v))
             {
@@ -256,20 +256,24 @@ int main()
         }
     }
 
-//    for (auto &it : compile_ctx_t::symbol_types)
-//    {
-//        printf("%s : ", it.first.c_str());
-//
-//        fflush(stdout);     //- WTF ?
-//
-//        auto s = LLVMPrintTypeToString(it.second);
-//
-//        printf("%s\n", s);
-//
-//        LLVMDisposeMessage(s);
-//    }
+#if 0
 
+    for (auto &it : compile_ctx_t::symbol_types)
+    {
+        printf("%s : ", it.first.c_str());
 
+        fflush(stdout);     //- WTF ?
+
+        auto s = LLVMPrintTypeToString(it.second);
+
+        printf("%s\n", s);
+
+        LLVMDisposeMessage(s);
+    }
+
+#endif
+
+    vpeg::context_t::static_terminate();
     vpeg::grammar_t::static_terminate();
 
     compile_ctx_t::static_terminate();
