@@ -218,6 +218,8 @@ void v_add_local_constant(compile_ctx_t &cctx, const std::shared_ptr<const ast_a
 }
 
 
+extern "C" {
+
 //---------------------------------------------------------------------
 //- Intrinsics (functions)
 //---------------------------------------------------------------------
@@ -248,6 +250,8 @@ void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMV
     auto *cctx = (compile_ctx_t *)void_cctx;
 
     cctx->local_constants[name] = value;
+}
+
 }
 
 

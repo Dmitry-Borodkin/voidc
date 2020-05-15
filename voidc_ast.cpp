@@ -27,7 +27,8 @@ char get_raw_character(const char * &p)
 }
 
 //----------------------------------------------------------------------
-ast_arg_string_t::ast_arg_string_t(const std::string &vstr)
+static inline
+std::string make_arg_string(const std::string &vstr)
 {
     const char *str = vstr.c_str();
 
@@ -40,11 +41,18 @@ ast_arg_string_t::ast_arg_string_t(const std::string &vstr)
         ++len;
     }
 
-    string_private = std::string(len, ' ');
+    std::string ret(len, ' ');
 
-    char *dst = string_private.data();
+    char *dst = ret.data();
 
     for (int i=0; i<len; ++i) dst[i] = get_raw_character(str);
+
+    return ret;
 }
+
+ast_arg_string_t::ast_arg_string_t(const std::string &vstr)
+  : string(make_arg_string(vstr))
+{}
+
 
 

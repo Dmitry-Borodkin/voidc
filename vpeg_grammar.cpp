@@ -584,6 +584,7 @@ void v_peg_grammar_set_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, cons
 
 }
 
+
 //-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {

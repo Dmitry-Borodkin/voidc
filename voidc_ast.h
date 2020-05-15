@@ -134,14 +134,11 @@ struct ast_arg_integer_t : public ast_argument_t
 //----------------------------------------------------------------------
 struct ast_arg_string_t : public ast_argument_t
 {
-    const std::string &string = string_private;
+    const std::string string;
 
     explicit ast_arg_string_t(const std::string &_string);     //- Sic!
 
     void compile(compile_ctx_t &cctx) const override;
-
-private:
-    std::string string_private;
 };
 
 //----------------------------------------------------------------------

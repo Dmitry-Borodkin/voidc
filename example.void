@@ -36,3 +36,32 @@
     printf("\n-----------\n");
 }
 
+
+
+{
+    char_ptr = LLVMPointerType(char, 0);
+
+    arg = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, arg);
+
+    puts_ft = LLVMFunctionType(int, arg, 1, 0);
+
+    puts_ft_ptr = LLVMPointerType(puts_ft, 0);
+
+    v_add_local_symbol("puts_ft_ptr", LLVMTypeRef, puts_ft_ptr);
+}
+
+{
+    p = v_alloca(puts_ft_ptr);
+
+    v_store(puts, p);
+
+    f = v_load(p);
+
+    f("А вы как думали?");
+}
+
+
+
+

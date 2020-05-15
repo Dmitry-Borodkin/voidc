@@ -56,6 +56,8 @@ static std::set<fs::path> already_imported;
 
 
 //---------------------------------------------------------------------
+extern "C" {
+
 static
 void voidc_intrinsic_import(void *void_cctx, const char *name)
 {
@@ -197,6 +199,8 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
     }
 
     infs.close();
+}
+
 }
 
 //---------------------------------------------------------------------
