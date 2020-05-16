@@ -26,7 +26,7 @@ void grammar_t::check_hash(void)
 }
 
 
-std::any grammar_t::parse(const std::string &symbol, context_t &ctx) const
+std::any grammar_t::parse(const std::string &name, context_t &ctx) const
 {
 //  printf("(%d): %s ?\n", (int)ctx.get_position(), symbol.c_str());
 
@@ -47,7 +47,7 @@ std::any grammar_t::parse(const std::string &symbol, context_t &ctx) const
 
     assert(hash != size_t(-1));
 
-    auto key = std::make_tuple(hash, st.position, symbol);
+    auto key = std::make_tuple(hash, st.position, name);
 
     if (ctx.memo.count(key) != 0)
     {
@@ -59,7 +59,7 @@ std::any grammar_t::parse(const std::string &symbol, context_t &ctx) const
     }
     else
     {
-        auto &pl = get(symbol);
+        auto &pl = parsers.at(name);
 
         if (pl.second)      //- Left-recursive ?
         {
@@ -565,7 +565,7 @@ char32_t v_peg_character_argument_get_character(const argument_ptr_t *ptr)
 static
 void v_peg_grammar_get_parser(const grammar_ptr_t *ptr, const char *name, parser_ptr_t *parser, int *leftrec)
 {
-    auto &pair = (*ptr)->get(name);
+    auto &pair = (*ptr)->parsers[name];
 
     if (parser)   *parser  = pair.first;
     if (leftrec)  *leftrec = pair.second;
@@ -574,7 +574,7 @@ void v_peg_grammar_get_parser(const grammar_ptr_t *ptr, const char *name, parser
 static
 void v_peg_grammar_set_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, const parser_ptr_t *parser, int leftrec)
 {
-    auto grammar = (*src)->set(name, *parser, leftrec);
+    auto grammar = (*src)->set_parser(name, *parser, leftrec);
 
     *dst = std::make_shared<const grammar_t>(grammar);
 }

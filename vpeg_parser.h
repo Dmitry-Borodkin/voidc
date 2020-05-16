@@ -105,8 +105,6 @@ struct action_kind_t
 struct action_t : public node_t<action_kind_t>
 {
     virtual std::any act(context_t &ctx) const = 0;
-
-    static std::map<std::string, std::function<std::any(context_t &, const std::any *, size_t)>> functions;
 };
 
 typedef std::shared_ptr<const action_t> action_ptr_t;

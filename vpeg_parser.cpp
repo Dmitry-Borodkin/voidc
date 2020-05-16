@@ -10,8 +10,6 @@
 namespace vpeg
 {
 
-static struct {} const dummy;       //- Sic!
-
 
 //---------------------------------------------------------------------
 //- Parsers...
@@ -38,6 +36,8 @@ std::any sequence_parser_t::parse(context_t &ctx) const
 //  printf("(%d): sequence?\n", (int)ctx.get_position());
 
     auto st = ctx.get_state();
+
+    struct {} const dummy;
 
     std::any r(dummy);      //- Sic!
 
@@ -78,6 +78,8 @@ std::any not_parser_t::parse(context_t &ctx) const
 
     ctx.set_state(st);
 
+    struct {} const dummy;
+
     if (r.has_value())  r.reset();
     else                r = dummy;
 
@@ -88,6 +90,8 @@ std::any not_parser_t::parse(context_t &ctx) const
 std::any question_parser_t::parse(context_t &ctx) const
 {
     parser->parse(ctx);
+
+    struct {} const dummy;
 
     return dummy;
 }
@@ -102,12 +106,16 @@ std::any star_parser_t::parse(context_t &ctx) const
         if (!r.has_value()) break;
     }
 
+    struct {} const dummy;
+
     return dummy;
 }
 
 //-------------------------------------------------------------
 std::any plus_parser_t::parse(context_t &ctx) const
 {
+    struct {} const dummy;
+
     std::any ret;
 
     for(;;)
@@ -183,6 +191,8 @@ std::any backref_parser_t::parse(context_t &ctx) const
         }
     }
 
+    struct {} const dummy;
+
     return dummy;
 }
 
@@ -207,6 +217,8 @@ std::any literal_parser_t::parse(context_t &ctx) const
         }
     }
 
+    struct {} const dummy;
+
     return dummy;
 }
 
@@ -214,6 +226,8 @@ std::any literal_parser_t::parse(context_t &ctx) const
 std::any character_parser_t::parse(context_t &ctx) const
 {
     if (!ctx.expect(ucs4))  return std::any();
+
+    struct {} const dummy;
 
     return dummy;
 }
@@ -283,7 +297,11 @@ std::any call_action_t::act(context_t &ctx) const
 
 //  printf("%s\n", fun.c_str());
 
-    return functions[fun](ctx, a.get(), N);
+    std::any ret;
+
+    ctx.grammar.actions[fun](&ret, a.get(), N);
+
+    return ret;
 }
 
 
@@ -296,11 +314,9 @@ std::any identifier_argument_t::value(context_t &ctx) const
 //-----------------------------------------------------------------
 std::any backref_argument_t::value(context_t &ctx) const
 {
-    auto st = ctx.get_state();
+    auto v = ctx.variables.strings[number];
 
-    auto v = st.variables.strings[number];
-
-    if (number == 0)  v[1] = st.position;
+    if (number == 0)  v[1] = ctx.get_position();
 
     switch(b_kind)
     {
