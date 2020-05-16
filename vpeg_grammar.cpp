@@ -677,6 +677,16 @@ void grammar_t::static_initialize(void)
 
 #undef DEF
 
+#define DEF(kind) \
+    compile_ctx_t::constants["v_peg_backref_argument_kind_" #kind] = \
+        LLVMConstInt(compile_ctx_t::int_type, backref_argument_t::bk_##kind, 0);
+
+    DEF(string)
+    DEF(start)
+    DEF(end)
+
+#undef DEF
+
 #define DEF(name, ret, num) \
     compile_ctx_t::symbol_types[#name] = LLVMFunctionType(ret, args, num, false); \
     LLVMAddSymbol(#name, (void *)name);
