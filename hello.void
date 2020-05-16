@@ -1,0 +1,117 @@
+{   v_import("printf.void"); }
+
+{   v_import("llvm-c/Core.void");
+    v_import("llvm-c/TargetMachine.void");
+    v_import("llvm-c/Analysis.void");
+}
+
+{   char_ptr = LLVMPointerType(char, 0);
+
+    v_add_local_symbol("char_ptr", LLVMOpaqueType, char_ptr);
+}
+
+{   triple = LLVMGetDefaultTargetTriple();
+
+    tr_v = v_alloca(LLVMTargetRef);
+
+    LLVMGetTargetFromTriple(triple, tr_v, 0);
+
+    tr = v_load(tr_v);
+
+    cpu_name     = LLVMGetHostCPUName();
+    cpu_features = LLVMGetHostCPUFeatures();
+
+    target_machine =
+        LLVMCreateTargetMachine
+        (
+            tr,
+            triple,
+            cpu_name,
+            cpu_features,
+            LLVMCodeGenLevelAggressive,
+            LLVMRelocDefault,
+            LLVMCodeModelDefault
+        );
+
+    LLVMDisposeMessage(cpu_features);
+    LLVMDisposeMessage(cpu_name);
+    LLVMDisposeMessage(triple);
+
+    //-----------------------------------------------------------------
+    module = LLVMModuleCreateWithName("hello_mod");
+
+    main_ft = LLVMFunctionType(void, 0, 0, 0);
+    main_f  = LLVMAddFunction(module, "main", main_ft);
+
+    entry = LLVMAppendBasicBlock(main_f, "entry");
+
+    builder = LLVMCreateBuilder();
+
+    LLVMPositionBuilderAtEnd(builder, entry);
+
+
+    arg = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, arg);
+
+    printf_ft = LLVMFunctionType(int, arg, 1, 1);
+
+    printf_f  = LLVMAddFunction(module, "printf", printf_ft);
+
+    str = LLVMBuildGlobalStringPtr(builder, "Hello world!\n", "str");
+
+    arg = v_alloca(LLVMValueRef);
+
+    v_store(str, arg);
+
+    LLVMBuildCall(builder, printf_f, arg, 1, "");
+
+
+    LLVMBuildRetVoid(builder);
+
+    LLVMDisposeBuilder(builder);
+
+    //-----------------------------------------------------------------
+    msg = LLVMPrintModuleToString(module);
+
+    printf("\n%s\n", msg);
+    LLVMDisposeMessage(msg);
+
+    msg_v = v_alloca(char_ptr);
+
+    err = LLVMVerifyModule(module, LLVMReturnStatusAction, msg_v);
+
+    msg = v_load(msg_v);
+
+    printf("err: %d\n%s\n", err, msg);
+    LLVMDisposeMessage(msg);
+
+    //-----------------------------------------------------------------
+    LLVMTargetMachineEmitToFile(target_machine,
+                                module,
+                                "hello.o",
+                                LLVMObjectFile,
+                                0);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeModule(module);
+
+    LLVMDisposeTargetMachine(target_machine);
+}
+
+{   arg = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, arg);
+
+    system_ft = LLVMFunctionType(int, arg, 1, 0);
+
+    v_add_symbol_type("system", system_ft);
+}
+
+{   system("clang hello.o -o hello");
+
+    system("hello");
+}
+
+
+

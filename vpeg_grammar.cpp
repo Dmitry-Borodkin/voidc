@@ -111,7 +111,9 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
 
 
 
-extern "C" {
+//-----------------------------------------------------------------
+extern "C"
+{
 
 
 //-----------------------------------------------------------------
@@ -580,9 +582,24 @@ void v_peg_grammar_set_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, cons
 }
 
 
-
-
+static
+grammar_action_fun_t
+v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
+{
+    return (*ptr)->actions[name];
 }
+
+static
+void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, grammar_action_fun_t fun)
+{
+    auto grammar = (*src)->set_action(name, fun);
+
+    *dst = std::make_shared<const grammar_t>(grammar);
+}
+
+
+//-----------------------------------------------------------------
+}   //- extern "C"
 
 
 //-----------------------------------------------------------------
@@ -590,6 +607,7 @@ void grammar_t::static_initialize(void)
 {
     assert(sizeof(parser_ptr_t) == sizeof(action_ptr_t));
     assert(sizeof(parser_ptr_t) == sizeof(argument_ptr_t));
+    assert(sizeof(parser_ptr_t) == sizeof(grammar_ptr_t));
 
     auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
 
@@ -815,6 +833,17 @@ void grammar_t::static_initialize(void)
     args[4] = compile_ctx_t::int_type;
 
     DEF(v_peg_grammar_set_parser, compile_ctx_t::void_type, 5);
+
+
+/*
+
+grammar_action_fun_t
+v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
+
+void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, grammar_action_fun_t fun)
+
+*/
+
 
 
 #undef DEF

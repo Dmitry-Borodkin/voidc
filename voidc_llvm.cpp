@@ -218,7 +218,9 @@ void v_add_local_constant(compile_ctx_t &cctx, const std::shared_ptr<const ast_a
 }
 
 
-extern "C" {
+//---------------------------------------------------------------------
+extern "C"
+{
 
 //---------------------------------------------------------------------
 //- Intrinsics (functions)
@@ -252,7 +254,8 @@ void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMV
     cctx->local_constants[name] = value;
 }
 
-}
+//---------------------------------------------------------------------
+}   //- extern "C"
 
 
 //---------------------------------------------------------------------
@@ -784,7 +787,7 @@ void ast_arg_string_t::compile(compile_ctx_t &cctx) const
 
         auto at = cctx.arg_types[idx];
 
-        if (cctx.arg_types[idx] == void_ptr_type)
+        if (at == void_ptr_type)
         {
             v = LLVMBuildPointerCast(cctx.builder, v, void_ptr_type, "void_str");
         }

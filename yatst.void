@@ -1,9 +1,45 @@
 { v_import("printf.void"); }
 
 {
-    printf("parser: %p\n", v_peg_opaque_parser_ptr);
-    printf("action: %p\n", v_peg_opaque_action_ptr);
+    printf("parser:   %p\n", v_peg_opaque_parser_ptr);
+    printf("action:   %p\n", v_peg_opaque_action_ptr);
     printf("argument: %p\n", v_peg_opaque_argument_ptr);
 
 }
+
+{
+    char_ptr = LLVMPointerType(char, 0);
+
+    arg = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, arg);
+
+    system_ft = LLVMFunctionType(int, arg, 1, 0);
+
+    v_add_symbol_type("system", system_ft);
+}
+
+{
+    r = system("ls -al");
+
+    printf("retcode: %d\n", r);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
