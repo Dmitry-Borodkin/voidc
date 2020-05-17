@@ -2,7 +2,6 @@
 
 {   v_import("llvm-c/Core.void");
     v_import("llvm-c/TargetMachine.void");
-    v_import("llvm-c/Analysis.void");
 }
 
 {   char_ptr = LLVMPointerType(char, 0);
@@ -75,15 +74,7 @@
     msg = LLVMPrintModuleToString(module);
 
     printf("\n%s\n", msg);
-    LLVMDisposeMessage(msg);
 
-    msg_v = v_alloca(char_ptr);
-
-    err = LLVMVerifyModule(module, LLVMReturnStatusAction, msg_v);
-
-    msg = v_load(msg_v);
-
-    printf("err: %d\n%s\n", err, msg);
     LLVMDisposeMessage(msg);
 
     //-----------------------------------------------------------------
@@ -110,7 +101,7 @@
 
 {   system("clang hello.o -o hello");
 
-    system("hello");
+    system("./hello");
 }
 
 
