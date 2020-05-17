@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 
-#MYFLAGS=-O3
+#MYFLAGS=-O3 -Oz
 MYFLAGS=-g -fsanitize=address -fno-omit-frame-pointer
 
 
@@ -40,6 +40,7 @@ clean:
 	rm -f llvm-c/*.voidc
 	rm -f voidc
 	rm -f .depend
+	rm -f hello
 
 
 #----------------------------------------------------------------------

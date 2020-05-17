@@ -11,6 +11,7 @@
 #include <llvm-c/OrcBindings.h>
 #include <llvm-c/Support.h>
 #include <llvm-c/Analysis.h>
+#include <llvm-c/Transforms/PassManagerBuilder.h>
 
 
 //---------------------------------------------------------------------
@@ -18,6 +19,7 @@
 //---------------------------------------------------------------------
 LLVMTargetMachineRef compile_ctx_t::target_machine;
 LLVMOrcJITStackRef   compile_ctx_t::jit;
+LLVMPassManagerRef   compile_ctx_t::pass_manager;
 
 LLVMTypeRef compile_ctx_t::void_type;
 LLVMTypeRef compile_ctx_t::char_type;
@@ -269,45 +271,59 @@ void compile_ctx_t::static_initialize(void)
     LLVMInitializeAllAsmPrinters();
 
     //-------------------------------------------------------------
-    char *triple = LLVMGetDefaultTargetTriple();
+    {   char *triple = LLVMGetDefaultTargetTriple();
 
-    LLVMTargetRef tr;
+        LLVMTargetRef tr;
 
-    char *errmsg = nullptr;
+        char *errmsg = nullptr;
 
-    int err = LLVMGetTargetFromTriple(triple, &tr, &errmsg);
+        int err = LLVMGetTargetFromTriple(triple, &tr, &errmsg);
 
-    if (errmsg)
-    {
-        fprintf(stderr, "LLVMGetTargetFromTriple: %s\n", errmsg);
+        if (errmsg)
+        {
+            fprintf(stderr, "LLVMGetTargetFromTriple: %s\n", errmsg);
 
-        LLVMDisposeMessage(errmsg);
+            LLVMDisposeMessage(errmsg);
 
-        errmsg = nullptr;
+            errmsg = nullptr;
+        }
+
+        assert(err == 0);
+
+        char *cpu_name     = LLVMGetHostCPUName();
+        char *cpu_features = LLVMGetHostCPUFeatures();
+
+        target_machine =
+            LLVMCreateTargetMachine
+            (
+                tr,
+                triple,
+                cpu_name,
+                cpu_features,
+                LLVMCodeGenLevelAggressive,
+                LLVMRelocDefault,
+                LLVMCodeModelJITDefault
+            );
+
+        jit = LLVMOrcCreateInstance(target_machine);
+
+        LLVMDisposeMessage(cpu_features);
+        LLVMDisposeMessage(cpu_name);
+        LLVMDisposeMessage(triple);
     }
 
-    assert(err == 0);
+    //-------------------------------------------------------------
+    pass_manager = LLVMCreatePassManager();
 
-    char *cpu_name     = LLVMGetHostCPUName();
-    char *cpu_features = LLVMGetHostCPUFeatures();
+    {   auto pm_builder = LLVMPassManagerBuilderCreate();
 
-    target_machine =
-        LLVMCreateTargetMachine
-        (
-            tr,
-            triple,
-            cpu_name,
-            cpu_features,
-            LLVMCodeGenLevelAggressive,
-            LLVMRelocDefault,
-            LLVMCodeModelJITDefault
-        );
+        LLVMPassManagerBuilderSetOptLevel(pm_builder, 3);       //- -O3
+        LLVMPassManagerBuilderSetSizeLevel(pm_builder, 2);      //- -Oz
 
-    jit = LLVMOrcCreateInstance(target_machine);
+        LLVMPassManagerBuilderPopulateModulePassManager(pm_builder, pass_manager);
 
-    LLVMDisposeMessage(cpu_features);
-    LLVMDisposeMessage(cpu_name);
-    LLVMDisposeMessage(triple);
+        LLVMPassManagerBuilderDispose(pm_builder);
+    }
 
     //-------------------------------------------------------------
     void_type = LLVMVoidType();
@@ -427,6 +443,8 @@ void compile_ctx_t::static_initialize(void)
 //---------------------------------------------------------------------
 void compile_ctx_t::static_terminate(void)
 {
+    LLVMDisposePassManager(pass_manager);
+
     LLVMOrcDisposeInstance(jit);
 
     LLVMShutdown();
@@ -616,6 +634,10 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 
     LLVMBuildRetVoid(cctx.builder);
 
+    //-------------------------------------------------------------
+    LLVMRunPassManager(cctx.pass_manager, cctx.module);
+
+    //-------------------------------------------------------------
     char *msg;
 
     msg = LLVMPrintModuleToString(cctx.module);

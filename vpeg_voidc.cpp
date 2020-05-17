@@ -253,29 +253,34 @@ vpeg::grammar_t make_voidc_grammar(void)
 #undef DEF
 
     //-------------------------------------------------------------
-    auto ip_unit         = mk_identifier_parser("unit");
-    auto ip_stmt_list    = mk_identifier_parser("stmt_list");
-    auto ip_stmt_list_lr = mk_identifier_parser("stmt_list_lr");
-    auto ip_stmt         = mk_identifier_parser("stmt");
-    auto ip_call         = mk_identifier_parser("call");
-    auto ip_arg_list     = mk_identifier_parser("arg_list");
-    auto ip_arg_list_lr  = mk_identifier_parser("arg_list_lr");
-    auto ip_arg          = mk_identifier_parser("arg");
-    auto ip_identifier   = mk_identifier_parser("identifier");
-    auto ip_ident_start  = mk_identifier_parser("ident_start");
-    auto ip_ident_cont   = mk_identifier_parser("ident_cont");
-    auto ip_integer      = mk_identifier_parser("integer");
-    auto ip_dec_integer  = mk_identifier_parser("dec_integer");
-    auto ip_dec_digit    = mk_identifier_parser("dec_digit");
-    auto ip_string       = mk_identifier_parser("string");
-    auto ip_str_char     = mk_identifier_parser("str_char");
-    auto ip_char         = mk_identifier_parser("char");
-    auto ip_character    = mk_identifier_parser("character");
-    auto ip__            = mk_identifier_parser("_");
-    auto ip_comment      = mk_identifier_parser("comment");
-    auto ip_space        = mk_identifier_parser("space");
-    auto ip_eol          = mk_identifier_parser("eol");
-    auto ip_EOL          = mk_identifier_parser("EOL");
+#define DEF(name) auto ip_##name = mk_identifier_parser(#name);
+
+    DEF(stmt_list)
+    DEF(stmt_list_lr)
+    DEF(stmt)
+    DEF(call)
+    DEF(arg_list)
+    DEF(arg_list_lr)
+    DEF(arg)
+
+    DEF(identifier)
+    DEF(ident_start)
+    DEF(ident_cont)
+    DEF(integer)
+    DEF(dec_integer)
+    DEF(dec_digit)
+    DEF(string)
+    DEF(str_char)
+    DEF(char)
+    DEF(character)
+
+    DEF(_)
+    DEF(comment)
+    DEF(space)
+    DEF(eol)
+    DEF(EOL)
+
+#undef DEF
 
     gr = gr.set_parser("unit",
     mk_choice_parser(

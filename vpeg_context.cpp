@@ -38,7 +38,9 @@ void v_peg_set_grammar(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_
 }
 
 
-extern "C" {
+//---------------------------------------------------------------------
+extern "C"
+{
 
 //---------------------------------------------------------------------
 //- Intrinsics (functions)
@@ -60,14 +62,15 @@ void voidc_intrinsic_peg_set_grammar(void *void_cctx, const grammar_ptr_t *ptr)
 
     assert(cctx->parser_context);
 
-    auto pctx = cctx->parser_context;
+    auto &grammar = cctx->parser_context->grammar;
 
-    pctx->grammar = **ptr;
+    grammar = **ptr;
 
-    pctx->grammar.check_hash();
+    grammar.check_hash();
 }
 
-}
+//---------------------------------------------------------------------
+}   //- extern "C"
 
 
 //-----------------------------------------------------------------

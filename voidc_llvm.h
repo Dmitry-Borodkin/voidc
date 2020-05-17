@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 
+#include <llvm-c/Core.h>
 #include <llvm-c/OrcBindings.h>
 
 
@@ -34,6 +35,7 @@ public:
 public:
     static LLVMTargetMachineRef target_machine;
     static LLVMOrcJITStackRef   jit;
+    static LLVMPassManagerRef   pass_manager;
 
     LLVMBuilderRef builder;
 
