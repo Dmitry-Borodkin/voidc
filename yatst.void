@@ -1,44 +1,42 @@
-{ v_import("printf.void"); }
+{   v_import("printf.void"); }
 
 {
     printf("parser:   %p\n", v_peg_opaque_parser_ptr);
     printf("action:   %p\n", v_peg_opaque_action_ptr);
     printf("argument: %p\n", v_peg_opaque_argument_ptr);
+    printf("grammar:  %p\n", v_peg_opaque_grammar_ptr);
 
 }
 
-{
-    char_ptr = LLVMPointerType(char, 0);
+{   v_import("llvm-c/Core.void"); }
 
-    arg = v_alloca(LLVMTypeRef);
+{   s = LLVMPrintTypeToString(v_peg_opaque_parser_ptr);
 
-    v_store(char_ptr, arg);
+    printf("::: %s\n", s);
 
-    system_ft = LLVMFunctionType(int, arg, 1, 0);
-
-    v_add_symbol_type("system", system_ft);
+    LLVMDisposeMessage(s);
 }
 
-{
-    r = system("ls -al");
+{   s = LLVMPrintTypeToString(v_peg_opaque_action_ptr);
 
-    printf("retcode: %d\n", r);
+    printf("::: %s\n", s);
+
+    LLVMDisposeMessage(s);
 }
 
+{   s = LLVMPrintTypeToString(v_peg_opaque_argument_ptr);
 
+    printf("::: %s\n", s);
 
+    LLVMDisposeMessage(s);
+}
 
+{   s = LLVMPrintTypeToString(v_peg_opaque_grammar_ptr);
 
+    printf("::: %s\n", s);
 
-
-
-
-
-
-
-
-
-
+    LLVMDisposeMessage(s);
+}
 
 
 

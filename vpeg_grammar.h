@@ -1,11 +1,11 @@
 #ifndef VPEG_GRAMMAR_H
 #define VPEG_GRAMMAR_H
 
+#include "vpeg_parser.h"
+
 #include <utility>
 
 #include <immer/map.hpp>
-
-#include "vpeg_parser.h"
 
 
 //---------------------------------------------------------------------

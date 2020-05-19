@@ -4,11 +4,6 @@
 #include <string>
 #include <memory>
 #include <any>
-#include <map>
-#include <functional>
-#include <cstdint>
-
-#include <stdexcept>
 
 #include <immer/array.hpp>
 #include <immer/vector.hpp>

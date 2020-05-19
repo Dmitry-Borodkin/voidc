@@ -2,7 +2,6 @@
 
 #include <regex>
 #include <iostream>
-
 #include <cassert>
 
 #include <llvm-c/Core.h>
@@ -824,7 +823,6 @@ void ast_arg_string_t::compile(compile_ctx_t &cctx) const
 //----------------------------------------------------------------------
 void ast_arg_char_t::compile(compile_ctx_t &cctx) const
 {
-//  auto v = LLVMConstInt(cctx.char_type, c, false);     //- ?
     auto v = LLVMConstInt(cctx.int_type, c, false);      //- ?
 
     cctx.args.push_back(v);

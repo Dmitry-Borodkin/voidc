@@ -1,16 +1,15 @@
+#include "voidc_llvm.h"
+#include "vpeg_context.h"
+#include "vpeg_voidc.h"
+
 #include <iostream>
 #include <fstream>
-
 #include <set>
 #include <list>
 #include <memory>
 #include <cassert>
 #include <cstring>
 #include <filesystem>
-
-#include "voidc_llvm.h"
-#include "vpeg_context.h"
-#include "vpeg_voidc.h"
 
 #include <llvm-c/Core.h>
 #include <llvm-c/Support.h>
@@ -56,7 +55,8 @@ static std::set<fs::path> already_imported;
 
 
 //---------------------------------------------------------------------
-extern "C" {
+extern "C"
+{
 
 static
 void voidc_intrinsic_import(void *void_cctx, const char *name)
@@ -201,7 +201,7 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
     infs.close();
 }
 
-}
+}   //- extern "C"
 
 //---------------------------------------------------------------------
 static

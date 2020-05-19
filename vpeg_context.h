@@ -1,6 +1,9 @@
 #ifndef VPEG_CONTEXT_H
 #define VPEG_CONTEXT_H
 
+#include "vpeg_parser.h"
+#include "vpeg_grammar.h"
+
 #include <istream>
 #include <utility>
 #include <array>
@@ -8,9 +11,6 @@
 
 #include <immer/map.hpp>
 #include <immer/vector.hpp>
-
-#include "vpeg_parser.h"
-#include "vpeg_grammar.h"
 
 
 //---------------------------------------------------------------------

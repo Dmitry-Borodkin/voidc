@@ -7,8 +7,9 @@
 namespace vpeg
 {
 
-extern "C" {
-
+//---------------------------------------------------------------------
+extern "C"
+{
 
 static void
 mk_unit(std::any *ret, const std::any *args, size_t)
@@ -219,8 +220,8 @@ mk_echo(std::any *ret, const std::any *args, size_t)
     *ret = true;    //- ...
 }
 
-
-}
+//---------------------------------------------------------------------
+}   //- extern "C"
 
 //---------------------------------------------------------------------
 }   //- namespace vpeg
