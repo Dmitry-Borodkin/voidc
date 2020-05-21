@@ -5,11 +5,6 @@
     v_import("llvm-c/Transform/PassManagerBuilder.void");
 }
 
-{   char_ptr = LLVMPointerType(char, 0);
-
-    v_add_local_symbol("char_ptr", LLVMOpaqueType, char_ptr);
-}
-
 {   triple = LLVMGetDefaultTargetTriple();
 
     tr_v = v_alloca(LLVMTargetRef);
@@ -50,11 +45,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg = v_alloca(LLVMTypeRef);
-
-    v_store(char_ptr, arg);
-
-    printf_ft = LLVMFunctionType(int, arg, 1, 1);
+    printf_ft = v_find_symbol_type("printf");
 
     printf_f  = LLVMAddFunction(module, "printf", printf_ft);
 
@@ -68,6 +59,8 @@
 
 
     LLVMBuildRetVoid(builder);
+
+    LLVMClearInsertionPosition(builder);
 
     LLVMDisposeBuilder(builder);
 
@@ -110,6 +103,8 @@
 
 {   arg = v_alloca(LLVMTypeRef);
 
+    char_ptr = LLVMPointerType(char, 0);
+
     v_store(char_ptr, arg);
 
     system_ft = LLVMFunctionType(int, arg, 1, 0);
@@ -121,6 +116,5 @@
 
     system("hello");
 }
-
 
 

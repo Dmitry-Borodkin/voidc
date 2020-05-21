@@ -1,0 +1,57 @@
+{   v_import("printf.void");
+    v_import("voidc_internals.void");
+}
+
+{   module = LLVMModuleCreateWithName("hello_mod");
+
+    hello_ft = LLVMFunctionType(void, 0, 0, 0);
+    hello_f  = LLVMAddFunction(module, "hello", hello_ft);
+
+    entry = LLVMAppendBasicBlock(hello_f, "entry");
+
+    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+
+
+    printf_ft = v_find_symbol_type("printf");
+
+    printf_f  = LLVMAddFunction(module, "printf", printf_ft);
+
+    str = LLVMBuildGlobalStringPtr(voidc_builder, "Hello world!\n", "str");
+
+    arg = v_alloca(LLVMValueRef);
+
+    v_store(str, arg);
+
+    LLVMBuildCall(voidc_builder, printf_f, arg, 1, "");
+
+
+    LLVMBuildRetVoid(voidc_builder);
+
+    LLVMClearInsertionPosition(voidc_builder);
+
+    //-----------------------------------------------------------------
+    LLVMRunPassManager(voidc_pass_manager, module);
+
+    //-----------------------------------------------------------------
+    msg = LLVMPrintModuleToString(module);
+
+    printf("\n%s\n", msg);
+
+    LLVMDisposeMessage(msg);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver,
+                                voidc_intrinsic_compilation_context
+                               );
+
+    //-----------------------------------------------------------------
+    v_add_symbol_type("hello", hello_ft);
+}
+
+{   hello();
+}
+
+

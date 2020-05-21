@@ -18,6 +18,7 @@
 //---------------------------------------------------------------------
 LLVMTargetMachineRef compile_ctx_t::target_machine;
 LLVMOrcJITStackRef   compile_ctx_t::jit;
+LLVMBuilderRef       compile_ctx_t::builder;
 LLVMPassManagerRef   compile_ctx_t::pass_manager;
 
 LLVMTypeRef compile_ctx_t::void_type;
@@ -46,13 +47,6 @@ compile_ctx_t::compile_ctx_t(const std::string _filename)
   : filename(_filename)
 {
     local_symbols["voidc_intrinsic_compilation_context"] = {void_type, this};
-
-    builder = LLVMCreateBuilder();
-}
-
-compile_ctx_t::~compile_ctx_t()
-{
-    LLVMDisposeBuilder(builder);
 }
 
 
@@ -219,6 +213,11 @@ void v_add_local_constant(compile_ctx_t *cctx, const std::shared_ptr<const ast_a
     cctx->build_intrinsic_call("voidc_intrinsic_add_local_constant", *args);
 }
 
+static
+void v_find_symbol_type(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+{
+    cctx->build_intrinsic_call("voidc_intrinsic_find_symbol_type", *args);
+}
 
 //---------------------------------------------------------------------
 extern "C"
@@ -255,6 +254,29 @@ void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMV
 
     cctx->local_constants[name] = value;
 }
+
+static
+LLVMTypeRef voidc_intrinsic_find_symbol_type(void *void_cctx, const char *name)
+{
+    auto *cctx = (compile_ctx_t *)void_cctx;
+
+    LLVMTypeRef type = nullptr;
+
+    if (cctx->local_constants.count(name)  ||  cctx->constants.count(name))
+    {
+        LLVMValueRef value;
+
+        if (cctx->local_constants.count(name))  value = cctx->local_constants[name];
+        else                                    value = cctx->constants[name];
+
+        type = LLVMTypeOf(value);
+    }
+    else if (cctx->local_symbols.count(name))   type = cctx->local_symbols[name].first;
+    else if (cctx->symbol_types.count(name))    type = cctx->symbol_types[name];
+
+    return type;
+}
+
 
 //---------------------------------------------------------------------
 }   //- extern "C"
@@ -313,6 +335,9 @@ void compile_ctx_t::static_initialize(void)
     }
 
     //-------------------------------------------------------------
+    builder = LLVMCreateBuilder();
+
+    //-------------------------------------------------------------
     pass_manager = LLVMCreatePassManager();
 
     {   auto pm_builder = LLVMPassManagerBuilderCreate();
@@ -326,8 +351,19 @@ void compile_ctx_t::static_initialize(void)
     }
 
     //-------------------------------------------------------------
-    void_type = LLVMVoidType();
+#define DEF(name) \
+    LLVMAddSymbol("voidc_" #name, (void *)name);
 
+    DEF(resolver)
+    DEF(target_machine)
+    DEF(jit)
+    DEF(builder)
+    DEF(pass_manager)
+
+#undef DEF
+
+    //-------------------------------------------------------------
+    void_type = LLVMVoidType();
     bool_type = LLVMInt1Type();
 
     auto mk_type = [](size_t sz)
@@ -400,6 +436,7 @@ void compile_ctx_t::static_initialize(void)
     intrinsics["v_load"]               = v_load;
     intrinsics["v_add_local_symbol"]   = v_add_local_symbol;
     intrinsics["v_add_local_constant"] = v_add_local_constant;
+    intrinsics["v_find_symbol_type"]   = v_find_symbol_type;
 
     {   LLVMTypeRef args[] =
         {
@@ -438,6 +475,9 @@ void compile_ctx_t::static_initialize(void)
 
         symbol_types["voidc_intrinsic_add_local_constant"] = LLVMFunctionType(void_type, args, 3, false);
         LLVMAddSymbol("voidc_intrinsic_add_local_constant", (void *)voidc_intrinsic_add_local_constant);
+
+        symbol_types["voidc_intrinsic_find_symbol_type"] = LLVMFunctionType(LLVMTypeRef_type, args, 2, false);
+        LLVMAddSymbol("voidc_intrinsic_find_symbol_type", (void *)voidc_intrinsic_find_symbol_type);
     }
 
     LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
@@ -447,6 +487,8 @@ void compile_ctx_t::static_initialize(void)
 void compile_ctx_t::static_terminate(void)
 {
     LLVMDisposePassManager(pass_manager);
+
+    LLVMDisposeBuilder(builder);
 
     LLVMOrcDisposeInstance(jit);
 
@@ -636,6 +678,8 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
     stmt_list->compile(cctx);
 
     LLVMBuildRetVoid(cctx.builder);
+
+    LLVMClearInsertionPosition(cctx.builder);
 
     //-------------------------------------------------------------
     LLVMRunPassManager(cctx.pass_manager, cctx.module);

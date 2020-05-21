@@ -1,0 +1,29 @@
+{   v_import("llvm-c/Core.void");
+    v_import("llvm-c/OrcBindings.void");
+}
+
+{   char_ptr = LLVMPointerType(char, 0);
+    void_ptr = LLVMPointerType(void, 0);
+
+    arg0 = v_array_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    v_store(char_ptr, arg0);
+    v_store(void_ptr, arg1);
+
+    type = LLVMFunctionType(intptr_t, arg0, 2, 0);
+    v_add_symbol_type("voidc_resolver", type);
+
+    type = LLVMGetElementType(LLVMTargetMachineRef);
+    v_add_symbol_type("voidc_target_machine", type);
+
+    type = LLVMGetElementType(LLVMOrcJITStackRef);
+    v_add_symbol_type("voidc_jit", type);
+
+    type = LLVMGetElementType(LLVMPassManagerRef);
+    v_add_symbol_type("voidc_pass_manager", type);
+
+    type = LLVMGetElementType(LLVMBuilderRef);
+    v_add_symbol_type("voidc_builder", type);
+}
+

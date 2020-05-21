@@ -49,23 +49,22 @@
 
     v_std_any_set_pointer(a, p);
 
-
-
     v_reset(a);
 }
 
+{   str = v_alloca(v_util_opaque_std_string);
+    v_initialize(str);
 
+    v_std_string_set(str, "Превед ");
 
+    v_std_string_append(str, "медвед!");
 
+    s = v_std_string_get(str);
 
+    printf("s: %s\n", s);
 
-
-
-
-
-
-
-
+    v_reset(str);
+}
 
 
 

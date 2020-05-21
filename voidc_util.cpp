@@ -21,6 +21,7 @@ function_dict_t move_dict;
 function_dict_t kind_dict;
 
 LLVMTypeRef opaque_std_any_type;
+LLVMTypeRef opaque_std_string_type;
 
 function_dict_t std_any_get_value_dict;
 function_dict_t std_any_get_pointer_dict;
@@ -287,6 +288,36 @@ void v_std_any_set_pointer(compile_ctx_t *cctx, const std::shared_ptr<const ast_
 
 
 //---------------------------------------------------------------------
+static
+void v_reset_std_string_impl(std::string *ptr, int count)
+{
+    for (int i=0; i<count; ++i)
+    {
+        ptr[i].clear();
+        ptr[i].shrink_to_fit();
+    }
+}
+
+static
+char *v_std_string_get(std::string *ptr)
+{
+    return ptr->data();
+}
+
+static
+void v_std_string_set(std::string *ptr, const char *str)
+{
+    *ptr = str;
+}
+
+static
+void v_std_string_append(std::string *ptr, const char *str)
+{
+    ptr->append(str);
+}
+
+
+//---------------------------------------------------------------------
 //- Static init/term ...
 //---------------------------------------------------------------------
 void static_initialize(void)
@@ -308,12 +339,15 @@ void static_initialize(void)
     //-----------------------------------------------------------------
     auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
 
-    auto content_type = LLVMArrayType(char_ptr_type, sizeof(std::any)/sizeof(char *));
-
     auto gctx = LLVMGetGlobalContext();
 
+    LLVMTypeRef args[2];
+
+    //-----------------------------------------------------------------
+    auto std_any_content_type = LLVMArrayType(char_ptr_type, sizeof(std::any)/sizeof(char *));
+
     opaque_std_any_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_any");
-    LLVMStructSetBody(opaque_std_any_type, &content_type, 1, false);
+    LLVMStructSetBody(opaque_std_any_type, &std_any_content_type, 1, false);
     auto std_any_ref_type = LLVMPointerType(opaque_std_any_type, 0);
 
     compile_ctx_t::symbol_types["v_util_opaque_std_any"] = compile_ctx_t::LLVMOpaqueType_type;
@@ -330,11 +364,52 @@ void static_initialize(void)
     register_move_impl<std::any>(opaque_std_any_type, "v_util_move_std_any_impl");
 
     //-----------------------------------------------------------------
-#define DEF(c_type, llvm_type) \
+    auto std_string_content_type = LLVMArrayType(char_ptr_type, sizeof(std::string)/sizeof(char *));
+
+    opaque_std_string_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_string");
+    LLVMStructSetBody(opaque_std_string_type, &std_string_content_type, 1, false);
+    auto std_string_ref_type = LLVMPointerType(opaque_std_string_type, 0);
+
+    compile_ctx_t::symbol_types["v_util_opaque_std_string"] = compile_ctx_t::LLVMOpaqueType_type;
+    LLVMAddSymbol("v_util_opaque_std_string", (void *)opaque_std_string_type);
+
+    compile_ctx_t::symbol_types["v_util_std_string_ref"] = compile_ctx_t::LLVMOpaqueType_type;
+    LLVMAddSymbol("v_util_std_string_ref", (void *)std_string_ref_type);
+
+    register_initialize_impl<std::string>(opaque_std_string_type, "v_util_initialize_std_string_impl");
+
+    register_init_reset_impl_helper<std::string>(opaque_std_string_type, "v_util_reset_std_string_impl",
+                                                 (void *)v_reset_std_string_impl, reset_dict
+                                                );
+
+    register_copy_impl<std::any>(opaque_std_string_type, "v_util_copy_std_string_impl");
+    register_move_impl<std::any>(opaque_std_string_type, "v_util_move_std_string_impl");
+
+#define DEF(name, ret, num) \
+    compile_ctx_t::symbol_types[#name] = LLVMFunctionType(ret, args, num, false); \
+    LLVMAddSymbol(#name, (void *)name);
+
+    args[0] = std_string_ref_type;
+    args[1] = char_ptr_type;
+
+    DEF(v_std_string_get, char_ptr_type, 1);
+    DEF(v_std_string_set, compile_ctx_t::void_type, 2);
+    DEF(v_std_string_append, compile_ctx_t::void_type, 2);
+
+#undef DEF
+
+    //-----------------------------------------------------------------
+#define DEF_VAR(c_type, llvm_type) \
     register_std_any_get_value_impl<c_type>(llvm_type, "v_util_std_any_get_value_" #c_type "_impl"); \
+    register_std_any_set_value_impl<c_type>(llvm_type, "v_util_std_any_set_value_" #c_type "_impl");
+
+#define DEF_PTR(c_type, llvm_type) \
     register_std_any_get_pointer_impl<c_type>(llvm_type, "v_util_std_any_get_pointer_" #c_type "_impl"); \
-    register_std_any_set_value_impl<c_type>(llvm_type, "v_util_std_any_set_value_" #c_type "_impl"); \
     register_std_any_set_pointer_impl<c_type>(llvm_type, "v_util_std_any_set_pointer_" #c_type "_impl");
+
+#define DEF(c_type, llvm_type) \
+    DEF_VAR(c_type, llvm_type) \
+    DEF_PTR(c_type, llvm_type)
 
     DEF(bool,    LLVMInt1Type())
     DEF(int8_t,  LLVMInt8Type())
@@ -342,8 +417,14 @@ void static_initialize(void)
     DEF(int32_t, LLVMInt32Type())
     DEF(int64_t, LLVMInt64Type())
 
-#undef DEF
+    {   using std_string = std::string;
 
+        DEF_PTR(std_string, opaque_std_string_type)
+    }
+
+#undef DEF
+#undef DEF_PTR
+#undef DEF_VAR
 
 
 

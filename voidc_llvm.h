@@ -20,7 +20,7 @@ class compile_ctx_t
 {
 public:
     explicit compile_ctx_t(const std::string filename);
-    ~compile_ctx_t();
+    ~compile_ctx_t() = default;
 
 public:
     static uint64_t resolver(const char *name, void *void_cctx);
@@ -35,9 +35,8 @@ public:
 public:
     static LLVMTargetMachineRef target_machine;
     static LLVMOrcJITStackRef   jit;
+    static LLVMBuilderRef       builder;
     static LLVMPassManagerRef   pass_manager;
-
-    LLVMBuilderRef builder;
 
     LLVMModuleRef module;
 
@@ -50,9 +49,7 @@ public:
 
 public:
     static LLVMTypeRef void_type;
-
     static LLVMTypeRef bool_type;
-
     static LLVMTypeRef char_type;
     static LLVMTypeRef short_type;
     static LLVMTypeRef int_type;

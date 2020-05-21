@@ -17,6 +17,22 @@
 
 
 //---------------------------------------------------------------------
+//- Some utility...
+//---------------------------------------------------------------------
+static vpeg::grammar_t voidc_grammar;
+
+static
+std::any parse_unit(vpeg::context_t &pctx)
+{
+    auto ret = pctx.grammar.parse("unit", pctx);
+
+    pctx.memo.clear();
+
+    return ret;
+}
+
+
+//---------------------------------------------------------------------
 namespace fs = std::filesystem;
 
 
@@ -53,7 +69,6 @@ fs::path find_file_for_import(const fs::path &parent, const fs::path &filename)
 
 //---------------------------------------------------------------------
 static std::set<fs::path> already_imported;
-
 
 //---------------------------------------------------------------------
 extern "C"
@@ -158,13 +173,11 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
-        {   vpeg::grammar_t gr = make_voidc_grammar();
-
-            vpeg::context_t pctx(infs, gr, cctx);
+        {   vpeg::context_t pctx(infs, voidc_grammar, cctx);
 
             for(;;)
             {
-                auto v = pctx.grammar.parse("unit", pctx);
+                auto v = parse_unit(pctx);
 
                 if (!pctx.is_ok())  break;
 
@@ -237,13 +250,13 @@ int main()
     vpeg::grammar_t::static_initialize();
     vpeg::context_t::static_initialize();
 
-    {   vpeg::grammar_t gr = make_voidc_grammar();
+    voidc_grammar = make_voidc_grammar();
 
-        vpeg::context_t pctx(std::cin, gr, cctx);
+    {   vpeg::context_t pctx(std::cin, voidc_grammar, cctx);
 
         for(;;)
         {
-            auto v = pctx.grammar.parse("unit", pctx);
+            auto v = parse_unit(pctx);
 
             if (!pctx.is_ok())  break;
 

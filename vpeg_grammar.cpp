@@ -742,28 +742,26 @@ void grammar_t::static_initialize(void)
 
     DEF(v_peg_grammar_set_parser, compile_ctx_t::void_type, 5);
 
+    args[0] = utility::opaque_std_any_type;
+    args[1] = utility::opaque_std_any_type;
+    args[2] = compile_ctx_t::size_t_type;
 
-/*
+    auto grammar_action_fun_type     = LLVMFunctionType(compile_ctx_t::void_type, args, 3, false);
+    auto grammar_action_fun_ptr_type = LLVMPointerType(grammar_action_fun_type, 0);
 
-grammar_action_fun_t
-v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
+    args[0] = grammar_ref_type;
+    args[1] = char_ptr_type;
 
-void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, grammar_action_fun_t fun)
+    DEF(v_peg_grammar_get_action, grammar_action_fun_ptr_type, 2);
 
-*/
+    args[1] = grammar_ref_type;
+    args[2] = char_ptr_type;
+    args[3] = grammar_action_fun_ptr_type;
 
+    DEF(v_peg_grammar_set_action, compile_ctx_t::void_type, 4);
 
 
 #undef DEF
-
-
-
-
-
-
-
-
-
 
 
 }
