@@ -1,14 +1,12 @@
 {   v_import("printf.void"); }
 
 {   gr0 = v_alloca(v_peg_opaque_grammar_ptr);
-    v_peg_initialize_grammar_ptrs(gr0, 1);
-
-    gr1 = v_getelementptr(gr0, 1);
+    v_initialize(gr0);
 
     v_peg_get_grammar(gr0);
 
     pp0 = v_array_alloca(v_peg_opaque_parser_ptr, 2);
-    v_peg_initialize_parser_ptrs(pp0, 2);
+    v_initialize(pp0, 2);
 
     pp1 = v_getelementptr(pp0, 1);
 
@@ -16,13 +14,13 @@
 
 
     arg = v_alloca(v_peg_opaque_argument_ptr);
-    v_peg_initialize_argument_ptrs(arg, 1);
+    v_initialize(arg);
 
     v_peg_make_backref_argument(arg, 0, v_peg_backref_argument_kind_string);
 
 
     act = v_alloca(v_peg_opaque_action_ptr);
-    v_peg_initialize_action_ptrs(act, 1);
+    v_initialize(act);
 
     v_peg_make_call_action(act, "mk_echo", arg, 1);
 
@@ -38,10 +36,10 @@
     v_peg_set_grammar(gr0);
 
 
-    v_peg_reset_action_ptrs(act, 1);
-    v_peg_reset_argument_ptrs(arg, 1);
-    v_peg_reset_parser_ptrs(pp0, 2);
-    v_peg_reset_grammar_ptrs(gr0, 1);
+    v_reset(act);
+    v_reset(arg);
+    v_reset(pp0, 2);
+    v_reset(gr0);
 }
 
 

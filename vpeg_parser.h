@@ -559,7 +559,7 @@ public:
 public:
     const std::string fun;
 
-    const immer::vector<argument_ptr_t> args;       //- WTF !?!?!
+    const immer::array<argument_ptr_t> args;
 };
 
 inline

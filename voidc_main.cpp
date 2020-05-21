@@ -1,4 +1,5 @@
 #include "voidc_llvm.h"
+#include "voidc_util.h"
 #include "vpeg_context.h"
 #include "vpeg_voidc.h"
 
@@ -205,9 +206,9 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
 //---------------------------------------------------------------------
 static
-void v_import(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+void v_import(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
 {
-    cctx.call_intrinsic_helper("voidc_intrinsic_import", args);
+    cctx->build_intrinsic_call("voidc_intrinsic_import", *args);
 }
 
 
@@ -217,6 +218,7 @@ void v_import(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &
 int main()
 {
     compile_ctx_t::static_initialize();
+    utility::static_initialize();
 
     compile_ctx_t cctx("<stdin>");
 
@@ -280,6 +282,7 @@ int main()
     vpeg::context_t::static_terminate();
     vpeg::grammar_t::static_terminate();
 
+    utility::static_terminate();
     compile_ctx_t::static_terminate();
 
     return 0;

@@ -26,15 +26,15 @@ context_t::context_t(std::istream &_input, const grammar_t &_grammar, compile_ct
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_peg_get_grammar(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+void v_peg_get_grammar(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
 {
-    cctx.call_intrinsic_helper("voidc_intrinsic_peg_get_grammar", args);
+    cctx->build_intrinsic_call("voidc_intrinsic_peg_get_grammar", *args);
 }
 
 static
-void v_peg_set_grammar(compile_ctx_t &cctx, const std::shared_ptr<const ast_arg_list_t> &args)
+void v_peg_set_grammar(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
 {
-    cctx.call_intrinsic_helper("voidc_intrinsic_peg_set_grammar", args);
+    cctx->build_intrinsic_call("voidc_intrinsic_peg_set_grammar", *args);
 }
 
 

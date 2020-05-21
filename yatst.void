@@ -1,42 +1,71 @@
 {   v_import("printf.void"); }
 
 {
-    printf("parser:   %p\n", v_peg_opaque_parser_ptr);
-    printf("action:   %p\n", v_peg_opaque_action_ptr);
-    printf("argument: %p\n", v_peg_opaque_argument_ptr);
-    printf("grammar:  %p\n", v_peg_opaque_grammar_ptr);
+    pp0 = v_array_alloca(v_peg_opaque_parser_ptr, 2);
+    v_initialize(pp0, 2);
 
+    pp1 = v_getelementptr(pp0, 1);
+
+    v_peg_make_dot_parser(pp0);
+
+    v_peg_make_not_parser(pp0, pp0);
+
+    v_copy(pp1, pp0);
+    v_move(pp0, pp1);
+
+    v_reset(pp0);
 }
 
-{   v_import("llvm-c/Core.void"); }
+{   a = v_alloca(v_util_opaque_std_any);
+    v_initialize(a);
 
-{   s = LLVMPrintTypeToString(v_peg_opaque_parser_ptr);
+    v_std_any_set_value(a, 13);
 
-    printf("::: %s\n", s);
+    p = v_std_any_get_pointer(int, a);
 
-    LLVMDisposeMessage(s);
+    v = v_load(p);
+
+    printf("v: %d\n", v);
+
+    p = v_alloca(intptr_t);
+    v_store(17, p);
+
+    v_std_any_set_pointer(a, p);
+
+    p = v_std_any_get_pointer(intptr_t, a);
+
+    v = v_load(p);
+
+    printf("v: %ld\n", v);
+
+    v_reset(a);
 }
 
-{   s = LLVMPrintTypeToString(v_peg_opaque_action_ptr);
+{   a = v_alloca(v_util_opaque_std_any);
+    v_initialize(a);
 
-    printf("::: %s\n", s);
+    p = v_alloca(char32_t);
+    v_store('Ы', p);
 
-    LLVMDisposeMessage(s);
+    v_std_any_set_pointer(a, p);
+
+
+
+    v_reset(a);
 }
 
-{   s = LLVMPrintTypeToString(v_peg_opaque_argument_ptr);
 
-    printf("::: %s\n", s);
 
-    LLVMDisposeMessage(s);
-}
 
-{   s = LLVMPrintTypeToString(v_peg_opaque_grammar_ptr);
 
-    printf("::: %s\n", s);
 
-    LLVMDisposeMessage(s);
-}
+
+
+
+
+
+
+
 
 
 

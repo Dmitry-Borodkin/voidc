@@ -1,8 +1,8 @@
 #include "vpeg_grammar.h"
 
 #include "vpeg_context.h"
-
 #include "voidc_llvm.h"
+#include "voidc_util.h"
 
 #include <llvm-c/Core.h>
 #include <llvm-c/Support.h>
@@ -109,107 +109,17 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
 }
 
 
+//-----------------------------------------------------------------
+template<typename ptr_t>
+int v_peg_get_kind(const ptr_t *ptr)
+{
+    return (*ptr)->kind();
+}
 
 
 //-----------------------------------------------------------------
 extern "C"
 {
-
-
-//-----------------------------------------------------------------
-static
-void v_peg_initialize_parser_ptrs(parser_ptr_t *ptr, int count)
-{
-    std::uninitialized_default_construct_n(ptr, size_t(count));
-}
-
-static
-void v_peg_initialize_action_ptrs(action_ptr_t *ptr, int count)
-{
-    std::uninitialized_default_construct_n(ptr, size_t(count));
-}
-
-static
-void v_peg_initialize_argument_ptrs(argument_ptr_t *ptr, int count)
-{
-    std::uninitialized_default_construct_n(ptr, size_t(count));
-}
-
-static
-void v_peg_initialize_grammar_ptrs(grammar_ptr_t *ptr, int count)
-{
-    std::uninitialized_default_construct_n(ptr, size_t(count));
-}
-
-//-----------------------------------------------------------------
-static
-void v_peg_reset_parser_ptrs(parser_ptr_t *ptr, int count)
-{
-    for (int i=0; i<count; ++i) ptr[i].reset();
-}
-
-static
-void v_peg_reset_action_ptrs(action_ptr_t *ptr, int count)
-{
-    for (int i=0; i<count; ++i) ptr[i].reset();
-}
-
-static
-void v_peg_reset_argument_ptrs(argument_ptr_t *ptr, int count)
-{
-    for (int i=0; i<count; ++i) ptr[i].reset();
-}
-
-static
-void v_peg_reset_grammar_ptrs(grammar_ptr_t *ptr, int count)
-{
-    for (int i=0; i<count; ++i) ptr[i].reset();
-}
-
-//-----------------------------------------------------------------
-static
-void v_peg_copy_parser_ptr(const parser_ptr_t *src, parser_ptr_t *dst)
-{
-    *dst = *src;
-}
-
-static
-void v_peg_copy_action_ptr(const action_ptr_t *src, action_ptr_t *dst)
-{
-    *dst = *src;
-}
-
-static
-void v_peg_copy_argument_ptr(const argument_ptr_t *src, argument_ptr_t *dst)
-{
-    *dst = *src;
-}
-
-static
-void v_peg_copy_grammar_ptr(const grammar_ptr_t *src, grammar_ptr_t *dst)
-{
-    *dst = *src;
-}
-
-//-----------------------------------------------------------------
-static
-int v_peg_parser_get_kind(const parser_ptr_t *ptr)
-{
-    return (*ptr)->kind();
-}
-
-static
-int v_peg_action_get_kind(const action_ptr_t *ptr)
-{
-    return (*ptr)->kind();
-}
-
-static
-int v_peg_argument_get_kind(const argument_ptr_t *ptr)
-{
-    return (*ptr)->kind();
-}
-
 
 //-----------------------------------------------------------------
 static
@@ -601,7 +511,6 @@ void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, cons
 //-----------------------------------------------------------------
 }   //- extern "C"
 
-
 //-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {
@@ -619,8 +528,8 @@ void grammar_t::static_initialize(void)
 
 #define DEF(name) \
     auto opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_peg_opaque_" #name "_ptr"); \
-    LLVMStructSetBody(opaque_##name##_ptr_type,   &content_type, 1, false); \
-    auto name##_ref_type = LLVMPointerType(opaque_##name##_ptr_type,   0); \
+    LLVMStructSetBody(opaque_##name##_ptr_type, &content_type, 1, false); \
+    auto name##_ref_type = LLVMPointerType(opaque_##name##_ptr_type, 0); \
 \
     compile_ctx_t::symbol_types["v_peg_opaque_" #name "_ptr"] = compile_ctx_t::LLVMOpaqueType_type; \
     LLVMAddSymbol("v_peg_opaque_" #name "_ptr", (void *)opaque_##name##_ptr_type); \
@@ -628,19 +537,17 @@ void grammar_t::static_initialize(void)
     compile_ctx_t::symbol_types["v_peg_" #name "_ref"] = compile_ctx_t::LLVMOpaqueType_type; \
     LLVMAddSymbol("v_peg_" #name "_ref", (void *)name##_ref_type); \
 \
-    args[0] = name##_ref_type; \
-    args[1] = compile_ctx_t::int_type; \
+    utility::register_initialize_impl<name##_ptr_t>(opaque_##name##_ptr_type, \
+                                                    "v_peg_initialize_" #name "_impl"); \
 \
-    compile_ctx_t::symbol_types["v_peg_initialize_" #name "_ptrs"] = LLVMFunctionType(compile_ctx_t::void_type, args, 2, false); \
-    LLVMAddSymbol("v_peg_initialize_" #name "_ptrs", (void *)v_peg_initialize_##name##_ptrs); \
+    utility::register_reset_impl<name##_ptr_t>(opaque_##name##_ptr_type, \
+                                               "v_peg_reset_" #name "_impl"); \
 \
-    compile_ctx_t::symbol_types["v_peg_reset_" #name "_ptrs"] = LLVMFunctionType(compile_ctx_t::void_type, args, 2, false); \
-    LLVMAddSymbol("v_peg_reset_" #name "_ptrs", (void *)v_peg_reset_##name##_ptrs); \
+    utility::register_copy_impl<name##_ptr_t>(opaque_##name##_ptr_type, \
+                                              "v_peg_copy_" #name "_impl"); \
 \
-    args[1] = name##_ref_type; \
-\
-    compile_ctx_t::symbol_types["v_peg_copy_" #name "_ptr"] = LLVMFunctionType(compile_ctx_t::void_type, args, 2, false); \
-    LLVMAddSymbol("v_peg_copy_" #name "_ptr", (void *)v_peg_copy_##name##_ptr);
+    utility::register_move_impl<name##_ptr_t>(opaque_##name##_ptr_type, \
+                                              "v_peg_move_" #name "_impl");
 
     DEF(parser)
     DEF(action)
@@ -656,7 +563,8 @@ void grammar_t::static_initialize(void)
     compile_ctx_t::symbol_types["v_peg_" #name "_get_kind"] = \
         LLVMFunctionType(compile_ctx_t::int_type, &name##_ref_type, 1, false); \
 \
-    LLVMAddSymbol("v_peg_" #name "_get_kind", (void *)v_peg_##name##_get_kind);
+    LLVMAddSymbol("v_peg_" #name "_get_kind", (void *)v_peg_get_kind<name##_ptr_t>); \
+    utility::kind_dict[opaque_##name##_ptr_type] = "v_peg_" #name "_get_kind";
 
     DEF(parser)
     DEF(action)

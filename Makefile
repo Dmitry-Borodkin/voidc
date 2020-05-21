@@ -22,6 +22,7 @@ all: voidc
 OBJS = \
 voidc_ast.o \
 voidc_llvm.o \
+voidc_util.o \
 voidc_main.o \
 vpeg_parser.o \
 vpeg_grammar.o \
