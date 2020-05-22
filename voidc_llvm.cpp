@@ -229,7 +229,13 @@ extern "C"
 static
 void v_add_symbol_type(const char *name, LLVMTypeRef type)
 {
-    compile_ctx_t::symbol_types[name] = type;
+    char *m_name = nullptr;
+
+    LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name);
+
+    compile_ctx_t::symbol_types[m_name] = type;
+
+    LLVMOrcDisposeMangledSymbol(m_name);
 }
 
 static
@@ -244,7 +250,13 @@ void voidc_intrinsic_add_local_symbol(void *void_cctx, const char *name, LLVMTyp
 {
     auto *cctx = (compile_ctx_t *)void_cctx;
 
-    cctx->local_symbols[name] = {type, value};
+    char *m_name = nullptr;
+
+    LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name);
+
+    cctx->local_symbols[m_name] = {type, value};
+
+    LLVMOrcDisposeMangledSymbol(m_name);
 }
 
 static
@@ -271,8 +283,17 @@ LLVMTypeRef voidc_intrinsic_find_symbol_type(void *void_cctx, const char *name)
 
         type = LLVMTypeOf(value);
     }
-    else if (cctx->local_symbols.count(name))   type = cctx->local_symbols[name].first;
-    else if (cctx->symbol_types.count(name))    type = cctx->symbol_types[name];
+    else
+    {
+        char *m_name = nullptr;
+
+        LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name);
+
+        if (cctx->local_symbols.count(m_name))      type = cctx->local_symbols[m_name].first;
+        else if (cctx->symbol_types.count(m_name))  type = cctx->symbol_types[m_name];
+
+        LLVMOrcDisposeMangledSymbol(m_name);
+    }
 
     return type;
 }
