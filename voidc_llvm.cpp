@@ -685,23 +685,39 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
     LLVMRunPassManager(cctx.pass_manager, cctx.module);
 
     //-------------------------------------------------------------
-    char *msg;
-
-    msg = LLVMPrintModuleToString(cctx.module);
-
-    printf("\n%s\n", msg);
-    LLVMDisposeMessage(msg);
+    char *msg = nullptr;
 
     auto err = LLVMVerifyModule(cctx.module, LLVMReturnStatusAction, &msg);
-    if (err)  printf("\n%s\n", msg);
+    if (err)
+    {
+        char *txt = LLVMPrintModuleToString(cctx.module);
+
+        printf("\n%s\n", txt);
+
+        LLVMDisposeMessage(txt);
+
+        printf("\n%s\n", msg);
+    }
+
     LLVMDisposeMessage(msg);
 
+    if (err)  exit(1);          //- Sic !!!
+
     //-------------------------------------------------------------
-    LLVMTargetMachineEmitToMemoryBuffer(cctx.target_machine,
-                                        cctx.module,
-                                        LLVMObjectFile,
-                                        &msg,
-                                        &cctx.unit_buffer);
+    err = LLVMTargetMachineEmitToMemoryBuffer(cctx.target_machine,
+                                              cctx.module,
+                                              LLVMObjectFile,
+                                              &msg,
+                                              &cctx.unit_buffer);
+
+    if (err)
+    {
+        printf("\n%s\n", msg);
+
+        LLVMDisposeMessage(msg);
+
+        exit(1);                //- Sic !!!
+    }
 
     assert(cctx.unit_buffer);
 

@@ -382,8 +382,8 @@ void static_initialize(void)
                                                  (void *)v_reset_std_string_impl, reset_dict
                                                 );
 
-    register_copy_impl<std::any>(opaque_std_string_type, "v_util_copy_std_string_impl");
-    register_move_impl<std::any>(opaque_std_string_type, "v_util_move_std_string_impl");
+    register_copy_impl<std::string>(opaque_std_string_type, "v_util_copy_std_string_impl");
+    register_move_impl<std::string>(opaque_std_string_type, "v_util_move_std_string_impl");
 
 #define DEF(name, ret, num) \
     compile_ctx_t::symbol_types[#name] = LLVMFunctionType(ret, args, num, false); \
