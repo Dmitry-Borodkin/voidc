@@ -1,9 +1,105 @@
-{   v_import("printf.void"); }
+{   v_import("printf.void");
+    v_import("voidc_internals.void");
+}
+
+{   module = LLVMModuleCreateWithName("my_echo_mod");
+
+    arg0 = v_array_alloca(LLVMTypeRef, 3);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    v_store(v_util_std_any_ref, arg0);
+    v_store(v_util_std_any_ref, arg1);
+    v_store(size_t, arg2);
+
+    my_echo_ft = LLVMFunctionType(void, arg0, 3, 0);
+    my_echo_f  = LLVMAddFunction(module, "my_echo_grammar_action", my_echo_ft);
+
+    entry = LLVMAppendBasicBlock(my_echo_f, "entry");
+
+    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+
+
+    get_string_ft = v_find_symbol_type("v_util_std_any_get_pointer_std_string_impl");
+    get_string_f  = LLVMAddFunction(module, "v_util_std_any_get_pointer_std_string_impl", get_string_ft);
+
+    par1 = LLVMGetParam(my_echo_f, 1);
+
+    val0 = v_array_alloca(LLVMValueRef, 2);
+    val1 = v_getelementptr(val0, 1);
+
+    v_store(par1, val0);
+
+    pstr = LLVMBuildCall(voidc_builder, get_string_f, val0, 1, "pstr");
+
+
+    get_c_str_ft = v_find_symbol_type("v_std_string_get");
+    get_c_str_f  = LLVMAddFunction(module, "v_std_string_get", get_c_str_ft);
+
+    v_store(pstr, val0);
+
+    str = LLVMBuildCall(voidc_builder, get_c_str_f, val0, 1, "str");
+
+
+    printf_ft = v_find_symbol_type("printf");
+    printf_f  = LLVMAddFunction(module, "printf", printf_ft);
+
+    str0 = LLVMBuildGlobalStringPtr(voidc_builder, "my_echo: %s", "str0");
+
+    v_store(str0, val0);
+    v_store(str,  val1);
+
+    LLVMBuildCall(voidc_builder, printf_f, val0, 2, "");
+
+
+    set_value_ft = v_find_symbol_type("v_util_std_any_set_value_bool_impl");
+    set_value_f  = LLVMAddFunction(module, "v_util_std_any_set_value_bool_impl", set_value_ft);
+
+    par0 = LLVMGetParam(my_echo_f, 0);
+
+    v_store(par0, val0);
+
+    true = LLVMConstInt(bool, 1, 0);
+
+    v_store(true, val1);
+
+    LLVMBuildCall(voidc_builder, set_value_f, val0, 2, "");
+
+
+    LLVMBuildRetVoid(voidc_builder);
+
+    LLVMClearInsertionPosition(voidc_builder);
+
+    //-----------------------------------------------------------------
+    LLVMRunPassManager(voidc_pass_manager, module);
+
+    //-----------------------------------------------------------------
+//    msg = LLVMPrintModuleToString(module);
+//
+//    printf("\n%s\n", msg);
+//
+//    LLVMDisposeMessage(msg);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver,
+                                voidc_intrinsic_compilation_context
+                               );
+
+    //-----------------------------------------------------------------
+    v_add_symbol_type("my_echo_grammar_action", my_echo_ft);
+}
 
 {   gr0 = v_alloca(v_peg_opaque_grammar_ptr);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);
+
+
+    v_peg_grammar_set_action(gr0, gr0, "my_echo", my_echo_grammar_action);
+
 
     pp0 = v_array_alloca(v_peg_opaque_parser_ptr, 2);
     v_initialize(pp0, 2);
@@ -22,7 +118,8 @@
     act = v_alloca(v_peg_opaque_action_ptr);
     v_initialize(act);
 
-    v_peg_make_call_action(act, "mk_echo", arg, 1);
+//  v_peg_make_call_action(act, "mk_echo", arg, 1);
+    v_peg_make_call_action(act, "my_echo", arg, 1);
 
     v_peg_make_action_parser(pp1, act);
 
@@ -47,7 +144,7 @@
 //- It works !!!
 //---------------------------------------------------------------------
 
-{   printf("Hello world!\n"); }
+{   printf("\nHello world!\n\n"); }
 
 //═════════════════════════════════════════════════════════════════════
 //- And now, for something completely different!

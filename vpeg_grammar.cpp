@@ -756,8 +756,10 @@ void grammar_t::static_initialize(void)
 
     DEF(v_peg_grammar_set_parser, compile_ctx_t::void_type, 5);
 
-    args[0] = utility::opaque_std_any_type;
-    args[1] = utility::opaque_std_any_type;
+    auto std_any_ref_type = LLVMPointerType(utility::opaque_std_any_type, 0);
+
+    args[0] = std_any_ref_type;
+    args[1] = std_any_ref_type;
     args[2] = compile_ctx_t::size_t_type;
 
     auto grammar_action_fun_type     = LLVMFunctionType(compile_ctx_t::void_type, args, 3, false);

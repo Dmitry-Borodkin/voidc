@@ -87,9 +87,9 @@ public:
     static LLVMTypeRef LLVMContextRef_type;
 
 public:
-    static std::map<std::string, LLVMTypeRef> symbol_types;
+    static std::map<std::string, LLVMTypeRef> symbol_types;                 //- Mangled names!
 
-    std::map<std::string, std::pair<LLVMTypeRef, void *>> local_symbols;
+    std::map<std::string, std::pair<LLVMTypeRef, void *>> local_symbols;    //- Mangled names!
 
     static std::map<std::string, LLVMValueRef> constants;
 
