@@ -511,6 +511,21 @@ void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, cons
 //-----------------------------------------------------------------
 }   //- extern "C"
 
+
+//-----------------------------------------------------------------
+LLVMTypeRef opaque_parser_ptr_type;
+LLVMTypeRef parser_ref_type;
+
+LLVMTypeRef opaque_action_ptr_type;
+LLVMTypeRef action_ref_type;
+
+LLVMTypeRef opaque_argument_ptr_type;
+LLVMTypeRef argument_ref_type;
+
+LLVMTypeRef opaque_grammar_ptr_type;
+LLVMTypeRef grammar_ref_type;
+
+
 //-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {
@@ -527,15 +542,12 @@ void grammar_t::static_initialize(void)
     LLVMTypeRef args[5];
 
 #define DEF(name) \
-    auto opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_peg_opaque_" #name "_ptr"); \
+    opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_peg_opaque_" #name "_ptr"); \
     LLVMStructSetBody(opaque_##name##_ptr_type, &content_type, 1, false); \
-    auto name##_ref_type = LLVMPointerType(opaque_##name##_ptr_type, 0); \
+    name##_ref_type = LLVMPointerType(opaque_##name##_ptr_type, 0); \
 \
-    compile_ctx_t::symbol_types["v_peg_opaque_" #name "_ptr"] = compile_ctx_t::LLVMOpaqueType_type; \
-    LLVMAddSymbol("v_peg_opaque_" #name "_ptr", (void *)opaque_##name##_ptr_type); \
-\
-    compile_ctx_t::symbol_types["v_peg_" #name "_ref"] = compile_ctx_t::LLVMOpaqueType_type; \
-    LLVMAddSymbol("v_peg_" #name "_ref", (void *)name##_ref_type); \
+    v_add_symbol("v_peg_opaque_" #name "_ptr", compile_ctx_t::LLVMOpaqueType_type, (void *)opaque_##name##_ptr_type); \
+    v_add_symbol("v_peg_" #name "_ref", compile_ctx_t::LLVMOpaqueType_type, (void *)name##_ref_type); \
 \
     utility::register_initialize_impl<name##_ptr_t>(opaque_##name##_ptr_type, \
                                                     "v_peg_initialize_" #name "_impl"); \
@@ -557,13 +569,16 @@ void grammar_t::static_initialize(void)
 #undef DEF
 
 #define DEF(name) \
-    compile_ctx_t::symbol_types["v_peg_" #name "_kind"] = compile_ctx_t::LLVMOpaqueType_type; \
-    LLVMAddSymbol("v_peg_" #name "_kind", (void *)compile_ctx_t::int_type); \
+    v_add_symbol("v_peg_" #name "_kind", \
+                 compile_ctx_t::LLVMOpaqueType_type, \
+                 (void *)compile_ctx_t::int_type \
+                ); \
 \
-    compile_ctx_t::symbol_types["v_peg_" #name "_get_kind"] = \
-        LLVMFunctionType(compile_ctx_t::int_type, &name##_ref_type, 1, false); \
+    v_add_symbol("v_peg_" #name "_get_kind", \
+                 LLVMFunctionType(compile_ctx_t::int_type, &name##_ref_type, 1, false), \
+                 (void *)v_peg_get_kind<name##_ptr_t> \
+                ); \
 \
-    LLVMAddSymbol("v_peg_" #name "_get_kind", (void *)v_peg_get_kind<name##_ptr_t>); \
     utility::kind_dict[opaque_##name##_ptr_type] = "v_peg_" #name "_get_kind";
 
     DEF(parser)
@@ -614,8 +629,7 @@ void grammar_t::static_initialize(void)
 #undef DEF
 
 #define DEF(name, ret, num) \
-    compile_ctx_t::symbol_types[#name] = LLVMFunctionType(ret, args, num, false); \
-    LLVMAddSymbol(#name, (void *)name);
+    v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
 
     args[0] = parser_ref_type;
 

@@ -744,14 +744,11 @@
 
 //- Types --------------------------------------------------
 {
-    v_add_symbol_type("LLVMLinkage", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMLinkage", int);
+    v_add_symbol("LLVMLinkage", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMLandingPadClauseTy", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMLandingPadClauseTy", int);
+    v_add_symbol("LLVMLandingPadClauseTy", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMAtomicRMWBinOp", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMAtomicRMWBinOp", int);
+    v_add_symbol("LLVMAtomicRMWBinOp", LLVMOpaqueType, int);
 
     arg0 = v_array_alloca(LLVMTypeRef, 2);
     arg1 = v_getelementptr(arg0, 1);
@@ -761,61 +758,44 @@
     v_store(v0, arg1);
     v1 = LLVMFunctionType(void, arg0, 2, 0);
     v2 = LLVMPointerType(v1, 0);
-    v_add_symbol_type("LLVMDiagnosticHandler", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMDiagnosticHandler", v2);
+    v_add_symbol("LLVMDiagnosticHandler", LLVMOpaqueType, v2);
 
-    v_add_symbol_type("LLVMAtomicOrdering", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMAtomicOrdering", int);
+    v_add_symbol("LLVMAtomicOrdering", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMDiagnosticSeverity", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMDiagnosticSeverity", int);
+    v_add_symbol("LLVMDiagnosticSeverity", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMUnnamedAddr", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMUnnamedAddr", int);
+    v_add_symbol("LLVMUnnamedAddr", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMCallConv", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMCallConv", int);
+    v_add_symbol("LLVMCallConv", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMOpcode", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMOpcode", int);
+    v_add_symbol("LLVMOpcode", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMTypeKind", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMTypeKind", int);
+    v_add_symbol("LLVMTypeKind", LLVMOpaqueType, int);
 
     v_store(LLVMContextRef, arg0);
     v3 = LLVMPointerType(void, 0);
     v_store(v3, arg1);
     v4 = LLVMFunctionType(void, arg0, 2, 0);
     v5 = LLVMPointerType(v4, 0);
-    v_add_symbol_type("LLVMYieldCallback", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMYieldCallback", v5);
+    v_add_symbol("LLVMYieldCallback", LLVMOpaqueType, v5);
 
-    v_add_symbol_type("LLVMDLLStorageClass", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMDLLStorageClass", int);
+    v_add_symbol("LLVMDLLStorageClass", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMThreadLocalMode", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMThreadLocalMode", int);
+    v_add_symbol("LLVMThreadLocalMode", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMModuleFlagBehavior", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMModuleFlagBehavior", int);
+    v_add_symbol("LLVMModuleFlagBehavior", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMIntPredicate", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMIntPredicate", int);
+    v_add_symbol("LLVMIntPredicate", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMValueKind", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMValueKind", int);
+    v_add_symbol("LLVMValueKind", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMInlineAsmDialect", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMInlineAsmDialect", int);
+    v_add_symbol("LLVMInlineAsmDialect", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMRealPredicate", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMRealPredicate", int);
+    v_add_symbol("LLVMRealPredicate", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMAttributeIndex", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMAttributeIndex", int);
+    v_add_symbol("LLVMAttributeIndex", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMVisibility", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMVisibility", int);
+    v_add_symbol("LLVMVisibility", LLVMOpaqueType, int);
 
 }
 

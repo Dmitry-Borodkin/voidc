@@ -12,14 +12,12 @@
 //- Types --------------------------------------------------
 {
     v0 = LLVMPointerType(void, 0);
-    v_add_symbol_type("LLVMErrorTypeId", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMErrorTypeId", v0);
+    v_add_symbol("LLVMErrorTypeId", LLVMOpaqueType, v0);
 
     v1 = LLVMGetGlobalContext();
     v2 = LLVMStructCreateNamed(v1, "struct.LLVMOpaqueError");
     v3 = LLVMPointerType(v2, 0);
-    v_add_symbol_type("LLVMErrorRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMErrorRef", v3);
+    v_add_symbol("LLVMErrorRef", LLVMOpaqueType, v3);
 
 }
 

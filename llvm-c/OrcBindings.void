@@ -24,14 +24,11 @@
     v_store(v3, arg1);
     v4 = LLVMFunctionType(uint64_t, arg0, 2, 0);
     v5 = LLVMPointerType(v4, 0);
-    v_add_symbol_type("LLVMOrcLazyCompileCallbackFn", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMOrcLazyCompileCallbackFn", v5);
+    v_add_symbol("LLVMOrcLazyCompileCallbackFn", LLVMOpaqueType, v5);
 
-    v_add_symbol_type("LLVMOrcModuleHandle", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMOrcModuleHandle", uint64_t);
+    v_add_symbol("LLVMOrcModuleHandle", LLVMOpaqueType, uint64_t);
 
-    v_add_symbol_type("LLVMOrcTargetAddress", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMOrcTargetAddress", uint64_t);
+    v_add_symbol("LLVMOrcTargetAddress", LLVMOpaqueType, uint64_t);
 
     v6 = LLVMPointerType(char, 0);
     v_store(v6, arg0);
@@ -39,11 +36,9 @@
     v_store(v7, arg1);
     v8 = LLVMFunctionType(uint64_t, arg0, 2, 0);
     v9 = LLVMPointerType(v8, 0);
-    v_add_symbol_type("LLVMOrcSymbolResolverFn", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMOrcSymbolResolverFn", v9);
+    v_add_symbol("LLVMOrcSymbolResolverFn", LLVMOpaqueType, v9);
 
-    v_add_symbol_type("LLVMOrcJITStackRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMOrcJITStackRef", v2);
+    v_add_symbol("LLVMOrcJITStackRef", LLVMOpaqueType, v2);
 
 }
 

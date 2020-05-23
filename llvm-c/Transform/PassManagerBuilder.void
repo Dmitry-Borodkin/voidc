@@ -3,22 +3,12 @@
     v_import("llvm-c/Types.void");
 }
 
-////- Known types --------------------------------------------
-//{
-//    v = LLVMInt64Type();
-//    v_add_local_symbol("uint64_t", LLVMOpaqueType, v);
-//    v_add_local_symbol("uint8_t", LLVMOpaqueType, char);
-//    v = LLVMDoubleType();
-//    v_add_local_symbol("double", LLVMOpaqueType, v);
-//}
-
 //- Types --------------------------------------------------
 {
     v0 = LLVMGetGlobalContext();
     v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaquePassManagerBuilder");
     v2 = LLVMPointerType(v1, 0);
-    v_add_symbol_type("LLVMPassManagerBuilderRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMPassManagerBuilderRef", v2);
+    v_add_symbol("LLVMPassManagerBuilderRef", LLVMOpaqueType, v2);
 
 }
 

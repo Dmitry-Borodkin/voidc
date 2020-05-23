@@ -56,8 +56,8 @@ void register_init_reset_impl_helper(LLVMTypeRef val_t_type, const char *fun_nam
     args[0] = LLVMPointerType(val_t_type, 0);
     args[1] = compile_ctx_t::int_type;
 
-    compile_ctx_t::symbol_types[fun_name] = LLVMFunctionType(compile_ctx_t::void_type, args, 2, false);
-    LLVMAddSymbol(fun_name, fun_ptr);
+    v_add_symbol(fun_name, LLVMFunctionType(compile_ctx_t::void_type, args, 2, false), fun_ptr);
+
     dict[val_t_type] = fun_name;
 }
 
@@ -105,8 +105,8 @@ void register_copy_move_impl_helper(LLVMTypeRef val_t_type, const char *fun_name
     args[1] = args[0];
     args[2] = compile_ctx_t::int_type;
 
-    compile_ctx_t::symbol_types[fun_name] = LLVMFunctionType(compile_ctx_t::void_type, args, 3, false);
-    LLVMAddSymbol(fun_name, fun_ptr);
+    v_add_symbol(fun_name, LLVMFunctionType(compile_ctx_t::void_type, args, 3, false), fun_ptr);
+
     dict[val_t_type] = fun_name;
 }
 
@@ -150,8 +150,11 @@ void register_std_any_get_value_impl(LLVMTypeRef val_t_type, const char *fun_nam
 {
     auto std_any_ref_type = LLVMPointerType(opaque_std_any_type, 0);
 
-    compile_ctx_t::symbol_types[fun_name] = LLVMFunctionType(val_t_type, &std_any_ref_type, 1, false);
-    LLVMAddSymbol(fun_name, (void *)v_std_any_get_value_impl<val_t>);
+    v_add_symbol(fun_name,
+                 LLVMFunctionType(val_t_type, &std_any_ref_type, 1, false),
+                 (void *)v_std_any_get_value_impl<val_t>
+                );
+
     std_any_get_value_dict[val_t_type] = fun_name;
 }
 
@@ -168,8 +171,11 @@ void register_std_any_get_pointer_impl(LLVMTypeRef val_t_type, const char *fun_n
     auto std_any_ref_type = LLVMPointerType(opaque_std_any_type, 0);
     auto ptr_t_type       = LLVMPointerType(val_t_type, 0);
 
-    compile_ctx_t::symbol_types[fun_name] = LLVMFunctionType(ptr_t_type, &std_any_ref_type, 1, false);
-    LLVMAddSymbol(fun_name, (void *)v_std_any_get_pointer_impl<val_t>);
+    v_add_symbol(fun_name,
+                 LLVMFunctionType(ptr_t_type, &std_any_ref_type, 1, false),
+                 (void *)v_std_any_get_pointer_impl<val_t>
+                );
+
     std_any_get_pointer_dict[val_t_type] = fun_name;
 }
 
@@ -188,8 +194,11 @@ void register_std_any_set_value_impl(LLVMTypeRef val_t_type, const char *fun_nam
     args[0] = LLVMPointerType(opaque_std_any_type, 0);
     args[1] = val_t_type;
 
-    compile_ctx_t::symbol_types[fun_name] = LLVMFunctionType(compile_ctx_t::void_type, args, 2, false);
-    LLVMAddSymbol(fun_name, (void *)v_std_any_set_value_impl<val_t>);
+    v_add_symbol(fun_name,
+                 LLVMFunctionType(compile_ctx_t::void_type, args, 2, false),
+                 (void *)v_std_any_set_value_impl<val_t>
+                );
+
     std_any_set_value_dict[val_t_type] = fun_name;
 }
 
@@ -208,8 +217,11 @@ void register_std_any_set_pointer_impl(LLVMTypeRef val_t_type, const char *fun_n
     args[0] = LLVMPointerType(opaque_std_any_type, 0);
     args[1] = LLVMPointerType(val_t_type, 0);
 
-    compile_ctx_t::symbol_types[fun_name] = LLVMFunctionType(compile_ctx_t::void_type, args, 2, false);
-    LLVMAddSymbol(fun_name, (void *)v_std_any_set_pointer_impl<val_t>);
+    v_add_symbol(fun_name,
+                 LLVMFunctionType(compile_ctx_t::void_type, args, 2, false),
+                 (void *)v_std_any_set_pointer_impl<val_t>
+                );
+
     std_any_set_pointer_dict[val_t_type] = fun_name;
 }
 

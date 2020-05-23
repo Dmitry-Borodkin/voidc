@@ -241,8 +241,10 @@ int main()
             LLVMPointerType(cctx.char_type, 0)
         };
 
-        cctx.symbol_types["voidc_intrinsic_import"] = LLVMFunctionType(cctx.void_type, args, 2, false);
-        LLVMAddSymbol("voidc_intrinsic_import", (void *)voidc_intrinsic_import);
+        v_add_symbol("voidc_intrinsic_import",
+                     LLVMFunctionType(cctx.void_type, args, 2, false),
+                     (void *)voidc_intrinsic_import
+                    );
 
         cctx.intrinsics["v_import"] = &v_import;
     }

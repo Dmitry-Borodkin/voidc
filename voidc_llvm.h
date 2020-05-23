@@ -12,6 +12,26 @@
 #include "vpeg_context.h"
 
 
+//---------------------------------------------------------------------
+//- Intrinsics (functions)
+//---------------------------------------------------------------------
+extern "C"
+{
+
+void v_add_symbol_type(const char *name, LLVMTypeRef type);
+void v_add_symbol_value(const char *name, void *value);
+void v_add_symbol(const char *name, LLVMTypeRef type, void *value);
+void v_add_constant(const char *name, LLVMValueRef val);
+
+void voidc_intrinsic_add_local_symbol(void *void_cctx, const char *name, LLVMTypeRef type, void *value);
+void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMValueRef value);
+
+LLVMTypeRef voidc_intrinsic_find_symbol_type(void *void_cctx, const char *name);
+
+
+//---------------------------------------------------------------------
+}   //- extern "C"
+
 
 //---------------------------------------------------------------------
 //- Compilation context
@@ -76,6 +96,22 @@ public:
     std::map<std::string, LLVMValueRef> local_constants;
 
 public:
+    void add_local_symbol(const char *name, LLVMTypeRef type, void *value)
+    {
+        voidc_intrinsic_add_local_symbol(this, name, type, value);
+    }
+
+    void add_local_constant(const char *name, LLVMValueRef value)
+    {
+        voidc_intrinsic_add_local_constant(this, name, value);
+    }
+
+    LLVMTypeRef find_symbol_type(const char *name)
+    {
+        return voidc_intrinsic_find_symbol_type(this, name);
+    }
+
+public:
     bool find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
 
     LLVMValueRef find_identifier(const std::string &name);
@@ -97,6 +133,7 @@ public:
 
     const char *ret_name;
 };
+
 
 
 #endif  //- VOIDC_LLVM_H

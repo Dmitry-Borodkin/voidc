@@ -46,7 +46,7 @@ std::map<std::string, compile_ctx_t::intrinsic_t> compile_ctx_t::intrinsics;
 compile_ctx_t::compile_ctx_t(const std::string _filename)
   : filename(_filename)
 {
-    local_symbols["voidc_intrinsic_compilation_context"] = {void_type, this};
+    add_local_symbol("voidc_intrinsic_compilation_context", void_type, this);
 }
 
 
@@ -226,7 +226,6 @@ extern "C"
 //---------------------------------------------------------------------
 //- Intrinsics (functions)
 //---------------------------------------------------------------------
-static
 void v_add_symbol_type(const char *name, LLVMTypeRef type)
 {
     char *m_name = nullptr;
@@ -238,14 +237,36 @@ void v_add_symbol_type(const char *name, LLVMTypeRef type)
     LLVMOrcDisposeMangledSymbol(m_name);
 }
 
-static
+void v_add_symbol_value(const char *name, void *value)
+{
+    char *m_name = nullptr;
+
+    LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name);
+
+    LLVMAddSymbol(m_name, value);
+
+    LLVMOrcDisposeMangledSymbol(m_name);
+}
+
+void v_add_symbol(const char *name, LLVMTypeRef type, void *value)
+{
+    char *m_name = nullptr;
+
+    LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name);
+
+    compile_ctx_t::symbol_types[m_name] = type;
+
+    LLVMAddSymbol(m_name, value);
+
+    LLVMOrcDisposeMangledSymbol(m_name);
+}
+
 void v_add_constant(const char *name, LLVMValueRef val)
 {
     compile_ctx_t::constants[name] = val;
 }
 
 //---------------------------------------------------------------------
-static
 void voidc_intrinsic_add_local_symbol(void *void_cctx, const char *name, LLVMTypeRef type, void *value)
 {
     auto *cctx = (compile_ctx_t *)void_cctx;
@@ -259,7 +280,6 @@ void voidc_intrinsic_add_local_symbol(void *void_cctx, const char *name, LLVMTyp
     LLVMOrcDisposeMangledSymbol(m_name);
 }
 
-static
 void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMValueRef value)
 {
     auto *cctx = (compile_ctx_t *)void_cctx;
@@ -267,7 +287,6 @@ void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMV
     cctx->local_constants[name] = value;
 }
 
-static
 LLVMTypeRef voidc_intrinsic_find_symbol_type(void *void_cctx, const char *name)
 {
     auto *cctx = (compile_ctx_t *)void_cctx;
@@ -373,7 +392,7 @@ void compile_ctx_t::static_initialize(void)
 
     //-------------------------------------------------------------
 #define DEF(name) \
-    LLVMAddSymbol("voidc_" #name, (void *)name);
+    v_add_symbol_value("voidc_" #name, (void *)name);
 
     DEF(resolver)
     DEF(target_machine)
@@ -426,8 +445,7 @@ void compile_ctx_t::static_initialize(void)
         LLVMContextRef_type = LLVMPointerType(LLVMOpaqueContext_type, 0);
 
 #define DEF(name) \
-        symbol_types[#name] = LLVMOpaqueType_type; \
-        LLVMAddSymbol(#name, (void *)name##_type);
+        v_add_symbol(#name, LLVMOpaqueType_type, (void *)name##_type);
 
         DEF(void)
         DEF(bool)
@@ -467,38 +485,46 @@ void compile_ctx_t::static_initialize(void)
             int_type
         };
 
-        symbol_types["LLVMFunctionType"] = LLVMFunctionType(LLVMTypeRef_type, args, 4, false);
+        v_add_symbol_type("LLVMFunctionType", LLVMFunctionType(LLVMTypeRef_type, args, 4, false));
 
         auto char_ptr_type = LLVMPointerType(char_type, 0);
+        auto void_ptr_type = LLVMPointerType(void_type, 0);
 
         args[0] = char_ptr_type;
         args[1] = LLVMTypeRef_type;
 
-        symbol_types["v_add_symbol_type"] = LLVMFunctionType(void_type, args, 2, false);
-        LLVMAddSymbol("v_add_symbol_type", (void *)v_add_symbol_type);
+#define DEF(name, ret, num) \
+        v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
+
+        DEF(v_add_symbol_type, void_type, 2)
+
+        args[1] = void_ptr_type;
+
+        DEF(v_add_symbol_value, void_type, 2)
+
+        args[1] = LLVMTypeRef_type;
+        args[2] = void_ptr_type;
+
+        DEF(v_add_symbol, void_type, 3)
 
         args[1] = LLVMValueRef_type;
 
-        symbol_types["v_add_constant"] = LLVMFunctionType(void_type, args, 2, false);
-        LLVMAddSymbol("v_add_constant", (void *)v_add_constant);
-
-        auto void_ptr_type = LLVMPointerType(void_type, 0);
+        DEF(v_add_constant, void_type, 2)
 
         args[0] = void_ptr_type;
         args[1] = char_ptr_type;
         args[2] = LLVMTypeRef_type;
         args[3] = void_ptr_type;
 
-        symbol_types["voidc_intrinsic_add_local_symbol"] = LLVMFunctionType(void_type, args, 4, false);
-        LLVMAddSymbol("voidc_intrinsic_add_local_symbol", (void *)voidc_intrinsic_add_local_symbol);
+        DEF(voidc_intrinsic_add_local_symbol, void_type, 4)
 
         args[2] = LLVMValueRef_type;
 
-        symbol_types["voidc_intrinsic_add_local_constant"] = LLVMFunctionType(void_type, args, 3, false);
-        LLVMAddSymbol("voidc_intrinsic_add_local_constant", (void *)voidc_intrinsic_add_local_constant);
+        DEF(voidc_intrinsic_add_local_constant, void_type, 3)
 
-        symbol_types["voidc_intrinsic_find_symbol_type"] = LLVMFunctionType(LLVMTypeRef_type, args, 2, false);
-        LLVMAddSymbol("voidc_intrinsic_find_symbol_type", (void *)voidc_intrinsic_find_symbol_type);
+        DEF(voidc_intrinsic_find_symbol_type, LLVMTypeRef_type, 2)
+
+#undef DEF
     }
 
     LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
@@ -599,21 +625,33 @@ void compile_ctx_t::run_unit_action(void)
 bool
 compile_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
 {
+    fun_type  = nullptr;
+    fun_value = nullptr;
+
     if (vars.count(fun_name))
     {
         fun_value = vars[fun_name];
     }
-    else if (local_symbols.count(fun_name)  ||  symbol_types.count(fun_name))
+    else
     {
-        fun_value = LLVMGetNamedFunction(module, fun_name.c_str());
+        char *m_name = nullptr;
 
-        if (!fun_value)
+        LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, fun_name.c_str());
+
+        if (local_symbols.count(m_name)  ||  symbol_types.count(m_name))
         {
-            if (local_symbols.count(fun_name))  fun_type = local_symbols[fun_name].first;
-            else                                fun_type = symbol_types[fun_name];
+            fun_value = LLVMGetNamedFunction(module, fun_name.c_str());
 
-            fun_value = LLVMAddFunction(module, fun_name.c_str(), fun_type);
+            if (!fun_value)
+            {
+                if (local_symbols.count(m_name))  fun_type = local_symbols[m_name].first;
+                else                              fun_type = symbol_types[m_name];
+
+                fun_value = LLVMAddFunction(module, fun_name.c_str(), fun_type);
+            }
         }
+
+        LLVMOrcDisposeMangledSymbol(m_name);
     }
 
     if (!fun_value) return false;
@@ -651,19 +689,28 @@ compile_ctx_t::find_identifier(const std::string &name)
     {
         value = constants[name];
     }
-    else if (local_symbols.count(name)  ||  symbol_types.count(name))
+    else
     {
-        value = LLVMGetNamedGlobal(module, name.c_str());
+        char *m_name = nullptr;
 
-        if (!value)
+        LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name.c_str());
+
+        if (local_symbols.count(m_name)  ||  symbol_types.count(m_name))
         {
-            LLVMTypeRef type;
+            value = LLVMGetNamedGlobal(module, name.c_str());
 
-            if (local_symbols.count(name))  type = local_symbols[name].first;
-            else                            type = symbol_types[name];
+            if (!value)
+            {
+                LLVMTypeRef type;
 
-            value = LLVMAddGlobal(module, type, name.c_str());
+                if (local_symbols.count(m_name))  type = local_symbols[m_name].first;
+                else                              type = symbol_types[m_name];
+
+                value = LLVMAddGlobal(module, type, name.c_str());
+            }
         }
+
+        LLVMOrcDisposeMangledSymbol(m_name);
     }
 
     return  value;

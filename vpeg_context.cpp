@@ -79,8 +79,6 @@ void context_t::static_initialize(void)
     compile_ctx_t::intrinsics["v_peg_get_grammar"] = v_peg_get_grammar;
     compile_ctx_t::intrinsics["v_peg_set_grammar"] = v_peg_set_grammar;
 
-    auto grammar_ref_type =  (LLVMTypeRef)LLVMSearchForAddressOfSymbol("v_peg_grammar_ref");
-
     auto &void_type = compile_ctx_t::void_type;
 
     LLVMTypeRef args[] =
@@ -89,11 +87,10 @@ void context_t::static_initialize(void)
         grammar_ref_type
     };
 
-    compile_ctx_t::symbol_types["voidc_intrinsic_peg_get_grammar"] = LLVMFunctionType(void_type, args, 2, false);
-    LLVMAddSymbol("voidc_intrinsic_peg_get_grammar", (void *)voidc_intrinsic_peg_get_grammar);
+    auto fun_type = LLVMFunctionType(void_type, args, 2, false);
 
-    compile_ctx_t::symbol_types["voidc_intrinsic_peg_set_grammar"] = LLVMFunctionType(void_type, args, 2, false);
-    LLVMAddSymbol("voidc_intrinsic_peg_set_grammar", (void *)voidc_intrinsic_peg_set_grammar);
+    v_add_symbol("voidc_intrinsic_peg_get_grammar", fun_type, (void *)voidc_intrinsic_peg_get_grammar);
+    v_add_symbol("voidc_intrinsic_peg_set_grammar", fun_type, (void *)voidc_intrinsic_peg_set_grammar);
 }
 
 //-----------------------------------------------------------------

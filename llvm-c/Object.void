@@ -63,26 +63,21 @@
     v0 = LLVMGetGlobalContext();
     v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueSectionIterator");
     v2 = LLVMPointerType(v1, 0);
-    v_add_symbol_type("LLVMSectionIteratorRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMSectionIteratorRef", v2);
+    v_add_symbol("LLVMSectionIteratorRef", LLVMOpaqueType, v2);
 
-    v_add_symbol_type("LLVMBinaryType", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMBinaryType", int);
+    v_add_symbol("LLVMBinaryType", LLVMOpaqueType, int);
 
     v3 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueRelocationIterator");
     v4 = LLVMPointerType(v3, 0);
-    v_add_symbol_type("LLVMRelocationIteratorRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMRelocationIteratorRef", v4);
+    v_add_symbol("LLVMRelocationIteratorRef", LLVMOpaqueType, v4);
 
     v5 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueSymbolIterator");
     v6 = LLVMPointerType(v5, 0);
-    v_add_symbol_type("LLVMSymbolIteratorRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMSymbolIteratorRef", v6);
+    v_add_symbol("LLVMSymbolIteratorRef", LLVMOpaqueType, v6);
 
     v7 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueObjectFile");
     v8 = LLVMPointerType(v7, 0);
-    v_add_symbol_type("LLVMObjectFileRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMObjectFileRef", v8);
+    v_add_symbol("LLVMObjectFileRef", LLVMOpaqueType, v8);
 
 }
 

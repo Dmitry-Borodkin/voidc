@@ -11,8 +11,7 @@
     v_store(v0, arg0);
     v1 = LLVMFunctionType(void, arg0, 1, 0);
     v2 = LLVMPointerType(v1, 0);
-    v_add_symbol_type("LLVMFatalErrorHandler", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMFatalErrorHandler", v2);
+    v_add_symbol("LLVMFatalErrorHandler", LLVMOpaqueType, v2);
 
 }
 

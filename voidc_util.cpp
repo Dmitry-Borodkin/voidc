@@ -343,6 +343,9 @@ void static_initialize(void)
 
     LLVMTypeRef args[2];
 
+#define DEF(name) \
+    v_add_symbol("v_util_" #name, compile_ctx_t::LLVMOpaqueType_type, (void *)name##_type);
+
     //-----------------------------------------------------------------
     auto std_any_content_type = LLVMArrayType(char_ptr_type, sizeof(std::any)/sizeof(char *));
 
@@ -350,11 +353,8 @@ void static_initialize(void)
     LLVMStructSetBody(opaque_std_any_type, &std_any_content_type, 1, false);
     auto std_any_ref_type = LLVMPointerType(opaque_std_any_type, 0);
 
-    compile_ctx_t::symbol_types["v_util_opaque_std_any"] = compile_ctx_t::LLVMOpaqueType_type;
-    LLVMAddSymbol("v_util_opaque_std_any", (void *)opaque_std_any_type);
-
-    compile_ctx_t::symbol_types["v_util_std_any_ref"] = compile_ctx_t::LLVMOpaqueType_type;
-    LLVMAddSymbol("v_util_std_any_ref", (void *)std_any_ref_type);
+    DEF(opaque_std_any)
+    DEF(std_any_ref)
 
     register_initialize_impl<std::any>(opaque_std_any_type, "v_util_initialize_std_any_impl");
 
@@ -370,11 +370,8 @@ void static_initialize(void)
     LLVMStructSetBody(opaque_std_string_type, &std_string_content_type, 1, false);
     auto std_string_ref_type = LLVMPointerType(opaque_std_string_type, 0);
 
-    compile_ctx_t::symbol_types["v_util_opaque_std_string"] = compile_ctx_t::LLVMOpaqueType_type;
-    LLVMAddSymbol("v_util_opaque_std_string", (void *)opaque_std_string_type);
-
-    compile_ctx_t::symbol_types["v_util_std_string_ref"] = compile_ctx_t::LLVMOpaqueType_type;
-    LLVMAddSymbol("v_util_std_string_ref", (void *)std_string_ref_type);
+    DEF(opaque_std_string)
+    DEF(std_string_ref)
 
     register_initialize_impl<std::string>(opaque_std_string_type, "v_util_initialize_std_string_impl");
 
@@ -385,9 +382,10 @@ void static_initialize(void)
     register_copy_impl<std::string>(opaque_std_string_type, "v_util_copy_std_string_impl");
     register_move_impl<std::string>(opaque_std_string_type, "v_util_move_std_string_impl");
 
+#undef DEF
+
 #define DEF(name, ret, num) \
-    compile_ctx_t::symbol_types[#name] = LLVMFunctionType(ret, args, num, false); \
-    LLVMAddSymbol(#name, (void *)name);
+    v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
 
     args[0] = std_string_ref_type;
     args[1] = char_ptr_type;

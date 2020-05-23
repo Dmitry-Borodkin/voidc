@@ -70,28 +70,22 @@
 
 //- Types --------------------------------------------------
 {
-    v_add_symbol_type("LLVMCodeGenFileType", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMCodeGenFileType", int);
+    v_add_symbol("LLVMCodeGenFileType", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMCodeModel", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMCodeModel", int);
+    v_add_symbol("LLVMCodeModel", LLVMOpaqueType, int);
 
-    v_add_symbol_type("LLVMCodeGenOptLevel", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMCodeGenOptLevel", int);
+    v_add_symbol("LLVMCodeGenOptLevel", LLVMOpaqueType, int);
 
     v0 = LLVMGetGlobalContext();
     v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueTargetMachine");
     v2 = LLVMPointerType(v1, 0);
-    v_add_symbol_type("LLVMTargetMachineRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMTargetMachineRef", v2);
+    v_add_symbol("LLVMTargetMachineRef", LLVMOpaqueType, v2);
 
-    v_add_symbol_type("LLVMRelocMode", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMRelocMode", int);
+    v_add_symbol("LLVMRelocMode", LLVMOpaqueType, int);
 
     v3 = LLVMStructCreateNamed(v0, "struct.LLVMTarget");
     v4 = LLVMPointerType(v3, 0);
-    v_add_symbol_type("LLVMTargetRef", LLVMOpaqueType);
-    LLVMAddSymbol("LLVMTargetRef", v4);
+    v_add_symbol("LLVMTargetRef", LLVMOpaqueType, v4);
 
 }
 
