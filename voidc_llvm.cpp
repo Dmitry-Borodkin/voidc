@@ -419,6 +419,8 @@ void compile_ctx_t::static_initialize(void)
         default:
             assert(false && "mk_type");
         }
+
+        return (LLVMTypeRef)nullptr;        //- WTF ?!?!?
     };
 
     char_type      = mk_type(sizeof(char));
