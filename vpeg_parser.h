@@ -732,4 +732,3 @@ mk_character_argument(char32_t ucs4)
 
 
 #endif      //- VPEG_PARSER_H
-

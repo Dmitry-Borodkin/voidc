@@ -2,6 +2,19 @@
     v_import("voidc_internals.void");
 }
 
+{   char_ptr = LLVMPointerType(char, 0);
+
+    stacksave_ft = LLVMFunctionType(char_ptr, 0, 0, 0);
+    v_add_symbol_type("llvm.stacksave", stacksave_ft);
+
+    arg = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, arg);
+
+    stackrestore_ft = LLVMFunctionType(void, arg, 1, 0);
+    v_add_symbol_type("llvm.stackrestore", stackrestore_ft);
+}
+
 {   module = LLVMModuleCreateWithName("my_echo_mod");
 
     arg0 = v_array_alloca(LLVMTypeRef, 3);

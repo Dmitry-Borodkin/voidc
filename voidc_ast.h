@@ -9,8 +9,6 @@
 
 #include <immer/vector.hpp>
 
-#include "vpeg_parser.h"
-
 
 //----------------------------------------------------------------------
 //- AST classes
