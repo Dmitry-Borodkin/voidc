@@ -2,20 +2,17 @@
     v_import("voidc_internals.void");
 }
 
-{   char_ptr = LLVMPointerType(char, 0);
+{   module = LLVMModuleCreateWithName("hello_mod");
 
-    stacksave_ft = LLVMFunctionType(char_ptr, 0, 0, 0);
-    v_add_symbol_type("llvm.stacksave", stacksave_ft);
+    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
+    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
 
-    arg = v_alloca(LLVMTypeRef);
+    LLVMSetModuleDataLayout(module, dl);
+    LLVMSetTarget(module, tr);
 
-    v_store(char_ptr, arg);
+    LLVMDisposeMessage(tr);
+    LLVMDisposeTargetData(dl);
 
-    stackrestore_ft = LLVMFunctionType(void, arg, 1, 0);
-    v_add_symbol_type("llvm.stackrestore", stackrestore_ft);
-}
-
-{   module = LLVMModuleCreateWithName("my_echo_mod");
 
     arg0 = v_array_alloca(LLVMTypeRef, 3);
     arg1 = v_getelementptr(arg0, 1);

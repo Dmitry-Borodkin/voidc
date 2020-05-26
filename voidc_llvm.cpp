@@ -735,6 +735,16 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 
     LLVMSetSourceFileName(cctx.module, cctx.filename.c_str(), cctx.filename.size());
 
+    {   auto dl = LLVMCreateTargetDataLayout(cctx.target_machine);
+        auto tr = LLVMGetTargetMachineTriple(cctx.target_machine);
+
+        LLVMSetModuleDataLayout(cctx.module, dl);
+        LLVMSetTarget(cctx.module, tr);
+
+        LLVMDisposeMessage(tr);
+        LLVMDisposeTargetData(dl);
+    }
+
     LLVMTypeRef  unit_ft = LLVMFunctionType(LLVMVoidType(), nullptr, 0, false);
     LLVMValueRef unit_f  = LLVMAddFunction(cctx.module, fun_name.c_str(), unit_ft);
 
