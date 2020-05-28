@@ -49,19 +49,19 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
 
     auto key = std::make_tuple(hash, st.position, name);
 
-    if (ctx.memo.count(key) != 0)
+    if (ctx.memo.count(key))
     {
-        auto &respos = ctx.memo[key];
+        auto &[res, est] = ctx.memo[key];
 
-        ctx.set_state(respos.second);
+        ctx.set_state(est);
 
-        ret = respos.first;
+        ret = res;
     }
     else
     {
-        auto &pl = parsers.at(name);
+        auto &[parser, leftrec] = parsers.at(name);
 
-        if (pl.second)      //- Left-recursive ?
+        if (leftrec)        //- Left-recursive ?
         {
             auto lastres = std::any();
             auto last_st = st;
@@ -72,7 +72,7 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
             {
                 ctx.set_state(st);
 
-                auto res = pl.first->parse(ctx);
+                auto res = parser->parse(ctx);
                 auto est = ctx.get_state();
 
                 if (est.position <= last_st.position) break;
@@ -89,7 +89,7 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
         }
         else                //- NOT left-recursive
         {
-            auto res = pl.first->parse(ctx);
+            auto res = parser->parse(ctx);
             auto est = ctx.get_state();
 
             ctx.memo[key] = {res, est};

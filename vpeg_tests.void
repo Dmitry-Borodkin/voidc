@@ -14,7 +14,7 @@
     LLVMDisposeTargetData(dl);
 
 
-    arg0 = v_array_alloca(LLVMTypeRef, 3);
+    arg0 = v_alloca(LLVMTypeRef, 3);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
@@ -35,7 +35,7 @@
 
     par1 = LLVMGetParam(my_echo_f, 1);
 
-    val0 = v_array_alloca(LLVMValueRef, 2);
+    val0 = v_alloca(LLVMValueRef, 2);
     val1 = v_getelementptr(val0, 1);
 
     v_store(par1, val0);
@@ -111,7 +111,7 @@
     v_peg_grammar_set_action(gr0, gr0, "my_echo", my_echo_grammar_action);
 
 
-    pp0 = v_array_alloca(v_peg_opaque_parser_ptr, 2);
+    pp0 = v_alloca(v_peg_opaque_parser_ptr, 2);
     v_initialize(pp0, 2);
 
     pp1 = v_getelementptr(pp0, 1);

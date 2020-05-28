@@ -308,9 +308,7 @@ std::any call_action_t::act(context_t &ctx) const
 //-----------------------------------------------------------------
 std::any identifier_argument_t::value(context_t &ctx) const
 {
-    assert(ctx.variables.values.count(ident));      //- ?!?
-
-    return ctx.variables.values[ident];
+    return ctx.variables.values.at(ident);      //- ?...
 }
 
 //-----------------------------------------------------------------
