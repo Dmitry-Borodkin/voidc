@@ -16,6 +16,9 @@
 //---------------------------------------------------------------------
 //- Compilation context
 //---------------------------------------------------------------------
+compile_ctx_t * const &compile_ctx_t::current_ctx = compile_ctx_t::private_current_ctx;
+compile_ctx_t *compile_ctx_t::private_current_ctx = nullptr;
+
 LLVMTargetMachineRef compile_ctx_t::target_machine;
 LLVMOrcJITStackRef   compile_ctx_t::jit;
 LLVMBuilderRef       compile_ctx_t::builder;
@@ -44,18 +47,24 @@ std::map<std::string, compile_ctx_t::intrinsic_t> compile_ctx_t::intrinsics;
 
 //---------------------------------------------------------------------
 compile_ctx_t::compile_ctx_t(const std::string _filename)
-  : filename(_filename)
+  : filename(_filename),
+    parent_ctx(current_ctx)
 {
-    add_local_symbol("voidc_intrinsic_compilation_context", void_type, this);
+    private_current_ctx = this;
+}
+
+compile_ctx_t::~compile_ctx_t()
+{
+    private_current_ctx = parent_ctx;
 }
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-uint64_t compile_ctx_t::resolver(const char *m_name, void *void_cctx)
+uint64_t compile_ctx_t::resolver(const char *m_name, void *)
 {
-    auto cctx = (compile_ctx_t *)void_cctx;
+    auto *cctx = compile_ctx_t::current_ctx;
 
     try
     {
@@ -196,57 +205,6 @@ void v_load(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *ar
 
 
 //---------------------------------------------------------------------
-void
-compile_ctx_t::build_intrinsic_call(const char *fun, const std::shared_ptr<const ast_arg_list_t> &_args)
-{
-    auto id_cctx = std::make_shared<const ast_arg_identifier_t>("voidc_intrinsic_compilation_context");
-
-    LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
-
-    bool ok = find_function(fun, ft, f);
-
-    assert(ok && "intrinsic function not found");
-
-    arg_types.resize(LLVMCountParamTypes(ft));
-
-    LLVMGetParamTypes(ft, arg_types.data());
-
-    assert(args.empty());
-
-    id_cctx->compile(*this);
-
-    _args->compile(*this);
-
-    auto v = LLVMBuildCall(builder, f, args.data(), args.size(), ret_name);
-
-    args.clear();
-    arg_types.clear();
-
-    stmts.push_front(v);
-}
-
-//---------------------------------------------------------------------
-static
-void v_add_local_symbol(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
-{
-    cctx->build_intrinsic_call("voidc_intrinsic_add_local_symbol", *args);
-}
-
-//---------------------------------------------------------------------
-static
-void v_add_local_constant(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
-{
-    cctx->build_intrinsic_call("voidc_intrinsic_add_local_constant", *args);
-}
-
-static
-void v_find_symbol_type(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
-{
-    cctx->build_intrinsic_call("voidc_intrinsic_find_symbol_type", *args);
-}
-
-//---------------------------------------------------------------------
 extern "C"
 {
 
@@ -294,9 +252,9 @@ void v_add_constant(const char *name, LLVMValueRef val)
 }
 
 //---------------------------------------------------------------------
-void voidc_intrinsic_add_local_symbol(void *void_cctx, const char *name, LLVMTypeRef type, void *value)
+void v_add_local_symbol(const char *name, LLVMTypeRef type, void *value)
 {
-    auto *cctx = (compile_ctx_t *)void_cctx;
+    auto *cctx = compile_ctx_t::current_ctx;
 
     char *m_name = nullptr;
 
@@ -307,16 +265,16 @@ void voidc_intrinsic_add_local_symbol(void *void_cctx, const char *name, LLVMTyp
     LLVMOrcDisposeMangledSymbol(m_name);
 }
 
-void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMValueRef value)
+void v_add_local_constant(const char *name, LLVMValueRef value)
 {
-    auto *cctx = (compile_ctx_t *)void_cctx;
+    auto *cctx = compile_ctx_t::current_ctx;
 
     cctx->local_constants[name] = value;
 }
 
-LLVMTypeRef voidc_intrinsic_find_symbol_type(void *void_cctx, const char *name)
+LLVMTypeRef v_find_symbol_type(const char *name)
 {
-    auto *cctx = (compile_ctx_t *)void_cctx;
+    auto *cctx = compile_ctx_t::current_ctx;
 
     LLVMTypeRef type = nullptr;
 
@@ -517,9 +475,6 @@ void compile_ctx_t::static_initialize(void)
     intrinsics["v_getelementptr"]      = v_getelementptr;
     intrinsics["v_store"]              = v_store;
     intrinsics["v_load"]               = v_load;
-    intrinsics["v_add_local_symbol"]   = v_add_local_symbol;
-    intrinsics["v_add_local_constant"] = v_add_local_constant;
-    intrinsics["v_find_symbol_type"]   = v_find_symbol_type;
 
     {   LLVMTypeRef args[] =
         {
@@ -555,18 +510,17 @@ void compile_ctx_t::static_initialize(void)
 
         DEF(v_add_constant, void_type, 2)
 
-        args[0] = void_ptr_type;
-        args[1] = char_ptr_type;
-        args[2] = LLVMTypeRef_type;
-        args[3] = void_ptr_type;
+        args[0] = char_ptr_type;
+        args[1] = LLVMTypeRef_type;
+        args[2] = void_ptr_type;
 
-        DEF(voidc_intrinsic_add_local_symbol, void_type, 4)
+        DEF(v_add_local_symbol, void_type, 3)
 
-        args[2] = LLVMValueRef_type;
+        args[1] = LLVMValueRef_type;
 
-        DEF(voidc_intrinsic_add_local_constant, void_type, 3)
+        DEF(v_add_local_constant, void_type, 2)
 
-        DEF(voidc_intrinsic_find_symbol_type, LLVMTypeRef_type, 2)
+        DEF(v_find_symbol_type, LLVMTypeRef_type, 1)
 
 #undef DEF
     }
@@ -623,7 +577,7 @@ void compile_ctx_t::run_unit_action(void)
 
     LLVMOrcModuleHandle H;
 
-    auto lerr = LLVMOrcAddObjectFile(jit, &H, unit_buffer, resolver, this);
+    auto lerr = LLVMOrcAddObjectFile(jit, &H, unit_buffer, resolver, nullptr);
 
     if (lerr)
     {

@@ -23,10 +23,10 @@ void v_add_symbol_value(const char *name, void *value);
 void v_add_symbol(const char *name, LLVMTypeRef type, void *value);
 void v_add_constant(const char *name, LLVMValueRef val);
 
-void voidc_intrinsic_add_local_symbol(void *void_cctx, const char *name, LLVMTypeRef type, void *value);
-void voidc_intrinsic_add_local_constant(void *void_cctx, const char *name, LLVMValueRef value);
+void v_add_local_symbol(const char *name, LLVMTypeRef type, void *value);
+void v_add_local_constant(const char *name, LLVMValueRef value);
 
-LLVMTypeRef voidc_intrinsic_find_symbol_type(void *void_cctx, const char *name);
+LLVMTypeRef v_find_symbol_type(const char *name);
 
 
 //---------------------------------------------------------------------
@@ -40,7 +40,7 @@ class compile_ctx_t
 {
 public:
     explicit compile_ctx_t(const std::string filename);
-    ~compile_ctx_t() = default;
+    ~compile_ctx_t();
 
 public:
     static uint64_t resolver(const char *name, void *void_cctx);
@@ -50,7 +50,7 @@ public:
     static void static_terminate(void);
 
 public:
-    vpeg::context_t *parser_context = 0;
+    static compile_ctx_t * const &current_ctx;
 
 public:
     static LLVMTargetMachineRef target_machine;
@@ -96,17 +96,6 @@ public:
     std::map<std::string, LLVMValueRef> local_constants;
 
 public:
-    void add_local_symbol(const char *name, LLVMTypeRef type, void *value)
-    {
-        voidc_intrinsic_add_local_symbol(this, name, type, value);
-    }
-
-    void add_local_constant(const char *name, LLVMValueRef value)
-    {
-        voidc_intrinsic_add_local_constant(this, name, value);
-    }
-
-public:
     LLVMTypeRef find_symbol_type(const char *name);
 
     bool find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
@@ -118,8 +107,6 @@ public:
 
     static std::map<std::string, intrinsic_t> intrinsics;
 
-    void build_intrinsic_call(const char *fun, const std::shared_ptr<const ast_arg_list_t> &args);
-
 public:
     std::forward_list<LLVMValueRef> stmts;
 
@@ -129,6 +116,11 @@ public:
     std::vector<LLVMValueRef> args;
 
     const char *ret_name;
+
+private:
+    static compile_ctx_t *private_current_ctx;
+
+    compile_ctx_t * const parent_ctx;
 };
 
 

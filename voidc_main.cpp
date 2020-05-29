@@ -75,9 +75,9 @@ extern "C"
 {
 
 static
-void voidc_intrinsic_import(void *void_cctx, const char *name)
+void v_import(const char *name)
 {
-    auto *parent_cctx = (compile_ctx_t *)void_cctx;
+    auto *parent_cctx = compile_ctx_t::current_ctx;
 
     fs::path src_filename = name;
 
@@ -128,6 +128,10 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
         if (std::strcmp(magic, buf.get()) == 0)
         {
+            auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
+
+            vpeg::context_t::current_ctx = nullptr;
+
             while(!infs.eof())
             {
                 size_t len;
@@ -149,6 +153,8 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
                 cctx.run_unit_action();
             }
+
+            vpeg::context_t::current_ctx = parent_vpeg_ctx;
         }
         else
         {
@@ -174,6 +180,10 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
         }
 
         {   vpeg::context_t pctx(infs, voidc_grammar, cctx);
+
+            auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
+
+            vpeg::context_t::current_ctx = &pctx;
 
             for(;;)
             {
@@ -203,6 +213,8 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
                     assert(false && "Unit parse error!");
                 }
             }
+
+            vpeg::context_t::current_ctx = parent_vpeg_ctx;
         }
 
         outfs.seekp(0);
@@ -217,13 +229,6 @@ void voidc_intrinsic_import(void *void_cctx, const char *name)
 
 }   //- extern "C"
 
-//---------------------------------------------------------------------
-static
-void v_import(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
-{
-    cctx->build_intrinsic_call("voidc_intrinsic_import", *args);
-}
-
 
 //---------------------------------------------------------------------
 //- As is...
@@ -235,18 +240,12 @@ int main()
 
     compile_ctx_t cctx("<stdin>");
 
-    {   LLVMTypeRef args[] =
-        {
-            LLVMPointerType(cctx.void_type, 0),
-            LLVMPointerType(cctx.char_type, 0)
-        };
+    {   auto char_ptr_type = LLVMPointerType(cctx.char_type, 0);
 
-        v_add_symbol("voidc_intrinsic_import",
-                     LLVMFunctionType(cctx.void_type, args, 2, false),
-                     (void *)voidc_intrinsic_import
+        v_add_symbol("v_import",
+                     LLVMFunctionType(cctx.void_type, &char_ptr_type, 1, false),
+                     (void *)v_import
                     );
-
-        cctx.intrinsics["v_import"] = &v_import;
     }
 
     vpeg::grammar_t::static_initialize();
@@ -255,6 +254,8 @@ int main()
     voidc_grammar = make_voidc_grammar();
 
     {   vpeg::context_t pctx(std::cin, voidc_grammar, cctx);
+
+        vpeg::context_t::current_ctx = &pctx;
 
         for(;;)
         {
@@ -275,6 +276,8 @@ int main()
                 assert(false && "Unit parse error!");
             }
         }
+
+        vpeg::context_t::current_ctx = nullptr;     //- ?
     }
 
 #if 0

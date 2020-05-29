@@ -35,6 +35,9 @@ public:
     static void static_terminate(void);
 
 public:
+    static context_t *current_ctx;
+
+public:
     struct variables_t
     {
         immer::map<std::string, std::any>   values;

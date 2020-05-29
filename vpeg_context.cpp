@@ -12,29 +12,15 @@ namespace vpeg
 
 
 //-----------------------------------------------------------------
+context_t *context_t::current_ctx = nullptr;
+
+
+//-----------------------------------------------------------------
 context_t::context_t(std::istream &_input, const grammar_t &_grammar, compile_ctx_t &cctx)
   : input(_input),
     grammar(_grammar)
 {
     grammar.check_hash();
-
-    cctx.parser_context = this;
-}
-
-
-//---------------------------------------------------------------------
-//- Intrinsics (true)
-//---------------------------------------------------------------------
-static
-void v_peg_get_grammar(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
-{
-    cctx->build_intrinsic_call("voidc_intrinsic_peg_get_grammar", *args);
-}
-
-static
-void v_peg_set_grammar(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
-{
-    cctx->build_intrinsic_call("voidc_intrinsic_peg_set_grammar", *args);
 }
 
 
@@ -46,23 +32,19 @@ extern "C"
 //- Intrinsics (functions)
 //---------------------------------------------------------------------
 static
-void voidc_intrinsic_peg_get_grammar(void *void_cctx, grammar_ptr_t *ptr)
+void v_peg_get_grammar(grammar_ptr_t *ptr)
 {
-    auto *cctx = (compile_ctx_t *)void_cctx;
+    assert(context_t::current_ctx);
 
-    assert(cctx->parser_context);
-
-    *ptr = std::make_shared<const grammar_t>(cctx->parser_context->grammar);
+    *ptr = std::make_shared<const grammar_t>(context_t::current_ctx->grammar);
 }
 
 static
-void voidc_intrinsic_peg_set_grammar(void *void_cctx, const grammar_ptr_t *ptr)
+void v_peg_set_grammar(const grammar_ptr_t *ptr)
 {
-    auto *cctx = (compile_ctx_t *)void_cctx;
+    assert(context_t::current_ctx);
 
-    assert(cctx->parser_context);
-
-    auto &grammar = cctx->parser_context->grammar;
+    auto &grammar = context_t::current_ctx->grammar;
 
     grammar = **ptr;
 
@@ -76,21 +58,10 @@ void voidc_intrinsic_peg_set_grammar(void *void_cctx, const grammar_ptr_t *ptr)
 //-----------------------------------------------------------------
 void context_t::static_initialize(void)
 {
-    compile_ctx_t::intrinsics["v_peg_get_grammar"] = v_peg_get_grammar;
-    compile_ctx_t::intrinsics["v_peg_set_grammar"] = v_peg_set_grammar;
+    auto fun_type = LLVMFunctionType(compile_ctx_t::void_type, &grammar_ref_type, 1, false);
 
-    auto &void_type = compile_ctx_t::void_type;
-
-    LLVMTypeRef args[] =
-    {
-        LLVMPointerType(void_type, 0),
-        grammar_ref_type
-    };
-
-    auto fun_type = LLVMFunctionType(void_type, args, 2, false);
-
-    v_add_symbol("voidc_intrinsic_peg_get_grammar", fun_type, (void *)voidc_intrinsic_peg_get_grammar);
-    v_add_symbol("voidc_intrinsic_peg_set_grammar", fun_type, (void *)voidc_intrinsic_peg_set_grammar);
+    v_add_symbol("v_peg_get_grammar", fun_type, (void *)v_peg_get_grammar);
+    v_add_symbol("v_peg_set_grammar", fun_type, (void *)v_peg_set_grammar);
 }
 
 //-----------------------------------------------------------------

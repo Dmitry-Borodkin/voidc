@@ -39,6 +39,7 @@ clean:
 	rm -f *.o
 	rm -f *.voidc
 	rm -f llvm-c/*.voidc
+	rm -f llvm-c/*/*.voidc
 	rm -f voidc
 	rm -f .depend
 	rm -f hello
