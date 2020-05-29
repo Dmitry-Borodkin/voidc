@@ -106,12 +106,9 @@ public:
         voidc_intrinsic_add_local_constant(this, name, value);
     }
 
-    LLVMTypeRef find_symbol_type(const char *name)
-    {
-        return voidc_intrinsic_find_symbol_type(this, name);
-    }
-
 public:
+    LLVMTypeRef find_symbol_type(const char *name);
+
     bool find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
 
     LLVMValueRef find_identifier(const std::string &name);

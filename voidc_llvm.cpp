@@ -53,17 +53,17 @@ compile_ctx_t::compile_ctx_t(const std::string _filename)
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-uint64_t compile_ctx_t::resolver(const char *name, void *void_cctx)
+uint64_t compile_ctx_t::resolver(const char *m_name, void *void_cctx)
 {
     auto cctx = (compile_ctx_t *)void_cctx;
 
     try
     {
-        return  (uint64_t)cctx->local_symbols.at(name).second;
+        return  (uint64_t)cctx->local_symbols.at(m_name).second;
     }
     catch(std::out_of_range)
     {
-        return  (uint64_t)LLVMSearchForAddressOfSymbol(name);
+        return  (uint64_t)LLVMSearchForAddressOfSymbol(m_name);
     }
 }
 
@@ -81,7 +81,40 @@ void v_alloca(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *
     auto ident = std::dynamic_pointer_cast<const ast_arg_identifier_t>((*args)->data[0]);
     assert(ident);
 
-    auto type = (LLVMTypeRef)cctx->resolver(ident->name.c_str(), cctx);     //- Sic !!!
+    LLVMTypeRef type = nullptr;
+
+    {   LLVMTypeRef tt = nullptr;
+
+        void *tv = nullptr;
+
+        char *m_name = nullptr;
+
+        LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, ident->name.c_str());
+
+        try
+        {
+            auto &[t,v] = cctx->local_symbols.at(m_name);
+
+            tt = t;
+            tv = v;
+        }
+        catch(std::out_of_range)
+        {
+            try
+            {
+                tt = cctx->symbol_types.at(m_name);
+                tv = LLVMSearchForAddressOfSymbol(m_name);
+            }
+            catch(std::out_of_range) {}
+        }
+
+        LLVMOrcDisposeMangledSymbol(m_name);
+
+        assert(tt == compile_ctx_t::LLVMOpaqueType_type);       //- ...
+
+        type = (LLVMTypeRef)tv;
+    }
+
     assert(type);
 
     LLVMValueRef v;
@@ -314,7 +347,11 @@ LLVMTypeRef voidc_intrinsic_find_symbol_type(void *void_cctx, const char *name)
         }
         catch(std::out_of_range)
         {
-            type = cctx->symbol_types.at(m_name);
+            try
+            {
+                type = cctx->symbol_types.at(m_name);
+            }
+            catch(std::out_of_range) {}
         }
 
         LLVMOrcDisposeMangledSymbol(m_name);
@@ -629,6 +666,34 @@ void compile_ctx_t::run_unit_action(void)
 
 
 //---------------------------------------------------------------------
+LLVMTypeRef
+compile_ctx_t::find_symbol_type(const char *name)
+{
+    LLVMTypeRef type = nullptr;
+
+    char *m_name = nullptr;
+
+    LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name);
+
+    try
+    {
+        type = local_symbols.at(m_name).first;
+    }
+    catch(std::out_of_range)
+    {
+        try
+        {
+            type = symbol_types.at(m_name);
+        }
+        catch(std::out_of_range) {}
+    }
+
+    LLVMOrcDisposeMangledSymbol(m_name);
+
+    return type;
+}
+
+//---------------------------------------------------------------------
 bool
 compile_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
 {
@@ -645,35 +710,16 @@ compile_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_type,
 
         if (!fun_value)
         {
-            char *m_name = nullptr;
+            fun_type = find_symbol_type(fun_name.c_str());
 
-            LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, fun_name.c_str());
-
-            try
+            if (fun_type)
             {
-                fun_type = local_symbols.at(m_name).first;
+                fun_value = LLVMAddFunction(module, fun_name.c_str(), fun_type);
             }
-            catch(std::out_of_range)
-            {
-                try
-                {
-                    fun_type = symbol_types.at(m_name);
-                }
-                catch(std::out_of_range)
-                {
-                    return false;
-                }
-            }
-
-            assert(fun_type);
-
-            fun_value = LLVMAddFunction(module, fun_name.c_str(), fun_type);
-
-            LLVMOrcDisposeMangledSymbol(m_name);
         }
     }
 
-    assert(fun_value);
+    if (!fun_value) return  false;
 
     if (!fun_type)
     {
@@ -719,28 +765,12 @@ compile_ctx_t::find_identifier(const std::string &name)
 
             if (!value)
             {
-                char *m_name = nullptr;
+                LLVMTypeRef type = find_symbol_type(name.c_str());
 
-                LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name.c_str());
-
-                LLVMTypeRef type = nullptr;
-
-                try
+                if (type)
                 {
-                    type = local_symbols.at(m_name).first;
+                    value = LLVMAddGlobal(module, type, name.c_str());
                 }
-                catch(std::out_of_range)
-                {
-                    try
-                    {
-                        type = symbol_types.at(m_name);
-                    }
-                    catch(std::out_of_range) {}
-                }
-
-                LLVMOrcDisposeMangledSymbol(m_name);
-
-                if (type) value = LLVMAddGlobal(module, type, name.c_str());
             }
         }
     }

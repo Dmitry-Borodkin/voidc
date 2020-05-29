@@ -39,17 +39,11 @@
 
 
 {
-    char_ptr = LLVMPointerType(char, 0);
-
-    arg = v_alloca(LLVMTypeRef);
-
-    v_store(char_ptr, arg);
-
-    puts_ft = LLVMFunctionType(int, arg, 1, 0);
+    puts_ft = v_find_symbol_type("puts");
 
     puts_ft_ptr = LLVMPointerType(puts_ft, 0);
 
-    v_add_local_symbol("puts_ft_ptr", LLVMTypeRef, puts_ft_ptr);
+    v_add_local_symbol("puts_ft_ptr", LLVMOpaqueType, puts_ft_ptr);
 }
 
 {
