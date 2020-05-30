@@ -145,8 +145,27 @@ std::string context_t::take_string(size_t from, size_t to) const
 
 
 //-----------------------------------------------------------------
+void context_t::get_line_column(size_t pos, size_t &line, size_t &column) const
+{
+    auto it = newlines.upper_bound(pos);
+
+    it = std::prev(it);
+
+    assert(it != newlines.end());
+
+    auto &[lpos, lnum] = *it;
+
+    line = lnum;
+
+    column = pos - lpos;
+}
+
+
+//-----------------------------------------------------------------
 char32_t context_t::read_character(void)
 {
+    //- First, obtain a utf-8 codepoint
+
     uint8_t c0; input.get((char &)c0);
 
     if (!input) return char32_t(-1);    //- Sic!
@@ -172,6 +191,26 @@ char32_t context_t::read_character(void)
 
         r = (r << 6) | (c0 & 0x3F);
     }
+
+    //- Now, check for EOL
+
+    if (r == U'\n')
+    {
+        newlines[buffer.size()+1] = current_line++;
+
+        cr_flag = false;
+    }
+    else
+    {
+        if (cr_flag)
+        {
+            newlines[buffer.size()] = current_line++;
+        }
+
+        cr_flag = (r == U'\r');
+    }
+
+    //- ...
 
     return r;
 }

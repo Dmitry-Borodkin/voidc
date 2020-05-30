@@ -1,4 +1,5 @@
 #include "vpeg_voidc.h"
+#include "vpeg_context.h"
 
 #include "voidc_ast.h"
 
@@ -25,7 +26,12 @@ mk_unit(std::any *ret, const std::any *args, size_t)
 
     auto pos = std::any_cast<size_t>(args[1]);
 
-    *ret = std::make_shared<const ast_unit_t>(*p, 0, pos);
+    size_t line;
+    size_t column;
+
+    context_t::current_ctx->get_line_column(pos, line, column);
+
+    *ret = std::make_shared<const ast_unit_t>(*p, line+1, column+1);
 }
 
 static void
@@ -198,27 +204,6 @@ mk_dec_integer(std::any *ret, const std::any *args, size_t)
     *ret = d;
 }
 
-static void
-mk_newline(std::any *ret, const std::any *args, size_t)
-{
-    auto n = std::any_cast<size_t>(args[0]);
-
-//  printf("mk_newline: %d\n", (int)n);
-
-    *ret = true;    //- ...
-}
-
-
-
-static void
-mk_echo(std::any *ret, const std::any *args, size_t)
-{
-    auto s = std::any_cast<const std::string>(args[0]);
-
-    printf("%s", s.c_str());    //- ?...
-
-    *ret = true;    //- ...
-}
 
 //---------------------------------------------------------------------
 }   //- extern "C"
@@ -247,9 +232,6 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(mk_arg_char)
     DEF(mk_neg_integer)
     DEF(mk_dec_integer)
-    DEF(mk_newline)
-
-    DEF(mk_echo)
 
 #undef DEF
 
@@ -279,9 +261,12 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(comment)
     DEF(space)
     DEF(eol)
-    DEF(EOL)
 
 #undef DEF
+
+    //-------------------------------------------------------------
+    //- unit <- _ <'{'> _ l:stmt_list _ '}'     { mk_unit(l, $1s); }
+    //-       / _ !.
 
     gr = gr.set_parser("unit",
     mk_choice_parser(
@@ -310,6 +295,10 @@ vpeg::grammar_t make_voidc_grammar(void)
         })
     }));
 
+    //-------------------------------------------------------------
+    //- stmt_list <- l:stmt_list_lr     { l; }
+    //-            /                    { 0; }
+
     gr = gr.set_parser("stmt_list",
     mk_choice_parser(
     {
@@ -325,6 +314,10 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_return_action(mk_integer_argument(0))
         )
     }));
+
+    //-------------------------------------------------------------
+    //- stmt_list_lr <- l:stmt_list_lr _ s:stmt     { mk_stmt_list(l, s); }
+    //-               / s:stmt                      { mk_stmt_list(0, s); }
 
     gr = gr.set_parser("stmt_list_lr",
     mk_choice_parser(
@@ -356,6 +349,10 @@ vpeg::grammar_t make_voidc_grammar(void)
             )
         })
     }), true);      //- Left recursion!
+
+    //-------------------------------------------------------------
+    //- stmt <- v:identifier _ '=' _ c:call     { mk_stmt(v, c); }
+    //-       / c:call                          { mk_stmt(0, c); }
 
     gr = gr.set_parser("stmt",
     mk_choice_parser(
@@ -390,6 +387,9 @@ vpeg::grammar_t make_voidc_grammar(void)
         })
     }));
 
+    //-------------------------------------------------------------
+    //- call <- f:identifier _ '(' _ a:arg_list _ ')' _ ';'     { mk_call(f, a); }
+
     gr = gr.set_parser("call",
     mk_sequence_parser(
     {
@@ -412,6 +412,10 @@ vpeg::grammar_t make_voidc_grammar(void)
         )
     }));
 
+    //-------------------------------------------------------------
+    //- arg_list <- l:arg_list_lr   { l; }
+    //-           /                 { 0; }
+
     gr = gr.set_parser("arg_list",
     mk_choice_parser(
     {
@@ -427,6 +431,10 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_return_action(mk_integer_argument(0))
         )
     }));
+
+    //-------------------------------------------------------------
+    //- arg_list_lr <- l:arg_list_lr _ a:arg    { mk_arg_list(l, a); }
+    //-              / a:arg                    { mk_arg_list(0, a); }
 
     gr = gr.set_parser("arg_list_lr",
     mk_choice_parser(
@@ -460,6 +468,12 @@ vpeg::grammar_t make_voidc_grammar(void)
             )
         })
     }), true);      //- Left recursion!
+
+    //-------------------------------------------------------------
+    //- arg <- i:identifier     { mk_arg_identifier(i); }
+    //-      / n:integer        { mk_arg_integer(n); }
+    //-      / s:string         { mk_arg_string(s); }
+    //-      / c:char           { mk_arg_char(c); }
 
     gr = gr.set_parser("arg",
     mk_choice_parser(
@@ -510,7 +524,10 @@ vpeg::grammar_t make_voidc_grammar(void)
         })
     }));
 
-    //-------------------------------------------------------
+
+    //=============================================================
+    //- identifier <- ident_start ident_cont*       { $0; }
+
     gr = gr.set_parser("identifier",
     mk_sequence_parser(
     {
@@ -525,8 +542,14 @@ vpeg::grammar_t make_voidc_grammar(void)
         )
     }));
 
+    //-------------------------------------------------------------
+    //- ident_start <- [a-zA-Z_$.]
+
     gr = gr.set_parser("ident_start",
     mk_class_parser({{'a','z'}, {'A','Z'}, {'_','_'},   {'$','$'}, {'.','.'}}));    //- ?
+
+    //-------------------------------------------------------------
+    //- ident_cont <- ident_start / '-' / dec_digit
 
     gr = gr.set_parser("ident_cont",
     mk_choice_parser(
@@ -536,6 +559,11 @@ vpeg::grammar_t make_voidc_grammar(void)
         ip_dec_digit
     }));
 
+
+    //-------------------------------------------------------------
+    //- integer <- n:dec_integer        { n; }
+    //-          / '-' n:dec_integer    { mk_neg_integer(n); }
+    //-          / '0'                  { 0; }
 
     gr = gr.set_parser("integer",
     mk_choice_parser(
@@ -570,6 +598,10 @@ vpeg::grammar_t make_voidc_grammar(void)
         })
     }));
 
+    //-------------------------------------------------------------
+    //- dec_integer <- n:dec_integer d:dec_digit        { mk_dec_integer(n, d); }
+    //-              / d:[1-9]                          { mk_dec_integer(0, d); }
+
     gr = gr.set_parser("dec_integer",
     mk_choice_parser(
     {
@@ -602,6 +634,9 @@ vpeg::grammar_t make_voidc_grammar(void)
         })
     }), true);      //- Left recursion!
 
+    //-------------------------------------------------------------
+    //- dec_digit <- d:[0-9]        { d; }
+
     gr = gr.set_parser("dec_digit",
     mk_sequence_parser(
     {
@@ -613,6 +648,10 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_return_action(mk_identifier_argument("d"))
         )
     }));
+
+
+    //-------------------------------------------------------------
+    //- string <- '\"' <str_char*> '\"'     { $1; }
 
     gr = gr.set_parser("string",
     mk_sequence_parser(
@@ -628,6 +667,9 @@ vpeg::grammar_t make_voidc_grammar(void)
         )
     }));
 
+    //-------------------------------------------------------------
+    //- str_char <- ![\n\r\t'"] character
+
     gr = gr.set_parser("str_char",
     mk_sequence_parser(
     {
@@ -636,6 +678,9 @@ vpeg::grammar_t make_voidc_grammar(void)
         ),
         ip_character
     }));
+
+    //-------------------------------------------------------------
+    //- char <- '\'' <str_char> '\''      { $1; }
 
     gr = gr.set_parser("char",
     mk_sequence_parser(
@@ -648,6 +693,10 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_return_action(mk_backref_argument(1))
         )
     }));
+
+    //-------------------------------------------------------------
+    //- character <- '\\' [nrt'"\\]
+    //-            / !'\\' .
 
     gr = gr.set_parser("character",
     mk_choice_parser(
@@ -664,10 +713,16 @@ vpeg::grammar_t make_voidc_grammar(void)
         }),
     }));
 
+    //-------------------------------------------------------------
+    //- _ <- space / comment
+
     gr = gr.set_parser("_",
     mk_star_parser(
         mk_choice_parser({ip_space, ip_comment})
     ));
+
+    //-------------------------------------------------------------
+    //- comment <- "//" (!eol .)* eol
 
     gr = gr.set_parser("comment",
     mk_sequence_parser(
@@ -680,16 +735,22 @@ vpeg::grammar_t make_voidc_grammar(void)
                 mk_dot_parser()
             })
         ),
-        ip_EOL
+        ip_eol
     }));
+
+    //-------------------------------------------------------------
+    //- space <- ' ' / '\t' / eol
 
     gr = gr.set_parser("space",
     mk_choice_parser(
     {
         mk_character_parser(' '),
         mk_character_parser('\t'),
-        ip_EOL
+        ip_eol
     }));
+
+    //-------------------------------------------------------------
+    //- eol <- "\r\n" / '\n' / '\r'
 
     gr = gr.set_parser("eol",
     mk_choice_parser(
@@ -699,19 +760,8 @@ vpeg::grammar_t make_voidc_grammar(void)
         mk_character_parser('\r')
     }));
 
-    gr = gr.set_parser("EOL",
-    mk_sequence_parser(
-    {
-        ip_eol,
 
-        mk_action_parser(
-            mk_call_action("mk_newline",
-            {
-                mk_backref_argument(0, backref_argument_t::bk_end)
-            })
-        )
-    }));
-
+    //=============================================================
     return gr;
 }
 

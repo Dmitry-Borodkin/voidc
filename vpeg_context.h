@@ -114,6 +114,9 @@ public:
 public:     //- ?...
     std::map<std::tuple<size_t, size_t, std::string>, std::pair<std::any, state_t>> memo;
 
+public:
+    void get_line_column(size_t pos, size_t &line, size_t &column) const;
+
 private:
     std::istream &input;
 
@@ -123,6 +126,13 @@ private:
 
 private:
     char32_t read_character(void);
+
+private:
+    std::map<size_t, size_t> newlines = {{0,0}};
+
+    bool cr_flag = false;
+
+    size_t current_line = 1;
 };
 
 
