@@ -543,19 +543,18 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- ident_start <- [a-zA-Z_$.]
+    //- ident_start <- [a-zA-Z_]
 
     gr = gr.set_parser("ident_start",
-    mk_class_parser({{'a','z'}, {'A','Z'}, {'_','_'},   {'$','$'}, {'.','.'}}));    //- ?
+    mk_class_parser({{'a','z'}, {'A','Z'}, {'_','_'}}));
 
     //-------------------------------------------------------------
-    //- ident_cont <- ident_start / '-' / dec_digit
+    //- ident_cont <- ident_start / dec_digit
 
     gr = gr.set_parser("ident_cont",
     mk_choice_parser(
     {
         ip_ident_start,
-        mk_character_parser('-'),       //- ?
         ip_dec_digit
     }));
 

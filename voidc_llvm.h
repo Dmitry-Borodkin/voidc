@@ -28,6 +28,9 @@ void v_add_local_constant(const char *name, LLVMValueRef value);
 
 LLVMTypeRef v_find_symbol_type(const char *name);
 
+void v_add_alias(const char *name, const char *str);
+void v_add_local_alias(const char *name, const char *str);
+
 
 //---------------------------------------------------------------------
 }   //- extern "C"
@@ -96,6 +99,13 @@ public:
     std::map<std::string, LLVMValueRef> local_constants;
 
 public:
+    static std::map<std::string, std::string> aliases;
+
+    std::map<std::string, std::string> local_aliases;
+
+public:
+    LLVMTypeRef find_type(const char *type_name);
+
     LLVMTypeRef find_symbol_type(const char *name);
 
     bool find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);

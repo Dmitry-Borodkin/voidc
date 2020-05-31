@@ -46,8 +46,11 @@
     v_add_local_symbol("puts_ft_ptr", LLVMOpaqueType, puts_ft_ptr);
 }
 
+{   v_add_alias("puts_ft_p", "puts_ft_ptr");
+}
+
 {
-    p = v_alloca(puts_ft_ptr);
+    p = v_alloca(puts_ft_p);
 
     v_store(puts, p);
 

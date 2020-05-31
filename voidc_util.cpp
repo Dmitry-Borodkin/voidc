@@ -189,7 +189,7 @@ void v_std_any_get_helper(compile_ctx_t &cctx,
     auto ident = std::dynamic_pointer_cast<const ast_arg_identifier_t>(args->data[0]);
     assert(ident);
 
-    auto type = (LLVMTypeRef)cctx.resolver(ident->name.c_str(), &cctx);      //- Sic !!!
+    auto type = cctx.find_type(ident->name.c_str());
     assert(type);
 
     const char *fun = dict.at(type).c_str();

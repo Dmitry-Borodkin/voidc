@@ -137,13 +137,13 @@ void register_move_impl(LLVMTypeRef val_t_type, const char *fun_name)
 //-----------------------------------------------------------------
 //- std::any ...
 //-----------------------------------------------------------------
+extern LLVMTypeRef opaque_std_any_type;
+
 template<typename val_t>
 val_t v_std_any_get_value_impl(const std::any *src)
 {
     return std::any_cast<val_t>(*src);
 }
-
-extern LLVMTypeRef opaque_std_any_type;
 
 template<typename val_t>
 void register_std_any_get_value_impl(LLVMTypeRef val_t_type, const char *fun_name)

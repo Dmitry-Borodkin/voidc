@@ -66,6 +66,17 @@
     v_reset(str);
 }
 
+{   ft = LLVMFunctionType(size_t, 0, 0, 0);
+    v_add_symbol_type("llvm.readcyclecounter", ft);
+
+    v_add_alias("llvm_readcyclecounter", "llvm.readcyclecounter");
+}
+
+{   v0 = llvm_readcyclecounter();
+    v1 = llvm_readcyclecounter();
+
+    printf("\n%lu\n%lu\n", v0, v1);
+}
 
 
 

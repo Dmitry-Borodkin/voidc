@@ -21,15 +21,11 @@ void grammar_t::check_hash(void)
     static size_t static_hash = 0;
 
     _hash = static_hash++ ;
-
-//  printf("hash: %d\n", int(hash));
 }
 
 
 std::any grammar_t::parse(const std::string &name, context_t &ctx) const
 {
-//  printf("(%d): %s ?\n", (int)ctx.get_position(), symbol.c_str());
-
     context_t::variables_t saved_vars;      //- empty(!)
 
     std::swap(ctx.variables, saved_vars);       //- save (and clear)
@@ -97,11 +93,6 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
             ret = res;
         }
     }
-
-//    if (ret.has_value())
-//    {
-//        printf("(%d,%d): %p %s\n", (int)st.position, (int)ctx.get_position(), &saved_vars, symbol.c_str());
-//    }
 
     ctx.variables = saved_vars;                 //- restore saved
 
