@@ -16,7 +16,7 @@ LDFLAGS= -fuse-ld=lld `llvm-config --ldflags --system-libs` -lLLVM
 
 
 #----------------------------------------------------------------------
-all: voidc
+all: voidc.exe
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
@@ -33,7 +33,7 @@ vpeg_context.o \
 vpeg_voidc.o \
 
 
-voidc: $(OBJS)
+voidc.exe: $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o voidc
 
 
@@ -42,6 +42,7 @@ clean:
 	rm -f *.o
 	rm -f *.voidc
 	rm -f llvm-c/*.voidc
+	rm -f llvm-c/*/*.voidc
 	rm -f voidc.exe
 	rm -f .depend
 	rm -f hello.exe
