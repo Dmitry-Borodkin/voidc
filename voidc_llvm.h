@@ -9,7 +9,6 @@
 #include <llvm-c/OrcBindings.h>
 
 #include "voidc_ast.h"
-#include "vpeg_context.h"
 
 
 //---------------------------------------------------------------------
@@ -113,19 +112,18 @@ public:
     LLVMValueRef find_identifier(const std::string &name);
 
 public:
-    typedef void (*intrinsic_t)(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args);
+    typedef void (*intrinsic_t)(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args);
 
     static std::map<std::string, intrinsic_t> intrinsics;
 
 public:
-    std::forward_list<LLVMValueRef> stmts;
-
     std::map<std::string, LLVMValueRef> vars;
 
     std::vector<LLVMTypeRef>  arg_types;
     std::vector<LLVMValueRef> args;
 
-    const char *ret_name;
+    const char  *ret_name;
+    LLVMValueRef ret_value;
 
 private:
     static compile_ctx_t *private_current_ctx;

@@ -104,7 +104,7 @@ uint64_t compile_ctx_t::resolver(const char *m_name, void *)
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_alloca(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_alloca(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     assert(*args);
     assert((*args)->data.size() >= 1);
@@ -131,12 +131,12 @@ void v_alloca(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *
         cctx->args.clear();
     }
 
-    cctx->stmts.push_front(v);
+    cctx->ret_value = v;
 }
 
 //---------------------------------------------------------------------
 static
-void v_getelementptr(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_getelementptr(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     assert(*args);
     assert((*args)->data.size() >= 2);
@@ -149,12 +149,12 @@ void v_getelementptr(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_li
 
     cctx->args.clear();
 
-    cctx->stmts.push_front(v);
+    cctx->ret_value = v;
 }
 
 //---------------------------------------------------------------------
 static
-void v_store(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_store(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     assert(*args);
     assert((*args)->data.size() == 2);
@@ -174,12 +174,12 @@ void v_store(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *a
     cctx->args.clear();
     cctx->arg_types.clear();
 
-    cctx->stmts.push_front(v);
+    cctx->ret_value = v;
 }
 
 //---------------------------------------------------------------------
 static
-void v_load(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_load(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     assert(*args);
     assert((*args)->data.size() == 1);
@@ -190,7 +190,7 @@ void v_load(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *ar
 
     cctx->args.clear();
 
-    cctx->stmts.push_front(v);
+    cctx->ret_value = v;
 }
 
 
@@ -497,7 +497,8 @@ void compile_ctx_t::static_initialize(void)
         args[1] = LLVMTypeRef_type;
 
 #define DEF(name, ret, num) \
-        v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
+        v_add_symbol_type(#name, LLVMFunctionType(ret, args, num, false));
+//      v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
 
         DEF(v_add_symbol_type, void_type, 2)
 
@@ -823,9 +824,6 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 
     LLVMPositionBuilderAtEnd(cctx.builder, entry);
 
-    assert(cctx.stmts.empty());
-    assert(cctx.vars.empty());
-
     stmt_list->compile(cctx);
 
     LLVMBuildRetVoid(cctx.builder);
@@ -890,9 +888,6 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 
 
     LLVMDisposeModule(cctx.module);
-
-    cctx.stmts.clear();
-    cctx.vars.clear();
 }
 
 
@@ -901,11 +896,12 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 //----------------------------------------------------------------------
 void ast_stmt_t::compile(compile_ctx_t &cctx) const
 {
-    cctx.ret_name = var_name.c_str();
+    cctx.ret_name  = var_name.c_str();
+    cctx.ret_value = nullptr;
 
     call->compile(cctx);
 
-    if (cctx.ret_name[0])   cctx.vars[var_name] = cctx.stmts.front();
+    if (cctx.ret_name[0])   cctx.vars[var_name] = cctx.ret_value;
 }
 
 
@@ -914,6 +910,8 @@ void ast_stmt_t::compile(compile_ctx_t &cctx) const
 //----------------------------------------------------------------------
 void ast_call_t::compile(compile_ctx_t &cctx) const
 {
+    assert(cctx.args.empty());
+
     if (cctx.intrinsics.count(fun_name))
     {
         cctx.intrinsics[fun_name](&cctx, &arg_list);
@@ -934,8 +932,6 @@ void ast_call_t::compile(compile_ctx_t &cctx) const
 
     LLVMGetParamTypes(ft, cctx.arg_types.data());
 
-    assert(cctx.args.empty());
-
     if (arg_list) arg_list->compile(cctx);
 
     auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
@@ -943,7 +939,7 @@ void ast_call_t::compile(compile_ctx_t &cctx) const
     cctx.args.clear();
     cctx.arg_types.clear();
 
-    cctx.stmts.push_front(v);
+    cctx.ret_value = v;
 }
 
 

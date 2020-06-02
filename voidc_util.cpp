@@ -21,7 +21,10 @@ function_dict_t move_dict;
 function_dict_t kind_dict;
 
 LLVMTypeRef opaque_std_any_type;
+LLVMTypeRef std_any_ref_type;
+
 LLVMTypeRef opaque_std_string_type;
+LLVMTypeRef std_string_ref_type;
 
 function_dict_t std_any_get_value_dict;
 function_dict_t std_any_get_pointer_dict;
@@ -34,7 +37,7 @@ function_dict_t std_any_set_pointer_dict;
 //---------------------------------------------------------------------
 static
 void v_init_term_helper(compile_ctx_t &cctx,
-                        const std::shared_ptr<const ast_arg_list_t> &args,
+                        const ast_arg_list_ptr_t &args,
                         const function_dict_t &dict
                        )
 {
@@ -69,19 +72,19 @@ void v_init_term_helper(compile_ctx_t &cctx,
     cctx.args.clear();
     cctx.arg_types.clear();
 
-    cctx.stmts.push_front(v);
+    cctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
 static
-void v_initialize(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_initialize(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     v_init_term_helper(*cctx, *args, initialize_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_reset(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_reset(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     v_init_term_helper(*cctx, *args, reset_dict);
 }
@@ -90,7 +93,7 @@ void v_reset(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *a
 //---------------------------------------------------------------------
 static
 void v_copy_move_helper(compile_ctx_t &cctx,
-                        const std::shared_ptr<const ast_arg_list_t> &args,
+                        const ast_arg_list_ptr_t &args,
                         const function_dict_t &dict
                        )
 {
@@ -125,19 +128,19 @@ void v_copy_move_helper(compile_ctx_t &cctx,
     cctx.args.clear();
     cctx.arg_types.clear();
 
-    cctx.stmts.push_front(v);
+    cctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
 static
-void v_copy(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_copy(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     v_copy_move_helper(*cctx, *args, copy_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_move(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_move(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     v_copy_move_helper(*cctx, *args, move_dict);
 }
@@ -145,7 +148,7 @@ void v_move(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *ar
 
 //---------------------------------------------------------------------
 static
-void v_kind(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_kind(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     assert(*args);
     assert((*args)->data.size() == 1);
@@ -170,14 +173,14 @@ void v_kind(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *ar
     cctx->args.clear();
     cctx->arg_types.clear();
 
-    cctx->stmts.push_front(v);
+    cctx->ret_value = v;
 }
 
 
 //---------------------------------------------------------------------
 static
 void v_std_any_get_helper(compile_ctx_t &cctx,
-                          const std::shared_ptr<const ast_arg_list_t> &args,
+                          const ast_arg_list_ptr_t &args,
                           const function_dict_t &dict
                          )
 {
@@ -208,26 +211,26 @@ void v_std_any_get_helper(compile_ctx_t &cctx,
     cctx.args.clear();
     cctx.arg_types.clear();
 
-    cctx.stmts.push_front(v);
+    cctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_value(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_std_any_get_value(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     v_std_any_get_helper(*cctx, *args, std_any_get_value_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_pointer(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_std_any_get_pointer(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     v_std_any_get_helper(*cctx, *args, std_any_get_pointer_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_value(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_std_any_set_value(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     assert(*args);
     assert((*args)->data.size() == 2);
@@ -252,13 +255,13 @@ void v_std_any_set_value(compile_ctx_t *cctx, const std::shared_ptr<const ast_ar
     cctx->args.clear();
     cctx->arg_types.clear();
 
-    cctx->stmts.push_front(v);
+    cctx->ret_value = v;
 }
 
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_pointer(compile_ctx_t *cctx, const std::shared_ptr<const ast_arg_list_t> *args)
+void v_std_any_set_pointer(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
     assert(*args);
     assert((*args)->data.size() == 2);
@@ -283,7 +286,7 @@ void v_std_any_set_pointer(compile_ctx_t *cctx, const std::shared_ptr<const ast_
     cctx->args.clear();
     cctx->arg_types.clear();
 
-    cctx->stmts.push_front(v);
+    cctx->ret_value = v;
 }
 
 
@@ -351,7 +354,7 @@ void static_initialize(void)
 
     opaque_std_any_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_any");
     LLVMStructSetBody(opaque_std_any_type, &std_any_content_type, 1, false);
-    auto std_any_ref_type = LLVMPointerType(opaque_std_any_type, 0);
+    std_any_ref_type = LLVMPointerType(opaque_std_any_type, 0);
 
     DEF(opaque_std_any)
     DEF(std_any_ref)
@@ -368,7 +371,7 @@ void static_initialize(void)
 
     opaque_std_string_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_string");
     LLVMStructSetBody(opaque_std_string_type, &std_string_content_type, 1, false);
-    auto std_string_ref_type = LLVMPointerType(opaque_std_string_type, 0);
+    std_string_ref_type = LLVMPointerType(opaque_std_string_type, 0);
 
     DEF(opaque_std_string)
     DEF(std_string_ref)

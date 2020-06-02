@@ -230,6 +230,7 @@ void register_std_any_set_pointer_impl(LLVMTypeRef val_t_type, const char *fun_n
 //- std::string...
 //-----------------------------------------------------------------
 extern LLVMTypeRef opaque_std_string_type;
+extern LLVMTypeRef std_string_ref_type;
 
 
 

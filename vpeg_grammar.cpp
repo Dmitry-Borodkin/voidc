@@ -179,7 +179,6 @@ static
 const char *v_peg_catch_variable_parser_get_name(const parser_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const catch_variable_parser_t>(*ptr);
-
     assert(pp);
 
     return pp->name.c_str();
@@ -202,7 +201,6 @@ static
 const char *v_peg_identifier_parser_get_identifier(const parser_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const identifier_parser_t>(*ptr);
-
     assert(pp);
 
     return pp->ident.c_str();
@@ -218,7 +216,6 @@ static
 int v_peg_backref_parser_get_number(const parser_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const backref_parser_t>(*ptr);
-
     assert(pp);
 
     return int(pp->number);
@@ -234,7 +231,6 @@ static
 void v_peg_action_parser_get_action(const parser_ptr_t *ptr, action_ptr_t *action)
 {
     auto pp = std::dynamic_pointer_cast<const action_parser_t>(*ptr);
-
     assert(pp);
 
     *action = pp->action;
@@ -250,7 +246,6 @@ static
 const char *v_peg_literal_parser_get_literal(const parser_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const literal_parser_t>(*ptr);
-
     assert(pp);
 
     return pp->utf8.c_str();
@@ -266,7 +261,6 @@ static
 char32_t v_peg_character_parser_get_character(const parser_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const character_parser_t>(*ptr);
-
     assert(pp);
 
     return pp->ucs4;
@@ -282,7 +276,6 @@ static
 int v_peg_class_parser_get_ranges_count(const parser_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const class_parser_t>(*ptr);
-
     assert(pp);
 
     return  int(pp->ranges.size());
@@ -292,7 +285,6 @@ static
 void v_peg_class_parser_get_ranges(const parser_ptr_t *ptr, char32_t (*ranges)[2])
 {
     auto pp = std::dynamic_pointer_cast<const class_parser_t>(*ptr);
-
     assert(pp);
 
     size_t count = pp->ranges.size();
@@ -324,7 +316,6 @@ static
 const char *v_peg_call_action_get_function_name(const action_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const call_action_t>(*ptr);
-
     assert(pp);
 
     return pp->fun.c_str();
@@ -334,7 +325,6 @@ static
 int v_peg_call_action_get_arguments_count(const action_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const call_action_t>(*ptr);
-
     assert(pp);
 
     return  int(pp->args.size());
@@ -344,7 +334,6 @@ static
 void v_peg_call_action_get_arguments(const action_ptr_t *ptr, argument_ptr_t *args)
 {
     auto pp = std::dynamic_pointer_cast<const call_action_t>(*ptr);
-
     assert(pp);
 
     size_t count = pp->args.size();
@@ -365,7 +354,6 @@ static
 void v_peg_return_action_get_argument(const action_ptr_t *ptr, argument_ptr_t *arg)
 {
     auto pp = std::dynamic_pointer_cast<const return_action_t>(*ptr);
-
     assert(pp);
 
     *arg = pp->arg;
@@ -383,7 +371,6 @@ static
 const char *v_peg_identifier_argument_get_identifier(const argument_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const identifier_argument_t>(*ptr);
-
     assert(pp);
 
     return pp->ident.c_str();
@@ -399,7 +386,6 @@ static
 int v_peg_backref_argument_get_number(const argument_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const backref_argument_t>(*ptr);
-
     assert(pp);
 
     return int(pp->number);
@@ -409,7 +395,6 @@ static
 int v_peg_backref_argument_get_kind(const argument_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const backref_argument_t>(*ptr);
-
     assert(pp);
 
     return int(pp->b_kind);
@@ -441,7 +426,6 @@ static
 const char *v_peg_literal_argument_get_literal(const argument_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const literal_argument_t>(*ptr);
-
     assert(pp);
 
     return pp->utf8.c_str();
@@ -457,7 +441,6 @@ static
 char32_t v_peg_character_argument_get_character(const argument_ptr_t *ptr)
 {
     auto pp = std::dynamic_pointer_cast<const character_argument_t>(*ptr);
-
     assert(pp);
 
     return pp->ucs4;
@@ -520,17 +503,15 @@ LLVMTypeRef grammar_ref_type;
 //-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {
-    assert(sizeof(parser_ptr_t) == sizeof(action_ptr_t));
-    assert(sizeof(parser_ptr_t) == sizeof(argument_ptr_t));
-    assert(sizeof(parser_ptr_t) == sizeof(grammar_ptr_t));
+    static_assert(sizeof(parser_ptr_t) == sizeof(action_ptr_t));
+    static_assert(sizeof(parser_ptr_t) == sizeof(argument_ptr_t));
+    static_assert(sizeof(parser_ptr_t) == sizeof(grammar_ptr_t));
 
     auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
 
     auto content_type = LLVMArrayType(char_ptr_type, sizeof(parser_ptr_t)/sizeof(char *));
 
     auto gctx = LLVMGetGlobalContext();
-
-    LLVMTypeRef args[5];
 
 #define DEF(name) \
     opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_peg_opaque_" #name "_ptr"); \
@@ -618,6 +599,8 @@ void grammar_t::static_initialize(void)
     DEF(end)
 
 #undef DEF
+
+    LLVMTypeRef args[5];
 
 #define DEF(name, ret, num) \
     v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);

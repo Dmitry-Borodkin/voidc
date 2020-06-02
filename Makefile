@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 
-#MYFLAGS=-O3 -Oz
+#MYFLAGS=-O3 -Oz -DNDEBUG
 MYFLAGS=-g -fsanitize=address -fno-omit-frame-pointer
 
 
@@ -9,7 +9,7 @@ CXX=clang++
 CXXFLAGS= `llvm-config --cxxflags` -std=c++17 $(MYFLAGS)
 
 LD=clang++
-LDFLAGS=`llvm-config --cxxflags --ldflags --libs all --system-libs` $(MYFLAGS)
+LDFLAGS=`llvm-config --cxxflags --ldflags --libs all --system-libs` -rdynamic $(MYFLAGS)
 
 
 #----------------------------------------------------------------------

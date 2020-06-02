@@ -22,26 +22,60 @@ struct ast_base_t
     virtual void compile(compile_ctx_t &cctx) const = 0;
 };
 
-template<typename T> struct ast_list_t;
+//----------------------------------------------------------------------
+struct ast_unit_base_t : public ast_base_t {};
+struct ast_stmt_base_t : public ast_base_t {};
+struct ast_call_base_t : public ast_base_t {};
+struct ast_argument_t :  public ast_base_t {};
 
+typedef std::shared_ptr<const ast_unit_base_t> ast_unit_ptr_t;
+typedef std::shared_ptr<const ast_stmt_base_t> ast_stmt_ptr_t;
+typedef std::shared_ptr<const ast_call_base_t> ast_call_ptr_t;
+typedef std::shared_ptr<const ast_argument_t>  ast_argument_ptr_t;
+
+//----------------------------------------------------------------------
 struct ast_stmt_t;
 struct ast_call_t;
 
-struct ast_argument_t : public ast_base_t {};
+template<typename T>
+struct ast_list_t : public ast_base_t
+{
+    const immer::vector<std::shared_ptr<const T>> data;
 
-typedef ast_list_t<ast_stmt_t>     ast_stmt_list_t;
-typedef ast_list_t<ast_argument_t> ast_arg_list_t;
+    ast_list_t(const std::shared_ptr<const ast_list_t<T>> &_list,
+               const std::shared_ptr<const T>             &_item)
+      : data(_list ? _list->data.push_back(_item) : immer::vector({_item}))
+    {}
+
+    ast_list_t(const std::shared_ptr<const T> *list, size_t count)
+      : data(list, list+count)
+    {}
+
+    void compile(compile_ctx_t &cctx) const override
+    {
+        for (auto &it : data)
+        {
+            it->compile(cctx);
+        }
+    }
+};
+
+typedef ast_list_t<ast_stmt_base_t> ast_stmt_list_t;
+typedef ast_list_t<ast_argument_t>  ast_arg_list_t;
+
+typedef std::shared_ptr<const ast_stmt_list_t> ast_stmt_list_ptr_t;
+typedef std::shared_ptr<const ast_arg_list_t>  ast_arg_list_ptr_t;
 
 
 //----------------------------------------------------------------------
-struct ast_unit_t : public ast_base_t
+struct ast_unit_t : public ast_unit_base_t
 {
-    const std::shared_ptr<const ast_stmt_list_t> stmt_list;
+    const ast_stmt_list_ptr_t stmt_list;
 
     const int line;
     const int column;
 
-    explicit ast_unit_t(const std::shared_ptr<const ast_stmt_list_t> &_stmt_list,
+    explicit ast_unit_t(const ast_stmt_list_ptr_t &_stmt_list,
                         int _line, int _column
                         )
       : stmt_list(_stmt_list),
@@ -54,34 +88,13 @@ struct ast_unit_t : public ast_base_t
 
 
 //----------------------------------------------------------------------
-template<typename T>
-struct ast_list_t : public ast_base_t
-{
-    const immer::vector<std::shared_ptr<const T>> data;
-
-    ast_list_t(const std::shared_ptr<const ast_list_t<T>> &_list,
-               const std::shared_ptr<const T>             &_item)
-      : data(_list ? _list->data.push_back(_item) : immer::vector({_item}))
-    {}
-
-    void compile(compile_ctx_t &cctx) const override
-    {
-        for (auto &it : data)
-        {
-            it->compile(cctx);
-        }
-    }
-};
-
-
-//----------------------------------------------------------------------
-struct ast_stmt_t : public ast_base_t
+struct ast_stmt_t : public ast_stmt_base_t
 {
     const std::string var_name;
-    const std::shared_ptr<const ast_call_t> call;
+    const ast_call_ptr_t call;
 
     explicit ast_stmt_t(const std::string &var,
-                        const std::shared_ptr<const ast_call_t> &_call)
+                        const ast_call_ptr_t &_call)
       : var_name(var),
         call(_call)
     {}
@@ -90,13 +103,13 @@ struct ast_stmt_t : public ast_base_t
 };
 
 //----------------------------------------------------------------------
-struct ast_call_t : public ast_base_t
+struct ast_call_t : public ast_call_base_t
 {
     const std::string fun_name;
-    const std::shared_ptr<const ast_arg_list_t> arg_list;
+    const ast_arg_list_ptr_t arg_list;
 
     explicit ast_call_t(const std::string &fun,
-                        const std::shared_ptr<const ast_arg_list_t> &_arg_list)
+                        const ast_arg_list_ptr_t &_arg_list)
       : fun_name(fun),
         arg_list(_arg_list)
     {}
@@ -150,6 +163,11 @@ struct ast_arg_char_t : public ast_argument_t
 
     void compile(compile_ctx_t &cctx) const override;
 };
+
+
+//----------------------------------------------------------------------
+void v_ast_static_initialize(void);
+void v_ast_static_terminate(void);
 
 
 #endif  //- VOIDC_AST_H

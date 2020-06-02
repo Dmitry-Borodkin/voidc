@@ -248,6 +248,7 @@ int main()
                     );
     }
 
+    v_ast_static_initialize();
     vpeg::grammar_t::static_initialize();
     vpeg::context_t::static_initialize();
 
@@ -299,6 +300,7 @@ int main()
 
     vpeg::context_t::static_terminate();
     vpeg::grammar_t::static_terminate();
+    v_ast_static_terminate();
 
     utility::static_terminate();
     compile_ctx_t::static_terminate();
