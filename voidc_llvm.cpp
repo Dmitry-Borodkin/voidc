@@ -497,8 +497,7 @@ void compile_ctx_t::static_initialize(void)
         args[1] = LLVMTypeRef_type;
 
 #define DEF(name, ret, num) \
-        v_add_symbol_type(#name, LLVMFunctionType(ret, args, num, false));
-//      v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
+        v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
 
         DEF(v_add_symbol_type, void_type, 2)
 
