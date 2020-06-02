@@ -17,18 +17,18 @@
 extern "C"
 {
 
-void v_add_symbol_type(const char *name, LLVMTypeRef type);
-void v_add_symbol_value(const char *name, void *value);
-void v_add_symbol(const char *name, LLVMTypeRef type, void *value);
-void v_add_constant(const char *name, LLVMValueRef val);
+[[gnu::dllexport]] void v_add_symbol_type(const char *name, LLVMTypeRef type);
+[[gnu::dllexport]] void v_add_symbol_value(const char *name, void *value);
+[[gnu::dllexport]] void v_add_symbol(const char *name, LLVMTypeRef type, void *value);
+[[gnu::dllexport]] void v_add_constant(const char *name, LLVMValueRef val);
 
-void v_add_local_symbol(const char *name, LLVMTypeRef type, void *value);
-void v_add_local_constant(const char *name, LLVMValueRef value);
+[[gnu::dllexport]] void v_add_local_symbol(const char *name, LLVMTypeRef type, void *value);
+[[gnu::dllexport]] void v_add_local_constant(const char *name, LLVMValueRef value);
 
-LLVMTypeRef v_find_symbol_type(const char *name);
+[[gnu::dllexport]] LLVMTypeRef v_find_symbol_type(const char *name);
 
-void v_add_alias(const char *name, const char *str);
-void v_add_local_alias(const char *name, const char *str);
+[[gnu::dllexport]] void v_add_alias(const char *name, const char *str);
+[[gnu::dllexport]] void v_add_local_alias(const char *name, const char *str);
 
 
 //---------------------------------------------------------------------
