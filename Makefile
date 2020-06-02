@@ -9,7 +9,7 @@ CXX=clang++
 CXXFLAGS= `llvm-config --cxxflags` -std=c++17 $(MYFLAGS)
 
 LD=clang++
-LDFLAGS=`llvm-config --cxxflags --ldflags --libs all --system-libs` $(MYFLAGS)
+LDFLAGS=`llvm-config --cxxflags --ldflags --libs all --system-libs` $(MYFLAGS) -rdynamic
 
 
 #----------------------------------------------------------------------
