@@ -15,10 +15,10 @@
 #ifdef _WIN32
 
 #define VOIDC_DLLEXPORT_BEGIN \
-#pragma clang attribute push ([[gnu::dllexport]], apply_to=any(function, variable))
+_Pragma("clang attribute push ([[gnu::dllexport]], apply_to=any(function, variable))")
 
 #define VOIDC_DLLEXPORT_END \
-#pragma clang attribute pop
+_Pragma("clang attribute pop")
 
 #endif
 
