@@ -48,6 +48,7 @@ void v_add_local_symbol(const char *name, LLVMTypeRef type, void *value);
 void v_add_local_constant(const char *name, LLVMValueRef value);
 
 LLVMTypeRef v_find_symbol_type(const char *name);
+void *v_find_symbol_value(const char *_name);
 
 void v_add_alias(const char *name, const char *str);
 void v_add_local_alias(const char *name, const char *str);

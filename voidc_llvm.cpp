@@ -310,6 +310,46 @@ LLVMTypeRef v_find_symbol_type(const char *_name)
     return type;
 }
 
+void *v_find_symbol_value(const char *_name)
+{
+    auto *cctx = compile_ctx_t::current_ctx;
+
+    void *value = nullptr;
+
+    auto name = check_alias(_name);
+
+    try
+    {
+        try
+        {
+            value = (void *)cctx->local_constants.at(name);     //- Sic!
+        }
+        catch(std::out_of_range)
+        {
+            value = (void *)cctx->constants.at(name);           //- Sic!
+        }
+    }
+    catch(std::out_of_range)
+    {
+        char *m_name = nullptr;
+
+        LLVMOrcGetMangledSymbol(compile_ctx_t::jit, &m_name, name.c_str());
+
+        try
+        {
+            value = cctx->local_symbols.at(m_name).second;
+        }
+        catch(std::out_of_range)
+        {
+            value = LLVMSearchForAddressOfSymbol(m_name);
+        }
+
+        LLVMOrcDisposeMangledSymbol(m_name);
+    }
+
+    return value;
+}
+
 void v_add_alias(const char *name, const char *str)
 {
     compile_ctx_t::aliases[name] = str;
@@ -498,7 +538,6 @@ void compile_ctx_t::static_initialize(void)
 
 #define DEF(name, ret, num) \
         v_add_symbol_type(#name, LLVMFunctionType(ret, args, num, false));
-//      v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
 
         DEF(v_add_symbol_type, void_type, 2)
 
@@ -526,6 +565,7 @@ void compile_ctx_t::static_initialize(void)
         DEF(v_add_local_constant, void_type, 2)
 
         DEF(v_find_symbol_type, LLVMTypeRef_type, 1)
+        DEF(v_find_symbol_value, void_ptr_type, 1)
 
         args[1] = char_ptr_type;
 
