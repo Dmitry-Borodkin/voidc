@@ -8,6 +8,8 @@
 #include <llvm-c/Core.h>
 #include <llvm-c/Support.h>
 
+#include "voidc_dllexport.h"
+
 
 //---------------------------------------------------------------------
 namespace utility
@@ -431,6 +433,20 @@ void static_initialize(void)
 
 
     // ...
+
+
+
+
+    //-----------------------------------------------------------------
+    auto function_dict_t_content_type = LLVMArrayType(char_ptr_type, sizeof(function_dict_t)/sizeof(char *));
+
+    auto opaque_function_dict_t_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_function_dict_t");
+    LLVMStructSetBody(opaque_function_dict_t_type, &function_dict_t_content_type, 1, false);
+
+    v_add_symbol("v_util_opaque_function_dict_t", compile_ctx_t::LLVMOpaqueType_type, (void *)opaque_function_dict_t_type);
+
+
+
 }
 
 //---------------------------------------------------------------------
@@ -441,5 +457,59 @@ void static_terminate(void)
 
 //---------------------------------------------------------------------
 }   //- namespace utility
+
+
+
+//---------------------------------------------------------------------
+//- !!!
+//---------------------------------------------------------------------
+extern "C"
+{
+
+VOIDC_DLLEXPORT_BEGIN
+
+
+//---------------------------------------------------------------------
+VOIDC_DEFINE_INITIALIZE_IMPL(utility::function_dict_t, v_util_initialize_function_dict_impl)
+
+void v_util_reset_function_dict_impl(utility::function_dict_t *ptr, int count)
+{
+    for (int i=0; i<count; ++i) ptr[i].clear();
+}
+
+VOIDC_DEFINE_COPY_IMPL(utility::function_dict_t, v_util_copy_function_dict_impl)
+VOIDC_DEFINE_MOVE_IMPL(utility::function_dict_t, v_util_move_function_dict_impl)
+
+const char *v_util_function_dict_get(const utility::function_dict_t *ptr, LLVMTypeRef type)
+{
+    try
+    {
+        return ptr->at(type).c_str();
+    }
+    catch(std::out_of_range) {}
+
+    return nullptr;
+}
+
+void v_util_function_dict_set(utility::function_dict_t *ptr, LLVMTypeRef type, const char *fun_name)
+{
+    (*ptr)[type] = fun_name;
+}
+
+
+//---------------------------------------------------------------------
+void voidc_add_intrinsic(const char *name, compile_ctx_t::intrinsic_t fun)
+{
+    compile_ctx_t::intrinsics[name] = fun;
+}
+
+
+
+VOIDC_DLLEXPORT_END
+
+//---------------------------------------------------------------------
+}   //- extern "C"
+
+
 
 
