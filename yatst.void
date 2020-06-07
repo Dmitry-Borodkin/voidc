@@ -1,3 +1,5 @@
+{   v_import("voidc_util.void"); }
+
 {   v_import("printf.void"); }
 
 {
@@ -77,6 +79,22 @@
 
     printf("\n%lu\n%lu\n", v0, v1);
 }
+
+
+{   dict = v_alloca(v_util_opaque_function_dict_t);
+    v_initialize(dict);
+
+
+    v_util_function_dict_set(dict, int, "XYZZY");
+
+
+    v_reset(dict);
+}
+
+
+
+
+
 
 
 

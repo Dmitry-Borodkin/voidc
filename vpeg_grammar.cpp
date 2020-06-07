@@ -551,7 +551,7 @@ void grammar_t::static_initialize(void)
                  (void *)v_peg_get_kind<name##_ptr_t> \
                 ); \
 \
-    utility::kind_dict[opaque_##name##_ptr_type] = "v_peg_" #name "_get_kind";
+    v_util_kind_dict[opaque_##name##_ptr_type] = "v_peg_" #name "_get_kind";
 
     DEF(parser)
     DEF(action)

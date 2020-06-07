@@ -1,0 +1,423 @@
+{   v_add_symbol_type("v_util_initialize_dict",          v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_reset_dict",               v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_copy_dict",                v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_move_dict",                v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_kind_dict",                v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_std_any_get_value_dict",   v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_std_any_get_pointer_dict", v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_std_any_set_value_dict",   v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_std_any_set_pointer_dict", v_util_opaque_function_dict_t);
+}
+
+{   v_import("llvm-c/Core.void");
+}
+
+//---------------------------------------------------------------------
+//- Function dict
+//---------------------------------------------------------------------
+{
+    arg0 = v_alloca(LLVMTypeRef, 3);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    fd_ptr_t = LLVMPointerType(v_util_opaque_function_dict_t, 0);
+
+    v_store(fd_ptr_t, arg0);
+    v_store(int, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_initialize_function_dict_impl", fun_t);
+    v_add_symbol_type("v_util_reset_function_dict_impl", fun_t);
+
+    v_store(fd_ptr_t, arg1);
+    v_store(int, arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_util_copy_function_dict_impl", fun_t);
+    v_add_symbol_type("v_util_move_function_dict_impl", fun_t);
+
+    //-----------------------------------------------------
+    char_ptr_t = LLVMPointerType(char, 0);
+
+    v_store(LLVMTypeRef, arg1);
+
+    fun_t = LLVMFunctionType(char_ptr_t, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_function_dict_get", fun_t);
+
+    v_store(char_ptr_t, arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_util_function_dict_set", fun_t);
+}
+
+{   v_util_function_dict_set(v_util_initialize_dict,
+                             v_util_opaque_function_dict_t,
+                             "v_util_initialize_function_dict_impl"
+                             );
+
+    v_util_function_dict_set(v_util_reset_dict,
+                             v_util_opaque_function_dict_t,
+                             "v_util_reset_function_dict_impl"
+                             );
+
+    v_util_function_dict_set(v_util_copy_dict,
+                             v_util_opaque_function_dict_t,
+                             "v_util_copy_function_dict_impl"
+                             );
+
+    v_util_function_dict_set(v_util_move_dict,
+                             v_util_opaque_function_dict_t,
+                             "v_util_move_function_dict_impl"
+                             );
+}
+
+
+//---------------------------------------------------------------------
+//- std::any
+//---------------------------------------------------------------------
+{
+    arg0 = v_alloca(LLVMTypeRef, 3);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    sa_ptr_t = LLVMPointerType(v_util_opaque_std_any, 0);
+
+    v_store(sa_ptr_t, arg0);
+    v_store(int, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_initialize_std_any_impl", fun_t);
+    v_add_symbol_type("v_util_reset_std_any_impl", fun_t);
+
+    v_store(sa_ptr_t, arg1);
+    v_store(int, arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_util_copy_std_any_impl", fun_t);
+    v_add_symbol_type("v_util_move_std_any_impl", fun_t);
+
+    v_util_function_dict_set(v_util_initialize_dict,
+                             v_util_opaque_std_any,
+                             "v_util_initialize_std_any_impl"
+                             );
+
+    v_util_function_dict_set(v_util_reset_dict,
+                             v_util_opaque_std_any,
+                             "v_util_reset_std_any_impl"
+                             );
+
+    v_util_function_dict_set(v_util_copy_dict,
+                             v_util_opaque_std_any,
+                             "v_util_copy_std_any_impl"
+                             );
+
+    v_util_function_dict_set(v_util_move_dict,
+                             v_util_opaque_std_any,
+                             "v_util_move_std_any_impl"
+                             );
+}
+
+//---------------------------------------------------------------------
+//- std::string
+//---------------------------------------------------------------------
+{
+    arg0 = v_alloca(LLVMTypeRef, 3);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    ss_ptr_t = LLVMPointerType(v_util_opaque_std_string, 0);
+
+    v_store(ss_ptr_t, arg0);
+    v_store(int, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_initialize_std_string_impl", fun_t);
+    v_add_symbol_type("v_util_reset_std_string_impl", fun_t);
+
+    v_store(ss_ptr_t, arg1);
+    v_store(int, arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_util_copy_std_string_impl", fun_t);
+    v_add_symbol_type("v_util_move_std_string_impl", fun_t);
+
+    v_util_function_dict_set(v_util_initialize_dict,
+                             v_util_opaque_std_string,
+                             "v_util_initialize_std_string_impl"
+                             );
+
+    v_util_function_dict_set(v_util_reset_dict,
+                             v_util_opaque_std_string,
+                             "v_util_reset_std_string_impl"
+                             );
+
+    v_util_function_dict_set(v_util_copy_dict,
+                             v_util_opaque_std_string,
+                             "v_util_copy_std_string_impl"
+                             );
+
+    v_util_function_dict_set(v_util_move_dict,
+                             v_util_opaque_std_string,
+                             "v_util_move_std_string_impl"
+                             );
+
+    char_ptr_t = LLVMPointerType(char, 0);
+
+    fun_t = LLVMFunctionType(char_ptr_t, arg0, 1, 0);
+
+    v_add_symbol_type("v_std_string_get", fun_t);
+
+    v_store(char_ptr_t, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_std_string_set", fun_t);
+    v_add_symbol_type("v_std_string_append", fun_t);
+}
+
+//---------------------------------------------------------------------
+//- std::any support...
+//---------------------------------------------------------------------
+{
+    arg0 = v_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    sa_ptr_t = LLVMPointerType(v_util_opaque_std_any, 0);
+
+    v_store(sa_ptr_t, arg0);
+
+    type = LLVMInt1Type();      //-------------------------------------
+
+    fun_t = LLVMFunctionType(type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_value_bool_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_value_dict, type,
+                             "v_util_std_any_get_value_bool_impl"
+                             );
+
+    v_store(type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_value_bool_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_value_dict, type,
+                             "v_util_std_any_set_value_bool_impl"
+                             );
+
+    ptr_type = LLVMPointerType(type, 0);
+
+    fun_t = LLVMFunctionType(ptr_type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_pointer_bool_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_pointer_dict, type,
+                             "v_util_std_any_get_pointer_bool_impl"
+                             );
+
+    v_store(ptr_type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_pointer_bool_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_pointer_dict, type,
+                             "v_util_std_any_set_pointer_bool_impl"
+                             );
+
+    type = LLVMInt8Type();      //-------------------------------------
+
+    fun_t = LLVMFunctionType(type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_value_int8_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_value_dict, type,
+                             "v_util_std_any_get_value_int8_t_impl"
+                             );
+
+    v_store(type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_value_int8_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_value_dict, type,
+                             "v_util_std_any_set_value_int8_t_impl"
+                             );
+
+    ptr_type = LLVMPointerType(type, 0);
+
+    fun_t = LLVMFunctionType(ptr_type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_pointer_int8_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_pointer_dict, type,
+                             "v_util_std_any_get_pointer_int8_t_impl"
+                             );
+
+    v_store(ptr_type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_pointer_int8_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_pointer_dict, type,
+                             "v_util_std_any_set_pointer_int8_t_impl"
+                             );
+
+    type = LLVMInt16Type();     //-------------------------------------
+
+    fun_t = LLVMFunctionType(type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_value_int16_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_value_dict, type,
+                             "v_util_std_any_get_value_int16_t_impl"
+                             );
+
+    v_store(type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_value_int16_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_value_dict, type,
+                             "v_util_std_any_set_value_int16_t_impl"
+                             );
+
+    ptr_type = LLVMPointerType(type, 0);
+
+    fun_t = LLVMFunctionType(ptr_type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_pointer_int16_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_pointer_dict, type,
+                             "v_util_std_any_get_pointer_int16_t_impl"
+                             );
+
+    v_store(ptr_type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_pointer_int16_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_pointer_dict, type,
+                             "v_util_std_any_set_pointer_int16_t_impl"
+                             );
+
+    type = LLVMInt32Type();     //-------------------------------------
+
+    fun_t = LLVMFunctionType(type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_value_int32_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_value_dict, type,
+                             "v_util_std_any_get_value_int32_t_impl"
+                             );
+
+    v_store(type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_value_int32_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_value_dict, type,
+                             "v_util_std_any_set_value_int32_t_impl"
+                             );
+
+    ptr_type = LLVMPointerType(type, 0);
+
+    fun_t = LLVMFunctionType(ptr_type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_pointer_int32_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_pointer_dict, type,
+                             "v_util_std_any_get_pointer_int32_t_impl"
+                             );
+
+    v_store(ptr_type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_pointer_int32_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_pointer_dict, type,
+                             "v_util_std_any_set_pointer_int32_t_impl"
+                             );
+
+    type = LLVMInt64Type();     //-------------------------------------
+
+    fun_t = LLVMFunctionType(type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_value_int64_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_value_dict, type,
+                             "v_util_std_any_get_value_int64_t_impl"
+                             );
+
+    v_store(type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_value_int64_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_value_dict, type,
+                             "v_util_std_any_set_value_int64_t_impl"
+                             );
+
+    ptr_type = LLVMPointerType(type, 0);
+
+    fun_t = LLVMFunctionType(ptr_type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_pointer_int64_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_pointer_dict, type,
+                             "v_util_std_any_get_pointer_int64_t_impl"
+                             );
+
+    v_store(ptr_type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_pointer_int64_t_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_pointer_dict, type,
+                             "v_util_std_any_set_pointer_int64_t_impl"
+                             );
+
+    //-----------------------------------------------------------------
+
+    ptr_type = LLVMPointerType(v_util_opaque_std_string, 0);
+
+    fun_t = LLVMFunctionType(ptr_type, arg0, 1, 0);
+
+    v_add_symbol_type("v_util_std_any_get_pointer_std_string_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_get_pointer_dict,
+                             v_util_opaque_std_string,
+                             "v_util_std_any_get_pointer_std_string_impl"
+                             );
+
+    v_store(ptr_type, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_util_std_any_set_pointer_std_string_impl", fun_t);
+
+    v_util_function_dict_set(v_util_std_any_set_pointer_dict,
+                             v_util_opaque_std_string,
+                             "v_util_std_any_set_pointer_std_string_impl"
+                             );
+}
+
+
+

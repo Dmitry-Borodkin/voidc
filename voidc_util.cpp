@@ -8,30 +8,29 @@
 #include <llvm-c/Core.h>
 #include <llvm-c/Support.h>
 
-#include "voidc_dllexport.h"
 
+v_util_function_dict_t v_util_initialize_dict;
+v_util_function_dict_t v_util_reset_dict;
+v_util_function_dict_t v_util_copy_dict;
+v_util_function_dict_t v_util_move_dict;
+v_util_function_dict_t v_util_kind_dict;
+v_util_function_dict_t v_util_std_any_get_value_dict;
+v_util_function_dict_t v_util_std_any_get_pointer_dict;
+v_util_function_dict_t v_util_std_any_set_value_dict;
+v_util_function_dict_t v_util_std_any_set_pointer_dict;
 
 //---------------------------------------------------------------------
 namespace utility
 {
 
 //---------------------------------------------------------------------
-function_dict_t initialize_dict;
-function_dict_t reset_dict;
-function_dict_t copy_dict;
-function_dict_t move_dict;
-function_dict_t kind_dict;
 
 LLVMTypeRef opaque_std_any_type;
-LLVMTypeRef std_any_ref_type;
+//LLVMTypeRef std_any_ref_type;
 
 LLVMTypeRef opaque_std_string_type;
 LLVMTypeRef std_string_ref_type;
 
-function_dict_t std_any_get_value_dict;
-function_dict_t std_any_get_pointer_dict;
-function_dict_t std_any_set_value_dict;
-function_dict_t std_any_set_pointer_dict;
 
 
 //---------------------------------------------------------------------
@@ -40,7 +39,7 @@ function_dict_t std_any_set_pointer_dict;
 static
 void v_init_term_helper(compile_ctx_t &cctx,
                         const ast_arg_list_ptr_t &args,
-                        const function_dict_t &dict
+                        const v_util_function_dict_t &dict
                        )
 {
     assert(args);
@@ -81,14 +80,14 @@ void v_init_term_helper(compile_ctx_t &cctx,
 static
 void v_initialize(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
-    v_init_term_helper(*cctx, *args, initialize_dict);
+    v_init_term_helper(*cctx, *args, v_util_initialize_dict);
 }
 
 //---------------------------------------------------------------------
 static
 void v_reset(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
-    v_init_term_helper(*cctx, *args, reset_dict);
+    v_init_term_helper(*cctx, *args, v_util_reset_dict);
 }
 
 
@@ -96,7 +95,7 @@ void v_reset(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 static
 void v_copy_move_helper(compile_ctx_t &cctx,
                         const ast_arg_list_ptr_t &args,
-                        const function_dict_t &dict
+                        const v_util_function_dict_t &dict
                        )
 {
     assert(args);
@@ -137,14 +136,14 @@ void v_copy_move_helper(compile_ctx_t &cctx,
 static
 void v_copy(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
-    v_copy_move_helper(*cctx, *args, copy_dict);
+    v_copy_move_helper(*cctx, *args, v_util_copy_dict);
 }
 
 //---------------------------------------------------------------------
 static
 void v_move(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
-    v_copy_move_helper(*cctx, *args, move_dict);
+    v_copy_move_helper(*cctx, *args, v_util_move_dict);
 }
 
 
@@ -161,7 +160,7 @@ void v_kind(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 
     auto type = LLVMGetElementType(LLVMTypeOf(cctx->args[0]));
 
-    const char *fun = kind_dict.at(type).c_str();
+    const char *fun = v_util_kind_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
@@ -183,7 +182,7 @@ void v_kind(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 static
 void v_std_any_get_helper(compile_ctx_t &cctx,
                           const ast_arg_list_ptr_t &args,
-                          const function_dict_t &dict
+                          const v_util_function_dict_t &dict
                          )
 {
     assert(args);
@@ -220,14 +219,14 @@ void v_std_any_get_helper(compile_ctx_t &cctx,
 static
 void v_std_any_get_value(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
-    v_std_any_get_helper(*cctx, *args, std_any_get_value_dict);
+    v_std_any_get_helper(*cctx, *args, v_util_std_any_get_value_dict);
 }
 
 //---------------------------------------------------------------------
 static
 void v_std_any_get_pointer(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 {
-    v_std_any_get_helper(*cctx, *args, std_any_get_pointer_dict);
+    v_std_any_get_helper(*cctx, *args, v_util_std_any_get_pointer_dict);
 }
 
 //---------------------------------------------------------------------
@@ -243,7 +242,7 @@ void v_std_any_set_value(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 
     auto type = LLVMTypeOf(cctx->args[1]);
 
-    const char *fun = std_any_set_value_dict.at(type).c_str();
+    const char *fun = v_util_std_any_set_value_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
@@ -274,7 +273,7 @@ void v_std_any_set_pointer(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
 
     auto type = LLVMGetElementType(LLVMTypeOf(cctx->args[1]));
 
-    const char *fun = std_any_set_pointer_dict.at(type).c_str();
+    const char *fun = v_util_std_any_set_pointer_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
@@ -289,36 +288,6 @@ void v_std_any_set_pointer(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
     cctx->arg_types.clear();
 
     cctx->ret_value = v;
-}
-
-
-//---------------------------------------------------------------------
-static
-void v_reset_std_string_impl(std::string *ptr, int count)
-{
-    for (int i=0; i<count; ++i)
-    {
-        ptr[i].clear();
-        ptr[i].shrink_to_fit();
-    }
-}
-
-static
-char *v_std_string_get(std::string *ptr)
-{
-    return ptr->data();
-}
-
-static
-void v_std_string_set(std::string *ptr, const char *str)
-{
-    *ptr = str;
-}
-
-static
-void v_std_string_append(std::string *ptr, const char *str)
-{
-    ptr->append(str);
 }
 
 
@@ -356,17 +325,8 @@ void static_initialize(void)
 
     opaque_std_any_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_any");
     LLVMStructSetBody(opaque_std_any_type, &std_any_content_type, 1, false);
-    std_any_ref_type = LLVMPointerType(opaque_std_any_type, 0);
 
     DEF(opaque_std_any)
-    DEF(std_any_ref)
-
-    register_initialize_impl<std::any>(opaque_std_any_type, "v_util_initialize_std_any_impl");
-
-    register_reset_impl<std::any>(opaque_std_any_type, "v_util_reset_std_any_impl");
-
-    register_copy_impl<std::any>(opaque_std_any_type, "v_util_copy_std_any_impl");
-    register_move_impl<std::any>(opaque_std_any_type, "v_util_move_std_any_impl");
 
     //-----------------------------------------------------------------
     auto std_string_content_type = LLVMArrayType(char_ptr_type, sizeof(std::string)/sizeof(char *));
@@ -376,75 +336,16 @@ void static_initialize(void)
     std_string_ref_type = LLVMPointerType(opaque_std_string_type, 0);
 
     DEF(opaque_std_string)
-    DEF(std_string_ref)
 
-    register_initialize_impl<std::string>(opaque_std_string_type, "v_util_initialize_std_string_impl");
-
-    register_init_reset_impl_helper<std::string>(opaque_std_string_type, "v_util_reset_std_string_impl",
-                                                 (void *)v_reset_std_string_impl, reset_dict
-                                                );
-
-    register_copy_impl<std::string>(opaque_std_string_type, "v_util_copy_std_string_impl");
-    register_move_impl<std::string>(opaque_std_string_type, "v_util_move_std_string_impl");
-
-#undef DEF
-
-#define DEF(name, ret, num) \
-    v_add_symbol(#name, LLVMFunctionType(ret, args, num, false), (void *)name);
-
-    args[0] = std_string_ref_type;
-    args[1] = char_ptr_type;
-
-    DEF(v_std_string_get, char_ptr_type, 1);
-    DEF(v_std_string_set, compile_ctx_t::void_type, 2);
-    DEF(v_std_string_append, compile_ctx_t::void_type, 2);
-
-#undef DEF
-
-    //-----------------------------------------------------------------
-#define DEF_VAR(c_type, llvm_type) \
-    register_std_any_get_value_impl<c_type>(llvm_type, "v_util_std_any_get_value_" #c_type "_impl"); \
-    register_std_any_set_value_impl<c_type>(llvm_type, "v_util_std_any_set_value_" #c_type "_impl");
-
-#define DEF_PTR(c_type, llvm_type) \
-    register_std_any_get_pointer_impl<c_type>(llvm_type, "v_util_std_any_get_pointer_" #c_type "_impl"); \
-    register_std_any_set_pointer_impl<c_type>(llvm_type, "v_util_std_any_set_pointer_" #c_type "_impl");
-
-#define DEF(c_type, llvm_type) \
-    DEF_VAR(c_type, llvm_type) \
-    DEF_PTR(c_type, llvm_type)
-
-    DEF(bool,    LLVMInt1Type())
-    DEF(int8_t,  LLVMInt8Type())
-    DEF(int16_t, LLVMInt16Type())
-    DEF(int32_t, LLVMInt32Type())
-    DEF(int64_t, LLVMInt64Type())
-
-    {   using std_string = std::string;
-
-        DEF_PTR(std_string, opaque_std_string_type)
-    }
-
-#undef DEF
-#undef DEF_PTR
-#undef DEF_VAR
-
-
-
-
-    // ...
-
-
-
-
-    //-----------------------------------------------------------------
-    auto function_dict_t_content_type = LLVMArrayType(char_ptr_type, sizeof(function_dict_t)/sizeof(char *));
+    auto function_dict_t_content_type = LLVMArrayType(char_ptr_type, sizeof(v_util_function_dict_t)/sizeof(char *));
 
     auto opaque_function_dict_t_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_function_dict_t");
     LLVMStructSetBody(opaque_function_dict_t_type, &function_dict_t_content_type, 1, false);
 
-    v_add_symbol("v_util_opaque_function_dict_t", compile_ctx_t::LLVMOpaqueType_type, (void *)opaque_function_dict_t_type);
+    DEF(opaque_function_dict_t)
 
+
+#undef DEF
 
 
 }
@@ -470,17 +371,17 @@ VOIDC_DLLEXPORT_BEGIN
 
 
 //---------------------------------------------------------------------
-VOIDC_DEFINE_INITIALIZE_IMPL(utility::function_dict_t, v_util_initialize_function_dict_impl)
+VOIDC_DEFINE_INITIALIZE_IMPL(v_util_function_dict_t, v_util_initialize_function_dict_impl)
 
-void v_util_reset_function_dict_impl(utility::function_dict_t *ptr, int count)
+void v_util_reset_function_dict_impl(v_util_function_dict_t *ptr, int count)
 {
     for (int i=0; i<count; ++i) ptr[i].clear();
 }
 
-VOIDC_DEFINE_COPY_IMPL(utility::function_dict_t, v_util_copy_function_dict_impl)
-VOIDC_DEFINE_MOVE_IMPL(utility::function_dict_t, v_util_move_function_dict_impl)
+VOIDC_DEFINE_COPY_IMPL(v_util_function_dict_t, v_util_copy_function_dict_impl)
+VOIDC_DEFINE_MOVE_IMPL(v_util_function_dict_t, v_util_move_function_dict_impl)
 
-const char *v_util_function_dict_get(const utility::function_dict_t *ptr, LLVMTypeRef type)
+const char *v_util_function_dict_get(const v_util_function_dict_t *ptr, LLVMTypeRef type)
 {
     try
     {
@@ -491,10 +392,78 @@ const char *v_util_function_dict_get(const utility::function_dict_t *ptr, LLVMTy
     return nullptr;
 }
 
-void v_util_function_dict_set(utility::function_dict_t *ptr, LLVMTypeRef type, const char *fun_name)
+void v_util_function_dict_set(v_util_function_dict_t *ptr, LLVMTypeRef type, const char *fun_name)
 {
     (*ptr)[type] = fun_name;
 }
+
+//---------------------------------------------------------------------
+VOIDC_DEFINE_INITIALIZE_IMPL(std::any, v_util_initialize_std_any_impl)
+VOIDC_DEFINE_RESET_IMPL(std::any, v_util_reset_std_any_impl)
+VOIDC_DEFINE_COPY_IMPL(std::any, v_util_copy_std_any_impl)
+VOIDC_DEFINE_MOVE_IMPL(std::any, v_util_move_std_any_impl)
+
+//---------------------------------------------------------------------
+VOIDC_DEFINE_INITIALIZE_IMPL(std::string, v_util_initialize_std_string_impl)
+
+void v_util_reset_std_string_impl(std::string *ptr, int count)
+{
+    for (int i=0; i<count; ++i)
+    {
+        ptr[i].clear();
+        ptr[i].shrink_to_fit();
+    }
+}
+
+VOIDC_DEFINE_COPY_IMPL(std::string, v_util_copy_std_string_impl)
+VOIDC_DEFINE_MOVE_IMPL(std::string, v_util_move_std_string_impl)
+
+char *v_std_string_get(std::string *ptr)
+{
+    return ptr->data();
+}
+
+void v_std_string_set(std::string *ptr, const char *str)
+{
+    *ptr = str;
+}
+
+void v_std_string_append(std::string *ptr, const char *str)
+{
+    ptr->append(str);
+}
+
+//---------------------------------------------------------------------
+#define DEF_VAR(c_type, type_tag) \
+VOIDC_DEFINE_STD_ANY_GET_VALUE_IMPL(c_type, v_util_std_any_get_value_##type_tag##_impl) \
+VOIDC_DEFINE_STD_ANY_SET_VALUE_IMPL(c_type, v_util_std_any_set_value_##type_tag##_impl)
+
+#define DEF_PTR(c_type, type_tag) \
+VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(c_type, v_util_std_any_get_pointer_##type_tag##_impl) \
+VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(c_type, v_util_std_any_set_pointer_##type_tag##_impl)
+
+#define DEF(c_type, type_tag) \
+DEF_VAR(c_type, type_tag) \
+DEF_PTR(c_type, type_tag)
+
+DEF(bool,    bool)
+DEF(int8_t,  int8_t)
+DEF(int16_t, int16_t)
+DEF(int32_t, int32_t)
+DEF(int64_t, int64_t)
+
+DEF_PTR(std::string, std_string)
+
+#undef DEF
+#undef DEF_PTR
+#undef DEF_VAR
+
+
+
+
+
+
+
 
 
 //---------------------------------------------------------------------

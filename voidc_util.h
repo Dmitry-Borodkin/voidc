@@ -11,6 +11,32 @@
 #include <llvm-c/Core.h>
 #include <llvm-c/Support.h>
 
+#include "voidc_dllexport.h"
+
+
+//---------------------------------------------------------------------
+using v_util_function_dict_t = std::map<LLVMTypeRef, std::string>;
+
+extern "C"
+{
+
+VOIDC_DLLEXPORT_BEGIN
+
+extern v_util_function_dict_t v_util_initialize_dict;
+extern v_util_function_dict_t v_util_reset_dict;
+extern v_util_function_dict_t v_util_copy_dict;
+extern v_util_function_dict_t v_util_move_dict;
+extern v_util_function_dict_t v_util_kind_dict;
+extern v_util_function_dict_t v_util_std_any_get_value_dict;
+extern v_util_function_dict_t v_util_std_any_get_pointer_dict;
+extern v_util_function_dict_t v_util_std_any_set_value_dict;
+extern v_util_function_dict_t v_util_std_any_set_pointer_dict;
+
+VOIDC_DLLEXPORT_END
+
+//---------------------------------------------------------------------
+}   //- extern "C"
+
 
 //---------------------------------------------------------------------
 namespace utility
@@ -18,23 +44,6 @@ namespace utility
 
 void static_initialize(void);
 void static_terminate(void);
-
-using function_dict_t = std::map<LLVMTypeRef, std::string>;
-
-extern function_dict_t initialize_dict;
-extern function_dict_t reset_dict;
-
-extern function_dict_t copy_dict;
-extern function_dict_t move_dict;
-
-extern function_dict_t kind_dict;
-
-extern function_dict_t std_any_get_value_dict;
-extern function_dict_t std_any_get_pointer_dict;
-extern function_dict_t std_any_set_value_dict;
-extern function_dict_t std_any_set_pointer_dict;
-
-//- ...
 
 
 //-----------------------------------------------------------------
@@ -48,7 +57,7 @@ void v_initialize_impl(val_t *ptr, int count)
 
 template<typename val_t>
 void register_init_reset_impl_helper(LLVMTypeRef val_t_type, const char *fun_name,
-                                     void *fun_ptr, function_dict_t &dict
+                                     void *fun_ptr, v_util_function_dict_t &dict
                                     )
 {
     LLVMTypeRef args[2];
@@ -65,7 +74,7 @@ template<typename val_t>
 void register_initialize_impl(LLVMTypeRef val_t_type, const char *fun_name)
 {
     register_init_reset_impl_helper<val_t>(val_t_type, fun_name,
-                                           (void *)v_initialize_impl<val_t>, initialize_dict
+                                           (void *)v_initialize_impl<val_t>, v_util_initialize_dict
                                           );
 }
 
@@ -80,7 +89,7 @@ template<typename val_t>
 void register_reset_impl(LLVMTypeRef val_t_type, const char *fun_name)
 {
     register_init_reset_impl_helper<val_t>(val_t_type, fun_name,
-                                           (void *)v_reset_impl<val_t>, reset_dict
+                                           (void *)v_reset_impl<val_t>, v_util_reset_dict
                                           );
 }
 
@@ -96,7 +105,7 @@ void v_copy_impl(val_t *dst, const val_t *src, int count)
 
 template<typename val_t>
 void register_copy_move_impl_helper(LLVMTypeRef val_t_type, const char *fun_name,
-                                    void *fun_ptr, function_dict_t &dict
+                                    void *fun_ptr, v_util_function_dict_t &dict
                                    )
 {
     LLVMTypeRef args[3];
@@ -114,7 +123,7 @@ template<typename val_t>
 void register_copy_impl(LLVMTypeRef val_t_type, const char *fun_name)
 {
     register_copy_move_impl_helper<val_t>(val_t_type, fun_name,
-                                          (void *)v_copy_impl<val_t>, copy_dict
+                                          (void *)v_copy_impl<val_t>, v_util_copy_dict
                                          );
 }
 
@@ -129,7 +138,7 @@ template<typename val_t>
 void register_move_impl(LLVMTypeRef val_t_type, const char *fun_name)
 {
     register_copy_move_impl_helper<val_t>(val_t_type, fun_name,
-                                          (void *)v_move_impl<val_t>, move_dict
+                                          (void *)v_move_impl<val_t>, v_util_move_dict
                                          );
 }
 
@@ -155,7 +164,7 @@ void register_std_any_get_value_impl(LLVMTypeRef val_t_type, const char *fun_nam
                  (void *)v_std_any_get_value_impl<val_t>
                 );
 
-    std_any_get_value_dict[val_t_type] = fun_name;
+    v_util_std_any_get_value_dict[val_t_type] = fun_name;
 }
 
 //-----------------------------------------------------------------
@@ -176,7 +185,7 @@ void register_std_any_get_pointer_impl(LLVMTypeRef val_t_type, const char *fun_n
                  (void *)v_std_any_get_pointer_impl<val_t>
                 );
 
-    std_any_get_pointer_dict[val_t_type] = fun_name;
+    v_util_std_any_get_pointer_dict[val_t_type] = fun_name;
 }
 
 //-----------------------------------------------------------------
@@ -199,7 +208,7 @@ void register_std_any_set_value_impl(LLVMTypeRef val_t_type, const char *fun_nam
                  (void *)v_std_any_set_value_impl<val_t>
                 );
 
-    std_any_set_value_dict[val_t_type] = fun_name;
+    v_util_std_any_set_value_dict[val_t_type] = fun_name;
 }
 
 //-----------------------------------------------------------------
@@ -222,7 +231,7 @@ void register_std_any_set_pointer_impl(LLVMTypeRef val_t_type, const char *fun_n
                  (void *)v_std_any_set_pointer_impl<val_t>
                 );
 
-    std_any_set_pointer_dict[val_t_type] = fun_name;
+    v_util_std_any_set_pointer_dict[val_t_type] = fun_name;
 }
 
 
@@ -267,6 +276,42 @@ void fun_name(val_t *dst, val_t *src, int count) \
 { \
     std::move(src, src+count, dst); \
 }
+
+
+//-----------------------------------------------------------------
+#define VOIDC_DEFINE_STD_ANY_GET_VALUE_IMPL(val_t, fun_name) \
+val_t fun_name(const std::any *src) \
+{ \
+    return std::any_cast<val_t>(*src); \
+}
+
+#define VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(val_t, fun_name) \
+val_t *fun_name(std::any *src) \
+{ \
+    return std::any_cast<val_t>(src); \
+}
+
+#define VOIDC_DEFINE_STD_ANY_SET_VALUE_IMPL(val_t, fun_name) \
+void fun_name(std::any *dst, val_t v) \
+{ \
+    *dst = v; \
+}
+
+#define VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(val_t, fun_name) \
+void fun_name(std::any *dst, val_t *p) \
+{ \
+    *dst = *p; \
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
