@@ -5,8 +5,11 @@
 //---------------------------------------------------------------------
 #ifdef _WIN32
 
-#define VOIDC_DLLEXPORT_BEGIN \
-_Pragma("clang attribute push ([[gnu::dllexport]], apply_to=any(function, variable))")
+#define VOIDC_DLLEXPORT_BEGIN_FUNCTION \
+_Pragma("clang attribute push ([[gnu::dllexport]], apply_to=function)")
+
+#define VOIDC_DLLEXPORT_BEGIN_VARIABLE \
+_Pragma("clang attribute push ([[gnu::dllexport]], apply_to=variable)")
 
 #define VOIDC_DLLEXPORT_END \
 _Pragma("clang attribute pop")
@@ -15,7 +18,9 @@ _Pragma("clang attribute pop")
 
 #ifdef __unix
 
-#define VOIDC_DLLEXPORT_BEGIN
+#define VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+#define VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
 #define VOIDC_DLLEXPORT_END
 

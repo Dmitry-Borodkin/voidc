@@ -19,7 +19,7 @@
 extern "C"
 {
 
-VOIDC_DLLEXPORT_BEGIN
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 void v_add_symbol_type(const char *name, LLVMTypeRef type);
 void v_add_symbol_value(const char *name, void *value);

@@ -367,7 +367,7 @@ void static_terminate(void)
 extern "C"
 {
 
-VOIDC_DLLEXPORT_BEGIN
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------

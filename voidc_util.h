@@ -20,7 +20,7 @@ using v_util_function_dict_t = std::map<LLVMTypeRef, std::string>;
 extern "C"
 {
 
-VOIDC_DLLEXPORT_BEGIN
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
 extern v_util_function_dict_t v_util_initialize_dict;
 extern v_util_function_dict_t v_util_reset_dict;
