@@ -1,17 +1,15 @@
-{
-    args = v_alloca(LLVMTypeRef, 2);
-    arg1 = v_getelementptr(args, 1);
+{   arg0 = v_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
 
-    v_store(LLVMTypeRef, args);
+    v_store(LLVMTypeRef, arg0);
     v_store(int,         arg1);
 
-    ft = LLVMFunctionType(LLVMTypeRef, args, 2, 0);
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
 
     v_add_symbol_type("LLVMPointerType", ft);
 }
 
-{
-    char_ptr = LLVMPointerType(char, 0);
+{   char_ptr = LLVMPointerType(char, 0);
 
     arg = v_alloca(LLVMTypeRef);
 
@@ -20,8 +18,5 @@
     printf_ft = LLVMFunctionType(int, arg, 1, 1);
 
     v_add_symbol_type("printf", printf_ft);
-}
-
-{
 }
 

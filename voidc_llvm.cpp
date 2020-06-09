@@ -836,6 +836,8 @@ compile_ctx_t::find_identifier(const std::string &_name)
 //---------------------------------------------------------------------
 void ast_unit_t::compile(compile_ctx_t &cctx) const
 {
+    assert(cctx.args.empty());
+
     if (!stmt_list) return;
 
     std::string hdr = "unit_" + std::to_string(line) + "_" + std::to_string(column);
@@ -928,6 +930,8 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 
 
     LLVMDisposeModule(cctx.module);
+
+    cctx.vars.clear();
 }
 
 
