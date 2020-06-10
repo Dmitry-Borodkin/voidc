@@ -1,6 +1,6 @@
 {   v_import("voidc_internals.void");
 
-    v_import("printf.void");
+//  v_import("printf.void");
 }
 
 
@@ -321,7 +321,7 @@
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    v_store(move_dict, val2);
+    v_store(move_dict,  val2);
 
     LLVMBuildCall(voidc_builder, copy_move_helper_f, val0, 3, "");
 
