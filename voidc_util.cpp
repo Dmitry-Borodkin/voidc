@@ -315,12 +315,12 @@ void static_initialize(void)
 
     auto gctx = LLVMGetGlobalContext();
 
-    LLVMTypeRef args[2];
-
 #define DEF(name) \
     v_add_symbol("v_util_" #name, compile_ctx_t::LLVMOpaqueType_type, (void *)name##_type);
 
     //-----------------------------------------------------------------
+    static_assert((sizeof(std::any) % sizeof(char *)) == 0);
+
     auto std_any_content_type = LLVMArrayType(char_ptr_type, sizeof(std::any)/sizeof(char *));
 
     opaque_std_any_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_any");
@@ -329,6 +329,8 @@ void static_initialize(void)
     DEF(opaque_std_any)
 
     //-----------------------------------------------------------------
+    static_assert((sizeof(std::string) % sizeof(char *)) == 0);
+
     auto std_string_content_type = LLVMArrayType(char_ptr_type, sizeof(std::string)/sizeof(char *));
 
     opaque_std_string_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_string");
@@ -336,6 +338,9 @@ void static_initialize(void)
     std_string_ref_type = LLVMPointerType(opaque_std_string_type, 0);
 
     DEF(opaque_std_string)
+
+    //-----------------------------------------------------------------
+    static_assert((sizeof(v_util_function_dict_t) % sizeof(char *)) == 0);
 
     auto function_dict_t_content_type = LLVMArrayType(char_ptr_type, sizeof(v_util_function_dict_t)/sizeof(char *));
 

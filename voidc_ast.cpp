@@ -283,6 +283,8 @@ LLVMTypeRef ast_argument_ref_type;
 //----------------------------------------------------------------------
 void v_ast_static_initialize(void)
 {
+    static_assert((sizeof(ast_unit_ptr_t) % sizeof(char *)) == 0);
+
     static_assert(sizeof(ast_unit_ptr_t) == sizeof(ast_stmt_list_ptr_t));
     static_assert(sizeof(ast_unit_ptr_t) == sizeof(ast_stmt_ptr_t));
     static_assert(sizeof(ast_unit_ptr_t) == sizeof(ast_call_ptr_t));

@@ -503,6 +503,8 @@ LLVMTypeRef grammar_ref_type;
 //-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {
+    static_assert((sizeof(parser_ptr_t) % sizeof(char *)) == 0);
+
     static_assert(sizeof(parser_ptr_t) == sizeof(action_ptr_t));
     static_assert(sizeof(parser_ptr_t) == sizeof(argument_ptr_t));
     static_assert(sizeof(parser_ptr_t) == sizeof(grammar_ptr_t));

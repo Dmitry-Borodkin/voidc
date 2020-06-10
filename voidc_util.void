@@ -46,6 +46,15 @@
 
 
 //---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{   std_any_ref = LLVMPointerType(v_util_opaque_std_any, 0);
+
+    v_add_symbol("v_util_std_any_ref", LLVMOpaqueType, std_any_ref);
+}
+
+
+//---------------------------------------------------------------------
 //- voidc_util support module...
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("voidc_util_void_module");
@@ -332,12 +341,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    opaque_std_any_type = LLVMAddGlobal(module, LLVMTypeRef, "v_util_opaque_std_any");
-
-    v_store(opaque_std_any_type, val0);
-    v_store(n0,                  val1);
-
-    std_any_ptr_type = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "std_any_ptr_type");
+    std_any_ptr_type = LLVMAddGlobal(module, LLVMTypeRef, "v_util_std_any_ref");
 
 
     arg0 = LLVMBuildAlloca(voidc_builder, LLVMTypeRef, "arg0");
@@ -381,12 +385,6 @@
     entry = LLVMAppendBasicBlock(get_pointer_f, "entry");
 
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
-
-
-    v_store(opaque_std_any_type, val0);
-    v_store(n0,                  val1);
-
-    std_any_ptr_type = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "std_any_ptr_type");
 
 
     arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
@@ -445,12 +443,6 @@
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    v_store(opaque_std_any_type, val0);
-    v_store(n0,                  val1);
-
-    std_any_ptr_type = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "std_any_ptr_type");
-
-
     arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
 
     v_store(n1, val0);
@@ -499,12 +491,6 @@
     entry = LLVMAppendBasicBlock(set_pointer_f, "entry");
 
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
-
-
-    v_store(opaque_std_any_type, val0);
-    v_store(n0,                  val1);
-
-    std_any_ptr_type = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "std_any_ptr_type");
 
 
     arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
@@ -602,6 +588,7 @@
     v_util_register_move_impl      (v_util_opaque_std_any, "v_util_move_std_any_impl");
 }
 
+
 //---------------------------------------------------------------------
 //- std::string
 //---------------------------------------------------------------------
@@ -627,9 +614,10 @@
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
-    v_add_symbol_type("v_std_string_set", fun_t);
+    v_add_symbol_type("v_std_string_set",    fun_t);
     v_add_symbol_type("v_std_string_append", fun_t);
 }
+
 
 //---------------------------------------------------------------------
 //- std::any support...
