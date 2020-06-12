@@ -1,0 +1,213 @@
+{   v_import("voidc_util.void");
+}
+
+{   v_util_register_initialize_impl(v_ast_opaque_unit_ptr, "v_ast_initialize_unit_impl");
+    v_util_register_reset_impl     (v_ast_opaque_unit_ptr, "v_ast_reset_unit_impl");
+    v_util_register_copy_impl      (v_ast_opaque_unit_ptr, "v_ast_copy_unit_impl");
+    v_util_register_move_impl      (v_ast_opaque_unit_ptr, "v_ast_move_unit_impl");
+
+    v_util_register_std_any_get_pointer_impl(v_ast_opaque_unit_ptr, "v_ast_std_any_get_pointer_unit_impl");
+    v_util_register_std_any_set_pointer_impl(v_ast_opaque_unit_ptr, "v_ast_std_any_set_pointer_unit_impl");
+
+    v_util_register_initialize_impl(v_ast_opaque_stmt_list_ptr, "v_ast_initialize_stmt_list_impl");
+    v_util_register_reset_impl     (v_ast_opaque_stmt_list_ptr, "v_ast_reset_stmt_list_impl");
+    v_util_register_copy_impl      (v_ast_opaque_stmt_list_ptr, "v_ast_copy_stmt_list_impl");
+    v_util_register_move_impl      (v_ast_opaque_stmt_list_ptr, "v_ast_move_stmt_list_impl");
+
+    v_util_register_std_any_get_pointer_impl(v_ast_opaque_stmt_list_ptr, "v_ast_std_any_get_pointer_stmt_list_impl");
+    v_util_register_std_any_set_pointer_impl(v_ast_opaque_stmt_list_ptr, "v_ast_std_any_set_pointer_stmt_list_impl");
+
+    v_util_register_initialize_impl(v_ast_opaque_stmt_ptr, "v_ast_initialize_stmt_impl");
+    v_util_register_reset_impl     (v_ast_opaque_stmt_ptr, "v_ast_reset_stmt_impl");
+    v_util_register_copy_impl      (v_ast_opaque_stmt_ptr, "v_ast_copy_stmt_impl");
+    v_util_register_move_impl      (v_ast_opaque_stmt_ptr, "v_ast_move_stmt_impl");
+
+    v_util_register_std_any_get_pointer_impl(v_ast_opaque_stmt_ptr, "v_ast_std_any_get_pointer_stmt_impl");
+    v_util_register_std_any_set_pointer_impl(v_ast_opaque_stmt_ptr, "v_ast_std_any_set_pointer_stmt_impl");
+
+    v_util_register_initialize_impl(v_ast_opaque_call_ptr, "v_ast_initialize_call_impl");
+    v_util_register_reset_impl     (v_ast_opaque_call_ptr, "v_ast_reset_call_impl");
+    v_util_register_copy_impl      (v_ast_opaque_call_ptr, "v_ast_copy_call_impl");
+    v_util_register_move_impl      (v_ast_opaque_call_ptr, "v_ast_move_call_impl");
+
+    v_util_register_std_any_get_pointer_impl(v_ast_opaque_call_ptr, "v_ast_std_any_get_pointer_call_impl");
+    v_util_register_std_any_set_pointer_impl(v_ast_opaque_call_ptr, "v_ast_std_any_set_pointer_call_impl");
+
+    v_util_register_initialize_impl(v_ast_opaque_arg_list_ptr, "v_ast_initialize_arg_list_impl");
+    v_util_register_reset_impl     (v_ast_opaque_arg_list_ptr, "v_ast_reset_arg_list_impl");
+    v_util_register_copy_impl      (v_ast_opaque_arg_list_ptr, "v_ast_copy_arg_list_impl");
+    v_util_register_move_impl      (v_ast_opaque_arg_list_ptr, "v_ast_move_arg_list_impl");
+
+    v_util_register_std_any_get_pointer_impl(v_ast_opaque_arg_list_ptr, "v_ast_std_any_get_pointer_arg_list_impl");
+    v_util_register_std_any_set_pointer_impl(v_ast_opaque_arg_list_ptr, "v_ast_std_any_set_pointer_arg_list_impl");
+
+    v_util_register_initialize_impl(v_ast_opaque_argument_ptr, "v_ast_initialize_argument_impl");
+    v_util_register_reset_impl     (v_ast_opaque_argument_ptr, "v_ast_reset_argument_impl");
+    v_util_register_copy_impl      (v_ast_opaque_argument_ptr, "v_ast_copy_argument_impl");
+    v_util_register_move_impl      (v_ast_opaque_argument_ptr, "v_ast_move_argument_impl");
+
+    v_util_register_std_any_get_pointer_impl(v_ast_opaque_argument_ptr, "v_ast_std_any_get_pointer_argument_impl");
+    v_util_register_std_any_set_pointer_impl(v_ast_opaque_argument_ptr, "v_ast_std_any_set_pointer_argument_impl");
+}
+
+//---------------------------------------------------------------------
+{   unit_ref = LLVMPointerType(v_ast_opaque_unit_ptr, 0);
+
+    v_add_symbol("v_ast_unit_ref", LLVMOpaqueType, unit_ref);
+
+    stmt_list_ref = LLVMPointerType(v_ast_opaque_stmt_list_ptr, 0);
+
+    v_add_symbol("v_ast_stmt_list_ref", LLVMOpaqueType, stmt_list_ref);
+
+    stmt_ref = LLVMPointerType(v_ast_opaque_stmt_ptr, 0);
+
+    v_add_symbol("v_ast_stmt_ref", LLVMOpaqueType, stmt_ref);
+
+    call_ref = LLVMPointerType(v_ast_opaque_call_ptr, 0);
+
+    v_add_symbol("v_ast_call_ref", LLVMOpaqueType, call_ref);
+
+    arg_list_ref = LLVMPointerType(v_ast_opaque_arg_list_ptr, 0);
+
+    v_add_symbol("v_ast_arg_list_ref", LLVMOpaqueType, arg_list_ref);
+
+    argument_ref = LLVMPointerType(v_ast_opaque_argument_ptr, 0);
+
+    v_add_symbol("v_ast_argument_ref", LLVMOpaqueType, argument_ref);
+}
+
+//---------------------------------------------------------------------
+{   arg0 = v_alloca(LLVMTypeRef, 4);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+
+    v_store(v_ast_unit_ref,      arg0);
+    v_store(v_ast_stmt_list_ref, arg1);
+    v_store(int,                 arg2);
+    v_store(int,                 arg3);
+
+    fun_t = LLVMFunctionType(void, arg0, 4, 0);
+
+    v_add_symbol_type("v_ast_make_unit", fun_t);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_unit_get_stmt_list", fun_t);
+
+    fun_t = LLVMFunctionType(int, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_unit_get_line",   fun_t);
+    v_add_symbol_type("v_ast_unit_get_column", fun_t);
+
+    v_store(v_ast_stmt_list_ref, arg0);
+    v_store(v_ast_stmt_list_ref, arg1);
+    v_store(v_ast_stmt_ref,      arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_make_stmt_list", fun_t);
+
+    fun_t = LLVMFunctionType(int, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_stmt_list_get_size", fun_t);
+
+    v_store(int,            arg1);
+    v_store(v_ast_stmt_ref, arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_stmt_list_get_stmt", fun_t);
+
+    v_store(v_ast_stmt_ref,        arg0);
+    v_store(v_util_std_string_ref, arg1);
+    v_store(v_ast_call_ref,        arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_make_stmt", fun_t);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_stmt_get_var_name", fun_t);
+
+    v_store(v_ast_call_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_stmt_get_call", fun_t);
+
+    v_store(v_ast_call_ref,        arg0);
+    v_store(v_util_std_string_ref, arg1);
+    v_store(v_ast_arg_list_ref,    arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_make_call", fun_t);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_call_get_fun_name", fun_t);
+
+    v_store(v_ast_arg_list_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_call_get_arg_list", fun_t);
+
+    v_store(v_ast_arg_list_ref, arg0);
+    v_store(v_ast_argument_ref, arg1);
+    v_store(int,                arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_make_arg_list", fun_t);
+
+    fun_t = LLVMFunctionType(int, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_arg_list_get_count", fun_t);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_arg_list_get_args", fun_t);
+
+    v_store(v_ast_argument_ref,    arg0);
+    v_store(v_util_std_string_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_arg_identifier", fun_t);
+    v_add_symbol_type("v_ast_arg_identifier_get_name", fun_t);
+
+    v_store(intptr_t, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_arg_integer", fun_t);
+    v_add_symbol_type("v_ast_arg_integer_get_number", fun_t);
+
+    v_store(v_util_std_string_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_arg_string", fun_t);
+    v_add_symbol_type("v_ast_arg_string_get_string", fun_t);
+
+    v_store(char32_t, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_arg_char", fun_t);
+
+    fun_t = LLVMFunctionType(char32_t, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_arg_char_get_char", fun_t);
+
+
+    //- ...
+
+
+}
+
+
+

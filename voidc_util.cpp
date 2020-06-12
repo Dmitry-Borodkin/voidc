@@ -1,14 +1,9 @@
 #include "voidc_util.h"
 
-#include "voidc_llvm.h"
-
-#include <any>
 #include <cassert>
 
-#include <llvm-c/Core.h>
-#include <llvm-c/Support.h>
 
-
+//---------------------------------------------------------------------
 v_util_function_dict_t v_util_initialize_dict;
 v_util_function_dict_t v_util_reset_dict;
 v_util_function_dict_t v_util_copy_dict;
@@ -19,19 +14,10 @@ v_util_function_dict_t v_util_std_any_get_pointer_dict;
 v_util_function_dict_t v_util_std_any_set_value_dict;
 v_util_function_dict_t v_util_std_any_set_pointer_dict;
 
+
 //---------------------------------------------------------------------
 namespace utility
 {
-
-//---------------------------------------------------------------------
-
-LLVMTypeRef opaque_std_any_type;
-//LLVMTypeRef std_any_ref_type;
-
-LLVMTypeRef opaque_std_string_type;
-LLVMTypeRef std_string_ref_type;
-
-
 
 //---------------------------------------------------------------------
 //- Intrinsics (true)
@@ -323,7 +309,7 @@ void static_initialize(void)
 
     auto std_any_content_type = LLVMArrayType(char_ptr_type, sizeof(std::any)/sizeof(char *));
 
-    opaque_std_any_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_any");
+    auto opaque_std_any_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_any");
     LLVMStructSetBody(opaque_std_any_type, &std_any_content_type, 1, false);
 
     DEF(opaque_std_any)
@@ -333,9 +319,8 @@ void static_initialize(void)
 
     auto std_string_content_type = LLVMArrayType(char_ptr_type, sizeof(std::string)/sizeof(char *));
 
-    opaque_std_string_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_string");
+    auto opaque_std_string_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_string");
     LLVMStructSetBody(opaque_std_string_type, &std_string_content_type, 1, false);
-    std_string_ref_type = LLVMPointerType(opaque_std_string_type, 0);
 
     DEF(opaque_std_string)
 
@@ -462,11 +447,6 @@ DEF_PTR(std::string, std_string)
 #undef DEF
 #undef DEF_PTR
 #undef DEF_VAR
-
-
-
-
-
 
 
 

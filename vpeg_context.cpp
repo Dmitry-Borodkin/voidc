@@ -24,44 +24,9 @@ context_t::context_t(std::istream &_input, const grammar_t &_grammar, compile_ct
 }
 
 
-//---------------------------------------------------------------------
-extern "C"
-{
-
-//---------------------------------------------------------------------
-//- Intrinsics (functions)
-//---------------------------------------------------------------------
-static
-void v_peg_get_grammar(grammar_ptr_t *ptr)
-{
-    assert(context_t::current_ctx);
-
-    *ptr = std::make_shared<const grammar_t>(context_t::current_ctx->grammar);
-}
-
-static
-void v_peg_set_grammar(const grammar_ptr_t *ptr)
-{
-    assert(context_t::current_ctx);
-
-    auto &grammar = context_t::current_ctx->grammar;
-
-    grammar = **ptr;
-
-    grammar.check_hash();
-}
-
-//---------------------------------------------------------------------
-}   //- extern "C"
-
-
 //-----------------------------------------------------------------
 void context_t::static_initialize(void)
 {
-    auto fun_type = LLVMFunctionType(compile_ctx_t::void_type, &grammar_ref_type, 1, false);
-
-    v_add_symbol("v_peg_get_grammar", fun_type, (void *)v_peg_get_grammar);
-    v_add_symbol("v_peg_set_grammar", fun_type, (void *)v_peg_set_grammar);
 }
 
 //-----------------------------------------------------------------
@@ -218,4 +183,44 @@ char32_t context_t::read_character(void)
 
 //---------------------------------------------------------------------
 }   //- namespace vpeg
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+extern "C"
+{
+
+using namespace vpeg;
+
+//---------------------------------------------------------------------
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+//---------------------------------------------------------------------
+//- Intrinsics (functions)
+//---------------------------------------------------------------------
+void v_peg_get_grammar(grammar_ptr_t *ptr)
+{
+    assert(context_t::current_ctx);
+
+    *ptr = std::make_shared<const grammar_t>(context_t::current_ctx->grammar);
+}
+
+void v_peg_set_grammar(const grammar_ptr_t *ptr)
+{
+    assert(context_t::current_ctx);
+
+    auto &grammar = context_t::current_ctx->grammar;
+
+    grammar = **ptr;
+
+    grammar.check_hash();
+}
+
+//---------------------------------------------------------------------
+VOIDC_DLLEXPORT_END
+
+//---------------------------------------------------------------------
+}   //- extern "C"
+
 

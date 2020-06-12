@@ -13,19 +13,6 @@
 namespace vpeg
 {
 
-extern LLVMTypeRef opaque_parser_ptr_type;
-extern LLVMTypeRef parser_ref_type;
-
-extern LLVMTypeRef opaque_action_ptr_type;
-extern LLVMTypeRef action_ref_type;
-
-extern LLVMTypeRef opaque_argument_ptr_type;
-extern LLVMTypeRef argument_ref_type;
-
-extern LLVMTypeRef opaque_grammar_ptr_type;
-extern LLVMTypeRef grammar_ref_type;
-
-
 extern "C" typedef void (*grammar_action_fun_t)(std::any *ret, const std::any *args, size_t count);
 
 

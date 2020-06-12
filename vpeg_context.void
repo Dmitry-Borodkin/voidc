@@ -1,0 +1,13 @@
+{   v_import("vpeg_grammar.void"); }
+
+{   arg = v_alloca(LLVMTypeRef);
+
+    v_store(v_peg_grammar_ref, arg);
+
+    fun_t = LLVMFunctionType(void, arg, 1, 0);
+
+    v_add_symbol_type("v_peg_get_grammar", fun_t);
+    v_add_symbol_type("v_peg_set_grammar", fun_t);
+}
+
+

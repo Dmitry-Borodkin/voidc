@@ -102,28 +102,6 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
 
 
 //-----------------------------------------------------------------
-template<typename ptr_t>
-int v_peg_get_kind(const ptr_t *ptr)
-{
-    return (*ptr)->kind();
-}
-
-
-//-----------------------------------------------------------------
-LLVMTypeRef opaque_parser_ptr_type;
-LLVMTypeRef parser_ref_type;
-
-LLVMTypeRef opaque_action_ptr_type;
-LLVMTypeRef action_ref_type;
-
-LLVMTypeRef opaque_argument_ptr_type;
-LLVMTypeRef argument_ref_type;
-
-LLVMTypeRef opaque_grammar_ptr_type;
-LLVMTypeRef grammar_ref_type;
-
-
-//-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {
     static_assert((sizeof(parser_ptr_t) % sizeof(char *)) == 0);
@@ -139,36 +117,14 @@ void grammar_t::static_initialize(void)
     auto gctx = LLVMGetGlobalContext();
 
 #define DEF(name) \
-    opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_peg_opaque_" #name "_ptr"); \
-    LLVMStructSetBody(opaque_##name##_ptr_type, &content_type, 1, false); \
-    name##_ref_type = LLVMPointerType(opaque_##name##_ptr_type, 0); \
-\
-    v_add_symbol("v_peg_opaque_" #name "_ptr", compile_ctx_t::LLVMOpaqueType_type, (void *)opaque_##name##_ptr_type); \
-    v_add_symbol("v_peg_" #name "_ref", compile_ctx_t::LLVMOpaqueType_type, (void *)name##_ref_type);
+    auto name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_peg_opaque_" #name "_ptr"); \
+    LLVMStructSetBody(name##_ptr_type, &content_type, 1, false); \
+    v_add_symbol("v_peg_opaque_" #name "_ptr", compile_ctx_t::LLVMOpaqueType_type, (void *)name##_ptr_type);
 
     DEF(parser)
     DEF(action)
     DEF(argument)
     DEF(grammar)
-
-#undef DEF
-
-#define DEF(name) \
-    v_add_symbol("v_peg_" #name "_kind", \
-                 compile_ctx_t::LLVMOpaqueType_type, \
-                 (void *)compile_ctx_t::int_type \
-                ); \
-\
-    v_add_symbol("v_peg_" #name "_get_kind", \
-                 LLVMFunctionType(compile_ctx_t::int_type, &name##_ref_type, 1, false), \
-                 (void *)v_peg_get_kind<name##_ptr_t> \
-                ); \
-\
-    v_util_kind_dict[opaque_##name##_ptr_type] = "v_peg_" #name "_get_kind";
-
-    DEF(parser)
-    DEF(action)
-    DEF(argument)
 
 #undef DEF
 
@@ -242,7 +198,9 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     VOIDC_DEFINE_INITIALIZE_IMPL(name##_ptr_t, v_peg_initialize_##name##_impl) \
     VOIDC_DEFINE_RESET_IMPL(name##_ptr_t, v_peg_reset_##name##_impl) \
     VOIDC_DEFINE_COPY_IMPL(name##_ptr_t, v_peg_copy_##name##_impl) \
-    VOIDC_DEFINE_MOVE_IMPL(name##_ptr_t, v_peg_move_##name##_impl)
+    VOIDC_DEFINE_MOVE_IMPL(name##_ptr_t, v_peg_move_##name##_impl) \
+    VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(name##_ptr_t, v_peg_std_any_get_pointer_##name##_impl) \
+    VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(name##_ptr_t, v_peg_std_any_set_pointer_##name##_impl)
 
     DEF(parser)
     DEF(action)
@@ -250,6 +208,23 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     DEF(grammar)
 
 #undef DEF
+
+#define DEF_KIND(ptr_t, fun_name) \
+int fun_name(const ptr_t *ptr) \
+{ \
+    return (*ptr)->kind(); \
+}
+
+#define DEF(name) \
+    DEF_KIND(name##_ptr_t, v_peg_##name##_get_kind)
+
+    DEF(parser)
+    DEF(action)
+    DEF(argument)
+
+#undef DEF
+
+#undef DEF_KIND
 
 
 //-----------------------------------------------------------------

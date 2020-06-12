@@ -1,8 +1,8 @@
-{   v_import("vpeg_grammar.void"); }
+{   v_import("vpeg_context.void"); }
 
 {   v_import("printf.void"); }
 
-{   module = LLVMModuleCreateWithName("hello_mod");
+{   module = LLVMModuleCreateWithName("my_echo_mod");
 
     dl = LLVMCreateTargetDataLayout(voidc_target_machine);
     tr = LLVMGetTargetMachineTriple(voidc_target_machine);

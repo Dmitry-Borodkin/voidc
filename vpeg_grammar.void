@@ -6,20 +6,78 @@
     v_util_register_copy_impl      (v_peg_opaque_parser_ptr, "v_peg_copy_parser_impl");
     v_util_register_move_impl      (v_peg_opaque_parser_ptr, "v_peg_move_parser_impl");
 
+    v_util_register_std_any_get_pointer_impl(v_peg_opaque_parser_ptr, "v_peg_std_any_get_pointer_parser_impl");
+    v_util_register_std_any_set_pointer_impl(v_peg_opaque_parser_ptr, "v_peg_std_any_set_pointer_parser_impl");
+
     v_util_register_initialize_impl(v_peg_opaque_action_ptr, "v_peg_initialize_action_impl");
     v_util_register_reset_impl     (v_peg_opaque_action_ptr, "v_peg_reset_action_impl");
     v_util_register_copy_impl      (v_peg_opaque_action_ptr, "v_peg_copy_action_impl");
     v_util_register_move_impl      (v_peg_opaque_action_ptr, "v_peg_move_action_impl");
+
+    v_util_register_std_any_get_pointer_impl(v_peg_opaque_action_ptr, "v_peg_std_any_get_pointer_action_impl");
+    v_util_register_std_any_set_pointer_impl(v_peg_opaque_action_ptr, "v_peg_std_any_set_pointer_action_impl");
 
     v_util_register_initialize_impl(v_peg_opaque_argument_ptr, "v_peg_initialize_argument_impl");
     v_util_register_reset_impl     (v_peg_opaque_argument_ptr, "v_peg_reset_argument_impl");
     v_util_register_copy_impl      (v_peg_opaque_argument_ptr, "v_peg_copy_argument_impl");
     v_util_register_move_impl      (v_peg_opaque_argument_ptr, "v_peg_move_argument_impl");
 
+    v_util_register_std_any_get_pointer_impl(v_peg_opaque_argument_ptr, "v_peg_std_any_get_argument_parser_impl");
+    v_util_register_std_any_set_pointer_impl(v_peg_opaque_argument_ptr, "v_peg_std_any_set_argument_parser_impl");
+
     v_util_register_initialize_impl(v_peg_opaque_grammar_ptr, "v_peg_initialize_grammar_impl");
     v_util_register_reset_impl     (v_peg_opaque_grammar_ptr, "v_peg_reset_grammar_impl");
     v_util_register_copy_impl      (v_peg_opaque_grammar_ptr, "v_peg_copy_grammar_impl");
     v_util_register_move_impl      (v_peg_opaque_grammar_ptr, "v_peg_move_grammar_impl");
+
+    v_util_register_std_any_get_pointer_impl(v_peg_opaque_grammar_ptr, "v_peg_std_any_get_pointer_grammar_impl");
+    v_util_register_std_any_set_pointer_impl(v_peg_opaque_grammar_ptr, "v_peg_std_any_set_pointer_grammar_impl");
+}
+
+{   parser_ref = LLVMPointerType(v_peg_opaque_parser_ptr, 0);
+
+    v_add_symbol("v_peg_parser_ref", LLVMOpaqueType, parser_ref);
+
+    action_ref = LLVMPointerType(v_peg_opaque_action_ptr, 0);
+
+    v_add_symbol("v_peg_action_ref", LLVMOpaqueType, action_ref);
+
+    argument_ref = LLVMPointerType(v_peg_opaque_argument_ptr, 0);
+
+    v_add_symbol("v_peg_argument_ref", LLVMOpaqueType, argument_ref);
+
+    grammar_ref = LLVMPointerType(v_peg_opaque_grammar_ptr, 0);
+
+    v_add_symbol("v_peg_grammar_ref", LLVMOpaqueType, grammar_ref);
+}
+
+{   v_add_symbol("v_peg_parser_kind",   LLVMOpaqueType, int);
+    v_add_symbol("v_peg_action_kind",   LLVMOpaqueType, int);
+    v_add_symbol("v_peg_argument_kind", LLVMOpaqueType, int);
+
+    arg = v_alloca(LLVMTypeRef);
+
+    v_store(v_peg_parser_ref, arg);
+
+    fun_t = LLVMFunctionType(int, arg, 1, 0);
+
+    v_add_symbol_type("v_peg_parser_get_kind", fun_t);
+
+    v_store(v_peg_action_ref, arg);
+
+    fun_t = LLVMFunctionType(int, arg, 1, 0);
+
+    v_add_symbol_type("v_peg_action_get_kind", fun_t);
+
+    v_store(v_peg_argument_ref, arg);
+
+    fun_t = LLVMFunctionType(int, arg, 1, 0);
+
+    v_add_symbol_type("v_peg_argument_get_kind", fun_t);
+
+    v_util_function_dict_set(v_util_kind_dict, v_peg_opaque_parser_ptr,   "v_peg_parser_get_kind");
+    v_util_function_dict_set(v_util_kind_dict, v_peg_opaque_action_ptr,   "v_peg_action_get_kind");
+    v_util_function_dict_set(v_util_kind_dict, v_peg_opaque_argument_ptr, "v_peg_argument_get_kind");
 }
 
 {   arg0 = v_alloca(LLVMTypeRef, 5);
