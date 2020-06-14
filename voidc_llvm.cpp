@@ -515,10 +515,10 @@ void compile_ctx_t::static_initialize(void)
 #undef DEF
     }
 
-    intrinsics["v_alloca"]             = v_alloca;
-    intrinsics["v_getelementptr"]      = v_getelementptr;
-    intrinsics["v_store"]              = v_store;
-    intrinsics["v_load"]               = v_load;
+    intrinsics["v_alloca"]        = v_alloca;
+    intrinsics["v_getelementptr"] = v_getelementptr;
+    intrinsics["v_store"]         = v_store;
+    intrinsics["v_load"]          = v_load;
 
     {   LLVMTypeRef args[] =
         {

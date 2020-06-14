@@ -1,79 +1,46 @@
 {   v_import("voidc_util.void");
 }
 
-{   v_util_register_initialize_impl(v_ast_opaque_unit_ptr, "v_ast_initialize_unit_impl");
-    v_util_register_reset_impl     (v_ast_opaque_unit_ptr, "v_ast_reset_unit_impl");
-    v_util_register_copy_impl      (v_ast_opaque_unit_ptr, "v_ast_copy_unit_impl");
-    v_util_register_move_impl      (v_ast_opaque_unit_ptr, "v_ast_move_unit_impl");
+{   v_util_register_ircmp_impl(v_ast_opaque_base_ptr,      "v_ast", "base");
+    v_util_register_ircmp_impl(v_ast_opaque_base_list_ptr, "v_ast", "base_list");
 
-    v_util_register_std_any_get_pointer_impl(v_ast_opaque_unit_ptr, "v_ast_std_any_get_pointer_unit_impl");
-    v_util_register_std_any_set_pointer_impl(v_ast_opaque_unit_ptr, "v_ast_std_any_set_pointer_unit_impl");
+    v_util_register_ircmp_impl(v_ast_opaque_unit_ptr,      "v_ast", "unit");
+    v_util_register_ircmp_impl(v_ast_opaque_stmt_list_ptr, "v_ast", "stmt_list");
+    v_util_register_ircmp_impl(v_ast_opaque_stmt_ptr,      "v_ast", "stmt");
+    v_util_register_ircmp_impl(v_ast_opaque_call_ptr,      "v_ast", "call");
+    v_util_register_ircmp_impl(v_ast_opaque_arg_list_ptr,  "v_ast", "arg_list");
+    v_util_register_ircmp_impl(v_ast_opaque_argument_ptr,  "v_ast", "argument");
 
-    v_util_register_initialize_impl(v_ast_opaque_stmt_list_ptr, "v_ast_initialize_stmt_list_impl");
-    v_util_register_reset_impl     (v_ast_opaque_stmt_list_ptr, "v_ast_reset_stmt_list_impl");
-    v_util_register_copy_impl      (v_ast_opaque_stmt_list_ptr, "v_ast_copy_stmt_list_impl");
-    v_util_register_move_impl      (v_ast_opaque_stmt_list_ptr, "v_ast_move_stmt_list_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_ast_opaque_stmt_list_ptr, "v_ast_std_any_get_pointer_stmt_list_impl");
-    v_util_register_std_any_set_pointer_impl(v_ast_opaque_stmt_list_ptr, "v_ast_std_any_set_pointer_stmt_list_impl");
-
-    v_util_register_initialize_impl(v_ast_opaque_stmt_ptr, "v_ast_initialize_stmt_impl");
-    v_util_register_reset_impl     (v_ast_opaque_stmt_ptr, "v_ast_reset_stmt_impl");
-    v_util_register_copy_impl      (v_ast_opaque_stmt_ptr, "v_ast_copy_stmt_impl");
-    v_util_register_move_impl      (v_ast_opaque_stmt_ptr, "v_ast_move_stmt_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_ast_opaque_stmt_ptr, "v_ast_std_any_get_pointer_stmt_impl");
-    v_util_register_std_any_set_pointer_impl(v_ast_opaque_stmt_ptr, "v_ast_std_any_set_pointer_stmt_impl");
-
-    v_util_register_initialize_impl(v_ast_opaque_call_ptr, "v_ast_initialize_call_impl");
-    v_util_register_reset_impl     (v_ast_opaque_call_ptr, "v_ast_reset_call_impl");
-    v_util_register_copy_impl      (v_ast_opaque_call_ptr, "v_ast_copy_call_impl");
-    v_util_register_move_impl      (v_ast_opaque_call_ptr, "v_ast_move_call_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_ast_opaque_call_ptr, "v_ast_std_any_get_pointer_call_impl");
-    v_util_register_std_any_set_pointer_impl(v_ast_opaque_call_ptr, "v_ast_std_any_set_pointer_call_impl");
-
-    v_util_register_initialize_impl(v_ast_opaque_arg_list_ptr, "v_ast_initialize_arg_list_impl");
-    v_util_register_reset_impl     (v_ast_opaque_arg_list_ptr, "v_ast_reset_arg_list_impl");
-    v_util_register_copy_impl      (v_ast_opaque_arg_list_ptr, "v_ast_copy_arg_list_impl");
-    v_util_register_move_impl      (v_ast_opaque_arg_list_ptr, "v_ast_move_arg_list_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_ast_opaque_arg_list_ptr, "v_ast_std_any_get_pointer_arg_list_impl");
-    v_util_register_std_any_set_pointer_impl(v_ast_opaque_arg_list_ptr, "v_ast_std_any_set_pointer_arg_list_impl");
-
-    v_util_register_initialize_impl(v_ast_opaque_argument_ptr, "v_ast_initialize_argument_impl");
-    v_util_register_reset_impl     (v_ast_opaque_argument_ptr, "v_ast_reset_argument_impl");
-    v_util_register_copy_impl      (v_ast_opaque_argument_ptr, "v_ast_copy_argument_impl");
-    v_util_register_move_impl      (v_ast_opaque_argument_ptr, "v_ast_move_argument_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_ast_opaque_argument_ptr, "v_ast_std_any_get_pointer_argument_impl");
-    v_util_register_std_any_set_pointer_impl(v_ast_opaque_argument_ptr, "v_ast_std_any_set_pointer_argument_impl");
+    v_util_register_ircmp_impl(v_ast_opaque_generic_ptr,   "v_ast", "generic");
 }
 
 //---------------------------------------------------------------------
-{   unit_ref = LLVMPointerType(v_ast_opaque_unit_ptr, 0);
+{   base_ref = LLVMPointerType(v_ast_opaque_base_ptr, 0);
+    v_add_symbol("v_ast_base_ref", LLVMOpaqueType, base_ref);
 
+    base_list_ref = LLVMPointerType(v_ast_opaque_base_list_ptr, 0);
+    v_add_symbol("v_ast_base_list_ref", LLVMOpaqueType, base_list_ref);
+
+    unit_ref = LLVMPointerType(v_ast_opaque_unit_ptr, 0);
     v_add_symbol("v_ast_unit_ref", LLVMOpaqueType, unit_ref);
 
     stmt_list_ref = LLVMPointerType(v_ast_opaque_stmt_list_ptr, 0);
-
     v_add_symbol("v_ast_stmt_list_ref", LLVMOpaqueType, stmt_list_ref);
 
     stmt_ref = LLVMPointerType(v_ast_opaque_stmt_ptr, 0);
-
     v_add_symbol("v_ast_stmt_ref", LLVMOpaqueType, stmt_ref);
 
     call_ref = LLVMPointerType(v_ast_opaque_call_ptr, 0);
-
     v_add_symbol("v_ast_call_ref", LLVMOpaqueType, call_ref);
 
     arg_list_ref = LLVMPointerType(v_ast_opaque_arg_list_ptr, 0);
-
     v_add_symbol("v_ast_arg_list_ref", LLVMOpaqueType, arg_list_ref);
 
     argument_ref = LLVMPointerType(v_ast_opaque_argument_ptr, 0);
-
     v_add_symbol("v_ast_argument_ref", LLVMOpaqueType, argument_ref);
+
+    generic_ref = LLVMPointerType(v_ast_opaque_generic_ptr, 0);
+    v_add_symbol("v_ast_generic_ref", LLVMOpaqueType, generic_ref);
 }
 
 //---------------------------------------------------------------------
@@ -82,6 +49,7 @@
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
+    //-------------------------------------------------------------
     v_store(v_ast_unit_ref,      arg0);
     v_store(v_ast_stmt_list_ref, arg1);
     v_store(int,                 arg2);
@@ -100,6 +68,7 @@
     v_add_symbol_type("v_ast_unit_get_line",   fun_t);
     v_add_symbol_type("v_ast_unit_get_column", fun_t);
 
+    //-------------------------------------------------------------
     v_store(v_ast_stmt_list_ref, arg0);
     v_store(v_ast_stmt_list_ref, arg1);
     v_store(v_ast_stmt_ref,      arg2);
@@ -119,6 +88,7 @@
 
     v_add_symbol_type("v_ast_stmt_list_get_stmt", fun_t);
 
+    //-------------------------------------------------------------
     v_store(v_ast_stmt_ref,        arg0);
     v_store(v_util_std_string_ref, arg1);
     v_store(v_ast_call_ref,        arg2);
@@ -137,6 +107,7 @@
 
     v_add_symbol_type("v_ast_stmt_get_call", fun_t);
 
+    //-------------------------------------------------------------
     v_store(v_ast_call_ref,        arg0);
     v_store(v_util_std_string_ref, arg1);
     v_store(v_ast_arg_list_ref,    arg2);
@@ -155,6 +126,7 @@
 
     v_add_symbol_type("v_ast_call_get_arg_list", fun_t);
 
+    //-------------------------------------------------------------
     v_store(v_ast_arg_list_ref, arg0);
     v_store(v_ast_argument_ref, arg1);
     v_store(int,                arg2);
@@ -171,6 +143,7 @@
 
     v_add_symbol_type("v_ast_arg_list_get_args", fun_t);
 
+    //-------------------------------------------------------------
     v_store(v_ast_argument_ref,    arg0);
     v_store(v_util_std_string_ref, arg1);
 
@@ -179,6 +152,7 @@
     v_add_symbol_type("v_ast_make_arg_identifier", fun_t);
     v_add_symbol_type("v_ast_arg_identifier_get_name", fun_t);
 
+    //-------------------------------------------------------------
     v_store(intptr_t, arg1);
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
@@ -186,6 +160,7 @@
     v_add_symbol_type("v_ast_make_arg_integer", fun_t);
     v_add_symbol_type("v_ast_arg_integer_get_number", fun_t);
 
+    //-------------------------------------------------------------
     v_store(v_util_std_string_ref, arg1);
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
@@ -193,6 +168,7 @@
     v_add_symbol_type("v_ast_make_arg_string", fun_t);
     v_add_symbol_type("v_ast_arg_string_get_string", fun_t);
 
+    //-------------------------------------------------------------
     v_store(char32_t, arg1);
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
@@ -204,10 +180,148 @@
     v_add_symbol_type("v_ast_arg_char_get_char", fun_t);
 
 
-    //- ...
+    //-------------------------------------------------------------
+    //- Generics ...
+    //-------------------------------------------------------------
+    gctx = LLVMGetGlobalContext();
+
+    generic_vtable = LLVMStructCreateNamed(gctx, "struct.v_ast_generic_vtable");
+
+    void_ptr = LLVMPointerType(void, 0);
+
+    v_store(void_ptr, arg0);
+
+    destroy_ft = LLVMFunctionType(void, arg0, 1, 0);
+    destroy_p  = LLVMPointerType(destroy_ft, 0);
+
+    v_store(void_ptr, arg1);        //- compile_ctx_t ???
+
+    compile_ft = LLVMFunctionType(void, arg0, 2, 0);
+    compile_p  = LLVMPointerType(compile_ft, 0);
+
+    v_store(destroy_p, arg0);
+    v_store(compile_p, arg1);
+
+    LLVMStructSetBody(generic_vtable, arg0, 2, 0);
+    v_add_symbol("v_ast_generic_vtable", LLVMOpaqueType, generic_vtable);
+
+    generic_vtable_ref = LLVMPointerType(generic_vtable, 0);
+
+    //-------------------------------------------------------------
+    v_store(v_ast_generic_ref,  arg0);
+    v_store(generic_vtable_ref, arg1);
+    v_store(void_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_make_generic", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(v_ast_unit_ref,    arg0);
+    v_store(v_ast_generic_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_unit_generic", fun_t);
+
+    v_store(v_ast_stmt_ref, arg0);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_stmt_generic", fun_t);
+
+    v_store(v_ast_call_ref, arg0);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_call_generic", fun_t);
+
+    v_store(v_ast_argument_ref, arg0);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_argument_generic", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(v_ast_generic_ref, arg0);
+
+    fun_t = LLVMFunctionType(generic_vtable_ref, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_generic_get_vtable", fun_t);
+
+    fun_t = LLVMFunctionType(void_ptr, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_generic_get_object", fun_t);
 
 
+    //-------------------------------------------------------------
+    //- Casts ...
+    //-------------------------------------------------------------
+    v_store(v_ast_base_ref, arg0);
+    v_store(v_ast_base_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_base_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_base_impl", fun_t);
+
+    v_store(v_ast_base_list_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_base_list_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_base_list_impl", fun_t);
+
+
+    v_store(v_ast_unit_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_unit_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_unit_impl", fun_t);
+
+    v_store(v_ast_stmt_list_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_stmt_list_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_stmt_list_impl", fun_t);
+
+    v_store(v_ast_stmt_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_stmt_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_stmt_impl", fun_t);
+
+    v_store(v_ast_call_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_call_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_call_impl", fun_t);
+
+    v_store(v_ast_arg_list_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_arg_list_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_arg_list_impl", fun_t);
+
+    v_store(v_ast_argument_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_argument_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_argument_impl", fun_t);
+
+
+    v_store(v_ast_generic_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_upcast_generic_impl",   fun_t);
+    v_add_symbol_type("v_ast_downcast_generic_impl", fun_t);
 }
-
 
 

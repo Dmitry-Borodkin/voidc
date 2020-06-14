@@ -1,37 +1,10 @@
 {   v_import("voidc_util.void");
 }
 
-{   v_util_register_initialize_impl(v_peg_opaque_parser_ptr, "v_peg_initialize_parser_impl");
-    v_util_register_reset_impl     (v_peg_opaque_parser_ptr, "v_peg_reset_parser_impl");
-    v_util_register_copy_impl      (v_peg_opaque_parser_ptr, "v_peg_copy_parser_impl");
-    v_util_register_move_impl      (v_peg_opaque_parser_ptr, "v_peg_move_parser_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_peg_opaque_parser_ptr, "v_peg_std_any_get_pointer_parser_impl");
-    v_util_register_std_any_set_pointer_impl(v_peg_opaque_parser_ptr, "v_peg_std_any_set_pointer_parser_impl");
-
-    v_util_register_initialize_impl(v_peg_opaque_action_ptr, "v_peg_initialize_action_impl");
-    v_util_register_reset_impl     (v_peg_opaque_action_ptr, "v_peg_reset_action_impl");
-    v_util_register_copy_impl      (v_peg_opaque_action_ptr, "v_peg_copy_action_impl");
-    v_util_register_move_impl      (v_peg_opaque_action_ptr, "v_peg_move_action_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_peg_opaque_action_ptr, "v_peg_std_any_get_pointer_action_impl");
-    v_util_register_std_any_set_pointer_impl(v_peg_opaque_action_ptr, "v_peg_std_any_set_pointer_action_impl");
-
-    v_util_register_initialize_impl(v_peg_opaque_argument_ptr, "v_peg_initialize_argument_impl");
-    v_util_register_reset_impl     (v_peg_opaque_argument_ptr, "v_peg_reset_argument_impl");
-    v_util_register_copy_impl      (v_peg_opaque_argument_ptr, "v_peg_copy_argument_impl");
-    v_util_register_move_impl      (v_peg_opaque_argument_ptr, "v_peg_move_argument_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_peg_opaque_argument_ptr, "v_peg_std_any_get_argument_parser_impl");
-    v_util_register_std_any_set_pointer_impl(v_peg_opaque_argument_ptr, "v_peg_std_any_set_argument_parser_impl");
-
-    v_util_register_initialize_impl(v_peg_opaque_grammar_ptr, "v_peg_initialize_grammar_impl");
-    v_util_register_reset_impl     (v_peg_opaque_grammar_ptr, "v_peg_reset_grammar_impl");
-    v_util_register_copy_impl      (v_peg_opaque_grammar_ptr, "v_peg_copy_grammar_impl");
-    v_util_register_move_impl      (v_peg_opaque_grammar_ptr, "v_peg_move_grammar_impl");
-
-    v_util_register_std_any_get_pointer_impl(v_peg_opaque_grammar_ptr, "v_peg_std_any_get_pointer_grammar_impl");
-    v_util_register_std_any_set_pointer_impl(v_peg_opaque_grammar_ptr, "v_peg_std_any_set_pointer_grammar_impl");
+{   v_util_register_ircmp_impl(v_peg_opaque_parser_ptr,   "v_peg", "parser");
+    v_util_register_ircmp_impl(v_peg_opaque_action_ptr,   "v_peg", "action");
+    v_util_register_ircmp_impl(v_peg_opaque_argument_ptr, "v_peg", "argument");
+    v_util_register_ircmp_impl(v_peg_opaque_grammar_ptr,  "v_peg", "grammar");
 }
 
 {   parser_ref = LLVMPointerType(v_peg_opaque_parser_ptr, 0);

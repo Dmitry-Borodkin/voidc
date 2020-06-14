@@ -15,11 +15,11 @@ extern "C"
 static void
 mk_unit(std::any *ret, const std::any *args, size_t)
 {
-    auto p = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+0);
+    auto p = std::any_cast<ast_stmt_list_ptr_t>(args+0);
 
     if (!p)
     {
-        static const std::shared_ptr<const ast_stmt_list_t> nil;
+        static const ast_stmt_list_ptr_t nil;
 
         p = &nil;
     }
@@ -31,24 +31,26 @@ mk_unit(std::any *ret, const std::any *args, size_t)
 
     context_t::current_ctx->get_line_column(pos, line, column);
 
-    *ret = std::make_shared<const ast_unit_t>(*p, line+1, column+1);
+    ast_unit_ptr_t ptr = std::make_shared<const ast_unit_t>(*p, line+1, column+1);
+
+    *ret = ptr;
 }
 
 static void
 mk_stmt_list(std::any *ret, const std::any *args, size_t)
 {
-    auto plst = std::any_cast<std::shared_ptr<const ast_stmt_list_t>>(args+0);
+    auto plst = std::any_cast<ast_stmt_list_ptr_t>(args+0);
 
     if (!plst)
     {
-        static const std::shared_ptr<const ast_stmt_list_t> nil;
+        static const ast_stmt_list_ptr_t nil;
 
         plst = &nil;
     }
 
-    auto item = std::any_cast<std::shared_ptr<const ast_stmt_t>>(args[1]);
+    auto item = std::any_cast<ast_stmt_ptr_t>(args[1]);
 
-    *ret = std::make_shared<const ast_stmt_list_t>(*plst, item);
+    *ret = std::make_shared<const ast_stmt_list_t>(*plst, item);          //- Sic!
 }
 
 static void
@@ -58,9 +60,11 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
 
     if (auto p = std::any_cast<const std::string>(args+0)) { s = *p; }
 
-    auto c = std::any_cast<std::shared_ptr<const ast_call_t>>(args[1]);
+    auto c = std::any_cast<ast_call_ptr_t>(args[1]);
 
-    *ret = std::make_shared<const ast_stmt_t>(s, c);
+    ast_stmt_ptr_t ptr = std::make_shared<const ast_stmt_t>(s, c);
+
+    *ret = ptr;
 }
 
 static void
@@ -68,33 +72,35 @@ mk_call(std::any *ret, const std::any *args, size_t)
 {
     auto f = std::any_cast<const std::string>(args[0]);
 
-    auto a = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+1);
+    auto a = std::any_cast<ast_arg_list_ptr_t>(args+1);
 
     if (!a)
     {
-        static const std::shared_ptr<const ast_arg_list_t> nil;
+        static const ast_arg_list_ptr_t nil;
 
         a = &nil;
     }
 
-    *ret = std::make_shared<const ast_call_t>(f, *a);
+    ast_call_ptr_t ptr = std::make_shared<const ast_call_t>(f, *a);
+
+    *ret = ptr;
 }
 
 static void
 mk_arg_list(std::any *ret, const std::any *args, size_t)
 {
-    auto plst = std::any_cast<std::shared_ptr<const ast_arg_list_t>>(args+0);
+    auto plst = std::any_cast<ast_arg_list_ptr_t>(args+0);
 
     if (!plst)
     {
-        static const std::shared_ptr<const ast_arg_list_t> nil;
+        static const ast_arg_list_ptr_t nil;
 
         plst = &nil;
     }
 
-    auto item = std::any_cast<std::shared_ptr<const ast_argument_t>>(args[1]);
+    auto item = std::any_cast<ast_argument_ptr_t>(args[1]);
 
-    *ret = std::make_shared<const ast_arg_list_t>(*plst, item);
+    *ret = std::make_shared<const ast_arg_list_t>(*plst, item);       //- Sic!
 }
 
 static void
@@ -102,9 +108,9 @@ mk_arg_identifier(std::any *ret, const std::any *args, size_t)
 {
     auto n = std::any_cast<const std::string>(args[0]);
 
-    std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_identifier_t>(n);
+    ast_argument_ptr_t ptr = std::make_shared<const ast_arg_identifier_t>(n);
 
-    *ret = r;
+    *ret = ptr;
 }
 
 static void
@@ -112,9 +118,9 @@ mk_arg_integer(std::any *ret, const std::any *args, size_t)
 {
     auto n = std::any_cast<intptr_t>(args[0]);
 
-    std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_integer_t>(n);
+    ast_argument_ptr_t ptr = std::make_shared<const ast_arg_integer_t>(n);
 
-    *ret = r;
+    *ret = ptr;
 }
 
 static void
@@ -122,9 +128,9 @@ mk_arg_string(std::any *ret, const std::any *args, size_t)
 {
     auto s = std::any_cast<const std::string>(args[0]);
 
-    std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_string_t>(s);
+    ast_argument_ptr_t ptr = std::make_shared<const ast_arg_string_t>(s);
 
-    *ret = r;
+    *ret = ptr;
 }
 
 static void
@@ -177,9 +183,9 @@ mk_arg_char(std::any *ret, const std::any *args, size_t)
         }
     }
 
-    std::shared_ptr<const ast_argument_t> r = std::make_shared<const ast_arg_char_t>(c);
+    ast_argument_ptr_t ptr = std::make_shared<const ast_arg_char_t>(c);
 
-    *ret = r;
+    *ret = ptr;
 }
 
 static void

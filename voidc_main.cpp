@@ -191,7 +191,7 @@ void v_import(const char *name)
 
                 if (!pctx.is_ok())  break;
 
-                if (auto unit = std::any_cast<std::shared_ptr<const ast_unit_t>>(v))
+                if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
                 {
                     unit->compile(cctx);
 
@@ -264,7 +264,7 @@ int main()
 
             if (!pctx.is_ok())  break;
 
-            if (auto unit = std::any_cast<std::shared_ptr<const ast_unit_t>>(v))
+            if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
             {
                 unit->compile(cctx);
 

@@ -22,11 +22,13 @@ struct ast_base_t
     virtual void compile(compile_ctx_t &cctx) const = 0;
 };
 
+typedef std::shared_ptr<const ast_base_t> ast_base_ptr_t;
+
 //----------------------------------------------------------------------
-struct ast_unit_base_t : public ast_base_t {};
-struct ast_stmt_base_t : public ast_base_t {};
-struct ast_call_base_t : public ast_base_t {};
-struct ast_argument_t :  public ast_base_t {};
+struct ast_unit_base_t : public virtual ast_base_t {};
+struct ast_stmt_base_t : public virtual ast_base_t {};
+struct ast_call_base_t : public virtual ast_base_t {};
+struct ast_argument_t :  public virtual ast_base_t {};
 
 typedef std::shared_ptr<const ast_unit_base_t> ast_unit_ptr_t;
 typedef std::shared_ptr<const ast_stmt_base_t> ast_stmt_ptr_t;
@@ -34,9 +36,6 @@ typedef std::shared_ptr<const ast_call_base_t> ast_call_ptr_t;
 typedef std::shared_ptr<const ast_argument_t>  ast_argument_ptr_t;
 
 //----------------------------------------------------------------------
-struct ast_stmt_t;
-struct ast_call_t;
-
 template<typename T>
 struct ast_list_t : public ast_base_t
 {
@@ -60,9 +59,11 @@ struct ast_list_t : public ast_base_t
     }
 };
 
+typedef ast_list_t<ast_base_t>      ast_base_list_t;
 typedef ast_list_t<ast_stmt_base_t> ast_stmt_list_t;
 typedef ast_list_t<ast_argument_t>  ast_arg_list_t;
 
+typedef std::shared_ptr<const ast_base_list_t> ast_base_list_ptr_t;
 typedef std::shared_ptr<const ast_stmt_list_t> ast_stmt_list_ptr_t;
 typedef std::shared_ptr<const ast_arg_list_t>  ast_arg_list_ptr_t;
 
@@ -165,6 +166,89 @@ struct ast_arg_char_t : public ast_argument_t
 };
 
 
+//----------------------------------------------------------------------
+//- Generics...
+//----------------------------------------------------------------------
+extern "C"
+{
+
+struct ast_generic_vtable
+{
+    void (*destroy)(void *object);
+
+    void (*compile)(const void *object, compile_ctx_t *pcctx);
+};
+
+//----------------------------------------------------------------------
+}   //- extern "C"
+
+
+//----------------------------------------------------------------------
+struct ast_generic_t : public virtual ast_base_t
+{
+    ast_generic_t(const ast_generic_vtable *vtab, void *obj)
+      : vtable(vtab),
+        _object(obj)
+    {}
+
+    ~ast_generic_t() override
+    {
+        vtable->destroy(_object);
+    }
+
+    void compile(compile_ctx_t &cctx) const override
+    {
+        vtable->compile(object, &cctx);
+    }
+
+    const ast_generic_vtable * const vtable;
+
+    const void * const &object = _object;
+
+protected:
+    explicit ast_generic_t(const std::shared_ptr<const ast_generic_t> &other)
+      : vtable(other->vtable),
+        _object(other->_object)
+    {}
+
+private:
+    void * const _object;
+};
+
+typedef std::shared_ptr<const ast_generic_t>  ast_generic_ptr_t;
+
+//----------------------------------------------------------------------
+struct ast_unit_generic_t : public ast_unit_base_t, public ast_generic_t
+{
+    explicit ast_unit_generic_t(const ast_generic_ptr_t &gen)
+      : ast_generic_t(gen)
+    {}
+};
+
+struct ast_stmt_generic_t : public ast_stmt_base_t, public ast_generic_t
+{
+    explicit ast_stmt_generic_t(const ast_generic_ptr_t &gen)
+      : ast_generic_t(gen)
+    {}
+};
+
+struct ast_call_generic_t : public ast_call_base_t, public ast_generic_t
+{
+    explicit ast_call_generic_t(const ast_generic_ptr_t &gen)
+      : ast_generic_t(gen)
+    {}
+};
+
+struct ast_argument_generic_t : public ast_argument_t, public ast_generic_t
+{
+    explicit ast_argument_generic_t(const ast_generic_ptr_t &gen)
+      : ast_generic_t(gen)
+    {}
+};
+
+
+//----------------------------------------------------------------------
+//- ...
 //----------------------------------------------------------------------
 void v_ast_static_initialize(void);
 void v_ast_static_terminate(void);

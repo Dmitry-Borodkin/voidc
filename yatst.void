@@ -1,4 +1,5 @@
 {   v_import("vpeg_grammar.void"); }
+{   v_import("voidc_ast.void"); }
 
 {   v_import("printf.void"); }
 
@@ -92,9 +93,113 @@
 }
 
 
+//---------------------------------------------------------------------
+//- AST ...
+//---------------------------------------------------------------------
+{   v_import("voidc_internals.void"); }
+
+{   module = LLVMModuleCreateWithName("ast_tests_mod");
+
+    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
+    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
+
+    LLVMSetModuleDataLayout(module, dl);
+    LLVMSetTarget(module, tr);
+
+    LLVMDisposeMessage(tr);
+    LLVMDisposeTargetData(dl);
+
+    typ0 = v_alloca(LLVMTypeRef, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    void_ptr = LLVMPointerType(void, 0);
+
+    v_store(void_ptr, typ0);
+    v_store(void_ptr, typ1);
 
 
+    destroy_ft = LLVMFunctionType(void, typ0, 1, 0);
+    destroy_f  = LLVMAddFunction(module, "destroy_f", destroy_ft);
+
+    entry = LLVMAppendBasicBlock(destroy_f, "entry");
+    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+
+    printf_ft = v_find_symbol_type("printf");
+    printf_f  = LLVMAddFunction(module, "printf", printf_ft);
+
+    str = LLVMBuildGlobalStringPtr(voidc_builder, "destroy!\n", "str");
+
+    val0 = v_alloca(LLVMValueRef, 2);
+    val1 = v_getelementptr(val0, 1);
+
+    v_store(str, val0);
+
+    LLVMBuildCall(voidc_builder, printf_f, val0, 1, "");
+
+    LLVMBuildRetVoid(voidc_builder);
 
 
+    compile_ft = LLVMFunctionType(void, typ0, 2, 0);
+    compile_f  = LLVMAddFunction(module, "compile_f", compile_ft);
 
+    entry = LLVMAppendBasicBlock(compile_f, "entry");
+    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+
+    str = LLVMBuildGlobalStringPtr(voidc_builder, "compile!\n", "str");
+
+    v_store(str, val0);
+
+    LLVMBuildCall(voidc_builder, printf_f, val0, 1, "");
+
+    LLVMBuildRetVoid(voidc_builder);
+
+
+    //-------------------------------------------------------------
+    LLVMClearInsertionPosition(voidc_builder);
+
+    //-------------------------------------------------------------
+    v_store(destroy_f, val0);
+    v_store(compile_f, val1);
+
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable, val0, 2);
+
+    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable, "vtable_g");
+
+    LLVMSetInitializer(vtable_g, vtable_v);
+
+
+    //-------------------------------------------------------------
+    LLVMRunPassManager(voidc_pass_manager, module);
+
+    //-------------------------------------------------------------
+    msg = LLVMPrintModuleToString(module);
+
+    printf("\n%s\n", msg);
+
+    LLVMDisposeMessage(msg);
+
+    //-------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver,
+                                0
+                               );
+
+    //-----------------------------------------------------------------
+    v_add_symbol_type("destroy_f", destroy_ft);
+    v_add_symbol_type("compile_f", compile_ft);
+
+    v_add_symbol_type("vtable_g", v_ast_generic_vtable);
+}
+
+{   gen = v_alloca(v_ast_opaque_generic_ptr);
+    v_initialize(gen);
+
+    v_ast_make_generic(gen, vtable_g, 0);
+
+    //- ...
+
+    v_reset(gen);
+}
 

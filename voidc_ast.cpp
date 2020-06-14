@@ -73,12 +73,17 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(ast_##name##_ptr_t, v_ast_std_any_get_pointer_##name##_impl) \
     VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(ast_##name##_ptr_t, v_ast_std_any_set_pointer_##name##_impl)
 
+    DEF(base)
+    DEF(base_list)
+
     DEF(unit)
     DEF(stmt_list)
     DEF(stmt)
     DEF(call)
     DEF(arg_list)
     DEF(argument)
+
+    DEF(generic)
 
 #undef DEF
 
@@ -88,7 +93,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 //----------------------------------------------------------------------
 void v_ast_make_unit(ast_unit_ptr_t *ret, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
 {
-    *ret = std::make_shared<ast_unit_t>(*stmt_list, line, column);
+    *ret = std::make_shared<const ast_unit_t>(*stmt_list, line, column);
 }
 
 void v_ast_unit_get_stmt_list(const ast_unit_ptr_t *ptr, ast_stmt_list_ptr_t *list)
@@ -118,7 +123,7 @@ int v_ast_unit_get_column(const ast_unit_ptr_t *ptr)
 //------------------------------------------------------------------
 void v_ast_make_stmt_list(ast_stmt_list_ptr_t *ret, const ast_stmt_list_ptr_t *list, const ast_stmt_ptr_t *stmt)
 {
-    *ret = std::make_shared<ast_stmt_list_t>(*list, *stmt);
+    *ret = std::make_shared<const ast_stmt_list_t>(*list, *stmt);
 }
 
 int v_ast_stmt_list_get_size(const ast_stmt_list_ptr_t *ptr)
@@ -134,7 +139,7 @@ void v_ast_stmt_list_get_stmt(const ast_stmt_list_ptr_t *ptr, int i, ast_stmt_pt
 //------------------------------------------------------------------
 void v_ast_make_stmt(ast_stmt_ptr_t *ret, const std::string *var, const ast_call_ptr_t *call)
 {
-    *ret = std::make_shared<ast_stmt_t>(*var, *call);
+    *ret = std::make_shared<const ast_stmt_t>(*var, *call);
 }
 
 void v_ast_stmt_get_var_name(const ast_stmt_ptr_t *ptr, std::string *var)
@@ -156,7 +161,7 @@ void v_ast_stmt_get_call(const ast_stmt_ptr_t *ptr, ast_call_ptr_t *call)
 //------------------------------------------------------------------
 void v_ast_make_call(ast_call_ptr_t *ret, const std::string *fun, const ast_arg_list_ptr_t *list)
 {
-    *ret = std::make_shared<ast_call_t>(*fun, *list);
+    *ret = std::make_shared<const ast_call_t>(*fun, *list);
 }
 
 void v_ast_call_get_fun_name(const ast_call_ptr_t *ptr, std::string *fun)
@@ -178,7 +183,7 @@ void v_ast_call_get_arg_list(const ast_call_ptr_t *ptr, ast_arg_list_ptr_t *list
 //------------------------------------------------------------------
 void v_ast_make_arg_list(ast_arg_list_ptr_t *ret, const ast_argument_ptr_t *list, int count)
 {
-    *ret = std::make_shared<ast_arg_list_t>(list, count);
+    *ret = std::make_shared<const ast_arg_list_t>(list, count);
 }
 
 int v_ast_arg_list_get_count(const ast_arg_list_ptr_t *ptr)
@@ -200,7 +205,7 @@ void v_ast_arg_list_get_args(const ast_arg_list_ptr_t *ptr, ast_argument_ptr_t *
 //------------------------------------------------------------------
 void v_ast_make_arg_identifier(ast_argument_ptr_t *ret, const std::string *name)
 {
-    *ret = std::make_shared<ast_arg_identifier_t>(*name);
+    *ret = std::make_shared<const ast_arg_identifier_t>(*name);
 }
 
 void v_ast_arg_identifier_get_name(const ast_argument_ptr_t *ptr, std::string *name)
@@ -214,7 +219,7 @@ void v_ast_arg_identifier_get_name(const ast_argument_ptr_t *ptr, std::string *n
 //------------------------------------------------------------------
 void v_ast_make_arg_integer(ast_argument_ptr_t *ret, intptr_t number)
 {
-    *ret = std::make_shared<ast_arg_integer_t>(number);
+    *ret = std::make_shared<const ast_arg_integer_t>(number);
 }
 
 intptr_t v_ast_arg_integer_get_number(const ast_argument_ptr_t *ptr)
@@ -228,7 +233,7 @@ intptr_t v_ast_arg_integer_get_number(const ast_argument_ptr_t *ptr)
 //------------------------------------------------------------------
 void v_ast_make_arg_string(ast_argument_ptr_t *ret, const std::string *string)
 {
-    *ret = std::make_shared<ast_arg_string_t>(*string);
+    *ret = std::make_shared<const ast_arg_string_t>(*string);
 }
 
 void v_ast_arg_string_get_string(const ast_argument_ptr_t *ptr, std::string *string)
@@ -242,7 +247,7 @@ void v_ast_arg_string_get_string(const ast_argument_ptr_t *ptr, std::string *str
 //------------------------------------------------------------------
 void v_ast_make_arg_char(ast_argument_ptr_t *ret, char32_t c)
 {
-    *ret = std::make_shared<ast_arg_char_t>(c);
+    *ret = std::make_shared<const ast_arg_char_t>(c);
 }
 
 char32_t v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
@@ -252,6 +257,86 @@ char32_t v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
 
     return  pp->c;
 }
+
+
+//------------------------------------------------------------------
+//- Generics ...
+//------------------------------------------------------------------
+void v_ast_make_generic(ast_generic_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
+{
+    *ret = std::make_shared<const ast_generic_t>(vtab, obj);
+}
+
+//--------------------------------------------------------------
+void v_ast_make_unit_generic(ast_unit_ptr_t *ret, const ast_generic_ptr_t *gen)
+{
+    *ret = std::make_shared<const ast_unit_generic_t>(*gen);
+}
+
+void v_ast_make_stmt_generic(ast_stmt_ptr_t *ret, const ast_generic_ptr_t *gen)
+{
+    *ret = std::make_shared<const ast_stmt_generic_t>(*gen);
+}
+
+void v_ast_make_call_generic(ast_call_ptr_t *ret, const ast_generic_ptr_t *gen)
+{
+    *ret = std::make_shared<const ast_call_generic_t>(*gen);
+}
+
+void v_ast_make_argument_generic(ast_argument_ptr_t *ret, const ast_generic_ptr_t *gen)
+{
+    *ret = std::make_shared<const ast_argument_generic_t>(*gen);
+}
+
+//------------------------------------------------------------------
+const ast_generic_vtable *
+v_ast_generic_get_vtable(const ast_generic_ptr_t *ptr)
+{
+    return (*ptr)->vtable;
+}
+
+const void *
+v_ast_generic_get_object(const ast_generic_ptr_t *ptr)
+{
+    return (*ptr)->object;
+}
+
+
+//------------------------------------------------------------------
+//- Casts ...
+//------------------------------------------------------------------
+#define DEF_UPCAST(name) \
+void v_ast_upcast_##name##_impl(ast_base_ptr_t *ret, const ast_##name##_ptr_t *ptr) \
+{ \
+    *ret = std::static_pointer_cast<const ast_base_t>(*ptr); \
+}
+
+#define DEF_DOWNCAST(name) \
+void v_ast_downcast_##name##_impl(const ast_base_ptr_t *ptr, ast_##name##_ptr_t *ret) \
+{ \
+    *ret = std::dynamic_pointer_cast<const ast_##name##_t>(*ptr); \
+}
+
+#define DEF(name) \
+    DEF_UPCAST(name) \
+    DEF_DOWNCAST(name)
+
+    DEF(base)           //- ?...
+    DEF(base_list)
+
+    DEF(unit)
+    DEF(stmt_list)
+    DEF(stmt)
+    DEF(call)
+    DEF(arg_list)
+    DEF(argument)
+
+    DEF(generic)
+
+#undef DEF
+
+#undef DEF_DOWNCAST
+#undef DEF_UPCAST
 
 
 //---------------------------------------------------------------------
@@ -267,24 +352,22 @@ VOIDC_DLLEXPORT_END
 //----------------------------------------------------------------------
 void v_ast_static_initialize(void)
 {
-    static_assert((sizeof(ast_unit_ptr_t) % sizeof(char *)) == 0);
-
-    static_assert(sizeof(ast_unit_ptr_t) == sizeof(ast_stmt_list_ptr_t));
-    static_assert(sizeof(ast_unit_ptr_t) == sizeof(ast_stmt_ptr_t));
-    static_assert(sizeof(ast_unit_ptr_t) == sizeof(ast_call_ptr_t));
-    static_assert(sizeof(ast_unit_ptr_t) == sizeof(ast_arg_list_ptr_t));
-    static_assert(sizeof(ast_unit_ptr_t) == sizeof(ast_argument_ptr_t));
+    static_assert((sizeof(ast_base_ptr_t) % sizeof(char *)) == 0);
 
     auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
 
-    auto content_type = LLVMArrayType(char_ptr_type, sizeof(ast_unit_ptr_t)/sizeof(char *));
+    auto content_type = LLVMArrayType(char_ptr_type, sizeof(ast_base_ptr_t)/sizeof(char *));
 
     auto gctx = LLVMGetGlobalContext();
 
 #define DEF(name) \
-    auto ast_opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_ast_opaque_" #name "_ptr"); \
-    LLVMStructSetBody(ast_opaque_##name##_ptr_type, &content_type, 1, false); \
-    v_add_symbol("v_ast_opaque_" #name "_ptr", compile_ctx_t::LLVMOpaqueType_type, (void *)ast_opaque_##name##_ptr_type);
+    static_assert(sizeof(ast_base_ptr_t) == sizeof(ast_##name##_ptr_t)); \
+    auto opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_ast_opaque_" #name "_ptr"); \
+    LLVMStructSetBody(opaque_##name##_ptr_type, &content_type, 1, false); \
+    v_add_symbol("v_ast_opaque_" #name "_ptr", compile_ctx_t::LLVMOpaqueType_type, (void *)opaque_##name##_ptr_type);
+
+    DEF(base)
+    DEF(base_list)
 
     DEF(unit)
     DEF(stmt_list)
@@ -292,6 +375,8 @@ void v_ast_static_initialize(void)
     DEF(call)
     DEF(arg_list)
     DEF(argument)
+
+    DEF(generic)
 
 #undef DEF
 
