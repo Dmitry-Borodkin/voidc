@@ -1,7 +1,8 @@
-{   v_import("vpeg_grammar.void"); }
-{   v_import("voidc_ast.void"); }
+{   v_import("vpeg_grammar.void");
+    v_import("voidc_ast.void");
 
-{   v_import("printf.void"); }
+    v_import("printf.void");
+}
 
 {
     pp0 = v_alloca(v_peg_opaque_parser_ptr, 2);
@@ -96,8 +97,6 @@
 //---------------------------------------------------------------------
 //- AST ...
 //---------------------------------------------------------------------
-{   v_import("voidc_internals.void"); }
-
 {   module = LLVMModuleCreateWithName("ast_tests_mod");
 
     dl = LLVMCreateTargetDataLayout(voidc_target_machine);
@@ -120,6 +119,7 @@
 
     destroy_ft = LLVMFunctionType(void, typ0, 1, 0);
     destroy_f  = LLVMAddFunction(module, "destroy_f", destroy_ft);
+    LLVMSetLinkage(destroy_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(destroy_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
@@ -141,6 +141,7 @@
 
     compile_ft = LLVMFunctionType(void, typ0, 2, 0);
     compile_f  = LLVMAddFunction(module, "compile_f", compile_ft);
+    LLVMSetLinkage(compile_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(compile_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
@@ -172,11 +173,11 @@
     LLVMRunPassManager(voidc_pass_manager, module);
 
     //-------------------------------------------------------------
-    msg = LLVMPrintModuleToString(module);
-
-    printf("\n%s\n", msg);
-
-    LLVMDisposeMessage(msg);
+//    msg = LLVMPrintModuleToString(module);
+//
+//    printf("\n%s\n", msg);
+//
+//    LLVMDisposeMessage(msg);
 
     //-------------------------------------------------------------
     PH = v_alloca(LLVMOrcModuleHandle);
@@ -187,9 +188,6 @@
                                );
 
     //-----------------------------------------------------------------
-    v_add_symbol_type("destroy_f", destroy_ft);
-    v_add_symbol_type("compile_f", compile_ft);
-
     v_add_symbol_type("vtable_g", v_ast_generic_vtable);
 }
 

@@ -10,6 +10,7 @@
 #include <memory>
 #include <cassert>
 #include <cstring>
+#include <cstdlib>
 #include <filesystem>
 
 #include <llvm-c/Core.h>
@@ -37,11 +38,47 @@ namespace fs = std::filesystem;
 
 
 //---------------------------------------------------------------------
-static std::list<fs::path> import_paths =
-{
-    "."
-};
+static std::list<fs::path> import_paths;
 
+#ifdef _WIN32
+#define PATHSEP ';'
+#else
+#define PATHSEP ':'
+#endif
+
+void import_paths_initialize(void)
+{
+    if (auto paths = std::getenv("VOIDC_IMPORT"))
+    {
+        while(paths)
+        {
+            fs::path path;
+
+            if (auto p = std::strchr(paths, PATHSEP))
+            {
+                path = std::string(paths, p);
+
+                paths = p + 1;
+            }
+            else
+            {
+                path = std::string(paths);
+
+                paths = nullptr;
+            }
+
+            import_paths.push_back(path);
+        }
+    }
+    else
+    {
+        import_paths = {"."};
+    }
+}
+
+#undef PATHSEP
+
+//---------------------------------------------------------------------
 static
 fs::path find_file_for_import(const fs::path &parent, const fs::path &filename)
 {
@@ -235,6 +272,8 @@ void v_import(const char *name)
 //---------------------------------------------------------------------
 int main()
 {
+    import_paths_initialize();
+
     compile_ctx_t::static_initialize();
     utility::static_initialize();
 
