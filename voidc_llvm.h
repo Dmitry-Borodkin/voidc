@@ -1,3 +1,7 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
 #ifndef VOIDC_LLVM_H
 #define VOIDC_LLVM_H
 

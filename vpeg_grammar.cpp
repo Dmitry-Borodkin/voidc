@@ -1,3 +1,7 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
 #include "vpeg_grammar.h"
 
 #include "vpeg_context.h"
@@ -104,11 +108,9 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
 //-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {
-    static_assert((sizeof(parser_ptr_t) % sizeof(char *)) == 0);
+    static_assert((sizeof(parser_ptr_t) % sizeof(intptr_t)) == 0);
 
-    auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
-
-    auto content_type = LLVMArrayType(char_ptr_type, sizeof(parser_ptr_t)/sizeof(char *));
+    auto content_type = LLVMArrayType(compile_ctx_t::intptr_t_type, sizeof(parser_ptr_t)/sizeof(intptr_t));
 
     auto gctx = LLVMGetGlobalContext();
 

@@ -1,3 +1,7 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
 #include "voidc_util.h"
 
 #include <cassert>
@@ -295,49 +299,21 @@ void static_initialize(void)
     compile_ctx_t::intrinsics["v_std_any_set_value"]   = v_std_any_set_value;
     compile_ctx_t::intrinsics["v_std_any_set_pointer"] = v_std_any_set_pointer;
 
-
     //-----------------------------------------------------------------
-    auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
-
     auto gctx = LLVMGetGlobalContext();
 
-#define DEF(name) \
-    v_add_symbol("v_util_" #name, compile_ctx_t::LLVMOpaqueType_type, (void *)name##_type);
+#define DEF(ctype, name) \
+    static_assert((sizeof(ctype) % sizeof(intptr_t)) == 0); \
+    auto name##_content_type = LLVMArrayType(compile_ctx_t::intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
+    auto opaque_##name##_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_" #name); \
+    LLVMStructSetBody(opaque_##name##_type, &name##_content_type, 1, false); \
+    v_add_symbol("v_util_opaque_" #name, compile_ctx_t::LLVMOpaqueType_type, (void *)opaque_##name##_type);
 
-    //-----------------------------------------------------------------
-    static_assert((sizeof(std::any) % sizeof(char *)) == 0);
-
-    auto std_any_content_type = LLVMArrayType(char_ptr_type, sizeof(std::any)/sizeof(char *));
-
-    auto opaque_std_any_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_any");
-    LLVMStructSetBody(opaque_std_any_type, &std_any_content_type, 1, false);
-
-    DEF(opaque_std_any)
-
-    //-----------------------------------------------------------------
-    static_assert((sizeof(std::string) % sizeof(char *)) == 0);
-
-    auto std_string_content_type = LLVMArrayType(char_ptr_type, sizeof(std::string)/sizeof(char *));
-
-    auto opaque_std_string_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_std_string");
-    LLVMStructSetBody(opaque_std_string_type, &std_string_content_type, 1, false);
-
-    DEF(opaque_std_string)
-
-    //-----------------------------------------------------------------
-    static_assert((sizeof(v_util_function_dict_t) % sizeof(char *)) == 0);
-
-    auto function_dict_t_content_type = LLVMArrayType(char_ptr_type, sizeof(v_util_function_dict_t)/sizeof(char *));
-
-    auto opaque_function_dict_t_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_function_dict_t");
-    LLVMStructSetBody(opaque_function_dict_t_type, &function_dict_t_content_type, 1, false);
-
-    DEF(opaque_function_dict_t)
-
+    DEF(std::any, std_any)
+    DEF(std::string, std_string)
+    DEF(v_util_function_dict_t, function_dict_t)
 
 #undef DEF
-
-
 }
 
 //---------------------------------------------------------------------

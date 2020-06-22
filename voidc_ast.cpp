@@ -1,10 +1,235 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
 #include "voidc_ast.h"
 
 #include "voidc_util.h"
 
 #include <cassert>
 
+#include <llvm-c/Analysis.h>
 
+
+//---------------------------------------------------------------------
+//- unit
+//---------------------------------------------------------------------
+void ast_unit_t::compile(compile_ctx_t &cctx) const
+{
+    assert(cctx.args.empty());
+
+    if (!stmt_list) return;
+
+    std::string hdr = "unit_" + std::to_string(line) + "_" + std::to_string(column);
+
+    std::string mod_name = hdr + "_module";
+    std::string fun_name = hdr + "_action";
+
+    cctx.module = LLVMModuleCreateWithName(mod_name.c_str());
+
+    LLVMSetSourceFileName(cctx.module, cctx.filename.c_str(), cctx.filename.size());
+
+    {   auto dl = LLVMCreateTargetDataLayout(cctx.target_machine);
+        auto tr = LLVMGetTargetMachineTriple(cctx.target_machine);
+
+        LLVMSetModuleDataLayout(cctx.module, dl);
+        LLVMSetTarget(cctx.module, tr);
+
+        LLVMDisposeMessage(tr);
+        LLVMDisposeTargetData(dl);
+    }
+
+    LLVMTypeRef  unit_ft = LLVMFunctionType(LLVMVoidType(), nullptr, 0, false);
+    LLVMValueRef unit_f  = LLVMAddFunction(cctx.module, fun_name.c_str(), unit_ft);
+
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(unit_f, "entry");
+
+    LLVMPositionBuilderAtEnd(cctx.builder, entry);
+
+    stmt_list->compile(cctx);
+
+    LLVMBuildRetVoid(cctx.builder);
+
+    LLVMClearInsertionPosition(cctx.builder);
+
+    //-------------------------------------------------------------
+    LLVMRunPassManager(cctx.pass_manager, cctx.module);
+
+    //-------------------------------------------------------------
+    char *msg = nullptr;
+
+    auto err = LLVMVerifyModule(cctx.module, LLVMReturnStatusAction, &msg);
+    if (err)
+    {
+        char *txt = LLVMPrintModuleToString(cctx.module);
+
+        printf("\n%s\n", txt);
+
+        LLVMDisposeMessage(txt);
+
+        printf("\n%s\n", msg);
+    }
+
+    LLVMDisposeMessage(msg);
+
+    if (err)  exit(1);          //- Sic !!!
+
+    //-------------------------------------------------------------
+    err = LLVMTargetMachineEmitToMemoryBuffer(cctx.target_machine,
+                                              cctx.module,
+                                              LLVMObjectFile,
+                                              &msg,
+                                              &cctx.unit_buffer);
+
+    if (err)
+    {
+        printf("\n%s\n", msg);
+
+        LLVMDisposeMessage(msg);
+
+        exit(1);                //- Sic !!!
+    }
+
+    assert(cctx.unit_buffer);
+
+
+//    {   LLVMMemoryBufferRef asm_buffer = nullptr;
+//
+//        LLVMTargetMachineEmitToMemoryBuffer(cctx.target_machine,
+//                                            cctx.module,
+//                                            LLVMAssemblyFile,
+//                                            &msg,
+//                                            &asm_buffer);
+//
+//        assert(asm_buffer);
+//
+//        printf("\n%s\n", LLVMGetBufferStart(asm_buffer));
+//
+//        LLVMDisposeMemoryBuffer(asm_buffer);
+//    }
+
+
+    LLVMDisposeModule(cctx.module);
+
+    cctx.vars.clear();
+}
+
+
+//----------------------------------------------------------------------
+//- stmt
+//----------------------------------------------------------------------
+void ast_stmt_t::compile(compile_ctx_t &cctx) const
+{
+    cctx.ret_name  = var_name.c_str();
+    cctx.ret_value = nullptr;
+
+    call->compile(cctx);
+
+    if (cctx.ret_name[0])   cctx.vars[var_name] = cctx.ret_value;
+}
+
+
+//----------------------------------------------------------------------
+//- call
+//----------------------------------------------------------------------
+void ast_call_t::compile(compile_ctx_t &cctx) const
+{
+    assert(cctx.args.empty());
+
+    if (cctx.intrinsics.count(fun_name))
+    {
+        cctx.intrinsics[fun_name](&cctx, &arg_list);
+
+        return;
+    }
+
+    LLVMValueRef f  = nullptr;
+    LLVMTypeRef  ft = nullptr;
+
+    bool ok = cctx.find_function(fun_name, ft, f);
+
+    if (!ok)  puts(fun_name.c_str());
+
+    assert(ok && "function not found");
+
+    cctx.arg_types.resize(LLVMCountParamTypes(ft));
+
+    LLVMGetParamTypes(ft, cctx.arg_types.data());
+
+    if (arg_list) arg_list->compile(cctx);
+
+    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
+
+    cctx.args.clear();
+    cctx.arg_types.clear();
+
+    cctx.ret_value = v;
+}
+
+
+//----------------------------------------------------------------------
+//- arg_identifier
+//----------------------------------------------------------------------
+void ast_arg_identifier_t::compile(compile_ctx_t &cctx) const
+{
+    LLVMValueRef v = cctx.find_identifier(name);
+
+    if (!v)  puts(name.c_str());
+
+    assert(v && "identifier not found");
+
+    auto idx = cctx.args.size();
+
+    if (idx < cctx.arg_types.size())
+    {
+        auto void_ptr_type = LLVMPointerType(cctx.void_type, 0);
+
+        auto at = cctx.arg_types[idx];
+        auto vt = LLVMTypeOf(v);
+
+        if (at != vt  &&
+            at == void_ptr_type  &&
+            LLVMGetTypeKind(vt) == LLVMPointerTypeKind)
+        {
+            v = LLVMBuildPointerCast(cctx.builder, v, void_ptr_type, name.c_str());
+        }
+    }
+
+    cctx.args.push_back(v);
+}
+
+
+//----------------------------------------------------------------------
+//- arg_integer
+//----------------------------------------------------------------------
+void ast_arg_integer_t::compile(compile_ctx_t &cctx) const
+{
+    auto idx = cctx.args.size();
+
+    LLVMTypeRef t = cctx.int_type;
+
+    if (idx < cctx.arg_types.size())
+    {
+        t = cctx.arg_types[idx];
+    }
+
+    LLVMValueRef v;
+
+    if (LLVMGetTypeKind(t) == LLVMPointerTypeKind  &&  number == 0)
+    {
+        v = LLVMConstPointerNull(t);
+    }
+    else
+    {
+        v = LLVMConstInt(t, number, false);     //- ?
+    }
+
+    cctx.args.push_back(v);
+}
+
+
+//----------------------------------------------------------------------
+//- arg_string
 //----------------------------------------------------------------------
 static
 char get_raw_character(const char * &p)
@@ -52,9 +277,44 @@ std::string make_arg_string(const std::string &vstr)
     return ret;
 }
 
+//----------------------------------------------------------------------
 ast_arg_string_t::ast_arg_string_t(const std::string &vstr)
   : string(make_arg_string(vstr))
 {}
+
+
+//----------------------------------------------------------------------
+void ast_arg_string_t::compile(compile_ctx_t &cctx) const
+{
+    auto v = LLVMBuildGlobalStringPtr(cctx.builder, string.c_str(), "str");
+
+    auto idx = cctx.args.size();
+
+    if (idx < cctx.arg_types.size())
+    {
+        auto void_ptr_type = LLVMPointerType(cctx.void_type, 0);
+
+        auto at = cctx.arg_types[idx];
+
+        if (at == void_ptr_type)
+        {
+            v = LLVMBuildPointerCast(cctx.builder, v, void_ptr_type, "void_str");
+        }
+    }
+
+    cctx.args.push_back(v);
+}
+
+
+//----------------------------------------------------------------------
+//- arg_char
+//----------------------------------------------------------------------
+void ast_arg_char_t::compile(compile_ctx_t &cctx) const
+{
+    auto v = LLVMConstInt(cctx.int_type, c, false);      //- ?
+
+    cctx.args.push_back(v);
+}
 
 
 //----------------------------------------------------------------------
@@ -352,11 +612,9 @@ VOIDC_DLLEXPORT_END
 //----------------------------------------------------------------------
 void v_ast_static_initialize(void)
 {
-    static_assert((sizeof(ast_base_ptr_t) % sizeof(char *)) == 0);
+    static_assert((sizeof(ast_base_ptr_t) % sizeof(intptr_t)) == 0);
 
-    auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
-
-    auto content_type = LLVMArrayType(char_ptr_type, sizeof(ast_base_ptr_t)/sizeof(char *));
+    auto content_type = LLVMArrayType(compile_ctx_t::intptr_t_type, sizeof(ast_base_ptr_t)/sizeof(intptr_t));
 
     auto gctx = LLVMGetGlobalContext();
 

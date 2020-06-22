@@ -4,16 +4,6 @@
 
 {   module = LLVMModuleCreateWithName("hello_mod");
 
-    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
-    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
-
-    LLVMSetModuleDataLayout(module, dl);
-    LLVMSetTarget(module, tr);
-
-    LLVMDisposeMessage(tr);
-    LLVMDisposeTargetData(dl);
-
-
     hello_ft = LLVMFunctionType(void, 0, 0, 0);
     hello_f  = LLVMAddFunction(module, "hello", hello_ft);
 
@@ -39,6 +29,15 @@
     LLVMClearInsertionPosition(voidc_builder);
 
     //-----------------------------------------------------------------
+    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
+    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
+
+    LLVMSetModuleDataLayout(module, dl);
+    LLVMSetTarget(module, tr);
+
+    LLVMDisposeMessage(tr);
+    LLVMDisposeTargetData(dl);
+
     LLVMRunPassManager(voidc_pass_manager, module);
 
     //-----------------------------------------------------------------

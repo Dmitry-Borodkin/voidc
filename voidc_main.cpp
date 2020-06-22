@@ -1,3 +1,7 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
 #include "voidc_llvm.h"
 #include "voidc_util.h"
 #include "vpeg_context.h"
@@ -12,6 +16,8 @@
 #include <cstring>
 #include <cstdlib>
 #include <filesystem>
+
+#include <unistd.h>
 
 #include <llvm-c/Core.h>
 #include <llvm-c/Support.h>
@@ -33,11 +39,11 @@ std::any parse_unit(vpeg::context_t &pctx)
 }
 
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 namespace fs = std::filesystem;
 
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 static std::list<fs::path> import_paths;
 
 #ifdef _WIN32
@@ -78,7 +84,7 @@ void import_paths_initialize(void)
 
 #undef PATHSEP
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 static
 fs::path find_file_for_import(const fs::path &parent, const fs::path &filename)
 {
@@ -104,10 +110,10 @@ fs::path find_file_for_import(const fs::path &parent, const fs::path &filename)
 }
 
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 static std::set<fs::path> already_imported;
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 extern "C"
 {
 
@@ -267,22 +273,52 @@ void v_import(const char *name)
 }   //- extern "C"
 
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------
 //- As is...
-//---------------------------------------------------------------------
-int main()
+//--------------------------------------------------------------------
+int main(int argc, char *argv[])
 {
     import_paths_initialize();
+
+    std::list<std::string> sources;
+
+    while (optind < argc)
+    {
+        char c;
+
+        if ((c = getopt(argc, argv, "-I:")) != -1)
+        {
+            //- Option argument
+
+            switch (c)
+            {
+            case 'I':
+                import_paths.push_back(optarg);
+                break;
+
+            case 1:
+                sources.push_back(optarg);
+                break;
+
+            default:
+                break;
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    if (sources.empty())  sources.push_back("-");
 
     compile_ctx_t::static_initialize();
     utility::static_initialize();
 
-    compile_ctx_t cctx("<stdin>");
-
-    {   auto char_ptr_type = LLVMPointerType(cctx.char_type, 0);
+    {   auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
 
         v_add_symbol("v_import",
-                     LLVMFunctionType(cctx.void_type, &char_ptr_type, 1, false),
+                     LLVMFunctionType(compile_ctx_t::void_type, &char_ptr_type, 1, false),
                      (void *)v_import
                     );
     }
@@ -293,7 +329,34 @@ int main()
 
     voidc_grammar = make_voidc_grammar();
 
-    {   vpeg::context_t pctx(std::cin, voidc_grammar, cctx);
+    vpeg::grammar_t current_grammar = voidc_grammar;
+
+    for (auto &src : sources)
+    {
+        std::string src_name = src;
+
+        std::istream *istr = nullptr;
+
+        if (src == "-")
+        {
+            src_name = "<stdin>";
+
+            istr = &std::cin;
+        }
+        else
+        {
+            assert(fs::exists(src_name));
+
+            auto infs = new std::ifstream;
+
+            infs->open(src_name, std::ios::binary);
+
+            istr = infs;
+        }
+
+        compile_ctx_t cctx(src_name);
+
+        vpeg::context_t pctx(*istr, current_grammar, cctx);
 
         vpeg::context_t::current_ctx = &pctx;
 
@@ -318,6 +381,10 @@ int main()
         }
 
         vpeg::context_t::current_ctx = nullptr;     //- ?
+
+        current_grammar = pctx.grammar;
+
+        if (src != "-")   delete istr;
     }
 
 #if 0

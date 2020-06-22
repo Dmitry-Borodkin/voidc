@@ -4,16 +4,6 @@
 
 {   module = LLVMModuleCreateWithName("my_echo_mod");
 
-    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
-    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
-
-    LLVMSetModuleDataLayout(module, dl);
-    LLVMSetTarget(module, tr);
-
-    LLVMDisposeMessage(tr);
-    LLVMDisposeTargetData(dl);
-
-
     arg0 = v_alloca(LLVMTypeRef, 3);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
@@ -85,6 +75,15 @@
     LLVMClearInsertionPosition(voidc_builder);
 
     //-----------------------------------------------------------------
+    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
+    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
+
+    LLVMSetModuleDataLayout(module, dl);
+    LLVMSetTarget(module, tr);
+
+    LLVMDisposeMessage(tr);
+    LLVMDisposeTargetData(dl);
+
     LLVMRunPassManager(voidc_pass_manager, module);
 
     //-----------------------------------------------------------------

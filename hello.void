@@ -77,6 +77,15 @@
     LLVMPassManagerBuilderDispose(pm_builder);
 
     //-----------------------------------------------------------------
+    dl = LLVMCreateTargetDataLayout(target_machine);
+    tr = LLVMGetTargetMachineTriple(target_machine);
+
+    LLVMSetModuleDataLayout(module, dl);
+    LLVMSetTarget(module, tr);
+
+    LLVMDisposeMessage(tr);
+    LLVMDisposeTargetData(dl);
+
     LLVMRunPassManager(pass_manager, module);
 
     LLVMDisposePassManager(pass_manager);
