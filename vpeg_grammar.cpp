@@ -281,10 +281,9 @@ void v_peg_make_catch_variable_parser(parser_ptr_t *ret, const char *name, const
 
 const char *v_peg_catch_variable_parser_get_name(const parser_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const catch_variable_parser_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const catch_variable_parser_t &>(**ptr);
 
-    return pp->name.c_str();
+    return r.name.c_str();
 }
 
 void v_peg_make_catch_string_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
@@ -300,10 +299,9 @@ void v_peg_make_identifier_parser(parser_ptr_t *ret, const char *ident)
 
 const char *v_peg_identifier_parser_get_identifier(const parser_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const identifier_parser_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const identifier_parser_t &>(**ptr);
 
-    return pp->ident.c_str();
+    return r.ident.c_str();
 }
 
 void v_peg_make_backref_parser(parser_ptr_t *ret, int number)
@@ -313,10 +311,9 @@ void v_peg_make_backref_parser(parser_ptr_t *ret, int number)
 
 int v_peg_backref_parser_get_number(const parser_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const backref_parser_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const backref_parser_t &>(**ptr);
 
-    return int(pp->number);
+    return int(r.number);
 }
 
 void v_peg_make_action_parser(parser_ptr_t *ret, const action_ptr_t *ptr)
@@ -326,10 +323,9 @@ void v_peg_make_action_parser(parser_ptr_t *ret, const action_ptr_t *ptr)
 
 void v_peg_action_parser_get_action(const parser_ptr_t *ptr, action_ptr_t *action)
 {
-    auto pp = std::dynamic_pointer_cast<const action_parser_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const action_parser_t &>(**ptr);
 
-    *action = pp->action;
+    *action = r.action;
 }
 
 void v_peg_make_literal_parser(parser_ptr_t *ret, const char *utf8)
@@ -339,10 +335,9 @@ void v_peg_make_literal_parser(parser_ptr_t *ret, const char *utf8)
 
 const char *v_peg_literal_parser_get_literal(const parser_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const literal_parser_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const literal_parser_t &>(**ptr);
 
-    return pp->utf8.c_str();
+    return r.utf8.c_str();
 }
 
 void v_peg_make_character_parser(parser_ptr_t *ret, char32_t ucs4)
@@ -352,10 +347,9 @@ void v_peg_make_character_parser(parser_ptr_t *ret, char32_t ucs4)
 
 char32_t v_peg_character_parser_get_character(const parser_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const character_parser_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const character_parser_t &>(**ptr);
 
-    return pp->ucs4;
+    return r.ucs4;
 }
 
 void v_peg_make_class_parser(parser_ptr_t *ret, const char32_t (*ranges)[2], int count)
@@ -365,23 +359,21 @@ void v_peg_make_class_parser(parser_ptr_t *ret, const char32_t (*ranges)[2], int
 
 int v_peg_class_parser_get_ranges_count(const parser_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const class_parser_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const class_parser_t &>(**ptr);
 
-    return  int(pp->ranges.size());
+    return  int(r.ranges.size());
 }
 
 void v_peg_class_parser_get_ranges(const parser_ptr_t *ptr, char32_t (*ranges)[2])
 {
-    auto pp = std::dynamic_pointer_cast<const class_parser_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const class_parser_t &>(**ptr);
 
-    size_t count = pp->ranges.size();
+    size_t count = r.ranges.size();
 
     for (size_t i=0; i<count; ++i)
     {
-        ranges[i][0] = pp->ranges[i][0];
-        ranges[i][1] = pp->ranges[i][1];
+        ranges[i][0] = r.ranges[i][0];
+        ranges[i][1] = r.ranges[i][1];
     }
 }
 
@@ -401,30 +393,27 @@ void v_peg_make_call_action(action_ptr_t *ret, const char *fun, const argument_p
 
 const char *v_peg_call_action_get_function_name(const action_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const call_action_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const call_action_t &>(**ptr);
 
-    return pp->fun.c_str();
+    return r.fun.c_str();
 }
 
 int v_peg_call_action_get_arguments_count(const action_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const call_action_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const call_action_t &>(**ptr);
 
-    return  int(pp->args.size());
+    return  int(r.args.size());
 }
 
 void v_peg_call_action_get_arguments(const action_ptr_t *ptr, argument_ptr_t *args)
 {
-    auto pp = std::dynamic_pointer_cast<const call_action_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const call_action_t &>(**ptr);
 
-    size_t count = pp->args.size();
+    size_t count = r.args.size();
 
     for (size_t i=0; i<count; ++i)
     {
-        args[i] = pp->args[i];
+        args[i] = r.args[i];
     }
 }
 
@@ -435,10 +424,9 @@ void v_peg_make_return_action(action_ptr_t *ret, const argument_ptr_t *arg)
 
 void v_peg_return_action_get_argument(const action_ptr_t *ptr, argument_ptr_t *arg)
 {
-    auto pp = std::dynamic_pointer_cast<const return_action_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const return_action_t &>(**ptr);
 
-    *arg = pp->arg;
+    *arg = r.arg;
 }
 
 
@@ -450,10 +438,9 @@ void v_peg_make_identifier_argument(argument_ptr_t *ret, const char *ident)
 
 const char *v_peg_identifier_argument_get_identifier(const argument_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const identifier_argument_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const identifier_argument_t &>(**ptr);
 
-    return pp->ident.c_str();
+    return r.ident.c_str();
 }
 
 void v_peg_make_backref_argument(argument_ptr_t *ret, int number, int kind)
@@ -463,18 +450,16 @@ void v_peg_make_backref_argument(argument_ptr_t *ret, int number, int kind)
 
 int v_peg_backref_argument_get_number(const argument_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const backref_argument_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const backref_argument_t &>(**ptr);
 
-    return int(pp->number);
+    return int(r.number);
 }
 
 int v_peg_backref_argument_get_kind(const argument_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const backref_argument_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const backref_argument_t &>(**ptr);
 
-    return int(pp->b_kind);
+    return int(r.b_kind);
 }
 
 void v_peg_make_integer_argument(argument_ptr_t *ret, intptr_t number)
@@ -484,11 +469,9 @@ void v_peg_make_integer_argument(argument_ptr_t *ret, intptr_t number)
 
 intptr_t v_peg_integer_argument_get_number(const argument_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const integer_argument_t>(*ptr);
+    auto &r = dynamic_cast<const integer_argument_t &>(**ptr);
 
-    assert(pp);
-
-    return pp->number;
+    return r.number;
 }
 
 void v_peg_make_literal_argument(argument_ptr_t *ret, const char *utf8)
@@ -498,10 +481,9 @@ void v_peg_make_literal_argument(argument_ptr_t *ret, const char *utf8)
 
 const char *v_peg_literal_argument_get_literal(const argument_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const literal_argument_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const literal_argument_t &>(**ptr);
 
-    return pp->utf8.c_str();
+    return r.utf8.c_str();
 }
 
 void v_peg_make_character_argument(argument_ptr_t *ret, char32_t ucs4)
@@ -511,10 +493,9 @@ void v_peg_make_character_argument(argument_ptr_t *ret, char32_t ucs4)
 
 char32_t v_peg_character_argument_get_character(const argument_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const character_argument_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const character_argument_t &>(**ptr);
 
-    return pp->ucs4;
+    return r.ucs4;
 }
 
 

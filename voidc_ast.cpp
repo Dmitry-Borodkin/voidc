@@ -358,26 +358,23 @@ void v_ast_make_unit(ast_unit_ptr_t *ret, const ast_stmt_list_ptr_t *stmt_list, 
 
 void v_ast_unit_get_stmt_list(const ast_unit_ptr_t *ptr, ast_stmt_list_ptr_t *list)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_unit_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_unit_t &>(**ptr);
 
-    *list = pp->stmt_list;
+    *list = r.stmt_list;
 }
 
 int v_ast_unit_get_line(const ast_unit_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_unit_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_unit_t &>(**ptr);
 
-    return pp->line;
+    return r.line;
 }
 
 int v_ast_unit_get_column(const ast_unit_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_unit_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_unit_t &>(**ptr);
 
-    return pp->column;
+    return r.column;
 }
 
 //------------------------------------------------------------------
@@ -404,18 +401,16 @@ void v_ast_make_stmt(ast_stmt_ptr_t *ret, const std::string *var, const ast_call
 
 void v_ast_stmt_get_var_name(const ast_stmt_ptr_t *ptr, std::string *var)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_stmt_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_stmt_t &>(**ptr);
 
-    *var = pp->var_name;
+    *var = r.var_name;
 }
 
 void v_ast_stmt_get_call(const ast_stmt_ptr_t *ptr, ast_call_ptr_t *call)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_stmt_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_stmt_t &>(**ptr);
 
-    *call = pp->call;
+    *call = r.call;
 }
 
 //------------------------------------------------------------------
@@ -426,18 +421,16 @@ void v_ast_make_call(ast_call_ptr_t *ret, const std::string *fun, const ast_arg_
 
 void v_ast_call_get_fun_name(const ast_call_ptr_t *ptr, std::string *fun)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_call_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_call_t &>(**ptr);
 
-    *fun = pp->fun_name;
+    *fun = r.fun_name;
 }
 
 void v_ast_call_get_arg_list(const ast_call_ptr_t *ptr, ast_arg_list_ptr_t *list)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_call_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_call_t &>(**ptr);
 
-    *list = pp->arg_list;
+    *list = r.arg_list;
 }
 
 //------------------------------------------------------------------
@@ -448,18 +441,12 @@ void v_ast_make_arg_list(ast_arg_list_ptr_t *ret, const ast_argument_ptr_t *list
 
 int v_ast_arg_list_get_count(const ast_arg_list_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_arg_list_t>(*ptr);
-    assert(pp);
-
-    return  int(pp->data.size());
+    return  int((*ptr)->data.size());
 }
 
 void v_ast_arg_list_get_args(const ast_arg_list_ptr_t *ptr, ast_argument_ptr_t *ret)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_arg_list_t>(*ptr);
-    assert(pp);
-
-    std::copy(pp->data.begin(), pp->data.end(), ret);
+    std::copy((*ptr)->data.begin(), (*ptr)->data.end(), ret);
 }
 
 //------------------------------------------------------------------
@@ -470,10 +457,9 @@ void v_ast_make_arg_identifier(ast_argument_ptr_t *ret, const std::string *name)
 
 void v_ast_arg_identifier_get_name(const ast_argument_ptr_t *ptr, std::string *name)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_arg_identifier_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_arg_identifier_t &>(**ptr);
 
-    *name = pp->name;
+    *name = r.name;
 }
 
 //------------------------------------------------------------------
@@ -484,10 +470,9 @@ void v_ast_make_arg_integer(ast_argument_ptr_t *ret, intptr_t number)
 
 intptr_t v_ast_arg_integer_get_number(const ast_argument_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_arg_integer_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_arg_integer_t &>(**ptr);
 
-    return  pp->number;
+    return  r.number;
 }
 
 //------------------------------------------------------------------
@@ -498,10 +483,9 @@ void v_ast_make_arg_string(ast_argument_ptr_t *ret, const std::string *string)
 
 void v_ast_arg_string_get_string(const ast_argument_ptr_t *ptr, std::string *string)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_arg_string_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_arg_string_t &>(**ptr);
 
-    *string = pp->string;
+    *string = r.string;
 }
 
 //------------------------------------------------------------------
@@ -512,10 +496,9 @@ void v_ast_make_arg_char(ast_argument_ptr_t *ret, char32_t c)
 
 char32_t v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
 {
-    auto pp = std::dynamic_pointer_cast<const ast_arg_char_t>(*ptr);
-    assert(pp);
+    auto &r = dynamic_cast<const ast_arg_char_t &>(**ptr);
 
-    return  pp->c;
+    return  r.c;
 }
 
 

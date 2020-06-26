@@ -114,10 +114,9 @@ void v_alloca(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
     assert((*args)->data.size() >= 1);
     assert((*args)->data.size() <= 2);
 
-    auto ident = std::dynamic_pointer_cast<const ast_arg_identifier_t>((*args)->data[0]);
-    assert(ident);
+    auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*(*args)->data[0]);
 
-    auto type = cctx->find_type(ident->name.c_str());
+    auto type = cctx->find_type(ident.name.c_str());
     assert(type);
 
     LLVMValueRef v;

@@ -180,10 +180,9 @@ void v_std_any_get_helper(compile_ctx_t &cctx,
 
     assert(cctx.arg_types.empty());
 
-    auto ident = std::dynamic_pointer_cast<const ast_arg_identifier_t>(args->data[0]);
-    assert(ident);
+    auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*args->data[0]);
 
-    auto type = cctx.find_type(ident->name.c_str());
+    auto type = cctx.find_type(ident.name.c_str());
     assert(type);
 
     const char *fun = dict.at(type).c_str();
