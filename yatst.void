@@ -201,3 +201,31 @@
     v_reset(gen);
 }
 
+//---------------------------------------------------------------------
+//- Quarks
+//---------------------------------------------------------------------
+{   v_import("voidc_quark.void"); }
+
+{   q = v_quark_from_string("Some string");
+
+    printf("quark: %d\n", q);
+
+    q = v_quark_from_string("Another string");
+
+    printf("quark: %d\n", q);
+
+}
+
+{   q = v_quark_from_string("Another string");
+    s = v_quark_to_string(q);
+
+    printf("quark: %d - [%s]\n", q, s);
+
+    q = v_quark_from_string("Some string");
+    s = v_quark_to_string(q);
+
+    printf("quark: %d - [%s]\n", q, s);
+
+}
+
+

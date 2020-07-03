@@ -1,0 +1,32 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   v_import("voidc_internals.void"); }
+
+
+//---------------------------------------------------------------------
+{   quark_t = LLVMInt32Type();
+
+    v_add_symbol("v_quark_t", LLVMOpaqueType, quark_t);
+}
+
+
+//---------------------------------------------------------------------
+{   char_ptr = LLVMPointerType(char, 0);
+
+    typ = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, typ);
+
+    fun_t = LLVMFunctionType(v_quark_t, typ, 1, 0);
+    v_add_symbol_type("v_quark_from_string", fun_t);
+
+    v_store(v_quark_t, typ);
+
+    fun_t = LLVMFunctionType(char_ptr, typ, 1, 0);
+    v_add_symbol_type("v_quark_to_string", fun_t);
+}
+
+
+
