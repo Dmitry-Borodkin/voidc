@@ -144,7 +144,7 @@ std::any catch_variable_parser_t::parse(context_t &ctx) const
     {
         auto &vmap = ctx.variables.values;
 
-        vmap = vmap.set(name, ret);
+        vmap = vmap.set(q_name, ret);
     }
 
     return ret;
@@ -173,7 +173,7 @@ std::any catch_string_parser_t::parse(context_t &ctx) const
 //-------------------------------------------------------------
 std::any identifier_parser_t::parse(context_t &ctx) const
 {
-    return ctx.grammar.parse(ident, ctx);
+    return ctx.grammar.parse(q_ident, ctx);
 }
 
 //-------------------------------------------------------------
@@ -303,7 +303,7 @@ std::any call_action_t::act(context_t &ctx) const
 
     std::any ret;
 
-    ctx.grammar.actions[fun](&ret, a.get(), N);
+    ctx.grammar.actions[q_fun](&ret, a.get(), N);
 
     return ret;
 }
@@ -312,7 +312,7 @@ std::any call_action_t::act(context_t &ctx) const
 //-----------------------------------------------------------------
 std::any identifier_argument_t::value(context_t &ctx) const
 {
-    return ctx.variables.values.at(ident);      //- ?...
+    return ctx.variables.values.at(q_ident);      //- ?...
 }
 
 //-----------------------------------------------------------------

@@ -29,7 +29,7 @@ void grammar_t::check_hash(void)
 
 
 //-----------------------------------------------------------------
-std::any grammar_t::parse(const std::string &name, context_t &ctx) const
+std::any grammar_t::parse(v_quark_t q_name, context_t &ctx) const
 {
     context_t::variables_t saved_vars;      //- empty(!)
 
@@ -48,7 +48,7 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
 
     assert(hash != size_t(-1));
 
-    auto key = std::make_tuple(hash, st.position, name);
+    auto key = std::make_tuple(hash, st.position, q_name);
 
     if (ctx.memo.count(key))
     {
@@ -60,7 +60,7 @@ std::any grammar_t::parse(const std::string &name, context_t &ctx) const
     }
     else
     {
-        auto &[parser, leftrec] = parsers.at(name);
+        auto &[parser, leftrec] = parsers.at(q_name);
 
         if (leftrec)        //- Left-recursive ?
         {
@@ -283,7 +283,7 @@ const char *v_peg_catch_variable_parser_get_name(const parser_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const catch_variable_parser_t &>(**ptr);
 
-    return r.name.c_str();
+    return  v_quark_to_string(r.q_name);
 }
 
 void v_peg_make_catch_string_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
@@ -301,7 +301,7 @@ const char *v_peg_identifier_parser_get_identifier(const parser_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const identifier_parser_t &>(**ptr);
 
-    return r.ident.c_str();
+    return  v_quark_to_string(r.q_ident);
 }
 
 void v_peg_make_backref_parser(parser_ptr_t *ret, int number)
@@ -395,7 +395,7 @@ const char *v_peg_call_action_get_function_name(const action_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const call_action_t &>(**ptr);
 
-    return r.fun.c_str();
+    return  v_quark_to_string(r.q_fun);
 }
 
 int v_peg_call_action_get_arguments_count(const action_ptr_t *ptr)
@@ -440,7 +440,7 @@ const char *v_peg_identifier_argument_get_identifier(const argument_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const identifier_argument_t &>(**ptr);
 
-    return r.ident.c_str();
+    return  v_quark_to_string(r.q_ident);
 }
 
 void v_peg_make_backref_argument(argument_ptr_t *ret, int number, int kind)
@@ -502,7 +502,7 @@ char32_t v_peg_character_argument_get_character(const argument_ptr_t *ptr)
 //-----------------------------------------------------------------
 void v_peg_grammar_get_parser(const grammar_ptr_t *ptr, const char *name, parser_ptr_t *parser, int *leftrec)
 {
-    auto &pair = (*ptr)->parsers[name];
+    auto &pair = (*ptr)->parsers[v_quark_from_string(name)];
 
     if (parser)   *parser  = pair.first;
     if (leftrec)  *leftrec = pair.second;
@@ -519,7 +519,7 @@ void v_peg_grammar_set_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, cons
 grammar_action_fun_t
 v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
 {
-    return (*ptr)->actions[name];
+    return (*ptr)->actions[v_quark_from_string(name)];
 }
 
 void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, grammar_action_fun_t fun)

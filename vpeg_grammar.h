@@ -5,6 +5,7 @@
 #ifndef VPEG_GRAMMAR_H
 #define VPEG_GRAMMAR_H
 
+#include "voidc_quark.h"
 #include "vpeg_parser.h"
 
 #include <utility>
@@ -26,8 +27,8 @@ extern "C" typedef void (*grammar_action_fun_t)(std::any *ret, const std::any *a
 class grammar_t
 {
 public:
-    using parsers_map_t = immer::map<std::string, std::pair<parser_ptr_t, bool>>;
-    using actions_map_t = immer::map<std::string, grammar_action_fun_t>;
+    using parsers_map_t = immer::map<v_quark_t, std::pair<parser_ptr_t, bool>>;
+    using actions_map_t = immer::map<v_quark_t, grammar_action_fun_t>;
 
 public:
     grammar_t()  = default;
@@ -54,18 +55,33 @@ public:
     static void static_terminate(void);
 
 public:
+    grammar_t set_parser(v_quark_t q_name, const parser_ptr_t &parser, bool leftrec=false) const
+    {
+        return  grammar_t(_parsers.set(q_name, {parser, leftrec}), actions);
+    }
+
     grammar_t set_parser(const std::string &name, const parser_ptr_t &parser, bool leftrec=false) const
     {
-        return  grammar_t(_parsers.set(name, {parser, leftrec}), actions);
+        return  set_parser(v_quark_from_string(name.c_str()), parser, leftrec);
+    }
+
+    grammar_t set_action(v_quark_t q_name, grammar_action_fun_t fun) const
+    {
+        return  grammar_t(parsers, _actions.set(q_name, fun));
     }
 
     grammar_t set_action(const std::string &name, grammar_action_fun_t fun) const
     {
-        return  grammar_t(parsers, _actions.set(name, fun));
+        return  set_action(v_quark_from_string(name.c_str()), fun);
     }
 
 public:
-    std::any parse(const std::string &name, context_t &ctx) const;
+    std::any parse(v_quark_t q_name, context_t &ctx) const;
+
+    std::any parse(const std::string &name, context_t &ctx) const
+    {
+        return  parse(v_quark_from_string(name.c_str()), ctx);
+    }
 
 public:
     const size_t &hash = _hash;

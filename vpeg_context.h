@@ -5,6 +5,7 @@
 #ifndef VPEG_CONTEXT_H
 #define VPEG_CONTEXT_H
 
+#include "voidc_quark.h"
 #include "vpeg_parser.h"
 #include "vpeg_grammar.h"
 
@@ -44,7 +45,7 @@ public:
 public:
     struct variables_t
     {
-        immer::map<std::string, std::any>   values;
+        immer::map<v_quark_t, std::any>     values;
         immer::vector<std::array<size_t,2>> strings;
     };
 
@@ -116,7 +117,7 @@ public:
     grammar_t   grammar;        //- ?...
 
 public:     //- ?...
-    std::map<std::tuple<size_t, size_t, std::string>, std::pair<std::any, state_t>> memo;
+    std::map<std::tuple<size_t, size_t, v_quark_t>, std::pair<std::any, state_t>> memo;
 
 public:
     void get_line_column(size_t pos, size_t &line, size_t &column) const;

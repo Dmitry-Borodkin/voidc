@@ -191,7 +191,9 @@
     v_add_symbol_type("vtable_g", v_ast_generic_vtable);
 }
 
-{   gen = v_alloca(v_ast_opaque_generic_ptr);
+{   printf("\n");
+
+    gen = v_alloca(v_ast_opaque_generic_ptr);
     v_initialize(gen);
 
     v_ast_make_generic(gen, vtable_g, 0);
@@ -201,27 +203,44 @@
     v_reset(gen);
 }
 
+
 //---------------------------------------------------------------------
 //- Quarks
 //---------------------------------------------------------------------
 {   v_import("voidc_quark.void"); }
 
-{   q = v_quark_from_string("Some string");
+{   printf("\n");
 
-    printf("quark: %d\n", q);
-
-    q = v_quark_from_string("Another string");
-
-    printf("quark: %d\n", q);
-
-}
-
-{   q = v_quark_from_string("Another string");
+    q = v_quark_from_string("");
     s = v_quark_to_string(q);
 
     printf("quark: %d - [%s]\n", q, s);
 
     q = v_quark_from_string("Some string");
+    s = v_quark_to_string(q);
+
+    printf("quark: %d - [%s]\n", q, s);
+
+    q = v_quark_from_string("Another string");
+    s = v_quark_to_string(q);
+
+    printf("quark: %d - [%s]\n", q, s);
+
+}
+
+{   printf("\n");
+
+    q = v_quark_from_string("Another string");
+    s = v_quark_to_string(q);
+
+    printf("quark: %d - [%s]\n", q, s);
+
+    q = v_quark_from_string("Some string");
+    s = v_quark_to_string(q);
+
+    printf("quark: %d - [%s]\n", q, s);
+
+    q = v_quark_from_string("");
     s = v_quark_to_string(q);
 
     printf("quark: %d - [%s]\n", q, s);

@@ -5,6 +5,8 @@
 #ifndef VPEG_PARSER_H
 #define VPEG_PARSER_H
 
+#include "voidc_quark.h"
+
 #include <string>
 #include <memory>
 #include <any>
@@ -350,23 +352,23 @@ mk_plus_parser(const parser_ptr_t &_parser)
 class catch_variable_parser_t : public parser_unary_t<parser_t::k_catch_variable>
 {
 public:
-    catch_variable_parser_t(const std::string &_name, const parser_ptr_t &_parser)
-      : parser_unary_t<k_catch_variable>(_parser),
-        name(_name)
+    catch_variable_parser_t(const std::string &name, const parser_ptr_t &parser)
+      : parser_unary_t<k_catch_variable>(parser),
+        q_name(v_quark_from_string(name.c_str()))
     {}
 
 public:
     std::any parse(context_t &ctx) const override;
 
 public:
-    const std::string name;
+    const v_quark_t q_name;
 };
 
 inline
 std::shared_ptr<catch_variable_parser_t>
-mk_catch_variable_parser(const std::string &_name, const parser_ptr_t &_parser)
+mk_catch_variable_parser(const std::string &name, const parser_ptr_t &parser)
 {
-    return std::make_shared<catch_variable_parser_t>(_name, _parser);
+    return std::make_shared<catch_variable_parser_t>(name, parser);
 }
 
 //---------------------------------------------------------------------
@@ -393,22 +395,22 @@ mk_catch_string_parser(const parser_ptr_t &_parser)
 class identifier_parser_t : public parser_tag_t<parser_t::k_identifier>
 {
 public:
-    explicit identifier_parser_t(const std::string &_ident)
-      : ident(_ident)
+    explicit identifier_parser_t(const std::string &ident)
+      : q_ident(v_quark_from_string(ident.c_str()))
     {}
 
 public:
     std::any parse(context_t &ctx) const override;
 
 public:
-    const std::string ident;
+    const v_quark_t q_ident;
 };
 
 inline
 std::shared_ptr<identifier_parser_t>
-mk_identifier_parser(const std::string &_ident)
+mk_identifier_parser(const std::string &ident)
 {
-    return std::make_shared<identifier_parser_t>(_ident);
+    return std::make_shared<identifier_parser_t>(ident);
 }
 
 //---------------------------------------------------------------------
@@ -547,13 +549,13 @@ mk_dot_parser(void)
 class call_action_t : public action_tag_t<action_t::k_call>
 {
 public:
-    call_action_t(const std::string &_fun, const std::initializer_list<argument_ptr_t> &list)
-      : fun(_fun),
+    call_action_t(const std::string &fun, const std::initializer_list<argument_ptr_t> &list)
+      : q_fun(v_quark_from_string(fun.c_str())),
         args(list)
     {}
 
-    call_action_t(const std::string &_fun, const argument_ptr_t *list, size_t count)
-      : fun(_fun),
+    call_action_t(const std::string &fun, const argument_ptr_t *list, size_t count)
+      : q_fun(v_quark_from_string(fun.c_str())),
         args(list, list+count)
     {}
 
@@ -561,7 +563,7 @@ public:
     std::any act(context_t &ctx) const override;
 
 public:
-    const std::string fun;
+    const v_quark_t q_fun;
 
     const immer::array<argument_ptr_t> args;
 };
@@ -605,15 +607,15 @@ mk_return_action(const argument_ptr_t &arg)
 class identifier_argument_t : public argument_tag_t<argument_t::k_identifier>
 {
 public:
-    explicit identifier_argument_t(const std::string &_ident)
-      : ident(_ident)
+    explicit identifier_argument_t(const std::string &ident)
+      : q_ident(v_quark_from_string(ident.c_str()))
     {}
 
 public:
     std::any value(context_t &ctx) const override;
 
 public:
-    const std::string ident;
+    const v_quark_t q_ident;
 };
 
 inline
