@@ -352,9 +352,9 @@ mk_plus_parser(const parser_ptr_t &_parser)
 class catch_variable_parser_t : public parser_unary_t<parser_t::k_catch_variable>
 {
 public:
-    catch_variable_parser_t(const std::string &name, const parser_ptr_t &parser)
+    catch_variable_parser_t(const char *name, const parser_ptr_t &parser)
       : parser_unary_t<k_catch_variable>(parser),
-        q_name(v_quark_from_string(name.c_str()))
+        q_name(v_quark_from_string(name))
     {}
 
 public:
@@ -366,7 +366,7 @@ public:
 
 inline
 std::shared_ptr<catch_variable_parser_t>
-mk_catch_variable_parser(const std::string &name, const parser_ptr_t &parser)
+mk_catch_variable_parser(const char *name, const parser_ptr_t &parser)
 {
     return std::make_shared<catch_variable_parser_t>(name, parser);
 }
@@ -395,8 +395,8 @@ mk_catch_string_parser(const parser_ptr_t &_parser)
 class identifier_parser_t : public parser_tag_t<parser_t::k_identifier>
 {
 public:
-    explicit identifier_parser_t(const std::string &ident)
-      : q_ident(v_quark_from_string(ident.c_str()))
+    explicit identifier_parser_t(const char *ident)
+      : q_ident(v_quark_from_string(ident))
     {}
 
 public:
@@ -408,7 +408,7 @@ public:
 
 inline
 std::shared_ptr<identifier_parser_t>
-mk_identifier_parser(const std::string &ident)
+mk_identifier_parser(const char *ident)
 {
     return std::make_shared<identifier_parser_t>(ident);
 }
@@ -549,13 +549,13 @@ mk_dot_parser(void)
 class call_action_t : public action_tag_t<action_t::k_call>
 {
 public:
-    call_action_t(const std::string &fun, const std::initializer_list<argument_ptr_t> &list)
-      : q_fun(v_quark_from_string(fun.c_str())),
+    call_action_t(const char *fun, const std::initializer_list<argument_ptr_t> &list)
+      : q_fun(v_quark_from_string(fun)),
         args(list)
     {}
 
-    call_action_t(const std::string &fun, const argument_ptr_t *list, size_t count)
-      : q_fun(v_quark_from_string(fun.c_str())),
+    call_action_t(const char *fun, const argument_ptr_t *list, size_t count)
+      : q_fun(v_quark_from_string(fun)),
         args(list, list+count)
     {}
 
@@ -570,7 +570,7 @@ public:
 
 inline
 std::shared_ptr<call_action_t>
-mk_call_action(const std::string &fun, const std::initializer_list<argument_ptr_t> &list)
+mk_call_action(const char *fun, const std::initializer_list<argument_ptr_t> &list)
 {
     return std::make_shared<call_action_t>(fun, list);
 }
@@ -607,8 +607,8 @@ mk_return_action(const argument_ptr_t &arg)
 class identifier_argument_t : public argument_tag_t<argument_t::k_identifier>
 {
 public:
-    explicit identifier_argument_t(const std::string &ident)
-      : q_ident(v_quark_from_string(ident.c_str()))
+    explicit identifier_argument_t(const char *ident)
+      : q_ident(v_quark_from_string(ident))
     {}
 
 public:
@@ -620,7 +620,7 @@ public:
 
 inline
 std::shared_ptr<identifier_argument_t>
-mk_identifier_argument(const std::string &ident)
+mk_identifier_argument(const char *ident)
 {
     return std::make_shared<identifier_argument_t>(ident);
 }

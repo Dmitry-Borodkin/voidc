@@ -60,9 +60,9 @@ public:
         return  grammar_t(_parsers.set(q_name, {parser, leftrec}), actions);
     }
 
-    grammar_t set_parser(const std::string &name, const parser_ptr_t &parser, bool leftrec=false) const
+    grammar_t set_parser(const char *name, const parser_ptr_t &parser, bool leftrec=false) const
     {
-        return  set_parser(v_quark_from_string(name.c_str()), parser, leftrec);
+        return  set_parser(v_quark_from_string(name), parser, leftrec);
     }
 
     grammar_t set_action(v_quark_t q_name, grammar_action_fun_t fun) const
@@ -70,17 +70,17 @@ public:
         return  grammar_t(parsers, _actions.set(q_name, fun));
     }
 
-    grammar_t set_action(const std::string &name, grammar_action_fun_t fun) const
+    grammar_t set_action(const char *name, grammar_action_fun_t fun) const
     {
-        return  set_action(v_quark_from_string(name.c_str()), fun);
+        return  set_action(v_quark_from_string(name), fun);
     }
 
 public:
     std::any parse(v_quark_t q_name, context_t &ctx) const;
 
-    std::any parse(const std::string &name, context_t &ctx) const
+    std::any parse(const char *name, context_t &ctx) const
     {
-        return  parse(v_quark_from_string(name.c_str()), ctx);
+        return  parse(v_quark_from_string(name), ctx);
     }
 
 public:
