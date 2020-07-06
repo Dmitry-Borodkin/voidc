@@ -196,6 +196,33 @@ void v_load(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
     cctx->ret_value = v;
 }
 
+//---------------------------------------------------------------------
+static
+void v_cast(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+{
+    assert(*args);
+    assert((*args)->data.size() == 3);
+
+    (*args)->data[0]->compile(*cctx);       //- Opcode
+
+    auto opcode = LLVMOpcode(LLVMConstIntGetZExtValue(cctx->args[0]));
+
+    (*args)->data[1]->compile(*cctx);       //- Value
+
+    auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*(*args)->data[2]);
+
+    auto dest_type = cctx->find_type(ident.name.c_str());
+    assert(dest_type);
+
+    LLVMValueRef v;
+
+    v = LLVMBuildCast(cctx->builder, opcode, cctx->args[1], dest_type, cctx->ret_name);
+
+    cctx->args.clear();
+
+    cctx->ret_value = v;
+}
+
 
 //---------------------------------------------------------------------
 extern "C"
@@ -522,6 +549,7 @@ void compile_ctx_t::static_initialize(void)
     intrinsics["v_getelementptr"] = v_getelementptr;
     intrinsics["v_store"]         = v_store;
     intrinsics["v_load"]          = v_load;
+    intrinsics["v_cast"]          = v_cast;
 
     {   LLVMTypeRef args[] =
         {

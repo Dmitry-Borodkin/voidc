@@ -11,7 +11,6 @@
 #include <utility>
 
 #include <immer/map.hpp>
-#include <llvm-c/Types.h>
 
 
 //---------------------------------------------------------------------

@@ -3,6 +3,7 @@
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
 {   v_import("voidc_util.void");
+    v_import("voidc_quark.void");
 }
 
 {   v_util_register_ircmp_impl(v_ast_opaque_base_ptr,      "v_ast", "base");
@@ -205,8 +206,10 @@
 
     v_store(destroy_p, arg0);
     v_store(compile_p, arg1);
+    v_store(compile_p, arg2);   //- accept ...
+    v_store(v_quark_t, arg3);
 
-    LLVMStructSetBody(generic_vtable, arg0, 2, 0);
+    LLVMStructSetBody(generic_vtable, arg0, 4, 0);
     v_add_symbol("v_ast_generic_vtable", LLVMOpaqueType, generic_vtable);
 
     generic_vtable_ref = LLVMPointerType(generic_vtable, 0);
