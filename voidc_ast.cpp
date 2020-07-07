@@ -401,7 +401,7 @@ int v_ast_unit_get_column(const ast_unit_ptr_t *ptr)
     return r.column;
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_stmt_list(ast_stmt_list_ptr_t *ret, const ast_stmt_list_ptr_t *list, const ast_stmt_ptr_t *stmt)
 {
     *ret = std::make_shared<const ast_stmt_list_t>(*list, *stmt);
@@ -417,7 +417,7 @@ void v_ast_stmt_list_get_stmt(const ast_stmt_list_ptr_t *ptr, int i, ast_stmt_pt
     *ret = (*ptr)->data[i];
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_stmt(ast_stmt_ptr_t *ret, const std::string *var, const ast_call_ptr_t *call)
 {
     *ret = std::make_shared<const ast_stmt_t>(*var, *call);
@@ -437,7 +437,7 @@ void v_ast_stmt_get_call(const ast_stmt_ptr_t *ptr, ast_call_ptr_t *call)
     *call = r.call;
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_call(ast_call_ptr_t *ret, const std::string *fun, const ast_arg_list_ptr_t *list)
 {
     *ret = std::make_shared<const ast_call_t>(*fun, *list);
@@ -457,7 +457,7 @@ void v_ast_call_get_arg_list(const ast_call_ptr_t *ptr, ast_arg_list_ptr_t *list
     *list = r.arg_list;
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_arg_list(ast_arg_list_ptr_t *ret, const ast_argument_ptr_t *list, int count)
 {
     *ret = std::make_shared<const ast_arg_list_t>(list, count);
@@ -473,7 +473,7 @@ void v_ast_arg_list_get_args(const ast_arg_list_ptr_t *ptr, ast_argument_ptr_t *
     std::copy((*ptr)->data.begin(), (*ptr)->data.end(), ret);
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_arg_identifier(ast_argument_ptr_t *ret, const std::string *name)
 {
     *ret = std::make_shared<const ast_arg_identifier_t>(*name);
@@ -486,7 +486,7 @@ void v_ast_arg_identifier_get_name(const ast_argument_ptr_t *ptr, std::string *n
     *name = r.name;
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_arg_integer(ast_argument_ptr_t *ret, intptr_t number)
 {
     *ret = std::make_shared<const ast_arg_integer_t>(number);
@@ -499,7 +499,7 @@ intptr_t v_ast_arg_integer_get_number(const ast_argument_ptr_t *ptr)
     return  r.number;
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_arg_string(ast_argument_ptr_t *ret, const std::string *string)
 {
     *ret = std::make_shared<const ast_arg_string_t>(*string);
@@ -512,7 +512,7 @@ void v_ast_arg_string_get_string(const ast_argument_ptr_t *ptr, std::string *str
     *string = r.string;
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_arg_char(ast_argument_ptr_t *ret, char32_t c)
 {
     *ret = std::make_shared<const ast_arg_char_t>(c);
@@ -526,15 +526,15 @@ char32_t v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
 }
 
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 //- Generics ...
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_generic(ast_generic_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
     *ret = std::make_shared<const ast_generic_t>(vtab, obj);
 }
 
-//--------------------------------------------------------------
+//-----------------------------------------------------------------
 void v_ast_make_unit_generic(ast_unit_ptr_t *ret, const ast_generic_ptr_t *gen)
 {
     *ret = std::make_shared<const ast_unit_generic_t>(*gen);
@@ -555,7 +555,7 @@ void v_ast_make_argument_generic(ast_argument_ptr_t *ret, const ast_generic_ptr_
     *ret = std::make_shared<const ast_argument_generic_t>(*gen);
 }
 
-//------------------------------------------------------------------
+//-----------------------------------------------------------------
 const ast_generic_vtable *
 v_ast_generic_get_vtable(const ast_generic_ptr_t *ptr)
 {
