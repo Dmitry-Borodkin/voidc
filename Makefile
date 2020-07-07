@@ -25,6 +25,7 @@ voidc_llvm.o \
 voidc_util.o \
 voidc_main.o \
 voidc_quark.o \
+voidc_visitor.o \
 vpeg_parser.o \
 vpeg_grammar.o \
 vpeg_context.o \

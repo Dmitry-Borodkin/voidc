@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------
 {   v_import("voidc_util.void");
     v_import("voidc_quark.void");
+    v_import("voidc_visitor.void");
 }
 
 {   v_util_register_ircmp_impl(v_ast_opaque_base_ptr,      "v_ast", "base");
@@ -329,6 +330,154 @@
 
     v_add_symbol_type("v_ast_upcast_generic_impl",   fun_t);
     v_add_symbol_type("v_ast_downcast_generic_impl", fun_t);
+
+
+    //-------------------------------------------------------------
+    //- Visitors ...
+    //-------------------------------------------------------------
+    v_store(voidc_visitor_ref, arg0);
+    v_store(size_t,            arg1);
+    v_store(bool,              arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol("v_ast_list_visitor_method_t", LLVMOpaqueType, fun_t);
+
+    fun_ptr = LLVMPointerType(fun_t, 0);
+
+    v_store(voidc_visitor_ref, arg1);
+    v_store(fun_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_visitor_set_method_ast_base_list_t", fun_t);
+    v_add_symbol_type("v_ast_visitor_set_method_ast_stmt_list_t", fun_t);
+    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_list_t",  fun_t);
+
+    //-------------------------------------------------------------
+    v_store(v_ast_stmt_list_ref, arg1);
+    v_store(int,                 arg2);
+    v_store(int,                 arg3);
+
+    fun_t = LLVMFunctionType(void, arg0, 4, 0);
+
+    v_add_symbol("v_ast_unit_visitor_method_t", LLVMOpaqueType, fun_t);
+
+    fun_ptr = LLVMPointerType(fun_t, 0);
+
+    v_store(voidc_visitor_ref, arg1);
+    v_store(fun_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_visitor_set_method_ast_unit_t", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(v_util_std_string_ref, arg1);
+    v_store(v_ast_call_ref,        arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol("v_ast_stmt_visitor_method_t", LLVMOpaqueType, fun_t);
+
+    fun_ptr = LLVMPointerType(fun_t, 0);
+
+    v_store(voidc_visitor_ref, arg1);
+    v_store(fun_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_visitor_set_method_ast_stmt_t", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(v_util_std_string_ref, arg1);
+    v_store(v_ast_arg_list_ref,    arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol("v_ast_call_visitor_method_t", LLVMOpaqueType, fun_t);
+
+    fun_ptr = LLVMPointerType(fun_t, 0);
+
+    v_store(voidc_visitor_ref, arg1);
+    v_store(fun_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_visitor_set_method_ast_call_t", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(v_util_std_string_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol("v_ast_arg_identifier_visitor_method_t", LLVMOpaqueType, fun_t);
+
+    fun_ptr = LLVMPointerType(fun_t, 0);
+
+    v_store(voidc_visitor_ref, arg1);
+    v_store(fun_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_identifier_t", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(intptr_t, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol("v_ast_arg_integer_visitor_method_t", LLVMOpaqueType, fun_t);
+
+    fun_ptr = LLVMPointerType(fun_t, 0);
+
+    v_store(voidc_visitor_ref, arg1);
+    v_store(fun_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_integer_t", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(v_util_std_string_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol("v_ast_arg_string_visitor_method_t", LLVMOpaqueType, fun_t);
+
+    fun_ptr = LLVMPointerType(fun_t, 0);
+
+    v_store(voidc_visitor_ref, arg1);
+    v_store(fun_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_string_t", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(char32_t, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol("v_ast_arg_char_visitor_method_t", LLVMOpaqueType, fun_t);
+
+    fun_ptr = LLVMPointerType(fun_t, 0);
+
+    v_store(voidc_visitor_ref, arg1);
+    v_store(fun_ptr,           arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_char_t", fun_t);
+
+
+    //-------------------------------------------------------------
+    v_store(v_ast_base_ref,    arg0);
+    v_store(voidc_visitor_ref, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_accept_visitor", fun_t);
 }
 
 

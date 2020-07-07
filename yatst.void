@@ -224,8 +224,24 @@
 
     v_ast_make_generic(gen, vtable_g, 0);
 
+
+    vis = v_alloca(voidc_opaque_visitor_ptr);
+    v_initialize(vis);
+
+
+    obj = v_alloca(v_ast_opaque_base_ptr);
+    v_initialize(obj);
+
+    v_ast_upcast_generic_impl(obj, gen);
+
+    v_ast_accept_visitor(obj, vis);
+
+
+
     //- ...
 
+    v_reset(obj);
+    v_reset(vis);
     v_reset(gen);
 }
 

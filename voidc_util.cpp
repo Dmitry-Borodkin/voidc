@@ -398,6 +398,42 @@ void v_std_string_append(std::string *ptr, const char *str)
     ptr->append(str);
 }
 
+void v_std_string_append_char(std::string *ptr, char32_t c)
+{
+    char d[5] = { 0, 0, 0, 0, 0 };
+
+    int r;
+
+    if (c <= 0x7FF)
+    {
+        if (c <= 0x7F)  r = 0;
+        else            r = 1;
+    }
+    else
+    {
+        if (c <= 0xFFFF)  r = 2;
+        else              r = 3;
+    }
+
+    if (r == 0)
+    {
+        d[0] = c & 0x7F;
+    }
+    else
+    {
+        for (int j = 0; j < r; ++j)
+        {
+            d[r-j] = 0x80 | (c & 0x3F);
+
+            c >>= 6;
+        }
+
+        d[0] = (0x1E << (6-r)) | (c & (0x3F >> r));
+    }
+
+    ptr->append(d);
+}
+
 //---------------------------------------------------------------------
 #define DEF_VAR(c_type, type_tag) \
 VOIDC_DEFINE_STD_ANY_GET_VALUE_IMPL(c_type, v_util_std_any_get_value_##type_tag##_impl) \

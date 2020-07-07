@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------
 #include "voidc_llvm.h"
 #include "voidc_util.h"
+#include "voidc_visitor.h"
 #include "vpeg_context.h"
 #include "vpeg_voidc.h"
 
@@ -323,6 +324,7 @@ int main(int argc, char *argv[])
                     );
     }
 
+    voidc_visitor_t::static_initialize();
     v_ast_static_initialize();
     vpeg::grammar_t::static_initialize();
     vpeg::context_t::static_initialize();
@@ -407,6 +409,7 @@ int main(int argc, char *argv[])
     vpeg::context_t::static_terminate();
     vpeg::grammar_t::static_terminate();
     v_ast_static_terminate();
+    voidc_visitor_t::static_terminate();
 
     utility::static_terminate();
     compile_ctx_t::static_terminate();

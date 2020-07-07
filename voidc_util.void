@@ -82,6 +82,12 @@
 
     v_add_symbol_type("v_std_string_set",    fun_t);
     v_add_symbol_type("v_std_string_append", fun_t);
+
+    v_store(char32_t, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_std_string_append_char", fun_t);
 }
 
 

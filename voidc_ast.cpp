@@ -12,6 +12,30 @@
 
 
 //---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+#define DEFINE_VISITOR_METHOD_TAGS(DEF) \
+    DEF(ast_base_list_t) \
+    DEF(ast_stmt_list_t) \
+    DEF(ast_arg_list_t) \
+    DEF(ast_unit_t) \
+    DEF(ast_stmt_t) \
+    DEF(ast_call_t) \
+    DEF(ast_arg_identifier_t) \
+    DEF(ast_arg_integer_t) \
+    DEF(ast_arg_string_t) \
+    DEF(ast_arg_char_t)
+
+#define DEF(type) \
+static v_quark_t  type##_visitor_method_tag; \
+const  v_quark_t &type::visitor_method_tag = type##_visitor_method_tag;
+
+    DEFINE_VISITOR_METHOD_TAGS(DEF)
+
+#undef DEF
+
+
+//---------------------------------------------------------------------
 //- unit
 //---------------------------------------------------------------------
 void ast_unit_t::compile(compile_ctx_t &cctx) const
@@ -115,9 +139,9 @@ void ast_unit_t::compile(compile_ctx_t &cctx) const
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- stmt
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void ast_stmt_t::compile(compile_ctx_t &cctx) const
 {
     cctx.ret_name  = var_name.c_str();
@@ -129,9 +153,9 @@ void ast_stmt_t::compile(compile_ctx_t &cctx) const
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- call
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void ast_call_t::compile(compile_ctx_t &cctx) const
 {
     assert(cctx.args.empty());
@@ -167,9 +191,9 @@ void ast_call_t::compile(compile_ctx_t &cctx) const
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- arg_identifier
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void ast_arg_identifier_t::compile(compile_ctx_t &cctx) const
 {
     LLVMValueRef v = cctx.find_identifier(name);
@@ -199,9 +223,9 @@ void ast_arg_identifier_t::compile(compile_ctx_t &cctx) const
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- arg_integer
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void ast_arg_integer_t::compile(compile_ctx_t &cctx) const
 {
     auto idx = cctx.args.size();
@@ -228,9 +252,9 @@ void ast_arg_integer_t::compile(compile_ctx_t &cctx) const
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- arg_string
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 static
 char get_raw_character(const char * &p)
 {
@@ -253,7 +277,7 @@ char get_raw_character(const char * &p)
     return  c;
 }
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 static inline
 std::string make_arg_string(const std::string &vstr)
 {
@@ -277,13 +301,13 @@ std::string make_arg_string(const std::string &vstr)
     return ret;
 }
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 ast_arg_string_t::ast_arg_string_t(const std::string &vstr)
   : string(make_arg_string(vstr))
 {}
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void ast_arg_string_t::compile(compile_ctx_t &cctx) const
 {
     auto v = LLVMBuildGlobalStringPtr(cctx.builder, string.c_str(), "str");
@@ -306,9 +330,9 @@ void ast_arg_string_t::compile(compile_ctx_t &cctx) const
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- arg_char
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void ast_arg_char_t::compile(compile_ctx_t &cctx) const
 {
     auto v = LLVMConstInt(cctx.int_type, c, false);      //- ?
@@ -317,7 +341,7 @@ void ast_arg_char_t::compile(compile_ctx_t &cctx) const
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 extern "C"
 {
 
@@ -348,9 +372,9 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 #undef DEF
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- ...
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void v_ast_make_unit(ast_unit_ptr_t *ret, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
 {
     *ret = std::make_shared<const ast_unit_t>(*stmt_list, line, column);
@@ -582,17 +606,39 @@ void v_ast_downcast_##name##_impl(const ast_base_ptr_t *ptr, ast_##name##_ptr_t 
 #undef DEF_UPCAST
 
 
+//-----------------------------------------------------------------
+//- Visitors ...
+//-----------------------------------------------------------------
+#define DEF(type) \
+void v_ast_visitor_set_method_##type(visitor_ptr_t *dst, const visitor_ptr_t *src, type::visitor_method_t method) \
+{ \
+    auto visitor = (*src)->set_void_method(type##_visitor_method_tag, (void *)method); \
+    *dst = std::make_shared<const voidc_visitor_t>(visitor); \
+}
+
+    DEFINE_VISITOR_METHOD_TAGS(DEF)
+
+#undef DEF
+
+
+//-----------------------------------------------------------------
+void v_ast_accept_visitor(const ast_base_ptr_t *object, const visitor_ptr_t *visitor)
+{
+    (*object)->accept(*visitor);
+}
+
+
 //---------------------------------------------------------------------
 VOIDC_DLLEXPORT_END
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 }   //- extern "C"
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- ...
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void v_ast_static_initialize(void)
 {
     static_assert((sizeof(ast_base_ptr_t) % sizeof(intptr_t)) == 0);
@@ -621,10 +667,16 @@ void v_ast_static_initialize(void)
 
 #undef DEF
 
+#define DEF(type) \
+    type##_visitor_method_tag = v_quark_from_string(#type);
+
+    DEFINE_VISITOR_METHOD_TAGS(DEF)
+
+#undef DEF
 }
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void v_ast_static_terminate(void)
 {
 }

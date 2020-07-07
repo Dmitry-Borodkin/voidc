@@ -16,7 +16,7 @@
 class voidc_visitor_t
 {
 public:
-    using methods_map_t = immer::map<v_quark_t, void *>;
+    using void_methods_map_t = immer::map<v_quark_t, void *>;
 
 public:
     voidc_visitor_t()  = default;
@@ -24,33 +24,39 @@ public:
 
 public:
     voidc_visitor_t(const voidc_visitor_t &vis)
-      : _methods(vis.methods)
+      : _void_methods(vis.void_methods)
     {}
 
     voidc_visitor_t &operator=(const voidc_visitor_t &vis)
     {
-        _methods = vis.methods;
+        _void_methods = vis.void_methods;
 
         return *this;
     }
 
 public:
-    voidc_visitor_t set_method(v_quark_t q, void *void_method)
+    static void static_initialize(void);
+    static void static_terminate(void);
+
+public:
+    voidc_visitor_t set_void_method(v_quark_t q, void *void_method) const
     {
-        return  voidc_visitor_t(_methods.set(q, void_method));
+        return  voidc_visitor_t(void_methods.set(q, void_method));
     }
 
 public:
-    const methods_map_t &methods = _methods;
+    const void_methods_map_t &void_methods = _void_methods;
 
 private:
-    methods_map_t _methods;
+    void_methods_map_t _void_methods;
 
 private:
-    explicit voidc_visitor_t(const methods_map_t &m)
-      : _methods(m)
+    explicit voidc_visitor_t(const void_methods_map_t &vm)
+      : _void_methods(vm)
     {}
 };
+
+typedef std::shared_ptr<const voidc_visitor_t> visitor_ptr_t;
 
 
 #endif  //- VOIDC_VISITOR_H

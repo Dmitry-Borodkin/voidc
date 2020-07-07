@@ -16,9 +16,9 @@
 #include <immer/vector.hpp>
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- AST classes
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 class compile_ctx_t;
 
 struct ast_base_t
@@ -27,15 +27,16 @@ struct ast_base_t
 
     virtual void compile(compile_ctx_t &cctx) const = 0;
 
-    virtual void accept(voidc_visitor_t &visitor) const = 0;
+public:
+    virtual void accept(const visitor_ptr_t &visitor) const = 0;
 
 protected:
-    virtual v_quark_t visitor_method_tag(void) const = 0;
+    virtual v_quark_t method_tag(void) const = 0;
 };
 
 typedef std::shared_ptr<const ast_base_t> ast_base_ptr_t;
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_unit_base_t : public virtual ast_base_t {};
 struct ast_stmt_base_t : public virtual ast_base_t {};
 struct ast_call_base_t : public virtual ast_base_t {};
@@ -46,7 +47,7 @@ typedef std::shared_ptr<const ast_stmt_base_t> ast_stmt_ptr_t;
 typedef std::shared_ptr<const ast_call_base_t> ast_call_ptr_t;
 typedef std::shared_ptr<const ast_argument_t>  ast_argument_ptr_t;
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 template<typename T>
 struct ast_list_t : public ast_base_t
 {
@@ -69,11 +70,12 @@ struct ast_list_t : public ast_base_t
         }
     }
 
-    void accept(voidc_visitor_t &visitor) const override
-    {
-        typedef void (*method_t)(voidc_visitor_t *vis, size_t count, bool start);
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, size_t count, bool start);
 
-        auto method = method_t(visitor.methods[visitor_method_tag()]);
+    void accept(const visitor_ptr_t &visitor) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods[method_tag()]);
 
         method(&visitor, data.size(), true);
 
@@ -86,7 +88,7 @@ struct ast_list_t : public ast_base_t
     }
 };
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_base_list_t : public ast_list_t<ast_base_t>
 {
     ast_base_list_t(const std::shared_ptr<const ast_base_list_t> &list,
@@ -98,18 +100,16 @@ struct ast_base_list_t : public ast_list_t<ast_base_t>
       : ast_list_t<ast_base_t>(list, count)
     {}
 
-protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_base_list_t");
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        return q;
-    }
+protected:
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
 typedef std::shared_ptr<const ast_base_list_t> ast_base_list_ptr_t;
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_stmt_list_t : public ast_list_t<ast_stmt_base_t>
 {
     ast_stmt_list_t(const std::shared_ptr<const ast_stmt_list_t> &list,
@@ -121,18 +121,16 @@ struct ast_stmt_list_t : public ast_list_t<ast_stmt_base_t>
       : ast_list_t<ast_stmt_base_t>(list, count)
     {}
 
-protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_stmt_list_t");
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        return q;
-    }
+protected:
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
 typedef std::shared_ptr<const ast_stmt_list_t> ast_stmt_list_ptr_t;
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_arg_list_t : public ast_list_t<ast_argument_t>
 {
     ast_arg_list_t(const std::shared_ptr<const ast_arg_list_t> &list,
@@ -144,19 +142,17 @@ struct ast_arg_list_t : public ast_list_t<ast_argument_t>
       : ast_list_t<ast_argument_t>(list, count)
     {}
 
-protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_arg_list_t");
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        return q;
-    }
+protected:
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
 typedef std::shared_ptr<const ast_arg_list_t>  ast_arg_list_ptr_t;
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_unit_t : public ast_unit_base_t
 {
     const ast_stmt_list_ptr_t stmt_list;
@@ -174,26 +170,24 @@ struct ast_unit_t : public ast_unit_base_t
 
     void compile(compile_ctx_t &cctx) const override;
 
-    void accept(voidc_visitor_t &visitor) const override
-    {
-        typedef void (*method_t)(voidc_visitor_t *vis, const ast_stmt_list_ptr_t *stmts, int l, int col);
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        auto method = method_t(visitor.methods[visitor_method_tag()]);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stmts, int l, int col);
+
+    void accept(const visitor_ptr_t &visitor) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods[method_tag()]);
 
         method(&visitor, &stmt_list, line, column);
     }
 
 protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_unit_t");
-
-        return q;
-    }
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_stmt_t : public ast_stmt_base_t
 {
     const std::string var_name;
@@ -207,25 +201,23 @@ struct ast_stmt_t : public ast_stmt_base_t
 
     void compile(compile_ctx_t &cctx) const override;
 
-    void accept(voidc_visitor_t &visitor) const override
-    {
-        typedef void (*method_t)(voidc_visitor_t *vis, const std::string *vname, const ast_call_ptr_t *call);
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        auto method = method_t(visitor.methods[visitor_method_tag()]);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *vname, const ast_call_ptr_t *call);
+
+    void accept(const visitor_ptr_t &visitor) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods[method_tag()]);
 
         method(&visitor, &var_name, &call);
     }
 
 protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_stmt_t");
-
-        return q;
-    }
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_call_t : public ast_call_base_t
 {
     const std::string fun_name;
@@ -239,26 +231,24 @@ struct ast_call_t : public ast_call_base_t
 
     void compile(compile_ctx_t &cctx) const override;
 
-    void accept(voidc_visitor_t &visitor) const override
-    {
-        typedef void (*method_t)(voidc_visitor_t *vis, const std::string *fname, const ast_arg_list_ptr_t *args);
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        auto method = method_t(visitor.methods[visitor_method_tag()]);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *fname, const ast_arg_list_ptr_t *args);
+
+    void accept(const visitor_ptr_t &visitor) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods[method_tag()]);
 
         method(&visitor, &fun_name, &arg_list);
     }
 
 protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_call_t");
-
-        return q;
-    }
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_arg_identifier_t : public ast_argument_t
 {
     const std::string name;
@@ -269,25 +259,23 @@ struct ast_arg_identifier_t : public ast_argument_t
 
     void compile(compile_ctx_t &cctx) const override;
 
-    void accept(voidc_visitor_t &visitor) const override
-    {
-        typedef void (*method_t)(voidc_visitor_t *vis, const std::string *name);
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        auto method = method_t(visitor.methods[visitor_method_tag()]);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *name);
+
+    void accept(const visitor_ptr_t &visitor) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods[method_tag()]);
 
         method(&visitor, &name);
     }
 
 protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_arg_identifier_t");
-
-        return q;
-    }
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_arg_integer_t : public ast_argument_t
 {
     const intptr_t number;
@@ -298,25 +286,23 @@ struct ast_arg_integer_t : public ast_argument_t
 
     void compile(compile_ctx_t &cctx) const override;
 
-    void accept(voidc_visitor_t &visitor) const override
-    {
-        typedef void (*method_t)(voidc_visitor_t *vis, intptr_t num);
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        auto method = method_t(visitor.methods[visitor_method_tag()]);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, intptr_t num);
+
+    void accept(const visitor_ptr_t &visitor) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods[method_tag()]);
 
         method(&visitor, number);
     }
 
 protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_arg_integer_t");
-
-        return q;
-    }
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_arg_string_t : public ast_argument_t
 {
     const std::string string;
@@ -325,25 +311,23 @@ struct ast_arg_string_t : public ast_argument_t
 
     void compile(compile_ctx_t &cctx) const override;
 
-    void accept(voidc_visitor_t &visitor) const override
-    {
-        typedef void (*method_t)(voidc_visitor_t *vis, const std::string *str);
+public:
+    static const v_quark_t &visitor_method_tag;
 
-        auto method = method_t(visitor.methods[visitor_method_tag()]);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *str);
+
+    void accept(const visitor_ptr_t &visitor) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods[method_tag()]);
 
         method(&visitor, &string);
     }
 
 protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_arg_string_t");
-
-        return q;
-    }
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_arg_char_t : public ast_argument_t
 {
     const char32_t c;
@@ -354,28 +338,26 @@ struct ast_arg_char_t : public ast_argument_t
 
     void compile(compile_ctx_t &cctx) const override;
 
-    void accept(voidc_visitor_t &visitor) const override
+public:
+    static const v_quark_t &visitor_method_tag;
+
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, char32_t c);
+
+    void accept(const visitor_ptr_t &visitor) const override
     {
-        typedef void (*method_t)(voidc_visitor_t *vis, char32_t c);
+        auto method = visitor_method_t(visitor->void_methods[method_tag()]);
 
-        auto method = method_t(visitor.methods[visitor_method_tag()]);
-
-        method(&visitor,c);
+        method(&visitor, c);
     }
 
 protected:
-    v_quark_t visitor_method_tag(void) const override
-    {
-        static const auto q = v_quark_from_string("ast_arg_char_t");
-
-        return q;
-    }
+    v_quark_t method_tag(void) const override { return visitor_method_tag; }
 };
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- Generics...
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 extern "C"
 {
 
@@ -385,16 +367,16 @@ struct ast_generic_vtable
 
     void (*compile)(const void *object, compile_ctx_t *pcctx);
 
-    void (*accept)(const void *object, voidc_visitor_t *visitor);
+    void (*accept)(const void *object, const visitor_ptr_t *visitor);
 
     v_quark_t visitor_method_tag;
 };
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 }   //- extern "C"
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_generic_t : public virtual ast_base_t
 {
     ast_generic_t(const ast_generic_vtable *vtab, void *obj)
@@ -412,7 +394,8 @@ struct ast_generic_t : public virtual ast_base_t
         vtable->compile(object, &cctx);
     }
 
-    void accept(voidc_visitor_t &visitor) const override
+public:
+    void accept(const visitor_ptr_t &visitor) const override
     {
         vtable->accept(object, &visitor);
     }
@@ -427,7 +410,7 @@ protected:
         _object(other->_object)
     {}
 
-    v_quark_t visitor_method_tag(void) const override
+    v_quark_t method_tag(void) const override
     {
         return  vtable->visitor_method_tag;
     }
@@ -438,7 +421,7 @@ private:
 
 typedef std::shared_ptr<const ast_generic_t>  ast_generic_ptr_t;
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 struct ast_unit_generic_t : public ast_unit_base_t, public ast_generic_t
 {
     explicit ast_unit_generic_t(const ast_generic_ptr_t &gen)
@@ -468,9 +451,9 @@ struct ast_argument_generic_t : public ast_argument_t, public ast_generic_t
 };
 
 
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 //- ...
-//----------------------------------------------------------------------
+//---------------------------------------------------------------------
 void v_ast_static_initialize(void);
 void v_ast_static_terminate(void);
 
