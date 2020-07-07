@@ -569,48 +569,11 @@ v_ast_generic_get_object(const ast_generic_ptr_t *ptr)
 }
 
 
-//------------------------------------------------------------------
-//- Casts ...
-//------------------------------------------------------------------
-#define DEF_UPCAST(name) \
-void v_ast_upcast_##name##_impl(ast_base_ptr_t *ret, const ast_##name##_ptr_t *ptr) \
-{ \
-    *ret = std::static_pointer_cast<const ast_base_t>(*ptr); \
-}
-
-#define DEF_DOWNCAST(name) \
-void v_ast_downcast_##name##_impl(const ast_base_ptr_t *ptr, ast_##name##_ptr_t *ret) \
-{ \
-    *ret = std::dynamic_pointer_cast<const ast_##name##_t>(*ptr); \
-}
-
-#define DEF(name) \
-    DEF_UPCAST(name) \
-    DEF_DOWNCAST(name)
-
-    DEF(base)           //- ?...
-    DEF(base_list)
-
-    DEF(unit)
-    DEF(stmt_list)
-    DEF(stmt)
-    DEF(call)
-    DEF(arg_list)
-    DEF(argument)
-
-    DEF(generic)
-
-#undef DEF
-
-#undef DEF_DOWNCAST
-#undef DEF_UPCAST
-
-
 //-----------------------------------------------------------------
 //- Visitors ...
 //-----------------------------------------------------------------
 #define DEF(type) \
-void v_ast_visitor_set_method_##type(visitor_ptr_t *dst, const visitor_ptr_t *src, type::visitor_method_t method) \
+void v_visitor_set_method_##type(visitor_ptr_t *dst, const visitor_ptr_t *src, type::visitor_method_t method) \
 { \
     auto visitor = (*src)->set_void_method(type##_visitor_method_tag, (void *)method); \
     *dst = std::make_shared<const voidc_visitor_t>(visitor); \

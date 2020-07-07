@@ -263,76 +263,6 @@
 
 
     //-------------------------------------------------------------
-    //- Casts ...
-    //-------------------------------------------------------------
-    v_store(v_ast_base_ref, arg0);
-    v_store(v_ast_base_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_base_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_base_impl", fun_t);
-
-    v_store(v_ast_base_list_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_base_list_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_base_list_impl", fun_t);
-
-
-    v_store(v_ast_unit_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_unit_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_unit_impl", fun_t);
-
-    v_store(v_ast_stmt_list_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_stmt_list_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_stmt_list_impl", fun_t);
-
-    v_store(v_ast_stmt_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_stmt_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_stmt_impl", fun_t);
-
-    v_store(v_ast_call_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_call_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_call_impl", fun_t);
-
-    v_store(v_ast_arg_list_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_arg_list_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_arg_list_impl", fun_t);
-
-    v_store(v_ast_argument_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_argument_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_argument_impl", fun_t);
-
-
-    v_store(v_ast_generic_ref, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_ast_upcast_generic_impl",   fun_t);
-    v_add_symbol_type("v_ast_downcast_generic_impl", fun_t);
-
-
-    //-------------------------------------------------------------
     //- Visitors ...
     //-------------------------------------------------------------
     v_store(voidc_visitor_ref, arg0);
@@ -350,9 +280,9 @@
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
-    v_add_symbol_type("v_ast_visitor_set_method_ast_base_list_t", fun_t);
-    v_add_symbol_type("v_ast_visitor_set_method_ast_stmt_list_t", fun_t);
-    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_list_t",  fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_base_list_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_stmt_list_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_arg_list_t",  fun_t);
 
     //-------------------------------------------------------------
     v_store(v_ast_stmt_list_ref, arg1);
@@ -370,7 +300,7 @@
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
-    v_add_symbol_type("v_ast_visitor_set_method_ast_unit_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_unit_t", fun_t);
 
     //-------------------------------------------------------------
     v_store(v_util_std_string_ref, arg1);
@@ -387,7 +317,7 @@
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
-    v_add_symbol_type("v_ast_visitor_set_method_ast_stmt_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_stmt_t", fun_t);
 
     //-------------------------------------------------------------
     v_store(v_util_std_string_ref, arg1);
@@ -404,7 +334,7 @@
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
-    v_add_symbol_type("v_ast_visitor_set_method_ast_call_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_call_t", fun_t);
 
     //-------------------------------------------------------------
     v_store(v_util_std_string_ref, arg1);
@@ -420,7 +350,7 @@
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
-    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_identifier_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_arg_identifier_t", fun_t);
 
     //-------------------------------------------------------------
     v_store(intptr_t, arg1);
@@ -436,7 +366,7 @@
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
-    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_integer_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_arg_integer_t", fun_t);
 
     //-------------------------------------------------------------
     v_store(v_util_std_string_ref, arg1);
@@ -452,7 +382,7 @@
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
-    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_string_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_arg_string_t", fun_t);
 
     //-------------------------------------------------------------
     v_store(char32_t, arg1);
@@ -468,7 +398,7 @@
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
-    v_add_symbol_type("v_ast_visitor_set_method_ast_arg_char_t", fun_t);
+    v_add_symbol_type("v_visitor_set_method_ast_arg_char_t", fun_t);
 
 
     //-------------------------------------------------------------
