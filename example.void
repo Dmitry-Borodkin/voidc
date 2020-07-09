@@ -35,11 +35,17 @@
     str = v_alloca(v_util_opaque_std_string);
     v_initialize(str);
 
-    v_std_string_append_char(str, 'Я');
+    cv = v_alloca(char32_t);
+//  v_store(65021, cv);
+    v_store('Я', cv);
+
+    c = v_load(cv);
+
+    v_std_string_append_char(str, c);
 
     s = v_std_string_get(str);
 
-    printf("char32_t: 0x%X, \'%s\'\n", 'Я', s);
+    printf("char32_t: 0x%X, \'%s\'\n", c, s);
 
     v_reset(str);
 

@@ -53,6 +53,8 @@ struct ast_list_t : public ast_base_t
 {
     const immer::vector<std::shared_ptr<const T>> data;
 
+    ast_list_t() : data{} {}
+
     ast_list_t(const std::shared_ptr<const ast_list_t<T>> &_list,
                const std::shared_ptr<const T>             &_item)
       : data(_list ? _list->data.push_back(_item) : immer::vector({_item}))
@@ -91,6 +93,8 @@ public:
 //---------------------------------------------------------------------
 struct ast_base_list_t : public ast_list_t<ast_base_t>
 {
+    ast_base_list_t() = default;
+
     ast_base_list_t(const std::shared_ptr<const ast_base_list_t> &list,
                     const std::shared_ptr<const ast_base_t> &item)
       : ast_list_t<ast_base_t>(list, item)
@@ -112,6 +116,8 @@ typedef std::shared_ptr<const ast_base_list_t> ast_base_list_ptr_t;
 //---------------------------------------------------------------------
 struct ast_stmt_list_t : public ast_list_t<ast_stmt_base_t>
 {
+    ast_stmt_list_t() = default;
+
     ast_stmt_list_t(const std::shared_ptr<const ast_stmt_list_t> &list,
                     const std::shared_ptr<const ast_stmt_base_t> &item)
       : ast_list_t<ast_stmt_base_t>(list, item)
@@ -133,6 +139,8 @@ typedef std::shared_ptr<const ast_stmt_list_t> ast_stmt_list_ptr_t;
 //---------------------------------------------------------------------
 struct ast_arg_list_t : public ast_list_t<ast_argument_t>
 {
+    ast_arg_list_t() = default;
+
     ast_arg_list_t(const std::shared_ptr<const ast_arg_list_t> &list,
                    const std::shared_ptr<const ast_argument_t> &item)
       : ast_list_t<ast_argument_t>(list, item)

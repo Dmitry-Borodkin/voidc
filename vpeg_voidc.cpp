@@ -16,17 +16,15 @@ namespace vpeg
 extern "C"
 {
 
+static const ast_stmt_list_ptr_t stmt_list_nil = std::make_shared<const ast_stmt_list_t>();
+static const ast_arg_list_ptr_t  arg_list_nil  = std::make_shared<const ast_arg_list_t>();
+
 static void
 mk_unit(std::any *ret, const std::any *args, size_t)
 {
     auto p = std::any_cast<ast_stmt_list_ptr_t>(args+0);
 
-    if (!p)
-    {
-        static const ast_stmt_list_ptr_t nil;
-
-        p = &nil;
-    }
+    if (!p) p = &stmt_list_nil;
 
     auto pos = std::any_cast<size_t>(args[1]);
 
@@ -45,12 +43,7 @@ mk_stmt_list(std::any *ret, const std::any *args, size_t)
 {
     auto plst = std::any_cast<ast_stmt_list_ptr_t>(args+0);
 
-    if (!plst)
-    {
-        static const ast_stmt_list_ptr_t nil;
-
-        plst = &nil;
-    }
+    if (!plst) plst = &stmt_list_nil;
 
     auto item = std::any_cast<ast_stmt_ptr_t>(args[1]);
 
@@ -78,12 +71,7 @@ mk_call(std::any *ret, const std::any *args, size_t)
 
     auto a = std::any_cast<ast_arg_list_ptr_t>(args+1);
 
-    if (!a)
-    {
-        static const ast_arg_list_ptr_t nil;
-
-        a = &nil;
-    }
+    if (!a) a = &arg_list_nil;
 
     ast_call_ptr_t ptr = std::make_shared<const ast_call_t>(f, *a);
 
@@ -95,12 +83,7 @@ mk_arg_list(std::any *ret, const std::any *args, size_t)
 {
     auto plst = std::any_cast<ast_arg_list_ptr_t>(args+0);
 
-    if (!plst)
-    {
-        static const ast_arg_list_ptr_t nil;
-
-        plst = &nil;
-    }
+    if (!plst) plst = &arg_list_nil;
 
     auto item = std::any_cast<ast_argument_ptr_t>(args[1]);
 

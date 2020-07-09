@@ -12,30 +12,6 @@
 
 
 //---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
-#define DEFINE_VISITOR_METHOD_TAGS(DEF) \
-    DEF(ast_base_list_t) \
-    DEF(ast_stmt_list_t) \
-    DEF(ast_arg_list_t) \
-    DEF(ast_unit_t) \
-    DEF(ast_stmt_t) \
-    DEF(ast_call_t) \
-    DEF(ast_arg_identifier_t) \
-    DEF(ast_arg_integer_t) \
-    DEF(ast_arg_string_t) \
-    DEF(ast_arg_char_t)
-
-#define DEF(type) \
-static v_quark_t  type##_visitor_method_tag; \
-const  v_quark_t &type::visitor_method_tag = type##_visitor_method_tag;
-
-    DEFINE_VISITOR_METHOD_TAGS(DEF)
-
-#undef DEF
-
-
-//---------------------------------------------------------------------
 //- unit
 //---------------------------------------------------------------------
 void ast_unit_t::compile(compile_ctx_t &cctx) const
@@ -572,10 +548,31 @@ v_ast_generic_get_object(const ast_generic_ptr_t *ptr)
 //-----------------------------------------------------------------
 //- Visitors ...
 //-----------------------------------------------------------------
+#define DEFINE_VISITOR_METHOD_TAGS(DEF) \
+    DEF(ast_base_list_t) \
+    DEF(ast_stmt_list_t) \
+    DEF(ast_arg_list_t) \
+    DEF(ast_unit_t) \
+    DEF(ast_stmt_t) \
+    DEF(ast_call_t) \
+    DEF(ast_arg_identifier_t) \
+    DEF(ast_arg_integer_t) \
+    DEF(ast_arg_string_t) \
+    DEF(ast_arg_char_t)
+
+#define DEF(type) \
+v_quark_t v_##type##_visitor_method_tag; \
+const v_quark_t &type::visitor_method_tag = v_##type##_visitor_method_tag;
+
+    DEFINE_VISITOR_METHOD_TAGS(DEF)
+
+#undef DEF
+
+
 #define DEF(type) \
 void v_visitor_set_method_##type(visitor_ptr_t *dst, const visitor_ptr_t *src, type::visitor_method_t method) \
 { \
-    auto visitor = (*src)->set_void_method(type##_visitor_method_tag, (void *)method); \
+    auto visitor = (*src)->set_void_method(v_##type##_visitor_method_tag, (void *)method); \
     *dst = std::make_shared<const voidc_visitor_t>(visitor); \
 }
 
@@ -631,7 +628,7 @@ void v_ast_static_initialize(void)
 #undef DEF
 
 #define DEF(type) \
-    type##_visitor_method_tag = v_quark_from_string(#type);
+    v_##type##_visitor_method_tag = v_quark_from_string(#type);
 
     DEFINE_VISITOR_METHOD_TAGS(DEF)
 
