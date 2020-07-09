@@ -223,6 +223,8 @@ void v_import(const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
+        auto compile_visitor = make_compile_visitor(cctx);
+
         {   vpeg::context_t pctx(infs, voidc_grammar, cctx);
 
             auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
@@ -237,7 +239,7 @@ void v_import(const char *name)
 
                 if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
                 {
-                    unit->compile(cctx);
+                    unit->accept(compile_visitor);
 
                     unit.reset();
 
@@ -358,6 +360,8 @@ int main(int argc, char *argv[])
 
         compile_ctx_t cctx(src_name);
 
+        auto compile_visitor = make_compile_visitor(cctx);
+
         vpeg::context_t pctx(*istr, current_grammar, cctx);
 
         vpeg::context_t::current_ctx = &pctx;
@@ -370,7 +374,7 @@ int main(int argc, char *argv[])
 
             if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
             {
-                unit->compile(cctx);
+                unit->accept(compile_visitor);
 
                 unit.reset();
 

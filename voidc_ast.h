@@ -6,6 +6,7 @@
 #define VOIDC_AST_H
 
 #include "voidc_visitor.h"
+#include "voidc_dllexport.h"
 
 #include <memory>
 #include <forward_list>
@@ -24,8 +25,6 @@ class compile_ctx_t;
 struct ast_base_t
 {
     virtual ~ast_base_t() = default;
-
-    virtual void compile(compile_ctx_t &cctx) const = 0;
 
 public:
     virtual void accept(const visitor_ptr_t &visitor) const = 0;
@@ -63,14 +62,6 @@ struct ast_list_t : public ast_base_t
     ast_list_t(const std::shared_ptr<const T> *list, size_t count)
       : data(list, list+count)
     {}
-
-    void compile(compile_ctx_t &cctx) const override
-    {
-        for (auto &it : data)
-        {
-            it->compile(cctx);
-        }
-    }
 
 public:
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, size_t count, bool start);
@@ -176,8 +167,6 @@ struct ast_unit_t : public ast_unit_base_t
         column(_column)
     {}
 
-    void compile(compile_ctx_t &cctx) const override;
-
 public:
     static const v_quark_t &visitor_method_tag;
 
@@ -207,8 +196,6 @@ struct ast_stmt_t : public ast_stmt_base_t
         call(_call)
     {}
 
-    void compile(compile_ctx_t &cctx) const override;
-
 public:
     static const v_quark_t &visitor_method_tag;
 
@@ -237,8 +224,6 @@ struct ast_call_t : public ast_call_base_t
         arg_list(_arg_list)
     {}
 
-    void compile(compile_ctx_t &cctx) const override;
-
 public:
     static const v_quark_t &visitor_method_tag;
 
@@ -265,8 +250,6 @@ struct ast_arg_identifier_t : public ast_argument_t
       : name(_name)
     {}
 
-    void compile(compile_ctx_t &cctx) const override;
-
 public:
     static const v_quark_t &visitor_method_tag;
 
@@ -292,8 +275,6 @@ struct ast_arg_integer_t : public ast_argument_t
       : number(_number)
     {}
 
-    void compile(compile_ctx_t &cctx) const override;
-
 public:
     static const v_quark_t &visitor_method_tag;
 
@@ -316,8 +297,6 @@ struct ast_arg_string_t : public ast_argument_t
     const std::string string;
 
     explicit ast_arg_string_t(const std::string &_string);     //- Sic!
-
-    void compile(compile_ctx_t &cctx) const override;
 
 public:
     static const v_quark_t &visitor_method_tag;
@@ -343,8 +322,6 @@ struct ast_arg_char_t : public ast_argument_t
     explicit ast_arg_char_t(char32_t _c)
       : c(_c)
     {}
-
-    void compile(compile_ctx_t &cctx) const override;
 
 public:
     static const v_quark_t &visitor_method_tag;
@@ -373,8 +350,6 @@ struct ast_generic_vtable
 {
     void (*destroy)(void *object);
 
-    void (*compile)(const void *object, compile_ctx_t *pcctx);
-
     void (*accept)(const void *object, const visitor_ptr_t *visitor);
 
     v_quark_t visitor_method_tag;
@@ -395,11 +370,6 @@ struct ast_generic_t : public virtual ast_base_t
     ~ast_generic_t() override
     {
         vtable->destroy(_object);
-    }
-
-    void compile(compile_ctx_t &cctx) const override
-    {
-        vtable->compile(object, &cctx);
     }
 
 public:
@@ -457,6 +427,36 @@ struct ast_argument_generic_t : public ast_argument_t, public ast_generic_t
       : ast_generic_t(gen)
     {}
 };
+
+
+//-----------------------------------------------------------------
+//- Visitors ...
+//-----------------------------------------------------------------
+#define DEFINE_AST_VISITOR_METHOD_TAGS(DEF) \
+    DEF(ast_base_list_t) \
+    DEF(ast_stmt_list_t) \
+    DEF(ast_arg_list_t) \
+    DEF(ast_unit_t) \
+    DEF(ast_stmt_t) \
+    DEF(ast_call_t) \
+    DEF(ast_arg_identifier_t) \
+    DEF(ast_arg_integer_t) \
+    DEF(ast_arg_string_t) \
+    DEF(ast_arg_char_t)
+
+#define DEF(type) \
+extern v_quark_t v_##type##_visitor_method_tag;
+
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
+    DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
+
+VOIDC_DLLEXPORT_END
+}
+
+#undef DEF
 
 
 //---------------------------------------------------------------------

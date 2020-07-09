@@ -122,7 +122,7 @@ public:
     LLVMValueRef find_identifier(const std::string &name);
 
 public:
-    typedef void (*intrinsic_t)(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args);
+    typedef void (*intrinsic_t)(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args);
 
     static std::map<std::string, intrinsic_t> intrinsics;
 
@@ -141,6 +141,15 @@ private:
     compile_ctx_t * const parent_ctx;
 };
 
+
+//---------------------------------------------------------------------
+//- Compiler (level 0) ...
+//---------------------------------------------------------------------
+visitor_ptr_t make_compile_visitor(compile_ctx_t &cctx);
+
+
+//---------------------------------------------------------------------
+extern v_quark_t voidc_compile_ctx_visitor_tag;
 
 
 #endif  //- VOIDC_LLVM_H

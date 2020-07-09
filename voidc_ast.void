@@ -200,17 +200,16 @@
     destroy_ft = LLVMFunctionType(void, arg0, 1, 0);
     destroy_p  = LLVMPointerType(destroy_ft, 0);
 
-    v_store(void_ptr, arg1);        //- compile_ctx_t ???
+    v_store(void_ptr, arg1);        //- visitor_ptr_t ???
 
-    compile_ft = LLVMFunctionType(void, arg0, 2, 0);
-    compile_p  = LLVMPointerType(compile_ft, 0);
+    accept_ft = LLVMFunctionType(void, arg0, 2, 0);
+    accept_p  = LLVMPointerType(accept_ft, 0);
 
     v_store(destroy_p, arg0);
-    v_store(compile_p, arg1);
-    v_store(compile_p, arg2);   //- accept ...
-    v_store(v_quark_t, arg3);
+    v_store(accept_p,  arg1);
+    v_store(v_quark_t, arg2);
 
-    LLVMStructSetBody(generic_vtable, arg0, 4, 0);
+    LLVMStructSetBody(generic_vtable, arg0, 3, 0);
     v_add_symbol("v_ast_generic_vtable", LLVMOpaqueType, generic_vtable);
 
     generic_vtable_ref = LLVMPointerType(generic_vtable, 0);

@@ -27,18 +27,20 @@ namespace utility
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_init_term_helper(compile_ctx_t &cctx,
+void v_init_term_helper(const visitor_ptr_t *vis,
                         const ast_arg_list_ptr_t &args,
                         const v_util_function_dict_t &dict
                        )
 {
+    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+
     assert(args);
     assert(args->data.size() >= 1);
     assert(args->data.size() <= 2);
 
     assert(cctx.arg_types.empty());
 
-    args->compile(cctx);
+    args->accept(*vis);
 
     auto type = LLVMGetElementType(LLVMTypeOf(cctx.args[0]));
 
@@ -68,33 +70,35 @@ void v_init_term_helper(compile_ctx_t &cctx,
 
 //---------------------------------------------------------------------
 static
-void v_initialize(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_initialize(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    v_init_term_helper(*cctx, *args, v_util_initialize_dict);
+    v_init_term_helper(vis, *args, v_util_initialize_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_reset(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_reset(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    v_init_term_helper(*cctx, *args, v_util_reset_dict);
+    v_init_term_helper(vis, *args, v_util_reset_dict);
 }
 
 
 //---------------------------------------------------------------------
 static
-void v_copy_move_helper(compile_ctx_t &cctx,
+void v_copy_move_helper(const visitor_ptr_t *vis,
                         const ast_arg_list_ptr_t &args,
                         const v_util_function_dict_t &dict
                        )
 {
+    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+
     assert(args);
     assert(args->data.size() >= 2);
     assert(args->data.size() <= 3);
 
     assert(cctx.arg_types.empty());
 
-    args->compile(cctx);
+    args->accept(*vis);
 
     auto type = LLVMGetElementType(LLVMTypeOf(cctx.args[0]));
 
@@ -124,57 +128,61 @@ void v_copy_move_helper(compile_ctx_t &cctx,
 
 //---------------------------------------------------------------------
 static
-void v_copy(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_copy(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    v_copy_move_helper(*cctx, *args, v_util_copy_dict);
+    v_copy_move_helper(vis, *args, v_util_copy_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_move(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_move(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    v_copy_move_helper(*cctx, *args, v_util_move_dict);
+    v_copy_move_helper(vis, *args, v_util_move_dict);
 }
 
 
 //---------------------------------------------------------------------
 static
-void v_kind(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
+    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+
     assert(*args);
     assert((*args)->data.size() == 1);
 
-    assert(cctx->arg_types.empty());
+    assert(cctx.arg_types.empty());
 
-    (*args)->compile(*cctx);
+    (*args)->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(cctx->args[0]));
+    auto type = LLVMGetElementType(LLVMTypeOf(cctx.args[0]));
 
     const char *fun = v_util_kind_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx->find_function(fun, ft, f);
+    bool ok = cctx.find_function(fun, ft, f);
 
     assert(ok && "intrinsic function not found");
 
-    auto v = LLVMBuildCall(cctx->builder, f, cctx->args.data(), cctx->args.size(), cctx->ret_name);
+    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
 
-    cctx->args.clear();
-    cctx->arg_types.clear();
+    cctx.args.clear();
+    cctx.arg_types.clear();
 
-    cctx->ret_value = v;
+    cctx.ret_value = v;
 }
 
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_helper(compile_ctx_t &cctx,
+void v_std_any_get_helper(const visitor_ptr_t *vis,
                           const ast_arg_list_ptr_t &args,
                           const v_util_function_dict_t &dict
                          )
 {
+    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+
     assert(args);
     assert(args->data.size() == 2);
 
@@ -194,7 +202,7 @@ void v_std_any_get_helper(compile_ctx_t &cctx,
 
     assert(ok && "intrinsic function not found");
 
-    args->data[1]->compile(cctx);
+    args->data[1]->accept(*vis);
 
     auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
 
@@ -206,77 +214,81 @@ void v_std_any_get_helper(compile_ctx_t &cctx,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_value(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_std_any_get_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    v_std_any_get_helper(*cctx, *args, v_util_std_any_get_value_dict);
+    v_std_any_get_helper(vis, *args, v_util_std_any_get_value_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_pointer(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_std_any_get_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    v_std_any_get_helper(*cctx, *args, v_util_std_any_get_pointer_dict);
+    v_std_any_get_helper(vis, *args, v_util_std_any_get_pointer_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_value(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
+    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+
     assert(*args);
     assert((*args)->data.size() == 2);
 
-    assert(cctx->arg_types.empty());
+    assert(cctx.arg_types.empty());
 
-    (*args)->compile(*cctx);
+    (*args)->accept(*vis);
 
-    auto type = LLVMTypeOf(cctx->args[1]);
+    auto type = LLVMTypeOf(cctx.args[1]);
 
     const char *fun = v_util_std_any_set_value_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx->find_function(fun, ft, f);
+    bool ok = cctx.find_function(fun, ft, f);
 
     assert(ok && "intrinsic function not found");
 
-    auto v = LLVMBuildCall(cctx->builder, f, cctx->args.data(), cctx->args.size(), cctx->ret_name);
+    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
 
-    cctx->args.clear();
-    cctx->arg_types.clear();
+    cctx.args.clear();
+    cctx.arg_types.clear();
 
-    cctx->ret_value = v;
+    cctx.ret_value = v;
 }
 
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_pointer(compile_ctx_t *cctx, const ast_arg_list_ptr_t *args)
+void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
+    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+
     assert(*args);
     assert((*args)->data.size() == 2);
 
-    assert(cctx->arg_types.empty());
+    assert(cctx.arg_types.empty());
 
-    (*args)->compile(*cctx);
+    (*args)->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(cctx->args[1]));
+    auto type = LLVMGetElementType(LLVMTypeOf(cctx.args[1]));
 
     const char *fun = v_util_std_any_set_pointer_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx->find_function(fun, ft, f);
+    bool ok = cctx.find_function(fun, ft, f);
 
     assert(ok && "intrinsic function not found");
 
-    auto v = LLVMBuildCall(cctx->builder, f, cctx->args.data(), cctx->args.size(), cctx->ret_name);
+    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
 
-    cctx->args.clear();
-    cctx->arg_types.clear();
+    cctx.args.clear();
+    cctx.arg_types.clear();
 
-    cctx->ret_value = v;
+    cctx.ret_value = v;
 }
 
 

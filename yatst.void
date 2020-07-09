@@ -141,23 +141,8 @@
     LLVMBuildRetVoid(voidc_builder);
 
 
-    compile_ft = LLVMFunctionType(void, typ0, 2, 0);
-    compile_f  = LLVMAddFunction(module, "compile_f", compile_ft);
-    LLVMSetLinkage(compile_f, LLVMPrivateLinkage);
-
-    entry = LLVMAppendBasicBlock(compile_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
-
-    str = LLVMBuildGlobalStringPtr(voidc_builder, "compile!\n", "str");
-
-    v_store(str, val0);
-
-    LLVMBuildCall(voidc_builder, printf_f, val0, 1, "");
-
-    LLVMBuildRetVoid(voidc_builder);
-
-
-    accept_f = LLVMAddFunction(module, "accept_f", compile_ft);
+    accept_ft = LLVMFunctionType(void, typ0, 2, 0);
+    accept_f  = LLVMAddFunction(module, "accept_f", accept_ft);
     LLVMSetLinkage(accept_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(accept_f, "entry");
@@ -184,11 +169,10 @@
     quark = LLVMConstInt(v_quark_t, quark_ll, 0);
 
     v_store(destroy_f, val0);
-    v_store(compile_f, val1);
-    v_store(accept_f,  val2);
-    v_store(quark,     val3);
+    v_store(accept_f,  val1);
+    v_store(quark,     val2);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable, val0, 4);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable, val0, 3);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable, "vtable_g");
 
