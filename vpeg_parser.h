@@ -12,7 +12,6 @@
 #include <any>
 
 #include <immer/array.hpp>
-#include <immer/vector.hpp>
 
 
 //---------------------------------------------------------------------

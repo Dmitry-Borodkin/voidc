@@ -300,8 +300,7 @@ v_ast_generic_get_object(const ast_generic_ptr_t *ptr)
 //- Visitors ...
 //-----------------------------------------------------------------
 #define DEF(type) \
-v_quark_t v_##type##_visitor_method_tag; \
-const v_quark_t &type::visitor_method_tag = v_##type##_visitor_method_tag;
+v_quark_t v_##type##_visitor_method_tag;
 
     DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
 

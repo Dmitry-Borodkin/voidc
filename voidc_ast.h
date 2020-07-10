@@ -17,6 +17,36 @@
 #include <immer/vector.hpp>
 
 
+//-----------------------------------------------------------------
+//- Visitors ...
+//-----------------------------------------------------------------
+#define DEFINE_AST_VISITOR_METHOD_TAGS(DEF) \
+    DEF(ast_base_list_t) \
+    DEF(ast_stmt_list_t) \
+    DEF(ast_arg_list_t) \
+    DEF(ast_unit_t) \
+    DEF(ast_stmt_t) \
+    DEF(ast_call_t) \
+    DEF(ast_arg_identifier_t) \
+    DEF(ast_arg_integer_t) \
+    DEF(ast_arg_string_t) \
+    DEF(ast_arg_char_t)
+
+#define DEF(type) \
+extern v_quark_t v_##type##_visitor_method_tag;
+
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
+    DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
+
+VOIDC_DLLEXPORT_END
+}
+
+#undef DEF
+
+
 //---------------------------------------------------------------------
 //- AST classes
 //---------------------------------------------------------------------
@@ -36,6 +66,12 @@ protected:
 typedef std::shared_ptr<const ast_base_t> ast_base_ptr_t;
 
 //---------------------------------------------------------------------
+#define AST_VISITOR_TAG(type) \
+protected: \
+    v_quark_t method_tag(void) const override { return v_##type##_visitor_method_tag; }
+
+
+//---------------------------------------------------------------------
 struct ast_unit_base_t : public virtual ast_base_t {};
 struct ast_stmt_base_t : public virtual ast_base_t {};
 struct ast_call_base_t : public virtual ast_base_t {};
@@ -45,6 +81,7 @@ typedef std::shared_ptr<const ast_unit_base_t> ast_unit_ptr_t;
 typedef std::shared_ptr<const ast_stmt_base_t> ast_stmt_ptr_t;
 typedef std::shared_ptr<const ast_call_base_t> ast_call_ptr_t;
 typedef std::shared_ptr<const ast_argument_t>  ast_argument_ptr_t;
+
 
 //---------------------------------------------------------------------
 template<typename T>
@@ -95,11 +132,7 @@ struct ast_base_list_t : public ast_list_t<ast_base_t>
       : ast_list_t<ast_base_t>(list, count)
     {}
 
-public:
-    static const v_quark_t &visitor_method_tag;
-
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_base_list_t)
 };
 
 typedef std::shared_ptr<const ast_base_list_t> ast_base_list_ptr_t;
@@ -118,11 +151,7 @@ struct ast_stmt_list_t : public ast_list_t<ast_stmt_base_t>
       : ast_list_t<ast_stmt_base_t>(list, count)
     {}
 
-public:
-    static const v_quark_t &visitor_method_tag;
-
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_stmt_list_t)
 };
 
 typedef std::shared_ptr<const ast_stmt_list_t> ast_stmt_list_ptr_t;
@@ -141,11 +170,7 @@ struct ast_arg_list_t : public ast_list_t<ast_argument_t>
       : ast_list_t<ast_argument_t>(list, count)
     {}
 
-public:
-    static const v_quark_t &visitor_method_tag;
-
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_arg_list_t)
 };
 
 typedef std::shared_ptr<const ast_arg_list_t>  ast_arg_list_ptr_t;
@@ -168,8 +193,6 @@ struct ast_unit_t : public ast_unit_base_t
     {}
 
 public:
-    static const v_quark_t &visitor_method_tag;
-
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stmts, int l, int col);
 
     void accept(const visitor_ptr_t &visitor) const override
@@ -179,8 +202,7 @@ public:
         method(&visitor, &stmt_list, line, column);
     }
 
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_unit_t)
 };
 
 
@@ -197,8 +219,6 @@ struct ast_stmt_t : public ast_stmt_base_t
     {}
 
 public:
-    static const v_quark_t &visitor_method_tag;
-
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *vname, const ast_call_ptr_t *call);
 
     void accept(const visitor_ptr_t &visitor) const override
@@ -208,8 +228,7 @@ public:
         method(&visitor, &var_name, &call);
     }
 
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_stmt_t)
 };
 
 //---------------------------------------------------------------------
@@ -225,8 +244,6 @@ struct ast_call_t : public ast_call_base_t
     {}
 
 public:
-    static const v_quark_t &visitor_method_tag;
-
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *fname, const ast_arg_list_ptr_t *args);
 
     void accept(const visitor_ptr_t &visitor) const override
@@ -236,8 +253,7 @@ public:
         method(&visitor, &fun_name, &arg_list);
     }
 
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_call_t)
 };
 
 
@@ -251,8 +267,6 @@ struct ast_arg_identifier_t : public ast_argument_t
     {}
 
 public:
-    static const v_quark_t &visitor_method_tag;
-
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *name);
 
     void accept(const visitor_ptr_t &visitor) const override
@@ -262,8 +276,7 @@ public:
         method(&visitor, &name);
     }
 
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_arg_identifier_t)
 };
 
 //---------------------------------------------------------------------
@@ -276,8 +289,6 @@ struct ast_arg_integer_t : public ast_argument_t
     {}
 
 public:
-    static const v_quark_t &visitor_method_tag;
-
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, intptr_t num);
 
     void accept(const visitor_ptr_t &visitor) const override
@@ -287,8 +298,7 @@ public:
         method(&visitor, number);
     }
 
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_arg_integer_t)
 };
 
 //---------------------------------------------------------------------
@@ -299,8 +309,6 @@ struct ast_arg_string_t : public ast_argument_t
     explicit ast_arg_string_t(const std::string &_string);     //- Sic!
 
 public:
-    static const v_quark_t &visitor_method_tag;
-
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *str);
 
     void accept(const visitor_ptr_t &visitor) const override
@@ -310,8 +318,7 @@ public:
         method(&visitor, &string);
     }
 
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_arg_string_t)
 };
 
 //---------------------------------------------------------------------
@@ -324,8 +331,6 @@ struct ast_arg_char_t : public ast_argument_t
     {}
 
 public:
-    static const v_quark_t &visitor_method_tag;
-
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, char32_t c);
 
     void accept(const visitor_ptr_t &visitor) const override
@@ -335,8 +340,7 @@ public:
         method(&visitor, c);
     }
 
-protected:
-    v_quark_t method_tag(void) const override { return visitor_method_tag; }
+    AST_VISITOR_TAG(ast_arg_char_t)
 };
 
 
@@ -427,36 +431,6 @@ struct ast_argument_generic_t : public ast_argument_t, public ast_generic_t
       : ast_generic_t(gen)
     {}
 };
-
-
-//-----------------------------------------------------------------
-//- Visitors ...
-//-----------------------------------------------------------------
-#define DEFINE_AST_VISITOR_METHOD_TAGS(DEF) \
-    DEF(ast_base_list_t) \
-    DEF(ast_stmt_list_t) \
-    DEF(ast_arg_list_t) \
-    DEF(ast_unit_t) \
-    DEF(ast_stmt_t) \
-    DEF(ast_call_t) \
-    DEF(ast_arg_identifier_t) \
-    DEF(ast_arg_integer_t) \
-    DEF(ast_arg_string_t) \
-    DEF(ast_arg_char_t)
-
-#define DEF(type) \
-extern v_quark_t v_##type##_visitor_method_tag;
-
-extern "C"
-{
-VOIDC_DLLEXPORT_BEGIN_VARIABLE
-
-    DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
-
-VOIDC_DLLEXPORT_END
-}
-
-#undef DEF
 
 
 //---------------------------------------------------------------------
