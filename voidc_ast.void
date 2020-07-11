@@ -164,6 +164,9 @@
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_arg_integer", fun_t);
+
+    fun_t = LLVMFunctionType(intptr_t, arg0, 1, 0);
+
     v_add_symbol_type("v_ast_arg_integer_get_number", fun_t);
 
     //-------------------------------------------------------------

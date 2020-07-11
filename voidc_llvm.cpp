@@ -561,7 +561,10 @@ void compile_ctx_t::static_initialize(void)
     intrinsics["v_load"]          = v_load;
     intrinsics["v_cast"]          = v_cast;
 
-    {   LLVMTypeRef args[] =
+    {   auto char_ptr_type = LLVMPointerType(char_type, 0);
+        auto void_ptr_type = LLVMPointerType(void_type, 0);
+
+        LLVMTypeRef args[] =
         {
             LLVMTypeRef_type,
             LLVMPointerType(LLVMTypeRef_type, 0),
@@ -569,18 +572,17 @@ void compile_ctx_t::static_initialize(void)
             int_type
         };
 
-        v_add_symbol_type("LLVMFunctionType", LLVMFunctionType(LLVMTypeRef_type, args, 4, false));
+#define DEF(name, ret, num) \
+        v_add_symbol_type(#name, LLVMFunctionType(ret, args, num, false));
 
-        auto char_ptr_type = LLVMPointerType(char_type, 0);
-        auto void_ptr_type = LLVMPointerType(void_type, 0);
+        DEF(LLVMFunctionType, LLVMTypeRef_type, 4)
 
         args[0] = char_ptr_type;
         args[1] = LLVMTypeRef_type;
 
-#define DEF(name, ret, num) \
-        v_add_symbol_type(#name, LLVMFunctionType(ret, args, num, false));
-
         DEF(v_add_symbol_type, void_type, 2)
+
+        //- TODO: move remaining into "voidc_llvm.void" ...
 
         args[1] = void_ptr_type;
 
@@ -590,19 +592,11 @@ void compile_ctx_t::static_initialize(void)
         args[2] = void_ptr_type;
 
         DEF(v_add_symbol, void_type, 3)
-
-        args[1] = LLVMValueRef_type;
-
-        DEF(v_add_constant, void_type, 2)
-
-        args[0] = char_ptr_type;
-        args[1] = LLVMTypeRef_type;
-        args[2] = void_ptr_type;
-
         DEF(v_add_local_symbol, void_type, 3)
 
         args[1] = LLVMValueRef_type;
 
+        DEF(v_add_constant, void_type, 2)
         DEF(v_add_local_constant, void_type, 2)
 
         DEF(v_find_symbol_type, LLVMTypeRef_type, 1)
