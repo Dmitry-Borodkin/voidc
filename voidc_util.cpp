@@ -35,8 +35,10 @@ void v_init_term_helper(const visitor_ptr_t *vis,
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(args);
-    assert(args->data.size() >= 1);
-    assert(args->data.size() <= 2);
+    if (args->data.size() < 1  ||  args->data.size() > 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
+    }
 
     assert(cctx.arg_types.empty());
 
@@ -49,9 +51,10 @@ void v_init_term_helper(const visitor_ptr_t *vis,
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx.find_function(fun, ft, f);
-
-    assert(ok && "intrinsic function not found");
+    if (!cctx.find_function(fun, ft, f))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+    }
 
     if (args->data.size() == 1)
     {
@@ -93,8 +96,10 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(args);
-    assert(args->data.size() >= 2);
-    assert(args->data.size() <= 3);
+    if (args->data.size() < 2  ||  args->data.size() > 3)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
+    }
 
     assert(cctx.arg_types.empty());
 
@@ -107,9 +112,10 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx.find_function(fun, ft, f);
-
-    assert(ok && "intrinsic function not found");
+    if (!cctx.find_function(fun, ft, f))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+    }
 
     if (args->data.size() == 2)
     {
@@ -148,7 +154,10 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(*args);
-    assert((*args)->data.size() == 1);
+    if ((*args)->data.size() != 1)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
 
     assert(cctx.arg_types.empty());
 
@@ -161,9 +170,10 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx.find_function(fun, ft, f);
-
-    assert(ok && "intrinsic function not found");
+    if (!cctx.find_function(fun, ft, f))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+    }
 
     auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
 
@@ -184,7 +194,10 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(args);
-    assert(args->data.size() == 2);
+    if (args->data.size() != 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
+    }
 
     assert(cctx.arg_types.empty());
 
@@ -198,9 +211,10 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx.find_function(fun, ft, f);
-
-    assert(ok && "intrinsic function not found");
+    if (!cctx.find_function(fun, ft, f))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+    }
 
     args->data[1]->accept(*vis);
 
@@ -233,7 +247,10 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(*args);
-    assert((*args)->data.size() == 2);
+    if ((*args)->data.size() != 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
 
     assert(cctx.arg_types.empty());
 
@@ -246,9 +263,10 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx.find_function(fun, ft, f);
-
-    assert(ok && "intrinsic function not found");
+    if (!cctx.find_function(fun, ft, f))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+    }
 
     auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
 
@@ -266,7 +284,10 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(*args);
-    assert((*args)->data.size() == 2);
+    if ((*args)->data.size() != 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
 
     assert(cctx.arg_types.empty());
 
@@ -279,9 +300,10 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = cctx.find_function(fun, ft, f);
-
-    assert(ok && "intrinsic function not found");
+    if (!cctx.find_function(fun, ft, f))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+    }
 
     auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
 

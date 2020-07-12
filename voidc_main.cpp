@@ -13,7 +13,6 @@
 #include <set>
 #include <list>
 #include <memory>
-#include <cassert>
 #include <cstring>
 #include <cstdlib>
 #include <filesystem>
@@ -129,7 +128,10 @@ void v_import(const char *name)
 
     src_filename = find_file_for_import(parent_path, src_filename);
 
-    assert(fs::exists(src_filename));
+    if (!fs::exists(src_filename))
+    {
+        throw std::runtime_error("Source file not found: " + src_filename.string());
+    }
 
     if (already_imported.count(src_filename))   return;
 
@@ -256,7 +258,7 @@ void v_import(const char *name)
                 }
                 else
                 {
-                    assert(false && "Unit parse error!");
+                    throw std::runtime_error("Unit parse error!");
                 }
             }
 
@@ -349,7 +351,10 @@ int main(int argc, char *argv[])
         }
         else
         {
-            assert(fs::exists(src_name));
+            if (!fs::exists(src_name))
+            {
+                throw std::runtime_error("Source file not found: " + src_name);
+            }
 
             auto infs = new std::ifstream;
 
@@ -382,7 +387,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                assert(false && "Unit parse error!");
+                throw std::runtime_error("Unit parse error!");
             }
         }
 

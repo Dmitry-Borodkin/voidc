@@ -113,13 +113,18 @@ void v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(*args);
-    assert((*args)->data.size() >= 1);
-    assert((*args)->data.size() <= 2);
+    if ((*args)->data.size() < 1  ||  (*args)->data.size() > 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
 
     auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*(*args)->data[0]);
 
     auto type = cctx.find_type(ident.name.c_str());
-    assert(type);
+    if (!type)
+    {
+        throw std::runtime_error("Type not found: " + ident.name);
+    }
 
     LLVMValueRef v;
 
@@ -146,7 +151,10 @@ void v_getelementptr(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(*args);
-    assert((*args)->data.size() >= 2);
+    if ((*args)->data.size() < 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
 
     assert(cctx.arg_types.empty());
 
@@ -166,7 +174,10 @@ void v_store(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(*args);
-    assert((*args)->data.size() == 2);
+    if ((*args)->data.size() != 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
 
     assert(cctx.arg_types.empty());
 
@@ -193,7 +204,10 @@ void v_load(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(*args);
-    assert((*args)->data.size() == 1);
+    if ((*args)->data.size() != 1)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
 
     (*args)->data[0]->accept(*vis);
 
@@ -211,7 +225,10 @@ void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     assert(*args);
-    assert((*args)->data.size() == 3);
+    if ((*args)->data.size() != 3)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
 
     (*args)->data[0]->accept(*vis);         //- Opcode
 
@@ -221,12 +238,15 @@ void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*(*args)->data[2]);
 
-    auto dest_type = cctx.find_type(ident.name.c_str());
-    assert(dest_type);
+    auto type = cctx.find_type(ident.name.c_str());
+    if (!type)
+    {
+        throw std::runtime_error("Type not found: " + ident.name);
+    }
 
     LLVMValueRef v;
 
-    v = LLVMBuildCast(cctx.builder, opcode, cctx.args[1], dest_type, cctx.ret_name);
+    v = LLVMBuildCast(cctx.builder, opcode, cctx.args[1], type, cctx.ret_name);
 
     cctx.args.clear();
 
@@ -636,7 +656,6 @@ void compile_ctx_t::run_unit_action(void)
     std::string fun_name;
 
     {   auto bref = LLVMCreateBinary(unit_buffer, nullptr, &msg);
-
         assert(bref);
 
         auto it = LLVMObjectFileCopySymbolIterator(bref);
@@ -692,9 +711,12 @@ void compile_ctx_t::run_unit_action(void)
         puts(LLVMOrcGetErrorMsg(jit));
     }
 
-    fflush(stdout);     //- WTF ?
+    if (!addr)
+    {
+        fflush(stdout);
 
-    assert(addr);
+        throw std::runtime_error("Symbol not found: " + fun_name);
+    }
 
     void (*unit_action)() = (void (*)())addr;
 
@@ -708,7 +730,7 @@ void compile_ctx_t::run_unit_action(void)
 LLVMTypeRef
 compile_ctx_t::find_type(const char *type_name)
 {
-    LLVMTypeRef tt = nullptr;                           //- ...
+    LLVMTypeRef tt = nullptr;
 
     void *tv = nullptr;
 
@@ -722,22 +744,25 @@ compile_ctx_t::find_type(const char *type_name)
     {
         auto &[t,v] = local_symbols.at(m_name);
 
-        tt = t;                                         //- ...
+        tt = t;
         tv = v;
     }
     catch(std::out_of_range)
     {
-        try                                             //- ...
-        {                                               //- ...
-            tt = symbol_types.at(m_name);               //- ...
+        try
+        {
+            tt = symbol_types.at(m_name);
             tv = LLVMSearchForAddressOfSymbol(m_name);
-        }                                               //- ...
-        catch(std::out_of_range) {}                     //- ...
+        }
+        catch(std::out_of_range) {}
     }
 
     LLVMOrcDisposeMangledSymbol(m_name);
 
-    assert(tt == LLVMOpaqueType_type);                  //- ...
+    if (tt != LLVMOpaqueType_type)
+    {
+        throw std::runtime_error(std::string("Type not found: ") + type_name);
+    }
 
     return (LLVMTypeRef)tv;
 }
@@ -1026,10 +1051,10 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
     LLVMTypeRef  ft = nullptr;
 
     bool ok = cctx.find_function(fun_name, ft, f);
-
-    if (!ok)  puts(fun_name.c_str());
-
-    assert(ok && "function not found");
+    if (!ok)
+    {
+        throw std::runtime_error("Function not found: " + fun_name);
+    }
 
     cctx.arg_types.resize(LLVMCountParamTypes(ft));
 
@@ -1055,10 +1080,10 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
     auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
 
     LLVMValueRef v = cctx.find_identifier(*name);
-
-    if (!v)  puts(name->c_str());
-
-    assert(v && "identifier not found");
+    if (!v)
+    {
+        throw std::runtime_error("Identifier not found: " + *name);
+    }
 
     auto idx = cctx.args.size();
 
