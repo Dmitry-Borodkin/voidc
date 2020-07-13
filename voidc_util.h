@@ -5,39 +5,9 @@
 #ifndef VOIDC_UTIL_H
 #define VOIDC_UTIL_H
 
-#include "voidc_llvm.h"
-
-#include <string>
-#include <map>
+#include <memory>
+#include <algorithm>
 #include <any>
-
-#include <llvm-c/Core.h>
-
-#include "voidc_dllexport.h"
-
-
-//---------------------------------------------------------------------
-using v_util_function_dict_t = std::map<LLVMTypeRef, std::string>;
-
-extern "C"
-{
-
-VOIDC_DLLEXPORT_BEGIN_VARIABLE
-
-extern v_util_function_dict_t v_util_initialize_dict;
-extern v_util_function_dict_t v_util_reset_dict;
-extern v_util_function_dict_t v_util_copy_dict;
-extern v_util_function_dict_t v_util_move_dict;
-extern v_util_function_dict_t v_util_kind_dict;
-extern v_util_function_dict_t v_util_std_any_get_value_dict;
-extern v_util_function_dict_t v_util_std_any_get_pointer_dict;
-extern v_util_function_dict_t v_util_std_any_set_value_dict;
-extern v_util_function_dict_t v_util_std_any_set_pointer_dict;
-
-VOIDC_DLLEXPORT_END
-
-//---------------------------------------------------------------------
-}   //- extern "C"
 
 
 //---------------------------------------------------------------------

@@ -5,6 +5,7 @@
 #include "voidc_ast.h"
 
 #include "voidc_util.h"
+#include "voidc_llvm.h"
 
 #include <cassert>
 

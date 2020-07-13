@@ -631,6 +631,10 @@ void compile_ctx_t::static_initialize(void)
     }
 
     LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
+
+    v_add_symbol_value("stdin",  (void *)stdin);        //- WTF?
+    v_add_symbol_value("stdout", (void *)stdout);       //- WTF?
+    v_add_symbol_value("stderr", (void *)stderr);       //- WTF?
 }
 
 //---------------------------------------------------------------------

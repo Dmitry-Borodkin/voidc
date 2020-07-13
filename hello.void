@@ -110,6 +110,26 @@
     LLVMDisposeTargetMachine(target_machine);
 }
 
+{   gctx = LLVMGetGlobalContext();
+
+    opaque_FILE = LLVMStructCreateNamed(gctx, "struct.OpaqueFILE");
+
+    v_add_symbol_type("stdout", opaque_FILE);
+
+    arg = v_alloca(LLVMTypeRef);
+
+    FILE_ptr = LLVMPointerType(opaque_FILE, 0);
+
+    v_store(FILE_ptr, arg);
+
+    fun_t = LLVMFunctionType(int, arg, 1, 0);
+
+    v_add_symbol_type("fflush", fun_t);
+}
+
+{   fflush(stdout);     //- WTF?
+}
+
 {   arg = v_alloca(LLVMTypeRef);
 
     char_ptr = LLVMPointerType(char, 0);
