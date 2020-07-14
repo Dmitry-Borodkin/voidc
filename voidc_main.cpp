@@ -424,11 +424,24 @@ int main(int argc, char *argv[])
 
         fflush(stdout);     //- WTF ?
 
-        auto s = LLVMPrintTypeToString(it.second);
+        if (it.second == compile_ctx_t::LLVMOpaqueType_type)
+        {
+            auto tv = (LLVMTypeRef)LLVMSearchForAddressOfSymbol(it.first.c_str());
 
-        printf("%s\n", s);
+            auto s = LLVMPrintTypeToString(tv);
 
-        LLVMDisposeMessage(s);
+            printf("TYPE = %s\n", s);
+
+            LLVMDisposeMessage(s);
+        }
+        else
+        {
+            auto s = LLVMPrintTypeToString(it.second);
+
+            printf("%s\n", s);
+
+            LLVMDisposeMessage(s);
+        }
     }
 
 #endif
