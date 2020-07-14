@@ -52,7 +52,7 @@ static std::list<fs::path> import_paths;
 #define PATHSEP ':'
 #endif
 
-void import_paths_initialize(void)
+void import_paths_initialize(const char *exe_name)
 {
     if (auto paths = std::getenv("VOIDC_IMPORT"))
     {
@@ -79,6 +79,19 @@ void import_paths_initialize(void)
     else
     {
         import_paths = {"."};
+    }
+
+    if (exe_name)
+    {
+        fs::path p(exe_name);
+
+        if (fs::exists(p))
+        {
+            p = fs::canonical(p);
+            p = p.parent_path();
+
+            import_paths.push_back(p);
+        }
     }
 }
 
@@ -283,7 +296,12 @@ void v_import(const char *name)
 //--------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    import_paths_initialize();
+    {   const char *exe_name = nullptr;
+
+        if (argc > 0) exe_name = argv[0];
+
+        import_paths_initialize(exe_name);
+    }
 
     std::list<std::string> sources;
 
