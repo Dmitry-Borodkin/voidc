@@ -1,0 +1,89 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{
+    arg0 = v_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    v_store(LLVMTypeRef, arg0);
+    v_store(int, arg1);
+
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMPointerType", ft);
+}
+
+{
+    ft = LLVMFunctionType(LLVMContextRef, 0, 0, 0);
+    v_add_symbol_type("LLVMGetGlobalContext", ft);
+
+    arg0 = v_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    v_store(LLVMContextRef, arg0);
+    cp = LLVMPointerType(char, 0);
+    v_store(cp, arg1);
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
+    v_add_symbol_type("LLVMStructCreateNamed", ft);
+}
+
+{
+    char_ptr = LLVMPointerType(char, 0);
+    void_ptr = LLVMPointerType(void, 0);
+
+    arg0 = v_alloca(LLVMTypeRef, 3);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    v_store(char_ptr, arg0);
+    v_store(void_ptr, arg1);
+
+    ft = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("v_add_symbol_value", ft);
+
+    v_store(LLVMTypeRef, arg1);
+    v_store(void_ptr,    arg2);
+
+    ft = LLVMFunctionType(void, arg0, 3, 0);
+    v_add_symbol_type("v_add_symbol",       ft);
+    v_add_symbol_type("v_add_local_symbol", ft);
+}
+
+{
+    gctx = LLVMGetGlobalContext();
+
+    opaque_value_t = LLVMStructCreateNamed(gctx, "struct.LLVMOpaqueValue");
+    v_add_symbol("LLVMOpaqueValue", LLVMOpaqueType, opaque_value_t);
+
+    value_ref = LLVMPointerType(opaque_value_t, 0);
+    v_add_symbol("LLVMValueRef", LLVMOpaqueType, value_ref);
+}
+
+{
+    char_ptr = LLVMPointerType(char, 0);
+    void_ptr = LLVMPointerType(void, 0);
+
+    arg0 = v_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    v_store(char_ptr,     arg0);
+    v_store(LLVMValueRef, arg1);
+
+    ft = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("v_add_constant",       ft);
+    v_add_symbol_type("v_add_local_constant", ft);
+
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("v_find_symbol_type", ft);
+
+    ft = LLVMFunctionType(void_ptr, arg0, 1, 0);
+    v_add_symbol_type("v_find_symbol_value", ft);
+
+    v_store(char_ptr, arg1);
+
+    ft = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("v_add_alias",       ft);
+    v_add_symbol_type("v_add_local_alias", ft);
+}
+
+
