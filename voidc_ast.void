@@ -192,9 +192,9 @@
     //-------------------------------------------------------------
     //- Generics ...
     //-------------------------------------------------------------
-    gctx = LLVMGetGlobalContext();
+    gc = LLVMGetGlobalContext();
 
-    generic_vtable = LLVMStructCreateNamed(gctx, "struct.v_ast_generic_vtable");
+    generic_vtable = LLVMStructCreateNamed(gc, "struct.v_ast_generic_vtable");
 
     void_ptr = LLVMPointerType(void, 0);
 

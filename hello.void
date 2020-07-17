@@ -110,9 +110,9 @@
     LLVMDisposeTargetMachine(target_machine);
 }
 
-{   gctx = LLVMGetGlobalContext();
+{   gc = LLVMGetGlobalContext();
 
-    opaque_FILE = LLVMStructCreateNamed(gctx, "struct.OpaqueFILE");
+    opaque_FILE = LLVMStructCreateNamed(gc, "struct.OpaqueFILE");
 
     v_add_symbol_type("stdout", opaque_FILE);
 

@@ -50,9 +50,9 @@
 }
 
 {
-    gctx = LLVMGetGlobalContext();
+    gc = LLVMGetGlobalContext();
 
-    opaque_value_t = LLVMStructCreateNamed(gctx, "struct.LLVMOpaqueValue");
+    opaque_value_t = LLVMStructCreateNamed(gc, "struct.LLVMOpaqueValue");
     v_add_symbol("LLVMOpaqueValue", LLVMOpaqueType, opaque_value_t);
 
     value_ref = LLVMPointerType(opaque_value_t, 0);
