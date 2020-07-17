@@ -5,7 +5,7 @@
 #include "vpeg_grammar.h"
 
 #include "vpeg_context.h"
-#include "voidc_llvm.h"
+#include "voidc_target.h"
 #include "voidc_util.h"
 
 #include <llvm-c/Core.h>
@@ -110,15 +110,17 @@ void grammar_t::static_initialize(void)
 {
     static_assert((sizeof(parser_ptr_t) % sizeof(intptr_t)) == 0);
 
-    auto content_type = LLVMArrayType(compile_ctx_t::intptr_t_type, sizeof(parser_ptr_t)/sizeof(intptr_t));
+    auto &gctx = *voidc_global_ctx_t::voidc;
 
-    auto gctx = LLVMGetGlobalContext();
+    auto content_type = LLVMArrayType(gctx.intptr_t_type, sizeof(parser_ptr_t)/sizeof(intptr_t));
+
+    auto gc = LLVMGetGlobalContext();
 
 #define DEF(name) \
     static_assert(sizeof(parser_ptr_t) == sizeof(name##_ptr_t)); \
-    auto name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_peg_opaque_" #name "_ptr"); \
+    auto name##_ptr_type = LLVMStructCreateNamed(gc, "struct.v_peg_opaque_" #name "_ptr"); \
     LLVMStructSetBody(name##_ptr_type, &content_type, 1, false); \
-    v_add_symbol("v_peg_opaque_" #name "_ptr", compile_ctx_t::LLVMOpaqueType_type, (void *)name##_ptr_type);
+    gctx.add_symbol("v_peg_opaque_" #name "_ptr", gctx.LLVMOpaqueType_type, (void *)name##_ptr_type);
 
     DEF(parser)
     DEF(action)
@@ -128,7 +130,7 @@ void grammar_t::static_initialize(void)
 #undef DEF
 
 #define DEF(name, kind) \
-    compile_ctx_t::constants["v_peg_" #name "_kind_" #kind] = LLVMConstInt(compile_ctx_t::int_type, name##_t::k_##kind, 0);
+    gctx.constants["v_peg_" #name "_kind_" #kind] = LLVMConstInt(gctx.int_type, name##_t::k_##kind, 0);
 
     DEF(parser, choice)
     DEF(parser, sequence)
@@ -159,8 +161,8 @@ void grammar_t::static_initialize(void)
 #undef DEF
 
 #define DEF(kind) \
-    compile_ctx_t::constants["v_peg_backref_argument_kind_" #kind] = \
-        LLVMConstInt(compile_ctx_t::int_type, backref_argument_t::bk_##kind, 0);
+    gctx.constants["v_peg_backref_argument_kind_" #kind] = \
+        LLVMConstInt(gctx.int_type, backref_argument_t::bk_##kind, 0);
 
     DEF(string)
     DEF(start)

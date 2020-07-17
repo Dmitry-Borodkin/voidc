@@ -5,7 +5,7 @@
 #include "voidc_ast.h"
 
 #include "voidc_util.h"
-#include "voidc_llvm.h"
+#include "voidc_target.h"
 
 #include <cassert>
 
@@ -342,15 +342,17 @@ void v_ast_static_initialize(void)
 {
     static_assert((sizeof(ast_base_ptr_t) % sizeof(intptr_t)) == 0);
 
-    auto content_type = LLVMArrayType(compile_ctx_t::intptr_t_type, sizeof(ast_base_ptr_t)/sizeof(intptr_t));
+    auto &gctx = *voidc_global_ctx_t::voidc;
 
-    auto gctx = LLVMGetGlobalContext();
+    auto content_type = LLVMArrayType(gctx.intptr_t_type, sizeof(ast_base_ptr_t)/sizeof(intptr_t));
+
+    auto gc = LLVMGetGlobalContext();
 
 #define DEF(name) \
     static_assert(sizeof(ast_base_ptr_t) == sizeof(ast_##name##_ptr_t)); \
-    auto opaque_##name##_ptr_type = LLVMStructCreateNamed(gctx, "struct.v_ast_opaque_" #name "_ptr"); \
+    auto opaque_##name##_ptr_type = LLVMStructCreateNamed(gc, "struct.v_ast_opaque_" #name "_ptr"); \
     LLVMStructSetBody(opaque_##name##_ptr_type, &content_type, 1, false); \
-    v_add_symbol("v_ast_opaque_" #name "_ptr", compile_ctx_t::LLVMOpaqueType_type, (void *)opaque_##name##_ptr_type);
+    gctx.add_symbol("v_ast_opaque_" #name "_ptr", gctx.LLVMOpaqueType_type, (void *)opaque_##name##_ptr_type);
 
     DEF(base)
     DEF(base_list)

@@ -2,7 +2,7 @@
 //- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
-#include "voidc_llvm.h"
+#include "voidc_target.h"
 #include "voidc_util.h"
 #include "voidc_visitor.h"
 #include "vpeg_context.h"
@@ -133,7 +133,13 @@ extern "C"
 static
 void v_import(const char *name)
 {
-    auto *parent_cctx = compile_ctx_t::current_ctx;
+//  auto *parent_cctx = compile_ctx_t::current_ctx;
+
+    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+
+    auto *parent_cctx = gctx.current_ctx;
 
     fs::path src_filename = name;
 
@@ -172,7 +178,9 @@ void v_import(const char *name)
 
     std::ifstream infs;
 
-    compile_ctx_t cctx(src_filename.string());
+//  compile_ctx_t cctx(src_filename.string());
+
+    voidc_local_ctx_t lctx(src_filename.string(), gctx);
 
     if (use_binary)
     {
@@ -208,9 +216,9 @@ void v_import(const char *name)
 
                 infs.read(buf.get(), len);
 
-                cctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
+                lctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
 
-                cctx.run_unit_action();
+                lctx.run_unit_action();
             }
 
             vpeg::context_t::current_ctx = parent_vpeg_ctx;
@@ -238,9 +246,10 @@ void v_import(const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
-        auto compile_visitor = make_compile_visitor(cctx);
+//      auto compile_visitor = make_compile_visitor(cctx);
+        auto compile_visitor = make_compile_visitor();
 
-        {   vpeg::context_t pctx(infs, voidc_grammar, cctx);
+        {   vpeg::context_t pctx(infs, voidc_grammar);
 
             auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
 
@@ -258,15 +267,15 @@ void v_import(const char *name)
 
                     unit.reset();
 
-                    if (cctx.unit_buffer)
+                    if (lctx.unit_buffer)
                     {
-                        size_t len = LLVMGetBufferSize(cctx.unit_buffer);
+                        size_t len = LLVMGetBufferSize(lctx.unit_buffer);
 
                         outfs.write((char *)&len, sizeof(len));
 
-                        outfs.write(LLVMGetBufferStart(cctx.unit_buffer), len);
+                        outfs.write(LLVMGetBufferStart(lctx.unit_buffer), len);
 
-                        cctx.run_unit_action();
+                        lctx.run_unit_action();
                     }
                 }
                 else
@@ -335,15 +344,20 @@ int main(int argc, char *argv[])
 
     if (sources.empty())  sources.push_back("-");
 
-    compile_ctx_t::static_initialize();
+//  compile_ctx_t::static_initialize();
+
+    voidc_global_ctx_t::static_initialize();
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+
     utility::static_initialize();
 
-    {   auto char_ptr_type = LLVMPointerType(compile_ctx_t::char_type, 0);
+    {   auto char_ptr_type = LLVMPointerType(gctx.char_type, 0);
 
-        v_add_symbol("v_import",
-                     LLVMFunctionType(compile_ctx_t::void_type, &char_ptr_type, 1, false),
-                     (void *)v_import
-                    );
+        gctx.add_symbol("v_import",
+                        LLVMFunctionType(gctx.void_type, &char_ptr_type, 1, false),
+                        (void *)v_import
+                       );
     }
 
     voidc_visitor_t::static_initialize();
@@ -381,11 +395,12 @@ int main(int argc, char *argv[])
             istr = infs;
         }
 
-        compile_ctx_t cctx(src_name);
+//      compile_ctx_t cctx(src_name);
+        voidc_local_ctx_t lctx(src_name, gctx);
 
-        auto compile_visitor = make_compile_visitor(cctx);
+        auto compile_visitor = make_compile_visitor();
 
-        vpeg::context_t pctx(*istr, current_grammar, cctx);
+        vpeg::context_t pctx(*istr, current_grammar);
 
         vpeg::context_t::current_ctx = &pctx;
 
@@ -401,7 +416,7 @@ int main(int argc, char *argv[])
 
                 unit.reset();
 
-                cctx.run_unit_action();
+                lctx.run_unit_action();
             }
             else
             {
@@ -452,7 +467,8 @@ int main(int argc, char *argv[])
     voidc_visitor_t::static_terminate();
 
     utility::static_terminate();
-    compile_ctx_t::static_terminate();
+//  compile_ctx_t::static_terminate();
+    voidc_global_ctx_t::static_terminate();
 
     return 0;
 }

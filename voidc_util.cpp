@@ -5,7 +5,7 @@
 #include "voidc_util.h"
 
 #include "voidc_dllexport.h"
-#include "voidc_llvm.h"
+#include "voidc_target.h"
 
 #include <cassert>
 #include <string>
@@ -51,7 +51,10 @@ void v_init_term_helper(const visitor_ptr_t *vis,
                         const v_util_function_dict_t &dict
                        )
 {
-    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+    auto &builder = voidc_global_ctx_t::builder;
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = *gctx.current_ctx;
 
     assert(args);
     if (args->data.size() < 1  ||  args->data.size() > 2)
@@ -59,35 +62,35 @@ void v_init_term_helper(const visitor_ptr_t *vis,
         throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
     }
 
-    assert(cctx.arg_types.empty());
+    assert(lctx.arg_types.empty());
 
     args->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(cctx.args[0]));
+    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
 
     const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!cctx.find_function(fun, ft, f))
+    if (!lctx.find_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
     if (args->data.size() == 1)
     {
-        auto n = LLVMConstInt(cctx.int_type, 1, false);
+        auto n = LLVMConstInt(gctx.int_type, 1, false);
 
-        cctx.args.push_back(n);
+        lctx.args.push_back(n);
     }
 
-    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
+    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
-    cctx.args.clear();
-    cctx.arg_types.clear();
+    lctx.args.clear();
+    lctx.arg_types.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -112,7 +115,10 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
                         const v_util_function_dict_t &dict
                        )
 {
-    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+    auto &builder = voidc_global_ctx_t::builder;
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = *gctx.current_ctx;
 
     assert(args);
     if (args->data.size() < 2  ||  args->data.size() > 3)
@@ -120,35 +126,35 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
         throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
     }
 
-    assert(cctx.arg_types.empty());
+    assert(lctx.arg_types.empty());
 
     args->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(cctx.args[0]));
+    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
 
     const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!cctx.find_function(fun, ft, f))
+    if (!lctx.find_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
     if (args->data.size() == 2)
     {
-        auto n = LLVMConstInt(cctx.int_type, 1, false);
+        auto n = LLVMConstInt(gctx.int_type, 1, false);
 
-        cctx.args.push_back(n);
+        lctx.args.push_back(n);
     }
 
-    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
+    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
-    cctx.args.clear();
-    cctx.arg_types.clear();
+    lctx.args.clear();
+    lctx.arg_types.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -170,7 +176,10 @@ void v_move(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 static
 void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+    auto &builder = voidc_global_ctx_t::builder;
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = *gctx.current_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -178,28 +187,28 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(cctx.arg_types.empty());
+    assert(lctx.arg_types.empty());
 
     (*args)->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(cctx.args[0]));
+    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
 
     const char *fun = v_util_kind_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!cctx.find_function(fun, ft, f))
+    if (!lctx.find_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
+    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
-    cctx.args.clear();
-    cctx.arg_types.clear();
+    lctx.args.clear();
+    lctx.arg_types.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 
@@ -210,7 +219,10 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
                           const v_util_function_dict_t &dict
                          )
 {
-    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+    auto &builder = voidc_global_ctx_t::builder;
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = *gctx.current_ctx;
 
     assert(args);
     if (args->data.size() != 2)
@@ -218,11 +230,11 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
         throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
     }
 
-    assert(cctx.arg_types.empty());
+    assert(lctx.arg_types.empty());
 
     auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*args->data[0]);
 
-    auto type = cctx.find_type(ident.name.c_str());
+    auto type = lctx.find_type(ident.name.c_str());
     assert(type);
 
     const char *fun = dict.at(type).c_str();
@@ -230,19 +242,19 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!cctx.find_function(fun, ft, f))
+    if (!lctx.find_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
     args->data[1]->accept(*vis);
 
-    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
+    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
-    cctx.args.clear();
-    cctx.arg_types.clear();
+    lctx.args.clear();
+    lctx.arg_types.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -263,7 +275,10 @@ void v_std_any_get_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
 static
 void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+    auto &builder = voidc_global_ctx_t::builder;
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = *gctx.current_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -271,28 +286,28 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(cctx.arg_types.empty());
+    assert(lctx.arg_types.empty());
 
     (*args)->accept(*vis);
 
-    auto type = LLVMTypeOf(cctx.args[1]);
+    auto type = LLVMTypeOf(lctx.args[1]);
 
     const char *fun = v_util_std_any_set_value_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!cctx.find_function(fun, ft, f))
+    if (!lctx.find_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
+    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
-    cctx.args.clear();
-    cctx.arg_types.clear();
+    lctx.args.clear();
+    lctx.arg_types.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 
@@ -300,7 +315,10 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
 static
 void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &cctx = *(compile_ctx_t *)(*vis)->void_methods[voidc_compile_ctx_visitor_tag];
+    auto &builder = voidc_global_ctx_t::builder;
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = *gctx.current_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -308,28 +326,28 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(cctx.arg_types.empty());
+    assert(lctx.arg_types.empty());
 
     (*args)->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(cctx.args[1]));
+    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[1]));
 
     const char *fun = v_util_std_any_set_pointer_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!cctx.find_function(fun, ft, f))
+    if (!lctx.find_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(cctx.builder, f, cctx.args.data(), cctx.args.size(), cctx.ret_name);
+    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
-    cctx.args.clear();
-    cctx.arg_types.clear();
+    lctx.args.clear();
+    lctx.arg_types.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 
@@ -338,28 +356,35 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
 //---------------------------------------------------------------------
 void static_initialize(void)
 {
-    compile_ctx_t::intrinsics["v_initialize"] = v_initialize;
-    compile_ctx_t::intrinsics["v_reset"]      = v_reset;
+    auto &gctx = *voidc_global_ctx_t::voidc;
 
-    compile_ctx_t::intrinsics["v_copy"] = v_copy;
-    compile_ctx_t::intrinsics["v_move"] = v_move;
+#define DEF(name) \
+    gctx.intrinsics[#name] = name;
 
-    compile_ctx_t::intrinsics["v_kind"] = v_kind;
+    DEF(v_initialize)
+    DEF(v_reset)
 
-    compile_ctx_t::intrinsics["v_std_any_get_value"]   = v_std_any_get_value;
-    compile_ctx_t::intrinsics["v_std_any_get_pointer"] = v_std_any_get_pointer;
-    compile_ctx_t::intrinsics["v_std_any_set_value"]   = v_std_any_set_value;
-    compile_ctx_t::intrinsics["v_std_any_set_pointer"] = v_std_any_set_pointer;
+    DEF(v_copy)
+    DEF(v_move)
+
+    DEF(v_kind)
+
+    DEF(v_std_any_get_value)
+    DEF(v_std_any_get_pointer)
+    DEF(v_std_any_set_value)
+    DEF(v_std_any_set_pointer)
+
+#undef DEF
 
     //-----------------------------------------------------------------
-    auto gctx = LLVMGetGlobalContext();
+    auto gc = LLVMGetGlobalContext();
 
 #define DEF(ctype, name) \
     static_assert((sizeof(ctype) % sizeof(intptr_t)) == 0); \
-    auto name##_content_type = LLVMArrayType(compile_ctx_t::intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
-    auto opaque_##name##_type = LLVMStructCreateNamed(gctx, "struct.v_util_opaque_" #name); \
+    auto name##_content_type = LLVMArrayType(gctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
+    auto opaque_##name##_type = LLVMStructCreateNamed(gc, "struct.v_util_opaque_" #name); \
     LLVMStructSetBody(opaque_##name##_type, &name##_content_type, 1, false); \
-    v_add_symbol("v_util_opaque_" #name, compile_ctx_t::LLVMOpaqueType_type, (void *)opaque_##name##_type);
+    gctx.add_symbol("v_util_opaque_" #name, gctx.LLVMOpaqueType_type, (void *)opaque_##name##_type);
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)
@@ -516,10 +541,10 @@ DEF_PTR(std::string, std_string)
 
 
 //---------------------------------------------------------------------
-void voidc_add_intrinsic(const char *name, compile_ctx_t::intrinsic_t fun)
-{
-    compile_ctx_t::intrinsics[name] = fun;
-}
+//void voidc_add_intrinsic(const char *name, compile_ctx_t::intrinsic_t fun)
+//{
+//    compile_ctx_t::intrinsics[name] = fun;
+//}
 
 
 

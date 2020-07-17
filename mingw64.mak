@@ -24,7 +24,7 @@ all: voidc.exe
 
 OBJS = \
 voidc_ast.o \
-voidc_llvm.o \
+voidc_target.o \
 voidc_util.o \
 voidc_quark.o \
 voidc_visitor.o \

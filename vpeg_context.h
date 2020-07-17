@@ -33,7 +33,7 @@ namespace vpeg
 class context_t
 {
 public:
-    context_t(std::istream &_input, const grammar_t &_grammar, compile_ctx_t &cctx);
+    context_t(std::istream &_input, const grammar_t &_grammar);
 
 public:
     static void static_initialize(void);

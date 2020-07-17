@@ -6,7 +6,7 @@
 
 #include "voidc_dllexport.h"
 #include "voidc_util.h"
-#include "voidc_llvm.h"
+#include "voidc_target.h"
 
 #include <cstdio>
 #include <cassert>
@@ -19,14 +19,16 @@ void voidc_visitor_t::static_initialize(void)
 {
     static_assert((sizeof(visitor_ptr_t) % sizeof(intptr_t)) == 0);
 
-    auto content_type = LLVMArrayType(compile_ctx_t::intptr_t_type, sizeof(visitor_ptr_t)/sizeof(intptr_t));
+    auto &gctx = *voidc_global_ctx_t::voidc;
 
-    auto gctx = LLVMGetGlobalContext();
+    auto content_type = LLVMArrayType(gctx.intptr_t_type, sizeof(visitor_ptr_t)/sizeof(intptr_t));
 
-    auto visitor_ptr_type = LLVMStructCreateNamed(gctx, "struct.voidc_opaque_visitor_ptr");
+    auto gc = LLVMGetGlobalContext();
+
+    auto visitor_ptr_type = LLVMStructCreateNamed(gc, "struct.voidc_opaque_visitor_ptr");
 
     LLVMStructSetBody(visitor_ptr_type, &content_type, 1, false);
-    v_add_symbol("voidc_opaque_visitor_ptr", compile_ctx_t::LLVMOpaqueType_type, (void *)visitor_ptr_type);
+    gctx.add_symbol("voidc_opaque_visitor_ptr", gctx.LLVMOpaqueType_type, (void *)visitor_ptr_type);
 }
 
 //-----------------------------------------------------------------

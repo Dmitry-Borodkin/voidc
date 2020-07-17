@@ -4,8 +4,6 @@
 //---------------------------------------------------------------------
 #include "vpeg_context.h"
 
-#include "voidc_llvm.h"
-
 #include <llvm-c/Core.h>
 #include <llvm-c/Support.h>
 
@@ -20,7 +18,7 @@ context_t *context_t::current_ctx = nullptr;
 
 
 //-----------------------------------------------------------------
-context_t::context_t(std::istream &_input, const grammar_t &_grammar, compile_ctx_t &cctx)
+context_t::context_t(std::istream &_input, const grammar_t &_grammar)
   : input(_input),
     grammar(_grammar)
 {
