@@ -133,8 +133,6 @@ extern "C"
 static
 void v_import(const char *name)
 {
-//  auto *parent_cctx = compile_ctx_t::current_ctx;
-
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
 
     auto &gctx = *voidc_global_ctx_t::voidc;
@@ -177,8 +175,6 @@ void v_import(const char *name)
     static const char magic[8] = ".voidc\n";
 
     std::ifstream infs;
-
-//  compile_ctx_t cctx(src_filename.string());
 
     voidc_local_ctx_t lctx(src_filename.string(), gctx);
 
@@ -246,7 +242,6 @@ void v_import(const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
-//      auto compile_visitor = make_compile_visitor(cctx);
         auto compile_visitor = make_compile_visitor();
 
         {   vpeg::context_t pctx(infs, voidc_grammar);
@@ -344,8 +339,6 @@ int main(int argc, char *argv[])
 
     if (sources.empty())  sources.push_back("-");
 
-//  compile_ctx_t::static_initialize();
-
     voidc_global_ctx_t::static_initialize();
 
     auto &gctx = *voidc_global_ctx_t::voidc;
@@ -395,7 +388,6 @@ int main(int argc, char *argv[])
             istr = infs;
         }
 
-//      compile_ctx_t cctx(src_name);
         voidc_local_ctx_t lctx(src_name, gctx);
 
         auto compile_visitor = make_compile_visitor();
@@ -467,7 +459,6 @@ int main(int argc, char *argv[])
     voidc_visitor_t::static_terminate();
 
     utility::static_terminate();
-//  compile_ctx_t::static_terminate();
     voidc_global_ctx_t::static_terminate();
 
     return 0;
