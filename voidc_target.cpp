@@ -880,25 +880,25 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 //---------------------------------------------------------------------
 //- Intrinsics (functions)
 //---------------------------------------------------------------------
-void v_add_symbol_type(const char *name, LLVMTypeRef type)
+void v_add_symbol_type(const char *raw_name, LLVMTypeRef type)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.add_symbol_type(name, type);
+    gctx.add_symbol_type(raw_name, type);
 }
 
-void v_add_symbol_value(const char *name, void *value)
+void v_add_symbol_value(const char *raw_name, void *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.add_symbol_value(name, value);
+    gctx.add_symbol_value(raw_name, value);
 }
 
-void v_add_symbol(const char *name, LLVMTypeRef type, void *value)
+void v_add_symbol(const char *raw_name, LLVMTypeRef type, void *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.add_symbol(name, type, value);
+    gctx.add_symbol(raw_name, type, value);
 }
 
 void v_add_constant(const char *name, LLVMValueRef val)
@@ -909,12 +909,12 @@ void v_add_constant(const char *name, LLVMValueRef val)
 }
 
 //---------------------------------------------------------------------
-void v_add_local_symbol(const char *name, LLVMTypeRef type, void *value)
+void v_add_local_symbol(const char *raw_name, LLVMTypeRef type, void *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.current_ctx;
 
-    lctx.add_symbol(name, type, value);
+    lctx.add_symbol(raw_name, type, value);
 }
 
 void v_add_local_constant(const char *name, LLVMValueRef val)

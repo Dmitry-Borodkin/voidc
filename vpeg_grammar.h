@@ -77,11 +77,6 @@ public:
 public:
     std::any parse(v_quark_t q_name, context_t &ctx) const;
 
-    std::any parse(const char *name, context_t &ctx) const
-    {
-        return  parse(v_quark_from_string(name), ctx);
-    }
-
 public:
     const size_t &hash = _hash;
 

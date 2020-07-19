@@ -31,7 +31,9 @@ static vpeg::grammar_t voidc_grammar;
 static
 std::any parse_unit(vpeg::context_t &pctx)
 {
-    auto ret = pctx.grammar.parse("unit", pctx);
+    static const auto unit_q = v_quark_from_string("unit");
+
+    auto ret = pctx.grammar.parse(unit_q, pctx);
 
     pctx.memo.clear();
 
@@ -250,11 +252,9 @@ void v_import(const char *name)
 
             vpeg::context_t::current_ctx = &pctx;
 
-            for(;;)
+            while(pctx.is_ok())
             {
                 auto v = parse_unit(pctx);
-
-                if (!pctx.is_ok())  break;
 
                 if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
                 {
@@ -272,10 +272,6 @@ void v_import(const char *name)
 
                         lctx.run_unit_action();
                     }
-                }
-                else
-                {
-                    throw std::runtime_error("Unit parse error!");
                 }
             }
 
@@ -396,11 +392,9 @@ int main(int argc, char *argv[])
 
         vpeg::context_t::current_ctx = &pctx;
 
-        for(;;)
+        while(pctx.is_ok())
         {
             auto v = parse_unit(pctx);
-
-            if (!pctx.is_ok())  break;
 
             if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
             {
@@ -409,10 +403,6 @@ int main(int argc, char *argv[])
                 unit.reset();
 
                 lctx.run_unit_action();
-            }
-            else
-            {
-                throw std::runtime_error("Unit parse error!");
             }
         }
 

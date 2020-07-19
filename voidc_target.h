@@ -154,13 +154,13 @@ public:
     const LLVMTypeRef LLVMContextRef_type;
 
 public:
-    void add_symbol_type(const char *name, LLVMTypeRef type) override;
-    void add_symbol_value(const char *name, void *value) override;
-    void add_symbol(const char *name, LLVMTypeRef type, void *value) override;
+    void add_symbol_type(const char *raw_name, LLVMTypeRef type) override;
+    void add_symbol_value(const char *raw_name, void *value) override;
+    void add_symbol(const char *raw_name, LLVMTypeRef type, void *value) override;
 
-    LLVMTypeRef get_symbol_type(const char *name) override;
-    void *      get_symbol_value(const char *name) override;
-    void        get_symbol(const char *name, LLVMTypeRef &type, void * &value) override;
+    LLVMTypeRef get_symbol_type(const char *raw_name) override;
+    void *      get_symbol_value(const char *raw_name) override;
+    void        get_symbol(const char *raw_name, LLVMTypeRef &type, void * &value) override;
 
 private:
     friend class voidc_local_ctx_t;

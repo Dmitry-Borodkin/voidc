@@ -202,7 +202,9 @@ mk_EOF(std::any *ret, const std::any *args, size_t)
 {
     //- Just a placeholder...
 
-    *ret = true;
+    ast_unit_ptr_t ptr = nullptr;
+
+    *ret = ptr;
 }
 
 
