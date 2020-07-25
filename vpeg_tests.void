@@ -8,11 +8,9 @@
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    sa_ref = LLVMPointerType(v_util_opaque_std_any, 0);
-
-    v_store(sa_ref, arg0);
-    v_store(sa_ref, arg1);
-    v_store(size_t, arg2);
+    v_store(v_util_std_any_ref, arg0);
+    v_store(v_util_std_any_ref, arg1);
+    v_store(size_t,             arg2);
 
     my_echo_ft = LLVMFunctionType(void, arg0, 3, 0);
     my_echo_f  = LLVMAddFunction(module, "my_echo_grammar_action", my_echo_ft);

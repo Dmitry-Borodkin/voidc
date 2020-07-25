@@ -926,6 +926,24 @@ void v_add_local_constant(const char *name, LLVMValueRef val)
 }
 
 //---------------------------------------------------------------------
+void v_add_variable(const char *name, LLVMValueRef val)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    lctx.vars[name] = val;
+}
+
+LLVMValueRef v_get_argument(int num)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    return  lctx.args[num];
+}
+
+
+//---------------------------------------------------------------------
 LLVMTypeRef v_find_symbol_type(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
