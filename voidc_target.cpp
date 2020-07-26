@@ -942,6 +942,15 @@ LLVMValueRef v_get_argument(int num)
     return  lctx.args[num];
 }
 
+void v_clear_arguments(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    lctx.args.clear();
+    lctx.arg_types.clear();
+}
+
 
 //---------------------------------------------------------------------
 LLVMTypeRef v_find_symbol_type(const char *name)

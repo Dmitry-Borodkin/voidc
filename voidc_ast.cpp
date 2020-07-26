@@ -263,24 +263,24 @@ void v_ast_make_generic(ast_generic_ptr_t *ret, const ast_generic_vtable *vtab, 
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_unit_generic(ast_unit_ptr_t *ret, const ast_generic_ptr_t *gen)
+void v_ast_make_unit_generic(ast_unit_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
-    *ret = std::make_shared<const ast_unit_generic_t>(*gen);
+    *ret = std::make_shared<const ast_unit_generic_t>(vtab, obj);
 }
 
-void v_ast_make_stmt_generic(ast_stmt_ptr_t *ret, const ast_generic_ptr_t *gen)
+void v_ast_make_stmt_generic(ast_stmt_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
-    *ret = std::make_shared<const ast_stmt_generic_t>(*gen);
+    *ret = std::make_shared<const ast_stmt_generic_t>(vtab, obj);
 }
 
-void v_ast_make_call_generic(ast_call_ptr_t *ret, const ast_generic_ptr_t *gen)
+void v_ast_make_call_generic(ast_call_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
-    *ret = std::make_shared<const ast_call_generic_t>(*gen);
+    *ret = std::make_shared<const ast_call_generic_t>(vtab, obj);
 }
 
-void v_ast_make_argument_generic(ast_argument_ptr_t *ret, const ast_generic_ptr_t *gen)
+void v_ast_make_argument_generic(ast_argument_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
-    *ret = std::make_shared<const ast_argument_generic_t>(*gen);
+    *ret = std::make_shared<const ast_argument_generic_t>(vtab, obj);
 }
 
 //-----------------------------------------------------------------

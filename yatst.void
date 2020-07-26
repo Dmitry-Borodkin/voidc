@@ -1,5 +1,6 @@
 {   v_import("vpeg_grammar.void");
     v_import("voidc_ast.void");
+    v_import("llvm-c/Analysis.void");
 
     v_import("printf.void");
 }
@@ -56,18 +57,26 @@
     v_reset(a);
 }
 
-{   str = v_alloca(v_util_opaque_std_string);
-    v_initialize(str);
+{   str0 = v_alloca(v_util_opaque_std_string, 2);
+    v_initialize(str0, 2);
 
-    v_std_string_set(str, "Превед ");
+    str1 = v_getelementptr(str0, 1);
 
-    v_std_string_append(str, "медвед!");
+    v_std_string_set(str0, "Превед ");
 
-    s = v_std_string_get(str);
+    v_std_string_append(str0, "медвед!");
+
+    s = v_std_string_get(str0);
 
     printf("s: %s\n", s);
 
-    v_reset(str);
+    v_copy(str1, str0);
+
+    s = v_std_string_get(str1);
+
+    printf("s: %s\n", s);
+
+    v_reset(str0, 2);
 }
 
 {   ft = LLVMFunctionType(size_t, 0, 0, 0);
@@ -114,8 +123,6 @@
     void_ptr = LLVMPointerType(void, 0);
 
     v_store(void_ptr, typ0);
-    v_store(void_ptr, typ1);
-
 
     destroy_ft = LLVMFunctionType(void, typ0, 1, 0);
     destroy_f  = LLVMAddFunction(module, "destroy_f", destroy_ft);
@@ -129,10 +136,9 @@
 
     str = LLVMBuildGlobalStringPtr(voidc_builder, "destroy!\n", "str");
 
-    val0 = v_alloca(LLVMValueRef, 4);
+    val0 = v_alloca(LLVMValueRef, 3);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
-    val3 = v_getelementptr(val0, 3);
 
     v_store(str, val0);
 
@@ -140,6 +146,8 @@
 
     LLVMBuildRetVoid(voidc_builder);
 
+
+    v_store(voidc_visitor_ref, typ1);
 
     accept_ft = LLVMFunctionType(void, typ0, 2, 0);
     accept_f  = LLVMAddFunction(module, "accept_f", accept_ft);
@@ -183,11 +191,13 @@
     LLVMRunPassManager(voidc_pass_manager, module);
 
     //-------------------------------------------------------------
-//    msg = LLVMPrintModuleToString(module);
-//
-//    printf("\n%s\n", msg);
-//
-//    LLVMDisposeMessage(msg);
+    msg = LLVMPrintModuleToString(module);
+
+    printf("\n%s\n", msg);
+
+    LLVMDisposeMessage(msg);
+
+    LLVMVerifyModule(module, LLVMAbortProcessAction, 0);
 
     //-------------------------------------------------------------
     PH = v_alloca(LLVMOrcModuleHandle);

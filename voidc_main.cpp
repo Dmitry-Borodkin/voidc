@@ -244,8 +244,6 @@ void v_import(const char *name)
             outfs.write(buf, sizeof(magic));
         }
 
-        auto compile_visitor = make_compile_visitor();
-
         {   vpeg::context_t pctx(infs, voidc_grammar);
 
             auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
@@ -258,7 +256,7 @@ void v_import(const char *name)
 
                 if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
                 {
-                    unit->accept(compile_visitor);
+                    unit->accept(voidc_visitor);
 
                     unit.reset();
 
@@ -349,8 +347,8 @@ int main(int argc, char *argv[])
                        );
     }
 
-    voidc_visitor_t::static_initialize();
     v_ast_static_initialize();
+    voidc_visitor_t::static_initialize();
     vpeg::grammar_t::static_initialize();
     vpeg::context_t::static_initialize();
 
@@ -386,8 +384,6 @@ int main(int argc, char *argv[])
 
         voidc_local_ctx_t lctx(src_name, gctx);
 
-        auto compile_visitor = make_compile_visitor();
-
         vpeg::context_t pctx(*istr, current_grammar);
 
         vpeg::context_t::current_ctx = &pctx;
@@ -398,7 +394,7 @@ int main(int argc, char *argv[])
 
             if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
             {
-                unit->accept(compile_visitor);
+                unit->accept(voidc_visitor);
 
                 unit.reset();
 
@@ -445,8 +441,8 @@ int main(int argc, char *argv[])
 
     vpeg::context_t::static_terminate();
     vpeg::grammar_t::static_terminate();
-    v_ast_static_terminate();
     voidc_visitor_t::static_terminate();
+    v_ast_static_terminate();
 
     utility::static_terminate();
     voidc_global_ctx_t::static_terminate();

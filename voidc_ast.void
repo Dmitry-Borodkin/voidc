@@ -203,7 +203,7 @@
     destroy_ft = LLVMFunctionType(void, arg0, 1, 0);
     destroy_p  = LLVMPointerType(destroy_ft, 0);
 
-    v_store(void_ptr, arg1);        //- visitor_ptr_t ???
+    v_store(voidc_visitor_ref, arg1);
 
     accept_ft = LLVMFunctionType(void, arg0, 2, 0);
     accept_p  = LLVMPointerType(accept_ft, 0);
@@ -227,28 +227,27 @@
     v_add_symbol_type("v_ast_make_generic", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_unit_ref,    arg0);
-    v_store(v_ast_generic_ref, arg1);
+    v_store(v_ast_unit_ref, arg0);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_unit_generic", fun_t);
 
     v_store(v_ast_stmt_ref, arg0);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_stmt_generic", fun_t);
 
     v_store(v_ast_call_ref, arg0);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_call_generic", fun_t);
 
     v_store(v_ast_argument_ref, arg0);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_argument_generic", fun_t);
 

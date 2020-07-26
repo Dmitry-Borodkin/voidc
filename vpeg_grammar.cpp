@@ -12,6 +12,9 @@
 #include <llvm-c/Support.h>
 
 
+#include <cstdio>
+
+
 //---------------------------------------------------------------------
 namespace vpeg
 {
@@ -31,6 +34,8 @@ void grammar_t::check_hash(void)
 //-----------------------------------------------------------------
 std::any grammar_t::parse(v_quark_t q_name, context_t &ctx) const
 {
+//  printf("parse? %s\n", v_quark_to_string(q_name));
+
     context_t::variables_t saved_vars;      //- empty(!)
 
     std::swap(ctx.variables, saved_vars);       //- save (and clear)
@@ -100,6 +105,8 @@ std::any grammar_t::parse(v_quark_t q_name, context_t &ctx) const
     }
 
     ctx.variables = saved_vars;                 //- restore saved
+
+//  printf("parse! %s: %s\n", v_quark_to_string(q_name), (ret.has_value() ? "OK" : "Fail"));
 
     return ret;
 }
