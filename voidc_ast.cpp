@@ -86,7 +86,6 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(ast_##name##_ptr_t, v_ast_std_any_set_pointer_##name##_impl)
 
     DEF(base)
-    DEF(base_list)
 
     DEF(unit)
     DEF(stmt_list)
@@ -96,6 +95,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     DEF(argument)
 
     DEF(generic)
+    DEF(generic_list)
 
 #undef DEF
 
@@ -298,6 +298,40 @@ v_ast_generic_get_object(const ast_generic_ptr_t *ptr)
 
 
 //-----------------------------------------------------------------
+void v_ast_make_generic_list_nil(ast_generic_list_ptr_t *ret, v_quark_t tag)
+{
+    *ret = std::make_shared<const ast_generic_list_t>(tag);
+}
+
+void v_ast_make_generic_list(ast_generic_list_ptr_t *ret, v_quark_t tag, const ast_base_ptr_t *list, int count)
+{
+    *ret = std::make_shared<const ast_generic_list_t>(tag, list, count);
+}
+
+void v_ast_generic_list_append(ast_generic_list_ptr_t *ret,
+                               const ast_generic_list_ptr_t *list,
+                               const ast_base_ptr_t *item)
+{
+    *ret = std::make_shared<const ast_generic_list_t>(*list, *item);
+}
+
+int v_ast_generic_list_get_size(const ast_generic_list_ptr_t *ptr)
+{
+    return (*ptr)->data.size();
+}
+
+void v_ast_generic_list_get_item(const ast_generic_list_ptr_t *ptr, int i, ast_base_ptr_t *ret)
+{
+    *ret = (*ptr)->data[i];
+}
+
+void v_ast_generic_list_get_items(const ast_generic_list_ptr_t *ptr, ast_base_ptr_t *ret)
+{
+    std::copy((*ptr)->data.begin(), (*ptr)->data.end(), ret);
+}
+
+
+//-----------------------------------------------------------------
 //- Visitors ...
 //-----------------------------------------------------------------
 #define DEF(type) \
@@ -355,7 +389,6 @@ void v_ast_static_initialize(void)
     gctx.add_symbol("v_ast_opaque_" #name "_ptr", gctx.LLVMOpaqueType_type, (void *)opaque_##name##_ptr_type);
 
     DEF(base)
-    DEF(base_list)
 
     DEF(unit)
     DEF(stmt_list)
@@ -365,6 +398,7 @@ void v_ast_static_initialize(void)
     DEF(argument)
 
     DEF(generic)
+    DEF(generic_list)
 
 #undef DEF
 

@@ -1117,7 +1117,6 @@ void voidc_global_ctx_t::static_terminate(void)
 //=====================================================================
 //- AST Visitor - Compiler (level 0) ...
 //=====================================================================
-static void compile_ast_base_list_t(const visitor_ptr_t *vis, size_t count, bool start) {}
 static void compile_ast_stmt_list_t(const visitor_ptr_t *vis, size_t count, bool start) {}
 static void compile_ast_arg_list_t(const visitor_ptr_t *vis, size_t count, bool start) {}
 

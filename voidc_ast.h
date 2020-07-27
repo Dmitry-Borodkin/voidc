@@ -21,7 +21,6 @@
 //- Visitors ...
 //-----------------------------------------------------------------
 #define DEFINE_AST_VISITOR_METHOD_TAGS(DEF) \
-    DEF(ast_base_list_t) \
     DEF(ast_stmt_list_t) \
     DEF(ast_arg_list_t) \
     DEF(ast_unit_t) \
@@ -91,9 +90,9 @@ struct ast_list_t : public ast_base_t
 
     ast_list_t() : data{} {}
 
-    ast_list_t(const std::shared_ptr<const ast_list_t<T>> &_list,
-               const std::shared_ptr<const T>             &_item)
-      : data(_list ? _list->data.push_back(_item) : immer::vector({_item}))
+    ast_list_t(const std::shared_ptr<const ast_list_t<T>> &list,
+               const std::shared_ptr<const T>             &item)
+      : data(list->data.push_back(item))
     {}
 
     ast_list_t(const std::shared_ptr<const T> *list, size_t count)
@@ -117,25 +116,6 @@ public:
         method(&visitor, data.size(), false);
     }
 };
-
-//---------------------------------------------------------------------
-struct ast_base_list_t : public ast_list_t<ast_base_t>
-{
-    ast_base_list_t() = default;
-
-    ast_base_list_t(const std::shared_ptr<const ast_base_list_t> &list,
-                    const std::shared_ptr<const ast_base_t> &item)
-      : ast_list_t<ast_base_t>(list, item)
-    {}
-
-    ast_base_list_t(const std::shared_ptr<const ast_base_t> *list, size_t count)
-      : ast_list_t<ast_base_t>(list, count)
-    {}
-
-    AST_VISITOR_TAG(ast_base_list_t)
-};
-
-typedef std::shared_ptr<const ast_base_list_t> ast_base_list_ptr_t;
 
 //---------------------------------------------------------------------
 struct ast_stmt_list_t : public ast_list_t<ast_stmt_base_t>
@@ -426,6 +406,37 @@ struct ast_argument_generic_t : public ast_argument_t, public ast_generic_t
       : ast_generic_t(vtab, obj)
     {}
 };
+
+
+//---------------------------------------------------------------------
+struct ast_generic_list_t : public ast_list_t<ast_base_t>
+{
+    explicit ast_generic_list_t(v_quark_t tag)
+      : visitor_method_tag(tag)
+    {}
+
+    ast_generic_list_t(const std::shared_ptr<const ast_generic_list_t> &list,
+                       const ast_base_ptr_t &item)
+      : ast_list_t<ast_base_t>(list, item),
+        visitor_method_tag(list->visitor_method_tag)
+    {}
+
+    ast_generic_list_t(v_quark_t tag, const ast_base_ptr_t *list, size_t count)
+      : ast_list_t<ast_base_t>(list, count),
+        visitor_method_tag(tag)
+    {}
+
+protected:
+    v_quark_t method_tag(void) const override
+    {
+        return  visitor_method_tag;
+    }
+
+private:
+    const v_quark_t visitor_method_tag;
+};
+
+typedef std::shared_ptr<const ast_generic_list_t> ast_generic_list_ptr_t;
 
 
 //---------------------------------------------------------------------
