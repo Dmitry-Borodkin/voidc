@@ -65,7 +65,7 @@ extern "C"
 
 VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
-extern visitor_ptr_t voidc_visitor;
+extern visitor_ptr_t voidc_compiler;
 
 VOIDC_DLLEXPORT_END
 

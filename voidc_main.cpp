@@ -256,7 +256,7 @@ void v_import(const char *name)
 
                 if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
                 {
-                    unit->accept(voidc_visitor);
+                    unit->accept(voidc_compiler);
 
                     unit.reset();
 
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
 
             if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
             {
-                unit->accept(voidc_visitor);
+                unit->accept(voidc_compiler);
 
                 unit.reset();
 

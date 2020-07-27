@@ -724,6 +724,9 @@ voidc_local_ctx_t::run_unit_action(void)
     unit_action();
 
     LLVMOrcRemoveModule(jit, H);
+
+    fflush(stdout);     //- WTF?
+    fflush(stderr);     //- WTF?
 }
 
 

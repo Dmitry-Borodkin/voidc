@@ -30,20 +30,20 @@ void voidc_visitor_t::static_initialize(void)
     gctx.add_symbol("voidc_opaque_visitor_ptr", gctx.LLVMOpaqueType_type, (void *)visitor_ptr_type);
 
 
-    voidc_visitor = make_compile_visitor();
+    voidc_compiler = make_compile_visitor();
 }
 
 //-----------------------------------------------------------------
 void voidc_visitor_t::static_terminate(void)
 {
-    voidc_visitor.reset();
+    voidc_compiler.reset();
 }
 
 
 //---------------------------------------------------------------------
 //- !!!
 //---------------------------------------------------------------------
-visitor_ptr_t voidc_visitor;
+visitor_ptr_t voidc_compiler;
 
 extern "C"
 {
