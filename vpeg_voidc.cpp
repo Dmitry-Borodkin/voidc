@@ -359,8 +359,8 @@ vpeg::grammar_t make_voidc_grammar(void)
     }), true);      //- Left recursion!
 
     //-------------------------------------------------------------
-    //- stmt <- v:identifier _ '=' _ c:call     { mk_stmt(v, c) }
-    //-       / c:call                          { mk_stmt(0, c) }
+    //- stmt <- v:identifier _ '=' _ c:call _ ';'   { mk_stmt(v, c) }
+    //-       / c:call _ ';'                        { mk_stmt(0, c) }
 
     gr = gr.set_parser("stmt",
     mk_choice_parser(
@@ -372,6 +372,8 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_character_parser('='),
             ip__,
             mk_catch_variable_parser("c", ip_call),
+            ip__,
+            mk_character_parser(';'),
 
             mk_action_parser(
                 mk_call_action("mk_stmt",
@@ -384,6 +386,8 @@ vpeg::grammar_t make_voidc_grammar(void)
         mk_sequence_parser(
         {
             mk_catch_variable_parser("c", ip_call),
+            ip__,
+            mk_character_parser(';'),
 
             mk_action_parser(
                 mk_call_action("mk_stmt",
@@ -396,7 +400,7 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- call <- f:identifier _ '(' _ a:arg_list _ ')' _ ';'     { mk_call(f, a) }
+    //- call <- f:identifier _ '(' _ a:arg_list _ ')'   { mk_call(f, a) }
 
     gr = gr.set_parser("call",
     mk_sequence_parser(
@@ -408,8 +412,6 @@ vpeg::grammar_t make_voidc_grammar(void)
         mk_catch_variable_parser("a", ip_arg_list),
         ip__,
         mk_character_parser(')'),
-        ip__,
-        mk_character_parser(';'),
 
         mk_action_parser(
             mk_call_action("mk_call",

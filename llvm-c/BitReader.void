@@ -1,0 +1,83 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+
+//- Imports ------------------------------------------------
+{
+    v_import("Types.void");
+}
+
+//- Functions ----------------------------------------------
+{
+    arg0 = v_alloca(LLVMTypeRef, 10);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+
+    v_store(LLVMMemoryBufferRef, arg0);
+    v0 = LLVMPointerType(LLVMModuleRef, 0);
+    v_store(v0, arg1);
+    v1 = LLVMFunctionType(LLVMBool, arg0, 2, 0);
+    v_add_symbol_type("LLVMParseBitcode2", v1);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMMemoryBufferRef, arg1);
+    v2 = LLVMPointerType(LLVMModuleRef, 0);
+    v_store(v2, arg2);
+    v3 = LLVMFunctionType(LLVMBool, arg0, 3, 0);
+    v_add_symbol_type("LLVMParseBitcodeInContext2", v3);
+
+    v_store(LLVMMemoryBufferRef, arg0);
+    v4 = LLVMPointerType(LLVMModuleRef, 0);
+    v_store(v4, arg1);
+    v5 = LLVMPointerType(char, 0);
+    v6 = LLVMPointerType(v5, 0);
+    v_store(v6, arg2);
+    v7 = LLVMFunctionType(LLVMBool, arg0, 3, 0);
+    v_add_symbol_type("LLVMParseBitcode", v7);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMMemoryBufferRef, arg1);
+    v8 = LLVMPointerType(LLVMModuleRef, 0);
+    v_store(v8, arg2);
+    v9 = LLVMPointerType(char, 0);
+    v10 = LLVMPointerType(v9, 0);
+    v_store(v10, arg3);
+    v11 = LLVMFunctionType(LLVMBool, arg0, 4, 0);
+    v_add_symbol_type("LLVMGetBitcodeModuleInContext", v11);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMMemoryBufferRef, arg1);
+    v12 = LLVMPointerType(LLVMModuleRef, 0);
+    v_store(v12, arg2);
+    v13 = LLVMFunctionType(LLVMBool, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetBitcodeModuleInContext2", v13);
+
+    v_store(LLVMContextRef, arg0);
+    v_store(LLVMMemoryBufferRef, arg1);
+    v14 = LLVMPointerType(LLVMModuleRef, 0);
+    v_store(v14, arg2);
+    v15 = LLVMPointerType(char, 0);
+    v16 = LLVMPointerType(v15, 0);
+    v_store(v16, arg3);
+    v17 = LLVMFunctionType(LLVMBool, arg0, 4, 0);
+    v_add_symbol_type("LLVMParseBitcodeInContext", v17);
+
+    v_store(LLVMMemoryBufferRef, arg0);
+    v18 = LLVMPointerType(LLVMModuleRef, 0);
+    v_store(v18, arg1);
+    v19 = LLVMFunctionType(LLVMBool, arg0, 2, 0);
+    v_add_symbol_type("LLVMGetBitcodeModule2", v19);
+
+    v_store(LLVMMemoryBufferRef, arg0);
+    v20 = LLVMPointerType(LLVMModuleRef, 0);
+    v_store(v20, arg1);
+    v21 = LLVMPointerType(char, 0);
+    v22 = LLVMPointerType(v21, 0);
+    v_store(v22, arg2);
+    v23 = LLVMFunctionType(LLVMBool, arg0, 3, 0);
+    v_add_symbol_type("LLVMGetBitcodeModule", v23);
+
+}
+

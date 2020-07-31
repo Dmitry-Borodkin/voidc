@@ -1,0 +1,22 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+
+//- Imports ------------------------------------------------
+{
+    v_import("Types.void");
+}
+
+//- Functions ----------------------------------------------
+{
+    arg0 = v_alloca(LLVMTypeRef, 10);
+    arg1 = v_getelementptr(arg0, 1);
+
+    v_store(LLVMModuleRef, arg0);
+    v_store(LLVMModuleRef, arg1);
+    v0 = LLVMFunctionType(LLVMBool, arg0, 2, 0);
+    v_add_symbol_type("LLVMLinkModules2", v0);
+
+}
+
