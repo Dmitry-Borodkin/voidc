@@ -1172,9 +1172,6 @@ void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stm
     LLVMClearInsertionPosition(builder);
 
     //-------------------------------------------------------------
-    LLVMRunPassManager(gctx.pass_manager, lctx.module);
-
-    //-------------------------------------------------------------
     char *msg = nullptr;
 
     auto err = LLVMVerifyModule(lctx.module, LLVMReturnStatusAction, &msg);
@@ -1192,6 +1189,9 @@ void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stm
     LLVMDisposeMessage(msg);
 
     if (err)  exit(1);          //- Sic !!!
+
+    //-------------------------------------------------------------
+    LLVMRunPassManager(gctx.pass_manager, lctx.module);
 
     //-------------------------------------------------------------
     err = LLVMTargetMachineEmitToMemoryBuffer(gctx.target_machine,
