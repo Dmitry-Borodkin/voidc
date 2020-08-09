@@ -82,6 +82,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     VOIDC_DEFINE_RESET_IMPL(ast_##name##_ptr_t, v_ast_reset_##name##_impl) \
     VOIDC_DEFINE_COPY_IMPL(ast_##name##_ptr_t, v_ast_copy_##name##_impl) \
     VOIDC_DEFINE_MOVE_IMPL(ast_##name##_ptr_t, v_ast_move_##name##_impl) \
+    VOIDC_DEFINE_EMPTY_IMPL(ast_##name##_ptr_t, v_ast_empty_##name##_impl) \
     VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(ast_##name##_ptr_t, v_ast_std_any_get_pointer_##name##_impl) \
     VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(ast_##name##_ptr_t, v_ast_std_any_set_pointer_##name##_impl)
 

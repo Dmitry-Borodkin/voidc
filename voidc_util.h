@@ -49,6 +49,12 @@ void fun_name(val_t *dst, val_t *src, int count) \
     std::move(src, src+count, dst); \
 }
 
+#define VOIDC_DEFINE_EMPTY_IMPL(val_t, fun_name) \
+bool fun_name(const val_t *ptr) \
+{ \
+    return  !bool(*ptr); \
+}
+
 
 //-----------------------------------------------------------------
 #define VOIDC_DEFINE_STD_ANY_GET_VALUE_IMPL(val_t, fun_name) \

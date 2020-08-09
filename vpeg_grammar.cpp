@@ -207,6 +207,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     VOIDC_DEFINE_RESET_IMPL(name##_ptr_t, v_peg_reset_##name##_impl) \
     VOIDC_DEFINE_COPY_IMPL(name##_ptr_t, v_peg_copy_##name##_impl) \
     VOIDC_DEFINE_MOVE_IMPL(name##_ptr_t, v_peg_move_##name##_impl) \
+    VOIDC_DEFINE_EMPTY_IMPL(name##_ptr_t, v_peg_empty_##name##_impl) \
     VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(name##_ptr_t, v_peg_std_any_get_pointer_##name##_impl) \
     VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(name##_ptr_t, v_peg_std_any_set_pointer_##name##_impl)
 

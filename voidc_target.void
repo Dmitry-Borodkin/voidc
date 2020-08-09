@@ -57,6 +57,12 @@
 
     value_ref = LLVMPointerType(opaque_value_t, 0);
     v_add_symbol("LLVMValueRef", LLVMOpaqueType, value_ref);
+
+    opaque_module_t = LLVMStructCreateNamed(gc, "struct.LLVMOpaqueModule");
+    v_add_symbol("LLVMOpaqueModule", LLVMOpaqueType, opaque_module_t);
+
+    module_ref = LLVMPointerType(opaque_module_t, 0);
+    v_add_symbol("LLVMModuleRef", LLVMOpaqueType, module_ref);
 }
 
 {
@@ -89,7 +95,16 @@
     v_add_symbol_type("v_get_argument", ft);
 
     ft = LLVMFunctionType(void, 0, 0, 0);
+    v_add_symbol_type("v_clear_variables", ft);
     v_add_symbol_type("v_clear_arguments", ft);
+
+    ft = LLVMFunctionType(LLVMModuleRef, 0, 0, 0);
+    v_add_symbol_type("v_get_module", ft);
+
+    v_store(LLVMModuleRef, arg0);
+
+    ft = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("v_set_module", ft);
 }
 
 

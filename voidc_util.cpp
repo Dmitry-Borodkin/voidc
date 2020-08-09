@@ -26,6 +26,7 @@ v_util_function_dict_t v_util_initialize_dict;
 v_util_function_dict_t v_util_reset_dict;
 v_util_function_dict_t v_util_copy_dict;
 v_util_function_dict_t v_util_move_dict;
+v_util_function_dict_t v_util_empty_dict;
 v_util_function_dict_t v_util_kind_dict;
 v_util_function_dict_t v_util_std_any_get_value_dict;
 v_util_function_dict_t v_util_std_any_get_pointer_dict;
@@ -169,6 +170,46 @@ static
 void v_move(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
     v_copy_move_helper(vis, *args, v_util_move_dict);
+}
+
+
+//---------------------------------------------------------------------
+static
+void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+{
+    auto &builder = voidc_global_ctx_t::builder;
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = *gctx.current_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 1)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    assert(lctx.arg_types.empty());
+
+    (*args)->accept(*vis);
+
+    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
+
+    const char *fun = v_util_empty_dict.at(type).c_str();
+
+    LLVMValueRef f  = nullptr;
+    LLVMTypeRef  ft = nullptr;
+
+    if (!lctx.find_function(fun, ft, f))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+    }
+
+    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+
+    lctx.args.clear();
+    lctx.arg_types.clear();
+
+    lctx.ret_value = v;
 }
 
 
@@ -367,6 +408,8 @@ void static_initialize(void)
     DEF(v_copy)
     DEF(v_move)
 
+    DEF(v_empty)
+
     DEF(v_kind)
 
     DEF(v_std_any_get_value)
@@ -424,6 +467,11 @@ void v_util_reset_function_dict_impl(v_util_function_dict_t *ptr, int count)
 VOIDC_DEFINE_COPY_IMPL(v_util_function_dict_t, v_util_copy_function_dict_impl)
 VOIDC_DEFINE_MOVE_IMPL(v_util_function_dict_t, v_util_move_function_dict_impl)
 
+bool v_util_empty_function_dict_impl(const v_util_function_dict_t *ptr)
+{
+    return ptr->empty();
+}
+
 const char *v_util_function_dict_get(const v_util_function_dict_t *ptr, LLVMTypeRef type)
 {
     try
@@ -446,6 +494,11 @@ VOIDC_DEFINE_RESET_IMPL(std::any, v_util_reset_std_any_impl)
 VOIDC_DEFINE_COPY_IMPL(std::any, v_util_copy_std_any_impl)
 VOIDC_DEFINE_MOVE_IMPL(std::any, v_util_move_std_any_impl)
 
+bool v_util_empty_std_any_impl(const std::any *ptr)
+{
+    return !ptr->has_value();
+}
+
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(std::string, v_util_initialize_std_string_impl)
 
@@ -460,6 +513,11 @@ void v_util_reset_std_string_impl(std::string *ptr, int count)
 
 VOIDC_DEFINE_COPY_IMPL(std::string, v_util_copy_std_string_impl)
 VOIDC_DEFINE_MOVE_IMPL(std::string, v_util_move_std_string_impl)
+
+bool v_util_empty_std_string_impl(const std::string *ptr)
+{
+    return ptr->empty();
+}
 
 char *v_std_string_get(std::string *ptr)
 {

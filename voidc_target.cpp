@@ -929,12 +929,37 @@ void v_add_local_constant(const char *name, LLVMValueRef val)
 }
 
 //---------------------------------------------------------------------
+LLVMModuleRef v_get_module(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    return  lctx.module;
+}
+
+void v_set_module(LLVMModuleRef mod)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    lctx.module = mod;
+}
+
+//---------------------------------------------------------------------
 void v_add_variable(const char *name, LLVMValueRef val)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.current_ctx;
 
     lctx.vars[name] = val;
+}
+
+void v_clear_variables(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    lctx.vars.clear();
 }
 
 LLVMValueRef v_get_argument(int num)
@@ -1144,6 +1169,8 @@ void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stm
     std::string mod_name = hdr + "_module";
     std::string fun_name = hdr + "_action";
 
+    auto saved_module = lctx.module;
+
     lctx.module = LLVMModuleCreateWithName(mod_name.c_str());
 
     LLVMSetSourceFileName(lctx.module, lctx.filename.c_str(), lctx.filename.size());
@@ -1231,6 +1258,8 @@ void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stm
     LLVMDisposeModule(lctx.module);
 
     lctx.vars.clear();
+
+    lctx.module = saved_module;
 }
 
 

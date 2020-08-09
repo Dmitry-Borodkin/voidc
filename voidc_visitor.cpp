@@ -55,6 +55,7 @@ VOIDC_DEFINE_INITIALIZE_IMPL(visitor_ptr_t, voidc_initialize_visitor_impl)
 VOIDC_DEFINE_RESET_IMPL(visitor_ptr_t, voidc_reset_visitor_impl)
 VOIDC_DEFINE_COPY_IMPL(visitor_ptr_t, voidc_copy_visitor_impl)
 VOIDC_DEFINE_MOVE_IMPL(visitor_ptr_t, voidc_move_visitor_impl)
+VOIDC_DEFINE_EMPTY_IMPL(visitor_ptr_t, voidc_empty_visitor_impl)
 VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(visitor_ptr_t, voidc_std_any_get_pointer_visitor_impl)
 VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(visitor_ptr_t, voidc_std_any_set_pointer_visitor_impl)
 

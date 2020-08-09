@@ -203,20 +203,26 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 //---------------------------------------------------------------------
 void v_peg_get_grammar(grammar_ptr_t *ptr)
 {
-    assert(context_t::current_ctx);
-
-    *ptr = std::make_shared<const grammar_t>(context_t::current_ctx->grammar);
+    if (context_t::current_ctx)
+    {
+        *ptr = std::make_shared<const grammar_t>(context_t::current_ctx->grammar);
+    }
+    else
+    {
+        (*ptr).reset();
+    }
 }
 
 void v_peg_set_grammar(const grammar_ptr_t *ptr)
 {
-    assert(context_t::current_ctx);
+    if (context_t::current_ctx)
+    {
+        auto &grammar = context_t::current_ctx->grammar;
 
-    auto &grammar = context_t::current_ctx->grammar;
+        grammar = **ptr;
 
-    grammar = **ptr;
-
-    grammar.check_hash();
+        grammar.check_hash();
+    }
 }
 
 //---------------------------------------------------------------------
