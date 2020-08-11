@@ -596,16 +596,6 @@ DEF_PTR(std::string, std_string)
 #undef DEF_VAR
 
 
-
-
-//---------------------------------------------------------------------
-//void voidc_add_intrinsic(const char *name, compile_ctx_t::intrinsic_t fun)
-//{
-//    compile_ctx_t::intrinsics[name] = fun;
-//}
-
-
-
 VOIDC_DLLEXPORT_END
 
 //---------------------------------------------------------------------

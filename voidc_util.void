@@ -3,6 +3,7 @@
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
 {   v_import("voidc_internals.void");
+    v_import("llvm-c/Analysis.void");
 
     v_import("printf.void");
 }
@@ -93,10 +94,174 @@
 
 
 //---------------------------------------------------------------------
-//- voidc_util support module...
+//- voidc_util support module #1
 //---------------------------------------------------------------------
-{   module = LLVMModuleCreateWithName("voidc_util_void_module");
+{   module = LLVMModuleCreateWithName("voidc_util_void_module_N1");
 
+    typ0 = v_alloca(LLVMTypeRef, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    val0 = v_alloca(LLVMValueRef, 3);
+    val1 = v_getelementptr(val0, 1);
+    val2 = v_getelementptr(val0, 2);
+
+    char_ptr = LLVMPointerType(char, 0);
+    dict_ptr = LLVMPointerType(v_util_opaque_function_dict_t, 0);
+
+
+    //-----------------------------------------------------------------
+    //- LLVMValueRef v_find_function(const char *fun_name);
+    //-----------------------------------------------------------------
+    v_store(char_ptr, typ0);
+
+    find_fun_ft = LLVMFunctionType(LLVMValueRef, typ0, 1, 0);
+    find_fun_f  = LLVMAddFunction(module, "v_find_function", find_fun_ft);
+
+    fun_name = LLVMGetParam(find_fun_f, 0);
+
+    entry = LLVMAppendBasicBlock(find_fun_f, "entry");
+    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+
+
+    get_module_ft = v_find_symbol_type("v_get_module");
+    get_module_f  = LLVMAddFunction(module, "v_get_module", get_module_ft);
+
+    module_v = LLVMBuildCall(voidc_builder, get_module_f, 0, 0, "module_v");
+
+    llvm_get_fun_ft = v_find_symbol_type("LLVMGetNamedFunction");
+    llvm_get_fun_f  = LLVMAddFunction(module, "LLVMGetNamedFunction", llvm_get_fun_ft);
+
+    v_store(module_v, val0);
+    v_store(fun_name, val1);
+
+    fun_value = LLVMBuildCall(voidc_builder, llvm_get_fun_f, val0, 2, "fun_value");
+
+    ok = LLVMBuildIsNotNull(voidc_builder, fun_value, "ok");
+
+    then_b = LLVMAppendBasicBlock(find_fun_f, "then_b");
+    else_b = LLVMAppendBasicBlock(find_fun_f, "else_b");
+
+    LLVMBuildCondBr(voidc_builder, ok, then_b, else_b);
+
+
+    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
+
+    LLVMBuildRet(voidc_builder, fun_value);
+
+
+    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+
+    find_sym_type_ft = v_find_symbol_type("v_find_symbol_type");
+    find_sym_type_f  = LLVMAddFunction(module, "v_find_symbol_type", find_sym_type_ft);
+
+    v_store(fun_name, val0);
+
+    fun_type = LLVMBuildCall(voidc_builder, find_sym_type_f, val0, 1, "fun_type");
+
+
+    llvm_add_fun_ft = v_find_symbol_type("LLVMAddFunction");
+    llvm_add_fun_f  = LLVMAddFunction(module, "LLVMAddFunction", llvm_add_fun_ft);
+
+    v_store(module_v, val0);
+    v_store(fun_name, val1);
+    v_store(fun_type, val2);
+
+    fun_value = LLVMBuildCall(voidc_builder, llvm_add_fun_f, val0, 3, "fun_value");
+
+    LLVMBuildRet(voidc_builder, fun_value);
+
+
+    //-----------------------------------------------------------------
+    //- LLVMValueRef v_find_dict_function(const v_util_opaque_function_dict_t *dict, LLVMTypeRef type);
+    //-----------------------------------------------------------------
+    v_store(dict_ptr,    typ0);
+    v_store(LLVMTypeRef, typ1);
+
+    find_dfun_ft = LLVMFunctionType(LLVMValueRef, typ0, 2, 0);
+    find_dfun_f  = LLVMAddFunction(module, "v_find_dict_function", find_dfun_ft);
+
+    dict_v = LLVMGetParam(find_dfun_f, 0);
+    type_v = LLVMGetParam(find_dfun_f, 1);
+
+    entry = LLVMAppendBasicBlock(find_dfun_f, "entry");
+    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+
+
+    dict_get_ft = v_find_symbol_type("v_util_function_dict_get");
+    dict_get_f  = LLVMAddFunction(module, "v_util_function_dict_get", dict_get_ft);
+
+    v_store(dict_v, val0);
+    v_store(type_v, val1);
+
+    dfun_name = LLVMBuildCall(voidc_builder, dict_get_f, val0, 2, "dfun_name");
+
+    v_store(dfun_name, val0);
+
+    dfun_value = LLVMBuildCall(voidc_builder, find_fun_f, val0, 1, "dfun_value");
+
+    LLVMBuildRet(voidc_builder, dfun_value);
+
+
+    //-----------------------------------------------------------------
+    //- LLVMValueRef v_find_global(const char *var_name);
+    //-----------------------------------------------------------------
+    v_store(char_ptr, typ0);
+
+    find_var_ft = LLVMFunctionType(LLVMValueRef, typ0, 1, 0);
+    find_var_f  = LLVMAddFunction(module, "v_find_global", find_var_ft);
+
+    var_name = LLVMGetParam(find_var_f, 0);
+
+    entry = LLVMAppendBasicBlock(find_var_f, "entry");
+    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+
+
+    module_v = LLVMBuildCall(voidc_builder, get_module_f, 0, 0, "module_v");
+
+    llvm_get_var_ft = v_find_symbol_type("LLVMGetNamedGlobal");
+    llvm_get_var_f  = LLVMAddFunction(module, "LLVMGetNamedGlobal", llvm_get_var_ft);
+
+    v_store(module_v, val0);
+    v_store(var_name, val1);
+
+    var_value = LLVMBuildCall(voidc_builder, llvm_get_var_f, val0, 2, "var_value");
+
+    ok = LLVMBuildIsNotNull(voidc_builder, var_value, "ok");
+
+    then_b = LLVMAppendBasicBlock(find_var_f, "then_b");
+    else_b = LLVMAppendBasicBlock(find_var_f, "else_b");
+
+    LLVMBuildCondBr(voidc_builder, ok, then_b, else_b);
+
+
+    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
+
+    LLVMBuildRet(voidc_builder, var_value);
+
+
+    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+
+    v_store(var_name, val0);
+
+    var_type = LLVMBuildCall(voidc_builder, find_sym_type_f, val0, 1, "var_type");
+
+
+    llvm_add_var_ft = v_find_symbol_type("LLVMAddGlobal");
+    llvm_add_var_f  = LLVMAddFunction(module, "LLVMAddGlobal", llvm_add_var_ft);
+
+    v_store(module_v, val0);
+    v_store(var_type, val1);
+    v_store(var_name, val2);
+
+    var_value = LLVMBuildCall(voidc_builder, llvm_add_var_f, val0, 3, "var_value");
+
+    LLVMBuildRet(voidc_builder, var_value);
+
+
+    //-----------------------------------------------------------------
+    LLVMClearInsertionPosition(voidc_builder);
+
+    //-----------------------------------------------------------------
     dl = LLVMCreateTargetDataLayout(voidc_target_machine);
     tr = LLVMGetTargetMachineTriple(voidc_target_machine);
 
@@ -106,22 +271,64 @@
     LLVMDisposeMessage(tr);
     LLVMDisposeTargetData(dl);
 
-    //-------------------------------------------------------------
+    LLVMRunPassManager(voidc_pass_manager, module);
+
+    //-----------------------------------------------------------------
+//    msg = LLVMPrintModuleToString(module);
+//
+//    printf("\n%s\n", msg);
+//
+//    LLVMDisposeMessage(msg);
+
+    LLVMVerifyModule(module, LLVMAbortProcessAction, 0);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver, 0
+                               );
+
+    //-----------------------------------------------------------------
+    v_add_symbol_type("v_find_function",      find_fun_ft);
+    v_add_symbol_type("v_find_dict_function", find_dfun_ft);
+    v_add_symbol_type("v_find_global",        find_var_ft);
+}
+
+
+//---------------------------------------------------------------------
+//- voidc_util support module #2
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("voidc_util_void_module_N2");
+
+    saved_module = v_get_module();
+    v_set_module(module);
+
     typ0 = v_alloca(LLVMTypeRef, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    dict_ptr_t = LLVMPointerType(v_util_opaque_function_dict_t, 0);
-    char_ptr_t = LLVMPointerType(char, 0);
+    val0 = v_alloca(LLVMValueRef, 4);
+    val1 = v_getelementptr(val0, 1);
+    val2 = v_getelementptr(val0, 2);
+    val3 = v_getelementptr(val0, 3);
+
+    n0 = LLVMConstInt(int, 0, 0);
+    n1 = LLVMConstInt(int, 1, 0);
+    n2 = LLVMConstInt(int, 2, 0);
+    n3 = LLVMConstInt(int, 3, 0);
+
+    dict_ptr = LLVMPointerType(v_util_opaque_function_dict_t, 0);
+    char_ptr = LLVMPointerType(char, 0);
 
     v_store(LLVMTypeRef, typ0);
-    v_store(char_ptr_t,  typ1);
-    v_store(dict_ptr_t,  typ2);
+    v_store(char_ptr,    typ1);
+    v_store(dict_ptr,    typ2);
 
     register_helper_ft = LLVMFunctionType(void, typ0, 3, 0);
     register_ft        = LLVMFunctionType(void, typ0, 2, 0);
 
-    v_store(char_ptr_t, typ2);
+    v_store(char_ptr, typ2);
 
     register_batch_ft = LLVMFunctionType(void, typ0, 3, 0);
 
@@ -136,33 +343,21 @@
     fun_name   = LLVMGetParam(init_reset_helper_f, 1);
     p_dict     = LLVMGetParam(init_reset_helper_f, 2);
 
-    val0 = v_alloca(LLVMValueRef, 4);
-    val1 = v_getelementptr(val0, 1);
-    val2 = v_getelementptr(val0, 2);
-    val3 = v_getelementptr(val0, 3);
-
     entry = LLVMAppendBasicBlock(init_reset_helper_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    n2 = LLVMConstInt(int, 2, 0);
-
     arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
-
-    n1 = LLVMConstInt(int, 1, 0);
 
     v_store(n1, val0);
 
     arg1 = LLVMBuildGEP(voidc_builder, arg0, val0, 1, "arg1");
 
 
-    n0 = LLVMConstInt(int, 0, 0);
-
     v_store(val_t_type, val0);
     v_store(n0,         val1);
 
-    pointer_type_ft = v_find_symbol_type("LLVMPointerType");
-    pointer_type_f  = LLVMAddFunction(module, "LLVMPointerType", pointer_type_ft);
+    pointer_type_f = v_find_function("LLVMPointerType");
 
     val_t_ptr = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "val_t_ptr");
 
@@ -170,20 +365,19 @@
     LLVMBuildStore(voidc_builder, val_t_ptr, arg0);
 
 
-    int_type = LLVMAddGlobal(module, LLVMTypeRef, "int");
+    int_type = v_find_global("int");
 
     LLVMBuildStore(voidc_builder, int_type, arg1);
 
 
-    void_type = LLVMAddGlobal(module, LLVMTypeRef, "void");
+    void_type = v_find_global("void");
 
     v_store(void_type, val0);
     v_store(arg0,      val1);
     v_store(n2,        val2);
     v_store(n0,        val3);
 
-    function_type_ft = v_find_symbol_type("LLVMFunctionType");
-    function_type_f  = LLVMAddFunction(module, "LLVMFunctionType", function_type_ft);
+    function_type_f = v_find_function("LLVMFunctionType");
 
     fun_type = LLVMBuildCall(voidc_builder, function_type_f, val0, 4, "fun_type");
 
@@ -191,8 +385,7 @@
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    add_symbol_type_ft = v_find_symbol_type("v_add_symbol_type");
-    add_symbol_type_f  = LLVMAddFunction(module, "v_add_symbol_type", add_symbol_type_ft);
+    add_symbol_type_f = v_find_function("v_add_symbol_type");
 
     LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
 
@@ -201,8 +394,7 @@
     v_store(val_t_type, val1);
     v_store(fun_name,   val2);
 
-    dict_set_ft = v_find_symbol_type("v_util_function_dict_set");
-    dict_set_f  = LLVMAddFunction(module, "v_util_function_dict_set", dict_set_ft);
+    dict_set_f = v_find_function("v_util_function_dict_set");
 
     LLVMBuildCall(voidc_builder, dict_set_f, val0, 3, "");
 
@@ -221,7 +413,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    init_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_initialize_dict");
+    init_dict = v_find_global("v_util_initialize_dict");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
@@ -244,7 +436,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    reset_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_reset_dict");
+    reset_dict = v_find_global("v_util_reset_dict");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
@@ -268,8 +460,6 @@
     entry = LLVMAppendBasicBlock(copy_move_helper_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
-
-    n3 = LLVMConstInt(int, 3, 0);
 
     arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n3, "arg0");
 
@@ -330,7 +520,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    copy_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_copy_dict");
+    copy_dict = v_find_global("v_util_copy_dict");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
@@ -353,7 +543,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    move_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_move_dict");
+    move_dict = v_find_global("v_util_move_dict");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
@@ -372,11 +562,6 @@
     val_t_type = LLVMGetParam(empty_f, 0);
     fun_name   = LLVMGetParam(empty_f, 1);
 
-    val0 = v_alloca(LLVMValueRef, 4);
-    val1 = v_getelementptr(val0, 1);
-    val2 = v_getelementptr(val0, 2);
-    val3 = v_getelementptr(val0, 3);
-
     entry = LLVMAppendBasicBlock(empty_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
@@ -393,7 +578,7 @@
     LLVMBuildStore(voidc_builder, val_t_ptr, arg0);
 
 
-    bool_type = LLVMAddGlobal(module, LLVMTypeRef, "bool");
+    bool_type = v_find_global("bool");
 
     v_store(bool_type, val0);
     v_store(arg0,      val1);
@@ -409,7 +594,7 @@
     LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
 
 
-    empty_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_empty_dict");
+    empty_dict = v_find_global("v_util_empty_dict");
 
     v_store(empty_dict, val0);
     v_store(val_t_type, val1);
@@ -449,15 +634,13 @@
     LLVMBuildCall(voidc_builder, sstr_init_f, val0, 2, "");
 
 
-    sstr_set_ft = v_find_symbol_type("v_std_string_set");
-    sstr_set_f  = LLVMAddFunction(module, "v_std_string_set", sstr_set_ft);
+    sstr_set_f = v_find_function("v_std_string_set");
 
     v_store(prefix, val1);
     LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
 
 
-    sstr_append_ft = v_find_symbol_type("v_std_string_append");
-    sstr_append_f  = LLVMAddFunction(module, "v_std_string_append", sstr_append_ft);
+    sstr_append_f = v_find_function("v_std_string_append");
 
     str_init = LLVMBuildGlobalStringPtr(voidc_builder, "_initialize_", "str_init");
     v_store(str_init, val1);
@@ -470,8 +653,7 @@
     v_store(str_impl, val1);
     LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
 
-    sstr_get_ft = v_find_symbol_type("v_std_string_get");
-    sstr_get_f  = LLVMAddFunction(module, "v_std_string_get", sstr_get_ft);
+    sstr_get_f = v_find_function("v_std_string_get");
 
     fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
 
@@ -588,7 +770,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    std_any_ptr_type = LLVMAddGlobal(module, LLVMTypeRef, "v_util_std_any_ref");
+    std_any_ptr_type = v_find_global("v_util_std_any_ref");
 
 
     arg0 = LLVMBuildAlloca(voidc_builder, LLVMTypeRef, "arg0");
@@ -610,7 +792,7 @@
     LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
 
 
-    p_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_std_any_get_value_dict");
+    p_dict = v_find_global("v_util_std_any_get_value_dict");
 
     v_store(p_dict,     val0);
     v_store(val_t_type, val1);
@@ -665,7 +847,7 @@
     LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
 
 
-    p_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_std_any_get_pointer_dict");
+    p_dict = v_find_global("v_util_std_any_get_pointer_dict");
 
     v_store(p_dict,     val0);
     v_store(val_t_type, val1);
@@ -714,7 +896,7 @@
     LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
 
 
-    p_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_std_any_set_value_dict");
+    p_dict = v_find_global("v_util_std_any_set_value_dict");
 
     v_store(p_dict,     val0);
     v_store(val_t_type, val1);
@@ -769,7 +951,7 @@
     LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
 
 
-    p_dict = LLVMAddGlobal(module, v_util_opaque_function_dict_t, "v_util_std_any_set_pointer_dict");
+    p_dict = v_find_global("v_util_std_any_set_pointer_dict");
 
     v_store(p_dict,     val0);
     v_store(val_t_type, val1);
@@ -968,14 +1150,25 @@
     LLVMClearInsertionPosition(voidc_builder);
 
     //-----------------------------------------------------------------
-    LLVMRunPassManager(voidc_pass_manager, module);
-
-    //-----------------------------------------------------------------
 //    msg = LLVMPrintModuleToString(module);
 //
 //    printf("\n%s\n", msg);
 //
 //    LLVMDisposeMessage(msg);
+
+    LLVMVerifyModule(module, LLVMAbortProcessAction, 0);
+
+    //-----------------------------------------------------------------
+    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
+    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
+
+    LLVMSetModuleDataLayout(module, dl);
+    LLVMSetTarget(module, tr);
+
+    LLVMDisposeMessage(tr);
+    LLVMDisposeTargetData(dl);
+
+    LLVMRunPassManager(voidc_pass_manager, module);
 
     //-----------------------------------------------------------------
     PH = v_alloca(LLVMOrcModuleHandle);
@@ -983,6 +1176,9 @@
     LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
                                 voidc_resolver, 0
                                );
+
+    //-----------------------------------------------------------------
+    v_set_module(saved_module);
 
     //-----------------------------------------------------------------
     v_add_symbol_type("v_util_register_initialize_impl", register_ft);

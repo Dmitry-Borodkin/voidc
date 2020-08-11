@@ -979,6 +979,23 @@ void v_clear_arguments(void)
     lctx.arg_types.clear();
 }
 
+//---------------------------------------------------------------------
+const char *v_get_return_name(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    return lctx.ret_name;
+}
+
+void v_set_return_value(LLVMValueRef val)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    lctx.ret_value = val;
+}
+
 
 //---------------------------------------------------------------------
 LLVMTypeRef v_find_symbol_type(const char *name)
@@ -1027,6 +1044,15 @@ void v_add_local_alias(const char *name, const char *raw_name)
     auto &lctx = *gctx.current_ctx;
 
     lctx.aliases[name] = raw_name;
+}
+
+
+//---------------------------------------------------------------------
+void v_add_intrinsic(const char *name, base_global_ctx_t::intrinsic_t fun)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    gctx.intrinsics[name] = fun;
 }
 
 

@@ -105,6 +105,38 @@
 
     ft = LLVMFunctionType(void, arg0, 1, 0);
     v_add_symbol_type("v_set_module", ft);
+
+    ft = LLVMFunctionType(char_ptr, 0, 0, 0);
+    v_add_symbol_type("v_get_return_name", ft);
+
+    v_store(LLVMValueRef, arg0);
+
+    ft = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("v_set_return_value", ft);
+}
+
+{
+    char_ptr = LLVMPointerType(char, 0);
+
+    arg0 = v_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    visitor_ref  = LLVMPointerType(voidc_opaque_visitor_ptr, 0);
+    arg_list_ref = LLVMPointerType(v_ast_opaque_arg_list_ptr, 0);
+
+    v_store(visitor_ref,  arg0);
+    v_store(arg_list_ref, arg1);
+
+    intrinsic_t = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol("voidc_intrinsic_t", LLVMOpaqueType, intrinsic_t);
+
+    intrinsic_ref = LLVMPointerType(intrinsic_t, 0);
+
+    v_store(char_ptr,      arg0);
+    v_store(intrinsic_ref, arg1);
+
+    ft = LLVMFunctionType(void, arg0, 2, 0);
+    v_add_symbol_type("v_add_intrinsic", ft);
 }
 
 

@@ -108,6 +108,9 @@
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("ast_tests_mod");
 
+    saved_module = v_get_module();
+    v_set_module(module);
+
     dl = LLVMCreateTargetDataLayout(voidc_target_machine);
     tr = LLVMGetTargetMachineTriple(voidc_target_machine);
 
@@ -131,8 +134,7 @@
     entry = LLVMAppendBasicBlock(destroy_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
-    printf_ft = v_find_symbol_type("printf");
-    printf_f  = LLVMAddFunction(module, "printf", printf_ft);
+    printf_f = v_find_function("printf");
 
     str = LLVMBuildGlobalStringPtr(voidc_builder, "destroy!\n", "str");
 
@@ -206,6 +208,9 @@
                                 voidc_resolver,
                                 0
                                );
+
+    //-----------------------------------------------------------------
+    v_set_module(saved_module);
 
     //-----------------------------------------------------------------
     v_add_symbol_type("vtable_g", v_ast_generic_vtable);
