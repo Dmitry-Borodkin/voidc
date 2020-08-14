@@ -646,6 +646,68 @@ voidc_local_ctx_t::resolver(const char *m_name, void *)
 
 //---------------------------------------------------------------------
 void
+voidc_local_ctx_t::prepare_unit_action(int line, int column)
+{
+    auto &builder = voidc_global_ctx_t::builder;
+
+    std::string hdr = "unit_" + std::to_string(line) + "_" + std::to_string(column);
+
+    std::string mod_name = hdr + "_module";
+    std::string fun_name = hdr + "_action";
+
+    module = LLVMModuleCreateWithName(mod_name.c_str());
+
+    LLVMSetSourceFileName(module, filename.c_str(), filename.size());
+
+    LLVMTypeRef  unit_ft = LLVMFunctionType(LLVMVoidType(), nullptr, 0, false);
+    LLVMValueRef unit_f  = LLVMAddFunction(module, fun_name.c_str(), unit_ft);
+
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(unit_f, "entry");
+
+    LLVMPositionBuilderAtEnd(builder, entry);
+}
+
+//---------------------------------------------------------------------
+void
+voidc_local_ctx_t::finish_unit_action(void)
+{
+    auto &builder = voidc_global_ctx_t::builder;
+
+    LLVMBuildRetVoid(builder);
+
+    LLVMClearInsertionPosition(builder);
+
+    //-------------------------------------------------------------
+    voidc_global_ctx_t::prepare_module_for_jit(module);
+
+    //-------------------------------------------------------------
+    char *msg = nullptr;
+
+    auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
+                                                   module,
+                                                   LLVMObjectFile,
+                                                   &msg,
+                                                   &unit_buffer);
+
+    if (err)
+    {
+        printf("\n%s\n", msg);
+
+        LLVMDisposeMessage(msg);
+
+        exit(1);                //- Sic !!!
+    }
+
+    assert(unit_buffer);
+
+    //-------------------------------------------------------------
+    LLVMDisposeModule(module);
+
+    vars.clear();
+}
+
+//---------------------------------------------------------------------
+void
 voidc_local_ctx_t::run_unit_action(void)
 {
     if (!unit_buffer) return;
@@ -946,6 +1008,29 @@ void v_set_module(LLVMModuleRef mod)
 }
 
 //---------------------------------------------------------------------
+void v_prepare_module_for_jit(LLVMModuleRef module)
+{
+    voidc_global_ctx_t::prepare_module_for_jit(module);
+}
+
+//---------------------------------------------------------------------
+void v_prepare_unit_action(int line, int column)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.current_ctx);
+
+    lctx.prepare_unit_action(line, column);
+}
+
+void v_finish_unit_action(void)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.current_ctx);
+
+    lctx.finish_unit_action();
+}
+
+//---------------------------------------------------------------------
 void v_add_variable(const char *name, LLVMValueRef val)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -1065,6 +1150,10 @@ VOIDC_DLLEXPORT_END
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
+static char *voidc_triple = nullptr;
+static LLVMTargetDataRef voidc_target_data_layout = nullptr;
+
+//---------------------------------------------------------------------
 void voidc_global_ctx_t::static_initialize(void)
 {
     LLVMInitializeAllTargetInfos();
@@ -1114,6 +1203,9 @@ void voidc_global_ctx_t::static_initialize(void)
         LLVMDisposeMessage(triple);
     }
 
+    voidc_target_data_layout = LLVMCreateTargetDataLayout(target_machine);
+    voidc_triple             = LLVMGetTargetMachineTriple(target_machine);
+
     //-------------------------------------------------------------
     builder = LLVMCreateBuilder();
 
@@ -1160,11 +1252,59 @@ void voidc_global_ctx_t::static_terminate(void)
 
     LLVMDisposeBuilder(builder);
 
+    LLVMDisposeMessage(voidc_triple);
+    LLVMDisposeTargetData(voidc_target_data_layout);
+
     LLVMOrcDisposeInstance(jit);
 
     delete voidc;
 
     LLVMShutdown();
+}
+
+
+//---------------------------------------------------------------------
+void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
+{
+    char *msg = nullptr;
+
+    auto err = LLVMVerifyModule(module, LLVMReturnStatusAction, &msg);
+    if (err)
+    {
+        char *txt = LLVMPrintModuleToString(module);
+
+        printf("\n%s\n", txt);
+
+        LLVMDisposeMessage(txt);
+
+        printf("\n%s\n", msg);
+    }
+
+    LLVMDisposeMessage(msg);
+
+    if (err)  exit(1);          //- Sic !!!
+
+    //-------------------------------------------------------------
+    LLVMSetModuleDataLayout(module, voidc_target_data_layout);
+    LLVMSetTarget(module, voidc_triple);
+
+    LLVMRunPassManager(pass_manager, module);
+
+//    //-------------------------------------------------------------
+//    {   LLVMMemoryBufferRef asm_buffer = nullptr;
+//
+//        LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
+//                                            module,
+//                                            LLVMAssemblyFile,
+//                                            &msg,
+//                                            &asm_buffer);
+//
+//        assert(asm_buffer);
+//
+//        printf("\n%s\n", LLVMGetBufferStart(asm_buffer));
+//
+//        LLVMDisposeMemoryBuffer(asm_buffer);
+//    }
 }
 
 
@@ -1181,8 +1321,6 @@ static void compile_ast_arg_list_t(const visitor_ptr_t *vis, size_t count, bool 
 static
 void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.current_ctx);
 
@@ -1190,100 +1328,13 @@ void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stm
 
     if (!*stmt_list)  return;
 
-    std::string hdr = "unit_" + std::to_string(line) + "_" + std::to_string(column);
-
-    std::string mod_name = hdr + "_module";
-    std::string fun_name = hdr + "_action";
-
     auto saved_module = lctx.module;
 
-    lctx.module = LLVMModuleCreateWithName(mod_name.c_str());
-
-    LLVMSetSourceFileName(lctx.module, lctx.filename.c_str(), lctx.filename.size());
-
-    {   auto dl = LLVMCreateTargetDataLayout(voidc_global_ctx_t::target_machine);
-        auto tr = LLVMGetTargetMachineTriple(voidc_global_ctx_t::target_machine);
-
-        LLVMSetModuleDataLayout(lctx.module, dl);
-        LLVMSetTarget(lctx.module, tr);
-
-        LLVMDisposeMessage(tr);
-        LLVMDisposeTargetData(dl);
-    }
-
-    LLVMTypeRef  unit_ft = LLVMFunctionType(LLVMVoidType(), nullptr, 0, false);
-    LLVMValueRef unit_f  = LLVMAddFunction(lctx.module, fun_name.c_str(), unit_ft);
-
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(unit_f, "entry");
-
-    LLVMPositionBuilderAtEnd(builder, entry);
+    lctx.prepare_unit_action(line, column);
 
     (*stmt_list)->accept(*vis);
 
-    LLVMBuildRetVoid(builder);
-
-    LLVMClearInsertionPosition(builder);
-
-    //-------------------------------------------------------------
-    char *msg = nullptr;
-
-    auto err = LLVMVerifyModule(lctx.module, LLVMReturnStatusAction, &msg);
-    if (err)
-    {
-        char *txt = LLVMPrintModuleToString(lctx.module);
-
-        printf("\n%s\n", txt);
-
-        LLVMDisposeMessage(txt);
-
-        printf("\n%s\n", msg);
-    }
-
-    LLVMDisposeMessage(msg);
-
-    if (err)  exit(1);          //- Sic !!!
-
-    //-------------------------------------------------------------
-    LLVMRunPassManager(gctx.pass_manager, lctx.module);
-
-    //-------------------------------------------------------------
-    err = LLVMTargetMachineEmitToMemoryBuffer(gctx.target_machine,
-                                              lctx.module,
-                                              LLVMObjectFile,
-                                              &msg,
-                                              &lctx.unit_buffer);
-
-    if (err)
-    {
-        printf("\n%s\n", msg);
-
-        LLVMDisposeMessage(msg);
-
-        exit(1);                //- Sic !!!
-    }
-
-    assert(lctx.unit_buffer);
-
-
-//    {   LLVMMemoryBufferRef asm_buffer = nullptr;
-//
-//        LLVMTargetMachineEmitToMemoryBuffer(gctx.target_machine,
-//                                            lctx.module,
-//                                            LLVMAssemblyFile,
-//                                            &msg,
-//                                            &asm_buffer);
-//
-//        assert(asm_buffer);
-//
-//        printf("\n%s\n", LLVMGetBufferStart(asm_buffer));
-//
-//        LLVMDisposeMemoryBuffer(asm_buffer);
-//    }
-
-
-    LLVMDisposeModule(lctx.module);
-
-    lctx.vars.clear();
+    lctx.finish_unit_action();
 
     lctx.module = saved_module;
 }

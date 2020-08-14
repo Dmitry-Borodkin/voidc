@@ -104,7 +104,7 @@ public:
     virtual LLVMTypeRef find_symbol_type(const char *raw_name) = 0;     //- No alias check!
 
 public:
-    LLVMModuleRef module;
+    LLVMModuleRef module = nullptr;
 
     bool find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
 
@@ -148,6 +148,9 @@ public:
     static LLVMPassManagerRef   pass_manager;
 
 public:
+    static void prepare_module_for_jit(LLVMModuleRef module);
+
+public:
     const LLVMTypeRef LLVMOpaqueType_type;
     const LLVMTypeRef LLVMTypeRef_type;
     const LLVMTypeRef LLVMOpaqueContext_type;
@@ -188,9 +191,11 @@ public:
 public:
     static uint64_t resolver(const char *name, void *);
 
-    LLVMMemoryBufferRef unit_buffer = nullptr;
-
+    void prepare_unit_action(int line, int column);
+    void finish_unit_action(void);
     void run_unit_action(void);
+
+    LLVMMemoryBufferRef unit_buffer = nullptr;
 
 private:
     std::map<std::string, std::pair<LLVMTypeRef, void *>> symbols;      //- Mangled names!

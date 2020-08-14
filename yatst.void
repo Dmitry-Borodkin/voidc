@@ -111,15 +111,6 @@
     saved_module = v_get_module();
     v_set_module(module);
 
-    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
-    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
-
-    LLVMSetModuleDataLayout(module, dl);
-    LLVMSetTarget(module, tr);
-
-    LLVMDisposeMessage(tr);
-    LLVMDisposeTargetData(dl);
-
     typ0 = v_alloca(LLVMTypeRef, 2);
     typ1 = v_getelementptr(typ0, 1);
 
@@ -190,16 +181,13 @@
 
 
     //-------------------------------------------------------------
-    LLVMRunPassManager(voidc_pass_manager, module);
-
-    //-------------------------------------------------------------
     msg = LLVMPrintModuleToString(module);
 
     printf("\n%s\n", msg);
 
     LLVMDisposeMessage(msg);
 
-    LLVMVerifyModule(module, LLVMAbortProcessAction, 0);
+    v_prepare_module_for_jit(module);
 
     //-------------------------------------------------------------
     PH = v_alloca(LLVMOrcModuleHandle);

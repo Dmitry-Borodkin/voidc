@@ -262,25 +262,13 @@
     LLVMClearInsertionPosition(voidc_builder);
 
     //-----------------------------------------------------------------
-    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
-    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
-
-    LLVMSetModuleDataLayout(module, dl);
-    LLVMSetTarget(module, tr);
-
-    LLVMDisposeMessage(tr);
-    LLVMDisposeTargetData(dl);
-
-    LLVMRunPassManager(voidc_pass_manager, module);
-
-    //-----------------------------------------------------------------
 //    msg = LLVMPrintModuleToString(module);
 //
 //    printf("\n%s\n", msg);
 //
 //    LLVMDisposeMessage(msg);
 
-    LLVMVerifyModule(module, LLVMAbortProcessAction, 0);
+    v_prepare_module_for_jit(module);
 
     //-----------------------------------------------------------------
     PH = v_alloca(LLVMOrcModuleHandle);
@@ -1156,19 +1144,7 @@
 //
 //    LLVMDisposeMessage(msg);
 
-    LLVMVerifyModule(module, LLVMAbortProcessAction, 0);
-
-    //-----------------------------------------------------------------
-    dl = LLVMCreateTargetDataLayout(voidc_target_machine);
-    tr = LLVMGetTargetMachineTriple(voidc_target_machine);
-
-    LLVMSetModuleDataLayout(module, dl);
-    LLVMSetTarget(module, tr);
-
-    LLVMDisposeMessage(tr);
-    LLVMDisposeTargetData(dl);
-
-    LLVMRunPassManager(voidc_pass_manager, module);
+    v_prepare_module_for_jit(module);
 
     //-----------------------------------------------------------------
     PH = v_alloca(LLVMOrcModuleHandle);
