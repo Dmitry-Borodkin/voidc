@@ -1,0 +1,45 @@
+{   v_import("function_hack.void");
+}
+{   v_import("printf.void");
+}
+
+
+//---------------------------------------------------------------------
+//- int QWERTY(int, char *);
+//---------------------------------------------------------------------
+{   arg0 = v_alloca(LLVMTypeRef, 2);
+    arg1 = v_getelementptr(arg0, 1);
+
+    char_ptr = LLVMPointerType(char, 0);
+
+    v_store(int,      arg0);
+    v_store(char_ptr, arg1);
+
+    ft = LLVMFunctionType(int, arg0, 2, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("QWERTY", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("num", p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("str", p1);
+}
+{
+    printf("QWERTY: %d, %s\n", num, str);
+
+    v_return(num);
+}
+
+
+//---------------------------------------------------------------------
+{
+    printf("----------------------------------\n");
+
+    num = QWERTY(99, "AAAAAAAAAAAAAAAAAA !!!");
+
+    printf("----------------------------------\n");
+
+    printf("num: %d\n", num);
+}
+
+
+
