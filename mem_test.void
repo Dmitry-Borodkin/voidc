@@ -1,0 +1,63 @@
+{   v_import("memory.void");
+}
+
+{   v_import("printf.void"); }
+
+
+//---------------------------------------------------------------------
+{
+    str0 = v_malloc(v_util_opaque_std_string, 3);
+    str1 = v_getelementptr(str0, 1);
+    str2 = v_getelementptr(str0, 2);
+
+    v_initialize(str0, 3);
+
+    v_add_local_symbol("str0", v_util_opaque_std_string, str0);
+    v_add_local_symbol("str1", v_util_opaque_std_string, str1);
+    v_add_local_symbol("str2", v_util_opaque_std_string, str2);
+}
+
+{
+    v_std_string_set(str0, "QWERTY");
+    v_std_string_set(str1, "ASDFGH");
+    v_std_string_set(str2, "ZXCVBN");
+}
+
+{
+    s0 = v_std_string_get(str0);
+    s1 = v_std_string_get(str1);
+    s2 = v_std_string_get(str2);
+
+    printf("strings: %s, %s, %s\n", s0, s1, s2);
+}
+
+{
+    v_mfree(str0);
+}
+
+
+//---------------------------------------------------------------------
+{   buf000 = v_malloc(int, 1000);
+    buf999 = v_getelementptr(buf000, 999);
+
+    v_add_local_symbol("buf000", int, buf000);
+    v_add_local_symbol("buf999", int, buf999);
+}
+
+{
+    v_store(77777, buf000);
+    v_store(99999, buf999);
+
+}
+
+{
+    val000 = v_load(buf000);
+    val999 = v_load(buf999);
+
+
+    printf("val000: %d\n", val000);
+    printf("val999: %d\n", val999);
+
+    v_mfree(buf000);
+}
+

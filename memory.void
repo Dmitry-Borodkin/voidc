@@ -1,0 +1,214 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   v_import("function_hack.void"); }
+
+{   v_import("printf.void"); }
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = LLVMModuleCreateWithName("voidc_memory_intrinsics_module");
+
+    v_set_module(module);       //- Sic!
+}
+
+
+//---------------------------------------------------------------------
+//- v_malloc
+//---------------------------------------------------------------------
+{
+    malloc_f = v_function_hack("voidc_memory_malloc_intrinsic", voidc_intrinsic_t);
+
+    visitor  = LLVMGetParam(malloc_f, 0);    v_add_variable("visitor",  visitor);
+    arg_list = LLVMGetParam(malloc_f, 1);    v_add_variable("arg_list", arg_list);
+
+
+    val0 = v_alloca(LLVMValueRef, 3);
+    val1 = v_getelementptr(val0, 1);
+    val2 = v_getelementptr(val0, 2);
+
+    n0 = LLVMConstInt(int, 0, 0);
+    n1 = LLVMConstInt(int, 1, 0);
+
+
+    v_store(arg_list, val0);
+
+    arg_list_get_count_f = v_find_function("v_ast_arg_list_get_count");
+
+    args_count_v = LLVMBuildCall(voidc_builder, arg_list_get_count_f, val0, 1, "args_count_v");
+
+
+    args_v = LLVMBuildArrayAlloca(voidc_builder, v_ast_opaque_argument_ptr, args_count_v, "args_v");
+
+
+    v_store(args_v,       val0);
+    v_store(args_count_v, val1);
+
+    arg_init_f = v_find_dict_function(v_util_initialize_dict, v_ast_opaque_argument_ptr);
+
+    LLVMBuildCall(voidc_builder, arg_init_f, val0, 2, "");
+
+
+    v_store(arg_list, val0);
+    v_store(args_v,   val1);
+
+    arg_list_get_args_f = v_find_function("v_ast_arg_list_get_args");
+
+    LLVMBuildCall(voidc_builder, arg_list_get_args_f, val0, 2, "");
+
+
+    then_b = LLVMAppendBasicBlock(malloc_f, "then_b");
+    else_b = LLVMAppendBasicBlock(malloc_f, "else_b");
+    cont_b = LLVMAppendBasicBlock(malloc_f, "cont_b");
+
+
+    num_v = LLVMBuildAlloca(voidc_builder, LLVMValueRef, "num_v");
+
+
+    ok_v = LLVMBuildICmp(voidc_builder, LLVMIntEQ, args_count_v, n1, "ok_v");
+
+    LLVMBuildCondBr(voidc_builder, ok_v, then_b, else_b);
+
+
+    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
+
+
+    int_v = v_find_global("int");
+
+    n1ll = LLVMBuildZExtOrBitCast(voidc_builder, n1, long_long, "n1ll");
+
+    v_store(int_v, val0);
+    v_store(n1ll,  val1);
+    v_store(n0,    val2);
+
+    llvm_const_int_f = v_find_function("LLVMConstInt");
+
+    n1_v = LLVMBuildCall(voidc_builder, llvm_const_int_f, val0, 3, "n1_v");
+
+
+    LLVMBuildStore(voidc_builder, n1_v, num_v);
+
+
+    LLVMBuildBr(voidc_builder, cont_b);
+
+
+    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+
+
+    v_store(n1, val0);
+
+    args_v_1 = LLVMBuildGEP(voidc_builder, args_v, val0, 1, "args_v_1");
+
+
+    base_arg1 = LLVMBuildBitCast(voidc_builder, args_v_1, v_ast_base_ref, "base_arg1");
+
+
+    accept_visitor_f = v_find_function("v_ast_accept_visitor");
+
+    v_store(base_arg1, val0);
+    v_store(visitor,   val1);
+
+    LLVMBuildCall(voidc_builder, accept_visitor_f, val0, 2, "");
+
+
+    get_arg_f = v_find_function("v_get_argument");
+
+    v_store(n0, val0);
+
+    num = LLVMBuildCall(voidc_builder, get_arg_f, val0, 1, "num");
+
+
+    LLVMBuildStore(voidc_builder, num, num_v);
+
+
+    LLVMBuildBr(voidc_builder, cont_b);
+
+
+    LLVMPositionBuilderAtEnd(voidc_builder, cont_b);
+
+
+    number = LLVMBuildLoad(voidc_builder, num_v, "number");
+
+    v_add_variable("args",       args_v);
+    v_add_variable("args_count", args_count_v);
+    v_add_variable("number",     number);
+}
+{
+    typename = v_alloca(v_util_opaque_std_string);
+    v_initialize(typename);
+
+    v_ast_arg_identifier_get_name(args, typename);
+
+    typename_str = v_std_string_get(typename);
+
+    type = v_find_type(typename_str);
+
+    ret = LLVMBuildArrayMalloc(voidc_builder, type, number, "ret");
+
+    v_set_return_value(ret);
+
+    v_clear_arguments();
+
+    v_reset(typename);
+    v_reset(args, args_count);
+}
+
+
+//---------------------------------------------------------------------
+//- v_mfree
+//---------------------------------------------------------------------
+{
+    f = v_function_hack("voidc_memory_mfree_intrinsic", voidc_intrinsic_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list", p1);
+}
+{
+    arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
+
+    v_ast_accept_visitor(arg_base, visitor);
+
+    arg = v_get_argument(0);
+
+    LLVMBuildFree(voidc_builder, arg);
+
+    v_clear_arguments();
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    v_set_module(0);
+
+    //-----------------------------------------------------------------
+//    msg = LLVMPrintModuleToString(module);
+//
+//    printf("\n%s\n", msg);
+//
+//    LLVMDisposeMessage(msg);
+
+    //-----------------------------------------------------------------
+    v_prepare_module_for_jit(module);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver, 0
+                               );
+}
+
+{   v_add_intrinsic("v_malloc", voidc_memory_malloc_intrinsic);
+    v_add_intrinsic("v_mfree",  voidc_memory_mfree_intrinsic);
+}
+
+
+
