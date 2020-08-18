@@ -682,11 +682,13 @@
 
     helper_fv = LLVMBuildCall(voidc_builder, find_fun_f, val0, 1, "helper_fv");
 
+    ret_str = LLVMBuildGlobalStringPtr(voidc_builder, "ret", "ret_str");
+
     v_store(builder_v, val0);
     v_store(helper_fv, val1);
     v_store(arg0,      val2);
     v_store(n2,        val3);
-    v_store(empty_str, val4);
+    v_store(ret_str,   val4);
 
     ret_v = LLVMBuildCall(voidc_builder, llvm_build_call_f, val0, 5, "ret_v");
 

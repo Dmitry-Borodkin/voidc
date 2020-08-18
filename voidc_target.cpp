@@ -1116,6 +1116,15 @@ LLVMTypeRef v_find_symbol_type(const char *name)
 }
 
 //---------------------------------------------------------------------
+LLVMTypeRef v_find_type(const char *name)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    return  lctx.find_type(name);
+}
+
+//---------------------------------------------------------------------
 void v_add_alias(const char *name, const char *raw_name)
 {
     auto &gctx = *voidc_global_ctx_t::target;

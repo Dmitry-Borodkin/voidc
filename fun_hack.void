@@ -1,13 +1,13 @@
-{   v_import("function_hack.void");
-}
-{   v_import("printf.void");
-}
+{   v_import("function_hack.void"); }
+
+{   v_import("printf.void"); }
 
 
 //---------------------------------------------------------------------
 //- int QWERTY(int, char *);
 //---------------------------------------------------------------------
-{   arg0 = v_alloca(LLVMTypeRef, 2);
+{
+    arg0 = v_alloca(LLVMTypeRef, 2);
     arg1 = v_getelementptr(arg0, 1);
 
     char_ptr = LLVMPointerType(char, 0);
@@ -17,8 +17,9 @@
 
     ft = LLVMFunctionType(int, arg0, 2, 0);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
     f = v_function_hack("QWERTY", ft);
+    //-------------------------------------------------------------
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("num", p0);
     p1 = LLVMGetParam(f, 1);    v_add_variable("str", p1);
@@ -41,5 +42,73 @@
     printf("num: %d\n", num);
 }
 
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = LLVMModuleCreateWithName("hello_mod");
+
+    v_set_module(module);       //- Sic!
+}
+
+
+//---------------------------------------------------------------------
+{
+    hello_ft = LLVMFunctionType(void, 0, 0, 0);
+
+    //-------------------------------------------------------------
+    f = v_function_hack("hello", hello_ft);
+    //-------------------------------------------------------------
+}
+{
+    printf("Hello world!\n");
+}
+
+
+//---------------------------------------------------------------------
+{
+    hello2_ft = LLVMFunctionType(void, 0, 0, 0);
+
+    //-------------------------------------------------------------
+    f = v_function_hack("hello2", hello2_ft);
+    //-------------------------------------------------------------
+}
+{
+    printf("Hello2 world!\n");
+}
+
+
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    v_set_module(0);
+
+    //-----------------------------------------------------------------
+    v_prepare_module_for_jit(module);
+
+    //-----------------------------------------------------------------
+    msg = LLVMPrintModuleToString(module);
+
+    printf("\n%s\n", msg);
+
+    LLVMDisposeMessage(msg);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver,
+                                0
+                               );
+
+}
+
+
+
+{   hello();
+    hello2();
+}
 
 
