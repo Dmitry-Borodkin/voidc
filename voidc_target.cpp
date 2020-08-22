@@ -703,7 +703,7 @@ voidc_local_ctx_t::finish_unit_action(void)
     //-------------------------------------------------------------
     LLVMDisposeModule(module);
 
-    vars.clear();
+    vars = variables_t();
 }
 
 //---------------------------------------------------------------------
@@ -1036,17 +1036,37 @@ void v_add_variable(const char *name, LLVMValueRef val)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.current_ctx;
 
-    lctx.vars[name] = val;
+    lctx.vars = lctx.vars.set(name, val);
 }
 
+//---------------------------------------------------------------------
 void v_clear_variables(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.current_ctx;
 
-    lctx.vars.clear();
+    lctx.vars = base_local_ctx_t::variables_t();
 }
 
+void v_save_variables(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    lctx.vars_stack.push_front(lctx.vars);
+}
+
+void v_restore_variables(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    lctx.vars = lctx.vars_stack.front();
+
+    lctx.vars_stack.pop_front();
+}
+
+//---------------------------------------------------------------------
 LLVMValueRef v_get_argument(int num)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -1365,7 +1385,7 @@ void compile_ast_stmt_t(const visitor_ptr_t *vis, const std::string *vname, cons
 
     (*call)->accept(*vis);
 
-    if (lctx.ret_name[0])   lctx.vars[var_name] = lctx.ret_value;
+    if (lctx.ret_name[0])   lctx.vars = lctx.vars.set(var_name, lctx.ret_value);
 }
 
 

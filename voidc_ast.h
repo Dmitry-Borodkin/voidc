@@ -9,7 +9,6 @@
 #include "voidc_dllexport.h"
 
 #include <memory>
-#include <forward_list>
 #include <istream>
 #include <map>
 #include <cstdio>

@@ -5,12 +5,15 @@
 #ifndef VOIDC_TARGET_H
 #define VOIDC_TARGET_H
 
+#include "voidc_ast.h"
+
 #include <string>
 #include <vector>
 #include <map>
+#include <forward_list>
 #include <utility>
 
-#include "voidc_ast.h"
+#include <immer/map.hpp>
 
 #include <llvm-c/Core.h>
 #include <llvm-c/OrcBindings.h>
@@ -111,8 +114,13 @@ public:
     LLVMValueRef find_identifier(const std::string &name);
 
 public:
-    std::map<std::string, LLVMValueRef> vars;
+    typedef immer::map<std::string, LLVMValueRef> variables_t;
 
+    variables_t vars;
+
+    std::forward_list<variables_t> vars_stack;
+
+public:
     std::vector<LLVMTypeRef>  arg_types;
     std::vector<LLVMValueRef> args;
 
