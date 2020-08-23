@@ -68,7 +68,17 @@
 
 //---------------------------------------------------------------------
 {
-    hello2_ft = LLVMFunctionType(void, 0, 0, 0);
+    char_ptr = LLVMPointerType(char, 0);
+    void_ptr = LLVMPointerType(void, 0);
+
+    typ0 = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, typ0);
+//  v_store(void_ptr, typ0);
+
+
+//  hello2_ft = LLVMFunctionType(void, 0, 0, 0);
+    hello2_ft = LLVMFunctionType(void, typ0, 1, 0);
 
     //-------------------------------------------------------------
     f = v_function_hack("hello2", hello2_ft);
@@ -108,7 +118,7 @@
 
 
 {   hello();
-    hello2();
+    hello2(0);
 }
 
 
