@@ -114,8 +114,6 @@
     typ0 = v_alloca(LLVMTypeRef, 2);
     typ1 = v_getelementptr(typ0, 1);
 
-    void_ptr = LLVMPointerType(void, 0);
-
     v_store(void_ptr, typ0);
 
     destroy_ft = LLVMFunctionType(void, typ0, 1, 0);

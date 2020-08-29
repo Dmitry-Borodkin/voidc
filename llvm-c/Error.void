@@ -16,8 +16,8 @@
 
 //- Types --------------------------------------------------
 {
-    v0 = LLVMPointerType(void, 0);
-    v_add_symbol("LLVMErrorTypeId", LLVMOpaqueType, v0);
+//  v0 = LLVMPointerType(void, 0);
+    v_add_symbol("LLVMErrorTypeId", LLVMOpaqueType, void_ptr);
 
     v1 = LLVMGetGlobalContext();
     v2 = LLVMStructCreateNamed(v1, "struct.LLVMOpaqueError");

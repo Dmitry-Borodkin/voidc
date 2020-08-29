@@ -25,8 +25,8 @@
     v1 = LLVMStructCreateNamed(v0, "struct.LLVMOrcOpaqueJITStack");
     v2 = LLVMPointerType(v1, 0);
     v_store(v2, arg0);
-    v3 = LLVMPointerType(void, 0);
-    v_store(v3, arg1);
+//  v3 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg1);
     v4 = LLVMFunctionType(uint64_t, arg0, 2, 0);
     v5 = LLVMPointerType(v4, 0);
     v_add_symbol("LLVMOrcLazyCompileCallbackFn", LLVMOpaqueType, v5);
@@ -37,8 +37,8 @@
 
     v6 = LLVMPointerType(char, 0);
     v_store(v6, arg0);
-    v7 = LLVMPointerType(void, 0);
-    v_store(v7, arg1);
+//  v7 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg1);
     v8 = LLVMFunctionType(uint64_t, arg0, 2, 0);
     v9 = LLVMPointerType(v8, 0);
     v_add_symbol("LLVMOrcSymbolResolverFn", LLVMOpaqueType, v9);
@@ -72,8 +72,8 @@
     v_store(v3, arg1);
     v_store(LLVMModuleRef, arg2);
     v_store(LLVMOrcSymbolResolverFn, arg3);
-    v4 = LLVMPointerType(void, 0);
-    v_store(v4, arg4);
+//  v4 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg4);
     v5 = LLVMFunctionType(LLVMErrorRef, arg0, 5, 0);
     v_add_symbol_type("LLVMOrcAddLazilyCompiledIR", v5);
 
@@ -97,8 +97,8 @@
     v_store(v11, arg1);
     v_store(LLVMModuleRef, arg2);
     v_store(LLVMOrcSymbolResolverFn, arg3);
-    v12 = LLVMPointerType(void, 0);
-    v_store(v12, arg4);
+//  v12 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg4);
     v13 = LLVMFunctionType(LLVMErrorRef, arg0, 5, 0);
     v_add_symbol_type("LLVMOrcAddEagerlyCompiledIR", v13);
 
@@ -149,8 +149,8 @@
     v_store(v28, arg1);
     v_store(LLVMMemoryBufferRef, arg2);
     v_store(LLVMOrcSymbolResolverFn, arg3);
-    v29 = LLVMPointerType(void, 0);
-    v_store(v29, arg4);
+//  v29 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg4);
     v30 = LLVMFunctionType(LLVMErrorRef, arg0, 5, 0);
     v_add_symbol_type("LLVMOrcAddObjectFile", v30);
 
@@ -162,8 +162,8 @@
     v32 = LLVMPointerType(LLVMOrcTargetAddress, 0);
     v_store(v32, arg1);
     v_store(LLVMOrcLazyCompileCallbackFn, arg2);
-    v33 = LLVMPointerType(void, 0);
-    v_store(v33, arg3);
+//  v33 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg3);
     v34 = LLVMFunctionType(LLVMErrorRef, arg0, 4, 0);
     v_add_symbol_type("LLVMOrcCreateLazyCompileCallback", v34);
 

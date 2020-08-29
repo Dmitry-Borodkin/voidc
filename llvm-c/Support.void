@@ -30,15 +30,15 @@
 
     v6 = LLVMPointerType(char, 0);
     v_store(v6, arg0);
-    v7 = LLVMPointerType(void, 0);
-    v_store(v7, arg1);
+//  v7 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg1);
     v8 = LLVMFunctionType(void, arg0, 2, 0);
     v_add_symbol_type("LLVMAddSymbol", v8);
 
-    v9 = LLVMPointerType(void, 0);
+//  v9 = LLVMPointerType(void, 0);
     v10 = LLVMPointerType(char, 0);
     v_store(v10, arg0);
-    v11 = LLVMFunctionType(v9, arg0, 1, 0);
+    v11 = LLVMFunctionType(void_ptr, arg0, 1, 0);
     v_add_symbol_type("LLVMSearchForAddressOfSymbol", v11);
 
 }

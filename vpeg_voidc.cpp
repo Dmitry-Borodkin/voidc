@@ -39,6 +39,12 @@ mk_unit(std::any *ret, const std::any *args, size_t)
 }
 
 static void
+mk_stmt_list_nil(std::any *ret, const std::any *args, size_t)
+{
+    *ret = stmt_list_nil;
+}
+
+static void
 mk_stmt_list(std::any *ret, const std::any *args, size_t)
 {
     auto plst = std::any_cast<ast_stmt_list_ptr_t>(args+0);
@@ -69,13 +75,17 @@ mk_call(std::any *ret, const std::any *args, size_t)
 {
     auto f = std::any_cast<const std::string>(args[0]);
 
-    auto a = std::any_cast<ast_arg_list_ptr_t>(args+1);
+    auto a = std::any_cast<ast_arg_list_ptr_t>(args[1]);
 
-    if (!a) a = &arg_list_nil;
-
-    ast_call_ptr_t ptr = std::make_shared<const ast_call_t>(f, *a);
+    ast_call_ptr_t ptr = std::make_shared<const ast_call_t>(f, a);
 
     *ret = ptr;
+}
+
+static void
+mk_arg_list_nil(std::any *ret, const std::any *args, size_t)
+{
+    *ret = arg_list_nil;
 }
 
 static void
@@ -225,9 +235,11 @@ vpeg::grammar_t make_voidc_grammar(void)
 #define DEF(name) gr = gr.set_action(#name, name);
 
     DEF(mk_unit)
+    DEF(mk_stmt_list_nil)
     DEF(mk_stmt_list)
     DEF(mk_stmt)
     DEF(mk_call)
+    DEF(mk_arg_list_nil)
     DEF(mk_arg_list)
     DEF(mk_arg_identifier)
     DEF(mk_arg_integer)
@@ -305,7 +317,7 @@ vpeg::grammar_t make_voidc_grammar(void)
 
     //-------------------------------------------------------------
     //- stmt_list <- l:stmt_list_lr     { l }
-    //-            /                    { 0 }
+    //-            /                    { mk_stmt_list_nil() }
 
     gr = gr.set_parser("stmt_list",
     mk_choice_parser(
@@ -314,12 +326,10 @@ vpeg::grammar_t make_voidc_grammar(void)
         {
             mk_catch_variable_parser("l", ip_stmt_list_lr),
 
-            mk_action_parser(
-                mk_return_action(mk_identifier_argument("l"))
-            )
+            mk_action_parser(mk_return_action(mk_identifier_argument("l")))
         }),
         mk_action_parser(
-            mk_return_action(mk_integer_argument(0))
+            mk_call_action("mk_stmt_list_nil", {})
         )
     }));
 
@@ -424,7 +434,7 @@ vpeg::grammar_t make_voidc_grammar(void)
 
     //-------------------------------------------------------------
     //- arg_list <- l:arg_list_lr   { l }
-    //-           /                 { 0 }
+    //-           /                 { mk_arg_list_nil() }
 
     gr = gr.set_parser("arg_list",
     mk_choice_parser(
@@ -438,7 +448,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             )
         }),
         mk_action_parser(
-            mk_return_action(mk_integer_argument(0))
+            mk_call_action("mk_arg_list_nil", {})
         )
     }));
 

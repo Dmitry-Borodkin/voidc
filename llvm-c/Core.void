@@ -759,8 +759,8 @@
     arg1 = v_getelementptr(arg0, 1);
 
     v_store(LLVMDiagnosticInfoRef, arg0);
-    v0 = LLVMPointerType(void, 0);
-    v_store(v0, arg1);
+//  v0 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg1);
     v1 = LLVMFunctionType(void, arg0, 2, 0);
     v2 = LLVMPointerType(v1, 0);
     v_add_symbol("LLVMDiagnosticHandler", LLVMOpaqueType, v2);
@@ -778,8 +778,8 @@
     v_add_symbol("LLVMTypeKind", LLVMOpaqueType, int);
 
     v_store(LLVMContextRef, arg0);
-    v3 = LLVMPointerType(void, 0);
-    v_store(v3, arg1);
+//  v3 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg1);
     v4 = LLVMFunctionType(void, arg0, 2, 0);
     v5 = LLVMPointerType(v4, 0);
     v_add_symbol("LLVMYieldCallback", LLVMOpaqueType, v5);
@@ -1768,9 +1768,9 @@
     v248 = LLVMFunctionType(LLVMValueRef, arg0, 4, 0);
     v_add_symbol_type("LLVMBuildNUWMul", v248);
 
-    v249 = LLVMPointerType(void, 0);
+//  v249 = LLVMPointerType(void, 0);
     v_store(LLVMContextRef, arg0);
-    v250 = LLVMFunctionType(v249, arg0, 1, 0);
+    v250 = LLVMFunctionType(void_ptr, arg0, 1, 0);
     v_add_symbol_type("LLVMContextGetDiagnosticContext", v250);
 
     v_store(LLVMValueRef, arg0);
@@ -3365,8 +3365,8 @@
 
     v_store(LLVMContextRef, arg0);
     v_store(LLVMYieldCallback, arg1);
-    v659 = LLVMPointerType(void, 0);
-    v_store(v659, arg2);
+//  v659 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg2);
     v660 = LLVMFunctionType(void, arg0, 3, 0);
     v_add_symbol_type("LLVMContextSetYieldCallback", v660);
 
@@ -4406,8 +4406,8 @@
 
     v_store(LLVMContextRef, arg0);
     v_store(LLVMDiagnosticHandler, arg1);
-    v932 = LLVMPointerType(void, 0);
-    v_store(v932, arg2);
+//  v932 = LLVMPointerType(void, 0);
+    v_store(void_ptr, arg2);
     v933 = LLVMFunctionType(void, arg0, 3, 0);
     v_add_symbol_type("LLVMContextSetDiagnosticHandler", v933);
 

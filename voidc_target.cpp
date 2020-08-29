@@ -201,7 +201,9 @@ base_global_ctx_t::base_global_ctx_t(size_t int_size, size_t long_size, size_t p
     long_long_type(LLVMInt64Type()),
     intptr_t_type (mk_int_type(ptr_size)),
     size_t_type   (mk_int_type(ptr_size)),
-    char32_t_type (LLVMInt32Type())
+    char32_t_type (LLVMInt32Type()),
+    voidc_opaque_void_type(LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.voidc_opaque_void")),
+    void_ptr_type         (LLVMPointerType(voidc_opaque_void_type, 0))
 {
 #define DEF(name) \
     intrinsics[#name] = name;
@@ -223,18 +225,18 @@ void base_global_ctx_t::initialize(void)
     auto opaque_type = voidc_global_ctx_t::voidc->LLVMOpaqueType_type;
 
 #define DEF(name) \
-        add_symbol(#name, opaque_type, (void *)name##_type);
+    add_symbol(#name, opaque_type, (void *)name##_type);
 
-        DEF(void)
-        DEF(bool)
-        DEF(char)
-        DEF(short)
-        DEF(int)
-        DEF(long)
-        DEF(long_long)
-        DEF(intptr_t)
-        DEF(size_t)
-        DEF(char32_t)
+    DEF(void)
+    DEF(bool)
+    DEF(char)
+    DEF(short)
+    DEF(int)
+    DEF(long)
+    DEF(long_long)
+    DEF(intptr_t)
+    DEF(size_t)
+    DEF(char32_t)
 
 #undef DEF
 }
@@ -403,6 +405,8 @@ voidc_global_ctx_t::voidc_global_ctx_t()
     DEF(LLVMTypeRef)
     DEF(LLVMOpaqueContext)
     DEF(LLVMContextRef)
+    DEF(voidc_opaque_void)
+    DEF(void_ptr)
 
 #undef DEF
 
@@ -1456,16 +1460,14 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
 
     if (idx < lctx.arg_types.size())
     {
-        auto void_ptr_type = LLVMPointerType(gctx.void_type, 0);
-
         auto at = lctx.arg_types[idx];
         auto vt = LLVMTypeOf(v);
 
         if (at != vt  &&
-            at == void_ptr_type  &&
+            at == gctx.void_ptr_type  &&
             LLVMGetTypeKind(vt) == LLVMPointerTypeKind)
         {
-            v = LLVMBuildPointerCast(builder, v, void_ptr_type, name->c_str());
+            v = LLVMBuildPointerCast(builder, v, gctx.void_ptr_type, name->c_str());
         }
     }
 
@@ -1523,13 +1525,11 @@ void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
 
     if (idx < lctx.arg_types.size())
     {
-        auto void_ptr_type = LLVMPointerType(gctx.void_type, 0);
-
         auto at = lctx.arg_types[idx];
 
-        if (at == void_ptr_type)
+        if (at == gctx.void_ptr_type)
         {
-            v = LLVMBuildPointerCast(builder, v, void_ptr_type, "void_str");
+            v = LLVMBuildPointerCast(builder, v, gctx.void_ptr_type, "void_str");
         }
     }
 
