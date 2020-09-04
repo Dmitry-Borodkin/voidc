@@ -262,18 +262,15 @@ base_local_ctx_t::~base_local_ctx_t()
 const std::string
 base_local_ctx_t::check_alias(const std::string &name)
 {
-    try
-    {
-        try
-        {
-            return  aliases.at(name);
-        }
-        catch(std::out_of_range)
-        {
-            return  global.aliases.at(name);
-        }
+    {   auto it = aliases.find(name);
+
+        if (it != aliases.end())  return it->second;
     }
-    catch(std::out_of_range) {}
+
+    {   auto it = global.aliases.find(name);
+
+        if (it != global.aliases.end())  return it->second;
+    }
 
     return  name;
 }
@@ -285,11 +282,11 @@ base_local_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_ty
     fun_type  = nullptr;
     fun_value = nullptr;
 
-    try
+    if (auto p = vars.find(fun_name))
     {
-        fun_value = vars.at(fun_name);
+        fun_value = *p;
     }
-    catch(std::out_of_range)
+    else
     {
         auto raw_name = check_alias(fun_name);
 
@@ -331,26 +328,27 @@ base_local_ctx_t::find_identifier(const std::string &name)
 {
     LLVMValueRef value = nullptr;
 
-    try
+    if (auto p = vars.find(name))
     {
-        value = vars.at(name);
+        value = *p;
     }
-    catch(std::out_of_range)
+    else
     {
         auto raw_name = check_alias(name);
 
-        try
-        {
-            try
-            {
-                value = constants.at(raw_name);
-            }
-            catch(std::out_of_range)
-            {
-                value = global.constants.at(raw_name);
-            }
+        {   auto it = constants.find(raw_name);
+
+            if (it != constants.end())  value = it->second;
         }
-        catch(std::out_of_range)
+
+        if (!value)
+        {
+            auto it = global.constants.find(raw_name);
+
+            if (it != global.constants.end())  value = it->second;
+        }
+
+        if (!value)
         {
             auto cname = raw_name.c_str();
 
@@ -487,11 +485,10 @@ voidc_global_ctx_t::get_symbol_type(const char *raw_name)
 
     LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
 
-    try
-    {
-        type = symbol_types.at(m_name);
+    {   auto it = symbol_types.find(m_name);
+
+        if (it != symbol_types.end())  type = it->second;
     }
-    catch(std::out_of_range) {}
 
     LLVMOrcDisposeMangledSymbol(m_name);
 
@@ -508,11 +505,7 @@ voidc_global_ctx_t::get_symbol_value(const char *raw_name)
 
     LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
 
-    try
-    {
-        value = LLVMSearchForAddressOfSymbol(m_name);
-    }
-    catch(std::out_of_range) {}
+    value = LLVMSearchForAddressOfSymbol(m_name);
 
     LLVMOrcDisposeMangledSymbol(m_name);
 
@@ -530,12 +523,12 @@ voidc_global_ctx_t::get_symbol(const char *raw_name, LLVMTypeRef &type, void * &
 
     LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
 
-    try
-    {
-        type  = symbol_types.at(m_name);
-        value = LLVMSearchForAddressOfSymbol(m_name);
+    {   auto it = symbol_types.find(m_name);
+
+        if (it != symbol_types.end())  type = it->second;
     }
-    catch(std::out_of_range) {}
+
+    value = LLVMSearchForAddressOfSymbol(m_name);
 
     LLVMOrcDisposeMangledSymbol(m_name);
 }
@@ -575,21 +568,27 @@ voidc_local_ctx_t::find_type(const char *type_name)
 
     LLVMOrcGetMangledSymbol(voidc_global_ctx_t::jit, &m_name, raw_name.c_str());
 
-    try
-    {
-        auto &[t,v] = symbols.at(m_name);
+    {   auto it = symbols.find(m_name);
 
-        tt = t;
-        tv = v;
-    }
-    catch(std::out_of_range)
-    {
-        try
+        if (it != symbols.end())
         {
-            tt = voidc_global_ctx_t::voidc->symbol_types.at(m_name);
-            tv = LLVMSearchForAddressOfSymbol(m_name);
+            auto &[t,v] = it->second;
+
+            tt = t;
+            tv = v;
         }
-        catch(std::out_of_range) {}
+    }
+
+    if (!tv)
+    {
+        auto it = voidc_global_ctx_t::voidc->symbol_types.find(m_name);
+
+        if (it != voidc_global_ctx_t::voidc->symbol_types.end())
+        {
+            tt = it->second;
+        }
+
+        tv = LLVMSearchForAddressOfSymbol(m_name);
     }
 
     LLVMOrcDisposeMangledSymbol(m_name);
@@ -612,17 +611,22 @@ voidc_local_ctx_t::find_symbol_type(const char *raw_name)
 
     LLVMOrcGetMangledSymbol(voidc_global_ctx_t::jit, &m_name, raw_name);
 
-    try
-    {
-        type = symbols.at(m_name).first;
-    }
-    catch(std::out_of_range)
-    {
-        try
+    {   auto it = symbols.find(m_name);
+
+        if (it != symbols.end())
         {
-            type = voidc_global_ctx_t::voidc->symbol_types.at(m_name);
+            type = it->second.first;
         }
-        catch(std::out_of_range) {}
+    }
+
+    if (!type)
+    {
+        auto it = voidc_global_ctx_t::voidc->symbol_types.find(m_name);
+
+        if (it != voidc_global_ctx_t::voidc->symbol_types.end())
+        {
+            type = it->second;
+        }
     }
 
     LLVMOrcDisposeMangledSymbol(m_name);
@@ -637,14 +641,15 @@ voidc_local_ctx_t::resolver(const char *m_name, void *)
 {
     auto &cctx = *(voidc_local_ctx_t *)voidc_global_ctx->current_ctx;       //- voidc!
 
-    try
-    {
-        return  (uint64_t)cctx.symbols.at(m_name).second;
+    {   auto it = cctx.symbols.find(m_name);
+
+        if (it != cctx.symbols.end())
+        {
+            return  (uint64_t)it->second.second;
+        }
     }
-    catch(std::out_of_range)
-    {
-        return  (uint64_t)LLVMSearchForAddressOfSymbol(m_name);
-    }
+
+    return  (uint64_t)LLVMSearchForAddressOfSymbol(m_name);
 }
 
 
@@ -809,9 +814,11 @@ target_global_ctx_t::target_global_ctx_t(size_t int_size, size_t long_size, size
 //---------------------------------------------------------------------
 void target_global_ctx_t::add_symbol_type(const char *raw_name, LLVMTypeRef type)
 {
-    if (symbols.count(raw_name) != 0)
+    auto it = symbols.find(raw_name);
+
+    if (it != symbols.end())
     {
-        symbols[raw_name].first = type;
+        it->second.first = type;
     }
     else
     {
@@ -822,9 +829,11 @@ void target_global_ctx_t::add_symbol_type(const char *raw_name, LLVMTypeRef type
 //---------------------------------------------------------------------
 void target_global_ctx_t::add_symbol_value(const char *raw_name, void *value)
 {
-    if (symbols.count(raw_name) != 0)
+    auto it = symbols.find(raw_name);
+
+    if (it != symbols.end())
     {
-        symbols[raw_name].second = value;
+        it->second.second = value;
     }
     else
     {
@@ -843,11 +852,12 @@ void target_global_ctx_t::add_symbol(const char *raw_name, LLVMTypeRef type, voi
 LLVMTypeRef
 target_global_ctx_t::get_symbol_type(const char *raw_name)
 {
-    try
+    auto it = symbols.find(raw_name);
+
+    if (it != symbols.end())
     {
-        return symbols.at(raw_name).first;
+        return it->second.first;
     }
-    catch(std::out_of_range) {}
 
     return nullptr;
 }
@@ -856,11 +866,12 @@ target_global_ctx_t::get_symbol_type(const char *raw_name)
 void *
 target_global_ctx_t::get_symbol_value(const char *raw_name)
 {
-    try
+    auto it = symbols.find(raw_name);
+
+    if (it != symbols.end())
     {
-        return symbols.at(raw_name).second;
+        return it->second.second;
     }
-    catch(std::out_of_range) {}
 
     return nullptr;
 }
@@ -872,14 +883,15 @@ target_global_ctx_t::get_symbol(const char *raw_name, LLVMTypeRef &type, void * 
     type  = nullptr;
     value = nullptr;
 
-    try
+    auto it = symbols.find(raw_name);
+
+    if (it != symbols.end())
     {
-        auto &[t,v] = symbols.at(raw_name);
+        auto &[t,v] = it->second;
 
         type  = t;
         value = v;
     }
-    catch(std::out_of_range) {}
 }
 
 
@@ -906,14 +918,16 @@ LLVMTypeRef target_local_ctx_t::find_type(const char *type_name)
 
     auto raw_name = check_alias(type_name);
 
-    try
+    auto it = symbols.find(raw_name);
+
+    if (it != symbols.end())
     {
-        auto &[t,v] = symbols.at(raw_name);
+        auto &[t,v] = it->second;
 
         tt = t;
         tv = v;
     }
-    catch(std::out_of_range)
+    else
     {
         voidc_global_ctx_t::target->get_symbol(raw_name.c_str(), tt, tv);
     }
@@ -929,11 +943,12 @@ LLVMTypeRef target_local_ctx_t::find_type(const char *type_name)
 //---------------------------------------------------------------------
 LLVMTypeRef target_local_ctx_t::find_symbol_type(const char *raw_name)
 {
-    try
+    auto it = symbols.find(raw_name);
+
+    if (it != symbols.end())
     {
-        return symbols.at(raw_name).first;
+        return  it->second.first;
     }
-    catch(std::out_of_range) {}
 
     return voidc_global_ctx_t::target->get_symbol_type(raw_name);
 }
@@ -1116,22 +1131,27 @@ LLVMTypeRef v_find_symbol_type(const char *name)
 
     auto raw_name = lctx.check_alias(name);
 
-    try
-    {
-        LLVMValueRef value;
+    {   LLVMValueRef value;
 
-        try
-        {
-            value = lctx.constants.at(raw_name);
-        }
-        catch(std::out_of_range)
-        {
-            value = gctx.constants.at(raw_name);
+        {   auto it = lctx.constants.find(raw_name);
+
+            if (it != lctx.constants.end())  value = it->second;
         }
 
-        type = LLVMTypeOf(value);
+        if (!value)
+        {
+            auto it = gctx.constants.find(raw_name);
+
+            if (it != gctx.constants.end())  value = it->second;
+        }
+
+        if (value)
+        {
+            type = LLVMTypeOf(value);
+        }
     }
-    catch(std::out_of_range)
+
+    if (!type)
     {
         type = lctx.find_symbol_type(raw_name.c_str());
     }

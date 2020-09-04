@@ -28,11 +28,13 @@ v_quark_from_string(const char *str)
 {
     if (str == nullptr) return 0;
 
-    try
-    {
-        return  voidc_quark_from_string.at(str) + 1;    //- Sic!
+    {   auto it = voidc_quark_from_string.find(str);
+
+        if (it != voidc_quark_from_string.end())
+        {
+            return  it->second + 1;
+        }
     }
-    catch(std::out_of_range) {}
 
     assert(voidc_quark_from_string.size() == voidc_quark_to_string.size());
 

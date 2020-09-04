@@ -474,11 +474,12 @@ bool v_util_empty_function_dict_impl(const v_util_function_dict_t *ptr)
 
 const char *v_util_function_dict_get(const v_util_function_dict_t *ptr, LLVMTypeRef type)
 {
-    try
+    auto it = ptr->find(type);
+
+    if (it != ptr->end())
     {
-        return ptr->at(type).c_str();
+        return it->second.c_str();
     }
-    catch(std::out_of_range) {}
 
     return nullptr;
 }
