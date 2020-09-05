@@ -1,0 +1,53 @@
+{   v_import("block.void");
+    v_import("if_then_else.void");
+}
+
+{   v_import("printf.void");
+}
+
+//---------------------------------------------------------------------
+{   voidc_enable_statement_block();
+    voidc_enable_statement_if_then_else();
+}
+
+
+//---------------------------------------------------------------------
+{
+    char_ptr = LLVMPointerType(char, 0);
+
+    typ = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, typ);
+
+    ft = LLVMFunctionType(void, typ, 1, 0);
+
+    f = v_function_hack("test_print", ft);
+
+    p = LLVMGetParam(f, 0);     v_add_variable("str", p);
+}
+{
+    ch0 = v_load(str);
+
+    if (ch0)
+    {
+        printf("\'%c\'\n", ch0);
+
+        str1 = v_getelementptr(str, 1);
+
+        test_print(str1);
+    }
+    else
+    {
+        printf("\n");
+    }
+}
+
+
+//---------------------------------------------------------------------
+{
+    test_print("Hello, world!");
+
+    test_print("Hello again!");
+}
+
+

@@ -218,169 +218,22 @@
 
 
 //---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
-{
-    char_ptr = LLVMPointerType(char, 0);
-
-    ft = LLVMFunctionType(char_ptr, 0, 0, 0);
-    v_add_symbol_type("llvm.stacksave", ft);
-    v_add_alias("llvm_stacksave", "llvm.stacksave");
-
-    typ0 = v_alloca(LLVMTypeRef);
-
-    v_store(char_ptr, typ0);
-
-    ft = LLVMFunctionType(void, typ0, 1, 0);
-    v_add_symbol_type("llvm.stackrestore", ft);
-    v_add_alias("llvm_stackrestore", "llvm.stackrestore");
-}
-
-//---------------------------------------------------------------------
 //- compile_ast_stmt_block_t - visitor method
 //---------------------------------------------------------------------
 {
     f = v_function_hack("compile_ast_stmt_block_t", method_ft);
 
-    visitor   = LLVMGetParam(f, 0);
-    stmt_list = LLVMGetParam(f, 1);
-
-
-    val0 = v_alloca(LLVMValueRef, 5);
-    val1 = v_getelementptr(val0, 1);
-    val2 = v_getelementptr(val0, 2);
-    val3 = v_getelementptr(val0, 3);
-    val4 = v_getelementptr(val0, 4);
-
-    n0 = LLVMConstInt(int, 0, 0);
-
-    value_ptr = LLVMPointerType(LLVMValueRef, 0);
-
-    v0 = LLVMConstNull(value_ptr);
-
-    builder_v = v_find_global("voidc_builder");
-
-
-    save_vars_f = v_find_function("v_save_variables");
-
-    LLVMBuildCall(voidc_builder, save_vars_f, 0, 0, "");
-
-
-    stack_save_n = LLVMBuildGlobalStringPtr(voidc_builder, "llvm.stacksave", "stack_save_n");
-
-    v_store(stack_save_n, val0);
-
-    find_fun_f = v_find_function("v_find_function");
-
-    stack_save_fv = LLVMBuildCall(voidc_builder, find_fun_f, val0, 1, "stack_save_fv");
-
-
-    stack_ptr_str = LLVMBuildGlobalStringPtr(voidc_builder, "stack_ptr", "stack_ptr_str");
-
-    v_store(builder_v,     val0);
-    v_store(stack_save_fv, val1);
-    v_store(v0,            val2);
-    v_store(n0,            val3);
-    v_store(stack_ptr_str, val4);
-
-    llvm_build_call_f = v_find_function("LLVMBuildCall");
-
-    stack_ptr = LLVMBuildCall(voidc_builder, llvm_build_call_f, val0, 5, "stack_ptr");
-
-    v_add_variable("stack_ptr", stack_ptr);
-
-
-    base_ast = LLVMBuildBitCast(voidc_builder, stmt_list, v_ast_base_ref, "base_ast");
-
-    v_store(base_ast, val0);
-    v_store(visitor,  val1);
-
-    accept_visitor_f = v_find_function("v_ast_accept_visitor");
-
-    LLVMBuildCall(voidc_builder, accept_visitor_f, val0, 2, "");
-
-
-    v_store(builder_v, val0);
-
-    llvm_get_insert_block_f = v_find_function("LLVMGetInsertBlock");
-
-    cur_b = LLVMBuildCall(voidc_builder, llvm_get_insert_block_f, val0, 1, "cur_b");
-
-    v_add_variable("cur_b", cur_b);
-
-
-    v_store(cur_b, val0);
-
-    llvm_get_basic_block_terminator_f = v_find_function("LLVMGetBasicBlockTerminator");
-
-    trm_v = LLVMBuildCall(voidc_builder, llvm_get_basic_block_terminator_f, val0, 1, "trm_v");
-
-
-    then_b = LLVMAppendBasicBlock(f, "then_b");
-    else_b = LLVMAppendBasicBlock(f, "else_b");
-
-
-    ok_v = LLVMBuildIsNotNull(voidc_builder, trm_v, "ok_v");
-
-    LLVMBuildCondBr(voidc_builder, ok_v, then_b, else_b);
-
-
-    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
-
-
-    v_store(builder_v, val0);
-    v_store(trm_v,     val1);
-
-    position_builder_before_f = v_find_function("LLVMPositionBuilderBefore");
-
-    LLVMBuildCall(voidc_builder, position_builder_before_f, val0, 2, "");
-
-
-    LLVMBuildBr(voidc_builder, else_b);
-
-
-    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",    p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("stmt_list",  p1);
 }
 {
-    val0 = v_alloca(LLVMValueRef);
+    v_save_variables();
 
-    v_store(stack_ptr, val0);
+    base_ast = v_cast(LLVMBitCast, stmt_list, v_ast_base_ref);
 
-    stack_restore_f = v_find_function("llvm.stackrestore");
-
-    LLVMBuildCall(voidc_builder, stack_restore_f, val0, 1, "");
-
-    LLVMPositionBuilderAtEnd(voidc_builder, cur_b);
+    v_ast_accept_visitor(base_ast, visitor);
 
     v_restore_variables();
-}
-
-
-//---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
-{
-    module = v_get_module();
-
-    //-----------------------------------------------------------------
-//    msg = LLVMPrintModuleToString(module);
-//
-//    printf("\n%s\n", msg);
-//
-//    LLVMDisposeMessage(msg);
-
-    //-----------------------------------------------------------------
-    v_prepare_module_for_jit(module);
-
-    //-----------------------------------------------------------------
-    PH = v_alloca(LLVMOrcModuleHandle);
-
-    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
-                                voidc_resolver, 0
-                               );
-
-    //-----------------------------------------------------------------
-    v_set_module(0);
 }
 
 
@@ -456,8 +309,36 @@
 
     v_reset(gr0);
     v_reset(act);
-    v_reset(ar0, 2);
+    v_reset(ar0);
     v_reset(pp0, 6);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    //-----------------------------------------------------------------
+//    msg = LLVMPrintModuleToString(module);
+//
+//    printf("\n%s\n", msg);
+//
+//    LLVMDisposeMessage(msg);
+
+    //-----------------------------------------------------------------
+    v_prepare_module_for_jit(module);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver, 0
+                               );
+
+    //-----------------------------------------------------------------
+    v_set_module(0);
 }
 
 
