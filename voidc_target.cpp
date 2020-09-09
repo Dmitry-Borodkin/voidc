@@ -1131,7 +1131,7 @@ LLVMTypeRef v_find_symbol_type(const char *name)
 
     auto raw_name = lctx.check_alias(name);
 
-    {   LLVMValueRef value;
+    {   LLVMValueRef value = nullptr;
 
         {   auto it = lctx.constants.find(raw_name);
 
