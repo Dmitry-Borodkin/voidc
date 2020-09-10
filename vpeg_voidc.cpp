@@ -316,18 +316,14 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- stmt_list <- l:stmt_list_lr     { l }
+    //- stmt_list <- stmt_list_lr
     //-            /                    { mk_stmt_list_nil() }
 
     gr = gr.set_parser("stmt_list",
     mk_choice_parser(
     {
-        mk_sequence_parser(
-        {
-            mk_catch_variable_parser("l", ip_stmt_list_lr),
+        ip_stmt_list_lr,
 
-            mk_action_parser(mk_return_action(mk_identifier_argument("l")))
-        }),
         mk_action_parser(
             mk_call_action("mk_stmt_list_nil", {})
         )
@@ -433,20 +429,14 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- arg_list <- l:arg_list_lr   { l }
+    //- arg_list <- arg_list_lr
     //-           /                 { mk_arg_list_nil() }
 
     gr = gr.set_parser("arg_list",
     mk_choice_parser(
     {
-        mk_sequence_parser(
-        {
-            mk_catch_variable_parser("l", ip_arg_list_lr),
+        ip_arg_list_lr,
 
-            mk_action_parser(
-                mk_return_action(mk_identifier_argument("l"))
-            )
-        }),
         mk_action_parser(
             mk_call_action("mk_arg_list_nil", {})
         )
@@ -580,21 +570,15 @@ vpeg::grammar_t make_voidc_grammar(void)
 
 
     //-------------------------------------------------------------
-    //- integer <- n:dec_integer        { n }
+    //- integer <- dec_integer
     //-          / '-' n:dec_integer    { mk_neg_integer(n) }
     //-          / '0'                  { 0 }
 
     gr = gr.set_parser("integer",
     mk_choice_parser(
     {
-        mk_sequence_parser(
-        {
-            mk_catch_variable_parser("n", ip_dec_integer),
+        ip_dec_integer,
 
-            mk_action_parser(
-                mk_return_action(mk_identifier_argument("n"))
-            )
-        }),
         mk_sequence_parser(
         {
             mk_character_parser('-'),
@@ -654,19 +638,11 @@ vpeg::grammar_t make_voidc_grammar(void)
     }), true);      //- Left recursion!
 
     //-------------------------------------------------------------
-    //- dec_digit <- d:[0-9]        { d }
+    //- dec_digit <- [0-9]
 
     gr = gr.set_parser("dec_digit",
-    mk_sequence_parser(
-    {
-        mk_catch_variable_parser("d",
-            mk_class_parser({{'0','9'}})
-        ),
-
-        mk_action_parser(
-            mk_return_action(mk_identifier_argument("d"))
-        )
-    }));
+    mk_class_parser({{'0','9'}})
+    );
 
 
     //-------------------------------------------------------------

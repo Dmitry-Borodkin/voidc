@@ -293,6 +293,13 @@
 
     v_peg_grammar_set_action(gr0, gr0, "mk_stmt_block", mk_stmt_block_grammar_action);
 
+
+    v_peg_grammar_set_parser(gr0, gr0, "stmt_block", pp0, 0);
+
+
+    v_peg_make_identifier_parser(pp0, "stmt_block");
+
+
     v_peg_grammar_get_parser(gr0, "stmt", pp1, 0);
 
     v_peg_make_choice_parser(pp0, pp0, 2);
