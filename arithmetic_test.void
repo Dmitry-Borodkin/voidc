@@ -1,0 +1,43 @@
+{   v_import("arithmetic.void");
+}
+
+
+{
+    v = v_binop(LLVMAdd, 1, 1);
+    v = v_binop(LLVMMul, v, v);
+
+    printf("%d\n", v);
+
+    c = v_icmp(LLVMIntUGT, v, 5);
+
+    vc = v_cast(LLVMZExt, c, int);
+
+    printf("%d\n", vc);
+}
+
+
+{   double = LLVMDoubleType();
+
+    v_add_local_symbol("double", LLVMOpaqueType, double);
+}
+
+{   f1 = v_cast(LLVMUIToFP, 1, double);
+
+    v = v_binop(LLVMFAdd, f1, f1);
+    v = v_binop(LLVMFMul, v, v);
+
+    printf("%f\n", v);
+
+    c = v_fcmp(LLVMRealUGT, v, f1);
+
+    vc = v_cast(LLVMZExt, c, int);
+
+    printf("%d\n", vc);
+
+
+}
+
+
+
+
+

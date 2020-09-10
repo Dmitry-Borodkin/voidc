@@ -1,0 +1,146 @@
+{   v_import("function_hack.void"); }
+
+{   v_import("printf.void"); }
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = LLVMModuleCreateWithName("voidc_arithmetic_intrinsic_module");
+
+    v_set_module(module);       //- Sic!
+}
+
+
+//---------------------------------------------------------------------
+//- v_binop
+//---------------------------------------------------------------------
+{
+    f = v_function_hack("voidc_binop_intrinsic", voidc_intrinsic_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list", p1);
+}
+{
+    arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
+
+    v_ast_accept_visitor(arg_base, visitor);
+
+    arg0 = v_get_argument(0);
+
+    opv = LLVMConstIntGetZExtValue(arg0);
+
+    opc = v_cast(LLVMTrunc, opv, LLVMOpcode);
+
+    lhs = v_get_argument(1);
+    rhs = v_get_argument(2);
+
+    rname = v_get_return_name();
+
+    ret = LLVMBuildBinOp(voidc_builder, opc, lhs, rhs, rname);
+
+    v_set_return_value(ret);
+
+    v_clear_arguments();
+}
+
+
+//---------------------------------------------------------------------
+//- v_icmp
+//---------------------------------------------------------------------
+{
+    f = v_function_hack("voidc_icmp_intrinsic", voidc_intrinsic_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list", p1);
+}
+{
+    arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
+
+    v_ast_accept_visitor(arg_base, visitor);
+
+    arg0 = v_get_argument(0);
+
+    opv = LLVMConstIntGetZExtValue(arg0);
+
+    opc = v_cast(LLVMTrunc, opv, LLVMIntPredicate);
+
+    lhs = v_get_argument(1);
+    rhs = v_get_argument(2);
+
+    rname = v_get_return_name();
+
+    ret = LLVMBuildICmp(voidc_builder, opc, lhs, rhs, rname);
+
+    v_set_return_value(ret);
+
+    v_clear_arguments();
+}
+
+
+//---------------------------------------------------------------------
+//- v_fcmp
+//---------------------------------------------------------------------
+{
+    f = v_function_hack("voidc_fcmp_intrinsic", voidc_intrinsic_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list", p1);
+}
+{
+    arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
+
+    v_ast_accept_visitor(arg_base, visitor);
+
+    arg0 = v_get_argument(0);
+
+    opv = LLVMConstIntGetZExtValue(arg0);
+
+    opc = v_cast(LLVMTrunc, opv, LLVMRealPredicate);
+
+    lhs = v_get_argument(1);
+    rhs = v_get_argument(2);
+
+    rname = v_get_return_name();
+
+    ret = LLVMBuildFCmp(voidc_builder, opc, lhs, rhs, rname);
+
+    v_set_return_value(ret);
+
+    v_clear_arguments();
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    v_set_module(0);
+
+    //-----------------------------------------------------------------
+//    msg = LLVMPrintModuleToString(module);
+//
+//    printf("\n%s\n", msg);
+//
+//    LLVMDisposeMessage(msg);
+
+    //-----------------------------------------------------------------
+    v_prepare_module_for_jit(module);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver, 0
+                               );
+}
+
+{   v_add_intrinsic("v_binop", voidc_binop_intrinsic);
+    v_add_intrinsic("v_icmp",  voidc_icmp_intrinsic);
+    v_add_intrinsic("v_fcmp",  voidc_fcmp_intrinsic);
+}
+
+
