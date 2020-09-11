@@ -159,7 +159,9 @@ public:
     static LLVMPassManagerRef   pass_manager;
 
 public:
-    static bool debug_print_module;
+    static int debug_print_module;
+
+    static void verify_module(LLVMModuleRef module);
 
     static void prepare_module_for_jit(LLVMModuleRef module);
 

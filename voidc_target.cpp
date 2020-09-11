@@ -384,7 +384,7 @@ LLVMOrcJITStackRef   voidc_global_ctx_t::jit;
 LLVMBuilderRef       voidc_global_ctx_t::builder;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 
-bool voidc_global_ctx_t::debug_print_module = false;
+int voidc_global_ctx_t::debug_print_module = 0;
 
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
@@ -1029,9 +1029,14 @@ void v_set_module(LLVMModuleRef mod)
 }
 
 //---------------------------------------------------------------------
-void v_debug_print_module(void)
+void v_debug_print_module(int n)
 {
-    voidc_global_ctx_t::debug_print_module = true;
+    voidc_global_ctx_t::debug_print_module = n;
+}
+
+void v_verify_module(LLVMModuleRef module)
+{
+    voidc_global_ctx_t::verify_module(module);
 }
 
 void v_prepare_module_for_jit(LLVMModuleRef module)
@@ -1324,11 +1329,12 @@ void voidc_global_ctx_t::static_terminate(void)
 
 
 //---------------------------------------------------------------------
-void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
+void voidc_global_ctx_t::verify_module(LLVMModuleRef module)
 {
     char *msg = nullptr;
 
     auto err = LLVMVerifyModule(module, LLVMReturnStatusAction, &msg);
+
     if (err || debug_print_module)
     {
         char *txt = LLVMPrintModuleToString(module);
@@ -1339,12 +1345,18 @@ void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 
         printf("\n%s\n", msg);
 
-        debug_print_module = false;
+        if (debug_print_module) debug_print_module -= 1;
     }
 
     LLVMDisposeMessage(msg);
 
     if (err)  exit(1);          //- Sic !!!
+}
+
+//---------------------------------------------------------------------
+void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
+{
+    verify_module(module);
 
     //-------------------------------------------------------------
     LLVMSetModuleDataLayout(module, voidc_target_data_layout);

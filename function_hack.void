@@ -281,28 +281,11 @@
     fun_module_v = LLVMBuildCall(voidc_builder, get_module_f, 0, 0, "fun_module_v");
 
 
-//    v_store(fun_module_v, val0);
-//
-//    llvm_dump_module_f = v_find_function("LLVMDumpModule");
-//
-//    LLVMBuildCall(voidc_builder, llvm_dump_module_f, val0, 1, "");
+    voidc_verify_module_f = v_find_function("v_verify_module");
 
+    v_store(fun_module_v, val0);
 
-    llvm_verify_module_f = v_find_function("LLVMVerifyModule");
-
-    v = v_cast(LLVMZExt, LLVMAbortProcessAction, long_long);
-
-    llvm_abort_process_action_v = LLVMConstInt(int, v, 0);
-
-    char_ptr_ptr = LLVMPointerType(char_ptr, 0);
-
-    null_cpp = LLVMConstNull(char_ptr_ptr);
-
-    v_store(fun_module_v,                val0);
-    v_store(llvm_abort_process_action_v, val1);
-    v_store(null_cpp,                    val2);
-
-    LLVMBuildCall(voidc_builder, llvm_verify_module_f, val0, 3, "");
+    LLVMBuildCall(voidc_builder, voidc_verify_module_f, val0, 1, "");
 
 
     v_store(line,   val0);
@@ -838,7 +821,7 @@
 
 
     //-----------------------------------------------------------------
-//  v_debug_print_module();
+//  v_debug_print_module(1);
 
     v_prepare_module_for_jit(module);
 

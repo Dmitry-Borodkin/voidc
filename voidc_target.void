@@ -92,6 +92,7 @@
 
     ft = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
     v_add_symbol_type("v_get_argument", ft);
+    v_add_symbol_type("v_debug_print_module", ft);
 
     v_store(int, arg1);
 
@@ -99,7 +100,6 @@
     v_add_symbol_type("v_prepare_unit_action", ft);
 
     ft = LLVMFunctionType(void, 0, 0, 0);
-    v_add_symbol_type("v_debug_print_module", ft);
     v_add_symbol_type("v_finish_unit_action", ft);
     v_add_symbol_type("v_clear_variables", ft);
     v_add_symbol_type("v_save_variables", ft);
@@ -113,6 +113,7 @@
 
     ft = LLVMFunctionType(void, arg0, 1, 0);
     v_add_symbol_type("v_set_module", ft);
+    v_add_symbol_type("v_verify_module", ft);
     v_add_symbol_type("v_prepare_module_for_jit", ft);
 
     ft = LLVMFunctionType(char_ptr, 0, 0, 0);
