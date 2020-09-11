@@ -384,6 +384,8 @@ LLVMOrcJITStackRef   voidc_global_ctx_t::jit;
 LLVMBuilderRef       voidc_global_ctx_t::builder;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 
+bool voidc_global_ctx_t::debug_print_module = false;
+
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
   : base_global_ctx_t(sizeof(int), sizeof(long), sizeof(intptr_t)),
@@ -639,11 +641,11 @@ voidc_local_ctx_t::find_symbol_type(const char *raw_name)
 uint64_t
 voidc_local_ctx_t::resolver(const char *m_name, void *)
 {
-    auto &cctx = *(voidc_local_ctx_t *)voidc_global_ctx->current_ctx;       //- voidc!
+    auto &lctx = *(voidc_local_ctx_t *)voidc_global_ctx->current_ctx;       //- voidc!
 
-    {   auto it = cctx.symbols.find(m_name);
+    {   auto it = lctx.symbols.find(m_name);
 
-        if (it != cctx.symbols.end())
+        if (it != lctx.symbols.end())
         {
             return  (uint64_t)it->second.second;
         }
@@ -1027,6 +1029,11 @@ void v_set_module(LLVMModuleRef mod)
 }
 
 //---------------------------------------------------------------------
+void v_debug_print_module(void)
+{
+    voidc_global_ctx_t::debug_print_module = true;
+}
+
 void v_prepare_module_for_jit(LLVMModuleRef module)
 {
     voidc_global_ctx_t::prepare_module_for_jit(module);
@@ -1322,7 +1329,7 @@ void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
     char *msg = nullptr;
 
     auto err = LLVMVerifyModule(module, LLVMReturnStatusAction, &msg);
-    if (err)
+    if (err || debug_print_module)
     {
         char *txt = LLVMPrintModuleToString(module);
 
@@ -1331,6 +1338,8 @@ void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
         LLVMDisposeMessage(txt);
 
         printf("\n%s\n", msg);
+
+        debug_print_module = false;
     }
 
     LLVMDisposeMessage(msg);
