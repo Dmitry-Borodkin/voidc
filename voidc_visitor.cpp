@@ -63,7 +63,14 @@ VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(visitor_ptr_t, voidc_std_any_set_pointer_v
 //---------------------------------------------------------------------
 void *voidc_visitor_get_void_method(const visitor_ptr_t *ptr, v_quark_t quark)
 {
-    return  (*ptr)->void_methods.at(quark);
+    if (auto *vm = (*ptr)->void_methods.find(quark))
+    {
+        return *vm;
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 void voidc_visitor_set_void_method(visitor_ptr_t *dst, const visitor_ptr_t *src, v_quark_t quark, void *void_method)

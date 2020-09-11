@@ -512,10 +512,15 @@ char32_t v_peg_character_argument_get_character(const argument_ptr_t *ptr)
 //-----------------------------------------------------------------
 void v_peg_grammar_get_parser(const grammar_ptr_t *ptr, const char *name, parser_ptr_t *parser, int *leftrec)
 {
-    auto &pair = (*ptr)->parsers[v_quark_from_string(name)];
-
-    if (parser)   *parser  = pair.first;
-    if (leftrec)  *leftrec = pair.second;
+    if (auto *pair = (*ptr)->parsers.find(v_quark_from_string(name)))
+    {
+        if (parser)   *parser  = pair->first;
+        if (leftrec)  *leftrec = pair->second;
+    }
+    else
+    {
+        if (parser)   *parser  = nullptr;
+    }
 }
 
 void v_peg_grammar_set_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, const parser_ptr_t *parser, int leftrec)
@@ -529,7 +534,14 @@ void v_peg_grammar_set_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, cons
 grammar_action_fun_t
 v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
 {
-    return (*ptr)->actions[v_quark_from_string(name)];
+    if (auto *fun = (*ptr)->actions.find(v_quark_from_string(name)))
+    {
+        return *fun;
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, grammar_action_fun_t fun)
