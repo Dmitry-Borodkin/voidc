@@ -1,0 +1,54 @@
+{   v_import("loop.void");
+    v_import("arithmetic.void");
+}
+
+{   voidc_enable_statement_block();
+    voidc_enable_statement_if_then_else();
+    voidc_enable_statement_loop();
+}
+
+
+{
+    vn0 = v_alloca(int, 2);
+    vn1 = v_getelementptr(vn0, 1);
+
+    v_store(0, vn0);
+
+    loop
+    {
+        i = v_load(vn0);
+
+        c = v_icmp(LLVMIntEQ, i, 5);
+
+        if (c)  v_break();
+
+
+        v_store(0, vn1);
+
+        loop
+        {
+            j = v_load(vn1);
+
+            c = v_icmp(LLVMIntEQ, j, 7);
+
+            if (c)  v_break();
+
+
+            printf("i,j: %d, %d\n", i, j);
+
+
+            j1 = v_binop(LLVMAdd, j, 1);
+
+            v_store(j1, vn1);
+        }
+
+
+        i1 = v_binop(LLVMAdd, i, 1);
+
+        v_store(i1, vn0);
+    }
+}
+
+
+
+

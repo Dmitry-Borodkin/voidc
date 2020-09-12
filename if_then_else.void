@@ -20,13 +20,15 @@
     //-----------------------------------------------------------------
     //- quark ...
     //-----------------------------------------------------------------
-    quark_v = v_quark_from_string("v_ast_stmt_if_then_else_t_visitor_method_tag");
+    quark = v_quark_from_string("v_ast_stmt_if_then_else_t_visitor_method_tag");
 
-    quark_ll = v_cast(LLVMZExt, quark_v, long_long);
+    quark_ll = v_cast(LLVMZExt, quark, long_long);
 
-    quark = LLVMConstInt(v_quark_t, quark_ll, 0);
+    quark_v = LLVMConstInt(v_quark_t, quark_ll, 0);
 
-    v_add_local_constant("quark", quark);
+    v_add_local_constant("quark", quark_v);
+
+    v_add_local_symbol("quark_v", LLVMOpaqueValue, quark_v);
 
 
     //-----------------------------------------------------------------
@@ -146,10 +148,6 @@
 
     destroy_f = v_find_function("voidc_ast_stmt_if_then_else_destroy");
     accept_f  = v_find_function("voidc_ast_stmt_if_then_else_accept");
-
-    quark_ll = v_cast(LLVMZExt, quark, long_long);
-
-    quark_v = LLVMConstInt(v_quark_t, quark_ll, 0);
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
@@ -533,34 +531,41 @@
 
     f = v_function_hack("voidc_enable_statement_if_then_else", ft);
 
-    get_method_f = v_find_function("voidc_visitor_get_void_method");
 
-    val0 = v_alloca(LLVMValueRef, 2);
-    val1 = v_getelementptr(val0, 1);
+    has_grammar_f = v_find_function("voidc_has_grammar");
 
-    voidc_compiler_g = v_find_global("voidc_compiler");
+    vhg_v = LLVMBuildCall(voidc_builder, has_grammar_f, 0, 0, "vhg_v");
 
-    quark_ll = v_cast(LLVMZExt, quark, long_long);
+    return_b = LLVMAppendBasicBlock(f, "return_b");
+    vhg_ok_b = LLVMAppendBasicBlock(f, "vhg_ok_b");
 
-    quark_v = LLVMConstInt(v_quark_t, quark_ll, 0);
+    LLVMBuildCondBr(voidc_builder, vhg_v, vhg_ok_b, return_b);
 
-    v_store(voidc_compiler_g, val0);
-    v_store(quark_v,          val1);
 
-    pvm_v = LLVMBuildCall(voidc_builder, get_method_f, val0, 2, "pvm_v");
-
-    then_b = LLVMAppendBasicBlock(f, "then_b");
-    else_b = LLVMAppendBasicBlock(f, "else_b");
-
-    ok_v = LLVMBuildIsNotNull(voidc_builder, pvm_v, "ok_v");
-
-    LLVMBuildCondBr(voidc_builder, ok_v, then_b, else_b);
-
-    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
+    LLVMPositionBuilderAtEnd(voidc_builder, return_b);
 
     LLVMBuildRetVoid(voidc_builder);
 
-    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+
+    LLVMPositionBuilderAtEnd(voidc_builder, vhg_ok_b);
+
+
+    has_parser_f = v_find_function("voidc_grammar_has_parser");
+
+    val0 = v_alloca(LLVMValueRef);
+
+    name = LLVMBuildGlobalStringPtr(voidc_builder, "stmt_if_then_else", "name");
+
+    v_store(name, val0);
+
+    ghp_v = LLVMBuildCall(voidc_builder, has_parser_f, val0, 1, "ghp_v");
+
+    work_b = LLVMAppendBasicBlock(f, "work_b");
+
+    LLVMBuildCondBr(voidc_builder, ghp_v, return_b, work_b);
+
+
+    LLVMPositionBuilderAtEnd(voidc_builder, work_b);
 }
 {
     pp0 = v_alloca(v_peg_opaque_parser_ptr, 15);
@@ -639,6 +644,9 @@
     v_peg_make_sequence_parser(pp1, pp1, 10);
 
 
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+
     gr0 = v_alloca(v_peg_opaque_grammar_ptr);
     v_initialize(gr0);
 
@@ -647,9 +655,15 @@
 
     v_peg_grammar_set_action(gr0, gr0, "mk_stmt_if_then_else", mk_stmt_if_then_else_grammar_action);
 
-    v_peg_grammar_get_parser(gr0, "stmt", pp2, 0);
+    v_peg_grammar_set_parser(gr0, gr0, "stmt_if_then_else", pp0, 0);
 
-    v_peg_make_choice_parser(pp0, pp0, 3);
+
+    v_peg_make_identifier_parser(pp0, "stmt_if_then_else");
+
+
+    v_peg_grammar_get_parser(gr0, "stmt", pp1, 0);
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
 
     v_peg_grammar_set_parser(gr0, gr0, "stmt", pp0, 0);
 

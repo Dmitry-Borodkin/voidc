@@ -1070,6 +1070,15 @@ void v_add_variable(const char *name, LLVMValueRef val)
     lctx.vars = lctx.vars.set(name, val);
 }
 
+LLVMValueRef v_get_variable(const char *name)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
+
+    if (auto *pv = lctx.vars.find(name))  return *pv;
+    else                                  return nullptr;
+}
+
 //---------------------------------------------------------------------
 void v_clear_variables(void)
 {

@@ -78,6 +78,9 @@
     v_add_symbol_type("v_add_local_constant", ft);
     v_add_symbol_type("v_add_variable",       ft);
 
+    ft = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
+    v_add_symbol_type("v_get_variable", ft);
+
     ft = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
     v_add_symbol_type("v_find_symbol_type", ft);
     v_add_symbol_type("v_find_type",        ft);

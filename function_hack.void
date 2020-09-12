@@ -39,44 +39,6 @@
 
 
     //-----------------------------------------------------------------
-    //- bool voidc_has_grammar(void)
-    //-----------------------------------------------------------------
-    has_grammar_ft = LLVMFunctionType(bool, 0, 0, 0);
-    has_grammar_f  = LLVMAddFunction(module, "voidc_has_grammar", has_grammar_ft);
-
-    entry = LLVMAppendBasicBlock(has_grammar_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
-
-    grm = LLVMBuildAlloca(voidc_builder, v_peg_opaque_grammar_ptr, "grm");
-
-    grammar_init_f = v_find_dict_function(v_util_initialize_dict, v_peg_opaque_grammar_ptr);
-
-    v_store(grm, val0);
-    v_store(n1,  val1);
-
-    LLVMBuildCall(voidc_builder, grammar_init_f, val0, 2, "");
-
-    get_grammar_f = v_find_function("v_peg_get_grammar");
-
-    LLVMBuildCall(voidc_builder, get_grammar_f, val0, 1, "");
-
-    grammar_empty_f = v_find_dict_function(v_util_empty_dict, v_peg_opaque_grammar_ptr);
-
-    nok = LLVMBuildCall(voidc_builder, grammar_empty_f, val0, 1, "nok");
-
-    ok = LLVMBuildNot(voidc_builder, nok, "ok");
-
-    grammar_reset_f = v_find_dict_function(v_util_reset_dict, v_peg_opaque_grammar_ptr);
-
-    v_store(grm, val0);
-    v_store(n1,  val1);
-
-    LLVMBuildCall(voidc_builder, grammar_reset_f, val0, 2, "");
-
-    LLVMBuildRet(voidc_builder, ok);
-
-
-    //-----------------------------------------------------------------
     //- Saved global variables
     //-----------------------------------------------------------------
     saved_module_g = LLVMAddGlobal(module, LLVMModuleRef, "saved_module_g");
@@ -836,7 +798,6 @@
     v_set_module(saved_module);
 
     //-----------------------------------------------------------------
-    v_add_symbol_type("voidc_has_grammar", has_grammar_ft);
     v_add_symbol_type("voidc_function_hack_unit_action_helper", unit_action_helper_ft);
     v_add_symbol_type("voidc_function_hack_intrinsic_helper", helper_ft);
 
