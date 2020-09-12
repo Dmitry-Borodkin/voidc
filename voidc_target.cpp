@@ -1373,6 +1373,8 @@ void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 
     LLVMRunPassManager(pass_manager, module);
 
+//  verify_module(module);
+
 //    //-------------------------------------------------------------
 //    {   LLVMMemoryBufferRef asm_buffer = nullptr;
 //

@@ -1,5 +1,6 @@
 {   v_import("loop.void");
     v_import("arithmetic.void");
+    v_import("function_hack.void");
 }
 
 {   voidc_enable_statement_block();
@@ -8,6 +9,7 @@
 }
 
 
+//---------------------------------------------------------------------
 {
     vn0 = v_alloca(int, 2);
     vn1 = v_getelementptr(vn0, 1);
@@ -47,6 +49,65 @@
 
         v_store(i1, vn0);
     }
+
+    printf("\n");
+}
+
+
+//---------------------------------------------------------------------
+{   typ = v_alloca(LLVMTypeRef);
+
+    v_store(int, typ);
+
+    ft = LLVMFunctionType(long, typ, 1, 0);
+
+    f = v_function_hack("fib", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("n", p0);
+}
+{
+    v0 = v_alloca(long, 2);
+    v1 = v_getelementptr(v0, 1);
+
+    v_store(1, v0);
+    v_store(0, v1);
+
+    vn = v_alloca(int);
+
+    v_store(0, vn);
+
+    loop
+    {
+        i = v_load(vn);
+
+        c = v_icmp(LLVMIntEQ, i, n);
+
+        if (c)  v_break();
+
+        t0 = v_load(v0);
+        t1 = v_load(v1);
+
+        t2 = v_binop(LLVMAdd, t0, t1);
+
+        v_store(t1, v0);
+        v_store(t2, v1);
+
+        i = v_binop(LLVMAdd, i, 1);
+
+        v_store(i, vn);
+    }
+
+    r = v_load(v1);
+
+    v_return(r);
+}
+
+//---------------------------------------------------------------------
+{   n = v_cast(LLVMZExt, 92, int);
+
+    v = fib(n);
+
+    printf("fib(%d): %ld\n", n, v);
 }
 
 
