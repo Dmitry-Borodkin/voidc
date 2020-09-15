@@ -118,6 +118,8 @@ public:     //- ?...
 public:
     void get_line_column(size_t pos, size_t &line, size_t &column) const;
 
+    size_t get_buffer_size(void) const { return buffer.size(); }
+
 private:
     std::istream &input;
 

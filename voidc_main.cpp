@@ -29,7 +29,7 @@
 static vpeg::grammar_t voidc_grammar;
 
 static
-std::any parse_unit(vpeg::context_t &pctx)
+ast_unit_ptr_t parse_unit(vpeg::context_t &pctx)
 {
     static const auto unit_q = v_quark_from_string("unit");
 
@@ -37,7 +37,25 @@ std::any parse_unit(vpeg::context_t &pctx)
 
     pctx.memo.clear();
 
-    return ret;
+    auto unit = std::any_cast<ast_unit_ptr_t>(&ret);
+
+    if (!unit  &&  pctx.is_ok())
+    {
+        size_t line, column;
+
+        pctx.get_line_column(pctx.get_buffer_size(), line, column);
+
+        auto &gctx = *voidc_global_ctx_t::target;
+        auto &lctx = *gctx.current_ctx;
+
+        std::string msg = "Parse error in " + lctx.filename + "\n    at ("
+                          + std::to_string(line+1) + ", "
+                          + std::to_string(column) + ")";
+
+        throw  std::runtime_error(msg);
+    }
+
+    return *unit;
 }
 
 
@@ -250,26 +268,21 @@ void v_import(const char *name)
 
             vpeg::context_t::current_ctx = &pctx;
 
-            while(pctx.is_ok())
+            while(auto unit = parse_unit(pctx))
             {
-                auto v = parse_unit(pctx);
+                unit->accept(voidc_compiler);
 
-                if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
+                unit.reset();
+
+                if (lctx.unit_buffer)
                 {
-                    unit->accept(voidc_compiler);
+                    size_t len = LLVMGetBufferSize(lctx.unit_buffer);
 
-                    unit.reset();
+                    outfs.write((char *)&len, sizeof(len));
 
-                    if (lctx.unit_buffer)
-                    {
-                        size_t len = LLVMGetBufferSize(lctx.unit_buffer);
+                    outfs.write(LLVMGetBufferStart(lctx.unit_buffer), len);
 
-                        outfs.write((char *)&len, sizeof(len));
-
-                        outfs.write(LLVMGetBufferStart(lctx.unit_buffer), len);
-
-                        lctx.run_unit_action();
-                    }
+                    lctx.run_unit_action();
                 }
             }
 
@@ -388,18 +401,13 @@ int main(int argc, char *argv[])
 
         vpeg::context_t::current_ctx = &pctx;
 
-        while(pctx.is_ok())
+        while(auto unit = parse_unit(pctx))
         {
-            auto v = parse_unit(pctx);
+            unit->accept(voidc_compiler);
 
-            if (auto unit = std::any_cast<ast_unit_ptr_t>(v))
-            {
-                unit->accept(voidc_compiler);
+            unit.reset();
 
-                unit.reset();
-
-                lctx.run_unit_action();
-            }
+            lctx.run_unit_action();
         }
 
         vpeg::context_t::current_ctx = nullptr;     //- ?
