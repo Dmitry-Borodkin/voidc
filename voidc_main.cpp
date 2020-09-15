@@ -37,25 +37,20 @@ ast_unit_ptr_t parse_unit(vpeg::context_t &pctx)
 
     pctx.memo.clear();
 
-    auto unit = std::any_cast<ast_unit_ptr_t>(&ret);
+    if (auto unit = std::any_cast<ast_unit_ptr_t>(&ret))  return *unit;
 
-    if (!unit  &&  pctx.is_ok())
-    {
-        size_t line, column;
+    size_t line, column;
 
-        pctx.get_line_column(pctx.get_buffer_size(), line, column);
+    pctx.get_line_column(pctx.get_buffer_size(), line, column);
 
-        auto &gctx = *voidc_global_ctx_t::target;
-        auto &lctx = *gctx.current_ctx;
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.current_ctx;
 
-        std::string msg = "Parse error in " + lctx.filename + "\n    at ("
-                          + std::to_string(line+1) + ", "
-                          + std::to_string(column) + ")";
+    std::string msg = "Parse error in " + lctx.filename + ":"
+                      + std::to_string(line+1) + ":"
+                      + std::to_string(column);
 
-        throw  std::runtime_error(msg);
-    }
-
-    return *unit;
+    throw  std::runtime_error(msg);
 }
 
 
