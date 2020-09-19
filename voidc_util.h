@@ -31,10 +31,10 @@ void fun_name(val_t *ptr, int count) \
     std::uninitialized_default_construct_n(ptr, size_t(count)); \
 }
 
-#define VOIDC_DEFINE_RESET_IMPL(val_t, fun_name) \
+#define VOIDC_DEFINE_DESTROY_IMPL(val_t, fun_name) \
 void fun_name(val_t *ptr, int count) \
 { \
-    for (int i=0; i<count; ++i) ptr[i].reset(); \
+    std::destroy_n(ptr, size_t(count)); \
 }
 
 #define VOIDC_DEFINE_COPY_IMPL(val_t, fun_name) \

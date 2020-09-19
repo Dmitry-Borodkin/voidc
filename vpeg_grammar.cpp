@@ -204,7 +204,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 //-----------------------------------------------------------------
 #define DEF(name) \
     VOIDC_DEFINE_INITIALIZE_IMPL(name##_ptr_t, v_peg_initialize_##name##_impl) \
-    VOIDC_DEFINE_RESET_IMPL(name##_ptr_t, v_peg_reset_##name##_impl) \
+    VOIDC_DEFINE_DESTROY_IMPL(name##_ptr_t, v_peg_destroy_##name##_impl) \
     VOIDC_DEFINE_COPY_IMPL(name##_ptr_t, v_peg_copy_##name##_impl) \
     VOIDC_DEFINE_MOVE_IMPL(name##_ptr_t, v_peg_move_##name##_impl) \
     VOIDC_DEFINE_EMPTY_IMPL(name##_ptr_t, v_peg_empty_##name##_impl) \

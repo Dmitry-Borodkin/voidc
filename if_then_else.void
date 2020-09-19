@@ -95,9 +95,9 @@
     stmt_then = v_getelementptr(obj, 0, 1);
     stmt_else = v_getelementptr(obj, 0, 2);
 
-    v_reset(condition);
-    v_reset(stmt_then);
-    v_reset(stmt_else);
+    v_destroy(condition);
+    v_destroy(stmt_then);
+    v_destroy(stmt_else);
 
     v_mfree(obj);
 }
@@ -300,7 +300,7 @@
 
     v_std_any_set_pointer(ret, stmt);
 
-    v_reset(stmt);
+    v_destroy(stmt);
 }
 
 
@@ -675,10 +675,10 @@
 
     voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, void_method);
 
-    v_reset(gr0);
-    v_reset(act);
-    v_reset(ar0, 3);
-    v_reset(pp0, 15);
+    v_destroy(gr0);
+    v_destroy(act);
+    v_destroy(ar0, 3);
+    v_destroy(pp0, 15);
 }
 
 

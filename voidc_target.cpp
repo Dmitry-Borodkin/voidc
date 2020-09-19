@@ -24,7 +24,7 @@ static
 void v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
     auto &builder =  voidc_global_ctx_t::builder;
-    auto &cctx    = *voidc_global_ctx_t::target->current_ctx;
+    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
 
     assert(*args);
     if ((*args)->data.size() < 1  ||  (*args)->data.size() > 2)
@@ -34,7 +34,7 @@ void v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*(*args)->data[0]);
 
-    auto type = cctx.find_type(ident.name.c_str());
+    auto type = lctx.find_type(ident.name.c_str());
     if (!type)
     {
         throw std::runtime_error("Type not found: " + ident.name);
@@ -44,18 +44,18 @@ void v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     if ((*args)->data.size() == 1)
     {
-        v = LLVMBuildAlloca(builder, type, cctx.ret_name);
+        v = LLVMBuildAlloca(builder, type, lctx.ret_name);
     }
     else
     {
         (*args)->data[1]->accept(*vis);         //- Количество...
 
-        v = LLVMBuildArrayAlloca(builder, type, cctx.args[0], cctx.ret_name);
+        v = LLVMBuildArrayAlloca(builder, type, lctx.args[0], lctx.ret_name);
 
-        cctx.args.clear();
+        lctx.args.clear();
     }
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -63,7 +63,7 @@ static
 void v_getelementptr(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
     auto &builder =  voidc_global_ctx_t::builder;
-    auto &cctx    = *voidc_global_ctx_t::target->current_ctx;
+    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
 
     assert(*args);
     if ((*args)->data.size() < 2)
@@ -71,15 +71,15 @@ void v_getelementptr(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(cctx.arg_types.empty());
+    assert(lctx.arg_types.empty());
 
     (*args)->accept(*vis);
 
-    auto v = LLVMBuildGEP(builder, cctx.args[0], &cctx.args[1], cctx.args.size()-1, cctx.ret_name);
+    auto v = LLVMBuildGEP(builder, lctx.args[0], &lctx.args[1], lctx.args.size()-1, lctx.ret_name);
 
-    cctx.args.clear();
+    lctx.args.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -87,7 +87,7 @@ static
 void v_store(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
     auto &builder =  voidc_global_ctx_t::builder;
-    auto &cctx    = *voidc_global_ctx_t::target->current_ctx;
+    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -95,22 +95,22 @@ void v_store(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(cctx.arg_types.empty());
+    assert(lctx.arg_types.empty());
 
     (*args)->data[1]->accept(*vis);         //- Сначала "куда"
 
-    cctx.arg_types.resize(2);
+    lctx.arg_types.resize(2);
 
-    cctx.arg_types[1] = LLVMGetElementType(LLVMTypeOf(cctx.args[0]));
+    lctx.arg_types[1] = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
 
     (*args)->data[0]->accept(*vis);         //- Теперь "что"
 
-    auto v = LLVMBuildStore(builder, cctx.args[1], cctx.args[0]);
+    auto v = LLVMBuildStore(builder, lctx.args[1], lctx.args[0]);
 
-    cctx.args.clear();
-    cctx.arg_types.clear();
+    lctx.args.clear();
+    lctx.arg_types.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -118,7 +118,7 @@ static
 void v_load(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
     auto &builder =  voidc_global_ctx_t::builder;
-    auto &cctx    = *voidc_global_ctx_t::target->current_ctx;
+    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -128,11 +128,11 @@ void v_load(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     (*args)->data[0]->accept(*vis);
 
-    auto v = LLVMBuildLoad(builder, cctx.args[0], cctx.ret_name);
+    auto v = LLVMBuildLoad(builder, lctx.args[0], lctx.ret_name);
 
-    cctx.args.clear();
+    lctx.args.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -140,7 +140,7 @@ static
 void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
     auto &builder =  voidc_global_ctx_t::builder;
-    auto &cctx    = *voidc_global_ctx_t::target->current_ctx;
+    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 3)
@@ -150,13 +150,13 @@ void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     (*args)->data[0]->accept(*vis);         //- Opcode
 
-    auto opcode = LLVMOpcode(LLVMConstIntGetZExtValue(cctx.args[0]));
+    auto opcode = LLVMOpcode(LLVMConstIntGetZExtValue(lctx.args[0]));
 
     (*args)->data[1]->accept(*vis);         //- Value
 
     auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*(*args)->data[2]);
 
-    auto type = cctx.find_type(ident.name.c_str());
+    auto type = lctx.find_type(ident.name.c_str());
     if (!type)
     {
         throw std::runtime_error("Type not found: " + ident.name);
@@ -164,11 +164,11 @@ void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     LLVMValueRef v;
 
-    v = LLVMBuildCast(builder, opcode, cctx.args[1], type, cctx.ret_name);
+    v = LLVMBuildCast(builder, opcode, lctx.args[1], type, lctx.ret_name);
 
-    cctx.args.clear();
+    lctx.args.clear();
 
-    cctx.ret_value = v;
+    lctx.ret_value = v;
 }
 
 
@@ -201,9 +201,7 @@ base_global_ctx_t::base_global_ctx_t(size_t int_size, size_t long_size, size_t p
     long_long_type(LLVMInt64Type()),
     intptr_t_type (mk_int_type(ptr_size)),
     size_t_type   (mk_int_type(ptr_size)),
-    char32_t_type (LLVMInt32Type()),
-    voidc_opaque_void_type(LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.voidc_opaque_void")),
-    void_ptr_type         (LLVMPointerType(voidc_opaque_void_type, 0))
+    char32_t_type (LLVMInt32Type())
 {
 #define DEF(name) \
     intrinsics[#name] = name;
@@ -248,14 +246,14 @@ void base_global_ctx_t::initialize(void)
 base_local_ctx_t::base_local_ctx_t(const std::string _filename, base_global_ctx_t &_global)
   : filename(_filename),
     global(_global),
-    parent_ctx(_global.current_ctx)
+    parent_ctx(_global.local_ctx)
 {
-    global.current_ctx = this;
+    global.local_ctx = this;
 }
 
 base_local_ctx_t::~base_local_ctx_t()
 {
-    global.current_ctx = parent_ctx;
+    global.local_ctx = parent_ctx;
 }
 
 //---------------------------------------------------------------------
@@ -392,7 +390,9 @@ voidc_global_ctx_t::voidc_global_ctx_t()
     LLVMOpaqueType_type   (LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.LLVMOpaqueType")),
     LLVMTypeRef_type      (LLVMPointerType(LLVMOpaqueType_type, 0)),
     LLVMOpaqueContext_type(LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.LLVMOpaqueContext")),
-    LLVMContextRef_type   (LLVMPointerType(LLVMOpaqueContext_type, 0))
+    LLVMContextRef_type   (LLVMPointerType(LLVMOpaqueContext_type, 0)),
+    voidc_opaque_void_type(LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.voidc_opaque_void")),
+    void_ptr_type         (LLVMPointerType(voidc_opaque_void_type, 0))
 {
     voidc_global_ctx = this;
 
@@ -641,7 +641,7 @@ voidc_local_ctx_t::find_symbol_type(const char *raw_name)
 uint64_t
 voidc_local_ctx_t::resolver(const char *m_name, void *)
 {
-    auto &lctx = *(voidc_local_ctx_t *)voidc_global_ctx->current_ctx;       //- voidc!
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*voidc_global_ctx->local_ctx);        //- voidc!
 
     {   auto it = lctx.symbols.find(m_name);
 
@@ -998,7 +998,7 @@ void v_add_constant(const char *name, LLVMValueRef val)
 void v_add_local_symbol(const char *raw_name, LLVMTypeRef type, void *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.add_symbol(raw_name, type, value);
 }
@@ -1006,7 +1006,7 @@ void v_add_local_symbol(const char *raw_name, LLVMTypeRef type, void *value)
 void v_add_local_constant(const char *name, LLVMValueRef val)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.constants[name] = val;
 }
@@ -1015,7 +1015,7 @@ void v_add_local_constant(const char *name, LLVMValueRef val)
 LLVMModuleRef v_get_module(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     return  lctx.module;
 }
@@ -1023,7 +1023,7 @@ LLVMModuleRef v_get_module(void)
 void v_set_module(LLVMModuleRef mod)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.module = mod;
 }
@@ -1048,7 +1048,7 @@ void v_prepare_module_for_jit(LLVMModuleRef module)
 void v_prepare_unit_action(int line, int column)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.current_ctx);
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
 
     lctx.prepare_unit_action(line, column);
 }
@@ -1056,7 +1056,7 @@ void v_prepare_unit_action(int line, int column)
 void v_finish_unit_action(void)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.current_ctx);
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
 
     lctx.finish_unit_action();
 }
@@ -1065,7 +1065,7 @@ void v_finish_unit_action(void)
 void v_add_variable(const char *name, LLVMValueRef val)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.vars = lctx.vars.set(name, val);
 }
@@ -1073,7 +1073,7 @@ void v_add_variable(const char *name, LLVMValueRef val)
 LLVMValueRef v_get_variable(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     if (auto *pv = lctx.vars.find(name))  return *pv;
     else                                  return nullptr;
@@ -1083,7 +1083,7 @@ LLVMValueRef v_get_variable(const char *name)
 void v_clear_variables(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.vars = base_local_ctx_t::variables_t();
 }
@@ -1091,7 +1091,7 @@ void v_clear_variables(void)
 void v_save_variables(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.vars_stack.push_front(lctx.vars);
 }
@@ -1099,7 +1099,7 @@ void v_save_variables(void)
 void v_restore_variables(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.vars = lctx.vars_stack.front();
 
@@ -1110,7 +1110,7 @@ void v_restore_variables(void)
 LLVMValueRef v_get_argument(int num)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     return  lctx.args[num];
 }
@@ -1118,7 +1118,7 @@ LLVMValueRef v_get_argument(int num)
 void v_clear_arguments(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -1128,7 +1128,7 @@ void v_clear_arguments(void)
 const char *v_get_return_name(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     return lctx.ret_name;
 }
@@ -1136,7 +1136,7 @@ const char *v_get_return_name(void)
 void v_set_return_value(LLVMValueRef val)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.ret_value = val;
 }
@@ -1146,7 +1146,7 @@ void v_set_return_value(LLVMValueRef val)
 LLVMTypeRef v_find_symbol_type(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     LLVMTypeRef type = nullptr;
 
@@ -1184,7 +1184,7 @@ LLVMTypeRef v_find_symbol_type(const char *name)
 LLVMTypeRef v_find_type(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     return  lctx.find_type(name);
 }
@@ -1200,7 +1200,7 @@ void v_add_alias(const char *name, const char *raw_name)
 void v_add_local_alias(const char *name, const char *raw_name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     lctx.aliases[name] = raw_name;
 }
@@ -1407,7 +1407,7 @@ static
 void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.current_ctx);
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
 
     assert(lctx.args.empty());
 
@@ -1432,7 +1432,7 @@ static
 void compile_ast_stmt_t(const visitor_ptr_t *vis, const std::string *vname, const ast_call_ptr_t *call)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     auto &var_name = *vname;
 
@@ -1454,7 +1454,7 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     assert(lctx.args.empty());
 
@@ -1500,7 +1500,7 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     LLVMValueRef v = lctx.find_identifier(*name);
     if (!v)
@@ -1515,11 +1515,13 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
         auto at = lctx.arg_types[idx];
         auto vt = LLVMTypeOf(v);
 
+        auto void_ptr_type = voidc_global_ctx_t::voidc->void_ptr_type;
+
         if (at != vt  &&
-            at == gctx.void_ptr_type  &&
+            at == void_ptr_type  &&
             LLVMGetTypeKind(vt) == LLVMPointerTypeKind)
         {
-            v = LLVMBuildPointerCast(builder, v, gctx.void_ptr_type, name->c_str());
+            v = LLVMBuildPointerCast(builder, v, void_ptr_type, name->c_str());
         }
     }
 
@@ -1534,7 +1536,7 @@ static
 void compile_ast_arg_integer_t(const visitor_ptr_t *vis, intptr_t num)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     auto idx = lctx.args.size();
 
@@ -1569,7 +1571,7 @@ void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     auto v = LLVMBuildGlobalStringPtr(builder, str->c_str(), "str");
 
@@ -1579,9 +1581,11 @@ void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
     {
         auto at = lctx.arg_types[idx];
 
-        if (at == gctx.void_ptr_type)
+        auto void_ptr_type = voidc_global_ctx_t::voidc->void_ptr_type;
+
+        if (at == void_ptr_type)
         {
-            v = LLVMBuildPointerCast(builder, v, gctx.void_ptr_type, "void_str");
+            v = LLVMBuildPointerCast(builder, v, void_ptr_type, "void_str");
         }
     }
 
@@ -1596,9 +1600,9 @@ static
 void compile_ast_arg_char_t(const visitor_ptr_t *vis, char32_t c)
 {
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
-    auto v = LLVMConstInt(gctx.int_type, c, false);      //- ?
+    auto v = LLVMConstInt(gctx.int_type, c, false);      //- int ?
 
     lctx.args.push_back(v);
 }

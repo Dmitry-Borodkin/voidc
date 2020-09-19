@@ -3,7 +3,6 @@
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
 {   v_import("voidc_internals.void");
-    v_import("llvm-c/Analysis.void");
 
     v_import("printf.void");
 }
@@ -13,7 +12,7 @@
 //- ...
 //---------------------------------------------------------------------
 {   v_add_symbol_type("v_util_initialize_dict",          v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_reset_dict",               v_util_opaque_function_dict_t);
+    v_add_symbol_type("v_util_destroy_dict",             v_util_opaque_function_dict_t);
     v_add_symbol_type("v_util_copy_dict",                v_util_opaque_function_dict_t);
     v_add_symbol_type("v_util_move_dict",                v_util_opaque_function_dict_t);
     v_add_symbol_type("v_util_empty_dict",               v_util_opaque_function_dict_t);
@@ -322,16 +321,16 @@
 
 
     //-------------------------------------------------------------
-    //- Init/reset registering helper
+    //- Init/destroy registering helper
     //-------------------------------------------------------------
-    init_reset_helper_f = LLVMAddFunction(module, "init_reset_helper", register_helper_ft);
-    LLVMSetLinkage(init_reset_helper_f, LLVMPrivateLinkage);
+    init_destroy_helper_f = LLVMAddFunction(module, "init_destroy_helper", register_helper_ft);
+    LLVMSetLinkage(init_destroy_helper_f, LLVMPrivateLinkage);
 
-    val_t_type = LLVMGetParam(init_reset_helper_f, 0);
-    fun_name   = LLVMGetParam(init_reset_helper_f, 1);
-    p_dict     = LLVMGetParam(init_reset_helper_f, 2);
+    val_t_type = LLVMGetParam(init_destroy_helper_f, 0);
+    fun_name   = LLVMGetParam(init_destroy_helper_f, 1);
+    p_dict     = LLVMGetParam(init_destroy_helper_f, 2);
 
-    entry = LLVMAppendBasicBlock(init_reset_helper_f, "entry");
+    entry = LLVMAppendBasicBlock(init_destroy_helper_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
@@ -407,30 +406,30 @@
     v_store(fun_name,   val1);
     v_store(init_dict,  val2);
 
-    LLVMBuildCall(voidc_builder, init_reset_helper_f, val0, 3, "");
+    LLVMBuildCall(voidc_builder, init_destroy_helper_f, val0, 3, "");
 
     LLVMBuildRetVoid(voidc_builder);
 
 
     //-------------------------------------------------------------
-    //- Reset registering
+    //- Destroy registering
     //-------------------------------------------------------------
-    reset_f = LLVMAddFunction(module, "v_util_register_reset_impl", register_ft);
+    destroy_f = LLVMAddFunction(module, "v_util_register_destroy_impl", register_ft);
 
-    val_t_type = LLVMGetParam(reset_f, 0);
-    fun_name   = LLVMGetParam(reset_f, 1);
+    val_t_type = LLVMGetParam(destroy_f, 0);
+    fun_name   = LLVMGetParam(destroy_f, 1);
 
-    entry = LLVMAppendBasicBlock(reset_f, "entry");
+    entry = LLVMAppendBasicBlock(destroy_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
-    reset_dict = v_find_global("v_util_reset_dict");
+    destroy_dict = v_find_global("v_util_destroy_dict");
 
-    v_store(val_t_type, val0);
-    v_store(fun_name,   val1);
-    v_store(reset_dict, val2);
+    v_store(val_t_type,   val0);
+    v_store(fun_name,     val1);
+    v_store(destroy_dict, val2);
 
-    LLVMBuildCall(voidc_builder, init_reset_helper_f, val0, 3, "");
+    LLVMBuildCall(voidc_builder, init_destroy_helper_f, val0, 3, "");
 
     LLVMBuildRetVoid(voidc_builder);
 
@@ -594,15 +593,15 @@
 
 
     //-------------------------------------------------------------
-    //- Init/Reset/Copy/Move/Empty batch registering
+    //- Init/Destroy/Copy/Move/Empty batch registering
     //-------------------------------------------------------------
-    ircme_f = LLVMAddFunction(module, "v_util_register_ircme_impl", register_batch_ft);
+    idcme_f = LLVMAddFunction(module, "v_util_register_idcme_impl", register_batch_ft);
 
-    val_t_type = LLVMGetParam(ircme_f, 0);
-    prefix     = LLVMGetParam(ircme_f, 1);
-    typename   = LLVMGetParam(ircme_f, 2);
+    val_t_type = LLVMGetParam(idcme_f, 0);
+    prefix     = LLVMGetParam(idcme_f, 1);
+    typename   = LLVMGetParam(idcme_f, 2);
 
-    entry = LLVMAppendBasicBlock(ircme_f, "entry");
+    entry = LLVMAppendBasicBlock(idcme_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
 
@@ -612,9 +611,9 @@
     v_store(v_util_std_string_ref, typ0);
     v_store(int,                   typ1);
 
-    sstr_i_r_ft  = LLVMFunctionType(void, typ0, 2, 0);
-    sstr_init_f  = LLVMAddFunction(module, "v_util_initialize_std_string_impl", sstr_i_r_ft);
-    sstr_reset_f = LLVMAddFunction(module, "v_util_reset_std_string_impl",      sstr_i_r_ft);
+    sstr_i_d_ft    = LLVMFunctionType(void, typ0, 2, 0);
+    sstr_init_f    = LLVMAddFunction(module, "v_util_initialize_std_string_impl", sstr_i_d_ft);
+    sstr_destroy_f = LLVMAddFunction(module, "v_util_destroy_std_string_impl",    sstr_i_d_ft);
 
     v_store(sstr, val0);
     v_store(n1,   val1);
@@ -655,8 +654,8 @@
     v_store(prefix, val1);
     LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
 
-    str_reset = LLVMBuildGlobalStringPtr(voidc_builder, "_reset_", "str_reset");
-    v_store(str_reset, val1);
+    str_destroy = LLVMBuildGlobalStringPtr(voidc_builder, "_destroy_", "str_destroy");
+    v_store(str_destroy, val1);
     LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
@@ -669,7 +668,7 @@
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, reset_f, val0, 2, "");
+    LLVMBuildCall(voidc_builder, destroy_f, val0, 2, "");
 
 
     v_store(sstr, val0);
@@ -740,7 +739,7 @@
 
     v_store(sstr, val0);
     v_store(n1,   val1);
-    LLVMBuildCall(voidc_builder, sstr_reset_f, val0, 2, "");
+    LLVMBuildCall(voidc_builder, sstr_destroy_f, val0, 2, "");
 
 
     LLVMBuildRetVoid(voidc_builder);
@@ -1013,7 +1012,7 @@
 
     v_store(sstr, val0);
     v_store(n1,   val1);
-    LLVMBuildCall(voidc_builder, sstr_reset_f, val0, 2, "");
+    LLVMBuildCall(voidc_builder, sstr_destroy_f, val0, 2, "");
 
 
     LLVMBuildRetVoid(voidc_builder);
@@ -1082,7 +1081,7 @@
 
     v_store(sstr, val0);
     v_store(n1,   val1);
-    LLVMBuildCall(voidc_builder, sstr_reset_f, val0, 2, "");
+    LLVMBuildCall(voidc_builder, sstr_destroy_f, val0, 2, "");
 
 
     LLVMBuildRetVoid(voidc_builder);
@@ -1112,22 +1111,22 @@
 
 
     //-------------------------------------------------------------
-    //- Init/Reset/Copy/Move/Empty and std::any get_pointer/set_pointer batch registering
+    //- Init/Destroy/Copy/Move/Empty and std::any get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    ircmep_f = LLVMAddFunction(module, "v_util_register_ircmep_impl", register_batch_ft);
+    idcmep_f = LLVMAddFunction(module, "v_util_register_idcmep_impl", register_batch_ft);
 
-    val_t_type = LLVMGetParam(ircmep_f, 0);
-    prefix     = LLVMGetParam(ircmep_f, 1);
-    typename   = LLVMGetParam(ircmep_f, 2);
+    val_t_type = LLVMGetParam(idcmep_f, 0);
+    prefix     = LLVMGetParam(idcmep_f, 1);
+    typename   = LLVMGetParam(idcmep_f, 2);
 
-    entry = LLVMAppendBasicBlock(ircmep_f, "entry");
+    entry = LLVMAppendBasicBlock(idcmep_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
     v_store(val_t_type, val0);
     v_store(prefix,     val1);
     v_store(typename,   val2);
 
-    LLVMBuildCall(voidc_builder, ircme_f,      val0, 3, "");
+    LLVMBuildCall(voidc_builder, idcme_f,      val0, 3, "");
     LLVMBuildCall(voidc_builder, gs_pointer_f, val0, 3, "");
 
 
@@ -1158,12 +1157,12 @@
 
     //-----------------------------------------------------------------
     v_add_symbol_type("v_util_register_initialize_impl", register_ft);
-    v_add_symbol_type("v_util_register_reset_impl",      register_ft);
+    v_add_symbol_type("v_util_register_destroy_impl",    register_ft);
     v_add_symbol_type("v_util_register_copy_impl",       register_ft);
     v_add_symbol_type("v_util_register_move_impl",       register_ft);
     v_add_symbol_type("v_util_register_empty_impl",      register_ft);
 
-    v_add_symbol_type("v_util_register_ircme_impl", register_batch_ft);
+    v_add_symbol_type("v_util_register_idcme_impl", register_batch_ft);
 
     v_add_symbol_type("v_util_register_std_any_get_value_impl",   register_ft);
     v_add_symbol_type("v_util_register_std_any_get_pointer_impl", register_ft);
@@ -1174,16 +1173,16 @@
     v_add_symbol_type("v_util_register_gs_pointer_impl", register_batch_ft);
     v_add_symbol_type("v_util_register_gs_vp_impl",      register_batch_ft);
 
-    v_add_symbol_type("v_util_register_ircmep_impl", register_batch_ft);
+    v_add_symbol_type("v_util_register_idcmep_impl", register_batch_ft);
 }
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_util_register_ircme_impl(v_util_opaque_function_dict_t, "v_util", "function_dict");
-    v_util_register_ircme_impl(v_util_opaque_std_any,         "v_util", "std_any");
-    v_util_register_ircme_impl(v_util_opaque_std_string,      "v_util", "std_string");
+{   v_util_register_idcme_impl(v_util_opaque_function_dict_t, "v_util", "function_dict");
+    v_util_register_idcme_impl(v_util_opaque_std_any,         "v_util", "std_any");
+    v_util_register_idcme_impl(v_util_opaque_std_string,      "v_util", "std_string");
 }
 
 

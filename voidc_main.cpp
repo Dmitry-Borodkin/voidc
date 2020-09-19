@@ -44,7 +44,7 @@ ast_unit_ptr_t parse_unit(vpeg::context_t &pctx)
     pctx.get_line_column(pctx.get_buffer_size(), line, column);
 
     auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     std::string msg = "Parse error in " + lctx.filename + ":"
                       + std::to_string(line+1) + ":"
@@ -152,7 +152,7 @@ void v_import(const char *name)
 
     auto &gctx = *voidc_global_ctx_t::voidc;
 
-    auto *parent_cctx = gctx.current_ctx;
+    auto *parent_cctx = gctx.local_ctx;
 
     fs::path src_filename = name;
 
@@ -162,7 +162,7 @@ void v_import(const char *name)
 
     if (!fs::exists(src_filename))
     {
-        throw std::runtime_error("Source file not found: " + src_filename.string());
+        throw std::runtime_error("Import file not found: " + src_filename.string());
     }
 
     if (already_imported.count(src_filename))   return;

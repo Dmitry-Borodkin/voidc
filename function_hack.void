@@ -756,9 +756,9 @@
     v_store(args_v,       val0);
     v_store(args_count_v, val1);
 
-    arg_reset_f = v_find_dict_function(v_util_reset_dict, v_ast_opaque_argument_ptr);
+    arg_destroy_f = v_find_dict_function(v_util_destroy_dict, v_ast_opaque_argument_ptr);
 
-    LLVMBuildCall(voidc_builder, arg_reset_f, val0, 2, "");
+    LLVMBuildCall(voidc_builder, arg_destroy_f, val0, 2, "");
 
 
     LLVMBuildCall(voidc_builder, clear_args_f, 0, 0, "");

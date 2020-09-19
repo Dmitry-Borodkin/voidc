@@ -23,7 +23,7 @@ extern "C"
 VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
 v_util_function_dict_t v_util_initialize_dict;
-v_util_function_dict_t v_util_reset_dict;
+v_util_function_dict_t v_util_destroy_dict;
 v_util_function_dict_t v_util_copy_dict;
 v_util_function_dict_t v_util_move_dict;
 v_util_function_dict_t v_util_empty_dict;
@@ -55,7 +55,7 @@ void v_init_term_helper(const visitor_ptr_t *vis,
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     assert(args);
     if (args->data.size() < 1  ||  args->data.size() > 2)
@@ -103,9 +103,9 @@ void v_initialize(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static
-void v_reset(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_destroy(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    v_init_term_helper(vis, *args, v_util_reset_dict);
+    v_init_term_helper(vis, *args, v_util_destroy_dict);
 }
 
 
@@ -119,7 +119,7 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     assert(args);
     if (args->data.size() < 2  ||  args->data.size() > 3)
@@ -180,7 +180,7 @@ void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -220,7 +220,7 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -263,7 +263,7 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     assert(args);
     if (args->data.size() != 2)
@@ -319,7 +319,7 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -359,7 +359,7 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
     auto &builder = voidc_global_ctx_t::builder;
 
     auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = *gctx.current_ctx;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -403,7 +403,7 @@ void static_initialize(void)
     gctx.intrinsics[#name] = name;
 
     DEF(v_initialize)
-    DEF(v_reset)
+    DEF(v_destroy)
 
     DEF(v_copy)
     DEF(v_move)
@@ -458,12 +458,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(v_util_function_dict_t, v_util_initialize_function_dict_impl)
-
-void v_util_reset_function_dict_impl(v_util_function_dict_t *ptr, int count)
-{
-    for (int i=0; i<count; ++i) ptr[i].clear();
-}
-
+VOIDC_DEFINE_DESTROY_IMPL(v_util_function_dict_t, v_util_destroy_function_dict_impl)
 VOIDC_DEFINE_COPY_IMPL(v_util_function_dict_t, v_util_copy_function_dict_impl)
 VOIDC_DEFINE_MOVE_IMPL(v_util_function_dict_t, v_util_move_function_dict_impl)
 
@@ -491,7 +486,7 @@ void v_util_function_dict_set(v_util_function_dict_t *ptr, LLVMTypeRef type, con
 
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(std::any, v_util_initialize_std_any_impl)
-VOIDC_DEFINE_RESET_IMPL(std::any, v_util_reset_std_any_impl)
+VOIDC_DEFINE_DESTROY_IMPL(std::any, v_util_destroy_std_any_impl)
 VOIDC_DEFINE_COPY_IMPL(std::any, v_util_copy_std_any_impl)
 VOIDC_DEFINE_MOVE_IMPL(std::any, v_util_move_std_any_impl)
 
@@ -502,16 +497,7 @@ bool v_util_empty_std_any_impl(const std::any *ptr)
 
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(std::string, v_util_initialize_std_string_impl)
-
-void v_util_reset_std_string_impl(std::string *ptr, int count)
-{
-    for (int i=0; i<count; ++i)
-    {
-        ptr[i].clear();
-        ptr[i].shrink_to_fit();
-    }
-}
-
+VOIDC_DEFINE_DESTROY_IMPL(std::string, v_util_destroy_std_string_impl)
 VOIDC_DEFINE_COPY_IMPL(std::string, v_util_copy_std_string_impl)
 VOIDC_DEFINE_MOVE_IMPL(std::string, v_util_move_std_string_impl)
 

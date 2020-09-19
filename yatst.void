@@ -18,7 +18,7 @@
     v_copy(pp1, pp0);
     v_move(pp0, pp1);
 
-    v_reset(pp0);
+    v_destroy(pp0);
 }
 
 {   a = v_alloca(v_util_opaque_std_any);
@@ -43,7 +43,7 @@
 
     printf("v: %ld\n", v);
 
-    v_reset(a);
+    v_destroy(a);
 }
 
 {   a = v_alloca(v_util_opaque_std_any);
@@ -54,7 +54,7 @@
 
     v_std_any_set_pointer(a, p);
 
-    v_reset(a);
+    v_destroy(a);
 }
 
 {   str0 = v_alloca(v_util_opaque_std_string, 2);
@@ -76,7 +76,7 @@
 
     printf("s: %s\n", s);
 
-    v_reset(str0, 2);
+    v_destroy(str0, 2);
 }
 
 {   ft = LLVMFunctionType(size_t, 0, 0, 0);
@@ -99,7 +99,7 @@
     v_util_function_dict_set(dict, int, "XYZZY");
 
 
-    v_reset(dict);
+    v_destroy(dict);
 }
 
 
@@ -222,8 +222,8 @@
 
     //- ...
 
-    v_reset(vis);
-    v_reset(gen);
+    v_destroy(vis);
+    v_destroy(gen);
 }
 
 

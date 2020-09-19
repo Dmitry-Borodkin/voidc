@@ -87,7 +87,7 @@
 
     stmt = v_getelementptr(obj, 0, 0);
 
-    v_reset(stmt);
+    v_destroy(stmt);
 
     v_mfree(obj);
 }
@@ -211,7 +211,7 @@
 
     v_std_any_set_pointer(ret, stmt_ret);
 
-    v_reset(stmt_ret);
+    v_destroy(stmt_ret);
 }
 
 
@@ -392,10 +392,10 @@
     v_add_intrinsic("v_continue", voidc_intrinsic_continue);
 
 
-    v_reset(gr0);
-    v_reset(act);
-    v_reset(ar0);
-    v_reset(pp0, 4);
+    v_destroy(gr0);
+    v_destroy(act);
+    v_destroy(ar0);
+    v_destroy(pp0, 4);
 }
 
 

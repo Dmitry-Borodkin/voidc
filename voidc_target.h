@@ -63,9 +63,6 @@ public:
     const LLVMTypeRef size_t_type;
     const LLVMTypeRef char32_t_type;
 
-    const LLVMTypeRef voidc_opaque_void_type;
-    const LLVMTypeRef void_ptr_type;
-
 public:
     virtual void add_symbol_type(const char *raw_name, LLVMTypeRef type) = 0;
     virtual void add_symbol_value(const char *raw_name, void *value) = 0;
@@ -80,7 +77,7 @@ public:
     std::map<std::string, intrinsic_t> intrinsics;
 
 public:
-    base_local_ctx_t *current_ctx = nullptr;
+    base_local_ctx_t *local_ctx = nullptr;
 
 protected:
     void initialize(void);
@@ -170,6 +167,9 @@ public:
     const LLVMTypeRef LLVMTypeRef_type;
     const LLVMTypeRef LLVMOpaqueContext_type;
     const LLVMTypeRef LLVMContextRef_type;
+
+    const LLVMTypeRef voidc_opaque_void_type;
+    const LLVMTypeRef void_ptr_type;
 
 public:
     void add_symbol_type(const char *raw_name, LLVMTypeRef type) override;
