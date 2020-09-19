@@ -59,14 +59,14 @@
 
     v_store(int, typ);
 
-    ft = LLVMFunctionType(long, typ, 1, 0);
+    ft = LLVMFunctionType(long_long, typ, 1, 0);
 
     f = v_function_hack("fib", ft);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("n", p0);
 }
 {
-    v0 = v_alloca(long, 2);
+    v0 = v_alloca(long_long, 2);
     v1 = v_getelementptr(v0, 1);
 
     v_store(1, v0);
@@ -107,7 +107,7 @@
 
     v = fib(n);
 
-    printf("fib(%d): %ld\n", n, v);
+    printf("fib(%d): %lld\n", n, v);
 }
 
 
