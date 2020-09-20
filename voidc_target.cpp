@@ -175,6 +175,8 @@ void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 //---------------------------------------------------------------------
 //- Base Global Context
 //---------------------------------------------------------------------
+int base_global_ctx_t::debug_print_module = 0;
+
 static
 LLVMTypeRef mk_int_type(size_t sz)
 {
@@ -237,6 +239,32 @@ void base_global_ctx_t::initialize(void)
     DEF(char32_t)
 
 #undef DEF
+}
+
+
+//---------------------------------------------------------------------
+void base_global_ctx_t::verify_module(LLVMModuleRef module)
+{
+    char *msg = nullptr;
+
+    auto err = LLVMVerifyModule(module, LLVMReturnStatusAction, &msg);
+
+    if (err || debug_print_module)
+    {
+        char *txt = LLVMPrintModuleToString(module);
+
+        printf("\n%s\n", txt);
+
+        LLVMDisposeMessage(txt);
+
+        printf("\n%s\n", msg);
+
+        if (debug_print_module) debug_print_module -= 1;
+    }
+
+    LLVMDisposeMessage(msg);
+
+    if (err)  exit(1);          //- Sic !!!
 }
 
 
@@ -381,8 +409,6 @@ LLVMTargetMachineRef voidc_global_ctx_t::target_machine;
 LLVMOrcJITStackRef   voidc_global_ctx_t::jit;
 LLVMBuilderRef       voidc_global_ctx_t::builder;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
-
-int voidc_global_ctx_t::debug_print_module = 0;
 
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
@@ -1031,21 +1057,21 @@ void v_set_module(LLVMModuleRef mod)
 //---------------------------------------------------------------------
 void v_debug_print_module(int n)
 {
-    voidc_global_ctx_t::debug_print_module = n;
+    base_global_ctx_t::debug_print_module = n;
 }
 
 void v_verify_module(LLVMModuleRef module)
 {
-    voidc_global_ctx_t::verify_module(module);
+    base_global_ctx_t::verify_module(module);
 }
 
-void v_prepare_module_for_jit(LLVMModuleRef module)
+void voidc_prepare_module_for_jit(LLVMModuleRef module)
 {
     voidc_global_ctx_t::prepare_module_for_jit(module);
 }
 
 //---------------------------------------------------------------------
-void v_prepare_unit_action(int line, int column)
+void voidc_prepare_unit_action(int line, int column)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
@@ -1053,7 +1079,7 @@ void v_prepare_unit_action(int line, int column)
     lctx.prepare_unit_action(line, column);
 }
 
-void v_finish_unit_action(void)
+void voidc_finish_unit_action(void)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
@@ -1336,31 +1362,6 @@ void voidc_global_ctx_t::static_terminate(void)
     LLVMShutdown();
 }
 
-
-//---------------------------------------------------------------------
-void voidc_global_ctx_t::verify_module(LLVMModuleRef module)
-{
-    char *msg = nullptr;
-
-    auto err = LLVMVerifyModule(module, LLVMReturnStatusAction, &msg);
-
-    if (err || debug_print_module)
-    {
-        char *txt = LLVMPrintModuleToString(module);
-
-        printf("\n%s\n", txt);
-
-        LLVMDisposeMessage(txt);
-
-        printf("\n%s\n", msg);
-
-        if (debug_print_module) debug_print_module -= 1;
-    }
-
-    LLVMDisposeMessage(msg);
-
-    if (err)  exit(1);          //- Sic !!!
-}
 
 //---------------------------------------------------------------------
 void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)

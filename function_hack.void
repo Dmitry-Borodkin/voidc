@@ -37,7 +37,6 @@
     n1 = LLVMConstInt(int, 1, 0);
     n2 = LLVMConstInt(int, 2, 0);
 
-
     //-----------------------------------------------------------------
     //- Saved global variables
     //-----------------------------------------------------------------
@@ -147,7 +146,7 @@
     //-----------------------------------------------------------------
     v_store(module_v, val0);
 
-    prepare_for_jit_f = v_find_function("v_prepare_module_for_jit");
+    prepare_for_jit_f = v_find_function("voidc_prepare_module_for_jit");
 
     LLVMBuildCall(voidc_builder, prepare_for_jit_f, val0, 1, "");
 
@@ -253,7 +252,7 @@
     v_store(line,   val0);
     v_store(column, val1);
 
-    prepare_unit_act_f = v_find_function("v_prepare_unit_action");
+    prepare_unit_act_f = v_find_function("voidc_prepare_unit_action");
 
     LLVMBuildCall(voidc_builder, prepare_unit_act_f, val0, 2, "");
 
@@ -394,7 +393,7 @@
     LLVMBuildCall(voidc_builder, llvm_build_call_f, val0, 5, "");
 
 
-    finish_unit_act_f = v_find_function("v_finish_unit_action");
+    finish_unit_act_f = v_find_function("voidc_finish_unit_action");
 
     LLVMBuildCall(voidc_builder, finish_unit_act_f, 0, 0, "");
 
@@ -785,7 +784,7 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    v_prepare_module_for_jit(module);
+    voidc_prepare_module_for_jit(module);
 
     //-----------------------------------------------------------------
     PH = v_alloca(LLVMOrcModuleHandle);

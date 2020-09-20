@@ -100,10 +100,10 @@
     v_store(int, arg1);
 
     ft = LLVMFunctionType(void, arg0, 2, 0);
-    v_add_symbol_type("v_prepare_unit_action", ft);
+    v_add_symbol_type("voidc_prepare_unit_action", ft);
 
     ft = LLVMFunctionType(void, 0, 0, 0);
-    v_add_symbol_type("v_finish_unit_action", ft);
+    v_add_symbol_type("voidc_finish_unit_action", ft);
     v_add_symbol_type("v_clear_variables", ft);
     v_add_symbol_type("v_save_variables", ft);
     v_add_symbol_type("v_restore_variables", ft);
@@ -117,7 +117,7 @@
     ft = LLVMFunctionType(void, arg0, 1, 0);
     v_add_symbol_type("v_set_module", ft);
     v_add_symbol_type("v_verify_module", ft);
-    v_add_symbol_type("v_prepare_module_for_jit", ft);
+    v_add_symbol_type("voidc_prepare_module_for_jit", ft);
 
     ft = LLVMFunctionType(char_ptr, 0, 0, 0);
     v_add_symbol_type("v_get_return_name", ft);

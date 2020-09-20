@@ -64,6 +64,11 @@ public:
     const LLVMTypeRef char32_t_type;
 
 public:
+    static int debug_print_module;
+
+    static void verify_module(LLVMModuleRef module);
+
+public:
     virtual void add_symbol_type(const char *raw_name, LLVMTypeRef type) = 0;
     virtual void add_symbol_value(const char *raw_name, void *value) = 0;
 
@@ -156,10 +161,6 @@ public:
     static LLVMPassManagerRef   pass_manager;
 
 public:
-    static int debug_print_module;
-
-    static void verify_module(LLVMModuleRef module);
-
     static void prepare_module_for_jit(LLVMModuleRef module);
 
 public:
