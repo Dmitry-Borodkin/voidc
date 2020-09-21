@@ -6,7 +6,6 @@
 #define VOIDC_VISITOR_H
 
 #include "voidc_quark.h"
-#include "voidc_dllexport.h"
 
 #include <immer/map.hpp>
 
@@ -58,19 +57,6 @@ private:
 };
 
 typedef std::shared_ptr<const voidc_visitor_t> visitor_ptr_t;
-
-//---------------------------------------------------------------------
-extern "C"
-{
-
-VOIDC_DLLEXPORT_BEGIN_VARIABLE
-
-extern visitor_ptr_t voidc_compiler;
-
-VOIDC_DLLEXPORT_END
-
-//---------------------------------------------------------------------
-}   //- extern "C"
 
 
 #endif  //- VOIDC_VISITOR_H

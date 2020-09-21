@@ -207,6 +207,7 @@ public:
 public:
     static uint64_t resolver(const char *name, void *);
 
+public:
     void prepare_unit_action(int line, int column);
     void finish_unit_action(void);
     void run_unit_action(void);
@@ -260,12 +261,6 @@ public:
 private:
     std::map<std::string, std::pair<LLVMTypeRef, void *>> symbols;
 };
-
-
-//---------------------------------------------------------------------
-//- Compiler (level 0) ...
-//---------------------------------------------------------------------
-visitor_ptr_t make_compile_visitor(void);
 
 
 #endif  //- VOIDC_TARGET_H

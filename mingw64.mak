@@ -28,6 +28,7 @@ voidc_target.o \
 voidc_util.o \
 voidc_quark.o \
 voidc_visitor.o \
+voidc_compiler.o \
 voidc_main.o \
 vpeg_parser.o \
 vpeg_grammar.o \

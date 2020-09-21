@@ -5,6 +5,7 @@
 #include "voidc_target.h"
 #include "voidc_util.h"
 #include "voidc_visitor.h"
+#include "voidc_compiler.h"
 #include "vpeg_context.h"
 #include "vpeg_voidc.h"
 

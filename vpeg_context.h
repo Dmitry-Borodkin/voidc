@@ -100,7 +100,7 @@ public:
     {
         if (c == peek_character())
         {
-            get_character();
+            position += 1;      //- Sic!
 
             return true;
         }

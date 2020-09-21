@@ -6,6 +6,7 @@
 
 #include "voidc_util.h"
 #include "voidc_target.h"
+#include "voidc_compiler.h"
 
 #include <cstdio>
 #include <cassert>
@@ -30,21 +31,19 @@ void voidc_visitor_t::static_initialize(void)
     gctx.add_symbol("voidc_opaque_visitor_ptr", gctx.LLVMOpaqueType_type, (void *)visitor_ptr_type);
 
 
-    voidc_compiler = make_compile_visitor();
+    voidc_compiler = make_voidc_compiler();
 }
 
 //-----------------------------------------------------------------
 void voidc_visitor_t::static_terminate(void)
 {
-    voidc_compiler.reset();     //- Sic!
+    voidc_compiler.reset();
 }
 
 
 //---------------------------------------------------------------------
 //- !!!
 //---------------------------------------------------------------------
-visitor_ptr_t voidc_compiler;
-
 extern "C"
 {
 

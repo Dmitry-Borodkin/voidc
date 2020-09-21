@@ -8,10 +8,8 @@
 #include <regex>
 #include <cassert>
 
-#include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/TargetMachine.h>
-#include <llvm-c/OrcBindings.h>
 #include <llvm-c/Support.h>
 #include <llvm-c/Analysis.h>
 #include <llvm-c/Transforms/PassManagerBuilder.h>
@@ -175,8 +173,6 @@ void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 //---------------------------------------------------------------------
 //- Base Global Context
 //---------------------------------------------------------------------
-int base_global_ctx_t::debug_print_module = 0;
-
 static
 LLVMTypeRef mk_int_type(size_t sz)
 {
@@ -217,32 +213,10 @@ base_global_ctx_t::base_global_ctx_t(size_t int_size, size_t long_size, size_t p
 #undef DEF
 }
 
-//---------------------------------------------------------------------
-void base_global_ctx_t::initialize(void)
-{
-    assert(voidc_global_ctx_t::voidc);
-
-    auto opaque_type = voidc_global_ctx_t::voidc->LLVMOpaqueType_type;
-
-#define DEF(name) \
-    add_symbol(#name, opaque_type, (void *)name##_type);
-
-    DEF(void)
-    DEF(bool)
-    DEF(char)
-    DEF(short)
-    DEF(int)
-    DEF(long)
-    DEF(long_long)
-    DEF(intptr_t)
-    DEF(size_t)
-    DEF(char32_t)
-
-#undef DEF
-}
-
 
 //---------------------------------------------------------------------
+int base_global_ctx_t::debug_print_module = 0;
+
 void base_global_ctx_t::verify_module(LLVMModuleRef module)
 {
     char *msg = nullptr;
@@ -265,6 +239,31 @@ void base_global_ctx_t::verify_module(LLVMModuleRef module)
     LLVMDisposeMessage(msg);
 
     if (err)  exit(1);          //- Sic !!!
+}
+
+
+//---------------------------------------------------------------------
+void base_global_ctx_t::initialize(void)
+{
+    assert(voidc_global_ctx_t::voidc);
+
+    auto opaque_type = voidc_global_ctx_t::voidc->LLVMOpaqueType_type;
+
+#define DEF(name) \
+    add_symbol(#name, opaque_type, (void *)name##_type);
+
+    DEF(void)
+    DEF(bool)
+    DEF(char)
+    DEF(short)
+    DEF(int)
+    DEF(long)
+    DEF(long_long)
+    DEF(intptr_t)
+    DEF(size_t)
+    DEF(char32_t)
+
+#undef DEF
 }
 
 
@@ -420,6 +419,8 @@ voidc_global_ctx_t::voidc_global_ctx_t()
     voidc_opaque_void_type(LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.voidc_opaque_void")),
     void_ptr_type         (LLVMPointerType(voidc_opaque_void_type, 0))
 {
+    assert(voidc_global_ctx == nullptr);
+
     voidc_global_ctx = this;
 
     initialize();
@@ -458,6 +459,135 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
 #undef DEF
     }
+}
+
+
+//---------------------------------------------------------------------
+static char *voidc_triple = nullptr;
+static LLVMTargetDataRef voidc_target_data_layout = nullptr;
+
+//---------------------------------------------------------------------
+void voidc_global_ctx_t::static_initialize(void)
+{
+    LLVMInitializeAllTargetInfos();
+    LLVMInitializeAllTargets();
+    LLVMInitializeAllTargetMCs();
+    LLVMInitializeAllAsmPrinters();
+
+    //-------------------------------------------------------------
+    {   char *triple = LLVMGetDefaultTargetTriple();
+
+        LLVMTargetRef tr;
+
+        char *errmsg = nullptr;
+
+        int err = LLVMGetTargetFromTriple(triple, &tr, &errmsg);
+
+        if (errmsg)
+        {
+            fprintf(stderr, "LLVMGetTargetFromTriple: %s\n", errmsg);
+
+            LLVMDisposeMessage(errmsg);
+
+            errmsg = nullptr;
+        }
+
+        assert(err == 0);
+
+        char *cpu_name     = LLVMGetHostCPUName();
+        char *cpu_features = LLVMGetHostCPUFeatures();
+
+        target_machine =
+            LLVMCreateTargetMachine
+            (
+                tr,
+                triple,
+                cpu_name,
+                cpu_features,
+                LLVMCodeGenLevelAggressive,
+                LLVMRelocDefault,
+                LLVMCodeModelJITDefault
+            );
+
+        jit = LLVMOrcCreateInstance(target_machine);
+
+        LLVMDisposeMessage(cpu_features);
+        LLVMDisposeMessage(cpu_name);
+        LLVMDisposeMessage(triple);
+    }
+
+    voidc_target_data_layout = LLVMCreateTargetDataLayout(target_machine);
+    voidc_triple             = LLVMGetTargetMachineTriple(target_machine);
+
+    //-------------------------------------------------------------
+    builder = LLVMCreateBuilder();
+
+    //-------------------------------------------------------------
+    pass_manager = LLVMCreatePassManager();
+
+    {   auto pm_builder = LLVMPassManagerBuilderCreate();
+
+        LLVMPassManagerBuilderSetOptLevel(pm_builder, 3);       //- -O3
+        LLVMPassManagerBuilderSetSizeLevel(pm_builder, 2);      //- -Oz
+
+        LLVMPassManagerBuilderPopulateModulePassManager(pm_builder, pass_manager);
+
+        LLVMPassManagerBuilderDispose(pm_builder);
+    }
+
+    //-------------------------------------------------------------
+    target = new voidc_global_ctx_t();      //- Sic!
+
+    //-------------------------------------------------------------
+    voidc->add_symbol_value("voidc_resolver", (void *)voidc_local_ctx_t::resolver);
+
+#define DEF(name) \
+    voidc->add_symbol_value("voidc_" #name, (void *)name);
+
+    DEF(target_machine)
+    DEF(jit)
+    DEF(builder)
+    DEF(pass_manager)
+
+#undef DEF
+
+    LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
+
+    voidc->add_symbol_value("stdin",  (void *)stdin);       //- WTF?
+    voidc->add_symbol_value("stdout", (void *)stdout);      //- WTF?
+    voidc->add_symbol_value("stderr", (void *)stderr);      //- WTF?
+}
+
+//---------------------------------------------------------------------
+void voidc_global_ctx_t::static_terminate(void)
+{
+    LLVMDisposePassManager(pass_manager);
+
+    LLVMDisposeBuilder(builder);
+
+    LLVMDisposeMessage(voidc_triple);
+    LLVMDisposeTargetData(voidc_target_data_layout);
+
+    LLVMOrcDisposeInstance(jit);
+
+    delete voidc;
+
+    LLVMShutdown();
+}
+
+
+//---------------------------------------------------------------------
+void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
+{
+    verify_module(module);
+
+    //-------------------------------------------------------------
+    LLVMSetModuleDataLayout(module, voidc_target_data_layout);
+    LLVMSetTarget(module, voidc_triple);
+
+    LLVMRunPassManager(pass_manager, module);
+
+//  verify_module(module);
 }
 
 
@@ -836,6 +966,10 @@ target_global_ctx_t::target_global_ctx_t(size_t int_size, size_t long_size, size
   : base_global_ctx_t(int_size, long_size, ptr_size)
 {
     initialize();
+
+    auto &voidc = voidc_global_ctx_t::voidc;
+
+    add_symbol("void_ptr", voidc->LLVMOpaqueType_type, voidc->void_ptr_type);
 }
 
 
@@ -983,14 +1117,14 @@ LLVMTypeRef target_local_ctx_t::find_symbol_type(const char *raw_name)
 
 
 //---------------------------------------------------------------------
+//- Intrinsics (functions)
+//---------------------------------------------------------------------
 extern "C"
 {
 
 VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
-//---------------------------------------------------------------------
-//- Intrinsics (functions)
 //---------------------------------------------------------------------
 void v_add_symbol_type(const char *raw_name, LLVMTypeRef type)
 {
@@ -1245,400 +1379,5 @@ VOIDC_DLLEXPORT_END
 
 //---------------------------------------------------------------------
 }   //- extern "C"
-
-
-//---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
-static char *voidc_triple = nullptr;
-static LLVMTargetDataRef voidc_target_data_layout = nullptr;
-
-//---------------------------------------------------------------------
-void voidc_global_ctx_t::static_initialize(void)
-{
-    LLVMInitializeAllTargetInfos();
-    LLVMInitializeAllTargets();
-    LLVMInitializeAllTargetMCs();
-    LLVMInitializeAllAsmPrinters();
-
-    //-------------------------------------------------------------
-    {   char *triple = LLVMGetDefaultTargetTriple();
-
-        LLVMTargetRef tr;
-
-        char *errmsg = nullptr;
-
-        int err = LLVMGetTargetFromTriple(triple, &tr, &errmsg);
-
-        if (errmsg)
-        {
-            fprintf(stderr, "LLVMGetTargetFromTriple: %s\n", errmsg);
-
-            LLVMDisposeMessage(errmsg);
-
-            errmsg = nullptr;
-        }
-
-        assert(err == 0);
-
-        char *cpu_name     = LLVMGetHostCPUName();
-        char *cpu_features = LLVMGetHostCPUFeatures();
-
-        target_machine =
-            LLVMCreateTargetMachine
-            (
-                tr,
-                triple,
-                cpu_name,
-                cpu_features,
-                LLVMCodeGenLevelAggressive,
-                LLVMRelocDefault,
-                LLVMCodeModelJITDefault
-            );
-
-        jit = LLVMOrcCreateInstance(target_machine);
-
-        LLVMDisposeMessage(cpu_features);
-        LLVMDisposeMessage(cpu_name);
-        LLVMDisposeMessage(triple);
-    }
-
-    voidc_target_data_layout = LLVMCreateTargetDataLayout(target_machine);
-    voidc_triple             = LLVMGetTargetMachineTriple(target_machine);
-
-    //-------------------------------------------------------------
-    builder = LLVMCreateBuilder();
-
-    //-------------------------------------------------------------
-    pass_manager = LLVMCreatePassManager();
-
-    {   auto pm_builder = LLVMPassManagerBuilderCreate();
-
-        LLVMPassManagerBuilderSetOptLevel(pm_builder, 3);       //- -O3
-        LLVMPassManagerBuilderSetSizeLevel(pm_builder, 2);      //- -Oz
-
-        LLVMPassManagerBuilderPopulateModulePassManager(pm_builder, pass_manager);
-
-        LLVMPassManagerBuilderDispose(pm_builder);
-    }
-
-    //-------------------------------------------------------------
-    target = new voidc_global_ctx_t();      //- Sic!
-
-    //-------------------------------------------------------------
-    voidc->add_symbol_value("voidc_resolver", (void *)voidc_local_ctx_t::resolver);
-
-#define DEF(name) \
-    voidc->add_symbol_value("voidc_" #name, (void *)name);
-
-    DEF(target_machine)
-    DEF(jit)
-    DEF(builder)
-    DEF(pass_manager)
-
-#undef DEF
-
-    LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
-
-    voidc->add_symbol_value("stdin",  (void *)stdin);       //- WTF?
-    voidc->add_symbol_value("stdout", (void *)stdout);      //- WTF?
-    voidc->add_symbol_value("stderr", (void *)stderr);      //- WTF?
-}
-
-//---------------------------------------------------------------------
-void voidc_global_ctx_t::static_terminate(void)
-{
-    LLVMDisposePassManager(pass_manager);
-
-    LLVMDisposeBuilder(builder);
-
-    LLVMDisposeMessage(voidc_triple);
-    LLVMDisposeTargetData(voidc_target_data_layout);
-
-    LLVMOrcDisposeInstance(jit);
-
-    delete voidc;
-
-    LLVMShutdown();
-}
-
-
-//---------------------------------------------------------------------
-void voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
-{
-    verify_module(module);
-
-    //-------------------------------------------------------------
-    LLVMSetModuleDataLayout(module, voidc_target_data_layout);
-    LLVMSetTarget(module, voidc_triple);
-
-    LLVMRunPassManager(pass_manager, module);
-
-//  verify_module(module);
-
-//    //-------------------------------------------------------------
-//    {   LLVMMemoryBufferRef asm_buffer = nullptr;
-//
-//        LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
-//                                            module,
-//                                            LLVMAssemblyFile,
-//                                            &msg,
-//                                            &asm_buffer);
-//
-//        assert(asm_buffer);
-//
-//        printf("\n%s\n", LLVMGetBufferStart(asm_buffer));
-//
-//        LLVMDisposeMemoryBuffer(asm_buffer);
-//    }
-}
-
-
-//=====================================================================
-//- AST Visitor - Compiler (level 0) ...
-//=====================================================================
-static void compile_ast_stmt_list_t(const visitor_ptr_t *vis, size_t count, bool start) {}
-static void compile_ast_arg_list_t(const visitor_ptr_t *vis, size_t count, bool start) {}
-
-
-//---------------------------------------------------------------------
-//- unit
-//---------------------------------------------------------------------
-static
-void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
-{
-    auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
-
-    assert(lctx.args.empty());
-
-    if (!*stmt_list)  return;
-
-    auto saved_module = lctx.module;
-
-    lctx.prepare_unit_action(line, column);
-
-    (*stmt_list)->accept(*vis);
-
-    lctx.finish_unit_action();
-
-    lctx.module = saved_module;
-}
-
-
-//---------------------------------------------------------------------
-//- stmt
-//---------------------------------------------------------------------
-static
-void compile_ast_stmt_t(const visitor_ptr_t *vis, const std::string *vname, const ast_call_ptr_t *call)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    auto &var_name = *vname;
-
-    lctx.ret_name  = var_name.c_str();
-    lctx.ret_value = nullptr;
-
-    (*call)->accept(*vis);
-
-    if (lctx.ret_name[0])   lctx.vars = lctx.vars.set(var_name, lctx.ret_value);
-}
-
-
-//---------------------------------------------------------------------
-//- call
-//---------------------------------------------------------------------
-static
-void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, const ast_arg_list_ptr_t *args)
-{
-    auto &builder = voidc_global_ctx_t::builder;
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    assert(lctx.args.empty());
-
-    auto &fun_name = *fname;
-
-    if (gctx.intrinsics.count(fun_name))
-    {
-        gctx.intrinsics[fun_name](vis, args);
-
-        return;
-    }
-
-    LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
-
-    bool ok = lctx.find_function(fun_name, ft, f);
-    if (!ok)
-    {
-        throw std::runtime_error("Function not found: " + fun_name);
-    }
-
-    lctx.arg_types.resize(LLVMCountParamTypes(ft));
-
-    LLVMGetParamTypes(ft, lctx.arg_types.data());
-
-    if (*args) (*args)->accept(*vis);
-
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
-
-    lctx.args.clear();
-    lctx.arg_types.clear();
-
-    lctx.ret_value = v;
-}
-
-
-//---------------------------------------------------------------------
-//- arg_identifier
-//---------------------------------------------------------------------
-static
-void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *name)
-{
-    auto &builder = voidc_global_ctx_t::builder;
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    LLVMValueRef v = lctx.find_identifier(*name);
-    if (!v)
-    {
-        throw std::runtime_error("Identifier not found: " + *name);
-    }
-
-    auto idx = lctx.args.size();
-
-    if (idx < lctx.arg_types.size())
-    {
-        auto at = lctx.arg_types[idx];
-        auto vt = LLVMTypeOf(v);
-
-        auto void_ptr_type = voidc_global_ctx_t::voidc->void_ptr_type;
-
-        if (at != vt  &&
-            at == void_ptr_type  &&
-            LLVMGetTypeKind(vt) == LLVMPointerTypeKind)
-        {
-            v = LLVMBuildPointerCast(builder, v, void_ptr_type, name->c_str());
-        }
-    }
-
-    lctx.args.push_back(v);
-}
-
-
-//---------------------------------------------------------------------
-//- arg_integer
-//---------------------------------------------------------------------
-static
-void compile_ast_arg_integer_t(const visitor_ptr_t *vis, intptr_t num)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    auto idx = lctx.args.size();
-
-    LLVMTypeRef t = gctx.int_type;
-
-    if (idx < lctx.arg_types.size())
-    {
-        t = lctx.arg_types[idx];
-    }
-
-    LLVMValueRef v;
-
-    if (LLVMGetTypeKind(t) == LLVMPointerTypeKind  &&  num == 0)
-    {
-        v = LLVMConstPointerNull(t);
-    }
-    else
-    {
-        v = LLVMConstInt(t, num, false);     //- ?
-    }
-
-    lctx.args.push_back(v);
-}
-
-
-//---------------------------------------------------------------------
-//- arg_string
-//---------------------------------------------------------------------
-static
-void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
-{
-    auto &builder = voidc_global_ctx_t::builder;
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    auto v = LLVMBuildGlobalStringPtr(builder, str->c_str(), "str");
-
-    auto idx = lctx.args.size();
-
-    if (idx < lctx.arg_types.size())
-    {
-        auto at = lctx.arg_types[idx];
-
-        auto void_ptr_type = voidc_global_ctx_t::voidc->void_ptr_type;
-
-        if (at == void_ptr_type)
-        {
-            v = LLVMBuildPointerCast(builder, v, void_ptr_type, "void_str");
-        }
-    }
-
-    lctx.args.push_back(v);
-}
-
-
-//---------------------------------------------------------------------
-//- arg_char
-//---------------------------------------------------------------------
-static
-void compile_ast_arg_char_t(const visitor_ptr_t *vis, char32_t c)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    auto v = LLVMConstInt(gctx.int_type, c, false);      //- int ?
-
-    lctx.args.push_back(v);
-}
-
-
-//---------------------------------------------------------------------
-//- Compiler visitor
-//---------------------------------------------------------------------
-static
-visitor_ptr_t compile_visitor_level_zero;
-
-visitor_ptr_t
-make_compile_visitor(void)
-{
-    if (!compile_visitor_level_zero)
-    {
-        voidc_visitor_t vis;
-
-#define DEF(type) \
-        auto set_##type = [&vis](type::visitor_method_t method) \
-        { \
-            vis = vis.set_void_method(v_##type##_visitor_method_tag, (void *)method); \
-        }; \
-        set_##type(compile_##type);
-
-        DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
-
-#undef DEF
-
-        compile_visitor_level_zero = std::make_shared<const voidc_visitor_t>(vis);
-    }
-
-    assert(compile_visitor_level_zero);
-
-    return  compile_visitor_level_zero;
-}
 
 
