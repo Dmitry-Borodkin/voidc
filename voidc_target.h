@@ -101,7 +101,7 @@ public:
 public:
     const std::string filename;
 
-    base_global_ctx_t &global;
+    base_global_ctx_t &global_ctx;
 
 public:
     const std::string check_alias(const std::string &name);

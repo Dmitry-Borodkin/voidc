@@ -272,15 +272,15 @@ void base_global_ctx_t::initialize(void)
 //---------------------------------------------------------------------
 base_local_ctx_t::base_local_ctx_t(const std::string _filename, base_global_ctx_t &_global)
   : filename(_filename),
-    global(_global),
+    global_ctx(_global),
     parent_ctx(_global.local_ctx)
 {
-    global.local_ctx = this;
+    global_ctx.local_ctx = this;
 }
 
 base_local_ctx_t::~base_local_ctx_t()
 {
-    global.local_ctx = parent_ctx;
+    global_ctx.local_ctx = parent_ctx;
 }
 
 //---------------------------------------------------------------------
@@ -292,9 +292,9 @@ base_local_ctx_t::check_alias(const std::string &name)
         if (it != aliases.end())  return it->second;
     }
 
-    {   auto it = global.aliases.find(name);
+    {   auto it = global_ctx.aliases.find(name);
 
-        if (it != global.aliases.end())  return it->second;
+        if (it != global_ctx.aliases.end())  return it->second;
     }
 
     return  name;
@@ -368,9 +368,9 @@ base_local_ctx_t::find_identifier(const std::string &name)
 
         if (!value)
         {
-            auto it = global.constants.find(raw_name);
+            auto it = global_ctx.constants.find(raw_name);
 
-            if (it != global.constants.end())  value = it->second;
+            if (it != global_ctx.constants.end())  value = it->second;
         }
 
         if (!value)
