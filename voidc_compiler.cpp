@@ -26,12 +26,16 @@ static void compile_ast_arg_list_t(const visitor_ptr_t *vis, size_t count, bool 
 static
 void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
-    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+    if (!*stmt_list)  return;
+
+    auto saved_target = voidc_global_ctx_t::target;
+
+    voidc_global_ctx_t::target = voidc_global_ctx_t::voidc;
+
+    auto &gctx = *voidc_global_ctx_t::target;                           //- target == voidc (!)
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);     //- Sic!
 
     assert(lctx.args.empty());
-
-    if (!*stmt_list)  return;
 
     auto saved_module = lctx.module;
 
@@ -42,6 +46,8 @@ void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stm
     lctx.finish_unit_action();
 
     lctx.module = saved_module;
+
+    voidc_global_ctx_t::target = saved_target;
 }
 
 
@@ -90,7 +96,7 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    bool ok = lctx.find_function(fun_name, ft, f);
+    bool ok = lctx.obtain_function(fun_name, ft, f);
     if (!ok)
     {
         throw std::runtime_error("Function not found: " + fun_name);
@@ -122,7 +128,7 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    LLVMValueRef v = lctx.find_identifier(*name);
+    LLVMValueRef v = lctx.obtain_identifier(*name);
     if (!v)
     {
         throw std::runtime_error("Identifier not found: " + *name);

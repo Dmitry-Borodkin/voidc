@@ -302,7 +302,7 @@ base_local_ctx_t::check_alias(const std::string &name)
 
 //---------------------------------------------------------------------
 bool
-base_local_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
+base_local_ctx_t::obtain_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
 {
     fun_type  = nullptr;
     fun_value = nullptr;
@@ -349,7 +349,7 @@ base_local_ctx_t::find_function(const std::string &fun_name, LLVMTypeRef &fun_ty
 
 //---------------------------------------------------------------------
 LLVMValueRef
-base_local_ctx_t::find_identifier(const std::string &name)
+base_local_ctx_t::obtain_identifier(const std::string &name)
 {
     LLVMValueRef value = nullptr;
 

@@ -123,7 +123,7 @@
     entry = LLVMAppendBasicBlock(destroy_f, "entry");
     LLVMPositionBuilderAtEnd(voidc_builder, entry);
 
-    printf_f = v_find_function("printf");
+    printf_f = v_obtain_function("printf");
 
     str = LLVMBuildGlobalStringPtr(voidc_builder, "destroy!\n", "str");
 

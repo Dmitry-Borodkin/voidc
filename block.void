@@ -134,8 +134,8 @@
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    destroy_f = v_find_function("voidc_ast_stmt_block_destroy");
-    accept_f  = v_find_function("voidc_ast_stmt_block_accept");
+    destroy_f = v_obtain_function("voidc_ast_stmt_block_destroy");
+    accept_f  = v_obtain_function("voidc_ast_stmt_block_accept");
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
@@ -244,7 +244,7 @@
     f = v_function_hack("voidc_enable_statement_block", ft);
 
 
-    has_grammar_f = v_find_function("voidc_has_grammar");
+    has_grammar_f = v_obtain_function("voidc_has_grammar");
 
     vhg_v = LLVMBuildCall(voidc_builder, has_grammar_f, 0, 0, "vhg_v");
 
@@ -262,7 +262,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, vhg_ok_b);
 
 
-    has_parser_f = v_find_function("voidc_grammar_has_parser");
+    has_parser_f = v_obtain_function("voidc_grammar_has_parser");
 
     val0 = v_alloca(LLVMValueRef);
 

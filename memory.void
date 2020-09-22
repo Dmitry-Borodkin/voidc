@@ -37,7 +37,7 @@
 
     v_store(arg_list, val0);
 
-    arg_list_get_count_f = v_find_function("v_ast_arg_list_get_count");
+    arg_list_get_count_f = v_obtain_function("v_ast_arg_list_get_count");
 
     args_count_v = LLVMBuildCall(voidc_builder, arg_list_get_count_f, val0, 1, "args_count_v");
 
@@ -48,7 +48,7 @@
     v_store(args_v,       val0);
     v_store(args_count_v, val1);
 
-    arg_init_f = v_find_dict_function(v_util_initialize_dict, v_ast_opaque_argument_ptr);
+    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_argument_ptr);
 
     LLVMBuildCall(voidc_builder, arg_init_f, val0, 2, "");
 
@@ -56,7 +56,7 @@
     v_store(arg_list, val0);
     v_store(args_v,   val1);
 
-    arg_list_get_args_f = v_find_function("v_ast_arg_list_get_args");
+    arg_list_get_args_f = v_obtain_function("v_ast_arg_list_get_args");
 
     LLVMBuildCall(voidc_builder, arg_list_get_args_f, val0, 2, "");
 
@@ -77,7 +77,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, then_b);
 
 
-    int_v = v_find_global("int");
+    int_v = v_obtain_global("int");
 
     n1ll = LLVMBuildZExtOrBitCast(voidc_builder, n1, long_long, "n1ll");
 
@@ -85,7 +85,7 @@
     v_store(n1ll,  val1);
     v_store(n0,    val2);
 
-    llvm_const_int_f = v_find_function("LLVMConstInt");
+    llvm_const_int_f = v_obtain_function("LLVMConstInt");
 
     n1_v = LLVMBuildCall(voidc_builder, llvm_const_int_f, val0, 3, "n1_v");
 
@@ -107,7 +107,7 @@
     base_arg1 = LLVMBuildBitCast(voidc_builder, args_v_1, v_ast_base_ref, "base_arg1");
 
 
-    accept_visitor_f = v_find_function("v_ast_accept_visitor");
+    accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
 
     v_store(base_arg1, val0);
     v_store(visitor,   val1);
@@ -115,7 +115,7 @@
     LLVMBuildCall(voidc_builder, accept_visitor_f, val0, 2, "");
 
 
-    get_arg_f = v_find_function("v_get_argument");
+    get_arg_f = v_obtain_function("v_get_argument");
 
     v_store(n0, val0);
 

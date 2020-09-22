@@ -114,9 +114,9 @@ public:
 public:
     LLVMModuleRef module = nullptr;
 
-    bool find_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
+    bool obtain_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
 
-    LLVMValueRef find_identifier(const std::string &name);
+    LLVMValueRef obtain_identifier(const std::string &name);
 
 public:
     typedef immer::map<std::string, LLVMValueRef> variables_t;

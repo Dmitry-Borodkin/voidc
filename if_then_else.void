@@ -146,8 +146,8 @@
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    destroy_f = v_find_function("voidc_ast_stmt_if_then_else_destroy");
-    accept_f  = v_find_function("voidc_ast_stmt_if_then_else_accept");
+    destroy_f = v_obtain_function("voidc_ast_stmt_if_then_else_destroy");
+    accept_f  = v_obtain_function("voidc_ast_stmt_if_then_else_accept");
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
@@ -239,7 +239,7 @@
     par_else = LLVMBuildGEP(voidc_builder, p1, val0, 1, "par_else");
 
 
-    get_arg_f = v_find_dict_function(v_util_std_any_get_pointer_dict, v_ast_opaque_stmt_ptr);
+    get_arg_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, v_ast_opaque_stmt_ptr);
 
     v_store(par_else, val0);
 
@@ -270,7 +270,7 @@
 
     stmt_nil_ptr = LLVMBuildAlloca(voidc_builder, v_ast_opaque_stmt_ptr, "stmt_nil_ptr");
 
-    stmt_ptr_init_f = v_find_dict_function(v_util_initialize_dict, v_ast_opaque_stmt_ptr);
+    stmt_ptr_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_stmt_ptr);
 
     v_store(stmt_nil_ptr, val0);
     v_store(n1,           val1);
@@ -331,7 +331,7 @@
     val1 = v_getelementptr(val0, 1);
 
 
-    stmt_empty_f = v_find_dict_function(v_util_empty_dict, v_ast_opaque_stmt_ptr);
+    stmt_empty_f = v_obtain_dict_function(v_util_empty_dict, v_ast_opaque_stmt_ptr);
 
     v_store(stmt, val0);
 
@@ -352,24 +352,24 @@
     v_store(base_ast, val0);
     v_store(visitor,  val1);
 
-    accept_visitor_f = v_find_function("v_ast_accept_visitor");
+    accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
 
     LLVMBuildCall(voidc_builder, accept_visitor_f, val0, 2, "");
 
 
-    builder_v = v_find_global("voidc_builder");
+    builder_v = v_obtain_global("voidc_builder");
 
 
     v_store(builder_v, val0);
 
-    llvm_get_insert_block_f = v_find_function("LLVMGetInsertBlock");
+    llvm_get_insert_block_f = v_obtain_function("LLVMGetInsertBlock");
 
     cur_bv = LLVMBuildCall(voidc_builder, llvm_get_insert_block_f, val0, 1, "cur_bv");
 
 
     v_store(cur_bv, val0);
 
-    llvm_get_basic_block_terminator_f = v_find_function("LLVMGetBasicBlockTerminator");
+    llvm_get_basic_block_terminator_f = v_obtain_function("LLVMGetBasicBlockTerminator");
 
     term_v = LLVMBuildCall(voidc_builder, llvm_get_basic_block_terminator_f, val0, 1, "term_v");
 
@@ -407,14 +407,14 @@
     cur_bv = LLVMBuildCall(voidc_builder, llvm_get_insert_block_f, val0, 1, "cur_bv");
 
 
-    llvm_get_basic_block_parent_f = v_find_function("LLVMGetBasicBlockParent");
+    llvm_get_basic_block_parent_f = v_obtain_function("LLVMGetBasicBlockParent");
 
     v_store(cur_bv, val0);
 
     fun_v = LLVMBuildCall(voidc_builder, llvm_get_basic_block_parent_f, val0, 1, "fun_v");
 
 
-    llvm_append_basic_block_f = v_find_function("LLVMAppendBasicBlock");
+    llvm_append_basic_block_f = v_obtain_function("LLVMAppendBasicBlock");
 
     fin_bb_str = LLVMBuildGlobalStringPtr(voidc_builder, "fin_bb", "fin_bb_str");
 
@@ -532,7 +532,7 @@
     f = v_function_hack("voidc_enable_statement_if_then_else", ft);
 
 
-    has_grammar_f = v_find_function("voidc_has_grammar");
+    has_grammar_f = v_obtain_function("voidc_has_grammar");
 
     vhg_v = LLVMBuildCall(voidc_builder, has_grammar_f, 0, 0, "vhg_v");
 
@@ -550,7 +550,7 @@
     LLVMPositionBuilderAtEnd(voidc_builder, vhg_ok_b);
 
 
-    has_parser_f = v_find_function("voidc_grammar_has_parser");
+    has_parser_f = v_obtain_function("voidc_grammar_has_parser");
 
     val0 = v_alloca(LLVMValueRef);
 

@@ -47,24 +47,24 @@
 
     grm = LLVMBuildAlloca(voidc_builder, v_peg_opaque_grammar_ptr, "grm");
 
-    grammar_init_f = v_find_dict_function(v_util_initialize_dict, v_peg_opaque_grammar_ptr);
+    grammar_init_f = v_obtain_dict_function(v_util_initialize_dict, v_peg_opaque_grammar_ptr);
 
     v_store(grm, val0);
     v_store(n1,  val1);
 
     LLVMBuildCall(voidc_builder, grammar_init_f, val0, 2, "");
 
-    get_grammar_f = v_find_function("v_peg_get_grammar");
+    get_grammar_f = v_obtain_function("v_peg_get_grammar");
 
     LLVMBuildCall(voidc_builder, get_grammar_f, val0, 1, "");
 
-    grammar_empty_f = v_find_dict_function(v_util_empty_dict, v_peg_opaque_grammar_ptr);
+    grammar_empty_f = v_obtain_dict_function(v_util_empty_dict, v_peg_opaque_grammar_ptr);
 
     nok = LLVMBuildCall(voidc_builder, grammar_empty_f, val0, 1, "nok");
 
     ok = LLVMBuildNot(voidc_builder, nok, "ok");
 
-    grammar_destroy_f = v_find_dict_function(v_util_destroy_dict, v_peg_opaque_grammar_ptr);
+    grammar_destroy_f = v_obtain_dict_function(v_util_destroy_dict, v_peg_opaque_grammar_ptr);
 
 //  v_store(grm, val0);
 //  v_store(n1,  val1);
@@ -100,7 +100,7 @@
 
     pr0 = LLVMBuildAlloca(voidc_builder, v_peg_opaque_parser_ptr, "pr0");
 
-    parser_init_f = v_find_dict_function(v_util_initialize_dict, v_peg_opaque_parser_ptr);
+    parser_init_f = v_obtain_dict_function(v_util_initialize_dict, v_peg_opaque_parser_ptr);
 
     v_store(pr0, val0);
 //  v_store(n1,  val1);
@@ -108,7 +108,7 @@
     LLVMBuildCall(voidc_builder, parser_init_f, val0, 2, "");
 
 
-    get_parser_f = v_find_function("v_peg_grammar_get_parser");
+    get_parser_f = v_obtain_function("v_peg_grammar_get_parser");
 
     ip0 = LLVMConstNull(int_ptr);
 
@@ -120,7 +120,7 @@
     LLVMBuildCall(voidc_builder, get_parser_f, val0, 4, "");
 
 
-    parser_empty_f = v_find_dict_function(v_util_empty_dict, v_peg_opaque_parser_ptr);
+    parser_empty_f = v_obtain_dict_function(v_util_empty_dict, v_peg_opaque_parser_ptr);
 
     v_store(pr0, val0);
 
@@ -129,7 +129,7 @@
     ok = LLVMBuildNot(voidc_builder, nok, "ok");
 
 
-    parser_destroy_f = v_find_dict_function(v_util_destroy_dict, v_peg_opaque_parser_ptr);
+    parser_destroy_f = v_obtain_dict_function(v_util_destroy_dict, v_peg_opaque_parser_ptr);
 
 //  v_store(pr0, val0);
     v_store(n1,  val1);

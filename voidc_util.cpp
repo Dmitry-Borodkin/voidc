@@ -74,7 +74,7 @@ void v_init_term_helper(const visitor_ptr_t *vis,
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!lctx.find_function(fun, ft, f))
+    if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
@@ -138,7 +138,7 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!lctx.find_function(fun, ft, f))
+    if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
@@ -199,7 +199,7 @@ void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!lctx.find_function(fun, ft, f))
+    if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
@@ -239,7 +239,7 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!lctx.find_function(fun, ft, f))
+    if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
@@ -283,7 +283,7 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!lctx.find_function(fun, ft, f))
+    if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
@@ -338,7 +338,7 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!lctx.find_function(fun, ft, f))
+    if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
@@ -378,7 +378,7 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
     LLVMValueRef f  = nullptr;
     LLVMTypeRef  ft = nullptr;
 
-    if (!lctx.find_function(fun, ft, f))
+    if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
