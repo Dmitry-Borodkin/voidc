@@ -361,9 +361,9 @@
 
     v_store(unit_action_helper_n, val0);
 
-    obtain_fin_f = v_obtain_function("v_obtain_function");
+    obtain_fun_f = v_obtain_function("v_obtain_function");
 
-    unit_action_helper_fv = LLVMBuildCall(voidc_builder, obtain_fin_f, val0, 1, "unit_action_helper_fv");
+    unit_action_helper_fv = LLVMBuildCall(voidc_builder, obtain_fun_f, val0, 1, "unit_action_helper_fv");
 
 
     size_t_v = v_obtain_global("size_t");
@@ -555,7 +555,7 @@
 
     v_store(add_sym_type_fn, val0);
 
-    add_sym_type_fv = LLVMBuildCall(voidc_builder, obtain_fin_f, val0, 1, "add_sym_type_fv");
+    add_sym_type_fv = LLVMBuildCall(voidc_builder, obtain_fun_f, val0, 1, "add_sym_type_fv");
 
 
     arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMValueRef, n2, "arg0");
@@ -582,7 +582,7 @@
 
     v_store(has_grammar_fn, val0);
 
-    has_grammar_fv = LLVMBuildCall(voidc_builder, obtain_fin_f, val0, 1, "has_grammar_fv");
+    has_grammar_fv = LLVMBuildCall(voidc_builder, obtain_fun_f, val0, 1, "has_grammar_fv");
 
 
     ok_str = LLVMBuildGlobalStringPtr(voidc_builder, "ok", "ok_str");
@@ -648,7 +648,7 @@
 
     v_store(helper_fn, val0);
 
-    helper_fv = LLVMBuildCall(voidc_builder, obtain_fin_f, val0, 1, "helper_fv");
+    helper_fv = LLVMBuildCall(voidc_builder, obtain_fun_f, val0, 1, "helper_fv");
 
 
     get_ret_name_f = v_obtain_function("v_get_return_name");

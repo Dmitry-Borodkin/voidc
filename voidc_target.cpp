@@ -551,6 +551,7 @@ void voidc_global_ctx_t::static_initialize(void)
 
 #undef DEF
 
+    //-------------------------------------------------------------
     LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
 
     voidc->add_symbol_value("stdin",  (void *)stdin);       //- WTF?
@@ -1372,6 +1373,46 @@ void v_add_intrinsic(const char *name, base_global_ctx_t::intrinsic_t fun)
     auto &gctx = *voidc_global_ctx_t::target;
 
     gctx.intrinsics[name] = fun;
+}
+
+
+//---------------------------------------------------------------------
+base_global_ctx_t *v_target_get_voidc_global_ctx(void)
+{
+    return voidc_global_ctx_t::voidc;
+}
+
+base_global_ctx_t *v_target_get_global_ctx(void)
+{
+    return voidc_global_ctx_t::target;
+}
+
+void v_target_set_global_ctx(base_global_ctx_t *gctx)
+{
+    voidc_global_ctx_t::target = gctx;
+}
+
+
+//---------------------------------------------------------------------
+base_global_ctx_t *v_target_create_global_ctx(size_t int_size, size_t long_size, size_t ptr_size)
+{
+    return  new target_global_ctx_t(int_size, long_size, ptr_size);
+}
+
+void v_target_destroy_global_ctx(base_global_ctx_t *gctx)
+{
+    delete gctx;
+}
+
+//---------------------------------------------------------------------
+base_local_ctx_t *v_target_create_local_ctx(const char *filename, base_global_ctx_t *gctx)
+{
+    return  new target_local_ctx_t(filename, *gctx);
+}
+
+void v_target_destroy_local_ctx(base_local_ctx_t *lctx)
+{
+    delete lctx;
 }
 
 

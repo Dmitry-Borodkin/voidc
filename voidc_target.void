@@ -153,3 +153,53 @@
 }
 
 
+{
+    gc = LLVMGetGlobalContext();
+
+    g_ctx = LLVMStructCreateNamed(gc, "struct.v_target_opaque_global_ctx");
+    l_ctx = LLVMStructCreateNamed(gc, "struct.v_target_opaque_local_ctx");
+
+    g_ref = LLVMPointerType(g_ctx, 0);
+    l_ref = LLVMPointerType(l_ctx, 0);
+
+    v_add_symbol("v_target_global_ctx_ref", LLVMOpaqueType, g_ref);
+    v_add_symbol("v_target_local_ctx_ref",  LLVMOpaqueType, l_ref);
+}
+
+{
+    arg0 = v_alloca(LLVMTypeRef, 3);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    ft = LLVMFunctionType(v_target_global_ctx_ref, 0, 0, 0);
+    v_add_symbol_type("v_target_get_voidc_global_ctx", ft);
+    v_add_symbol_type("v_target_get_global_ctx", ft);
+
+    v_store(v_target_global_ctx_ref, arg0);
+
+    ft = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("v_target_set_global_ctx", ft);
+    v_add_symbol_type("v_target_destroy_global_ctx", ft);
+
+    v_store(size_t, arg0);
+    v_store(size_t, arg1);
+    v_store(size_t, arg2);
+
+    ft = LLVMFunctionType(v_target_global_ctx_ref, arg0, 3, 0);
+    v_add_symbol_type("v_target_create_global_ctx", ft);
+
+    char_ptr = LLVMPointerType(char, 0);
+
+    v_store(char_ptr,                arg0);
+    v_store(v_target_global_ctx_ref, arg1);
+
+    ft = LLVMFunctionType(v_target_local_ctx_ref, arg0, 2, 0);
+    v_add_symbol_type("v_target_create_local_ctx", ft);
+
+    v_store(v_target_local_ctx_ref, arg0);
+
+    ft = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("v_target_destroy_local_ctx", ft);
+}
+
+
