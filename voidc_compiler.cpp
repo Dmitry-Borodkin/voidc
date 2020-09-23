@@ -77,8 +77,6 @@ void compile_ast_stmt_t(const visitor_ptr_t *vis, const std::string *vname, cons
 static
 void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, const ast_arg_list_ptr_t *args)
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
@@ -108,7 +106,7 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
 
     if (*args) (*args)->accept(*vis);
 
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -123,8 +121,6 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
 static
 void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *name)
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
@@ -147,7 +143,7 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
             at == void_ptr_type  &&
             LLVMGetTypeKind(vt) == LLVMPointerTypeKind)
         {
-            v = LLVMBuildPointerCast(builder, v, void_ptr_type, name->c_str());
+            v = LLVMBuildPointerCast(gctx.builder, v, void_ptr_type, name->c_str());
         }
     }
 
@@ -194,12 +190,10 @@ void compile_ast_arg_integer_t(const visitor_ptr_t *vis, intptr_t num)
 static
 void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto v = LLVMBuildGlobalStringPtr(builder, str->c_str(), "str");
+    auto v = LLVMBuildGlobalStringPtr(gctx.builder, str->c_str(), "str");
 
     auto idx = lctx.args.size();
 
@@ -211,7 +205,7 @@ void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
 
         if (at == void_ptr_type)
         {
-            v = LLVMBuildPointerCast(builder, v, void_ptr_type, "void_str");
+            v = LLVMBuildPointerCast(gctx.builder, v, void_ptr_type, "void_str");
         }
     }
 

@@ -10,7 +10,8 @@
 
 //- Types --------------------------------------------------
 {
-    v0 = LLVMGetGlobalContext();
+//  v0 = LLVMGetGlobalContext();
+    v0 = v_target_get_llvm_ctx();
     v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueBinary");
     v2 = LLVMPointerType(v1, 0);
     v_add_symbol("LLVMBinaryRef", LLVMOpaqueType, v2);
@@ -60,9 +61,9 @@
 //    v23 = LLVMPointerType(v22, 0);
 //    v_add_symbol("LLVMValueRef", LLVMOpaqueType, v23);
 
-    v24 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueBuilder");
-    v25 = LLVMPointerType(v24, 0);
-    v_add_symbol("LLVMBuilderRef", LLVMOpaqueType, v25);
+//    v24 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueBuilder");
+//    v25 = LLVMPointerType(v24, 0);
+//    v_add_symbol("LLVMBuilderRef", LLVMOpaqueType, v25);
 
     v26 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueAttributeRef");
     v27 = LLVMPointerType(v26, 0);

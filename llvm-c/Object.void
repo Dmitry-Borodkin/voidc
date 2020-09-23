@@ -65,7 +65,8 @@
 
 //- Types --------------------------------------------------
 {
-    v0 = LLVMGetGlobalContext();
+//  v0 = LLVMGetGlobalContext();
+    v0 = v_target_get_llvm_ctx();
     v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueSectionIterator");
     v2 = LLVMPointerType(v1, 0);
     v_add_symbol("LLVMSectionIteratorRef", LLVMOpaqueType, v2);

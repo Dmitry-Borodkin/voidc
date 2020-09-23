@@ -225,9 +225,11 @@
     p1 = LLVMGetParam(f, 1);    v_add_variable("stmt",    p1);
 }
 {
+    builder = v_target_get_builder();
+
     v_save_variables();
 
-    cur_b = LLVMGetInsertBlock(voidc_builder);
+    cur_b = LLVMGetInsertBlock(builder);
 
     cur_f = LLVMGetBasicBlockParent(cur_b);
 
@@ -241,10 +243,10 @@
     v_add_variable("voidc_internal_branch_target_break",    loop_stop_bv);
 
 
-    LLVMBuildBr(voidc_builder, loop_start_b);
+    LLVMBuildBr(builder, loop_start_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, loop_start_b);
+    LLVMPositionBuilderAtEnd(builder, loop_start_b);
 
 
     base_ast = v_cast(LLVMBitCast, stmt, v_ast_base_ref);
@@ -252,21 +254,21 @@
     v_ast_accept_visitor(base_ast, visitor);
 
 
-    cur_b = LLVMGetInsertBlock(voidc_builder);
+    cur_b = LLVMGetInsertBlock(builder);
 
     trm_v = LLVMGetBasicBlockTerminator(cur_b);
 
     if (trm_v) {}
     else
     {
-        LLVMBuildBr(voidc_builder, loop_start_b);
+        LLVMBuildBr(builder, loop_start_b);
     }
 
 
     LLVMMoveBasicBlockAfter(loop_stop_b, cur_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, loop_stop_b);
+    LLVMPositionBuilderAtEnd(builder, loop_stop_b);
 
 
     v_restore_variables();
@@ -280,11 +282,13 @@
     v_function_hack("voidc_intrinsic_break", voidc_intrinsic_t);
 }
 {
+    builder = v_target_get_builder();
+
     break_bv = v_get_variable("voidc_internal_branch_target_break");
 
     break_b = LLVMValueAsBasicBlock(break_bv);
 
-    LLVMBuildBr(voidc_builder, break_b);
+    LLVMBuildBr(builder, break_b);
 }
 
 
@@ -295,11 +299,13 @@
     v_function_hack("voidc_intrinsic_continue", voidc_intrinsic_t);
 }
 {
+    builder = v_target_get_builder();
+
     continue_bv = v_get_variable("voidc_internal_branch_target_continue");
 
     continue_b = LLVMValueAsBasicBlock(continue_bv);
 
-    LLVMBuildBr(voidc_builder, continue_b);
+    LLVMBuildBr(builder, continue_b);
 }
 
 

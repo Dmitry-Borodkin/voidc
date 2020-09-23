@@ -17,16 +17,12 @@
 {
     gctx = v_target_create_global_ctx(4, 8, 8);
 
-    opaque_global_ctx = LLVMGetElementType(v_target_global_ctx_ref);
-
-    v_add_local_symbol("my_gctx", opaque_global_ctx, gctx);
+    v_add_local_symbol("my_gctx", v_target_opaque_global_ctx, gctx);
 
 
     lctx = v_target_create_local_ctx("<target test>", gctx);
 
-    opaque_local_ctx = LLVMGetElementType(v_target_local_ctx_ref);
-
-    v_add_local_symbol("my_lctx", opaque_local_ctx, lctx);
+    v_add_local_symbol("my_lctx", v_target_opaque_local_ctx, lctx);
 
 
     v_target_set_global_ctx(gctx);
@@ -55,6 +51,21 @@
 
     printf("i256_: %p\n", i256_);
 }
+
+
+{   t = v_find_symbol_type("printf");
+
+    printf("printf type: %p\n", t);
+}
+
+{   v_import("printf.void"); }
+
+{   t = v_find_symbol_type("printf");
+
+    printf("printf type: %p\n", t);
+}
+
+
 
 {
     vctx = v_target_get_voidc_global_ctx();

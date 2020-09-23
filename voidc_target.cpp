@@ -21,8 +21,8 @@
 static
 void v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder =  voidc_global_ctx_t::builder;
-    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() < 1  ||  (*args)->data.size() > 2)
@@ -42,13 +42,13 @@ void v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     if ((*args)->data.size() == 1)
     {
-        v = LLVMBuildAlloca(builder, type, lctx.ret_name);
+        v = LLVMBuildAlloca(gctx.builder, type, lctx.ret_name);
     }
     else
     {
         (*args)->data[1]->accept(*vis);         //- Количество...
 
-        v = LLVMBuildArrayAlloca(builder, type, lctx.args[0], lctx.ret_name);
+        v = LLVMBuildArrayAlloca(gctx.builder, type, lctx.args[0], lctx.ret_name);
 
         lctx.args.clear();
     }
@@ -60,8 +60,8 @@ void v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 static
 void v_getelementptr(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder =  voidc_global_ctx_t::builder;
-    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() < 2)
@@ -73,7 +73,7 @@ void v_getelementptr(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     (*args)->accept(*vis);
 
-    auto v = LLVMBuildGEP(builder, lctx.args[0], &lctx.args[1], lctx.args.size()-1, lctx.ret_name);
+    auto v = LLVMBuildGEP(gctx.builder, lctx.args[0], &lctx.args[1], lctx.args.size()-1, lctx.ret_name);
 
     lctx.args.clear();
 
@@ -84,8 +84,8 @@ void v_getelementptr(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 static
 void v_store(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder =  voidc_global_ctx_t::builder;
-    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -103,7 +103,7 @@ void v_store(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     (*args)->data[0]->accept(*vis);         //- Теперь "что"
 
-    auto v = LLVMBuildStore(builder, lctx.args[1], lctx.args[0]);
+    auto v = LLVMBuildStore(gctx.builder, lctx.args[1], lctx.args[0]);
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -115,8 +115,8 @@ void v_store(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 static
 void v_load(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder =  voidc_global_ctx_t::builder;
-    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -126,7 +126,7 @@ void v_load(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     (*args)->data[0]->accept(*vis);
 
-    auto v = LLVMBuildLoad(builder, lctx.args[0], lctx.ret_name);
+    auto v = LLVMBuildLoad(gctx.builder, lctx.args[0], lctx.ret_name);
 
     lctx.args.clear();
 
@@ -137,8 +137,8 @@ void v_load(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 static
 void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder =  voidc_global_ctx_t::builder;
-    auto &lctx    = *voidc_global_ctx_t::target->local_ctx;
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
     assert(*args);
     if ((*args)->data.size() != 3)
@@ -162,7 +162,7 @@ void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     LLVMValueRef v;
 
-    v = LLVMBuildCast(builder, opcode, lctx.args[1], type, lctx.ret_name);
+    v = LLVMBuildCast(gctx.builder, opcode, lctx.args[1], type, lctx.ret_name);
 
     lctx.args.clear();
 
@@ -174,32 +174,36 @@ void v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 //- Base Global Context
 //---------------------------------------------------------------------
 static
-LLVMTypeRef mk_int_type(size_t sz)
+LLVMTypeRef mk_int_type(LLVMContextRef ctx, size_t sz)
 {
     switch(sz)
     {
-    case  1:    return LLVMInt8Type();
-    case  2:    return LLVMInt16Type();
-    case  4:    return LLVMInt32Type();
-    case  8:    return LLVMInt64Type();
-    case 16:    return LLVMInt128Type();
+    case  1:    return LLVMInt8TypeInContext(ctx);
+    case  2:    return LLVMInt16TypeInContext(ctx);
+    case  4:    return LLVMInt32TypeInContext(ctx);
+    case  8:    return LLVMInt64TypeInContext(ctx);
+    case 16:    return LLVMInt128TypeInContext(ctx);
 
     default:
         throw std::runtime_error("Bad integer size: " + std::to_string(sz));
     }
 }
 
-base_global_ctx_t::base_global_ctx_t(size_t int_size, size_t long_size, size_t ptr_size)
-  : void_type     (LLVMVoidType()),
-    bool_type     (LLVMInt1Type()),
-    char_type     (LLVMInt8Type()),
-    short_type    (LLVMInt16Type()),
-    int_type      (mk_int_type(int_size)),
-    long_type     (mk_int_type(long_size)),
-    long_long_type(LLVMInt64Type()),
-    intptr_t_type (mk_int_type(ptr_size)),
-    size_t_type   (mk_int_type(ptr_size)),
-    char32_t_type (LLVMInt32Type())
+base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
+  : llvm_ctx(ctx),
+    builder(LLVMCreateBuilderInContext(ctx)),
+    void_type     (LLVMVoidTypeInContext(ctx)),
+    bool_type     (LLVMInt1TypeInContext(ctx)),
+    char_type     (LLVMInt8TypeInContext(ctx)),
+    short_type    (LLVMInt16TypeInContext(ctx)),
+    int_type      (mk_int_type(ctx, int_size)),
+    long_type     (mk_int_type(ctx, long_size)),
+    long_long_type(LLVMInt64TypeInContext(ctx)),
+    intptr_t_type (mk_int_type(ctx, ptr_size)),
+    size_t_type   (mk_int_type(ctx, ptr_size)),
+    char32_t_type (LLVMInt32TypeInContext(ctx)),
+    opaque_void_type(LLVMStructCreateNamed(ctx, "struct.v_target_opaque_void")),
+    void_ptr_type   (LLVMPointerType(opaque_void_type, 0))
 {
 #define DEF(name) \
     intrinsics[#name] = name;
@@ -211,6 +215,11 @@ base_global_ctx_t::base_global_ctx_t(size_t int_size, size_t long_size, size_t p
     DEF(v_cast)
 
 #undef DEF
+}
+
+base_global_ctx_t::~base_global_ctx_t()
+{
+    LLVMDisposeBuilder(builder);
 }
 
 
@@ -262,6 +271,9 @@ void base_global_ctx_t::initialize(void)
     DEF(intptr_t)
     DEF(size_t)
     DEF(char32_t)
+
+    add_symbol("v_target_opaque_void", opaque_type, opaque_void_type);      //- ?
+    DEF(void_ptr)
 
 #undef DEF
 }
@@ -406,18 +418,15 @@ base_global_ctx_t  *         voidc_global_ctx_t::target;
 
 LLVMTargetMachineRef voidc_global_ctx_t::target_machine;
 LLVMOrcJITStackRef   voidc_global_ctx_t::jit;
-LLVMBuilderRef       voidc_global_ctx_t::builder;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
-  : base_global_ctx_t(sizeof(int), sizeof(long), sizeof(intptr_t)),
-    LLVMOpaqueType_type   (LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.LLVMOpaqueType")),
+  : base_global_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
+    LLVMOpaqueType_type   (LLVMStructCreateNamed(llvm_ctx, "struct.LLVMOpaqueType")),
     LLVMTypeRef_type      (LLVMPointerType(LLVMOpaqueType_type, 0)),
-    LLVMOpaqueContext_type(LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.LLVMOpaqueContext")),
-    LLVMContextRef_type   (LLVMPointerType(LLVMOpaqueContext_type, 0)),
-    voidc_opaque_void_type(LLVMStructCreateNamed(LLVMGetGlobalContext(), "struct.voidc_opaque_void")),
-    void_ptr_type         (LLVMPointerType(voidc_opaque_void_type, 0))
+    LLVMOpaqueContext_type(LLVMStructCreateNamed(llvm_ctx, "struct.LLVMOpaqueContext")),
+    LLVMContextRef_type   (LLVMPointerType(LLVMOpaqueContext_type, 0))
 {
     assert(voidc_global_ctx == nullptr);
 
@@ -432,8 +441,6 @@ voidc_global_ctx_t::voidc_global_ctx_t()
     DEF(LLVMTypeRef)
     DEF(LLVMOpaqueContext)
     DEF(LLVMContextRef)
-    DEF(voidc_opaque_void)
-    DEF(void_ptr)
 
 #undef DEF
 
@@ -520,9 +527,6 @@ void voidc_global_ctx_t::static_initialize(void)
     voidc_triple             = LLVMGetTargetMachineTriple(target_machine);
 
     //-------------------------------------------------------------
-    builder = LLVMCreateBuilder();
-
-    //-------------------------------------------------------------
     pass_manager = LLVMCreatePassManager();
 
     {   auto pm_builder = LLVMPassManagerBuilderCreate();
@@ -546,7 +550,6 @@ void voidc_global_ctx_t::static_initialize(void)
 
     DEF(target_machine)
     DEF(jit)
-    DEF(builder)
     DEF(pass_manager)
 
 #undef DEF
@@ -563,8 +566,6 @@ void voidc_global_ctx_t::static_initialize(void)
 void voidc_global_ctx_t::static_terminate(void)
 {
     LLVMDisposePassManager(pass_manager);
-
-    LLVMDisposeBuilder(builder);
 
     LLVMDisposeMessage(voidc_triple);
     LLVMDisposeTargetData(voidc_target_data_layout);
@@ -816,14 +817,14 @@ voidc_local_ctx_t::resolver(const char *m_name, void *)
 void
 voidc_local_ctx_t::prepare_unit_action(int line, int column)
 {
-    auto &builder = voidc_global_ctx_t::builder;
+    auto &builder = global_ctx.builder;
 
     std::string hdr = "unit_" + std::to_string(line) + "_" + std::to_string(column);
 
     std::string mod_name = hdr + "_module";
     std::string fun_name = hdr + "_action";
 
-    module = LLVMModuleCreateWithName(mod_name.c_str());
+    module = LLVMModuleCreateWithNameInContext(mod_name.c_str(), global_ctx.llvm_ctx);
 
     LLVMSetSourceFileName(module, filename.c_str(), filename.size());
 
@@ -839,7 +840,7 @@ voidc_local_ctx_t::prepare_unit_action(int line, int column)
 void
 voidc_local_ctx_t::finish_unit_action(void)
 {
-    auto &builder = voidc_global_ctx_t::builder;
+    auto &builder = global_ctx.builder;
 
     LLVMBuildRetVoid(builder);
 
@@ -964,13 +965,14 @@ voidc_local_ctx_t::run_unit_action(void)
 //- Target Global Context
 //---------------------------------------------------------------------
 target_global_ctx_t::target_global_ctx_t(size_t int_size, size_t long_size, size_t ptr_size)
-  : base_global_ctx_t(int_size, long_size, ptr_size)
+  : base_global_ctx_t(LLVMContextCreate(), int_size, long_size, ptr_size)
 {
     initialize();
+}
 
-    auto &voidc = voidc_global_ctx_t::voidc;
-
-    add_symbol("void_ptr", voidc->LLVMOpaqueType_type, voidc->void_ptr_type);
+target_global_ctx_t::~target_global_ctx_t()
+{
+    LLVMContextDispose(llvm_ctx);
 }
 
 
@@ -1373,6 +1375,29 @@ void v_add_intrinsic(const char *name, base_global_ctx_t::intrinsic_t fun)
     auto &gctx = *voidc_global_ctx_t::target;
 
     gctx.intrinsics[name] = fun;
+}
+
+
+//---------------------------------------------------------------------
+LLVMContextRef v_target_get_voidc_llvm_ctx(void)
+{
+    return voidc_global_ctx_t::voidc->llvm_ctx;
+}
+
+LLVMContextRef v_target_get_llvm_ctx(void)
+{
+    return voidc_global_ctx_t::target->llvm_ctx;
+}
+
+//---------------------------------------------------------------------
+LLVMBuilderRef v_target_get_voidc_builder(void)
+{
+    return voidc_global_ctx_t::voidc->builder;
+}
+
+LLVMBuilderRef v_target_get_builder(void)
+{
+    return voidc_global_ctx_t::target->builder;
 }
 
 

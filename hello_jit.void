@@ -4,29 +4,31 @@
 
 {   module = LLVMModuleCreateWithName("hello_mod");
 
+    builder = v_target_get_voidc_builder();
+
     hello_ft = LLVMFunctionType(void, 0, 0, 0);
     hello_f  = LLVMAddFunction(module, "hello", hello_ft);
 
     entry = LLVMAppendBasicBlock(hello_f, "entry");
 
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     printf_ft = v_find_symbol_type("printf");
     printf_f  = LLVMAddFunction(module, "printf", printf_ft);
 
-    str = LLVMBuildGlobalStringPtr(voidc_builder, "Hello world!\n", "str");
+    str = LLVMBuildGlobalStringPtr(builder, "Hello world!\n", "str");
 
     arg = v_alloca(LLVMValueRef);
 
     v_store(str, arg);
 
-    LLVMBuildCall(voidc_builder, printf_f, arg, 1, "");
+    LLVMBuildCall(builder, printf_f, arg, 1, "");
 
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
-    LLVMClearInsertionPosition(voidc_builder);
+    LLVMClearInsertionPosition(builder);
 
     //-----------------------------------------------------------------
     voidc_prepare_module_for_jit(module);

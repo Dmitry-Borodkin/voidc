@@ -34,15 +34,18 @@
     n0 = LLVMConstInt(int, 0, 0);
     n1 = LLVMConstInt(int, 1, 0);
 
+    //-----------------------------------------------------------------
+    builder = v_target_get_voidc_builder();
+
 
     v_store(arg_list, val0);
 
     arg_list_get_count_f = v_obtain_function("v_ast_arg_list_get_count");
 
-    args_count_v = LLVMBuildCall(voidc_builder, arg_list_get_count_f, val0, 1, "args_count_v");
+    args_count_v = LLVMBuildCall(builder, arg_list_get_count_f, val0, 1, "args_count_v");
 
 
-    args_v = LLVMBuildArrayAlloca(voidc_builder, v_ast_opaque_argument_ptr, args_count_v, "args_v");
+    args_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_argument_ptr, args_count_v, "args_v");
 
 
     v_store(args_v,       val0);
@@ -50,7 +53,7 @@
 
     arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_argument_ptr);
 
-    LLVMBuildCall(voidc_builder, arg_init_f, val0, 2, "");
+    LLVMBuildCall(builder, arg_init_f, val0, 2, "");
 
 
     v_store(arg_list, val0);
@@ -58,7 +61,7 @@
 
     arg_list_get_args_f = v_obtain_function("v_ast_arg_list_get_args");
 
-    LLVMBuildCall(voidc_builder, arg_list_get_args_f, val0, 2, "");
+    LLVMBuildCall(builder, arg_list_get_args_f, val0, 2, "");
 
 
     then_b = LLVMAppendBasicBlock(malloc_f, "then_b");
@@ -66,20 +69,20 @@
     cont_b = LLVMAppendBasicBlock(malloc_f, "cont_b");
 
 
-    num_v = LLVMBuildAlloca(voidc_builder, LLVMValueRef, "num_v");
+    num_v = LLVMBuildAlloca(builder, LLVMValueRef, "num_v");
 
 
-    ok_v = LLVMBuildICmp(voidc_builder, LLVMIntEQ, args_count_v, n1, "ok_v");
+    ok_v = LLVMBuildICmp(builder, LLVMIntEQ, args_count_v, n1, "ok_v");
 
-    LLVMBuildCondBr(voidc_builder, ok_v, then_b, else_b);
+    LLVMBuildCondBr(builder, ok_v, then_b, else_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
+    LLVMPositionBuilderAtEnd(builder, then_b);
 
 
     int_v = v_obtain_global("int");
 
-    n1ll = LLVMBuildZExtOrBitCast(voidc_builder, n1, long_long, "n1ll");
+    n1ll = LLVMBuildZExtOrBitCast(builder, n1, long_long, "n1ll");
 
     v_store(int_v, val0);
     v_store(n1ll,  val1);
@@ -87,24 +90,24 @@
 
     llvm_const_int_f = v_obtain_function("LLVMConstInt");
 
-    n1_v = LLVMBuildCall(voidc_builder, llvm_const_int_f, val0, 3, "n1_v");
+    n1_v = LLVMBuildCall(builder, llvm_const_int_f, val0, 3, "n1_v");
 
 
-    LLVMBuildStore(voidc_builder, n1_v, num_v);
+    LLVMBuildStore(builder, n1_v, num_v);
 
 
-    LLVMBuildBr(voidc_builder, cont_b);
+    LLVMBuildBr(builder, cont_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+    LLVMPositionBuilderAtEnd(builder, else_b);
 
 
     v_store(n1, val0);
 
-    args_v_1 = LLVMBuildGEP(voidc_builder, args_v, val0, 1, "args_v_1");
+    args_v_1 = LLVMBuildGEP(builder, args_v, val0, 1, "args_v_1");
 
 
-    base_arg1 = LLVMBuildBitCast(voidc_builder, args_v_1, v_ast_base_ref, "base_arg1");
+    base_arg1 = LLVMBuildBitCast(builder, args_v_1, v_ast_base_ref, "base_arg1");
 
 
     accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
@@ -112,32 +115,34 @@
     v_store(base_arg1, val0);
     v_store(visitor,   val1);
 
-    LLVMBuildCall(voidc_builder, accept_visitor_f, val0, 2, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
 
 
     get_arg_f = v_obtain_function("v_get_argument");
 
     v_store(n0, val0);
 
-    num = LLVMBuildCall(voidc_builder, get_arg_f, val0, 1, "num");
+    num = LLVMBuildCall(builder, get_arg_f, val0, 1, "num");
 
 
-    LLVMBuildStore(voidc_builder, num, num_v);
+    LLVMBuildStore(builder, num, num_v);
 
 
-    LLVMBuildBr(voidc_builder, cont_b);
+    LLVMBuildBr(builder, cont_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, cont_b);
+    LLVMPositionBuilderAtEnd(builder, cont_b);
 
 
-    number = LLVMBuildLoad(voidc_builder, num_v, "number");
+    number = LLVMBuildLoad(builder, num_v, "number");
 
     v_add_variable("args",       args_v);
     v_add_variable("args_count", args_count_v);
     v_add_variable("number",     number);
 }
 {
+    builder = v_target_get_builder();
+
     typename = v_alloca(v_util_opaque_std_string);
     v_initialize(typename);
 
@@ -147,7 +152,7 @@
 
     type = v_find_type(typename_str);
 
-    ret = LLVMBuildArrayMalloc(voidc_builder, type, number, "ret");
+    ret = LLVMBuildArrayMalloc(builder, type, number, "ret");
 
     v_set_return_value(ret);
 
@@ -168,13 +173,15 @@
     p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list", p1);
 }
 {
+    builder = v_target_get_builder();
+
     arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
 
     v_ast_accept_visitor(arg_base, visitor);
 
     arg = v_get_argument(0);
 
-    LLVMBuildFree(voidc_builder, arg);
+    LLVMBuildFree(builder, arg);
 
     v_clear_arguments();
 }

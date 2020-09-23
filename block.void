@@ -243,41 +243,43 @@
 
     f = v_function_hack("voidc_enable_statement_block", ft);
 
+    builder = v_target_get_voidc_builder();
+
 
     has_grammar_f = v_obtain_function("voidc_has_grammar");
 
-    vhg_v = LLVMBuildCall(voidc_builder, has_grammar_f, 0, 0, "vhg_v");
+    vhg_v = LLVMBuildCall(builder, has_grammar_f, 0, 0, "vhg_v");
 
     return_b = LLVMAppendBasicBlock(f, "return_b");
     vhg_ok_b = LLVMAppendBasicBlock(f, "vhg_ok_b");
 
-    LLVMBuildCondBr(voidc_builder, vhg_v, vhg_ok_b, return_b);
+    LLVMBuildCondBr(builder, vhg_v, vhg_ok_b, return_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, return_b);
+    LLVMPositionBuilderAtEnd(builder, return_b);
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, vhg_ok_b);
+    LLVMPositionBuilderAtEnd(builder, vhg_ok_b);
 
 
     has_parser_f = v_obtain_function("voidc_grammar_has_parser");
 
     val0 = v_alloca(LLVMValueRef);
 
-    name = LLVMBuildGlobalStringPtr(voidc_builder, "stmt_block", "name");
+    name = LLVMBuildGlobalStringPtr(builder, "stmt_block", "name");
 
     v_store(name, val0);
 
-    ghp_v = LLVMBuildCall(voidc_builder, has_parser_f, val0, 1, "ghp_v");
+    ghp_v = LLVMBuildCall(builder, has_parser_f, val0, 1, "ghp_v");
 
     work_b = LLVMAppendBasicBlock(f, "work_b");
 
-    LLVMBuildCondBr(voidc_builder, ghp_v, return_b, work_b);
+    LLVMBuildCondBr(builder, ghp_v, return_b, work_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, work_b);
+    LLVMPositionBuilderAtEnd(builder, work_b);
 }
 {
     pp0 = v_alloca(v_peg_opaque_parser_ptr, 6);

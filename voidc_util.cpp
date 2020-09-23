@@ -52,8 +52,6 @@ void v_init_term_helper(const visitor_ptr_t *vis,
                         const v_util_function_dict_t &dict
                        )
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
 
@@ -86,7 +84,7 @@ void v_init_term_helper(const visitor_ptr_t *vis,
         lctx.args.push_back(n);
     }
 
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -116,8 +114,6 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
                         const v_util_function_dict_t &dict
                        )
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
 
@@ -150,7 +146,7 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
         lctx.args.push_back(n);
     }
 
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -177,8 +173,6 @@ void v_move(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 static
 void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
 
@@ -204,7 +198,7 @@ void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -217,8 +211,6 @@ void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 static
 void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
 
@@ -244,7 +236,7 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -260,8 +252,6 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
                           const v_util_function_dict_t &dict
                          )
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
 
@@ -290,7 +280,7 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
 
     args->data[1]->accept(*vis);
 
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -316,8 +306,6 @@ void v_std_any_get_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
 static
 void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
 
@@ -343,7 +331,7 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
@@ -356,8 +344,6 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
 static
 void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    auto &builder = voidc_global_ctx_t::builder;
-
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
 
@@ -383,7 +369,7 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();

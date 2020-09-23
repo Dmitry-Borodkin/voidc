@@ -233,20 +233,22 @@
     n1 = LLVMConstInt(int, 1, 0);
     n2 = LLVMConstInt(int, 2, 0);
 
+    builder = v_target_get_voidc_builder();
+
 
     v_store(n2, val0);
 
-    par_else = LLVMBuildGEP(voidc_builder, p1, val0, 1, "par_else");
+    par_else = LLVMBuildGEP(builder, p1, val0, 1, "par_else");
 
 
     get_arg_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, v_ast_opaque_stmt_ptr);
 
     v_store(par_else, val0);
 
-    stmt_else_ptr = LLVMBuildCall(voidc_builder, get_arg_f, val0, 1, "stmt_else_ptr");
+    stmt_else_ptr = LLVMBuildCall(builder, get_arg_f, val0, 1, "stmt_else_ptr");
 
 
-    stmt_else_v = LLVMBuildAlloca(voidc_builder, v_ast_stmt_ref, "stmt_else_v");
+    stmt_else_v = LLVMBuildAlloca(builder, v_ast_stmt_ref, "stmt_else_v");
 
 
     then_b = LLVMAppendBasicBlock(f, "then_b");
@@ -254,35 +256,35 @@
     cont_b = LLVMAppendBasicBlock(f, "cont_b");
 
 
-    ok_v = LLVMBuildIsNotNull(voidc_builder, stmt_else_ptr, "ok_v");
+    ok_v = LLVMBuildIsNotNull(builder, stmt_else_ptr, "ok_v");
 
-    LLVMBuildCondBr(voidc_builder, ok_v, then_b, else_b);
-
-
-    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
-
-    LLVMBuildStore(voidc_builder, stmt_else_ptr, stmt_else_v);
-
-    LLVMBuildBr(voidc_builder, cont_b);
+    LLVMBuildCondBr(builder, ok_v, then_b, else_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+    LLVMPositionBuilderAtEnd(builder, then_b);
 
-    stmt_nil_ptr = LLVMBuildAlloca(voidc_builder, v_ast_opaque_stmt_ptr, "stmt_nil_ptr");
+    LLVMBuildStore(builder, stmt_else_ptr, stmt_else_v);
+
+    LLVMBuildBr(builder, cont_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, else_b);
+
+    stmt_nil_ptr = LLVMBuildAlloca(builder, v_ast_opaque_stmt_ptr, "stmt_nil_ptr");
 
     stmt_ptr_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_stmt_ptr);
 
     v_store(stmt_nil_ptr, val0);
     v_store(n1,           val1);
 
-    LLVMBuildCall(voidc_builder, stmt_ptr_init_f, val0, 2, "");
+    LLVMBuildCall(builder, stmt_ptr_init_f, val0, 2, "");
 
-    LLVMBuildStore(voidc_builder, stmt_nil_ptr, stmt_else_v);
+    LLVMBuildStore(builder, stmt_nil_ptr, stmt_else_v);
 
-    LLVMBuildBr(voidc_builder, cont_b);
+    LLVMBuildBr(builder, cont_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, cont_b);
+    LLVMPositionBuilderAtEnd(builder, cont_b);
 
     v_add_variable("stmt_else_v", stmt_else_v);
 }
@@ -330,113 +332,119 @@
     val0 = v_alloca(LLVMValueRef, 2);
     val1 = v_getelementptr(val0, 1);
 
+    builder = v_target_get_voidc_builder();
+
+
+    get_builder_f = v_obtain_function("v_target_get_builder");
+
+    builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
+
 
     stmt_empty_f = v_obtain_dict_function(v_util_empty_dict, v_ast_opaque_stmt_ptr);
 
     v_store(stmt, val0);
 
-    no_stmt = LLVMBuildCall(voidc_builder, stmt_empty_f, val0, 1, "no_stmt");
+    no_stmt = LLVMBuildCall(builder, stmt_empty_f, val0, 1, "no_stmt");
 
 
     stmt_b = LLVMAppendBasicBlock(f, "stmt_b");
     term_b = LLVMAppendBasicBlock(f, "term_b");
     cont_b = LLVMAppendBasicBlock(f, "cont_b");
 
-    LLVMBuildCondBr(voidc_builder, no_stmt, cont_b, stmt_b);
+    LLVMBuildCondBr(builder, no_stmt, cont_b, stmt_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, stmt_b);
+    LLVMPositionBuilderAtEnd(builder, stmt_b);
 
-    base_ast = LLVMBuildBitCast(voidc_builder, stmt, v_ast_base_ref, "base_ast");
+    base_ast = LLVMBuildBitCast(builder, stmt, v_ast_base_ref, "base_ast");
 
     v_store(base_ast, val0);
     v_store(visitor,  val1);
 
     accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
 
-    LLVMBuildCall(voidc_builder, accept_visitor_f, val0, 2, "");
-
-
-    builder_v = v_obtain_global("voidc_builder");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
 
 
     v_store(builder_v, val0);
 
     llvm_get_insert_block_f = v_obtain_function("LLVMGetInsertBlock");
 
-    cur_bv = LLVMBuildCall(voidc_builder, llvm_get_insert_block_f, val0, 1, "cur_bv");
+    cur_bv = LLVMBuildCall(builder, llvm_get_insert_block_f, val0, 1, "cur_bv");
 
 
     v_store(cur_bv, val0);
 
     llvm_get_basic_block_terminator_f = v_obtain_function("LLVMGetBasicBlockTerminator");
 
-    term_v = LLVMBuildCall(voidc_builder, llvm_get_basic_block_terminator_f, val0, 1, "term_v");
+    term_v = LLVMBuildCall(builder, llvm_get_basic_block_terminator_f, val0, 1, "term_v");
 
 
-    ok_v = LLVMBuildIsNotNull(voidc_builder, term_v, "ok_v");
+    ok_v = LLVMBuildIsNotNull(builder, term_v, "ok_v");
 
-    LLVMBuildCondBr(voidc_builder, ok_v, term_b, cont_b);
-
-
-    LLVMPositionBuilderAtEnd(voidc_builder, term_b);
+    LLVMBuildCondBr(builder, ok_v, term_b, cont_b);
 
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMPositionBuilderAtEnd(builder, term_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, cont_b);
+    LLVMBuildRetVoid(builder);
+
+
+    LLVMPositionBuilderAtEnd(builder, cont_b);
 
 
     bbl_b = LLVMAppendBasicBlock(f, "bbl_b");
     fin_b = LLVMAppendBasicBlock(f, "fin_b");
 
 
-    bblock = LLVMBuildLoad(voidc_builder, bblock_v, "bblock");
+    bblock = LLVMBuildLoad(builder, bblock_v, "bblock");
 
-    bb_v = LLVMBuildIsNotNull(voidc_builder, bblock, "bb_v");
+    bb_v = LLVMBuildIsNotNull(builder, bblock, "bb_v");
 
-    LLVMBuildCondBr(voidc_builder, bb_v, fin_b, bbl_b);
+    LLVMBuildCondBr(builder, bb_v, fin_b, bbl_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, bbl_b);
+    LLVMPositionBuilderAtEnd(builder, bbl_b);
 
 
     v_store(builder_v, val0);
 
-    cur_bv = LLVMBuildCall(voidc_builder, llvm_get_insert_block_f, val0, 1, "cur_bv");
+    cur_bv = LLVMBuildCall(builder, llvm_get_insert_block_f, val0, 1, "cur_bv");
 
 
     llvm_get_basic_block_parent_f = v_obtain_function("LLVMGetBasicBlockParent");
 
     v_store(cur_bv, val0);
 
-    fun_v = LLVMBuildCall(voidc_builder, llvm_get_basic_block_parent_f, val0, 1, "fun_v");
+    fun_v = LLVMBuildCall(builder, llvm_get_basic_block_parent_f, val0, 1, "fun_v");
 
 
     llvm_append_basic_block_f = v_obtain_function("LLVMAppendBasicBlock");
 
-    fin_bb_str = LLVMBuildGlobalStringPtr(voidc_builder, "fin_bb", "fin_bb_str");
+    fin_bb_str = LLVMBuildGlobalStringPtr(builder, "fin_bb", "fin_bb_str");
 
     v_store(fun_v,      val0);
     v_store(fin_bb_str, val1);
 
-    fin_bb_v = LLVMBuildCall(voidc_builder, llvm_append_basic_block_f, val0, 2, "fin_bb_v");
+    fin_bb_v = LLVMBuildCall(builder, llvm_append_basic_block_f, val0, 2, "fin_bb_v");
 
-    LLVMBuildStore(voidc_builder, fin_bb_v, bblock_v);
-
-
-    LLVMBuildBr(voidc_builder, fin_b);
+    LLVMBuildStore(builder, fin_bb_v, bblock_v);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, fin_b);
+    LLVMBuildBr(builder, fin_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, fin_b);
 
     v_add_variable("bblock_v", bblock_v);
 }
 {
+    builder = v_target_get_builder();
+
     bblock = v_load(bblock_v);
 
-    LLVMBuildBr(voidc_builder, bblock);
+    LLVMBuildBr(builder, bblock);
 }
 
 
@@ -455,24 +463,29 @@
     bblock = LLVMGetParam(f, 0);    v_add_variable("bblock", bblock);
 
 
+    builder = v_target_get_voidc_builder();
+
+
     then_b = LLVMAppendBasicBlock(f, "then_b");
     else_b = LLVMAppendBasicBlock(f, "else_b");
 
 
-    ok_v = LLVMBuildIsNull(voidc_builder, bblock, "ok_v");
+    ok_v = LLVMBuildIsNull(builder, bblock, "ok_v");
 
-    LLVMBuildCondBr(voidc_builder, ok_v, then_b, else_b);
-
-
-    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
-
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildCondBr(builder, ok_v, then_b, else_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+    LLVMPositionBuilderAtEnd(builder, then_b);
+
+    LLVMBuildRetVoid(builder);
+
+
+    LLVMPositionBuilderAtEnd(builder, else_b);
 }
 {
-    LLVMPositionBuilderAtEnd(voidc_builder, bblock);
+    builder = v_target_get_builder();
+
+    LLVMPositionBuilderAtEnd(builder, bblock);
 }
 
 
@@ -488,32 +501,34 @@
     p3 = LLVMGetParam(f, 3);    v_add_variable("stmt_else", p3);
 }
 {
+    builder = v_target_get_builder();
+
     base_cond = v_cast(LLVMBitCast, condition, v_ast_base_ref);
 
     v_ast_accept_visitor(base_cond, visitor);
 
     cond_a = v_get_argument(0);
 
-    cond = LLVMBuildIsNotNull(voidc_builder, cond_a, "cond");
+    cond = LLVMBuildIsNotNull(builder, cond_a, "cond");
 
-    cur_b = LLVMGetInsertBlock(voidc_builder);
+    cur_b = LLVMGetInsertBlock(builder);
     fun_v = LLVMGetBasicBlockParent(cur_b);
 
     then_b = LLVMAppendBasicBlock(fun_v, "then_b");
     else_b = LLVMAppendBasicBlock(fun_v, "else_b");
 
-    LLVMBuildCondBr(voidc_builder, cond, then_b, else_b);
+    LLVMBuildCondBr(builder, cond, then_b, else_b);
 
     v_clear_arguments();
 
     bblock_v = v_alloca(LLVMBasicBlockRef);
     v_store(0, bblock_v);
 
-    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
+    LLVMPositionBuilderAtEnd(builder, then_b);
 
     compile_ast_stmt_if_then_else_branch_helper(visitor, stmt_then, bblock_v);
 
-    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+    LLVMPositionBuilderAtEnd(builder, else_b);
 
     compile_ast_stmt_if_then_else_branch_helper(visitor, stmt_else, bblock_v);
 
@@ -532,40 +547,43 @@
     f = v_function_hack("voidc_enable_statement_if_then_else", ft);
 
 
+    builder = v_target_get_voidc_builder();
+
+
     has_grammar_f = v_obtain_function("voidc_has_grammar");
 
-    vhg_v = LLVMBuildCall(voidc_builder, has_grammar_f, 0, 0, "vhg_v");
+    vhg_v = LLVMBuildCall(builder, has_grammar_f, 0, 0, "vhg_v");
 
     return_b = LLVMAppendBasicBlock(f, "return_b");
     vhg_ok_b = LLVMAppendBasicBlock(f, "vhg_ok_b");
 
-    LLVMBuildCondBr(voidc_builder, vhg_v, vhg_ok_b, return_b);
+    LLVMBuildCondBr(builder, vhg_v, vhg_ok_b, return_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, return_b);
+    LLVMPositionBuilderAtEnd(builder, return_b);
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, vhg_ok_b);
+    LLVMPositionBuilderAtEnd(builder, vhg_ok_b);
 
 
     has_parser_f = v_obtain_function("voidc_grammar_has_parser");
 
     val0 = v_alloca(LLVMValueRef);
 
-    name = LLVMBuildGlobalStringPtr(voidc_builder, "stmt_if_then_else", "name");
+    name = LLVMBuildGlobalStringPtr(builder, "stmt_if_then_else", "name");
 
     v_store(name, val0);
 
-    ghp_v = LLVMBuildCall(voidc_builder, has_parser_f, val0, 1, "ghp_v");
+    ghp_v = LLVMBuildCall(builder, has_parser_f, val0, 1, "ghp_v");
 
     work_b = LLVMAppendBasicBlock(f, "work_b");
 
-    LLVMBuildCondBr(voidc_builder, ghp_v, return_b, work_b);
+    LLVMBuildCondBr(builder, ghp_v, return_b, work_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, work_b);
+    LLVMPositionBuilderAtEnd(builder, work_b);
 }
 {
     pp0 = v_alloca(v_peg_opaque_parser_ptr, 15);

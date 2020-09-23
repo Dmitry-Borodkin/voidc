@@ -11,7 +11,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <set>
 #include <list>
 #include <memory>
 #include <cstring>
@@ -140,24 +139,19 @@ fs::path find_file_for_import(const fs::path &parent, const fs::path &filename)
 
 
 //--------------------------------------------------------------------
-static std::set<fs::path> already_imported;
-
-//--------------------------------------------------------------------
 extern "C"
 {
 
 static
 void v_import(const char *name)
 {
-    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
-    auto &gctx = *voidc_global_ctx_t::voidc;
-
-    auto *parent_cctx = gctx.local_ctx;
+    auto *parent_lctx = vctx.local_ctx;
 
     fs::path src_filename = name;
 
-    fs::path parent_path = fs::path(parent_cctx->filename).parent_path();
+    fs::path parent_path = fs::path(parent_lctx->filename).parent_path();
 
     src_filename = find_file_for_import(parent_path, src_filename);
 
@@ -166,9 +160,14 @@ void v_import(const char *name)
         throw std::runtime_error("Import file not found: " + src_filename.string());
     }
 
-    if (already_imported.count(src_filename))   return;
+    auto src_filename_str = src_filename.string();
 
-    already_imported.insert(src_filename);
+    {   auto &tctx = *voidc_global_ctx_t::target;
+
+        if (tctx.imported.count(src_filename_str)) return;
+
+        tctx.imported.insert(src_filename_str);
+    }
 
     fs::path bin_filename = src_filename;
 
@@ -192,7 +191,7 @@ void v_import(const char *name)
 
     std::ifstream infs;
 
-    voidc_local_ctx_t lctx(src_filename.string(), gctx);
+    voidc_local_ctx_t lctx(src_filename_str, vctx);
 
     if (use_binary)
     {

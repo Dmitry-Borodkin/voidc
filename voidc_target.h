@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <map>
 #include <forward_list>
 #include <utility>
@@ -48,8 +49,13 @@ public:
 class base_global_ctx_t : public base_compile_ctx_t
 {
 public:
-    base_global_ctx_t(size_t int_size, size_t long_size, size_t ptr_size);
-    virtual ~base_global_ctx_t() = default;
+    base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size);
+    ~base_global_ctx_t();
+
+public:
+    const LLVMContextRef llvm_ctx;      //- Sic!
+
+    const LLVMBuilderRef builder;
 
 public:
     const LLVMTypeRef void_type;
@@ -62,6 +68,12 @@ public:
     const LLVMTypeRef intptr_t_type;
     const LLVMTypeRef size_t_type;
     const LLVMTypeRef char32_t_type;
+
+    const LLVMTypeRef opaque_void_type;
+    const LLVMTypeRef void_ptr_type;
+
+public:
+    std::set<std::string> imported;
 
 public:
     static int debug_print_module;
@@ -157,7 +169,6 @@ public:
 public:
     static LLVMTargetMachineRef target_machine;
     static LLVMOrcJITStackRef   jit;
-    static LLVMBuilderRef       builder;
     static LLVMPassManagerRef   pass_manager;
 
 public:
@@ -168,9 +179,6 @@ public:
     const LLVMTypeRef LLVMTypeRef_type;
     const LLVMTypeRef LLVMOpaqueContext_type;
     const LLVMTypeRef LLVMContextRef_type;
-
-    const LLVMTypeRef voidc_opaque_void_type;
-    const LLVMTypeRef void_ptr_type;
 
 public:
     void add_symbol_type(const char *raw_name, LLVMTypeRef type) override;
@@ -226,7 +234,7 @@ class target_global_ctx_t : public base_global_ctx_t
 {
 public:
     target_global_ctx_t(size_t int_size, size_t long_size, size_t ptr_size);
-    ~target_global_ctx_t() = default;
+    ~target_global_ctx_t();
 
 public:
     void add_symbol_type(const char *raw_name, LLVMTypeRef type) override;

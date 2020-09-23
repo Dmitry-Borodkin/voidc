@@ -111,6 +111,8 @@
     saved_module = v_get_module();
     v_set_module(module);
 
+    builder = v_target_get_voidc_builder();
+
     typ0 = v_alloca(LLVMTypeRef, 2);
     typ1 = v_getelementptr(typ0, 1);
 
@@ -121,11 +123,11 @@
     LLVMSetLinkage(destroy_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(destroy_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
     printf_f = v_obtain_function("printf");
 
-    str = LLVMBuildGlobalStringPtr(voidc_builder, "destroy!\n", "str");
+    str = LLVMBuildGlobalStringPtr(builder, "destroy!\n", "str");
 
     val0 = v_alloca(LLVMValueRef, 3);
     val1 = v_getelementptr(val0, 1);
@@ -133,9 +135,9 @@
 
     v_store(str, val0);
 
-    LLVMBuildCall(voidc_builder, printf_f, val0, 1, "");
+    LLVMBuildCall(builder, printf_f, val0, 1, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     v_store(voidc_visitor_ref, typ1);
@@ -145,19 +147,19 @@
     LLVMSetLinkage(accept_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(accept_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
-    str = LLVMBuildGlobalStringPtr(voidc_builder, "accept!\n", "str");
+    str = LLVMBuildGlobalStringPtr(builder, "accept!\n", "str");
 
     v_store(str, val0);
 
-    LLVMBuildCall(voidc_builder, printf_f, val0, 1, "");
+    LLVMBuildCall(builder, printf_f, val0, 1, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
-    LLVMClearInsertionPosition(voidc_builder);
+    LLVMClearInsertionPosition(builder);
 
 
     //-------------------------------------------------------------

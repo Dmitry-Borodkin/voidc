@@ -19,7 +19,8 @@
 //  v0 = LLVMPointerType(void, 0);
     v_add_symbol("LLVMErrorTypeId", LLVMOpaqueType, void_ptr);
 
-    v1 = LLVMGetGlobalContext();
+//  v1 = LLVMGetGlobalContext();
+    v1 = v_target_get_llvm_ctx();
     v2 = LLVMStructCreateNamed(v1, "struct.LLVMOpaqueError");
     v3 = LLVMPointerType(v2, 0);
     v_add_symbol("LLVMErrorRef", LLVMOpaqueType, v3);

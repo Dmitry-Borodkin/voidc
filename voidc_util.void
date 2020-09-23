@@ -107,6 +107,9 @@
     char_ptr = LLVMPointerType(char, 0);
     dict_ptr = LLVMPointerType(v_util_opaque_function_dict_t, 0);
 
+    //-----------------------------------------------------------------
+    builder = v_target_get_voidc_builder();
+
 
     //-----------------------------------------------------------------
     //- LLVMValueRef v_obtain_function(const char *fun_name);
@@ -119,13 +122,13 @@
     fun_name = LLVMGetParam(obtain_fun_f, 0);
 
     entry = LLVMAppendBasicBlock(obtain_fun_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     get_module_ft = v_find_symbol_type("v_get_module");
     get_module_f  = LLVMAddFunction(module, "v_get_module", get_module_ft);
 
-    module_v = LLVMBuildCall(voidc_builder, get_module_f, 0, 0, "module_v");
+    module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "module_v");
 
     llvm_get_fun_ft = v_find_symbol_type("LLVMGetNamedFunction");
     llvm_get_fun_f  = LLVMAddFunction(module, "LLVMGetNamedFunction", llvm_get_fun_ft);
@@ -133,29 +136,29 @@
     v_store(module_v, val0);
     v_store(fun_name, val1);
 
-    fun_value = LLVMBuildCall(voidc_builder, llvm_get_fun_f, val0, 2, "fun_value");
+    fun_value = LLVMBuildCall(builder, llvm_get_fun_f, val0, 2, "fun_value");
 
-    ok = LLVMBuildIsNotNull(voidc_builder, fun_value, "ok");
+    ok = LLVMBuildIsNotNull(builder, fun_value, "ok");
 
     then_b = LLVMAppendBasicBlock(obtain_fun_f, "then_b");
     else_b = LLVMAppendBasicBlock(obtain_fun_f, "else_b");
 
-    LLVMBuildCondBr(voidc_builder, ok, then_b, else_b);
+    LLVMBuildCondBr(builder, ok, then_b, else_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
+    LLVMPositionBuilderAtEnd(builder, then_b);
 
-    LLVMBuildRet(voidc_builder, fun_value);
+    LLVMBuildRet(builder, fun_value);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+    LLVMPositionBuilderAtEnd(builder, else_b);
 
     find_sym_type_ft = v_find_symbol_type("v_find_symbol_type");
     find_sym_type_f  = LLVMAddFunction(module, "v_find_symbol_type", find_sym_type_ft);
 
     v_store(fun_name, val0);
 
-    fun_type = LLVMBuildCall(voidc_builder, find_sym_type_f, val0, 1, "fun_type");
+    fun_type = LLVMBuildCall(builder, find_sym_type_f, val0, 1, "fun_type");
 
 
     llvm_add_fun_ft = v_find_symbol_type("LLVMAddFunction");
@@ -165,9 +168,9 @@
     v_store(fun_name, val1);
     v_store(fun_type, val2);
 
-    fun_value = LLVMBuildCall(voidc_builder, llvm_add_fun_f, val0, 3, "fun_value");
+    fun_value = LLVMBuildCall(builder, llvm_add_fun_f, val0, 3, "fun_value");
 
-    LLVMBuildRet(voidc_builder, fun_value);
+    LLVMBuildRet(builder, fun_value);
 
 
     //-----------------------------------------------------------------
@@ -183,7 +186,7 @@
     type_v = LLVMGetParam(obtain_dfun_f, 1);
 
     entry = LLVMAppendBasicBlock(obtain_dfun_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     dict_get_ft = v_find_symbol_type("v_util_function_dict_get");
@@ -192,13 +195,13 @@
     v_store(dict_v, val0);
     v_store(type_v, val1);
 
-    dfun_name = LLVMBuildCall(voidc_builder, dict_get_f, val0, 2, "dfun_name");
+    dfun_name = LLVMBuildCall(builder, dict_get_f, val0, 2, "dfun_name");
 
     v_store(dfun_name, val0);
 
-    dfun_value = LLVMBuildCall(voidc_builder, obtain_fun_f, val0, 1, "dfun_value");
+    dfun_value = LLVMBuildCall(builder, obtain_fun_f, val0, 1, "dfun_value");
 
-    LLVMBuildRet(voidc_builder, dfun_value);
+    LLVMBuildRet(builder, dfun_value);
 
 
     //-----------------------------------------------------------------
@@ -212,10 +215,10 @@
     var_name = LLVMGetParam(obtain_var_f, 0);
 
     entry = LLVMAppendBasicBlock(obtain_var_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    module_v = LLVMBuildCall(voidc_builder, get_module_f, 0, 0, "module_v");
+    module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "module_v");
 
     llvm_get_var_ft = v_find_symbol_type("LLVMGetNamedGlobal");
     llvm_get_var_f  = LLVMAddFunction(module, "LLVMGetNamedGlobal", llvm_get_var_ft);
@@ -223,26 +226,26 @@
     v_store(module_v, val0);
     v_store(var_name, val1);
 
-    var_value = LLVMBuildCall(voidc_builder, llvm_get_var_f, val0, 2, "var_value");
+    var_value = LLVMBuildCall(builder, llvm_get_var_f, val0, 2, "var_value");
 
-    ok = LLVMBuildIsNotNull(voidc_builder, var_value, "ok");
+    ok = LLVMBuildIsNotNull(builder, var_value, "ok");
 
     then_b = LLVMAppendBasicBlock(obtain_var_f, "then_b");
     else_b = LLVMAppendBasicBlock(obtain_var_f, "else_b");
 
-    LLVMBuildCondBr(voidc_builder, ok, then_b, else_b);
+    LLVMBuildCondBr(builder, ok, then_b, else_b);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, then_b);
+    LLVMPositionBuilderAtEnd(builder, then_b);
 
-    LLVMBuildRet(voidc_builder, var_value);
+    LLVMBuildRet(builder, var_value);
 
 
-    LLVMPositionBuilderAtEnd(voidc_builder, else_b);
+    LLVMPositionBuilderAtEnd(builder, else_b);
 
     v_store(var_name, val0);
 
-    var_type = LLVMBuildCall(voidc_builder, find_sym_type_f, val0, 1, "var_type");
+    var_type = LLVMBuildCall(builder, find_sym_type_f, val0, 1, "var_type");
 
 
     llvm_add_var_ft = v_find_symbol_type("LLVMAddGlobal");
@@ -252,13 +255,13 @@
     v_store(var_type, val1);
     v_store(var_name, val2);
 
-    var_value = LLVMBuildCall(voidc_builder, llvm_add_var_f, val0, 3, "var_value");
+    var_value = LLVMBuildCall(builder, llvm_add_var_f, val0, 3, "var_value");
 
-    LLVMBuildRet(voidc_builder, var_value);
+    LLVMBuildRet(builder, var_value);
 
 
     //-----------------------------------------------------------------
-    LLVMClearInsertionPosition(voidc_builder);
+    LLVMClearInsertionPosition(builder);
 
     //-----------------------------------------------------------------
 //    msg = LLVMPrintModuleToString(module);
@@ -319,6 +322,9 @@
 
     register_batch_ft = LLVMFunctionType(void, typ0, 3, 0);
 
+    //-----------------------------------------------------------------
+    builder = v_target_get_voidc_builder();
+
 
     //-------------------------------------------------------------
     //- Init/destroy registering helper
@@ -331,14 +337,14 @@
     p_dict     = LLVMGetParam(init_destroy_helper_f, 2);
 
     entry = LLVMAppendBasicBlock(init_destroy_helper_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n2, "arg0");
 
     v_store(n1, val0);
 
-    arg1 = LLVMBuildGEP(voidc_builder, arg0, val0, 1, "arg1");
+    arg1 = LLVMBuildGEP(builder, arg0, val0, 1, "arg1");
 
 
     v_store(val_t_type, val0);
@@ -346,15 +352,15 @@
 
     pointer_type_f = v_obtain_function("LLVMPointerType");
 
-    val_t_ptr = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "val_t_ptr");
+    val_t_ptr = LLVMBuildCall(builder, pointer_type_f, val0, 2, "val_t_ptr");
 
 
-    LLVMBuildStore(voidc_builder, val_t_ptr, arg0);
+    LLVMBuildStore(builder, val_t_ptr, arg0);
 
 
     int_type = v_obtain_global("int");
 
-    LLVMBuildStore(voidc_builder, int_type, arg1);
+    LLVMBuildStore(builder, int_type, arg1);
 
 
     void_type = v_obtain_global("void");
@@ -366,7 +372,7 @@
 
     function_type_f = v_obtain_function("LLVMFunctionType");
 
-    fun_type = LLVMBuildCall(voidc_builder, function_type_f, val0, 4, "fun_type");
+    fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
 
     v_store(fun_name, val0);
@@ -374,7 +380,7 @@
 
     add_symbol_type_f = v_obtain_function("v_add_symbol_type");
 
-    LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
+    LLVMBuildCall(builder, add_symbol_type_f, val0, 2, "");
 
 
     v_store(p_dict,     val0);
@@ -383,9 +389,9 @@
 
     dict_set_f = v_obtain_function("v_util_function_dict_set");
 
-    LLVMBuildCall(voidc_builder, dict_set_f, val0, 3, "");
+    LLVMBuildCall(builder, dict_set_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -397,7 +403,7 @@
     fun_name   = LLVMGetParam(init_f, 1);
 
     entry = LLVMAppendBasicBlock(init_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     init_dict = v_obtain_global("v_util_initialize_dict");
@@ -406,9 +412,9 @@
     v_store(fun_name,   val1);
     v_store(init_dict,  val2);
 
-    LLVMBuildCall(voidc_builder, init_destroy_helper_f, val0, 3, "");
+    LLVMBuildCall(builder, init_destroy_helper_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -420,7 +426,7 @@
     fun_name   = LLVMGetParam(destroy_f, 1);
 
     entry = LLVMAppendBasicBlock(destroy_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     destroy_dict = v_obtain_global("v_util_destroy_dict");
@@ -429,9 +435,9 @@
     v_store(fun_name,     val1);
     v_store(destroy_dict, val2);
 
-    LLVMBuildCall(voidc_builder, init_destroy_helper_f, val0, 3, "");
+    LLVMBuildCall(builder, init_destroy_helper_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -445,31 +451,31 @@
     p_dict     = LLVMGetParam(copy_move_helper_f, 2);
 
     entry = LLVMAppendBasicBlock(copy_move_helper_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n3, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n3, "arg0");
 
     v_store(n1, val0);
 
-    arg1 = LLVMBuildGEP(voidc_builder, arg0, val0, 1, "arg1");
+    arg1 = LLVMBuildGEP(builder, arg0, val0, 1, "arg1");
 
     v_store(n2, val0);
 
-    arg2 = LLVMBuildGEP(voidc_builder, arg0, val0, 1, "arg2");
+    arg2 = LLVMBuildGEP(builder, arg0, val0, 1, "arg2");
 
 
     v_store(val_t_type, val0);
     v_store(n0,         val1);
 
-    val_t_ptr = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "val_t_ptr");
+    val_t_ptr = LLVMBuildCall(builder, pointer_type_f, val0, 2, "val_t_ptr");
 
 
-    LLVMBuildStore(voidc_builder, val_t_ptr, arg0);
+    LLVMBuildStore(builder, val_t_ptr, arg0);
 
-    LLVMBuildStore(voidc_builder, val_t_ptr, arg1);
+    LLVMBuildStore(builder, val_t_ptr, arg1);
 
-    LLVMBuildStore(voidc_builder, int_type,  arg2);
+    LLVMBuildStore(builder, int_type,  arg2);
 
 
     v_store(void_type, val0);
@@ -477,22 +483,22 @@
     v_store(n3,        val2);
     v_store(n0,        val3);
 
-    fun_type = LLVMBuildCall(voidc_builder, function_type_f, val0, 4, "fun_type");
+    fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
 
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
+    LLVMBuildCall(builder, add_symbol_type_f, val0, 2, "");
 
 
     v_store(p_dict,     val0);
     v_store(val_t_type, val1);
     v_store(fun_name,   val2);
 
-    LLVMBuildCall(voidc_builder, dict_set_f, val0, 3, "");
+    LLVMBuildCall(builder, dict_set_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -504,7 +510,7 @@
     fun_name   = LLVMGetParam(copy_f, 1);
 
     entry = LLVMAppendBasicBlock(copy_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     copy_dict = v_obtain_global("v_util_copy_dict");
@@ -513,9 +519,9 @@
     v_store(fun_name,   val1);
     v_store(copy_dict,  val2);
 
-    LLVMBuildCall(voidc_builder, copy_move_helper_f, val0, 3, "");
+    LLVMBuildCall(builder, copy_move_helper_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -527,7 +533,7 @@
     fun_name   = LLVMGetParam(move_f, 1);
 
     entry = LLVMAppendBasicBlock(move_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     move_dict = v_obtain_global("v_util_move_dict");
@@ -536,9 +542,9 @@
     v_store(fun_name,   val1);
     v_store(move_dict,  val2);
 
-    LLVMBuildCall(voidc_builder, copy_move_helper_f, val0, 3, "");
+    LLVMBuildCall(builder, copy_move_helper_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -550,19 +556,19 @@
     fun_name   = LLVMGetParam(empty_f, 1);
 
     entry = LLVMAppendBasicBlock(empty_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n2, "arg0");
 
 
     v_store(val_t_type, val0);
     v_store(n0,         val1);
 
-    val_t_ptr = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "val_t_ptr");
+    val_t_ptr = LLVMBuildCall(builder, pointer_type_f, val0, 2, "val_t_ptr");
 
 
-    LLVMBuildStore(voidc_builder, val_t_ptr, arg0);
+    LLVMBuildStore(builder, val_t_ptr, arg0);
 
 
     bool_type = v_obtain_global("bool");
@@ -572,13 +578,13 @@
     v_store(n1,        val2);
     v_store(n0,        val3);
 
-    fun_type = LLVMBuildCall(voidc_builder, function_type_f, val0, 4, "fun_type");
+    fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
 
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
+    LLVMBuildCall(builder, add_symbol_type_f, val0, 2, "");
 
 
     empty_dict = v_obtain_global("v_util_empty_dict");
@@ -587,9 +593,9 @@
     v_store(val_t_type, val1);
     v_store(fun_name,   val2);
 
-    LLVMBuildCall(voidc_builder, dict_set_f, val0, 3, "");
+    LLVMBuildCall(builder, dict_set_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -602,10 +608,10 @@
     typename   = LLVMGetParam(idcme_f, 2);
 
     entry = LLVMAppendBasicBlock(idcme_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(voidc_builder, v_util_opaque_std_string, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string, "sstr");
 
 
     v_store(v_util_std_string_ref, typ0);
@@ -618,131 +624,131 @@
     v_store(sstr, val0);
     v_store(n1,   val1);
 
-    LLVMBuildCall(voidc_builder, sstr_init_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_init_f, val0, 2, "");
 
 
     sstr_set_f = v_obtain_function("v_std_string_set");
 
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
 
     sstr_append_f = v_obtain_function("v_std_string_append");
 
-    str_init = LLVMBuildGlobalStringPtr(voidc_builder, "_initialize_", "str_init");
+    str_init = LLVMBuildGlobalStringPtr(builder, "_initialize_", "str_init");
     v_store(str_init, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    str_impl = LLVMBuildGlobalStringPtr(voidc_builder, "_impl", "str_impl");
+    str_impl = LLVMBuildGlobalStringPtr(builder, "_impl", "str_impl");
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     sstr_get_f = v_obtain_function("v_std_string_get");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, init_f, val0, 2, "");
+    LLVMBuildCall(builder, init_f, val0, 2, "");
 
 
     v_store(sstr, val0);
 
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
-    str_destroy = LLVMBuildGlobalStringPtr(voidc_builder, "_destroy_", "str_destroy");
+    str_destroy = LLVMBuildGlobalStringPtr(builder, "_destroy_", "str_destroy");
     v_store(str_destroy, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, destroy_f, val0, 2, "");
+    LLVMBuildCall(builder, destroy_f, val0, 2, "");
 
 
     v_store(sstr, val0);
 
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
-    str_copy = LLVMBuildGlobalStringPtr(voidc_builder, "_copy_", "str_copy");
+    str_copy = LLVMBuildGlobalStringPtr(builder, "_copy_", "str_copy");
     v_store(str_copy, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, copy_f, val0, 2, "");
+    LLVMBuildCall(builder, copy_f, val0, 2, "");
 
 
     v_store(sstr, val0);
 
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
-    str_move = LLVMBuildGlobalStringPtr(voidc_builder, "_move_", "str_move");
+    str_move = LLVMBuildGlobalStringPtr(builder, "_move_", "str_move");
     v_store(str_move, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, move_f, val0, 2, "");
+    LLVMBuildCall(builder, move_f, val0, 2, "");
 
 
     v_store(sstr, val0);
 
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
-    str_empty = LLVMBuildGlobalStringPtr(voidc_builder, "_empty_", "str_empty");
+    str_empty = LLVMBuildGlobalStringPtr(builder, "_empty_", "str_empty");
     v_store(str_empty, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, empty_f, val0, 2, "");
+    LLVMBuildCall(builder, empty_f, val0, 2, "");
 
 
     v_store(sstr, val0);
     v_store(n1,   val1);
-    LLVMBuildCall(voidc_builder, sstr_destroy_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_destroy_f, val0, 2, "");
 
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -754,15 +760,15 @@
     fun_name   = LLVMGetParam(get_value_f, 1);
 
     entry = LLVMAppendBasicBlock(get_value_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     std_any_ptr_type = v_obtain_global("v_util_std_any_ref");
 
 
-    arg0 = LLVMBuildAlloca(voidc_builder, LLVMTypeRef, "arg0");
+    arg0 = LLVMBuildAlloca(builder, LLVMTypeRef, "arg0");
 
-    LLVMBuildStore(voidc_builder, std_any_ptr_type, arg0);
+    LLVMBuildStore(builder, std_any_ptr_type, arg0);
 
 
     v_store(val_t_type, val0);
@@ -770,13 +776,13 @@
     v_store(n1,         val2);
     v_store(n0,         val3);
 
-    fun_type = LLVMBuildCall(voidc_builder, function_type_f, val0, 4, "fun_type");
+    fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
 
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
+    LLVMBuildCall(builder, add_symbol_type_f, val0, 2, "");
 
 
     p_dict = v_obtain_global("v_util_std_any_get_value_dict");
@@ -785,9 +791,9 @@
     v_store(val_t_type, val1);
     v_store(fun_name,   val2);
 
-    LLVMBuildCall(voidc_builder, dict_set_f, val0, 3, "");
+    LLVMBuildCall(builder, dict_set_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -799,25 +805,25 @@
     fun_name   = LLVMGetParam(get_pointer_f, 1);
 
     entry = LLVMAppendBasicBlock(get_pointer_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n2, "arg0");
 
     v_store(n1, val0);
 
-    arg1 = LLVMBuildGEP(voidc_builder, arg0, val0, 1, "arg1");
+    arg1 = LLVMBuildGEP(builder, arg0, val0, 1, "arg1");
 
 
-    LLVMBuildStore(voidc_builder, std_any_ptr_type, arg0);
+    LLVMBuildStore(builder, std_any_ptr_type, arg0);
 
 
     v_store(val_t_type, val0);
     v_store(n0,         val1);
 
-    val_t_ptr = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "val_t_ptr");
+    val_t_ptr = LLVMBuildCall(builder, pointer_type_f, val0, 2, "val_t_ptr");
 
-    LLVMBuildStore(voidc_builder, val_t_ptr, arg1);
+    LLVMBuildStore(builder, val_t_ptr, arg1);
 
 
     v_store(val_t_ptr, val0);
@@ -825,13 +831,13 @@
     v_store(n1,        val2);
     v_store(n0,        val3);
 
-    fun_type = LLVMBuildCall(voidc_builder, function_type_f, val0, 4, "fun_type");
+    fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
 
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
+    LLVMBuildCall(builder, add_symbol_type_f, val0, 2, "");
 
 
     p_dict = v_obtain_global("v_util_std_any_get_pointer_dict");
@@ -840,9 +846,9 @@
     v_store(val_t_type, val1);
     v_store(fun_name,   val2);
 
-    LLVMBuildCall(voidc_builder, dict_set_f, val0, 3, "");
+    LLVMBuildCall(builder, dict_set_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -854,19 +860,19 @@
     fun_name   = LLVMGetParam(set_value_f, 1);
 
     entry = LLVMAppendBasicBlock(set_value_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n2, "arg0");
 
     v_store(n1, val0);
 
-    arg1 = LLVMBuildGEP(voidc_builder, arg0, val0, 1, "arg1");
+    arg1 = LLVMBuildGEP(builder, arg0, val0, 1, "arg1");
 
 
-    LLVMBuildStore(voidc_builder, std_any_ptr_type, arg0);
+    LLVMBuildStore(builder, std_any_ptr_type, arg0);
 
-    LLVMBuildStore(voidc_builder, val_t_type, arg1);
+    LLVMBuildStore(builder, val_t_type, arg1);
 
 
     v_store(void_type, val0);
@@ -874,13 +880,13 @@
     v_store(n2,        val2);
     v_store(n0,        val3);
 
-    fun_type = LLVMBuildCall(voidc_builder, function_type_f, val0, 4, "fun_type");
+    fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
 
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
+    LLVMBuildCall(builder, add_symbol_type_f, val0, 2, "");
 
 
     p_dict = v_obtain_global("v_util_std_any_set_value_dict");
@@ -889,9 +895,9 @@
     v_store(val_t_type, val1);
     v_store(fun_name,   val2);
 
-    LLVMBuildCall(voidc_builder, dict_set_f, val0, 3, "");
+    LLVMBuildCall(builder, dict_set_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -903,25 +909,25 @@
     fun_name   = LLVMGetParam(set_pointer_f, 1);
 
     entry = LLVMAppendBasicBlock(set_pointer_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(voidc_builder, LLVMTypeRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n2, "arg0");
 
     v_store(n1, val0);
 
-    arg1 = LLVMBuildGEP(voidc_builder, arg0, val0, 1, "arg1");
+    arg1 = LLVMBuildGEP(builder, arg0, val0, 1, "arg1");
 
 
-    LLVMBuildStore(voidc_builder, std_any_ptr_type, arg0);
+    LLVMBuildStore(builder, std_any_ptr_type, arg0);
 
 
     v_store(val_t_type, val0);
     v_store(n0,         val1);
 
-    val_t_ptr = LLVMBuildCall(voidc_builder, pointer_type_f, val0, 2, "val_t_ptr");
+    val_t_ptr = LLVMBuildCall(builder, pointer_type_f, val0, 2, "val_t_ptr");
 
-    LLVMBuildStore(voidc_builder, val_t_ptr, arg1);
+    LLVMBuildStore(builder, val_t_ptr, arg1);
 
 
     v_store(void_type, val0);
@@ -929,13 +935,13 @@
     v_store(n2,        val2);
     v_store(n0,        val3);
 
-    fun_type = LLVMBuildCall(voidc_builder, function_type_f, val0, 4, "fun_type");
+    fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
 
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    LLVMBuildCall(voidc_builder, add_symbol_type_f, val0, 2, "");
+    LLVMBuildCall(builder, add_symbol_type_f, val0, 2, "");
 
 
     p_dict = v_obtain_global("v_util_std_any_set_pointer_dict");
@@ -944,9 +950,9 @@
     v_store(val_t_type, val1);
     v_store(fun_name,   val2);
 
-    LLVMBuildCall(voidc_builder, dict_set_f, val0, 3, "");
+    LLVMBuildCall(builder, dict_set_f, val0, 3, "");
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -959,63 +965,63 @@
     typename   = LLVMGetParam(gs_value_f, 2);
 
     entry = LLVMAppendBasicBlock(gs_value_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(voidc_builder, v_util_opaque_std_string, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string, "sstr");
 
     v_store(sstr, val0);
     v_store(n1,   val1);
-    LLVMBuildCall(voidc_builder, sstr_init_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_init_f, val0, 2, "");
 
 
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
-    str_get_value = LLVMBuildGlobalStringPtr(voidc_builder, "_std_any_get_value_", "str_get_value");
+    str_get_value = LLVMBuildGlobalStringPtr(builder, "_std_any_get_value_", "str_get_value");
     v_store(str_get_value, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, get_value_f, val0, 2, "");
+    LLVMBuildCall(builder, get_value_f, val0, 2, "");
 
 
     v_store(sstr, val0);
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
-    str_set_value = LLVMBuildGlobalStringPtr(voidc_builder, "_std_any_set_value_", "str_set_value");
+    str_set_value = LLVMBuildGlobalStringPtr(builder, "_std_any_set_value_", "str_set_value");
     v_store(str_set_value, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, set_value_f, val0, 2, "");
+    LLVMBuildCall(builder, set_value_f, val0, 2, "");
 
 
     v_store(sstr, val0);
     v_store(n1,   val1);
-    LLVMBuildCall(voidc_builder, sstr_destroy_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_destroy_f, val0, 2, "");
 
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -1028,63 +1034,63 @@
     typename   = LLVMGetParam(gs_pointer_f, 2);
 
     entry = LLVMAppendBasicBlock(gs_pointer_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(voidc_builder, v_util_opaque_std_string, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string, "sstr");
 
     v_store(sstr, val0);
     v_store(n1,   val1);
-    LLVMBuildCall(voidc_builder, sstr_init_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_init_f, val0, 2, "");
 
 
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
-    str_get_pointer = LLVMBuildGlobalStringPtr(voidc_builder, "_std_any_get_pointer_", "str_get_pointer");
+    str_get_pointer = LLVMBuildGlobalStringPtr(builder, "_std_any_get_pointer_", "str_get_pointer");
     v_store(str_get_pointer, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, get_pointer_f, val0, 2, "");
+    LLVMBuildCall(builder, get_pointer_f, val0, 2, "");
 
 
     v_store(sstr, val0);
     v_store(prefix, val1);
-    LLVMBuildCall(voidc_builder, sstr_set_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_set_f, val0, 2, "");
 
-    str_set_pointer = LLVMBuildGlobalStringPtr(voidc_builder, "_std_any_set_pointer_", "str_set_pointer");
+    str_set_pointer = LLVMBuildGlobalStringPtr(builder, "_std_any_set_pointer_", "str_set_pointer");
     v_store(str_set_pointer, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
     v_store(str_impl, val1);
-    LLVMBuildCall(voidc_builder, sstr_append_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_append_f, val0, 2, "");
 
-    fun_name = LLVMBuildCall(voidc_builder, sstr_get_f, val0, 1, "fun_name");
+    fun_name = LLVMBuildCall(builder, sstr_get_f, val0, 1, "fun_name");
 
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
-    LLVMBuildCall(voidc_builder, set_pointer_f, val0, 2, "");
+    LLVMBuildCall(builder, set_pointer_f, val0, 2, "");
 
 
     v_store(sstr, val0);
     v_store(n1,   val1);
-    LLVMBuildCall(voidc_builder, sstr_destroy_f, val0, 2, "");
+    LLVMBuildCall(builder, sstr_destroy_f, val0, 2, "");
 
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -1097,17 +1103,17 @@
     typename   = LLVMGetParam(gs_vp_f, 2);
 
     entry = LLVMAppendBasicBlock(gs_vp_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
     v_store(val_t_type, val0);
     v_store(prefix,     val1);
     v_store(typename,   val2);
 
-    LLVMBuildCall(voidc_builder, gs_value_f,   val0, 3, "");
-    LLVMBuildCall(voidc_builder, gs_pointer_f, val0, 3, "");
+    LLVMBuildCall(builder, gs_value_f,   val0, 3, "");
+    LLVMBuildCall(builder, gs_pointer_f, val0, 3, "");
 
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-------------------------------------------------------------
@@ -1120,21 +1126,21 @@
     typename   = LLVMGetParam(idcmep_f, 2);
 
     entry = LLVMAppendBasicBlock(idcmep_f, "entry");
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
     v_store(val_t_type, val0);
     v_store(prefix,     val1);
     v_store(typename,   val2);
 
-    LLVMBuildCall(voidc_builder, idcme_f,      val0, 3, "");
-    LLVMBuildCall(voidc_builder, gs_pointer_f, val0, 3, "");
+    LLVMBuildCall(builder, idcme_f,      val0, 3, "");
+    LLVMBuildCall(builder, gs_pointer_f, val0, 3, "");
 
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
 
     //-----------------------------------------------------------------
-    LLVMClearInsertionPosition(voidc_builder);
+    LLVMClearInsertionPosition(builder);
 
     //-----------------------------------------------------------------
 //    msg = LLVMPrintModuleToString(module);

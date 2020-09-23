@@ -17,12 +17,14 @@
     v_store(v_util_std_any_ref, arg1);
     v_store(size_t,             arg2);
 
+    builder = v_target_get_voidc_builder();
+
     my_echo_ft = LLVMFunctionType(void, arg0, 3, 0);
     my_echo_f  = LLVMAddFunction(module, "my_echo_grammar_action", my_echo_ft);
 
     entry = LLVMAppendBasicBlock(my_echo_f, "entry");
 
-    LLVMPositionBuilderAtEnd(voidc_builder, entry);
+    LLVMPositionBuilderAtEnd(builder, entry);
 
 
     get_string_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, v_util_opaque_std_string);
@@ -34,24 +36,24 @@
 
     v_store(par1, val0);
 
-    pstr = LLVMBuildCall(voidc_builder, get_string_f, val0, 1, "pstr");
+    pstr = LLVMBuildCall(builder, get_string_f, val0, 1, "pstr");
 
 
     get_c_str_f = v_obtain_function("v_std_string_get");
 
     v_store(pstr, val0);
 
-    str = LLVMBuildCall(voidc_builder, get_c_str_f, val0, 1, "str");
+    str = LLVMBuildCall(builder, get_c_str_f, val0, 1, "str");
 
 
     printf_f = v_obtain_function("printf");
 
-    str0 = LLVMBuildGlobalStringPtr(voidc_builder, "my_echo: %s", "str0");
+    str0 = LLVMBuildGlobalStringPtr(builder, "my_echo: %s", "str0");
 
     v_store(str0, val0);
     v_store(str,  val1);
 
-    LLVMBuildCall(voidc_builder, printf_f, val0, 2, "");
+    LLVMBuildCall(builder, printf_f, val0, 2, "");
 
 
     set_value_f = v_obtain_dict_function(v_util_std_any_set_value_dict, bool);
@@ -64,12 +66,12 @@
 
     v_store(true, val1);
 
-    LLVMBuildCall(voidc_builder, set_value_f, val0, 2, "");
+    LLVMBuildCall(builder, set_value_f, val0, 2, "");
 
 
-    LLVMBuildRetVoid(voidc_builder);
+    LLVMBuildRetVoid(builder);
 
-    LLVMClearInsertionPosition(voidc_builder);
+    LLVMClearInsertionPosition(builder);
 
     //-----------------------------------------------------------------
 //    msg = LLVMPrintModuleToString(module);

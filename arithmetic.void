@@ -27,6 +27,8 @@
     p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list", p1);
 }
 {
+    builder = v_target_get_builder();
+
     arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
 
     v_ast_accept_visitor(arg_base, visitor);
@@ -42,7 +44,7 @@
 
     rname = v_get_return_name();
 
-    ret = LLVMBuildBinOp(voidc_builder, opc, lhs, rhs, rname);
+    ret = LLVMBuildBinOp(builder, opc, lhs, rhs, rname);
 
     v_set_return_value(ret);
 
@@ -60,6 +62,8 @@
     p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list", p1);
 }
 {
+    builder = v_target_get_builder();
+
     arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
 
     v_ast_accept_visitor(arg_base, visitor);
@@ -75,7 +79,7 @@
 
     rname = v_get_return_name();
 
-    ret = LLVMBuildICmp(voidc_builder, opc, lhs, rhs, rname);
+    ret = LLVMBuildICmp(builder, opc, lhs, rhs, rname);
 
     v_set_return_value(ret);
 
@@ -93,6 +97,8 @@
     p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list", p1);
 }
 {
+    builder = v_target_get_builder();
+
     arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
 
     v_ast_accept_visitor(arg_base, visitor);
@@ -108,7 +114,7 @@
 
     rname = v_get_return_name();
 
-    ret = LLVMBuildFCmp(voidc_builder, opc, lhs, rhs, rname);
+    ret = LLVMBuildFCmp(builder, opc, lhs, rhs, rname);
 
     v_set_return_value(ret);
 
