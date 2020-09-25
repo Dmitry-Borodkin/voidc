@@ -13,10 +13,12 @@
     arg0 = v_alloca(LLVMTypeRef, 2);
     arg1 = v_getelementptr(arg0, 1);
 
-    v_store(LLVMModuleRef, arg0);
-    v_store(LLVMModuleRef, arg1);
-    v0 = LLVMFunctionType(LLVMBool, arg0, 2, 0);
-    v_add_symbol_type("LLVMLinkModules2", v0);
+    v0_LLVMModuleRef = v_find_type("LLVMModuleRef");
+    v_store(v0_LLVMModuleRef, arg0);
+    v_store(v0_LLVMModuleRef, arg1);
+    v1_LLVMBool = v_find_type("LLVMBool");
+    v2 = LLVMFunctionType(v1_LLVMBool, arg0, 2, 0);
+    v_add_symbol_type("LLVMLinkModules2", v2);
 
 }
 

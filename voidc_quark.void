@@ -2,11 +2,13 @@
 //- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
+{   voidc_guard_import("voidc_quark.void"); }
+
 {   v_import("llvm-c/Core.void"); }
 
 
 //---------------------------------------------------------------------
-{   quark_t = LLVMInt32Type();
+{   quark_t = LLVMInt32Type();      //- Sic!
 
     v_add_symbol("v_quark_t", LLVMOpaqueType, quark_t);
 }

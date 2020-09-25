@@ -28,8 +28,8 @@
 //---------------------------------------------------------------------
 static vpeg::grammar_t voidc_grammar;
 
-static
-ast_unit_ptr_t parse_unit(vpeg::context_t &pctx)
+static ast_unit_ptr_t
+parse_unit(vpeg::context_t &pctx)
 {
     static const auto unit_q = v_quark_from_string("unit");
 
@@ -67,7 +67,8 @@ static std::list<fs::path> import_paths;
 #define PATHSEP ':'
 #endif
 
-void import_paths_initialize(const char *exe_name)
+void
+import_paths_initialize(const char *exe_name)
 {
     if (auto paths = std::getenv("VOIDC_IMPORT"))
     {
@@ -113,8 +114,8 @@ void import_paths_initialize(const char *exe_name)
 #undef PATHSEP
 
 //--------------------------------------------------------------------
-static
-fs::path find_file_for_import(const fs::path &parent, const fs::path &filename)
+static fs::path
+find_file_for_import(const fs::path &parent, const fs::path &filename)
 {
     if (filename.is_relative())
     {
@@ -139,11 +140,14 @@ fs::path find_file_for_import(const fs::path &parent, const fs::path &filename)
 
 
 //--------------------------------------------------------------------
+//- Intrinsics (functions)
+//--------------------------------------------------------------------
 extern "C"
 {
 
-static
-void v_import(const char *name)
+//--------------------------------------------------------------------
+void
+v_import(const char *name)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
@@ -294,13 +298,47 @@ void v_import(const char *name)
     infs.close();
 }
 
+//--------------------------------------------------------------------
+void
+voidc_import(const char *name)
+{
+    auto voidc  = voidc_global_ctx_t::voidc;
+    auto target = voidc_global_ctx_t::target;
+
+    if (target == voidc)
+    {
+        v_import(name);
+
+        return;
+    }
+
+    //- target != voidc
+
+    voidc_global_ctx_t::target = voidc;
+
+    v_import(name);
+
+    voidc_global_ctx_t::target = target;
+}
+
+//--------------------------------------------------------------------
+void
+voidc_guard_import(const char *errmsg)
+{
+    if (voidc_global_ctx_t::target == voidc_global_ctx_t::voidc)  return;
+
+    throw  std::runtime_error(std::string("voidc_guard_import: ") + errmsg);
+}
+
+
 }   //- extern "C"
 
 
 //--------------------------------------------------------------------
 //- As is...
 //--------------------------------------------------------------------
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     {   const char *exe_name = nullptr;
 
@@ -349,10 +387,11 @@ int main(int argc, char *argv[])
 
     {   auto char_ptr_type = LLVMPointerType(gctx.char_type, 0);
 
-        gctx.add_symbol("v_import",
-                        LLVMFunctionType(gctx.void_type, &char_ptr_type, 1, false),
-                        (void *)v_import
-                       );
+        auto import_f_type = LLVMFunctionType(gctx.void_type, &char_ptr_type, 1, false);
+
+        gctx.add_symbol_type("v_import",           import_f_type);
+        gctx.add_symbol_type("voidc_import",       import_f_type);
+        gctx.add_symbol_type("voidc_guard_import", import_f_type);      //- Kind of...
     }
 
     v_ast_static_initialize();

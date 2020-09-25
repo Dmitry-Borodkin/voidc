@@ -28,7 +28,6 @@
     v_target_set_global_ctx(gctx);
 }
 
-
 {
     v = v_target_get_voidc_global_ctx();
     t = v_target_get_global_ctx();
@@ -39,10 +38,14 @@
 
 
 {
-    i256 = LLVMIntType(256);
+    ctx = v_target_get_llvm_ctx();
+
+    i256z = LLVMIntType(256);
+    i256 = LLVMIntTypeInContext(ctx, 256);
 
     v_add_local_symbol("i256", LLVMOpaqueType, i256);
 
+    printf("i256z:  %p\n", i256z);
     printf("i256:  %p\n", i256);
 }
 
@@ -50,6 +53,8 @@
     i256_ = v_find_type("i256");
 
     printf("i256_: %p\n", i256_);
+
+    LLVMDumpType(i256_);
 }
 
 

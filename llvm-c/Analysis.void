@@ -10,20 +10,23 @@
 
 //- Values -------------------------------------------------
 {
-    val = LLVMConstInt(int, 1, 0);
+    _int = v_find_type("int");
+
+    val = LLVMConstInt(_int, 1, 0);
     v_add_constant("LLVMPrintMessageAction", val);
 
-    val = LLVMConstInt(int, 0, 0);
+    val = LLVMConstInt(_int, 0, 0);
     v_add_constant("LLVMAbortProcessAction", val);
 
-    val = LLVMConstInt(int, 2, 0);
+    val = LLVMConstInt(_int, 2, 0);
     v_add_constant("LLVMReturnStatusAction", val);
 
 }
 
 //- Types --------------------------------------------------
 {
-    v_add_symbol("LLVMVerifierFailureAction", LLVMOpaqueType, int);
+    v0_int = v_find_type("int");
+    v_add_symbol("LLVMVerifierFailureAction", LLVMOpaqueType, v0_int);
 
 }
 
@@ -33,26 +36,32 @@
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    v_store(LLVMValueRef, arg0);
-    v0 = LLVMFunctionType(void, arg0, 1, 0);
-    v_add_symbol_type("LLVMViewFunctionCFG", v0);
+    v0_LLVMValueRef = v_find_type("LLVMValueRef");
+    v_store(v0_LLVMValueRef, arg0);
+    v1_void = v_find_type("void");
+    v2 = LLVMFunctionType(v1_void, arg0, 1, 0);
+    v_add_symbol_type("LLVMViewFunctionCFG", v2);
 
-    v_store(LLVMModuleRef, arg0);
-    v_store(LLVMVerifierFailureAction, arg1);
-    v1 = LLVMPointerType(char, 0);
-    v2 = LLVMPointerType(v1, 0);
-    v_store(v2, arg2);
-    v3 = LLVMFunctionType(LLVMBool, arg0, 3, 0);
-    v_add_symbol_type("LLVMVerifyModule", v3);
+    v3_LLVMModuleRef = v_find_type("LLVMModuleRef");
+    v_store(v3_LLVMModuleRef, arg0);
+    v4_LLVMVerifierFailureAction = v_find_type("LLVMVerifierFailureAction");
+    v_store(v4_LLVMVerifierFailureAction, arg1);
+    v5_char = v_find_type("char");
+    v6 = LLVMPointerType(v5_char, 0);
+    v7 = LLVMPointerType(v6, 0);
+    v_store(v7, arg2);
+    v8_LLVMBool = v_find_type("LLVMBool");
+    v9 = LLVMFunctionType(v8_LLVMBool, arg0, 3, 0);
+    v_add_symbol_type("LLVMVerifyModule", v9);
 
-    v_store(LLVMValueRef, arg0);
-    v_store(LLVMVerifierFailureAction, arg1);
-    v4 = LLVMFunctionType(LLVMBool, arg0, 2, 0);
-    v_add_symbol_type("LLVMVerifyFunction", v4);
+    v_store(v0_LLVMValueRef, arg0);
+    v_store(v4_LLVMVerifierFailureAction, arg1);
+    v10 = LLVMFunctionType(v8_LLVMBool, arg0, 2, 0);
+    v_add_symbol_type("LLVMVerifyFunction", v10);
 
-    v_store(LLVMValueRef, arg0);
-    v5 = LLVMFunctionType(void, arg0, 1, 0);
-    v_add_symbol_type("LLVMViewFunctionCFGOnly", v5);
+    v_store(v0_LLVMValueRef, arg0);
+    v11 = LLVMFunctionType(v1_void, arg0, 1, 0);
+    v_add_symbol_type("LLVMViewFunctionCFGOnly", v11);
 
 }
 

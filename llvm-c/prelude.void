@@ -2,22 +2,26 @@
 //- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
-{   v_import("voidc_target.void"); }
+{   voidc_guard_import("llvm-c/prelude.void"); }
 
-{
-    ft = LLVMFunctionType(LLVMTypeRef, 0, 0, 0);
-    v_add_symbol_type("LLVMInt64Type", ft);
-    v_add_symbol_type("LLVMDoubleType", ft);
-}
+{   v_import("voidc_target.void"); }
 
 {
     arg0 = v_alloca(LLVMTypeRef, 3);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
+    v_store(LLVMContextRef, arg0);
+
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("LLVMInt64TypeInContext", ft);
+    v_add_symbol_type("LLVMInt8TypeInContext", ft);
+    v_add_symbol_type("LLVMDoubleTypeInContext", ft);
+
     v_store(LLVMTypeRef, arg0);
-    v_store(long_long, arg1);
-    v_store(int, arg2);
+    v_store(long_long,   arg1);
+    v_store(int,         arg2);
+
     ft = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
     v_add_symbol_type("LLVMConstInt", ft);
 }

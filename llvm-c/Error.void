@@ -10,17 +10,19 @@
 
 //- Values -------------------------------------------------
 {
-    val = LLVMConstInt(int, 0, 0);
+    _int = v_find_type("int");
+
+    val = LLVMConstInt(_int, 0, 0);
     v_add_constant("LLVMErrorSuccess", val);
 }
 
 //- Types --------------------------------------------------
 {
-//  v0 = LLVMPointerType(void, 0);
-    v_add_symbol("LLVMErrorTypeId", LLVMOpaqueType, void_ptr);
+    v0_void_ptr = v_find_type("void_ptr");
+    v_add_symbol("LLVMErrorTypeId", LLVMOpaqueType, v0_void_ptr);
 
-//  v1 = LLVMGetGlobalContext();
     v1 = v_target_get_llvm_ctx();
+
     v2 = LLVMStructCreateNamed(v1, "struct.LLVMOpaqueError");
     v3 = LLVMPointerType(v2, 0);
     v_add_symbol("LLVMErrorRef", LLVMOpaqueType, v3);
@@ -29,29 +31,33 @@
 
 //- Functions ----------------------------------------------
 {
+    v0_char = v_find_type("char");
+    v1 = LLVMPointerType(v0_char, 0);
+
     arg0 = v_alloca(LLVMTypeRef);
 
-    v0 = LLVMPointerType(char, 0);
+    v2_LLVMErrorRef = v_find_type("LLVMErrorRef");
+    v_store(v2_LLVMErrorRef, arg0);
+    v3 = LLVMFunctionType(v1, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetErrorMessage", v3);
 
-    v_store(LLVMErrorRef, arg0);
-    v1 = LLVMFunctionType(v0, arg0, 1, 0);
-    v_add_symbol_type("LLVMGetErrorMessage", v1);
+    v4 = LLVMPointerType(v0_char, 0);
+    v_store(v4, arg0);
+    v5_void = v_find_type("void");
+    v6 = LLVMFunctionType(v5_void, arg0, 1, 0);
+    v_add_symbol_type("LLVMDisposeErrorMessage", v6);
 
-    v2 = LLVMPointerType(char, 0);
-    v_store(v2, arg0);
-    v3 = LLVMFunctionType(void, arg0, 1, 0);
-    v_add_symbol_type("LLVMDisposeErrorMessage", v3);
+    v7_LLVMErrorTypeId = v_find_type("LLVMErrorTypeId");
+    v8 = LLVMFunctionType(v7_LLVMErrorTypeId, arg0, 0, 0);
+    v_add_symbol_type("LLVMGetStringErrorTypeId", v8);
 
-    v4 = LLVMFunctionType(LLVMErrorTypeId, arg0, 0, 0);
-    v_add_symbol_type("LLVMGetStringErrorTypeId", v4);
+    v_store(v2_LLVMErrorRef, arg0);
+    v9 = LLVMFunctionType(v7_LLVMErrorTypeId, arg0, 1, 0);
+    v_add_symbol_type("LLVMGetErrorTypeId", v9);
 
-    v_store(LLVMErrorRef, arg0);
-    v5 = LLVMFunctionType(LLVMErrorTypeId, arg0, 1, 0);
-    v_add_symbol_type("LLVMGetErrorTypeId", v5);
-
-    v_store(LLVMErrorRef, arg0);
-    v6 = LLVMFunctionType(void, arg0, 1, 0);
-    v_add_symbol_type("LLVMConsumeError", v6);
+    v_store(v2_LLVMErrorRef, arg0);
+    v10 = LLVMFunctionType(v5_void, arg0, 1, 0);
+    v_add_symbol_type("LLVMConsumeError", v10);
 
 }
 
