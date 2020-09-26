@@ -136,13 +136,13 @@
     LLVMPositionBuilderAtEnd(builder, cont_b);
 
 
-    number = LLVMBuildLoad(builder, num_v, "number");
-
     v_add_variable("args",       args_v);
     v_add_variable("args_count", args_count_v);
-    v_add_variable("number",     number);
+    v_add_variable("num_var",    num_v);
 }
 {
+    number = v_load(num_var);
+
     builder = v_target_get_builder();
 
     typename = v_alloca(v_util_opaque_std_string);

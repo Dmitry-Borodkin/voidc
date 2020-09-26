@@ -597,6 +597,8 @@ voidc_global_ctx_t::static_terminate(void)
 void
 voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 {
+    assert(target == voidc);    //- Sic!
+
     verify_module(module);
 
     //-------------------------------------------------------------
@@ -833,6 +835,8 @@ voidc_local_ctx_t::resolver(const char *m_name, void *)
 void
 voidc_local_ctx_t::prepare_unit_action(int line, int column)
 {
+    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
+
     auto &builder = global_ctx.builder;
 
     std::string hdr = "unit_" + std::to_string(line) + "_" + std::to_string(column);
@@ -856,6 +860,8 @@ voidc_local_ctx_t::prepare_unit_action(int line, int column)
 void
 voidc_local_ctx_t::finish_unit_action(void)
 {
+    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
+
     auto &builder = global_ctx.builder;
 
     LLVMBuildRetVoid(builder);
@@ -1522,7 +1528,8 @@ v_target_create_global_ctx(size_t int_size, size_t long_size, size_t ptr_size)
     return  new target_global_ctx_t(int_size, long_size, ptr_size);
 }
 
-void v_target_destroy_global_ctx(base_global_ctx_t *gctx)
+void
+v_target_destroy_global_ctx(base_global_ctx_t *gctx)
 {
     delete gctx;
 }

@@ -47,6 +47,9 @@
     //-----------------------------------------------------------------
     //- Saved global variables
     //-----------------------------------------------------------------
+    //- var saved_module_g:   LLVMModuleRef            = 0;
+    //- var saved_compiler_g: voidc_opaque_visitor_ptr = 0;
+    //-----------------------------------------------------------------
     saved_module_g = LLVMAddGlobal(module, LLVMModuleRef, "saved_module_g");
     LLVMSetLinkage(saved_module_g, LLVMPrivateLinkage);
 
@@ -65,6 +68,40 @@
 
     //-----------------------------------------------------------------
     //- "Function hack" unit action helper
+    //-----------------------------------------------------------------
+    //- fun voidc_function_hack_unit_action_helper(buf: char_ptr, len: size_t)
+    //- {
+    //-     mod_buf = LLVMCreateMemoryBufferWithMemoryRange(buf, len, "mod_buf", 0);
+    //-
+    //-     mod_ptr = v_alloca(LLVMModuleRef);
+    //-
+    //-     llvm_ctx = v_target_get_llvm_ctx();
+    //-
+    //-     LLVMParseBitcodeInContext2(llvm_ctx, mod_buf, mod_ptr);
+    //-
+    //-     LLVMDisposeMemoryBuffer(mod_buf);
+    //-
+    //-     module = v_load(mod_ptr);
+    //-
+    //- //  LLVMDumpModule(module);
+    //-
+    //-     cur_module = v_get_module();
+    //-
+    //-     if (cur_module)
+    //-     {
+    //-         LLVMLinkModules2(cur_module, module);
+    //-     }
+    //-     else
+    //-     {
+    //-         voidc_prepare_module_for_jit(module);
+    //-
+    //-         PH = v_alloca(LLVMOrcModuleHandle);
+    //-
+    //-         LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+    //-                                     voidc_resolver, 0
+    //-                                    );
+    //-     }
+    //- }
     //-----------------------------------------------------------------
     v_store(char_ptr, typ0);
     v_store(size_t,   typ1);
@@ -94,12 +131,18 @@
     mod_ptr_v = LLVMBuildAlloca(builder, LLVMModuleRef, "mod_ptr_v");
 
 
-    v_store(mod_buf_v, val0);
-    v_store(mod_ptr_v, val1);
+    get_llvm_ctx_f = v_obtain_function("v_target_get_llvm_ctx");
 
-    llvm_parse_bitcode_2_f = v_obtain_function("LLVMParseBitcode2");
+    llvm_ctx_v = LLVMBuildCall(builder, get_llvm_ctx_f, 0, 0, "llvm_ctx_v");
 
-    ok_v = LLVMBuildCall(builder, llvm_parse_bitcode_2_f, val0, 2, "ok_v");
+
+    v_store(llvm_ctx_v, val0);
+    v_store(mod_buf_v,  val1);
+    v_store(mod_ptr_v,  val2);
+
+    llvm_parse_bitcode_in_context_2_f = v_obtain_function("LLVMParseBitcodeInContext2");
+
+    ok_v = LLVMBuildCall(builder, llvm_parse_bitcode_in_context_2_f, val0, 3, "ok_v");
 
 
     v_store(mod_buf_v, val0);
@@ -184,6 +227,97 @@
     //-----------------------------------------------------------------
     //- "Function hack" compiler visitor method
     //-----------------------------------------------------------------
+    //- fun voidc_function_hack_visitor_method(visitor:   voidc_visitor_ref,
+    //-                                        stmt_list: v_ast_stmt_list_ref,
+    //-                                        line:      int,
+    //-                                        column:    int
+    //-                                       )
+    //- {
+    //-     base_ast = v_cast(LLVMBitCast, v_ast_base_ref, stmt_list);
+    //-
+    //-     v_ast_accept_visitor(base_ast, visitor);
+    //-
+    //-     builder = v_target_get_builder();
+    //-
+    //-     cur_b = LLVMGetInserBlock(builder);
+    //-
+    //-     trm = LLVMGetBasicBlockTerminator(cur_b);
+    //-
+    //-     if (trm) {}
+    //-     else
+    //-     {
+    //-         LLVMBuildRetVoid(builder);
+    //-     }
+    //-
+    //-     fun_module = v_get_module();
+    //-
+    //-     v_verify_module(fun_module);
+    //-
+    //-     old_module = v_load(saved_module_g);
+    //-
+    //-     v_set_module(old_module);
+    //-
+    //-     v_move(voidc_compiler, saved_compiler_g);
+    //-
+    //-     saved_target = v_target_get_global_ctx();
+    //-
+    //-     voidc_target = v_target_get_voidc_global_ctx();
+    //-
+    //-     v_target_set_global_ctx(voidc_target);
+    //-
+    //-     saved_module = v_get_module();
+    //-
+    //-     voidc_prepare_unit_action(line, column);
+    //-
+    //-     builder = v_target_get_builder();
+    //-
+    //-     fun_buffer = LLVMWriteBitcodeToMemoryBuffer(fun_module);
+    //-
+    //-     LLVMDisposeModule(fun_module);
+    //-
+    //-     fun_buffer_ptr  = LLVMGetBufferStart(fun_buffer);
+    //-     fun_buffer_size = LLVMGetBufferSize(fun_buffer);
+    //-
+    //-     fun_buffer_len = v_cast(LLVMTrunc, int, fun_buffer_size);
+    //-
+    //-     fun_buf_const = LLVMConstString(fun_buffer_ptr, fun_buffer_len, 1);
+    //-
+    //-     fun_buf_const_type = LLVMTypeOf(fun_buf_const);
+    //-
+    //-     unit_module = v_get_module();
+    //-
+    //-     fun_buf_glob = LLVMAddGlobal(unit_module, fun_buf_const_type, "fun_buffer_g");
+    //-
+    //-     LLVMSetInitializer(fun_buf_glob, fun_buf_const);
+    //-
+    //-     val0 = v_alloca(LLVMValueRef, 2);
+    //-     val1 = v_getelementptr(val0, 1);
+    //-
+    //-     n0 = LLVMConstInt(int, 0, 0);
+    //-
+    //-     v_store(n0, val0);
+    //-     v_store(n0, val1);
+    //-
+    //-     fun_buf_const_ptr = LLVMBuildGEP(builder, fun_buf_glob, val0, 2, "fun_buf_const_ptr");
+    //-
+    //-     unit_action_helper_f = v_obtain_function("voidc_function_hack_unit_action_helper");
+    //-
+    //-     fun_buf_size_const = LLVMConstInt(size_t, fun_buffer_size, 0);
+    //-
+    //-     v_store(fun_buf_const_ptr,  val0);
+    //-     v_store(fun_buf_size_const, val1);
+    //-
+    //-     LLVMBuildCall(builder, unit_action_helper_f, val0, 2, "");
+    //-
+    //-     voidc_finish_unit_action();
+    //-
+    //-     LLVMDisposeMemoryBuffer(fun_buffer);
+    //-
+    //-     v_set_module(saved_module);
+    //-
+    //-     v_target_set_global_ctx(saved_target);
+    //- }
+    //-----------------------------------------------------------------
     method_f = LLVMAddFunction(module, "voidc_function_hack_visitor_method", v_ast_unit_visitor_method_t);
 
     visitor   = LLVMGetParam(method_f, 0);
@@ -259,12 +393,55 @@
     LLVMBuildCall(builder, voidc_verify_module_f, val0, 1, "");
 
 
+    old_module_v = LLVMBuildLoad(builder, saved_module_g, "old_module_v");
+
+    v_store(old_module_v, val0);
+
+    set_module_f = v_obtain_function("v_set_module");
+
+    LLVMBuildCall(builder, set_module_f, val0, 1, "");
+
+
+    voidc_compiler_v = v_obtain_global("voidc_compiler");
+
+    v_store(voidc_compiler_v, val0);
+    v_store(saved_compiler_g, val1);
+    v_store(n1,               val2);
+
+    vis_move_f = v_obtain_dict_function(v_util_move_dict, voidc_opaque_visitor_ptr);
+
+    LLVMBuildCall(builder, vis_move_f, val0, 3, "");
+
+
+    get_global_ctx_f = v_obtain_function("v_target_get_global_ctx");
+
+    saved_target_v = LLVMBuildCall(builder, get_global_ctx_f, val0, 0, "saved_target_v");
+
+
+    get_voidc_global_ctx_f = v_obtain_function("v_target_get_voidc_global_ctx");
+
+    voidc_target_v = LLVMBuildCall(builder, get_voidc_global_ctx_f, val0, 0, "voidc_target_v");
+
+
+    v_store(voidc_target_v, val0);
+
+    set_global_ctx_f = v_obtain_function("v_target_set_global_ctx");
+
+    LLVMBuildCall(builder, set_global_ctx_f, val0, 1, "");
+
+
+    saved_module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "saved_module_v");
+
+
     v_store(line,   val0);
     v_store(column, val1);
 
     prepare_unit_act_f = v_obtain_function("voidc_prepare_unit_action");
 
     LLVMBuildCall(builder, prepare_unit_act_f, val0, 2, "");
+
+
+    builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
 
 
     v_store(fun_module_v, val0);
@@ -290,7 +467,7 @@
     fun_buffer_size_v = LLVMBuildCall(builder, llvm_get_buffer_size_f, val0, 1, "fun_buffer_size_v");
 
 
-    fun_buffer_len_v = LLVMBuildTruncOrBitCast(builder, fun_buffer_size_v, int, "fun_buffer_len_v");
+    fun_buffer_len_v = LLVMBuildTrunc(builder, fun_buffer_size_v, int, "fun_buffer_len_v");
 
     v_store(fun_buffer_ptr_v, val0);
     v_store(fun_buffer_len_v, val1);
@@ -377,11 +554,9 @@
 
     size_t_v = v_obtain_global("size_t");
 
-    fun_buffer_size_vll = LLVMBuildZExtOrBitCast(builder, fun_buffer_size_v, long_long, "fun_buffer_size_vll");
-
-    v_store(size_t_v,            val0);
-    v_store(fun_buffer_size_vll, val1);
-    v_store(n0,                  val2);
+    v_store(size_t_v,          val0);
+    v_store(fun_buffer_size_v, val1);
+    v_store(n0,                val2);
 
     fun_buf_size_const_v = LLVMBuildCall(builder, llvm_const_int_f, val0, 3, "fun_buf_size_const_v");
 
@@ -413,24 +588,14 @@
     LLVMBuildCall(builder, llvm_dispose_memory_buffer_f, val0, 1, "");
 
 
-    old_module_v = LLVMBuildLoad(builder, saved_module_g, "old_module_v");
-
-    v_store(old_module_v, val0);
-
-    set_module_f = v_obtain_function("v_set_module");
+    v_store(saved_module_v, val0);
 
     LLVMBuildCall(builder, set_module_f, val0, 1, "");
 
 
-    voidc_compiler_v = v_obtain_global("voidc_compiler");
+    v_store(saved_target_v, val0);
 
-    v_store(voidc_compiler_v, val0);
-    v_store(saved_compiler_g, val1);
-    v_store(n1,               val2);
-
-    vis_move_f = v_obtain_dict_function(v_util_move_dict, voidc_opaque_visitor_ptr);
-
-    LLVMBuildCall(builder, vis_move_f, val0, 3, "");
+    LLVMBuildCall(builder, set_global_ctx_f, val0, 1, "");
 
 
     LLVMBuildRetVoid(builder);
@@ -438,6 +603,35 @@
 
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic helper
+    //-----------------------------------------------------------------
+    //- fun voidc_function_hack_intrinsic_helper(fun_name: char_ptr, fun_type: LLVMTypeRef): LLVMValueRef
+    //- {
+    //-     old_module = v_get_module();
+    //-
+    //-     v_store(old_module, saved_module_g);
+    //-
+    //-     llvm_ctx = v_target_get_llvm_ctx();
+    //-
+    //-     fun_module = LLVMModuleCreateWithNameInContext("voidc_function_hack_function_module", llvm_ctx);
+    //-
+    //-     v_set_module(fun_module);
+    //-
+    //-     fun_value = LLVMAddFunction(fun_module, fun_name, fun_type);
+    //-
+    //-     entry = LLVMAppendBasicBlock(fun_value, "entry");
+    //-
+    //-     builder = v_target_get_builder();
+    //-
+    //-     LLVMPositionBuilderAtEnd(builder, entry);
+    //-
+    //-     v_initialize(saved_compiler_g);
+    //-
+    //-     v_copy(saved_compiler_g, voidc_compiler);
+    //-
+    //-     v_visitor_set_method_ast_unit_t(voidc_compiler, voidc_compiler, voidc_function_hack_visitor_method);
+    //-
+    //-     v_return(fun_value);
+    //- }
     //-----------------------------------------------------------------
     v_store(char_ptr,    typ0);
     v_store(LLVMTypeRef, typ1);
@@ -457,13 +651,17 @@
     LLVMBuildStore(builder, old_module_v, saved_module_g);
 
 
+    llvm_ctx_v = LLVMBuildCall(builder, get_llvm_ctx_f, 0, 0, "llvm_ctx_v");
+
+
     fun_module_n = LLVMBuildGlobalStringPtr(builder, "voidc_function_hack_function_module", "fun_module_n");
 
     v_store(fun_module_n, val0);
+    v_store(llvm_ctx_v,   val1);
 
-    llvm_module_create_with_name_f = v_obtain_function("LLVMModuleCreateWithName");
+    llvm_module_create_with_name_in_context_f = v_obtain_function("LLVMModuleCreateWithNameInContext");
 
-    fun_module_v = LLVMBuildCall(builder, llvm_module_create_with_name_f, val0, 1, "fun_module_v");
+    fun_module_v = LLVMBuildCall(builder, llvm_module_create_with_name_in_context_f, val0, 2, "fun_module_v");
 
 
     v_store(fun_module_v, val0);
@@ -532,6 +730,56 @@
 
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic
+    //-----------------------------------------------------------------
+    //- fun voidc_function_hack_intrinsic(visitor: voidc_visitor_ref, arg_list: v_ast_arg_list_ref)
+    //- {
+    //-     builder = v_target_get_builder();
+    //-
+    //-     base_args = v_cast(LLVMBitCast, v_ast_base_ref, arg_list);
+    //-
+    //-     v_ast_accept_visitor(base_args, visitor);
+    //-
+    //-     fun_name = v_get_argument(0);
+    //-     fun_type = v_get_argument(1);
+    //-
+    //-     add_sym_type_f = v_obtain_function("v_add_symbol_type");
+    //-
+    //-     arg0 = v_alloca(LLVMValueRef, 2);
+    //-     arg1 = v_getelementptr(arg0, 1);
+    //-
+    //-     v_store(fun_name, arg0);
+    //-     v_store(fun_type, arg1);
+    //-
+    //-     LLVMBuildCall(builder, add_sym_type_f, arg0, 2, "");
+    //-
+    //-     has_grammar_f = v_obtain_function("voidc_has_grammar");
+    //-
+    //-     ok_v = LLVMBuildCall(builder, has_grammar_f, arg0, 0, "ok_v");
+    //-
+    //-     cur_b = LLVMGetInsertBlock(builder);
+    //-     cur_f = LLVMGetBasicBlockParent(cur_b);
+    //-
+    //-     else_b = LLVMAppendBasicBlock(cur_f, "else_b");     //- "else" first!
+    //-     then_b = LLVMAppendBasicBlock(cur_f, "then_b");
+    //-
+    //-     LLVMBuildCondBr(builder, ok_v, then_b, else_b);
+    //-
+    //-     LLVMPositionBuilderAtEnd(builder, else_b);          //- "else" first!
+    //-
+    //-     LLVMBuildRetVoid(builder);
+    //-
+    //-     LLVMPositionBuilderAtEnd(builder, then_b);
+    //-
+    //-     helper_f = v_obtain_function("voidc_function_hack_intrinsic_helper");
+    //-
+    //-     ret_name = v_get_return_name();
+    //-
+    //-     ret = LLVMBuildCall(builder, helper_f, arg0, 2, ret_name);
+    //-
+    //-     v_set_return_value(ret);
+    //-
+    //-     v_clear_arguments();
+    //- }
     //-----------------------------------------------------------------
     intrinsic_f = LLVMAddFunction(module, "voidc_function_hack_intrinsic", voidc_intrinsic_t);
 
@@ -700,6 +948,36 @@
     //-----------------------------------------------------------------
     //- "Return" intrinsic
     //-----------------------------------------------------------------
+    //- fun voidc_function_hack_return_intrinsic(visitor: voidc_visitor_ref, arg_list: v_ast_arg_list_ref)
+    //- {
+    //-     builder = v_target_get_builder();
+    //-
+    //-     args_count = v_ast_arg_list_get_count(arg_list);
+    //-
+    //-     if (args_count)
+    //-     {
+    //-         args = v_alloca(v_ast_opaque_argument_ptr, args_count);
+    //-         v_initialize(args, args_count);
+    //-
+    //-         v_ast_arg_list_get_args(arg_list, args_count);
+    //-
+    //-         base_arg0 = v_cast(LLVMBitCast, v_ast_base_ref, args);
+    //-
+    //-         v_ast_accept_visitor(base_arg0, visitor);
+    //-
+    //-         ret = v_get_argument(0);
+    //-
+    //-         LLVMBuildRet(builder, ret);
+    //-
+    //-         v_destroy(args, args_count);
+    //-
+    //-         v_clear_arguments();
+    //-     }
+    //-     else
+    //-     {
+    //-         LLVMBuildRetVoid(builder);
+    //-     }
+    //- }
     return_f = LLVMAddFunction(module, "voidc_function_hack_return_intrinsic", voidc_intrinsic_t);
 
     visitor  = LLVMGetParam(return_f, 0);
