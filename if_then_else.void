@@ -541,7 +541,25 @@
 
 
 //---------------------------------------------------------------------
-//- void voidc_enable_statement_if_then_else(void);
+//- Enable statement if_then_else
+//---------------------------------------------------------------------
+//- fun voidc_enable_statement_if_then_else()
+//- {
+//-     vhg = voidc_has_grammar();
+//-
+//-     if (vhg)
+//-     {
+//-         ghp = voidc_grammar_has_parser("stmt_if_then_else");
+//-
+//-         if (ghp)  v_return();
+//-     }
+//-     else
+//-     {
+//-         v_return();
+//-     }
+//-
+//-     ...
+//-
 //---------------------------------------------------------------------
 {
     ft = LLVMFunctionType(void, 0, 0, 0);

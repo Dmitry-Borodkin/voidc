@@ -238,7 +238,25 @@
 
 
 //---------------------------------------------------------------------
-//- void voidc_enable_statement_block(void);
+//- Enable statement block
+//---------------------------------------------------------------------
+//- fun voidc_enable_statement_block()
+//- {
+//-     vhg = voidc_has_grammar();
+//-
+//-     if (vhg)
+//-     {
+//-         ghp = voidc_grammar_has_parser("stmt_block");
+//-
+//-         if (ghp)  v_return();
+//-     }
+//-     else
+//-     {
+//-         v_return();
+//-     }
+//-
+//-     ...
+//-
 //---------------------------------------------------------------------
 {
     ft = LLVMFunctionType(void, 0, 0, 0);

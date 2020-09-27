@@ -15,7 +15,24 @@
 }
 
 {
-    gctx = v_target_create_global_ctx(4, 8, 8);
+    int_sz_v  = LLVMSizeOf(int);
+    long_sz_v = LLVMSizeOf(long);
+    ptr_sz_v  = LLVMSizeOf(intptr_t);
+
+    v_add_local_constant("int_sz",  int_sz_v);
+    v_add_local_constant("long_sz", long_sz_v);
+    v_add_local_constant("ptr_sz",  ptr_sz_v);
+}
+
+{
+    printf("int_sz:  %lu\n", int_sz);
+    printf("long_sz: %lu\n", long_sz);
+    printf("ptr_sz:  %lu\n", ptr_sz);
+}
+
+
+{
+    gctx = v_target_create_global_ctx(int_sz, long_sz, ptr_sz);
 
     v_add_local_symbol("my_gctx", v_target_opaque_global_ctx, gctx);
 

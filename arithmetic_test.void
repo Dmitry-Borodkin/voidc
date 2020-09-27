@@ -26,14 +26,18 @@
 {   double = LLVMDoubleType();
 
     v_add_local_symbol("double", LLVMOpaqueType, double);
+
+    half = LLVMConstRealOfString(double, "0.5");
+
+    v_add_local_constant("half", half);
 }
 
 {   f1 = v_cast(LLVMUIToFP, 1, double);
 
-    v = v_binop(LLVMFAdd, f1, f1);
+    v = v_binop(LLVMFAdd, f1, half);
     v = v_binop(LLVMFMul, v, v);
 
-    printf("%f\n", v);
+    printf("%g\n", v);
 
     c = v_fcmp(LLVMRealUGT, v, f1);
 
