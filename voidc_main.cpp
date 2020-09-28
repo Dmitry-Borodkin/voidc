@@ -145,6 +145,8 @@ find_file_for_import(const fs::path &parent, const fs::path &filename)
 extern "C"
 {
 
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
 //--------------------------------------------------------------------
 void
 v_import(const char *name)
@@ -330,6 +332,8 @@ voidc_guard_import(const char *errmsg)
     throw  std::runtime_error(std::string("voidc_guard_import: ") + errmsg);
 }
 
+
+VOIDC_DLLEXPORT_END
 
 }   //- extern "C"
 

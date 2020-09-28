@@ -423,7 +423,14 @@ LLVMOrcJITStackRef   voidc_global_ctx_t::jit;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 
 //---------------------------------------------------------------------
-extern "C" LLVMTypeRef v_struct_create_named(const char *name);
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+LLVMTypeRef v_struct_create_named(const char *name);
+
+VOIDC_DLLEXPORT_END
+}   //- extern "C"
 
 voidc_global_ctx_t::voidc_global_ctx_t()
   : base_global_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
