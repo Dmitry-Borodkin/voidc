@@ -1,4 +1,4 @@
-{// v_import("voidc_util.void");
+{   v_import("voidc_util.void");
 
     v_import("printf.void");
 }
@@ -25,56 +25,56 @@
     printf("Hi %d times!\n", 10000);
 }
 
-//{
-//    puts("Превед!");
-//
-//    puts("\\\\О\'как!");
-//
-//    printf("char: \'%c\'\n", 'C');
-//
-//    str = v_alloca(v_util_opaque_std_string);
-//    v_initialize(str);
-//
-//    cv = v_alloca(char32_t);
-////  v_store(65021, cv);
-//    v_store('Я', cv);
-//
-//    c = v_load(cv);
-//
-//    v_std_string_append_char(str, c);
-//
-//    s = v_std_string_get(str);
-//
-//    printf("char32_t: 0x%X, \'%s\'\n", c, s);
-//
-//    v_destroy(str);
-//
-//    printf("\n-----------\n");
-//}
-//
-//
-//
-//{
-//    puts_ft = v_find_symbol_type("puts");
-//
-//    puts_ft_ptr = LLVMPointerType(puts_ft, 0);
-//
-//    v_add_local_symbol("puts_ft_ptr", LLVMOpaqueType, puts_ft_ptr);
-//}
-//
-//{   v_add_local_alias("puts_ft_p", "puts_ft_ptr");
-//}
-//
-//
-//{
-//    p = v_alloca(puts_ft_p);
-//
-//    v_store(puts, p);
-//
-//    f = v_load(p);
-//
-//    f("А вы как думали?");
-//}
+{
+    puts("Превед!");
+
+    puts("\\\\О\'как!");
+
+    printf("char: \'%c\'\n", 'C');
+
+    str = v_alloca(v_util_opaque_std_string);
+    v_initialize(str);
+
+    cv = v_alloca(char32_t);
+//  v_store(65021, cv);
+    v_store('Я', cv);
+
+    c = v_load(cv);
+
+    v_std_string_append_char(str, c);
+
+    s = v_std_string_get(str);
+
+    printf("char32_t: 0x%X, \'%s\'\n", c, s);
+
+    v_destroy(str);
+
+    printf("\n-----------\n");
+}
+
+
+
+{
+    puts_ft = v_find_symbol_type("puts");
+
+    puts_ft_ptr = LLVMPointerType(puts_ft, 0);
+
+    v_add_local_symbol("puts_ft_ptr", LLVMOpaqueType, puts_ft_ptr);
+}
+
+{   v_add_local_alias("puts_ft_p", "puts_ft_ptr");
+}
+
+
+{
+    p = v_alloca(puts_ft_p);
+
+    v_store(puts, p);
+
+    f = v_load(p);
+
+    f("А вы как думали?");
+}
 
 
 
