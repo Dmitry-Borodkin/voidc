@@ -1444,7 +1444,7 @@ v_find_type(const char *name)
 
     if (!ret)
     {
-        printf("v_find_type: %s  not found!\n", name);
+//      printf("v_find_type: %s  not found!\n", name);
     }
 
 #endif
@@ -1477,7 +1477,19 @@ v_add_intrinsic(const char *name, base_global_ctx_t::intrinsic_t fun)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.intrinsics[name] = fun;
+    if (fun)  gctx.intrinsics[name] = fun;
+    else      gctx.intrinsics.erase(name);
+}
+
+base_global_ctx_t::intrinsic_t
+v_get_intrinsic(const char *name)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    auto it = gctx.intrinsics.find(name);
+
+    if (it != gctx.intrinsics.end())  return it->second;
+    else                              return nullptr;
 }
 
 

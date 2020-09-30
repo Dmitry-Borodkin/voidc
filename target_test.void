@@ -14,6 +14,11 @@
     printf("target: %p\n", t);
 }
 
+{   t = v_find_symbol_type("printf");
+
+    printf("printf type: %p\n", t);
+}
+
 {
     int_sz_v  = LLVMSizeOf(int);
     long_sz_v = LLVMSizeOf(long);
@@ -71,7 +76,11 @@
 
     printf("i256_: %p\n", i256_);
 
-    LLVMDumpType(i256_);
+    s = LLVMPrintTypeToString(i256_);
+
+    printf("s: %s\n", s);
+
+    LLVMDisposeMessage(s);
 }
 
 
@@ -80,7 +89,19 @@
     printf("printf type: %p\n", t);
 }
 
-{   v_import("printf.void"); }
+{   _char = v_find_type("char");
+    _int  = v_find_type("int");
+
+    char_ptr = LLVMPointerType(_char, 0);
+
+    arg = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, arg);
+
+    printf_ft = LLVMFunctionType(_int, arg, 1, 1);
+
+    v_add_symbol_type("printf", printf_ft);
+}
 
 {   t = v_find_symbol_type("printf");
 

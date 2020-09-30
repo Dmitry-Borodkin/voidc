@@ -153,6 +153,9 @@
 
     ft = LLVMFunctionType(void, arg0, 2, 0);
     v_add_symbol_type("v_add_intrinsic", ft);
+
+    ft = LLVMFunctionType(intrinsic_ref, arg0, 1, 0);
+    v_add_symbol_type("v_get_intrinsic", ft);
 }
 
 {
