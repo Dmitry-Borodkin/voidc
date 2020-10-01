@@ -210,6 +210,33 @@
 //---------------------------------------------------------------------
 //- mk_stmt_if_then_else - grammar action
 //---------------------------------------------------------------------
+//- fun mk_stmt_if_then_else_grammar_action(ret: v_util_std_any_ref,
+//-                                         arg_list: v_util_std_any_ref,
+//-                                         arg_count: size_t
+//-                                        )
+//- {
+//-     par_else = v_getelementptr(arg_list, 2);
+//-
+//-     stmt_else_ptr = v_util_std_any_get_pointer(v_ast_opaque_stmt_ptr, par_else);
+//-
+//-     stmt_else_v = v_alloca(v_ast_stmt_ref);
+//-
+//-     stmt = v_alloca(v_ast_opaque_stmt_ptr);
+//-
+//-     v_initialize(stmt);
+//-
+//-     if (stmt_else_ptr)
+//-     {
+//-         v_store(stmt_else_ptr, stmt_else_v);
+//-     }
+//-     else
+//-     {
+//-         v_store(stmt, stmt_else_v);     //- empty...
+//-     }
+//-
+//-     ...
+//-
+//---------------------------------------------------------------------
 {
     typ0 = v_alloca(LLVMTypeRef, 3);
     typ1 = v_getelementptr(typ0, 1);
@@ -253,6 +280,16 @@
     stmt_else_v = LLVMBuildAlloca(builder, v_ast_stmt_ref, "stmt_else_v");
 
 
+    stmt = LLVMBuildAlloca(builder, v_ast_opaque_stmt_ptr, "stmt");
+
+    stmt_ptr_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_stmt_ptr);
+
+    v_store(stmt, val0);
+    v_store(n1,   val1);
+
+    LLVMBuildCall(builder, stmt_ptr_init_f, val0, 2, "");
+
+
     then_b = LLVMAppendBasicBlock(f, "then_b");
     else_b = LLVMAppendBasicBlock(f, "else_b");
     cont_b = LLVMAppendBasicBlock(f, "cont_b");
@@ -272,33 +309,22 @@
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 
-    stmt_nil_ptr = LLVMBuildAlloca(builder, v_ast_opaque_stmt_ptr, "stmt_nil_ptr");
-
-    stmt_ptr_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_stmt_ptr);
-
-    v_store(stmt_nil_ptr, val0);
-    v_store(n1,           val1);
-
-    LLVMBuildCall(builder, stmt_ptr_init_f, val0, 2, "");
-
-    LLVMBuildStore(builder, stmt_nil_ptr, stmt_else_v);
+    LLVMBuildStore(builder, stmt, stmt_else_v);
 
     LLVMBuildBr(builder, cont_b);
 
 
     LLVMPositionBuilderAtEnd(builder, cont_b);
 
+    v_add_variable("stmt",        stmt);
     v_add_variable("stmt_else_v", stmt_else_v);
 }
 {
-    arg_lst1 = v_getelementptr(arg_list, 1);
+    par_then = v_getelementptr(arg_list, 1);
 
     condition = v_std_any_get_pointer(v_ast_opaque_argument_ptr, arg_list);
-    stmt_then = v_std_any_get_pointer(v_ast_opaque_stmt_ptr,     arg_lst1);
+    stmt_then = v_std_any_get_pointer(v_ast_opaque_stmt_ptr,     par_then);
     stmt_else = v_load(stmt_else_v);
-
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
-    v_initialize(stmt);
 
     v_ast_make_stmt_if_then_else(stmt, condition, stmt_then, stmt_else);
 
@@ -310,6 +336,46 @@
 
 //---------------------------------------------------------------------
 //- compile_ast_stmt_if_then_else_branch_helper
+//---------------------------------------------------------------------
+//- fun compile_ast_stmt_if_then_else_branch_helper(visitor:  voidc_visitor_ref,
+//-                                                 stmt:     v_ast_stmt_ref,
+//-                                                 bblock_v: bblock_ptr
+//-                                                )
+//- {
+//-     builder = v_target_get_builder();
+//-
+//-     no_stmt = v_empty(stmt);
+//-
+//-     if (no_stmt) {}
+//-     else
+//-     {
+//-         base_ast = v_cast(LLVMBitCast, stmt, v_ast_base_ref);
+//-
+//-         v_ast_accept_visitor(base_ast, visitor);
+//-
+//-         cur_b = LLVMGetInsertBlock(builder);
+//-
+//-         term = LLVMGetBasicBlockTerminator(cur_b);
+//-
+//-         if (term)   v_return();
+//-     }
+//-
+//-     bblock = v_load(bblock_v);
+//-
+//-     if (bblock) {}
+//-     else
+//-     {
+//-         cur_b = LLVMGetInsertBlock(builder);
+//-
+//-         fun = LLVMGetBasicBlockParent(cur_b);
+//-
+//-         fin_bb = LLVMAppendBasickBlock(fun, "fin_bb");
+//-
+//-         v_store(fin_bb, bblock_v);
+//-     }
+//-
+//-     ...
+//-
 //---------------------------------------------------------------------
 {
     typ0 = v_alloca(LLVMTypeRef, 3);
@@ -439,11 +505,10 @@
 
     LLVMPositionBuilderAtEnd(builder, fin_b);
 
+    v_add_variable("builder",  builder_v);
     v_add_variable("bblock_v", bblock_v);
 }
 {
-    builder = v_target_get_builder();
-
     bblock = v_load(bblock_v);
 
     LLVMBuildBr(builder, bblock);
@@ -452,6 +517,17 @@
 
 //---------------------------------------------------------------------
 //- compile_ast_stmt_if_then_else_join_helper
+//---------------------------------------------------------------------
+//- fun compile_ast_stmt_if_then_else_join_helper(bblock: LLVMBasicBlockRef)
+//- {
+//-     if (bblock) {}
+//-     else
+//-     {
+//-         v_return();
+//-     }
+//-
+//-     ...
+//-
 //---------------------------------------------------------------------
 {
     typ0 = v_alloca(LLVMTypeRef);
