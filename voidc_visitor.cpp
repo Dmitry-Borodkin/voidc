@@ -15,7 +15,8 @@
 //-----------------------------------------------------------------
 //- ...
 //-----------------------------------------------------------------
-void voidc_visitor_t::static_initialize(void)
+void
+voidc_visitor_t::static_initialize(void)
 {
     static_assert((sizeof(visitor_ptr_t) % sizeof(intptr_t)) == 0);
 
@@ -35,7 +36,8 @@ void voidc_visitor_t::static_initialize(void)
 }
 
 //-----------------------------------------------------------------
-void voidc_visitor_t::static_terminate(void)
+void
+voidc_visitor_t::static_terminate(void)
 {
     voidc_compiler.reset();
 }
@@ -60,7 +62,16 @@ VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(visitor_ptr_t, voidc_std_any_set_pointer_v
 
 
 //---------------------------------------------------------------------
-void *voidc_visitor_get_void_method(const visitor_ptr_t *ptr, v_quark_t quark)
+void
+voidc_make_visitor(visitor_ptr_t *ret)
+{
+    *ret = std::make_shared<const voidc_visitor_t>();
+}
+
+
+//---------------------------------------------------------------------
+void *
+voidc_visitor_get_void_method(const visitor_ptr_t *ptr, v_quark_t quark)
 {
     if (auto *vm = (*ptr)->void_methods.find(quark))
     {
@@ -72,7 +83,8 @@ void *voidc_visitor_get_void_method(const visitor_ptr_t *ptr, v_quark_t quark)
     }
 }
 
-void voidc_visitor_set_void_method(visitor_ptr_t *dst, const visitor_ptr_t *src, v_quark_t quark, void *void_method)
+void
+voidc_visitor_set_void_method(visitor_ptr_t *dst, const visitor_ptr_t *src, v_quark_t quark, void *void_method)
 {
     auto visitor = (*src)->set_void_method(quark, void_method);
 

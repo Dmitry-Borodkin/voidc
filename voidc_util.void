@@ -116,7 +116,7 @@
     //-----------------------------------------------------------------
     //- LLVMValueRef v_obtain_function(const char *fun_name);
     //-----------------------------------------------------------------
-    //- fun v_obtain_function(fun_name: char_ptr): LLVMValueRef
+    //- fun v_obtain_function(fun_name: char_ptr) -> LLVMValueRef
     //- {
     //-     module = v_get_module();
     //-
@@ -193,7 +193,7 @@
     //-----------------------------------------------------------------
     //- LLVMValueRef v_obtain_dict_function(const v_util_opaque_function_dict_t *dict, LLVMTypeRef type);
     //-----------------------------------------------------------------
-    //- fun v_obtain_dict_function(dict: dict_ptr, type: LLVMTypeRef): LLVMValueRef
+    //- fun v_obtain_dict_function(dict: dict_ptr, type: LLVMTypeRef) -> LLVMValueRef
     //- {
     //-     dfun_name = v_util_function_dict_get(dict, type);
     //-
@@ -233,7 +233,7 @@
     //-----------------------------------------------------------------
     //- LLVMValueRef v_obtain_global(const char *var_name);
     //-----------------------------------------------------------------
-    //- fun v_obtain_global(var_name: char_ptr): LLVMValueRef
+    //- fun v_obtain_global(var_name: char_ptr) -> LLVMValueRef
     //- {
     //-     module = v_get_module();
     //-
@@ -709,8 +709,8 @@
     //-------------------------------------------------------------
     //- Init/Destroy/Copy/Move/Empty batch registering
     //-------------------------------------------------------------
-    //- fun v_util_initialize_std_string_impl(v_util_std_string_ref, int);
-    //- fun v_util_destroy_std_string_impl(v_util_std_string_ref, int);
+    //- fun v_util_initialize_std_string_impl(s: v_util_std_string_ref, n: int);
+    //- fun v_util_destroy_std_string_impl(s: v_util_std_string_ref, n: int);
     //-
     //- fun v_util_register_idcme_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
     //- {

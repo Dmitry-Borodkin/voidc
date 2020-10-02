@@ -165,6 +165,7 @@
 
     ft = LLVMFunctionType(void, typ0, 2, 0);
 
+    //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_block", ft);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
@@ -197,6 +198,7 @@
 
     ft = LLVMFunctionType(void, typ0, 3, 0);
 
+    //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_block_grammar_action", ft);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
@@ -221,6 +223,7 @@
 //- compile_ast_stmt_block_t - visitor method
 //---------------------------------------------------------------------
 {
+    //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t", method_ft);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",    p0);
@@ -261,6 +264,7 @@
 {
     ft = LLVMFunctionType(void, 0, 0, 0);
 
+    //-----------------------------------------------------------------
     f = v_function_hack("voidc_enable_statement_block", ft);
 
     builder = v_target_get_voidc_builder();

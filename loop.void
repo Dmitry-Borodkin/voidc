@@ -165,6 +165,7 @@
 
     ft = LLVMFunctionType(void, typ0, 2, 0);
 
+    //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_loop", ft);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("ret",  p0);
@@ -197,6 +198,7 @@
 
     ft = LLVMFunctionType(void, typ0, 3, 0);
 
+    //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_loop_grammar_action", ft);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
@@ -221,6 +223,7 @@
 //- compile_ast_stmt_loop_t - visitor method
 //---------------------------------------------------------------------
 {
+    //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_loop_t", method_ft);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", p0);
@@ -241,8 +244,8 @@
     loop_start_bv = LLVMBasicBlockAsValue(loop_start_b);
     loop_stop_bv  = LLVMBasicBlockAsValue(loop_stop_b);
 
-    v_add_variable("voidc_internal_brahch_target_continue", loop_start_bv);
-    v_add_variable("voidc_internal_branch_target_break",    loop_stop_bv);
+    v_add_variable("__voidc_internal_branch_target_continue", loop_start_bv);
+    v_add_variable("__voidc_internal_branch_target_break",    loop_stop_bv);
 
 
     LLVMBuildBr(builder, loop_start_b);
@@ -281,12 +284,13 @@
 //- v_break ...
 //---------------------------------------------------------------------
 {
+    //-----------------------------------------------------------------
     v_function_hack("voidc_intrinsic_break", voidc_intrinsic_t);
 }
 {
     builder = v_target_get_builder();
 
-    break_bv = v_get_variable("voidc_internal_branch_target_break");
+    break_bv = v_get_variable("__voidc_internal_branch_target_break");
 
     break_b = LLVMValueAsBasicBlock(break_bv);
 
@@ -298,12 +302,13 @@
 //- v_continue ...
 //---------------------------------------------------------------------
 {
+    //-----------------------------------------------------------------
     v_function_hack("voidc_intrinsic_continue", voidc_intrinsic_t);
 }
 {
     builder = v_target_get_builder();
 
-    continue_bv = v_get_variable("voidc_internal_branch_target_continue");
+    continue_bv = v_get_variable("__voidc_internal_branch_target_continue");
 
     continue_b = LLVMValueAsBasicBlock(continue_bv);
 
@@ -317,7 +322,8 @@
 {
     ft = LLVMFunctionType(void, 0, 0, 0);
 
-    f = v_function_hack("voidc_enable_statement_loop", ft);
+    //-----------------------------------------------------------------
+    v_function_hack("voidc_enable_statement_loop", ft);
 }
 {
     vhg = voidc_has_grammar();

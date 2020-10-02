@@ -22,20 +22,25 @@
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
+
     v_store(voidc_visitor_ref, arg0);
-    v_store(v_quark_t,         arg1);
 
-    fun_t = LLVMFunctionType(void_ptr, arg0, 2, 0);
+    ft = LLVMFunctionType(void, arg0, 1, 0);
+    v_add_symbol_type("voidc_make_visitor", ft);
 
-    v_add_symbol_type("voidc_visitor_get_void_method", fun_t);
+
+    v_store(v_quark_t, arg1);
+
+    ft = LLVMFunctionType(void_ptr, arg0, 2, 0);
+    v_add_symbol_type("voidc_visitor_get_void_method", ft);
+
 
     v_store(voidc_visitor_ref, arg1);
     v_store(v_quark_t,         arg2);
     v_store(void_ptr,          arg3);
 
-    fun_t = LLVMFunctionType(void, arg0, 4, 0);
-
-    v_add_symbol_type("voidc_visitor_set_void_method", fun_t);
+    ft = LLVMFunctionType(void, arg0, 4, 0);
+    v_add_symbol_type("voidc_visitor_set_void_method", ft);
 }
 
 

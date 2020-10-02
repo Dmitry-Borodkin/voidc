@@ -60,6 +60,7 @@
 //-
 //---------------------------------------------------------------------
 {
+    //-----------------------------------------------------------------
     malloc_f = v_function_hack("voidc_memory_malloc_intrinsic", voidc_intrinsic_t);
 
     visitor  = LLVMGetParam(malloc_f, 0);    v_add_variable("visitor",  visitor);
@@ -206,6 +207,7 @@
 //- v_mfree
 //---------------------------------------------------------------------
 {
+    //-----------------------------------------------------------------
     f = v_function_hack("voidc_memory_mfree_intrinsic", voidc_intrinsic_t);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  p0);
