@@ -108,7 +108,6 @@
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("ast_tests_mod");
 
-    saved_module = v_get_module();
     v_set_module(module);
 
     builder = v_target_get_voidc_builder();
@@ -198,9 +197,6 @@
                                );
 
     //-----------------------------------------------------------------
-    v_set_module(saved_module);
-
-    //-----------------------------------------------------------------
     v_add_symbol_type("vtable_g", v_ast_generic_vtable);
 }
 
@@ -239,17 +235,17 @@
     q = v_quark_from_string("");
     s = v_quark_to_string(q);
 
-    printf("quark: %d - [%s]\n", q, s);
+    printf("quark: %d - [%s] %p\n", q, s, s);
 
     q = v_quark_from_string("Some string");
     s = v_quark_to_string(q);
 
-    printf("quark: %d - [%s]\n", q, s);
+    printf("quark: %d - [%s] %p\n", q, s, s);
 
     q = v_quark_from_string("Another string");
     s = v_quark_to_string(q);
 
-    printf("quark: %d - [%s]\n", q, s);
+    printf("quark: %d - [%s] %p\n", q, s, s);
 
 }
 
@@ -258,17 +254,17 @@
     q = v_quark_from_string("Another string");
     s = v_quark_to_string(q);
 
-    printf("quark: %d - [%s]\n", q, s);
+    printf("quark: %d - [%s] %p\n", q, s, s);
 
     q = v_quark_from_string("Some string");
     s = v_quark_to_string(q);
 
-    printf("quark: %d - [%s]\n", q, s);
+    printf("quark: %d - [%s] %p\n", q, s, s);
 
     q = v_quark_from_string("");
     s = v_quark_to_string(q);
 
-    printf("quark: %d - [%s]\n", q, s);
+    printf("quark: %d - [%s] %p\n", q, s, s);
 
 }
 
@@ -278,7 +274,7 @@
 
     s = v_quark_to_string(q);
 
-    printf("quark: %d - [%s]\n", q, s);
+    printf("quark: %d - [%s] %p\n", q, s, s);
 }
 
 

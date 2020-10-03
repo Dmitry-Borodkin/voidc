@@ -33,7 +33,7 @@
 //-
 //-     num_var = v_alloca(LLVMValueRef);
 //-
-//-     n1 = v_cast(LLVMZExt, int, 1);
+//-     n1 = v_cast(LLVMZExt, 1, int);
 //-
 //-     ok = v_icmp(LLVMIntEQ, args_count, n1);
 //-
@@ -47,7 +47,7 @@
 //-     {
 //-         arg1 = v_getelementptr(args, 1);
 //-
-//-         base_arg1 = v_cast(LLVMBitCast, v_ast_base_ref, arg1);
+//-         base_arg1 = v_cast(LLVMBitCast, arg1, v_ast_base_ref);
 //-
 //-         v_ast_accept_visitor(base_arg1, visitor);
 //-

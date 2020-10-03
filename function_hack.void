@@ -21,7 +21,6 @@
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("function_hack_module");
 
-    saved_module = v_get_module();
     v_set_module(module);
 
     typ0 = v_alloca(LLVMTypeRef, 3);
@@ -233,7 +232,7 @@
     //-                                        column:    int
     //-                                       )
     //- {
-    //-     base_ast = v_cast(LLVMBitCast, v_ast_base_ref, stmt_list);
+    //-     base_ast = v_cast(LLVMBitCast, stmt_list, v_ast_base_ref);
     //-
     //-     v_ast_accept_visitor(base_ast, visitor);
     //-
@@ -265,7 +264,7 @@
     //-
     //-     v_target_set_global_ctx(voidc_target);
     //-
-    //-     saved_module = v_get_module();
+    //-     saved_module = v_get_module();                  //- WTF?
     //-
     //-     voidc_prepare_unit_action(line, column);
     //-
@@ -278,7 +277,7 @@
     //-     fun_buffer_ptr  = LLVMGetBufferStart(fun_buffer);
     //-     fun_buffer_size = LLVMGetBufferSize(fun_buffer);
     //-
-    //-     fun_buffer_len = v_cast(LLVMTrunc, int, fun_buffer_size);
+    //-     fun_buffer_len = v_cast(LLVMTrunc, fun_buffer_size, int);
     //-
     //-     fun_buf_const = LLVMConstString(fun_buffer_ptr, fun_buffer_len, 1);
     //-
@@ -735,7 +734,7 @@
     //- {
     //-     builder = v_target_get_builder();
     //-
-    //-     base_args = v_cast(LLVMBitCast, v_ast_base_ref, arg_list);
+    //-     base_args = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
     //-
     //-     v_ast_accept_visitor(base_args, visitor);
     //-
@@ -961,7 +960,7 @@
     //-
     //-         v_ast_arg_list_get_args(arg_list, args_count);
     //-
-    //-         base_arg0 = v_cast(LLVMBitCast, v_ast_base_ref, args);
+    //-         base_arg0 = v_cast(LLVMBitCast, args, v_ast_base_ref);
     //-
     //-         v_ast_accept_visitor(base_arg0, visitor);
     //-
@@ -1089,9 +1088,6 @@
     LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
                                 voidc_resolver, 0
                                );
-
-    //-----------------------------------------------------------------
-    v_set_module(saved_module);
 
     //-----------------------------------------------------------------
     v_add_symbol_type("voidc_function_hack_unit_action_helper", unit_action_helper_ft);

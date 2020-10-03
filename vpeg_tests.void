@@ -6,7 +6,6 @@
 
 {   module = LLVMModuleCreateWithName("my_echo_mod");
 
-    saved_module = v_get_module();
     v_set_module(module);
 
     arg0 = v_alloca(LLVMTypeRef, 3);
@@ -89,9 +88,6 @@
                                 voidc_resolver,
                                 0
                                );
-
-    //-----------------------------------------------------------------
-    v_set_module(saved_module);
 
     //-----------------------------------------------------------------
     v_add_symbol_type("my_echo_grammar_action", my_echo_ft);

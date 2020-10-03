@@ -22,7 +22,6 @@
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("vpeg_context_void_module");
 
-    saved_module = v_get_module();
     v_set_module(module);
 
     typ0 = v_alloca(LLVMTypeRef);
@@ -162,9 +161,6 @@
     LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
                                 voidc_resolver, 0
                                );
-
-    //-----------------------------------------------------------------
-    v_set_module(saved_module);
 
     //-----------------------------------------------------------------
     v_add_symbol_type("voidc_has_grammar",        has_grammar_ft);
