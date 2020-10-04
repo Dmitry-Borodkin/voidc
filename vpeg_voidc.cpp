@@ -16,8 +16,6 @@ namespace vpeg
 extern "C"
 {
 
-static const std::string std_string_nil("");
-
 static const ast_stmt_list_ptr_t stmt_list_nil = std::make_shared<const ast_stmt_list_t>();
 static const ast_arg_list_ptr_t  arg_list_nil  = std::make_shared<const ast_arg_list_t>();
 
@@ -165,17 +163,9 @@ mk_dec_integer(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_string_nil(std::any *ret, const std::any *args, size_t)
-{
-    *ret = std_string_nil;
-}
-
-static void
 mk_string(std::any *ret, const std::any *args, size_t)
 {
-    auto sp = std::any_cast<const std::string>(args);
-
-    if (!sp) sp = &std_string_nil;
+    auto s = std::any_cast<const std::string>(args[0]);
 
     auto c = std::any_cast<char32_t>(args[1]);
 
@@ -200,9 +190,9 @@ mk_string(std::any *ret, const std::any *args, size_t)
     }
     else
     {
-        for (int j = 0; j < r; ++j)
+        for (int j = r; j > 0; --j)
         {
-            d[r-j] = 0x80 | (c & 0x3F);
+            d[j] = 0x80 | (c & 0x3F);
 
             c >>= 6;
         }
@@ -212,7 +202,7 @@ mk_string(std::any *ret, const std::any *args, size_t)
 
     d[r+1] = 0;
 
-    *ret = *sp + d;
+    *ret = s + d;
 }
 
 static void
@@ -255,7 +245,6 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(mk_arg_char)
     DEF(mk_neg_integer)
     DEF(mk_dec_integer)
-    DEF(mk_string_nil)
     DEF(mk_string)
     DEF(mk_EOF)
 
@@ -659,7 +648,7 @@ vpeg::grammar_t make_voidc_grammar(void)
 
     //-------------------------------------------------------------
     //- string <- '\"' s:str_body '\"'      { s }
-    //-         / "\"\""                    { mk_string_nil() }
+    //-         / "\"\""                    { "" }
 
     gr = gr.set_parser("string",
     mk_choice_parser(
@@ -679,7 +668,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_literal_parser("\"\""),
 
             mk_action_parser(
-                mk_call_action("mk_string_nil", {})
+                mk_return_action(mk_literal_argument(""))
             )
         })
     }));
@@ -701,7 +690,7 @@ vpeg::grammar_t make_voidc_grammar(void)
 
     //-------------------------------------------------------------
     //- str_body <- s:str_body c:str_char   { mk_string(s, c) }
-    //-           / c:str_char              { mk_string(0, c) }
+    //-           / c:str_char              { mk_string("", c) }
 
     gr = gr.set_parser("str_body",
     mk_choice_parser(
@@ -726,7 +715,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_action_parser(
                 mk_call_action("mk_string",
                 {
-                    mk_integer_argument(0),
+                    mk_literal_argument(""),
                     mk_identifier_argument("c")
                 })
             )
