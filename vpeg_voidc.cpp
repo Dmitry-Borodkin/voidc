@@ -16,6 +16,8 @@ namespace vpeg
 extern "C"
 {
 
+static const std::string std_string_nil("");
+
 static const ast_stmt_list_ptr_t stmt_list_nil = std::make_shared<const ast_stmt_list_t>();
 static const ast_arg_list_ptr_t  arg_list_nil  = std::make_shared<const ast_arg_list_t>();
 
@@ -133,52 +135,7 @@ mk_arg_string(std::any *ret, const std::any *args, size_t)
 static void
 mk_arg_char(std::any *ret, const std::any *args, size_t)
 {
-    auto p = std::any_cast<const std::string>(args[0]);
-
-    auto get_character = [](const char * &str)
-    {
-        uint8_t c0 = *((const uint8_t * &)str)++;
-
-        int n;
-
-        char32_t r;
-
-        if (c0 < 0xE0)
-        {
-            if (c0 < 0xC0)  { r = c0;           n = 0; }
-            else            { r = (c0 & 0x1F);  n = 1; }
-        }
-        else
-        {
-            if (c0 < 0xF0)  { r = (c0 & 0x0F);  n = 2; }
-            else            { r = (c0 & 0x07);  n = 3; }
-        }
-
-        for(; n; --n)
-        {
-            c0 = *((const uint8_t * &)str)++;
-
-            r = (r << 6) | (c0 & 0x3F);
-        }
-
-        return r;
-    };
-
-    auto src = p.c_str();
-
-    auto c = get_character(src);
-
-    if (c == U'\\')
-    {
-        c = get_character(src);
-
-        switch(c)
-        {
-        case U'n':  c = U'\n'; break;
-        case U'r':  c = U'\r'; break;
-        case U't':  c = U'\t'; break;
-        }
-    }
+    auto c = std::any_cast<char32_t>(args[0]);
 
     ast_argument_ptr_t ptr = std::make_shared<const ast_arg_char_t>(c);
 
@@ -205,6 +162,57 @@ mk_dec_integer(std::any *ret, const std::any *args, size_t)
     if (n)  d += 10*n;
 
     *ret = d;
+}
+
+static void
+mk_string_nil(std::any *ret, const std::any *args, size_t)
+{
+    *ret = std_string_nil;
+}
+
+static void
+mk_string(std::any *ret, const std::any *args, size_t)
+{
+    auto sp = std::any_cast<const std::string>(args);
+
+    if (!sp) sp = &std_string_nil;
+
+    auto c = std::any_cast<char32_t>(args[1]);
+
+    char d[5];
+
+    int r;
+
+    if (c <= 0x7FF)
+    {
+        if (c <= 0x7F)  r = 0;
+        else            r = 1;
+    }
+    else
+    {
+        if (c <= 0xFFFF)  r = 2;
+        else              r = 3;
+    }
+
+    if (r == 0)
+    {
+        d[0] = c & 0x7F;
+    }
+    else
+    {
+        for (int j = 0; j < r; ++j)
+        {
+            d[r-j] = 0x80 | (c & 0x3F);
+
+            c >>= 6;
+        }
+
+        d[0] = (0x1E << (6-r)) | (c & (0x3F >> r));
+    }
+
+    d[r+1] = 0;
+
+    *ret = *sp + d;
 }
 
 static void
@@ -247,6 +255,8 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(mk_arg_char)
     DEF(mk_neg_integer)
     DEF(mk_dec_integer)
+    DEF(mk_string_nil)
+    DEF(mk_string)
     DEF(mk_EOF)
 
 #undef DEF
@@ -269,9 +279,11 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(dec_integer)
     DEF(dec_digit)
     DEF(string)
-    DEF(str_char)
     DEF(char)
+    DEF(str_body)
+    DEF(str_char)
     DEF(character)
+    DEF(esc_sequence)
 
     DEF(_)
     DEF(comment)
@@ -646,21 +658,80 @@ vpeg::grammar_t make_voidc_grammar(void)
 
 
     //-------------------------------------------------------------
-    //- string <- '\"' <str_char*> '\"'     { $1 }
+    //- string <- '\"' s:str_body '\"'      { s }
+    //-         / "\"\""                    { mk_string_nil() }
 
     gr = gr.set_parser("string",
+    mk_choice_parser(
+    {
+        mk_sequence_parser(
+        {
+            mk_character_parser('\"'),
+            mk_catch_variable_parser("s", ip_str_body),
+            mk_character_parser('\"'),
+
+            mk_action_parser(
+                mk_return_action(mk_identifier_argument("s"))
+            )
+        }),
+        mk_sequence_parser(
+        {
+            mk_literal_parser("\"\""),
+
+            mk_action_parser(
+                mk_call_action("mk_string_nil", {})
+            )
+        })
+    }));
+
+    //-------------------------------------------------------------
+    //- char <- '\'' c:str_char '\''        { c }
+
+    gr = gr.set_parser("char",
     mk_sequence_parser(
     {
-        mk_character_parser('\"'),
-        mk_catch_string_parser(
-            mk_star_parser(ip_str_char)
-        ),
-        mk_character_parser('\"'),
+        mk_character_parser('\''),
+        mk_catch_variable_parser("c", ip_str_char),
+        mk_character_parser('\''),
 
         mk_action_parser(
-            mk_return_action(mk_backref_argument(1))
+            mk_return_action(mk_identifier_argument("c"))
         )
     }));
+
+    //-------------------------------------------------------------
+    //- str_body <- s:str_body c:str_char   { mk_string(s, c) }
+    //-           / c:str_char              { mk_string(0, c) }
+
+    gr = gr.set_parser("str_body",
+    mk_choice_parser(
+    {
+        mk_sequence_parser(
+        {
+            mk_catch_variable_parser("s", ip_str_body),
+            mk_catch_variable_parser("c", ip_str_char),
+
+            mk_action_parser(
+                mk_call_action("mk_string",
+                {
+                    mk_identifier_argument("s"),
+                    mk_identifier_argument("c")
+                })
+            )
+        }),
+        mk_sequence_parser(
+        {
+            mk_catch_variable_parser("c", ip_str_char),
+
+            mk_action_parser(
+                mk_call_action("mk_string",
+                {
+                    mk_integer_argument(0),
+                    mk_identifier_argument("c")
+                })
+            )
+        })
+    }), true);      //- Left recursion!
 
     //-------------------------------------------------------------
     //- str_char <- ![\n\r\t'"] character
@@ -675,22 +746,7 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- char <- '\'' <str_char> '\''      { $1 }
-
-    gr = gr.set_parser("char",
-    mk_sequence_parser(
-    {
-        mk_character_parser('\''),
-        mk_catch_string_parser(ip_str_char),
-        mk_character_parser('\''),
-
-        mk_action_parser(
-            mk_return_action(mk_backref_argument(1))
-        )
-    }));
-
-    //-------------------------------------------------------------
-    //- character <- '\\' [nrt'"\\]
+    //- character <- '\\' esc_sequence
     //-            / !'\\' .
 
     gr = gr.set_parser("character",
@@ -699,7 +755,7 @@ vpeg::grammar_t make_voidc_grammar(void)
         mk_sequence_parser(
         {
             mk_character_parser('\\'),
-            mk_class_parser({{'n','n'},{'r','r'},{'t','t'},{'\'','\''},{'\"','\"'},{'\\','\\'}})
+            ip_esc_sequence
         }),
         mk_sequence_parser(
         {
@@ -709,7 +765,27 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- _ <- space / comment
+    //- esc_sequence <- 'n'                 { '\n' }
+    //-               / 'r'                 { '\r' }
+    //-               / 't'                 { '\t' }
+    //-               / '\''
+    //-               / '\"'
+    //-               / '\\'
+
+    gr = gr.set_parser("esc_sequence",
+    mk_choice_parser(
+    {
+        mk_sequence_parser({ mk_character_parser('n'),  mk_action_parser(mk_return_action(mk_character_argument('\n'))) }),
+        mk_sequence_parser({ mk_character_parser('r'),  mk_action_parser(mk_return_action(mk_character_argument('\r'))) }),
+        mk_sequence_parser({ mk_character_parser('t'),  mk_action_parser(mk_return_action(mk_character_argument('\t'))) }),
+        mk_character_parser('\''),
+        mk_character_parser('\"'),
+        mk_character_parser('\\')
+    }));
+
+
+    //-------------------------------------------------------------
+    //- _ <- (space / comment)*
 
     gr = gr.set_parser("_",
     mk_star_parser(

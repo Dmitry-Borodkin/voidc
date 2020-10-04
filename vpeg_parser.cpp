@@ -11,6 +11,42 @@
 
 
 //---------------------------------------------------------------------
+//- Some utility
+//---------------------------------------------------------------------
+static char32_t
+read_utf8_codepoint(const char * &utf8)
+{
+    if (!*utf8) return (char32_t)0;
+
+    uint8_t c0 = (uint8_t)*utf8++;
+
+    int n;
+
+    uint32_t r;
+
+    if (c0 < 0xE0)
+    {
+        if (c0 < 0xC0)  { r = c0;           n = 0; }
+        else            { r = (c0 & 0x1F);  n = 1; }
+    }
+    else
+    {
+        if (c0 < 0xF0)  { r = (c0 & 0x0F);  n = 2; }
+        else            { r = (c0 & 0x07);  n = 3; }
+    }
+
+    for(; n; --n)
+    {
+        c0 = (uint8_t)*utf8++;
+
+        r = (r << 6) | (c0 & 0x3F);
+    }
+
+    return (char32_t)r;
+}
+
+
+//---------------------------------------------------------------------
 namespace vpeg
 {
 
@@ -185,7 +221,11 @@ std::any backref_parser_t::parse(context_t &ctx) const
 
     if (number == 0)  v[1] = st.position;
 
-    for (char32_t ucs4 : ctx.take_string(v[0], v[1]))
+    auto utf8 = ctx.take_string(v[0], v[1]);
+
+    const char *str = utf8.c_str();
+
+    while (char32_t ucs4 = read_utf8_codepoint(str))
     {
         if (!ctx.expect(ucs4))
         {
@@ -195,9 +235,7 @@ std::any backref_parser_t::parse(context_t &ctx) const
         }
     }
 
-    struct {} const dummy;
-
-    return dummy;
+    return utf8;
 }
 
 //-------------------------------------------------------------
@@ -211,7 +249,9 @@ std::any literal_parser_t::parse(context_t &ctx) const
 {
     auto st = ctx.get_state();
 
-    for (char32_t ucs4 : utf8)
+    const char *str = utf8.c_str();
+
+    while (char32_t ucs4 = read_utf8_codepoint(str))
     {
         if (!ctx.expect(ucs4))
         {
@@ -221,9 +261,7 @@ std::any literal_parser_t::parse(context_t &ctx) const
         }
     }
 
-    struct {} const dummy;
-
-    return dummy;
+    return utf8;
 }
 
 //-------------------------------------------------------------
@@ -231,9 +269,7 @@ std::any character_parser_t::parse(context_t &ctx) const
 {
     if (!ctx.expect(ucs4))  return std::any();
 
-    struct {} const dummy;
-
-    return dummy;
+    return ucs4;
 }
 
 //-------------------------------------------------------------

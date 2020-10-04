@@ -285,7 +285,9 @@ struct ast_arg_string_t : public ast_argument_t
 {
     const std::string string;
 
-    explicit ast_arg_string_t(const std::string &_string);     //- Sic!
+    explicit ast_arg_string_t(const std::string &_string)
+      : string(_string)
+    {}
 
 public:
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *str);
