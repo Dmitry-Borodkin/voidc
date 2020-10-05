@@ -510,6 +510,13 @@ char32_t v_peg_character_argument_get_character(const argument_ptr_t *ptr)
 
 
 //-----------------------------------------------------------------
+void v_peg_make_grammar(grammar_ptr_t *ret)
+{
+    *ret = std::make_shared<const grammar_t>();
+}
+
+
+//-----------------------------------------------------------------
 void v_peg_grammar_get_parser(const grammar_ptr_t *ptr, const char *name, parser_ptr_t *parser, int *leftrec)
 {
     if (auto *pair = (*ptr)->parsers.find(v_quark_from_string(name)))

@@ -262,6 +262,11 @@
     v_add_symbol_type("v_peg_character_argument_get_character", fun_t);
 
     v_store(v_peg_grammar_ref, arg0);
+
+    fun_t = LLVMFunctionType(void, arg0, 1, 0);
+
+    v_add_symbol_type("v_peg_make_grammar", fun_t);
+
     v_store(char_ptr,          arg1);
     v_store(v_peg_parser_ref,  arg2);
     v_store(int_ptr,           arg3);

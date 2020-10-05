@@ -129,7 +129,9 @@ std::any not_parser_t::parse(context_t &ctx) const
 //-------------------------------------------------------------
 std::any question_parser_t::parse(context_t &ctx) const
 {
-    parser->parse(ctx);
+    auto r = parser->parse(ctx);
+
+    if (r.has_value())  return r;
 
     struct {} const dummy;
 
@@ -139,16 +141,20 @@ std::any question_parser_t::parse(context_t &ctx) const
 //-------------------------------------------------------------
 std::any star_parser_t::parse(context_t &ctx) const
 {
+    struct {} const dummy;
+
+    std::any ret = dummy;
+
     for(;;)
     {
         auto r = parser->parse(ctx);
 
         if (!r.has_value()) break;
+
+        ret = r;
     }
 
-    struct {} const dummy;
-
-    return dummy;
+    return ret;
 }
 
 //-------------------------------------------------------------
@@ -164,7 +170,7 @@ std::any plus_parser_t::parse(context_t &ctx) const
 
         if (!r.has_value()) break;
 
-        ret = dummy;
+        ret = r;
     }
 
     return ret;

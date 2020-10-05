@@ -265,7 +265,8 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(ident_start)
     DEF(ident_cont)
     DEF(integer)
-    DEF(dec_integer)
+    DEF(dec_natural)
+    DEF(dec_positive)
     DEF(dec_digit)
     DEF(string)
     DEF(char)
@@ -570,20 +571,20 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
 
+
     //-------------------------------------------------------------
-    //- integer <- dec_integer
-    //-          / '-' n:dec_integer    { mk_neg_integer(n) }
-    //-          / '0'                  { 0 }
+    //- integer <- dec_natural
+    //-          / '-' n:dec_natural    { mk_neg_integer(n) }
 
     gr = gr.set_parser("integer",
     mk_choice_parser(
     {
-        ip_dec_integer,
+        ip_dec_natural,
 
         mk_sequence_parser(
         {
             mk_character_parser('-'),
-            mk_catch_variable_parser("n", ip_dec_integer),
+            mk_catch_variable_parser("n", ip_dec_natural),
 
             mk_action_parser(
                 mk_call_action("mk_neg_integer",
@@ -591,7 +592,18 @@ vpeg::grammar_t make_voidc_grammar(void)
                     mk_identifier_argument("n")
                 })
             )
-        }),
+        })
+    }));
+
+    //-------------------------------------------------------------
+    //- dec_natural <- dec_positive
+    //-              / '0'              { 0 }
+
+    gr = gr.set_parser("dec_natural",
+    mk_choice_parser(
+    {
+        ip_dec_positive,
+
         mk_sequence_parser(
         {
             mk_character_parser('0'),
@@ -603,15 +615,15 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- dec_integer <- n:dec_integer d:dec_digit        { mk_dec_integer(n, d) }
-    //-              / d:[1-9]                          { mk_dec_integer(0, d) }
+    //- dec_positive <- n:dec_positive d:dec_digit      { mk_dec_integer(n, d) }
+    //-               / d:[1-9]                         { mk_dec_integer(0, d) }
 
-    gr = gr.set_parser("dec_integer",
+    gr = gr.set_parser("dec_positive",
     mk_choice_parser(
     {
         mk_sequence_parser(
         {
-            mk_catch_variable_parser("n", ip_dec_integer),
+            mk_catch_variable_parser("n", ip_dec_positive),
             mk_catch_variable_parser("d", ip_dec_digit),
 
             mk_action_parser(
