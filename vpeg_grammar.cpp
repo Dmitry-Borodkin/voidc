@@ -250,43 +250,58 @@ void v_peg_parser_get_parsers(const parser_ptr_t *ptr, parser_ptr_t *list)
 //-----------------------------------------------------------------
 void v_peg_make_choice_parser(parser_ptr_t *ret, const parser_ptr_t *list, int count)
 {
-    *ret = std::make_shared<const choice_parser_t>(list, size_t(count));
+    *ret = mk_choice_parser(list, size_t(count));
 }
+
+void v_peg_choice_parser_append(parser_ptr_t *ret, const parser_ptr_t *head, const parser_ptr_t *tail)
+{
+    auto &h = dynamic_cast<const choice_parser_t &>(**head);
+
+    *ret = mk_choice_parser(h, *tail);
+}
+
 
 void v_peg_make_sequence_parser(parser_ptr_t *ret, const parser_ptr_t *list, int count)
 {
-    *ret = std::make_shared<const sequence_parser_t>(list, size_t(count));
+    *ret = mk_sequence_parser(list, size_t(count));
+}
+
+void v_peg_sequence_parser_append(parser_ptr_t *ret, const parser_ptr_t *head, const parser_ptr_t *tail)
+{
+    auto &h = dynamic_cast<const sequence_parser_t &>(**head);
+
+    *ret = mk_sequence_parser(h, *tail);
 }
 
 
 void v_peg_make_and_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
 {
-    *ret = std::make_shared<const and_parser_t>(*ptr);
+    *ret = mk_and_parser(*ptr);
 }
 
 void v_peg_make_not_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
 {
-    *ret = std::make_shared<const not_parser_t>(*ptr);
+    *ret = mk_not_parser(*ptr);
 }
 
 void v_peg_make_question_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
 {
-    *ret = std::make_shared<const question_parser_t>(*ptr);
+    *ret = mk_question_parser(*ptr);
 }
 
 void v_peg_make_star_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
 {
-    *ret = std::make_shared<const star_parser_t>(*ptr);
+    *ret = mk_star_parser(*ptr);
 }
 
 void v_peg_make_plus_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
 {
-    *ret = std::make_shared<const plus_parser_t>(*ptr);
+    *ret = mk_plus_parser(*ptr);
 }
 
 void v_peg_make_catch_variable_parser(parser_ptr_t *ret, const char *name, const parser_ptr_t *ptr)
 {
-    *ret = std::make_shared<const catch_variable_parser_t>(name, *ptr);
+    *ret = mk_catch_variable_parser(name, *ptr);
 }
 
 const char *v_peg_catch_variable_parser_get_name(const parser_ptr_t *ptr)
@@ -298,13 +313,13 @@ const char *v_peg_catch_variable_parser_get_name(const parser_ptr_t *ptr)
 
 void v_peg_make_catch_string_parser(parser_ptr_t *ret, const parser_ptr_t *ptr)
 {
-    *ret = std::make_shared<const catch_string_parser_t>(*ptr);
+    *ret = mk_catch_string_parser(*ptr);
 }
 
 
 void v_peg_make_identifier_parser(parser_ptr_t *ret, const char *ident)
 {
-    *ret = std::make_shared<const identifier_parser_t>(ident);
+    *ret = mk_identifier_parser(ident);
 }
 
 const char *v_peg_identifier_parser_get_identifier(const parser_ptr_t *ptr)
@@ -316,7 +331,7 @@ const char *v_peg_identifier_parser_get_identifier(const parser_ptr_t *ptr)
 
 void v_peg_make_backref_parser(parser_ptr_t *ret, int number)
 {
-    *ret = std::make_shared<const backref_parser_t>(size_t(number));
+    *ret = mk_backref_parser(size_t(number));
 }
 
 int v_peg_backref_parser_get_number(const parser_ptr_t *ptr)
@@ -328,7 +343,7 @@ int v_peg_backref_parser_get_number(const parser_ptr_t *ptr)
 
 void v_peg_make_action_parser(parser_ptr_t *ret, const action_ptr_t *ptr)
 {
-    *ret = std::make_shared<const action_parser_t>(*ptr);
+    *ret = mk_action_parser(*ptr);
 }
 
 void v_peg_action_parser_get_action(const parser_ptr_t *ptr, action_ptr_t *action)
@@ -340,7 +355,7 @@ void v_peg_action_parser_get_action(const parser_ptr_t *ptr, action_ptr_t *actio
 
 void v_peg_make_literal_parser(parser_ptr_t *ret, const char *utf8)
 {
-    *ret = std::make_shared<const literal_parser_t>(utf8);
+    *ret = mk_literal_parser(utf8);
 }
 
 const char *v_peg_literal_parser_get_literal(const parser_ptr_t *ptr)
@@ -352,7 +367,7 @@ const char *v_peg_literal_parser_get_literal(const parser_ptr_t *ptr)
 
 void v_peg_make_character_parser(parser_ptr_t *ret, char32_t ucs4)
 {
-    *ret = std::make_shared<const character_parser_t>(ucs4);
+    *ret = mk_character_parser(ucs4);
 }
 
 char32_t v_peg_character_parser_get_character(const parser_ptr_t *ptr)
@@ -364,7 +379,7 @@ char32_t v_peg_character_parser_get_character(const parser_ptr_t *ptr)
 
 void v_peg_make_class_parser(parser_ptr_t *ret, const char32_t (*ranges)[2], int count)
 {
-    *ret = std::make_shared<const class_parser_t>(ranges, size_t(count));
+    *ret = mk_class_parser(ranges, size_t(count));
 }
 
 int v_peg_class_parser_get_ranges_count(const parser_ptr_t *ptr)
@@ -389,7 +404,7 @@ void v_peg_class_parser_get_ranges(const parser_ptr_t *ptr, char32_t (*ranges)[2
 
 void v_peg_make_dot_parser(parser_ptr_t *ret)
 {
-    static const auto p = std::make_shared<const dot_parser_t>();
+    static const auto p = mk_dot_parser();
 
     *ret = p;
 }
@@ -398,7 +413,7 @@ void v_peg_make_dot_parser(parser_ptr_t *ret)
 //-----------------------------------------------------------------
 void v_peg_make_call_action(action_ptr_t *ret, const char *fun, const argument_ptr_t *args, int count)
 {
-    *ret = std::make_shared<const call_action_t>(fun, args, size_t(count));
+    *ret = mk_call_action(fun, args, size_t(count));
 }
 
 const char *v_peg_call_action_get_function_name(const action_ptr_t *ptr)
@@ -429,7 +444,7 @@ void v_peg_call_action_get_arguments(const action_ptr_t *ptr, argument_ptr_t *ar
 
 void v_peg_make_return_action(action_ptr_t *ret, const argument_ptr_t *arg)
 {
-    *ret = std::make_shared<const return_action_t>(*arg);
+    *ret = mk_return_action(*arg);
 }
 
 void v_peg_return_action_get_argument(const action_ptr_t *ptr, argument_ptr_t *arg)
@@ -443,7 +458,7 @@ void v_peg_return_action_get_argument(const action_ptr_t *ptr, argument_ptr_t *a
 //-----------------------------------------------------------------
 void v_peg_make_identifier_argument(argument_ptr_t *ret, const char *ident)
 {
-    *ret = std::make_shared<const identifier_argument_t>(ident);
+    *ret = mk_identifier_argument(ident);
 }
 
 const char *v_peg_identifier_argument_get_identifier(const argument_ptr_t *ptr)
@@ -455,7 +470,7 @@ const char *v_peg_identifier_argument_get_identifier(const argument_ptr_t *ptr)
 
 void v_peg_make_backref_argument(argument_ptr_t *ret, int number, int kind)
 {
-    *ret = std::make_shared<const backref_argument_t>(size_t(number), backref_argument_t::b_kind_t(kind));
+    *ret = mk_backref_argument(size_t(number), backref_argument_t::b_kind_t(kind));
 }
 
 int v_peg_backref_argument_get_number(const argument_ptr_t *ptr)
@@ -474,7 +489,7 @@ int v_peg_backref_argument_get_kind(const argument_ptr_t *ptr)
 
 void v_peg_make_integer_argument(argument_ptr_t *ret, intptr_t number)
 {
-    *ret = std::make_shared<const integer_argument_t>(number);
+    *ret = mk_integer_argument(number);
 }
 
 intptr_t v_peg_integer_argument_get_number(const argument_ptr_t *ptr)
@@ -486,7 +501,7 @@ intptr_t v_peg_integer_argument_get_number(const argument_ptr_t *ptr)
 
 void v_peg_make_literal_argument(argument_ptr_t *ret, const char *utf8)
 {
-    *ret = std::make_shared<const literal_argument_t>(utf8);
+    *ret = mk_literal_argument(utf8);
 }
 
 const char *v_peg_literal_argument_get_literal(const argument_ptr_t *ptr)
@@ -498,7 +513,7 @@ const char *v_peg_literal_argument_get_literal(const argument_ptr_t *ptr)
 
 void v_peg_make_character_argument(argument_ptr_t *ret, char32_t ucs4)
 {
-    *ret = std::make_shared<const character_argument_t>(ucs4);
+    *ret = mk_character_argument(ucs4);
 }
 
 char32_t v_peg_character_argument_get_character(const argument_ptr_t *ptr)

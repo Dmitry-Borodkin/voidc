@@ -155,6 +155,10 @@ protected:
       : array(list, list+count)
     {}
 
+    parser_array_t(const parser_array_t<tag> &head, const parser_ptr_t &tail)
+      : array(head.array.push_back(tail))
+    {}
+
 public:
     const immer::array<parser_ptr_t> array;
 
@@ -183,22 +187,33 @@ public:
       : parser_array_t<k_choice>(list, count)
     {}
 
+    choice_parser_t(const choice_parser_t &head, const parser_ptr_t &tail)
+      : parser_array_t<k_choice>(head, tail)
+    {}
+
 public:
     std::any parse(context_t &ctx) const override;
 };
 
 inline
-std::shared_ptr<choice_parser_t>
+std::shared_ptr<const choice_parser_t>
 mk_choice_parser(const std::initializer_list<parser_ptr_t> &list)
 {
-    return std::make_shared<choice_parser_t>(list);
+    return std::make_shared<const choice_parser_t>(list);
 }
 
 inline
-std::shared_ptr<choice_parser_t>
+std::shared_ptr<const choice_parser_t>
 mk_choice_parser(const parser_ptr_t *list, size_t count)
 {
-    return std::make_shared<choice_parser_t>(list, count);
+    return std::make_shared<const choice_parser_t>(list, count);
+}
+
+inline
+std::shared_ptr<const choice_parser_t>
+mk_choice_parser(const choice_parser_t &head, const parser_ptr_t &tail)
+{
+    return std::make_shared<const choice_parser_t>(head, tail);
 }
 
 
@@ -214,22 +229,33 @@ public:
       : parser_array_t<k_sequence>(list, count)
     {}
 
+    sequence_parser_t(const sequence_parser_t &head, const parser_ptr_t &tail)
+      : parser_array_t<k_sequence>(head, tail)
+    {}
+
 public:
     std::any parse(context_t &ctx) const override;
 };
 
 inline
-std::shared_ptr<sequence_parser_t>
+std::shared_ptr<const sequence_parser_t>
 mk_sequence_parser(const std::initializer_list<parser_ptr_t> &list)
 {
-    return std::make_shared<sequence_parser_t>(list);
+    return std::make_shared<const sequence_parser_t>(list);
 }
 
 inline
-std::shared_ptr<sequence_parser_t>
+std::shared_ptr<const sequence_parser_t>
 mk_sequence_parser(const parser_ptr_t *list, size_t count)
 {
-    return std::make_shared<sequence_parser_t>(list, count);
+    return std::make_shared<const sequence_parser_t>(list, count);
+}
+
+inline
+std::shared_ptr<const sequence_parser_t>
+mk_sequence_parser(const sequence_parser_t &head, const parser_ptr_t &tail)
+{
+    return std::make_shared<const sequence_parser_t>(head, tail);
 }
 
 
@@ -265,10 +291,10 @@ public:
 };
 
 inline
-std::shared_ptr<and_parser_t>
+std::shared_ptr<const and_parser_t>
 mk_and_parser(const parser_ptr_t &_parser)
 {
-    return std::make_shared<and_parser_t>(_parser);
+    return std::make_shared<const and_parser_t>(_parser);
 }
 
 //---------------------------------------------------------------------
@@ -284,10 +310,10 @@ public:
 };
 
 inline
-std::shared_ptr<not_parser_t>
+std::shared_ptr<const not_parser_t>
 mk_not_parser(const parser_ptr_t &_parser)
 {
-    return std::make_shared<not_parser_t>(_parser);
+    return std::make_shared<const not_parser_t>(_parser);
 }
 
 //---------------------------------------------------------------------
@@ -303,10 +329,10 @@ public:
 };
 
 inline
-std::shared_ptr<question_parser_t>
+std::shared_ptr<const question_parser_t>
 mk_question_parser(const parser_ptr_t &_parser)
 {
-    return std::make_shared<question_parser_t>(_parser);
+    return std::make_shared<const question_parser_t>(_parser);
 }
 
 //---------------------------------------------------------------------
@@ -322,10 +348,10 @@ public:
 };
 
 inline
-std::shared_ptr<star_parser_t>
+std::shared_ptr<const star_parser_t>
 mk_star_parser(const parser_ptr_t &_parser)
 {
-    return std::make_shared<star_parser_t>(_parser);
+    return std::make_shared<const star_parser_t>(_parser);
 }
 
 //---------------------------------------------------------------------
@@ -341,10 +367,10 @@ public:
 };
 
 inline
-std::shared_ptr<plus_parser_t>
+std::shared_ptr<const plus_parser_t>
 mk_plus_parser(const parser_ptr_t &_parser)
 {
-    return std::make_shared<plus_parser_t>(_parser);
+    return std::make_shared<const plus_parser_t>(_parser);
 }
 
 //---------------------------------------------------------------------
@@ -364,10 +390,10 @@ public:
 };
 
 inline
-std::shared_ptr<catch_variable_parser_t>
+std::shared_ptr<const catch_variable_parser_t>
 mk_catch_variable_parser(const char *name, const parser_ptr_t &parser)
 {
-    return std::make_shared<catch_variable_parser_t>(name, parser);
+    return std::make_shared<const catch_variable_parser_t>(name, parser);
 }
 
 //---------------------------------------------------------------------
@@ -383,10 +409,10 @@ public:
 };
 
 inline
-std::shared_ptr<catch_string_parser_t>
+std::shared_ptr<const catch_string_parser_t>
 mk_catch_string_parser(const parser_ptr_t &_parser)
 {
-    return std::make_shared<catch_string_parser_t>(_parser);
+    return std::make_shared<const catch_string_parser_t>(_parser);
 }
 
 
@@ -406,10 +432,10 @@ public:
 };
 
 inline
-std::shared_ptr<identifier_parser_t>
+std::shared_ptr<const identifier_parser_t>
 mk_identifier_parser(const char *ident)
 {
-    return std::make_shared<identifier_parser_t>(ident);
+    return std::make_shared<const identifier_parser_t>(ident);
 }
 
 //---------------------------------------------------------------------
@@ -428,10 +454,10 @@ public:
 };
 
 inline
-std::shared_ptr<backref_parser_t>
+std::shared_ptr<const backref_parser_t>
 mk_backref_parser(size_t _number)
 {
-    return std::make_shared<backref_parser_t>(_number);
+    return std::make_shared<const backref_parser_t>(_number);
 }
 
 //---------------------------------------------------------------------
@@ -450,10 +476,10 @@ public:
 };
 
 inline
-std::shared_ptr<action_parser_t>
+std::shared_ptr<const action_parser_t>
 mk_action_parser(const action_ptr_t &_action)
 {
-    return std::make_shared<action_parser_t>(_action);
+    return std::make_shared<const action_parser_t>(_action);
 }
 
 //---------------------------------------------------------------------
@@ -472,10 +498,10 @@ public:
 };
 
 inline
-std::shared_ptr<literal_parser_t>
+std::shared_ptr<const literal_parser_t>
 mk_literal_parser(const std::string &_utf8)
 {
-    return std::make_shared<literal_parser_t>(_utf8);
+    return std::make_shared<const literal_parser_t>(_utf8);
 }
 
 //---------------------------------------------------------------------
@@ -494,10 +520,10 @@ public:
 };
 
 inline
-std::shared_ptr<character_parser_t>
+std::shared_ptr<const character_parser_t>
 mk_character_parser(char32_t _ucs4)
 {
-    return std::make_shared<character_parser_t>(_ucs4);
+    return std::make_shared<const character_parser_t>(_ucs4);
 }
 
 //---------------------------------------------------------------------
@@ -521,10 +547,17 @@ public:
 };
 
 inline
-std::shared_ptr<class_parser_t>
+std::shared_ptr<const class_parser_t>
 mk_class_parser(const std::initializer_list<class_parser_t::range_t> &list)
 {
-    return std::make_shared<class_parser_t>(list);
+    return std::make_shared<const class_parser_t>(list);
+}
+
+inline
+std::shared_ptr<const class_parser_t>
+mk_class_parser(const char32_t (*list)[2], size_t count)
+{
+    return std::make_shared<const class_parser_t>(list, count);
 }
 
 //---------------------------------------------------------------------
@@ -568,10 +601,17 @@ public:
 };
 
 inline
-std::shared_ptr<call_action_t>
+std::shared_ptr<const call_action_t>
 mk_call_action(const char *fun, const std::initializer_list<argument_ptr_t> &list)
 {
-    return std::make_shared<call_action_t>(fun, list);
+    return std::make_shared<const call_action_t>(fun, list);
+}
+
+inline
+std::shared_ptr<const call_action_t>
+mk_call_action(const char *fun, const argument_ptr_t *list, size_t count)
+{
+    return std::make_shared<const call_action_t>(fun, list, count);
 }
 
 //---------------------------------------------------------------------
@@ -593,10 +633,10 @@ public:
 };
 
 inline
-std::shared_ptr<return_action_t>
+std::shared_ptr<const return_action_t>
 mk_return_action(const argument_ptr_t &arg)
 {
-    return std::make_shared<return_action_t>(arg);
+    return std::make_shared<const return_action_t>(arg);
 }
 
 
@@ -618,10 +658,10 @@ public:
 };
 
 inline
-std::shared_ptr<identifier_argument_t>
+std::shared_ptr<const identifier_argument_t>
 mk_identifier_argument(const char *ident)
 {
-    return std::make_shared<identifier_argument_t>(ident);
+    return std::make_shared<const identifier_argument_t>(ident);
 }
 
 //---------------------------------------------------------------------
@@ -650,10 +690,10 @@ public:
 };
 
 inline
-std::shared_ptr<backref_argument_t>
+std::shared_ptr<const backref_argument_t>
 mk_backref_argument(size_t number, backref_argument_t::b_kind_t b_kind=backref_argument_t::bk_string)
 {
-    return std::make_shared<backref_argument_t>(number, b_kind);
+    return std::make_shared<const backref_argument_t>(number, b_kind);
 }
 
 //---------------------------------------------------------------------
@@ -675,10 +715,10 @@ public:
 };
 
 inline
-std::shared_ptr<integer_argument_t>
+std::shared_ptr<const integer_argument_t>
 mk_integer_argument(intptr_t number)
 {
-    return std::make_shared<integer_argument_t>(number);
+    return std::make_shared<const integer_argument_t>(number);
 }
 
 //---------------------------------------------------------------------
@@ -700,10 +740,10 @@ public:
 };
 
 inline
-std::shared_ptr<literal_argument_t>
+std::shared_ptr<const literal_argument_t>
 mk_literal_argument(const std::string &utf8)
 {
-    return std::make_shared<literal_argument_t>(utf8);
+    return std::make_shared<const literal_argument_t>(utf8);
 }
 
 //---------------------------------------------------------------------
@@ -725,10 +765,10 @@ public:
 };
 
 inline
-std::shared_ptr<character_argument_t>
+std::shared_ptr<const character_argument_t>
 mk_character_argument(char32_t ucs4)
 {
-    return std::make_shared<character_argument_t>(ucs4);
+    return std::make_shared<const character_argument_t>(ucs4);
 }
 
 

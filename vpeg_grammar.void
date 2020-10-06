@@ -87,6 +87,13 @@
     v_add_symbol_type("v_peg_make_choice_parser",   fun_t);
     v_add_symbol_type("v_peg_make_sequence_parser", fun_t);
 
+    v_store(v_peg_parser_ref, arg2);
+
+    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+
+    v_add_symbol_type("v_peg_choice_parser_append",   fun_t);
+    v_add_symbol_type("v_peg_sequence_parser_append", fun_t);
+
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_peg_make_and_parser",      fun_t);
@@ -96,7 +103,7 @@
     v_add_symbol_type("v_peg_make_plus_parser",     fun_t);
 
     v_store(char_ptr,         arg1);
-    v_store(v_peg_parser_ref, arg2);
+//  v_store(v_peg_parser_ref, arg2);
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -160,6 +167,8 @@
     v_add_symbol_type("v_peg_character_parser_get_character", fun_t);
 
     range_t = LLVMArrayType(char32_t, 2);
+
+    v_add_symbol("v_peg_class_parser_range_t", LLVMOpaqueType, range_t);
 
     range_ptr_t = LLVMPointerType(range_t, 0);
 
