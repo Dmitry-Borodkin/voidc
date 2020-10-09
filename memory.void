@@ -183,14 +183,9 @@
 
     builder = v_target_get_builder();
 
-    typename = v_alloca(v_util_opaque_std_string);
-    v_initialize(typename);
+    typename = v_ast_arg_identifier_get_name(args);
 
-    v_ast_arg_identifier_get_name(args, typename);
-
-    typename_str = v_std_string_get(typename);
-
-    type = v_find_type(typename_str);
+    type = v_find_type(typename);
 
     ret = LLVMBuildArrayMalloc(builder, type, number, "ret");
 
@@ -198,7 +193,6 @@
 
     v_clear_arguments();
 
-    v_destroy(typename);
     v_destroy(args, args_count);
 }
 

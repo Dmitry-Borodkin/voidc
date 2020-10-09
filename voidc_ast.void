@@ -57,6 +57,8 @@
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
+    char_ptr = LLVMPointerType(char, 0);
+
     //-------------------------------------------------------------
     v_store(v_ast_unit_ref,      arg0);
     v_store(v_ast_stmt_list_ref, arg1);
@@ -78,6 +80,11 @@
 
     //-------------------------------------------------------------
     v_store(v_ast_stmt_list_ref, arg0);
+
+    fun_t = LLVMFunctionType(void, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_make_stmt_list_nil", fun_t);
+
     v_store(v_ast_stmt_list_ref, arg1);
     v_store(v_ast_stmt_ref,      arg2);
 
@@ -97,15 +104,15 @@
     v_add_symbol_type("v_ast_stmt_list_get_stmt", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_stmt_ref,        arg0);
-    v_store(v_util_std_string_ref, arg1);
-    v_store(v_ast_call_ref,        arg2);
+    v_store(v_ast_stmt_ref, arg0);
+    v_store(char_ptr,       arg1);
+    v_store(v_ast_call_ref, arg2);
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_stmt", fun_t);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_stmt_get_var_name", fun_t);
 
@@ -116,15 +123,15 @@
     v_add_symbol_type("v_ast_stmt_get_call", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_call_ref,        arg0);
-    v_store(v_util_std_string_ref, arg1);
-    v_store(v_ast_arg_list_ref,    arg2);
+    v_store(v_ast_call_ref,     arg0);
+    v_store(char_ptr,           arg1);
+    v_store(v_ast_arg_list_ref, arg2);
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_call", fun_t);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_call_get_fun_name", fun_t);
 
@@ -152,12 +159,15 @@
     v_add_symbol_type("v_ast_arg_list_get_args", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_argument_ref,    arg0);
-    v_store(v_util_std_string_ref, arg1);
+    v_store(v_ast_argument_ref, arg0);
+    v_store(char_ptr,           arg1);
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_arg_identifier", fun_t);
+
+    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
+
     v_add_symbol_type("v_ast_arg_identifier_get_name", fun_t);
 
     //-------------------------------------------------------------
@@ -172,11 +182,14 @@
     v_add_symbol_type("v_ast_arg_integer_get_number", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_util_std_string_ref, arg1);
+    v_store(char_ptr, arg1);
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_arg_string", fun_t);
+
+    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
+
     v_add_symbol_type("v_ast_arg_string_get_string", fun_t);
 
     //-------------------------------------------------------------

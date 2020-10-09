@@ -49,26 +49,30 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-void v_ast_make_unit(ast_unit_ptr_t *ret, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
+void
+v_ast_make_unit(ast_unit_ptr_t *ret, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
 {
     *ret = std::make_shared<const ast_unit_t>(*stmt_list, line, column);
 }
 
-void v_ast_unit_get_stmt_list(const ast_unit_ptr_t *ptr, ast_stmt_list_ptr_t *list)
+void
+v_ast_unit_get_stmt_list(const ast_unit_ptr_t *ptr, ast_stmt_list_ptr_t *list)
 {
     auto &r = dynamic_cast<const ast_unit_t &>(**ptr);
 
     *list = r.stmt_list;
 }
 
-int v_ast_unit_get_line(const ast_unit_ptr_t *ptr)
+int
+v_ast_unit_get_line(const ast_unit_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_unit_t &>(**ptr);
 
     return r.line;
 }
 
-int v_ast_unit_get_column(const ast_unit_ptr_t *ptr)
+int
+v_ast_unit_get_column(const ast_unit_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_unit_t &>(**ptr);
 
@@ -76,35 +80,47 @@ int v_ast_unit_get_column(const ast_unit_ptr_t *ptr)
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_stmt_list(ast_stmt_list_ptr_t *ret, const ast_stmt_list_ptr_t *list, const ast_stmt_ptr_t *stmt)
+void
+v_ast_make_stmt_list_nil(ast_stmt_list_ptr_t *ret)
+{
+    *ret = std::make_shared<const ast_stmt_list_t>();
+}
+
+void
+v_ast_make_stmt_list(ast_stmt_list_ptr_t *ret, const ast_stmt_list_ptr_t *list, const ast_stmt_ptr_t *stmt)
 {
     *ret = std::make_shared<const ast_stmt_list_t>(*list, *stmt);
 }
 
-int v_ast_stmt_list_get_size(const ast_stmt_list_ptr_t *ptr)
+int
+v_ast_stmt_list_get_size(const ast_stmt_list_ptr_t *ptr)
 {
     return (*ptr)->data.size();
 }
 
-void v_ast_stmt_list_get_stmt(const ast_stmt_list_ptr_t *ptr, int i, ast_stmt_ptr_t *ret)
+void
+v_ast_stmt_list_get_stmt(const ast_stmt_list_ptr_t *ptr, int i, ast_stmt_ptr_t *ret)
 {
     *ret = (*ptr)->data[i];
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_stmt(ast_stmt_ptr_t *ret, const std::string *var, const ast_call_ptr_t *call)
+void
+v_ast_make_stmt(ast_stmt_ptr_t *ret, const char *var, const ast_call_ptr_t *call)
 {
-    *ret = std::make_shared<const ast_stmt_t>(*var, *call);
+    *ret = std::make_shared<const ast_stmt_t>(var, *call);
 }
 
-void v_ast_stmt_get_var_name(const ast_stmt_ptr_t *ptr, std::string *var)
+const char *
+v_ast_stmt_get_var_name(const ast_stmt_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_stmt_t &>(**ptr);
 
-    *var = r.var_name;
+    return  r.var_name.c_str();
 }
 
-void v_ast_stmt_get_call(const ast_stmt_ptr_t *ptr, ast_call_ptr_t *call)
+void
+v_ast_stmt_get_call(const ast_stmt_ptr_t *ptr, ast_call_ptr_t *call)
 {
     auto &r = dynamic_cast<const ast_stmt_t &>(**ptr);
 
@@ -112,19 +128,22 @@ void v_ast_stmt_get_call(const ast_stmt_ptr_t *ptr, ast_call_ptr_t *call)
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_call(ast_call_ptr_t *ret, const std::string *fun, const ast_arg_list_ptr_t *list)
+void
+v_ast_make_call(ast_call_ptr_t *ret, const char *fun, const ast_arg_list_ptr_t *list)
 {
-    *ret = std::make_shared<const ast_call_t>(*fun, *list);
+    *ret = std::make_shared<const ast_call_t>(fun, *list);
 }
 
-void v_ast_call_get_fun_name(const ast_call_ptr_t *ptr, std::string *fun)
+const char *
+v_ast_call_get_fun_name(const ast_call_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_call_t &>(**ptr);
 
-    *fun = r.fun_name;
+    return  r.fun_name.c_str();
 }
 
-void v_ast_call_get_arg_list(const ast_call_ptr_t *ptr, ast_arg_list_ptr_t *list)
+void
+v_ast_call_get_arg_list(const ast_call_ptr_t *ptr, ast_arg_list_ptr_t *list)
 {
     auto &r = dynamic_cast<const ast_call_t &>(**ptr);
 
@@ -132,41 +151,48 @@ void v_ast_call_get_arg_list(const ast_call_ptr_t *ptr, ast_arg_list_ptr_t *list
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_arg_list(ast_arg_list_ptr_t *ret, const ast_argument_ptr_t *list, int count)
+void
+v_ast_make_arg_list(ast_arg_list_ptr_t *ret, const ast_argument_ptr_t *list, int count)
 {
     *ret = std::make_shared<const ast_arg_list_t>(list, count);
 }
 
-int v_ast_arg_list_get_count(const ast_arg_list_ptr_t *ptr)
+int
+v_ast_arg_list_get_count(const ast_arg_list_ptr_t *ptr)
 {
     return  int((*ptr)->data.size());
 }
 
-void v_ast_arg_list_get_args(const ast_arg_list_ptr_t *ptr, ast_argument_ptr_t *ret)
+void
+v_ast_arg_list_get_args(const ast_arg_list_ptr_t *ptr, ast_argument_ptr_t *ret)
 {
     std::copy((*ptr)->data.begin(), (*ptr)->data.end(), ret);
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_arg_identifier(ast_argument_ptr_t *ret, const std::string *name)
+void
+v_ast_make_arg_identifier(ast_argument_ptr_t *ret, const char *name)
 {
-    *ret = std::make_shared<const ast_arg_identifier_t>(*name);
+    *ret = std::make_shared<const ast_arg_identifier_t>(name);
 }
 
-void v_ast_arg_identifier_get_name(const ast_argument_ptr_t *ptr, std::string *name)
+const char *
+v_ast_arg_identifier_get_name(const ast_argument_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_arg_identifier_t &>(**ptr);
 
-    *name = r.name;
+    return  r.name.c_str();
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_arg_integer(ast_argument_ptr_t *ret, intptr_t number)
+void
+v_ast_make_arg_integer(ast_argument_ptr_t *ret, intptr_t number)
 {
     *ret = std::make_shared<const ast_arg_integer_t>(number);
 }
 
-intptr_t v_ast_arg_integer_get_number(const ast_argument_ptr_t *ptr)
+intptr_t
+v_ast_arg_integer_get_number(const ast_argument_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_arg_integer_t &>(**ptr);
 
@@ -174,25 +200,29 @@ intptr_t v_ast_arg_integer_get_number(const ast_argument_ptr_t *ptr)
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_arg_string(ast_argument_ptr_t *ret, const std::string *string)
+void
+v_ast_make_arg_string(ast_argument_ptr_t *ret, const char *string)
 {
-    *ret = std::make_shared<const ast_arg_string_t>(*string);
+    *ret = std::make_shared<const ast_arg_string_t>(string);
 }
 
-void v_ast_arg_string_get_string(const ast_argument_ptr_t *ptr, std::string *string)
+const char *
+v_ast_arg_string_get_string(const ast_argument_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_arg_string_t &>(**ptr);
 
-    *string = r.string;
+    return  r.string.c_str();
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_arg_char(ast_argument_ptr_t *ret, char32_t c)
+void
+v_ast_make_arg_char(ast_argument_ptr_t *ret, char32_t c)
 {
     *ret = std::make_shared<const ast_arg_char_t>(c);
 }
 
-char32_t v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
+char32_t
+v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_arg_char_t &>(**ptr);
 
@@ -203,28 +233,33 @@ char32_t v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
 //-----------------------------------------------------------------
 //- Generics ...
 //-----------------------------------------------------------------
-void v_ast_make_generic(ast_generic_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
+void
+v_ast_make_generic(ast_generic_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
     *ret = std::make_shared<const ast_generic_t>(vtab, obj);
 }
 
 //-----------------------------------------------------------------
-void v_ast_make_unit_generic(ast_unit_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
+void
+v_ast_make_unit_generic(ast_unit_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
     *ret = std::make_shared<const ast_unit_generic_t>(vtab, obj);
 }
 
-void v_ast_make_stmt_generic(ast_stmt_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
+void
+v_ast_make_stmt_generic(ast_stmt_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
     *ret = std::make_shared<const ast_stmt_generic_t>(vtab, obj);
 }
 
-void v_ast_make_call_generic(ast_call_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
+void
+v_ast_make_call_generic(ast_call_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
     *ret = std::make_shared<const ast_call_generic_t>(vtab, obj);
 }
 
-void v_ast_make_argument_generic(ast_argument_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
+void
+v_ast_make_argument_generic(ast_argument_ptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
     *ret = std::make_shared<const ast_argument_generic_t>(vtab, obj);
 }
@@ -244,34 +279,40 @@ v_ast_generic_get_object(const ast_generic_ptr_t *ptr)
 
 
 //-----------------------------------------------------------------
-void v_ast_make_generic_list_nil(ast_generic_list_ptr_t *ret, v_quark_t tag)
+void
+v_ast_make_generic_list_nil(ast_generic_list_ptr_t *ret, v_quark_t tag)
 {
     *ret = std::make_shared<const ast_generic_list_t>(tag);
 }
 
-void v_ast_make_generic_list(ast_generic_list_ptr_t *ret, v_quark_t tag, const ast_base_ptr_t *list, int count)
+void
+v_ast_make_generic_list(ast_generic_list_ptr_t *ret, v_quark_t tag, const ast_base_ptr_t *list, int count)
 {
     *ret = std::make_shared<const ast_generic_list_t>(tag, list, count);
 }
 
-void v_ast_generic_list_append(ast_generic_list_ptr_t *ret,
-                               const ast_generic_list_ptr_t *list,
-                               const ast_base_ptr_t *item)
+void
+v_ast_generic_list_append(ast_generic_list_ptr_t *ret,
+                          const ast_generic_list_ptr_t *list,
+                          const ast_base_ptr_t *item)
 {
     *ret = std::make_shared<const ast_generic_list_t>(*list, *item);
 }
 
-int v_ast_generic_list_get_size(const ast_generic_list_ptr_t *ptr)
+int
+v_ast_generic_list_get_size(const ast_generic_list_ptr_t *ptr)
 {
     return (*ptr)->data.size();
 }
 
-void v_ast_generic_list_get_item(const ast_generic_list_ptr_t *ptr, int i, ast_base_ptr_t *ret)
+void
+v_ast_generic_list_get_item(const ast_generic_list_ptr_t *ptr, int i, ast_base_ptr_t *ret)
 {
     *ret = (*ptr)->data[i];
 }
 
-void v_ast_generic_list_get_items(const ast_generic_list_ptr_t *ptr, ast_base_ptr_t *ret)
+void
+v_ast_generic_list_get_items(const ast_generic_list_ptr_t *ptr, ast_base_ptr_t *ret)
 {
     std::copy((*ptr)->data.begin(), (*ptr)->data.end(), ret);
 }
@@ -289,7 +330,8 @@ v_quark_t v_##type##_visitor_method_tag;
 
 
 #define DEF(type) \
-void v_visitor_set_method_##type(visitor_ptr_t *dst, const visitor_ptr_t *src, type::visitor_method_t method) \
+void \
+v_visitor_set_method_##type(visitor_ptr_t *dst, const visitor_ptr_t *src, type::visitor_method_t method) \
 { \
     auto visitor = (*src)->set_void_method(v_##type##_visitor_method_tag, (void *)method); \
     *dst = std::make_shared<const voidc_visitor_t>(visitor); \
@@ -301,7 +343,8 @@ void v_visitor_set_method_##type(visitor_ptr_t *dst, const visitor_ptr_t *src, t
 
 
 //-----------------------------------------------------------------
-void v_ast_accept_visitor(const ast_base_ptr_t *object, const visitor_ptr_t *visitor)
+void
+v_ast_accept_visitor(const ast_base_ptr_t *object, const visitor_ptr_t *visitor)
 {
     (*object)->accept(*visitor);
 }
@@ -318,7 +361,8 @@ VOIDC_DLLEXPORT_END
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-void v_ast_static_initialize(void)
+void
+v_ast_static_initialize(void)
 {
     static_assert((sizeof(ast_base_ptr_t) % sizeof(intptr_t)) == 0);
 
@@ -358,7 +402,8 @@ void v_ast_static_initialize(void)
 
 
 //---------------------------------------------------------------------
-void v_ast_static_terminate(void)
+void
+v_ast_static_terminate(void)
 {
 }
 

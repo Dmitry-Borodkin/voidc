@@ -275,7 +275,7 @@ std::any character_parser_t::parse(context_t &ctx) const
 {
     if (!ctx.expect(ucs4))  return std::any();
 
-    return ucs4;
+    return (int32_t)ucs4;
 }
 
 //-------------------------------------------------------------
@@ -309,7 +309,7 @@ std::any class_parser_t::parse(context_t &ctx) const
         {
             ctx.get_character();
 
-            return ucs4;
+            return (int32_t)ucs4;
         }
     }
 
@@ -325,7 +325,7 @@ std::any dot_parser_t::parse(context_t &ctx) const
 
     ctx.get_character();
 
-    return ucs4;
+    return (int32_t)ucs4;
 }
 
 
@@ -341,9 +341,19 @@ std::any call_action_t::act(context_t &ctx) const
         a[i] = args[i]->value(ctx);
     }
 
-//  printf("%s\n", fun.c_str());
+//  printf("%s\n", v_quark_to_string(q_fun));
 
     std::any ret;
+
+    auto fun = ctx.grammar.actions[q_fun];
+
+#ifndef NDEBUG
+
+    if (!fun)   fprintf(stderr, "grammar action not found: %s\n", v_quark_to_string(q_fun));
+
+    assert(fun && "grammar action not found");
+
+#endif
 
     ctx.grammar.actions[q_fun](&ret, a.get(), N);
 

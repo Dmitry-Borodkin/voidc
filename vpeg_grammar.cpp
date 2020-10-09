@@ -13,6 +13,7 @@
 
 
 #include <cstdio>
+#include <functional>
 
 
 //---------------------------------------------------------------------
@@ -186,8 +187,36 @@ void grammar_t::static_terminate(void)
 
 
 //---------------------------------------------------------------------
-}   //- namespace vpeg
+//- Some utility ...
+//---------------------------------------------------------------------
+template <typename T>
+int
+flatten_parser(const parser_ptr_t &from, parser_ptr_t * &to)
+{
+    int count = 0;
 
+    if (from->kind() == T::kind_tag)
+    {
+        auto &fr = static_cast<const T &>(*from);
+
+        for (auto &item : fr.array)
+        {
+            count += flatten_parser<T>(item, to);
+        }
+    }
+    else
+    {
+        count = 1;
+
+        if (to) *to++ = from;
+    }
+
+    return count;
+}
+
+
+//---------------------------------------------------------------------
+}   //- namespace vpeg
 
 
 //---------------------------------------------------------------------
@@ -271,6 +300,46 @@ void v_peg_sequence_parser_append(parser_ptr_t *ret, const parser_ptr_t *head, c
     auto &h = dynamic_cast<const sequence_parser_t &>(**head);
 
     *ret = mk_sequence_parser(h, *tail);
+}
+
+
+//-----------------------------------------------------------------
+void v_peg_choice_parser_concat(parser_ptr_t *ret, const parser_ptr_t *head, const parser_ptr_t *tail)
+{
+    int count = 0;
+
+    parser_ptr_t *pps = nullptr;
+
+    count += flatten_parser<choice_parser_t>(*head, pps);
+    count += flatten_parser<choice_parser_t>(*tail, pps);
+
+    auto list = std::make_unique<parser_ptr_t[]>(count);
+
+    pps = list.get();
+
+    flatten_parser<choice_parser_t>(*head, pps);
+    flatten_parser<choice_parser_t>(*tail, pps);
+
+    *ret = mk_choice_parser(list.get(), count);
+}
+
+void v_peg_sequence_parser_concat(parser_ptr_t *ret, const parser_ptr_t *head, const parser_ptr_t *tail)
+{
+    int count = 0;
+
+    parser_ptr_t *pps = nullptr;
+
+    count += flatten_parser<sequence_parser_t>(*head, pps);
+    count += flatten_parser<sequence_parser_t>(*tail, pps);
+
+    auto list = std::make_unique<parser_ptr_t[]>(count);
+
+    pps = list.get();
+
+    flatten_parser<sequence_parser_t>(*head, pps);
+    flatten_parser<sequence_parser_t>(*tail, pps);
+
+    *ret = mk_sequence_parser(list.get(), count);
 }
 
 
@@ -552,6 +621,13 @@ void v_peg_grammar_set_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, cons
     *dst = std::make_shared<const grammar_t>(grammar);
 }
 
+void v_peg_grammar_erase_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name)
+{
+    auto grammar = (*src)->erase_parser(name);
+
+    *dst = std::make_shared<const grammar_t>(grammar);
+}
+
 
 grammar_action_fun_t
 v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
@@ -569,6 +645,13 @@ v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
 void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, grammar_action_fun_t fun)
 {
     auto grammar = (*src)->set_action(name, fun);
+
+    *dst = std::make_shared<const grammar_t>(grammar);
+}
+
+void v_peg_grammar_erase_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name)
+{
+    auto grammar = (*src)->erase_action(name);
 
     *dst = std::make_shared<const grammar_t>(grammar);
 }

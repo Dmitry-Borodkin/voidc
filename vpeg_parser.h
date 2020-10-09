@@ -37,6 +37,8 @@ struct node_t : public K
 template<typename N, typename N::kind_t tag>
 struct node_tag_t : public N
 {
+    enum { kind_tag = tag };
+
     typename N::kind_t kind(void) const override
     {
         return tag;
@@ -757,7 +759,7 @@ public:
 public:
     std::any value(context_t &ctx) const override
     {
-        return ucs4;
+        return (int32_t)ucs4;
     }
 
 public:

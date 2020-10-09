@@ -133,7 +133,8 @@ mk_arg_string(std::any *ret, const std::any *args, size_t)
 static void
 mk_arg_char(std::any *ret, const std::any *args, size_t)
 {
-    auto c = std::any_cast<char32_t>(args[0]);
+//  auto c = std::any_cast<char32_t>(args[0]);
+    auto c = (char32_t)std::any_cast<int32_t>(args[0]);
 
     ast_argument_ptr_t ptr = std::make_shared<const ast_arg_char_t>(c);
 
@@ -153,7 +154,8 @@ mk_dec_integer(std::any *ret, const std::any *args, size_t)
 {
     auto n = std::any_cast<intptr_t>(args[0]);
 
-    intptr_t d = std::any_cast<char32_t>(args[1]) - U'0';
+//  intptr_t d = std::any_cast<char32_t>(args[1]) - U'0';
+    intptr_t d = (char32_t)std::any_cast<int32_t>(args[1]) - U'0';
 
 //  printf("dec_int: %d %d\n", (int)n, (int)d);
 
@@ -167,7 +169,8 @@ mk_string(std::any *ret, const std::any *args, size_t)
 {
     auto s = std::any_cast<const std::string>(args[0]);
 
-    auto c = std::any_cast<char32_t>(args[1]);
+//  auto c = std::any_cast<char32_t>(args[1]);
+    auto c = (char32_t)std::any_cast<int32_t>(args[1]);
 
     char d[5];
 

@@ -75,6 +75,27 @@ public:
     }
 
 public:
+    grammar_t erase_parser(v_quark_t q_name) const
+    {
+        return  grammar_t(_parsers.erase(q_name), actions);
+    }
+
+    grammar_t erase_parser(const char *name) const
+    {
+        return  erase_parser(v_quark_from_string(name));
+    }
+
+    grammar_t erase_action(v_quark_t q_name) const
+    {
+        return  grammar_t(parsers, _actions.erase(q_name));
+    }
+
+    grammar_t erase_action(const char *name) const
+    {
+        return  erase_action(v_quark_from_string(name));
+    }
+
+public:
     std::any parse(v_quark_t q_name, context_t &ctx) const;
 
 public:

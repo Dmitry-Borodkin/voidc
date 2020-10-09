@@ -91,6 +91,12 @@
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_std_string_append_char", fun_t);
+
+    v_store(intptr_t, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_std_string_append_number", fun_t);
 }
 
 

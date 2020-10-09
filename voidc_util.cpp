@@ -543,6 +543,11 @@ void v_std_string_append_char(std::string *ptr, char32_t c)
     ptr->append(d);
 }
 
+void v_std_string_append_number(std::string *ptr, intptr_t n)
+{
+    *ptr += std::to_string(n);
+}
+
 //---------------------------------------------------------------------
 #define DEF_VAR(c_type, type_tag) \
 VOIDC_DEFINE_STD_ANY_GET_VALUE_IMPL(c_type, v_util_std_any_get_value_##type_tag##_impl) \
