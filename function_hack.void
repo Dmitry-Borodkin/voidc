@@ -968,7 +968,7 @@
     //-
     //-         LLVMBuildRet(builder, ret);
     //-
-    //-         v_destroy(args, args_count);
+    //-         v_terminate(args, args_count);
     //-
     //-         v_clear_arguments();
     //-     }
@@ -1051,9 +1051,9 @@
     v_store(args_v,       val0);
     v_store(args_count_v, val1);
 
-    arg_destroy_f = v_obtain_dict_function(v_util_destroy_dict, v_ast_opaque_argument_ptr);
+    arg_term_f = v_obtain_dict_function(v_util_terminate_dict, v_ast_opaque_argument_ptr);
 
-    LLVMBuildCall(builder, arg_destroy_f, val0, 2, "");
+    LLVMBuildCall(builder, arg_term_f, val0, 2, "");
 
 
     LLVMBuildCall(builder, clear_args_f, 0, 0, "");

@@ -24,7 +24,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 //-----------------------------------------------------------------
 #define DEF(name) \
     VOIDC_DEFINE_INITIALIZE_IMPL(ast_##name##_ptr_t, v_ast_initialize_##name##_impl) \
-    VOIDC_DEFINE_DESTROY_IMPL(ast_##name##_ptr_t, v_ast_destroy_##name##_impl) \
+    VOIDC_DEFINE_TERMINATE_IMPL(ast_##name##_ptr_t, v_ast_terminate_##name##_impl) \
     VOIDC_DEFINE_COPY_IMPL(ast_##name##_ptr_t, v_ast_copy_##name##_impl) \
     VOIDC_DEFINE_MOVE_IMPL(ast_##name##_ptr_t, v_ast_move_##name##_impl) \
     VOIDC_DEFINE_EMPTY_IMPL(ast_##name##_ptr_t, v_ast_empty_##name##_impl) \

@@ -53,7 +53,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(visitor_ptr_t, voidc_initialize_visitor_impl)
-VOIDC_DEFINE_DESTROY_IMPL(visitor_ptr_t, voidc_destroy_visitor_impl)
+VOIDC_DEFINE_TERMINATE_IMPL(visitor_ptr_t, voidc_terminate_visitor_impl)
 VOIDC_DEFINE_COPY_IMPL(visitor_ptr_t, voidc_copy_visitor_impl)
 VOIDC_DEFINE_MOVE_IMPL(visitor_ptr_t, voidc_move_visitor_impl)
 VOIDC_DEFINE_EMPTY_IMPL(visitor_ptr_t, voidc_empty_visitor_impl)

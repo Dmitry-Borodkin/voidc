@@ -68,12 +68,12 @@
 
     ok = LLVMBuildNot(builder, nok, "ok");
 
-    grammar_destroy_f = v_obtain_dict_function(v_util_destroy_dict, v_peg_opaque_grammar_ptr);
+    grammar_term_f = v_obtain_dict_function(v_util_terminate_dict, v_peg_opaque_grammar_ptr);
 
 //  v_store(grm, val0);
 //  v_store(n1,  val1);
 
-    LLVMBuildCall(builder, grammar_destroy_f, val0, 2, "");
+    LLVMBuildCall(builder, grammar_term_f, val0, 2, "");
 
     LLVMBuildRet(builder, ok);
 
@@ -133,18 +133,18 @@
     ok = LLVMBuildNot(builder, nok, "ok");
 
 
-    parser_destroy_f = v_obtain_dict_function(v_util_destroy_dict, v_peg_opaque_parser_ptr);
+    parser_term_f = v_obtain_dict_function(v_util_terminate_dict, v_peg_opaque_parser_ptr);
 
 //  v_store(pr0, val0);
     v_store(n1,  val1);
 
-    LLVMBuildCall(builder, parser_destroy_f, val0, 2, "");
+    LLVMBuildCall(builder, parser_term_f, val0, 2, "");
 
 
     v_store(gr0, val0);
 //  v_store(n1,  val1);
 
-    LLVMBuildCall(builder, grammar_destroy_f, val0, 2, "");
+    LLVMBuildCall(builder, grammar_term_f, val0, 2, "");
 
 
     LLVMBuildRet(builder, ok);

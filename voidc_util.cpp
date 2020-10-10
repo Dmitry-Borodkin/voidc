@@ -23,7 +23,7 @@ extern "C"
 VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
 v_util_function_dict_t v_util_initialize_dict;
-v_util_function_dict_t v_util_destroy_dict;
+v_util_function_dict_t v_util_terminate_dict;
 v_util_function_dict_t v_util_copy_dict;
 v_util_function_dict_t v_util_move_dict;
 v_util_function_dict_t v_util_empty_dict;
@@ -101,9 +101,9 @@ void v_initialize(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static
-void v_destroy(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_terminate(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 {
-    v_init_term_helper(vis, *args, v_util_destroy_dict);
+    v_init_term_helper(vis, *args, v_util_terminate_dict);
 }
 
 
@@ -389,7 +389,7 @@ void static_initialize(void)
     gctx.intrinsics[#name] = name;
 
     DEF(v_initialize)
-    DEF(v_destroy)
+    DEF(v_terminate)
 
     DEF(v_copy)
     DEF(v_move)
@@ -444,7 +444,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(v_util_function_dict_t, v_util_initialize_function_dict_impl)
-VOIDC_DEFINE_DESTROY_IMPL(v_util_function_dict_t, v_util_destroy_function_dict_impl)
+VOIDC_DEFINE_TERMINATE_IMPL(v_util_function_dict_t, v_util_terminate_function_dict_impl)
 VOIDC_DEFINE_COPY_IMPL(v_util_function_dict_t, v_util_copy_function_dict_impl)
 VOIDC_DEFINE_MOVE_IMPL(v_util_function_dict_t, v_util_move_function_dict_impl)
 
@@ -472,7 +472,7 @@ void v_util_function_dict_set(v_util_function_dict_t *ptr, LLVMTypeRef type, con
 
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(std::any, v_util_initialize_std_any_impl)
-VOIDC_DEFINE_DESTROY_IMPL(std::any, v_util_destroy_std_any_impl)
+VOIDC_DEFINE_TERMINATE_IMPL(std::any, v_util_terminate_std_any_impl)
 VOIDC_DEFINE_COPY_IMPL(std::any, v_util_copy_std_any_impl)
 VOIDC_DEFINE_MOVE_IMPL(std::any, v_util_move_std_any_impl)
 
@@ -483,7 +483,7 @@ bool v_util_empty_std_any_impl(const std::any *ptr)
 
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(std::string, v_util_initialize_std_string_impl)
-VOIDC_DEFINE_DESTROY_IMPL(std::string, v_util_destroy_std_string_impl)
+VOIDC_DEFINE_TERMINATE_IMPL(std::string, v_util_terminate_std_string_impl)
 VOIDC_DEFINE_COPY_IMPL(std::string, v_util_copy_std_string_impl)
 VOIDC_DEFINE_MOVE_IMPL(std::string, v_util_move_std_string_impl)
 
