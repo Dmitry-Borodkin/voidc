@@ -244,8 +244,8 @@
     loop_start_bv = LLVMBasicBlockAsValue(loop_start_b);
     loop_stop_bv  = LLVMBasicBlockAsValue(loop_stop_b);
 
-    v_add_variable("__voidc_internal_branch_target_continue", loop_start_bv);
-    v_add_variable("__voidc_internal_branch_target_break",    loop_stop_bv);
+    v_add_variable("voidc.internal_branch_target_continue", loop_start_bv);
+    v_add_variable("voidc.internal_branch_target_break",    loop_stop_bv);
 
 
     LLVMBuildBr(builder, loop_start_b);
@@ -290,7 +290,7 @@
 {
     builder = v_target_get_builder();
 
-    break_bv = v_get_variable("__voidc_internal_branch_target_break");
+    break_bv = v_get_variable("voidc.internal_branch_target_break");
 
     break_b = LLVMValueAsBasicBlock(break_bv);
 
@@ -308,7 +308,7 @@
 {
     builder = v_target_get_builder();
 
-    continue_bv = v_get_variable("__voidc_internal_branch_target_continue");
+    continue_bv = v_get_variable("voidc.internal_branch_target_continue");
 
     continue_b = LLVMValueAsBasicBlock(continue_bv);
 
