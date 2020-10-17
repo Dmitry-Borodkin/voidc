@@ -9,10 +9,9 @@
 #include "vpeg_context.h"
 #include "vpeg_voidc.h"
 
-#include <iostream>
-#include <fstream>
 #include <list>
 #include <memory>
+#include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <filesystem>
@@ -195,20 +194,20 @@ v_import(const char *name)
 
     static const char magic[8] = ".voidc\n";
 
-    std::ifstream infs;
+    std::FILE *infs;
 
     voidc_local_ctx_t lctx(src_filename_str, vctx);
 
     if (use_binary)
     {
-        infs.open(bin_filename, std::ios::binary);
+        infs = std::fopen(bin_filename.c_str(), "rb");
 
         size_t buf_len = sizeof(magic);
         auto buf = std::make_unique<char[]>(buf_len);
 
         std::memset(buf.get(), 0, buf_len);
 
-        infs.read(buf.get(), buf_len);
+        std::fread(buf.get(), buf_len, 1, infs);
 
         if (std::strcmp(magic, buf.get()) == 0)
         {
@@ -216,13 +215,13 @@ v_import(const char *name)
 
             vpeg::context_t::current_ctx = nullptr;
 
-            while(!infs.eof())
+            while(!std::feof(infs))
             {
                 size_t len;
 
-                infs.read((char *)&len, sizeof(len));
+                std::fread(&len, sizeof(len), 1, infs);
 
-                if (infs.eof()) break;      //- WTF ?!?!?
+                if (std::feof(infs))  break;        //- WTF ?!?!?
 
                 if (buf_len < len)
                 {
@@ -231,7 +230,7 @@ v_import(const char *name)
                     buf_len = len;
                 }
 
-                infs.read(buf.get(), len);
+                std::fread(buf.get(), len, 1, infs);
 
                 lctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
 
@@ -242,7 +241,7 @@ v_import(const char *name)
         }
         else
         {
-            infs.close();
+            std::fclose(infs);
 
             use_binary = false;
         }
@@ -250,17 +249,15 @@ v_import(const char *name)
 
     if (!use_binary)
     {
-        infs.open(src_filename, std::ios::binary);
+        infs = std::fopen(src_filename.c_str(), "rb");
 
-        std::ofstream  outfs;
-
-        outfs.open(bin_filename, std::ios::binary|std::ios::trunc);
+        std::FILE *outfs = std::fopen(bin_filename.c_str(), "wb");
 
         {   char buf[sizeof(magic)];
 
             std::memset(buf, 0, sizeof(magic));
 
-            outfs.write(buf, sizeof(magic));
+            std::fwrite(buf, sizeof(magic), 1, outfs);
         }
 
         {   vpeg::context_t pctx(infs, voidc_grammar);
@@ -279,9 +276,9 @@ v_import(const char *name)
                 {
                     size_t len = LLVMGetBufferSize(lctx.unit_buffer);
 
-                    outfs.write((char *)&len, sizeof(len));
+                    std::fwrite((char *)&len, sizeof(len), 1, outfs);
 
-                    outfs.write(LLVMGetBufferStart(lctx.unit_buffer), len);
+                    std::fwrite(LLVMGetBufferStart(lctx.unit_buffer), len, 1, outfs);
 
                     lctx.run_unit_action();
                 }
@@ -290,14 +287,14 @@ v_import(const char *name)
             vpeg::context_t::current_ctx = parent_vpeg_ctx;
         }
 
-        outfs.seekp(0);
+        std::fseek(outfs, 0, SEEK_SET);
 
-        outfs.write(magic, sizeof(magic));
+        std::fwrite(magic, sizeof(magic), 1, outfs);
 
-        outfs.close();
+        std::fclose(outfs);
     }
 
-    infs.close();
+    std::fclose(infs);
 }
 
 //--------------------------------------------------------------------
@@ -411,13 +408,13 @@ main(int argc, char *argv[])
     {
         std::string src_name = src;
 
-        std::istream *istr = nullptr;
+        std::FILE *istr;
 
         if (src == "-")
         {
             src_name = "<stdin>";
 
-            istr = &std::cin;
+            istr = stdin;
         }
         else
         {
@@ -426,16 +423,12 @@ main(int argc, char *argv[])
                 throw std::runtime_error("Source file not found: " + src_name);
             }
 
-            auto infs = new std::ifstream;
-
-            infs->open(src_name, std::ios::binary);
-
-            istr = infs;
+            istr = std::fopen(src_name.c_str(), "rb");
         }
 
         voidc_local_ctx_t lctx(src_name, gctx);
 
-        vpeg::context_t pctx(*istr, current_grammar);
+        vpeg::context_t pctx(istr, current_grammar);
 
         vpeg::context_t::current_ctx = &pctx;
 
@@ -452,7 +445,7 @@ main(int argc, char *argv[])
 
         current_grammar = pctx.grammar;
 
-        if (src != "-")   delete istr;
+        if (src != "-")   std::fclose(istr);
     }
 
 #if 0

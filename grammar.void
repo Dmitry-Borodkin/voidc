@@ -1,0 +1,2985 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_import("grammar.void"); }
+
+{   v_import("vpeg_context.void");
+    v_import("voidc_ast.void");
+}
+
+{   v_import("loop.void");
+    v_import("arithmetic.void");
+    v_import("function_hack.void");
+}
+
+{   voidc_enable_statement_block();
+    voidc_enable_statement_if_then_else();
+    voidc_enable_statement_loop();
+}
+
+
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("my_stmt_grammar_mod");
+
+    v_set_module(module);
+
+
+    char_ptr = LLVMPointerType(char, 0);
+
+    v_add_local_symbol("char_ptr", LLVMOpaqueType, char_ptr);
+}
+
+
+//---------------------------------------------------------------------
+//- Global variables
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    gr_arg = LLVMAddGlobal(module, v_ast_opaque_argument_ptr, "voidc_ast_stmt_grammar_grammar_arg");
+
+    gr_arg_z = LLVMConstNull(v_ast_opaque_argument_ptr);
+
+    LLVMSetInitializer(gr_arg, gr_arg_z);
+
+    stmt_list = LLVMAddGlobal(module, v_ast_opaque_stmt_list_ptr, "voidc_ast_stmt_grammar_stmt_list");
+
+    stmt_list_z = LLVMConstNull(v_ast_opaque_stmt_list_ptr);
+
+    LLVMSetInitializer(stmt_list, stmt_list_z);
+
+    pr_count = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_parsers_count");
+    pr_num   = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_parser_number");
+
+    int_z = LLVMConstNull(int);
+
+    LLVMSetInitializer(pr_count, int_z);
+    LLVMSetInitializer(pr_num,   int_z);
+
+    ar_count = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_arguments_count");
+    ar_num   = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_argument_number");
+
+    LLVMSetInitializer(ar_count, int_z);
+    LLVMSetInitializer(ar_num,   int_z);
+
+    rn_count = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_ranges_count");
+    rn_num   = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_range_number");
+
+    LLVMSetInitializer(rn_count, int_z);
+    LLVMSetInitializer(rn_num,   int_z);
+
+    v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_argument_ptr,  gr_arg);
+    v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_ptr, stmt_list);
+
+    v_add_local_symbol("voidc_ast_stmt_grammar_parsers_count",   int, pr_count);
+    v_add_local_symbol("voidc_ast_stmt_grammar_parser_number",   int, pr_num);
+    v_add_local_symbol("voidc_ast_stmt_grammar_arguments_count", int, ar_count);
+    v_add_local_symbol("voidc_ast_stmt_grammar_argument_number", int, ar_num);
+    v_add_local_symbol("voidc_ast_stmt_grammar_ranges_count",    int, rn_count);
+    v_add_local_symbol("voidc_ast_stmt_grammar_range_number",    int, rn_num);
+}
+
+
+//---------------------------------------------------------------------
+//- Some utility ...
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(LLVMTypeRef, 5);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
+
+    v_store(v_ast_stmt_ref,     typ0);
+    v_store(char_ptr,           typ1);
+    v_store(char_ptr,           typ2);
+    v_store(v_ast_argument_ref, typ3);
+    v_store(int,                typ4);
+
+    ft = LLVMFunctionType(void, typ0, 5, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_ast_make_stmt_call", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("stmt",  p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("var",   p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("fun",   p2);
+    p3 = LLVMGetParam(f, 3);    v_add_variable("args",  p3);
+    p4 = LLVMGetParam(f, 4);    v_add_variable("count", p4);
+}
+{
+    ar_l = v_alloca(v_ast_opaque_arg_list_ptr);
+    v_initialize(ar_l);
+
+    call = v_alloca(v_ast_opaque_call_ptr);
+    v_initialize(call);
+
+    v_ast_make_arg_list(ar_l, args, count);
+
+    v_ast_make_call(call, fun, ar_l);
+
+    v_ast_make_stmt(stmt, var, call);
+
+    v_terminate(call);
+    v_terminate(ar_l);
+}
+
+
+//---------------------------------------------------------------------
+{
+    ft = LLVMFunctionType(void, 0, 0, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_grammar_parsers_inc", ft);
+}
+{
+    number = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    number = v_binop(LLVMAdd, number, 1);
+
+    v_store(number, voidc_ast_stmt_grammar_parser_number);
+
+    count = v_load(voidc_ast_stmt_grammar_parsers_count);
+
+    gt = v_icmp(LLVMIntUGT, number, count);
+
+    if (gt) v_store(number, voidc_ast_stmt_grammar_parsers_count);
+}
+
+//---------------------------------------------------------------------
+{
+    ft = LLVMFunctionType(void, 0, 0, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_grammar_parsers_dec", ft);
+}
+{
+    number = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    number = v_binop(LLVMSub, number, 1);
+
+    v_store(number, voidc_ast_stmt_grammar_parser_number);
+}
+
+
+//---------------------------------------------------------------------
+{
+    ft = LLVMFunctionType(void, 0, 0, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_grammar_arguments_inc", ft);
+}
+{
+    number = v_load(voidc_ast_stmt_grammar_argument_number);
+
+    number = v_binop(LLVMAdd, number, 1);
+
+    v_store(number, voidc_ast_stmt_grammar_argument_number);
+
+    count = v_load(voidc_ast_stmt_grammar_arguments_count);
+
+    gt = v_icmp(LLVMIntUGT, number, count);
+
+    if (gt) v_store(number, voidc_ast_stmt_grammar_arguments_count);
+}
+
+
+//---------------------------------------------------------------------
+{
+    ft = LLVMFunctionType(void, 0, 0, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_grammar_ranges_inc", ft);
+}
+{
+    number = v_load(voidc_ast_stmt_grammar_range_number);
+
+    number = v_binop(LLVMAdd, number, 1);
+
+    v_store(number, voidc_ast_stmt_grammar_range_number);
+
+    count = v_load(voidc_ast_stmt_grammar_ranges_count);
+
+    gt = v_icmp(LLVMIntUGT, number, count);
+
+    if (gt) v_store(number, voidc_ast_stmt_grammar_ranges_count);
+}
+
+
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(LLVMTypeRef, 5);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
+
+    v_store(v_ast_stmt_list_ref, typ0);
+    v_store(char_ptr,            typ1);
+    v_store(char_ptr,            typ2);
+    v_store(int,                 typ3);
+    v_store(bool,                typ4);
+
+    ft = LLVMFunctionType(void, typ0, 5, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_grammar_stack_init", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("stmt_list", p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("type",      p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("prefix",    p2);
+    p3 = LLVMGetParam(f, 3);    v_add_variable("size",      p3);
+    p4 = LLVMGetParam(f, 4);    v_add_variable("do_init",   p4);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
+    v_ast_make_arg_identifier(arg0, type);
+
+    num = v_cast(LLVMZExt, size, intptr_t);
+
+    v_ast_make_arg_integer(arg1, num);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    v_std_string_set(sstr, prefix);
+
+    v_std_string_append_number(sstr, 0);
+
+    str = v_std_string_get(sstr);
+
+
+    v_ast_make_stmt_call(stmt, str, "v_alloca", arg0, 2);
+
+    v_ast_make_stmt_list(stmt_list, stmt_list, stmt);
+
+
+    v_ast_make_arg_identifier(arg0, str);
+
+    if (do_init)
+    {
+        v_ast_make_stmt_call(stmt, "", "v_initialize", arg0, 2);
+
+        v_ast_make_stmt_list(stmt_list, stmt_list, stmt);
+    }
+
+
+    n_v = v_alloca(intptr_t);
+
+    v_store(1, n_v);
+
+    n1 = v_cast(LLVMZExt, 1, intptr_t);
+
+    loop
+    {
+        n = v_load(n_v);
+
+        f = v_icmp(LLVMIntUGE, n, num);
+
+        if (f)  v_break();
+
+
+        v_ast_make_arg_integer(arg1, n);
+
+
+        v_std_string_set(sstr, prefix);
+
+        v_std_string_append_number(sstr, n);
+
+        str = v_std_string_get(sstr);
+
+        v_ast_make_stmt_call(stmt, str, "v_getelementptr", arg0, 2);
+
+        v_ast_make_stmt_list(stmt_list, stmt_list, stmt);
+
+
+        n = v_binop(LLVMAdd, n, n1);
+
+        v_store(n, n_v);
+    }
+
+
+    v_terminate(stmt);
+    v_terminate(sstr);
+    v_terminate(arg0, 2);
+}
+
+
+//---------------------------------------------------------------------
+//- mk_stmt_grammar_init - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_stmt_grammar_init_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    gr_name = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    gr_str = v_std_string_get(gr_name);
+
+
+    v_initialize(voidc_ast_stmt_grammar_grammar_arg);
+
+    v_ast_make_arg_identifier(voidc_ast_stmt_grammar_grammar_arg, gr_str);
+
+
+    v_initialize(voidc_ast_stmt_grammar_stmt_list);
+
+    v_ast_make_stmt_list_nil(voidc_ast_stmt_grammar_stmt_list);
+
+
+    v_store(2, voidc_ast_stmt_grammar_parsers_count);       //- Sic!
+    v_store(0, voidc_ast_stmt_grammar_parser_number);
+    v_store(1, voidc_ast_stmt_grammar_arguments_count);     //- ...
+    v_store(0, voidc_ast_stmt_grammar_argument_number);
+    v_store(1, voidc_ast_stmt_grammar_ranges_count);        //- ...
+    v_store(0, voidc_ast_stmt_grammar_range_number);
+
+
+    v_std_any_set_value(ret, 1);
+}
+
+//---------------------------------------------------------------------
+//- mk_stmt_grammar - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_stmt_grammar_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    gr_stmt_list = v_alloca(v_ast_opaque_stmt_list_ptr);
+    v_initialize(gr_stmt_list);
+
+    v_ast_make_stmt_list_nil(gr_stmt_list);
+
+
+    //-----------------------------------------------------------------
+    //- Parsers "stack"
+
+    pr_count = v_load(voidc_ast_stmt_grammar_parsers_count);
+
+
+    voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
+                                      "v_peg_opaque_parser_ptr",
+                                      "v.pr",
+                                      pr_count,
+                                      1
+                                     );
+
+
+    //-----------------------------------------------------------------
+    //- Arguments "stack"
+
+    ar_count = v_load(voidc_ast_stmt_grammar_arguments_count);
+
+
+    voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
+                                      "v_peg_opaque_argument_ptr",
+                                      "v.ar",
+                                      ar_count,
+                                      1
+                                     );
+
+
+    //-----------------------------------------------------------------
+    //- Ranges "stack"
+
+    rn_count = v_load(voidc_ast_stmt_grammar_ranges_count);
+
+
+    voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
+                                      "v_peg_class_parser_range_t",
+                                      "v.rn",
+                                      rn_count,
+                                      0
+                                     );
+
+
+    //-----------------------------------------------------------------
+    //- ...
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    //-----------------------------------------------------------------
+    //- ...
+
+    v_ast_make_arg_identifier(arg0, "v_peg_opaque_action_ptr");
+
+    v_ast_make_stmt_call(stmt, "v.act", "v_alloca", arg0, 1);
+
+    v_ast_make_stmt_list(gr_stmt_list, gr_stmt_list, stmt);
+
+
+    v_ast_make_arg_identifier(arg0, "v.act");
+
+    v_ast_make_stmt_call(stmt, "", "v_initialize", arg0, 1);
+
+    v_ast_make_stmt_list(gr_stmt_list, gr_stmt_list, stmt);
+
+
+    //-----------------------------------------------------------------
+    //- ...
+
+    v_ast_make_stmt_block(stmt, voidc_ast_stmt_grammar_stmt_list);
+
+    v_ast_make_stmt_list(gr_stmt_list, gr_stmt_list, stmt);
+
+
+    //-----------------------------------------------------------------
+    //- ...
+
+//  v_ast_make_arg_identifier(arg0, "v.act");
+
+    v_ast_make_stmt_call(stmt, "", "v_terminate", arg0, 1);
+
+    v_ast_make_stmt_list(gr_stmt_list, gr_stmt_list, stmt);
+
+
+    //-----------------------------------------------------------------
+    //- ...
+
+    pr_num = v_cast(LLVMZExt, pr_count, intptr_t);
+    ar_num = v_cast(LLVMZExt, ar_count, intptr_t);
+
+    //-----------------------------------------------------------------
+    //- Arguments "stack" clear
+
+    v_ast_make_arg_identifier(arg0, "v.ar0");
+    v_ast_make_arg_integer(arg1, ar_num);
+
+    v_ast_make_stmt_call(stmt, "", "v_terminate", arg0, 2);
+
+    v_ast_make_stmt_list(gr_stmt_list, gr_stmt_list, stmt);
+
+    //-----------------------------------------------------------------
+    //- Parsers "stack" clear
+
+    v_ast_make_arg_identifier(arg0, "v.pr0");
+    v_ast_make_arg_integer(arg1, pr_num);
+
+    v_ast_make_stmt_call(stmt, "", "v_terminate", arg0, 2);
+
+    v_ast_make_stmt_list(gr_stmt_list, gr_stmt_list, stmt);
+
+
+    //-----------------------------------------------------------------
+    //- ...
+
+    v_ast_make_stmt_block(stmt, gr_stmt_list);
+
+    v_std_any_set_pointer(ret, stmt);
+
+
+    //-----------------------------------------------------------------
+    //- ...
+
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+    v_terminate(gr_stmt_list);
+
+    v_terminate(voidc_ast_stmt_grammar_stmt_list);
+    v_terminate(voidc_ast_stmt_grammar_grammar_arg);
+}
+
+
+//---------------------------------------------------------------------
+//- mk_gr_stmt_parser - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_gr_stmt_parser_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg_l_1 = v_getelementptr(arg_list, 1);
+
+    pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    as_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_l_1);
+
+    as_0 = v_std_string_get(as_sstr);
+    as_1 = v_getelementptr(as_0, 1);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 5);
+    v_initialize(arg0, 5);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+    arg4 = v_getelementptr(arg0, 4);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+    stmt_list = v_alloca(v_ast_opaque_stmt_list_ptr);
+    v_initialize(stmt_list);
+
+    v_copy(stmt_list, voidc_ast_stmt_grammar_stmt_list);
+
+
+    c1 = v_load(as_1);
+
+    cz = v_cast(LLVMTrunc, 0, char);
+
+    is_z = v_icmp(LLVMIntEQ, c1, cz);
+
+    if (is_z)       //- Straight assignlent: "="
+    {
+        v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
+        v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
+
+        v_ast_make_arg_string(arg2, pr_str);
+
+
+        pr_num = v_load(voidc_ast_stmt_grammar_parser_number);
+
+        if (pr_num)     //- Assign parser from v.pr0  (BTW - assert(pr_num == 1);)
+        {
+            v_ast_make_arg_identifier(arg3, "v.pr0");       //- Sic!
+
+            v_ast_make_arg_integer(arg4, 0);
+
+            v_ast_make_stmt_call(stmt, "", "v_peg_grammar_set_parser", arg0, 5);
+        }
+        else            //- Erase parser
+        {
+            v_ast_make_stmt_call(stmt, "", "v_peg_grammar_erase_parser", arg0, 3);
+        }
+
+        v_ast_make_stmt_list(stmt_list, stmt_list, stmt);
+    }
+    else
+    {
+        v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
+
+        v_ast_make_arg_string(arg1, pr_str);
+
+        v_ast_make_arg_identifier(arg2, "v.pr1");
+
+        v_ast_make_arg_integer(arg3, 0);        //- "leftrec" ?
+
+        v_ast_make_stmt_call(stmt, "", "v_peg_grammar_get_parser", arg0, 4);
+
+        v_ast_make_stmt_list(stmt_list, stmt_list, stmt);
+
+
+        v_ast_make_arg_identifier(arg0, "v.pr0");       //- Target
+
+
+        c0 = v_load(as_0);
+
+        ce = v_cast(LLVMTrunc, '=', char);
+
+        is_e = v_icmp(LLVMIntEQ, c0, ce);
+
+        c_k = v_alloca(char);       //- To obtain '*' or '+'
+
+        if (is_e)       //- Append to back
+        {
+            v_store(c1, c_k);
+
+            v_ast_make_arg_identifier(arg1, "v.pr1");       //- From grammar
+            v_ast_make_arg_identifier(arg2, "v.pr0");       //- Built
+        }
+        else            //- Append to front
+        {
+            v_store(c0, c_k);
+
+            v_ast_make_arg_identifier(arg1, "v.pr0");       //- Built
+            v_ast_make_arg_identifier(arg2, "v.pr1");       //- From grammar
+        }
+
+
+        k = v_load(c_k);
+
+        cp = v_cast(LLVMTrunc, '+', char);
+
+        is_p = v_icmp(LLVMIntEQ, k, cp);
+
+        if (is_p) v_ast_make_stmt_call(stmt, "", "v_peg_choice_parser_concat",   arg0, 3);
+        else      v_ast_make_stmt_call(stmt, "", "v_peg_sequence_parser_concat", arg0, 3);
+
+        v_ast_make_stmt_list(stmt_list, stmt_list, stmt);
+
+
+        v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
+        v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
+
+        v_ast_make_arg_string(arg2, pr_str);
+
+        v_ast_make_arg_identifier(arg3, "v.pr0");       //- Sic!
+
+        v_ast_make_arg_integer(arg4, 0);            //- "leftrec" ?
+
+        v_ast_make_stmt_call(stmt, "", "v_peg_grammar_set_parser", arg0, 5);
+
+        v_ast_make_stmt_list(stmt_list, stmt_list, stmt);
+    }
+
+
+    v_copy(voidc_ast_stmt_grammar_stmt_list, stmt_list);
+
+    v_store(0, voidc_ast_stmt_grammar_parser_number);
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(stmt_list);
+    v_terminate(stmt);
+    v_terminate(arg0, 5);
+}
+
+//---------------------------------------------------------------------
+//- mk_gr_stmt_action - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_gr_stmt_action_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 4);
+    v_initialize(arg0, 4);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
+    v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
+
+    act_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    act_str = v_std_string_get(act_sstr);
+
+    v_ast_make_arg_string(arg2, act_str);
+
+
+    arg_l_1 = v_getelementptr(arg_list, 1);
+
+    fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_l_1);
+
+    if (fun_sstr)
+    {
+        fun_str = v_std_string_get(fun_sstr);
+
+        v_ast_make_arg_identifier(arg3, fun_str);
+
+        v_ast_make_stmt_call(stmt, "", "v_peg_grammar_set_action", arg0, 4);
+    }
+    else
+    {
+        v_ast_make_stmt_call(stmt, "", "v_peg_grammar_erase_action", arg0, 3);
+    }
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(stmt);
+    v_terminate(arg0, 4);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_special - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_special_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    //- assert(*voidc_ast_stmt_grammar_parser_number == 0);
+
+    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    arg_str = v_std_string_get(arg_sstr);
+
+
+    p1 = v_getelementptr(arg_str, 1);
+    c1 = v_load(p1);
+
+    if (c1)     //- "(/)" or "()"
+    {
+        arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+        v_initialize(arg0, 3);
+
+        arg1 = v_getelementptr(arg0, 1);
+        arg2 = v_getelementptr(arg0, 2);
+
+        stmt = v_alloca(v_ast_opaque_stmt_ptr);
+        v_initialize(stmt);
+
+        v_ast_make_arg_identifier(arg0, "v.pr0");
+
+        v_ast_make_arg_integer(arg1, 0);
+        v_ast_make_arg_integer(arg2, 0);
+
+
+        c_rpar = v_cast(LLVMTrunc, ')', char);
+
+        f = v_icmp(LLVMIntEQ, c1, c_rpar);
+
+        if (f)      //- "()"
+        {
+            v_ast_make_stmt_call(stmt, "", "v_peg_make_sequence_parser", arg0, 3);
+        }
+        else        //- "(/)"
+        {
+            v_ast_make_stmt_call(stmt, "", "v_peg_make_choice_parser", arg0, 3);
+        }
+
+        v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+        voidc_ast_stmt_grammar_parsers_inc();
+
+
+        v_terminate(stmt);
+        v_terminate(arg0, 3);
+    }
+//  else  {}    //- "0"
+
+
+    v_std_any_set_value(ret, 1);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_choice - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_choice_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    n1 = v_cast(LLVMZExt, 1, intptr_t);
+
+    pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
+
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg2, pr_str);
+
+
+    pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 2
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_arg_identifier(arg1, pr_str);
+
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_choice_parser_concat", arg0, 3);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_dec();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 3);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_sequence - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_sequence_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    n1 = v_cast(LLVMZExt, 1, intptr_t);
+
+    pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
+
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg2, pr_str);
+
+
+    pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 2
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_arg_identifier(arg1, pr_str);
+
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_sequence_parser_concat", arg0, 3);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_dec();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 3);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_catch_var - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_catch_var_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    arg_str = v_std_string_get(arg_sstr);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    n1 = v_cast(LLVMZExt, 1, intptr_t);
+
+    pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
+
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_arg_string(arg1, arg_str);
+    v_ast_make_arg_identifier(arg2, pr_str);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_catch_variable_parser", arg0, 3);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 3);
+}
+
+
+//---------------------------------------------------------------------
+//- voidc_make_parser_unary - grammar action helper
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(LLVMTypeRef);
+
+    v_store(char_ptr, typ0);
+
+    ft = LLVMFunctionType(void, typ0, 1, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_make_parser_unary", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("fun", p0);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    n1 = v_cast(LLVMZExt, 1, intptr_t);
+
+    pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
+
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_arg_identifier(arg1, pr_str);
+
+    v_ast_make_stmt_call(stmt, "", fun, arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_and - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_and_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    voidc_make_parser_unary("v_peg_make_and_parser");
+
+    v_std_any_set_value(ret, 1);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_not - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_not_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    voidc_make_parser_unary("v_peg_make_not_parser");
+
+    v_std_any_set_value(ret, 1);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_star - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_star_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    voidc_make_parser_unary("v_peg_make_star_parser");
+
+    v_std_any_set_value(ret, 1);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_plus - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_plus_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    voidc_make_parser_unary("v_peg_make_plus_parser");
+
+    v_std_any_set_value(ret, 1);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_question - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_question_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    voidc_make_parser_unary("v_peg_make_question_parser");
+
+    v_std_any_set_value(ret, 1);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_identifier - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_identifier_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    id_str = v_std_string_get(id_sstr);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+
+    v_ast_make_arg_string(arg1, id_str);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_identifier_parser", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_external - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_external_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    id_str = v_std_string_get(id_sstr);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+
+    v_ast_make_arg_identifier(arg1, id_str);
+
+    v_ast_make_stmt_call(stmt, "", "v_copy", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_backref - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_backref_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    br_num = v_std_any_get_value(intptr_t, arg_list);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+
+    v_ast_make_arg_integer(arg1, br_num);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_backref_parser", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_catch_str - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_catch_str_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    voidc_make_parser_unary("v_peg_make_catch_string_parser");
+
+    v_std_any_set_value(ret, 1);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_action - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_action_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+
+    v_ast_make_arg_identifier(arg1, "v.act");
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_action_parser", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_class - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_class_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    rn_int = v_load(voidc_ast_stmt_grammar_range_number);
+
+    rn_num = v_cast(LLVMZExt, rn_int, intptr_t);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
+    v_std_string_set(sstr, "v.pr");
+
+    v_std_string_append_number(sstr, pr_num);
+
+    str = v_std_string_get(sstr);
+
+    v_ast_make_arg_identifier(arg0, str);
+    v_ast_make_arg_identifier(arg1, "v.rn0");
+
+    v_ast_make_arg_integer(arg2, rn_num);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_class_parser", arg0, 3);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_inc();
+
+    v_store(0, voidc_ast_stmt_grammar_range_number);
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 3);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_literal - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_literal_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    lit_str = v_std_string_get(lit_sstr);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+
+    v_ast_make_arg_string(arg1, lit_str);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_literal_parser", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_char - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_char_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    ch = v_std_any_get_value(char32_t, arg_list);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+
+    v_ast_make_arg_char(arg1, ch);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_character_parser", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_dot - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_dot_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr);
+    v_initialize(arg0);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
+
+    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+
+    pr_sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(pr_sstr);
+
+    v_std_string_set(pr_sstr, "v.pr");
+
+    v_std_string_append_number(pr_sstr, pr_num);
+
+    pr_str = v_std_string_get(pr_sstr);
+
+    v_ast_make_arg_identifier(arg0, pr_str);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_dot_parser", arg0, 1);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_parsers_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(pr_sstr);
+    v_terminate(stmt);
+    v_terminate(arg0);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_range - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_range_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    rn_int = v_load(voidc_ast_stmt_grammar_range_number);
+
+    rn_num = v_cast(LLVMZExt, rn_int, intptr_t);
+
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
+    v_std_string_set(sstr, "v.rn");
+
+    v_std_string_append_number(sstr, rn_num);
+
+    str = v_std_string_get(sstr);
+
+    v_ast_make_arg_identifier(arg0, str);
+
+    v_ast_make_arg_integer(arg1, 0);
+    v_ast_make_arg_integer(arg2, 0);
+
+    v_ast_make_stmt_call(stmt, "v.rn_0_", "v_getelementptr", arg0, 3);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+
+    v_ast_make_arg_integer(arg2, 1);
+
+    v_ast_make_stmt_call(stmt, "v.rn_1_", "v_getelementptr", arg0, 3);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+
+    c0 = v_std_any_get_value(char32_t, arg_list);
+
+    v_ast_make_arg_char(arg0, c0);
+
+    v_ast_make_arg_identifier(arg1, "v.rn_0_");
+
+    v_ast_make_stmt_call(stmt, "", "v_store", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+
+    ar_l_1 = v_getelementptr(arg_list, 1);
+
+    c1 = v_std_any_get_value(char32_t, ar_l_1);
+
+    v_ast_make_arg_char(arg0, c1);
+
+    v_ast_make_arg_identifier(arg1, "v.rn_1_");
+
+    v_ast_make_stmt_call(stmt, "", "v_store", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+
+    voidc_ast_stmt_grammar_ranges_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 3);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_action_call - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_action_call_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    fun_str = v_std_string_get(fun_sstr);
+
+
+    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
+
+    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 4);
+    v_initialize(arg0, 4);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    v_ast_make_arg_identifier(arg0, "v.act");
+
+    v_ast_make_arg_string(arg1, fun_str);
+
+    v_ast_make_arg_identifier(arg2, "v.ar0");
+
+    v_ast_make_arg_integer(arg3, ar_num);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_call_action", arg0, 4);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    v_store(0, voidc_ast_stmt_grammar_argument_number);
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(stmt);
+    v_terminate(arg0, 4);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_action_return - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_action_return_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    v_ast_make_arg_identifier(arg0, "v.act");
+    v_ast_make_arg_identifier(arg1, "v.ar0");
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_return_action", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    v_store(0, voidc_ast_stmt_grammar_argument_number);
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+
+//---------------------------------------------------------------------
+//- mk_pr_arg_identifier - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_arg_identifier_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    id_str = v_std_string_get(id_sstr);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
+
+    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
+    v_std_string_set(sstr, "v.ar");
+
+    v_std_string_append_number(sstr, ar_num);
+
+    str = v_std_string_get(sstr);
+
+    v_ast_make_arg_identifier(arg0, str);
+
+    v_ast_make_arg_string(arg1, id_str);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_identifier_argument", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_arguments_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_arg_backref - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_arg_backref_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    br_num = v_std_any_get_value(intptr_t, arg_list);
+
+
+    ar_l_1 = v_getelementptr(arg_list, 1);
+
+    bk_ptr = v_std_any_get_pointer(char32_t, ar_l_1);
+
+    bk_v = v_alloca(int);
+
+    if (bk_ptr)
+    {
+        bk_char32 = v_load(bk_ptr);
+
+        f = v_icmp(LLVMIntEQ, bk_char32, 's');
+
+        if (f)  v_store(v_peg_backref_argument_kind_start, bk_v);
+        else    v_store(v_peg_backref_argument_kind_end,   bk_v);
+    }
+    else
+    {
+        v_store(v_peg_backref_argument_kind_string, bk_v);
+    }
+
+    bk_int = v_load(bk_v);
+
+    bk_num = v_cast(LLVMZExt, bk_int, intptr_t);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
+
+    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
+    v_std_string_set(sstr, "v.ar");
+
+    v_std_string_append_number(sstr, ar_num);
+
+    str = v_std_string_get(sstr);
+
+    v_ast_make_arg_identifier(arg0, str);
+
+    v_ast_make_arg_integer(arg1, br_num);
+    v_ast_make_arg_integer(arg2, bk_num);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_backref_argument", arg0, 3);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_arguments_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 3);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_arg_integer - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_arg_integer_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    num = v_std_any_get_value(intptr_t, arg_list);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
+
+    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
+    v_std_string_set(sstr, "v.ar");
+
+    v_std_string_append_number(sstr, ar_num);
+
+    str = v_std_string_get(sstr);
+
+    v_ast_make_arg_identifier(arg0, str);
+
+    v_ast_make_arg_integer(arg1, num);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_integer_argument", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_arguments_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_arg_string - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_arg_string_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+
+    lit_str = v_std_string_get(lit_sstr);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
+
+    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
+    v_std_string_set(sstr, "v.ar");
+
+    v_std_string_append_number(sstr, ar_num);
+
+    str = v_std_string_get(sstr);
+
+    v_ast_make_arg_identifier(arg0, str);
+
+    v_ast_make_arg_string(arg1, lit_str);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_literal_argument", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_arguments_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+//---------------------------------------------------------------------
+//- mk_pr_arg_char - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_pr_arg_char_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    ch = v_std_any_get_value(char32_t, arg_list);
+
+
+    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
+
+    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
+    v_std_string_set(sstr, "v.ar");
+
+    v_std_string_append_number(sstr, ar_num);
+
+    str = v_std_string_get(sstr);
+
+    v_ast_make_arg_identifier(arg0, str);
+
+    v_ast_make_arg_char(arg1, ch);
+
+    v_ast_make_stmt_call(stmt, "", "v_peg_make_character_argument", arg0, 2);
+
+    v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
+
+    voidc_ast_stmt_grammar_arguments_inc();
+
+
+    v_std_any_set_value(ret, 1);
+
+
+    v_terminate(sstr);
+    v_terminate(stmt);
+    v_terminate(arg0, 2);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable statement grammar
+//---------------------------------------------------------------------
+{
+    ft = LLVMFunctionType(void, 0, 0, 0);
+
+    //-----------------------------------------------------------------
+    v_function_hack("voidc_enable_statement_grammar", ft);
+}
+{
+    vhg = voidc_has_grammar();
+
+    if (vhg)
+    {
+        ghp = voidc_grammar_has_parser("stmt_grammar");
+
+        if (ghp)  v_return();
+    }
+    else
+    {
+        v_return();
+    }
+
+
+    voidc_enable_statement_block();
+
+
+    pp0 = v_alloca(v_peg_opaque_parser_ptr, 12);
+    v_initialize(pp0, 12);
+
+    pp1 = v_getelementptr(pp0, 1);
+    pp2 = v_getelementptr(pp0, 2);
+    pp3 = v_getelementptr(pp0, 3);
+    pp4 = v_getelementptr(pp0, 4);
+    pp5 = v_getelementptr(pp0, 5);
+    pp6 = v_getelementptr(pp0, 6);
+    pp7 = v_getelementptr(pp0, 7);
+    pp8 = v_getelementptr(pp0, 8);
+    pp9 = v_getelementptr(pp0, 9);
+    pp10 = v_getelementptr(pp0, 10);
+    pp11 = v_getelementptr(pp0, 11);
+
+    ar0 = v_alloca(v_peg_opaque_argument_ptr, 3);
+    v_initialize(ar0, 3);
+
+    ar1 = v_getelementptr(ar0, 1);
+    ar2 = v_getelementptr(ar0, 2);
+
+    act = v_alloca(v_peg_opaque_action_ptr);
+    v_initialize(act);
+
+    gr0 = v_alloca(v_peg_opaque_grammar_ptr);
+    v_initialize(gr0);
+
+
+    //-----------------------------------------------------------------
+    v_peg_get_grammar(gr0);
+
+    //-----------------------------------------------------------------
+    v_peg_grammar_set_action(gr0, gr0, "mk_stmt_grammar_init", mk_stmt_grammar_init_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_stmt_grammar",      mk_stmt_grammar_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_parser",    mk_gr_stmt_parser_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_action",    mk_gr_stmt_action_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_special",        mk_pr_special_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_choice",         mk_pr_choice_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_sequence",       mk_pr_sequence_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_catch_var",      mk_pr_catch_var_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_and",            mk_pr_and_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_not",            mk_pr_not_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_star",           mk_pr_star_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_plus",           mk_pr_plus_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_question",       mk_pr_question_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_identifier",     mk_pr_identifier_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_external",       mk_pr_external_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_backref",        mk_pr_backref_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_catch_str",      mk_pr_catch_str_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action",         mk_pr_action_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_class",          mk_pr_class_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_literal",        mk_pr_literal_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_char",           mk_pr_char_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_dot",            mk_pr_dot_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_range",          mk_pr_range_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action_call",    mk_pr_action_call_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action_return",  mk_pr_action_return_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_identifier", mk_pr_arg_identifier_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_backref",    mk_pr_arg_backref_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_integer",    mk_pr_arg_integer_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_string",     mk_pr_arg_string_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_char",       mk_pr_arg_char_grammar_action);
+
+
+    //-----------------------------------------------------------------
+    //- stmt_grammar <- "garammar" !ident_cont _ g:identifier _ '{' _   { mk_stmt_grammar_init(g) }
+    //-                                     gr_section_list _ '}'       { mk_stmt_grammar() }
+
+    v_peg_make_literal_parser(pp0, "grammar");
+    v_peg_make_identifier_parser(pp1, "ident_cont");
+    v_peg_make_not_parser(pp1, pp1);
+
+    v_peg_make_identifier_parser(pp2, "_");
+
+    v_peg_make_identifier_parser(pp3, "identifier");
+    v_peg_make_catch_variable_parser(pp3, "g", pp3);
+
+    v_peg_make_identifier_parser(pp4, "_");
+    v_peg_make_character_parser(pp5, '{');
+    v_peg_make_identifier_parser(pp6, "_");
+
+
+    v_peg_make_identifier_argument(ar0, "g");
+
+    v_peg_make_call_action(act, "mk_stmt_grammar_init", ar0, 1);
+
+    v_peg_make_action_parser(pp7, act);
+
+
+    v_peg_make_identifier_parser(pp8, "gr_section_list");
+
+    v_peg_make_identifier_parser(pp9, "_");
+    v_peg_make_character_parser(pp10, '}');
+
+
+    v_peg_make_call_action(act, "mk_stmt_grammar", ar0, 0);
+
+    v_peg_make_action_parser(pp11, act);
+
+
+    v_peg_make_sequence_parser(pp0, pp0, 12);
+
+
+    v_peg_grammar_set_parser(gr0, gr0, "stmt_grammar", pp0, 0);
+
+    v_peg_grammar_get_parser(gr0, "stmt", pp1, 0);
+
+    v_peg_choice_parser_concat(pp0, pp0, pp1);
+
+    v_peg_grammar_set_parser(gr0, gr0, "stmt", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- gr_section_list <- gr_section_list _ gr_section
+    //-                  / gr_section
+
+    v_peg_make_identifier_parser(pp0, "gr_section_list");
+
+    v_peg_make_identifier_parser(pp1, "_");
+
+    v_peg_make_identifier_parser(pp2, "gr_section");
+
+
+    v_peg_make_sequence_parser(pp1, pp0, 3);
+
+
+    v_peg_make_choice_parser(pp0, pp1, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "gr_section_list", pp0, 1);      //- Left-recursive!
+
+
+    //-----------------------------------------------------------------
+    //- gr_section <- "parsers" _ ':' (_ gr_parser_list)?
+    //-             / "actions" _ ':' (_ gr_action_list)?
+
+    v_peg_make_literal_parser(pp1, "parsers");
+    v_peg_make_identifier_parser(pp2, "_");
+    v_peg_make_character_parser(pp3, ':');
+
+    v_peg_make_identifier_parser(pp5, "_");
+    v_peg_make_identifier_parser(pp6, "gr_parser_list");
+
+    v_peg_make_sequence_parser(pp4, pp5, 2);
+    v_peg_make_question_parser(pp4, pp4);
+
+    v_peg_make_sequence_parser(pp0, pp1, 4);
+
+
+    v_peg_make_literal_parser(pp1, "actions");
+
+    v_peg_make_identifier_parser(pp6, "gr_action_list");
+
+    v_peg_make_sequence_parser(pp4, pp5, 2);
+    v_peg_make_question_parser(pp4, pp4);
+
+    v_peg_make_sequence_parser(pp1, pp1, 4);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "gr_section", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- gr_parser_list <- gr_parser_list _ gr_parser
+    //-                 / gr_parser
+
+    v_peg_make_identifier_parser(pp0, "gr_parser_list");
+
+    v_peg_make_identifier_parser(pp1, "_");
+
+    v_peg_make_identifier_parser(pp2, "gr_parser");
+
+
+    v_peg_make_sequence_parser(pp1, pp0, 3);
+
+
+    v_peg_make_choice_parser(pp0, pp1, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "gr_parser_list", pp0, 1);       //- Left-recursive!
+
+
+    //-----------------------------------------------------------------
+    //- gr_action_list <- gr_action_list _ gr_action
+    //-                 / gr_action
+
+    v_peg_make_identifier_parser(pp0, "gr_action_list");
+
+    v_peg_make_identifier_parser(pp1, "_");
+
+    v_peg_make_identifier_parser(pp2, "gr_action");
+
+    v_peg_make_sequence_parser(pp1, pp0, 3);
+
+
+    v_peg_make_choice_parser(pp0, pp1, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "gr_action_list", pp0, 1);       //- Left-recursive!
+
+
+    //-----------------------------------------------------------------
+    //- gr_parser <- i:identifier _ s:pr_assign _ pr_choice _ ';'   { mk_gr_stmt_parser(i,   s) }
+    //-            / i:identifier _ '=' _ pr_special _ ';'          { mk_gr_stmt_parser(i, "=") }
+
+    v_peg_make_identifier_parser(pp1, "identifier");
+    v_peg_make_catch_variable_parser(pp1, "i", pp1);
+    v_peg_make_identifier_parser(pp2, "_");
+
+    v_peg_make_identifier_parser(pp3, "pr_assign");
+    v_peg_make_catch_variable_parser(pp3, "s", pp3);
+    v_peg_make_identifier_parser(pp4, "_");
+
+    v_peg_make_identifier_parser(pp5, "pr_choice");
+    v_peg_make_identifier_parser(pp6, "_");
+    v_peg_make_character_parser(pp7, ';');
+
+    v_peg_make_identifier_argument(ar0, "i");
+    v_peg_make_identifier_argument(ar1, "s");
+
+    v_peg_make_call_action(act, "mk_gr_stmt_parser", ar0, 2);
+
+    v_peg_make_action_parser(pp8, act);
+
+    v_peg_make_sequence_parser(pp0, pp1, 8);
+
+
+    v_peg_make_character_parser(pp3, '=');
+
+    v_peg_make_identifier_parser(pp5, "pr_special");
+
+    v_peg_make_literal_argument(ar1, "=");
+
+    v_peg_make_call_action(act, "mk_gr_stmt_parser", ar0, 2);
+
+    v_peg_make_action_parser(pp8, act);
+
+    v_peg_make_sequence_parser(pp1, pp1, 8);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "gr_parser", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_special <- ("(/)" / "()" / "0")      { mk_pr_special($0) }
+
+    v_peg_make_literal_parser(pp0, "(/)");
+    v_peg_make_literal_parser(pp1, "()");
+    v_peg_make_literal_parser(pp2, "0");
+
+    v_peg_make_choice_parser(pp0, pp0, 3);
+
+    v_peg_make_backref_argument(ar0, 0, v_peg_backref_argument_kind_string);
+
+    v_peg_make_call_action(act, "mk_pr_special", ar0, 1);
+
+    v_peg_make_action_parser(pp1, act);
+
+
+    v_peg_make_sequence_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_special", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_assign <- "+=" / "*=" / "=+" / "=*" / "="
+
+    v_peg_make_literal_parser(pp0, "+=");
+    v_peg_make_literal_parser(pp2, "*=");
+    v_peg_make_literal_parser(pp1, "=+");
+    v_peg_make_literal_parser(pp3, "=*");
+    v_peg_make_literal_parser(pp4, "=");
+
+    v_peg_make_choice_parser(pp0, pp0, 5);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_assign", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_choice <- pr_choice _ '/' _ pr_sequence      { mk_pr_choice() }
+    //-            / pr_sequence
+
+    v_peg_make_identifier_parser(pp0, "pr_choice");
+
+    v_peg_make_identifier_parser(pp1, "_");
+    v_peg_make_character_parser(pp2, '/');
+    v_peg_make_identifier_parser(pp3, "_");
+
+    v_peg_make_identifier_parser(pp4, "pr_sequence");
+
+    v_peg_make_call_action(act, "mk_pr_choice", ar0, 0);
+
+    v_peg_make_action_parser(pp5, act);
+
+    v_peg_make_sequence_parser(pp3, pp0, 6);
+
+
+    v_peg_make_choice_parser(pp0, pp3, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_choice", pp0, 1);        //- Left-recursive!
+
+
+    //-----------------------------------------------------------------
+    //- pr_sequence <- pr_sequence _ pr_prefix      { mk_pr_sequence() }
+    //-              / pr_prefix
+
+    v_peg_make_identifier_parser(pp0, "pr_sequence");
+
+    v_peg_make_identifier_parser(pp1, "_");
+
+    v_peg_make_identifier_parser(pp2, "pr_prefix");
+
+
+    v_peg_make_call_action(act, "mk_pr_sequence", ar0, 0);
+
+    v_peg_make_action_parser(pp3, act);
+
+
+    v_peg_make_sequence_parser(pp1, pp0, 4);
+
+
+    v_peg_make_choice_parser(pp0, pp1, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_sequence", pp0, 1);      //- Left-recursive!
+
+
+    //-----------------------------------------------------------------
+    //- pr_prefix <- i:identifier _ ':' _ pr_suffix     { mk_pr_catch_var(i) }
+    //-            / '&' _ pr_suffix                    { mk_pr_and() }
+    //-            / '!' _ pr_suffix                    { mk_pr_not() }
+    //-            / pr_suffix
+
+    v_peg_make_identifier_parser(pp0, "identifier");
+    v_peg_make_catch_variable_parser(pp0, "i", pp0);
+
+    v_peg_make_identifier_parser(pp1, "_");
+    v_peg_make_character_parser(pp2, ':');
+    v_peg_make_identifier_parser(pp3, "_");
+
+    v_peg_make_identifier_parser(pp4, "pr_suffix");
+
+    v_peg_make_identifier_argument(ar0, "i");
+
+    v_peg_make_call_action(act, "mk_pr_catch_var", ar0, 1);
+
+    v_peg_make_action_parser(pp5, act);
+
+    v_peg_make_sequence_parser(pp0, pp0, 6);
+
+
+    v_peg_make_character_parser(pp2, '&');
+
+    v_peg_make_call_action(act, "mk_pr_and", ar1, 1);
+
+    v_peg_make_action_parser(pp5, act);
+
+    v_peg_make_sequence_parser(pp1, pp2, 4);
+
+
+    v_peg_make_character_parser(pp2, '!');
+
+    v_peg_make_call_action(act, "mk_pr_not", ar0, 0);
+
+    v_peg_make_action_parser(pp5, act);
+
+    v_peg_make_sequence_parser(pp2, pp2, 4);
+
+
+    v_peg_make_identifier_parser(pp3, "pr_suffix");
+
+
+    v_peg_make_choice_parser(pp0, pp0, 4);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_prefix", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_suffix <- pr_primary _ '*'           { mk_pr_star() }
+    //-            / pr_primary _ '+'           { mk_pr_plus() }
+    //-            / pr_primary _ '?'           { mk_pr_question() }
+    //-            / pr_primary
+
+    v_peg_make_identifier_parser(pp3, "pr_primary");
+
+    v_peg_make_identifier_parser(pp4, "_");
+    v_peg_make_character_parser(pp5, '*');
+
+    v_peg_make_call_action(act, "mk_pr_star", ar0, 0);
+
+    v_peg_make_action_parser(pp6, act);
+
+    v_peg_make_sequence_parser(pp0, pp3, 4);
+
+
+    v_peg_make_character_parser(pp5, '+');
+
+    v_peg_make_call_action(act, "mk_pr_plus", ar0, 0);
+
+    v_peg_make_action_parser(pp6, act);
+
+    v_peg_make_sequence_parser(pp1, pp3, 4);
+
+
+    v_peg_make_character_parser(pp5, '?');
+
+    v_peg_make_call_action(act, "mk_pr_question", ar0, 0);
+
+    v_peg_make_action_parser(pp6, act);
+
+    v_peg_make_sequence_parser(pp2, pp3, 4);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 4);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_suffix", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_primary <- i:identifier              { mk_pr_identifier(i) }
+    //-             / '@' i:identifier          { mk_pr_external(i) }
+    //-             / '$' n:dec_natural         { mk_pr_backref(n) }
+    //-             / '(' _ pr_choice _ ')'
+    //-             / '<' _ pr_choice _ '>'     { mk_pr_catch_str() }
+    //-             / '{' _ pr_action _ '}'     { mk_pr_action() }
+    //-             / '[' pr_range_list ']'     { mk_pr_class() }
+    //-             / s:string                  { mk_pr_literal(s) }
+    //-             / c:char                    { mk_pr_char(c) }
+    //-             / '.'                       { mk_pr_dot() }
+
+    v_peg_make_identifier_parser(pp4, "identifier");
+    v_peg_make_catch_variable_parser(pp4, "i", pp4);
+
+    v_peg_make_identifier_argument(ar0, "i");
+
+    v_peg_make_call_action(act, "mk_pr_identifier", ar0, 1);
+
+    v_peg_make_action_parser(pp5, act);
+
+    v_peg_make_sequence_parser(pp0, pp4, 2);
+
+
+    v_peg_make_character_parser(pp3, '@');
+
+    v_peg_make_call_action(act, "mk_pr_external", ar0, 1);
+
+    v_peg_make_action_parser(pp5, act);
+
+    v_peg_make_sequence_parser(pp1, pp3, 3);
+
+
+    v_peg_make_character_parser(pp3, '$');
+
+    v_peg_make_identifier_parser(pp4, "dec_natural");
+    v_peg_make_catch_variable_parser(pp4, "n", pp4);
+
+    v_peg_make_identifier_argument(ar0, "n");
+
+    v_peg_make_call_action(act, "mk_pr_backref", ar0, 1);
+
+    v_peg_make_action_parser(pp5, act);
+
+    v_peg_make_sequence_parser(pp2, pp3, 3);
+
+
+    v_peg_make_character_parser(pp6, '(');
+    v_peg_make_identifier_parser(pp7, "_");
+
+    v_peg_make_identifier_parser(pp8, "pr_choice");
+
+    v_peg_make_identifier_parser(pp9, "_");
+    v_peg_make_character_parser(pp10, ')');
+
+    v_peg_make_sequence_parser(pp3, pp6, 5);
+
+
+    v_peg_make_character_parser(pp6, '<');
+    v_peg_make_character_parser(pp10, '>');
+
+    v_peg_make_call_action(act, "mk_pr_catch_str", ar0, 0);
+
+    v_peg_make_action_parser(pp11, act);
+
+    v_peg_make_sequence_parser(pp4, pp6, 6);
+
+
+    v_peg_make_character_parser(pp6, '{');
+    v_peg_make_character_parser(pp10, '}');
+
+    v_peg_make_identifier_parser(pp8, "pr_action");
+
+    v_peg_make_call_action(act, "mk_pr_action", ar0, 0);
+
+    v_peg_make_action_parser(pp11, act);
+
+    v_peg_make_sequence_parser(pp5, pp6, 6);
+
+
+    v_peg_make_character_parser(pp6, '[');
+
+    v_peg_make_identifier_parser(pp7, "pr_range_list");
+    v_peg_make_catch_variable_parser(pp7, "l", pp7);
+
+    v_peg_make_character_parser(pp8, ']');
+
+    v_peg_make_identifier_argument(ar0, "l");
+
+    v_peg_make_call_action(act, "mk_pr_class", ar0, 1);
+
+    v_peg_make_action_parser(pp9, act);
+
+    v_peg_make_sequence_parser(pp6, pp6, 4);
+
+
+    v_peg_make_identifier_parser(pp7, "string");
+    v_peg_make_catch_variable_parser(pp7, "s", pp7);
+
+    v_peg_make_identifier_argument(ar0, "s");
+
+    v_peg_make_call_action(act, "mk_pr_literal", ar0, 1);
+
+    v_peg_make_action_parser(pp8, act);
+
+    v_peg_make_sequence_parser(pp7, pp7, 2);
+
+
+    v_peg_make_identifier_parser(pp8, "char");
+    v_peg_make_catch_variable_parser(pp8, "c", pp8);
+
+    v_peg_make_identifier_argument(ar0, "c");
+
+    v_peg_make_call_action(act, "mk_pr_char", ar0, 1);
+
+    v_peg_make_action_parser(pp9, act);
+
+    v_peg_make_sequence_parser(pp8, pp8, 2);
+
+
+    v_peg_make_character_parser(pp9, '.');
+
+    v_peg_make_call_action(act, "mk_pr_dot", ar0, 0);
+
+    v_peg_make_action_parser(pp10, act);
+
+    v_peg_make_sequence_parser(pp9, pp9, 2);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 10);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_primary", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_range_list <- pr_range_list pr_range_item
+    //-                / pr_range_item
+
+    v_peg_make_identifier_parser(pp0, "pr_range_list");
+    v_peg_make_identifier_parser(pp1, "pr_range_item");
+
+    v_peg_make_sequence_parser(pp0, pp0, 2);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_range_list", pp0, 1);        //- Left-recursive!
+
+
+    //-----------------------------------------------------------------
+    //- pr_range_item <- !']' pr_range
+
+    v_peg_make_character_parser(pp0, ']');
+    v_peg_make_not_parser(pp0, pp0);
+
+    v_peg_make_identifier_parser(pp1, "pr_range");
+
+    v_peg_make_sequence_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_range_item", pp0, 0);
+
+
+    //---------------------------------------------------------------------
+    //- pr_range <- f:str_char '-' t:str_char               { mk_pr_range(f, t) }
+    //-           / c:str_char                              { mk_pr_range(c, c) }
+
+    v_peg_make_identifier_parser(pp0, "str_char");
+    v_peg_make_catch_variable_parser(pp0, "f", pp0);
+
+    v_peg_make_character_parser(pp1, '-');
+
+    v_peg_make_identifier_parser(pp2, "str_char");
+    v_peg_make_catch_variable_parser(pp2, "t", pp2);
+
+    v_peg_make_identifier_argument(ar0, "f");
+    v_peg_make_identifier_argument(ar1, "t");
+
+    v_peg_make_call_action(act, "mk_pr_range", ar0, 2);
+
+    v_peg_make_action_parser(pp3, act);
+
+    v_peg_make_sequence_parser(pp0, pp0, 4);
+
+
+    v_peg_make_identifier_parser(pp1, "str_char");
+    v_peg_make_catch_variable_parser(pp1, "c", pp1);
+
+    v_peg_make_identifier_argument(ar0, "c");
+    v_peg_make_identifier_argument(ar1, "c");
+
+    v_peg_make_call_action(act, "mk_pr_range", ar0, 2);
+
+    v_peg_make_action_parser(pp2, act);
+
+    v_peg_make_sequence_parser(pp1, pp1, 2);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_range", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_action <- f:identifier _ '(' _ pr_arg_list _ ')'     { mk_pr_action_call(f) }
+    //-            / pr_argument                                { mk_pr_action_return() }
+
+    v_peg_make_identifier_parser(pp0, "identifier");
+    v_peg_make_catch_variable_parser(pp0, "f", pp0);
+
+    v_peg_make_identifier_parser(pp1, "_");
+    v_peg_make_character_parser(pp2, '(');
+    v_peg_make_identifier_parser(pp3, "_");
+
+    v_peg_make_identifier_parser(pp4, "pr_arg_list");
+
+    v_peg_make_identifier_parser(pp5, "_");
+    v_peg_make_character_parser(pp6, ')');
+
+    v_peg_make_identifier_argument(ar0, "f");
+
+    v_peg_make_call_action(act, "mk_pr_action_call", ar0, 1);
+
+    v_peg_make_action_parser(pp7, act);
+
+    v_peg_make_sequence_parser(pp0, pp0, 8);
+
+
+    v_peg_make_identifier_parser(pp1, "pr_argument");
+
+    v_peg_make_call_action(act, "mk_pr_action_return", ar0, 0);
+
+    v_peg_make_action_parser(pp2, act);
+
+    v_peg_make_sequence_parser(pp1, pp1, 2);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_action", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_arg_list <- pr_arg_list_lr
+    //-              /
+
+    v_peg_make_identifier_parser(pp0, "pr_arg_list_lr");
+
+    v_peg_make_sequence_parser(pp1, 0, 0);      //- nil!
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_arg_list", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- pr_arg_list_lr <- pr_arg_list_lr _ ',' _ pr_argument
+    //-                 / pr_argument
+
+    v_peg_make_identifier_parser(pp0, "pr_arg_list_lr");
+
+    v_peg_make_identifier_parser(pp1, "_");
+    v_peg_make_character_parser(pp2, ',');
+    v_peg_make_identifier_parser(pp3, "_");
+
+    v_peg_make_identifier_parser(pp4, "pr_argument");
+
+    v_peg_make_sequence_parser(pp0, pp0, 5);
+
+
+    v_peg_make_sequence_parser(pp1, pp4, 1);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_arg_list_lr", pp0, 1);       //- Left-recursive!
+
+
+    //-----------------------------------------------------------------
+    //- pr_argument <- i:identifier                 { mk_pr_arg_identifier(i) }
+    //-              / '$' n:dec_natural f:[se]?    { mk_pr_arg_backref(n, f) }
+    //-              / n:integer                    { mk_pr_arg_integer(n) }
+    //-              / s:string                     { mk_pr_arg_string(s) }
+    //-              / c:char                       { mk_pr_arg_char(c) }
+
+    v_peg_make_identifier_parser(pp0, "identifier");
+    v_peg_make_catch_variable_parser(pp0, "i", pp0);
+
+    v_peg_make_identifier_argument(ar0, "i");
+
+    v_peg_make_call_action(act, "mk_pr_arg_identifier", ar0, 1);
+
+    v_peg_make_action_parser(pp1, act);
+
+    v_peg_make_sequence_parser(pp0, pp0, 2);
+
+
+    v_peg_make_character_parser(pp1, '$');
+
+    v_peg_make_identifier_parser(pp2, "dec_natural");
+    v_peg_make_catch_variable_parser(pp2, "n", pp2);
+
+    rn0 = v_alloca(v_peg_class_parser_range_t, 2);
+    rn00 = v_getelementptr(rn0, 0, 0);
+    rn01 = v_getelementptr(rn0, 0, 1);
+    rn10 = v_getelementptr(rn0, 1, 0);
+    rn11 = v_getelementptr(rn0, 1, 1);
+
+    v_store('s', rn00);
+    v_store('s', rn01);
+    v_store('e', rn10);
+    v_store('e', rn11);
+
+    v_peg_make_class_parser(pp3, rn0, 2);
+
+    v_peg_make_question_parser(pp3, pp3);
+    v_peg_make_catch_variable_parser(pp3, "f", pp3);
+
+    v_peg_make_identifier_argument(ar0, "n");
+    v_peg_make_identifier_argument(ar1, "f");
+
+    v_peg_make_call_action(act, "mk_pr_arg_backref", ar0, 2);
+
+    v_peg_make_action_parser(pp4, act);
+
+    v_peg_make_sequence_parser(pp1, pp1, 4);
+
+
+    v_peg_make_identifier_parser(pp2, "integer");
+    v_peg_make_catch_variable_parser(pp2, "n", pp2);
+
+    v_peg_make_call_action(act, "mk_pr_arg_integer", ar0, 1);
+
+    v_peg_make_action_parser(pp3, act);
+
+    v_peg_make_sequence_parser(pp2, pp2, 2);
+
+
+    v_peg_make_identifier_parser(pp3, "string");
+    v_peg_make_catch_variable_parser(pp3, "s", pp3);
+
+    v_peg_make_identifier_argument(ar0, "s");
+
+    v_peg_make_call_action(act, "mk_pr_arg_string", ar0, 1);
+
+    v_peg_make_action_parser(pp4, act);
+
+    v_peg_make_sequence_parser(pp3, pp3, 2);
+
+
+    v_peg_make_identifier_parser(pp4, "char");
+    v_peg_make_catch_variable_parser(pp4, "c", pp4);
+
+    v_peg_make_identifier_argument(ar0, "c");
+
+    v_peg_make_call_action(act, "mk_pr_arg_char", ar0, 1);
+
+    v_peg_make_action_parser(pp5, act);
+
+    v_peg_make_sequence_parser(pp4, pp4, 2);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 5);
+
+    v_peg_grammar_set_parser(gr0, gr0, "pr_argument", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    //- gr_action <- a:identifier _ '=' _ i:identifier _ ';'    { mk_gr_stmt_action(a, i) }
+    //-            / a:identifier _ '=' _ '0' _ ';'             { mk_gr_stmt_action(a, 0) }
+
+    v_peg_make_identifier_parser(pp1, "identifier");
+    v_peg_make_catch_variable_parser(pp1, "a", pp1);
+
+    v_peg_make_identifier_parser(pp2, "_");
+    v_peg_make_character_parser(pp3, '=');
+    v_peg_make_identifier_parser(pp4, "_");
+
+    v_peg_make_identifier_parser(pp5, "identifier");
+    v_peg_make_catch_variable_parser(pp5, "i", pp5);
+
+    v_peg_make_identifier_parser(pp6, "_");
+    v_peg_make_character_parser(pp7, ';');
+
+    v_peg_make_identifier_argument(ar0, "a");
+    v_peg_make_identifier_argument(ar1, "i");
+
+    v_peg_make_call_action(act, "mk_gr_stmt_action", ar0, 2);
+
+    v_peg_make_action_parser(pp8, act);
+
+    v_peg_make_sequence_parser(pp0, pp1, 8);
+
+
+    v_peg_make_character_parser(pp5, '0');
+
+    v_peg_make_catch_variable_parser(pp5, "p", pp5);
+
+    v_peg_make_integer_argument(ar1, 0);
+
+    v_peg_make_call_action(act, "mk_gr_stmt_action", ar0, 2);
+
+    v_peg_make_action_parser(pp8, act);
+
+    v_peg_make_sequence_parser(pp1, pp1, 8);
+
+
+    v_peg_make_choice_parser(pp0, pp0, 2);
+
+    v_peg_grammar_set_parser(gr0, gr0, "gr_action", pp0, 0);
+
+
+    //-----------------------------------------------------------------
+    v_peg_set_grammar(gr0);
+
+
+    //- That's all, folks!
+
+    v_terminate(gr0);
+    v_terminate(act);
+    v_terminate(ar0, 3);
+    v_terminate(pp0, 12);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    //-----------------------------------------------------------------
+//  v_debug_print_module(1);
+
+    voidc_prepare_module_for_jit(module);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver, 0
+                               );
+
+    //-----------------------------------------------------------------
+    v_set_module(0);
+}
+
+
+

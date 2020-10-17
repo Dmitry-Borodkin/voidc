@@ -1,0 +1,135 @@
+{   v_import("grammar.void");
+}
+
+
+//---------------------------------------------------------------------
+{
+    voidc_enable_statement_grammar();
+}
+
+
+//---------------------------------------------------------------------
+//- Tests ...
+//---------------------------------------------------------------------
+
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(1); }
+{
+    qwe = v_alloca(v_peg_opaque_grammar_ptr);
+    v_initialize(qwe);
+
+    v_peg_make_grammar(qwe);
+
+
+    dot = v_alloca(v_peg_opaque_parser_ptr);
+    v_initialize(dot);
+
+    v_peg_make_dot_parser(dot);
+
+
+    grammar qwe
+    {
+    actions:
+        q = mk_gr_stmt_action_grammar_action;
+        w = 0;
+
+    parsers:
+        z = 0;
+
+        s = "qwerty";
+        s =* "asd";
+        s += "zxc";
+
+        qwerty = ();
+        asdfgh = (/);
+
+        as = "a" / !("b" / "c");
+
+        zx = &"a" ("b" "c" "d")? v:"e";
+
+        sd = "q" <"w" "e" "r"> $1 @dot;
+
+        we = 'a' . ;
+
+        a = b c / d (e f)*;
+
+        aa = zzz [qw-r];
+
+        qq = { zxc };
+        qq = { $5 };
+        qq = { $8e };
+        qq = { 999 };
+        qq = { "zzz" };
+        qq = { 'z' };
+
+
+        ff = { qaz(a, "q", 8, $1s) };
+    }
+
+    v_terminate(dot);
+    v_terminate(qwe);
+}
+
+
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_test_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_argument_ptr);
+    v_initialize(arg0);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+
+    v_ast_make_arg_string(arg0, "Hello test!\n");
+
+    v_ast_make_stmt_call(stmt, "", "printf", arg0, 1);
+
+
+    v_std_any_set_pointer(ret, stmt);
+
+
+    v_terminate(stmt);
+    v_terminate(arg0);
+}
+
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(1); }
+{
+    gr0 = v_alloca(v_peg_opaque_grammar_ptr);
+    v_initialize(gr0);
+
+    v_peg_get_grammar(gr0);
+
+
+    grammar gr0
+    {
+    actions:
+        mk_test = mk_test_grammar_action;
+
+    parsers:
+        stmt =+ "test" _ ';'    { mk_test() };
+    }
+
+    v_peg_set_grammar(gr0);
+
+
+    v_terminate(gr0);
+}
+
+//{   v_debug_print_module(1); }
+{
+    test;
+}
+
+
+

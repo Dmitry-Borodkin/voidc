@@ -18,7 +18,7 @@ context_t *context_t::current_ctx = nullptr;
 
 
 //-----------------------------------------------------------------
-context_t::context_t(std::istream &_input, const grammar_t &_grammar)
+context_t::context_t(FILE *_input, const grammar_t &_grammar)
   : input(_input),
     grammar(_grammar)
 {
@@ -133,9 +133,11 @@ char32_t context_t::read_character(void)
 {
     //- First, obtain a utf-8 codepoint
 
-    uint8_t c0; input.get((char &)c0);
+    int c_eof = std::fgetc(input);
 
-    if (!input) return char32_t(-1);    //- Sic!
+    if (c_eof == EOF) return char32_t(-1);      //- Sic!
+
+    uint8_t c0 = uint8_t(c_eof);
 
     int n;
 
@@ -154,7 +156,7 @@ char32_t context_t::read_character(void)
 
     for(; n; --n)
     {
-        input.get((char &)c0);
+        c0 = uint8_t(std::fgetc(input));
 
         r = (r << 6) | (c0 & 0x3F);
     }

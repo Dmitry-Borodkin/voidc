@@ -9,7 +9,7 @@
 #include "vpeg_parser.h"
 #include "vpeg_grammar.h"
 
-#include <istream>
+#include <cstdio>
 #include <utility>
 #include <array>
 #include <map>
@@ -29,7 +29,7 @@ namespace vpeg
 class context_t
 {
 public:
-    context_t(std::istream &_input, const grammar_t &_grammar);
+    context_t(std::FILE *_input, const grammar_t &_grammar);
 
 public:
     static void static_initialize(void);
@@ -70,7 +70,7 @@ public:
     }
 
 public:
-    bool is_ok(void) { return bool(input); }
+    bool is_ok(void) { return !std::ferror(input); }
 
 public:
     char32_t get_character(void)
@@ -121,7 +121,7 @@ public:
     size_t get_buffer_size(void) const { return buffer.size(); }
 
 private:
-    std::istream &input;
+    std::FILE *input;
 
     size_t position = 0;
 

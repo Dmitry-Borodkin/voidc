@@ -688,8 +688,8 @@
     LLVMPositionBuilderAtEnd(builder, work_b);
 }
 {
-    pp0 = v_alloca(v_peg_opaque_parser_ptr, 15);
-    v_initialize(pp0, 15);
+    pp0 = v_alloca(v_peg_opaque_parser_ptr, 16);
+    v_initialize(pp0, 16);
 
     pp1 = v_getelementptr(pp0, 1);
     pp2 = v_getelementptr(pp0, 2);
@@ -705,6 +705,7 @@
     pp12 = v_getelementptr(pp0, 12);
     pp13 = v_getelementptr(pp0, 13);
     pp14 = v_getelementptr(pp0, 14);
+    pp15 = v_getelementptr(pp0, 15);
 
 
     v_peg_make_literal_parser(pp1, "if");
@@ -726,10 +727,12 @@
 
     v_peg_make_identifier_parser(pp10, "_");
     v_peg_make_literal_parser(pp11, "else");
-    v_peg_make_identifier_parser(pp12, "_");
+    v_peg_make_identifier_parser(pp12, "ident_cont");
+    v_peg_make_not_parser(pp12, pp12);
+    v_peg_make_identifier_parser(pp13, "_");
 
-    v_peg_make_identifier_parser(pp13, "stmt");
-    v_peg_make_catch_variable_parser(pp13, "else", pp13);
+    v_peg_make_identifier_parser(pp14, "stmt");
+    v_peg_make_catch_variable_parser(pp14, "else", pp14);
 
 
     ar0 = v_alloca(v_peg_opaque_argument_ptr, 3);
@@ -748,10 +751,10 @@
 
     v_peg_make_call_action(act, "mk_stmt_if_then_else", ar0, 3);
 
-    v_peg_make_action_parser(pp14, act);
+    v_peg_make_action_parser(pp15, act);
 
 
-    v_peg_make_sequence_parser(pp0, pp1, 14);
+    v_peg_make_sequence_parser(pp0, pp1, 15);
 
 
     v_peg_make_integer_argument(ar2, 0);
@@ -798,7 +801,7 @@
     v_terminate(gr0);
     v_terminate(act);
     v_terminate(ar0, 3);
-    v_terminate(pp0, 15);
+    v_terminate(pp0, 16);
 }
 
 

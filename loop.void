@@ -340,19 +340,22 @@
     }
 
 
-    pp0 = v_alloca(v_peg_opaque_parser_ptr, 4);
-    v_initialize(pp0, 4);
+    pp0 = v_alloca(v_peg_opaque_parser_ptr, 5);
+    v_initialize(pp0, 5);
 
     pp1 = v_getelementptr(pp0, 1);
     pp2 = v_getelementptr(pp0, 2);
     pp3 = v_getelementptr(pp0, 3);
+    pp4 = v_getelementptr(pp0, 4);
 
     v_peg_make_literal_parser(pp0, "loop");
+    v_peg_make_identifier_parser(pp1, "ident_cont");
+    v_peg_make_not_parser(pp1, pp1);
 
-    v_peg_make_identifier_parser(pp1, "_");
+    v_peg_make_identifier_parser(pp2, "_");
 
-    v_peg_make_identifier_parser(pp2, "stmt");
-    v_peg_make_catch_variable_parser(pp2, "s", pp2);
+    v_peg_make_identifier_parser(pp3, "stmt");
+    v_peg_make_catch_variable_parser(pp3, "s", pp3);
 
 
     ar0 = v_alloca(v_peg_opaque_argument_ptr);
@@ -366,10 +369,10 @@
 
     v_peg_make_call_action(act, "mk_stmt_loop", ar0, 1);
 
-    v_peg_make_action_parser(pp3, act);
+    v_peg_make_action_parser(pp4, act);
 
 
-    v_peg_make_sequence_parser(pp0, pp0, 4);
+    v_peg_make_sequence_parser(pp0, pp0, 5);
 
 
     gr0 = v_alloca(v_peg_opaque_grammar_ptr);
@@ -409,7 +412,7 @@
     v_terminate(gr0);
     v_terminate(act);
     v_terminate(ar0);
-    v_terminate(pp0, 4);
+    v_terminate(pp0, 5);
 }
 
 

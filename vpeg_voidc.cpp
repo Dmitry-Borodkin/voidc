@@ -448,8 +448,8 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- arg_list_lr <- l:arg_list_lr _ a:arg    { mk_arg_list(l, a) }
-    //-              / a:arg                    { mk_arg_list(0, a) }
+    //- arg_list_lr <- l:arg_list_lr _ ',' _ a:arg  { mk_arg_list(l, a) }
+    //-              / a:arg                        { mk_arg_list(0, a) }
 
     gr = gr.set_parser("arg_list_lr",
     mk_choice_parser(
@@ -825,13 +825,13 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- EOL <- "\r\n" / '\n' / '\r'
+    //- EOL <- '\n' / "\r\n" / '\r'
 
     gr = gr.set_parser("EOL",
     mk_choice_parser(
     {
-        mk_literal_parser("\r\n"),
         mk_character_parser('\n'),
+        mk_literal_parser("\r\n"),
         mk_character_parser('\r')
     }));
 
