@@ -137,6 +137,24 @@ find_file_for_import(const fs::path &parent, const fs::path &filename)
     return  "";
 }
 
+//--------------------------------------------------------------------
+static inline
+std::FILE *
+my_fopen(const fs::path &fpath, bool write=false)
+{
+
+#ifdef _WIN32
+
+    return _wfopen(fpath.c_str(), (write ? L"wb" : L"rb"));
+
+#else
+
+    return std::fopen(fpath.c_str(), (write ? "wb" : "rb"));
+
+#endif
+
+}
+
 
 //--------------------------------------------------------------------
 //- Intrinsics (functions)
@@ -154,7 +172,7 @@ v_import(const char *name)
 
     auto *parent_lctx = vctx.local_ctx;
 
-    fs::path src_filename = name;
+    fs::path src_filename = fs::u8path(name);
 
     fs::path parent_path = fs::path(parent_lctx->filename).parent_path();
 
@@ -200,7 +218,7 @@ v_import(const char *name)
 
     if (use_binary)
     {
-        infs = std::fopen(bin_filename.c_str(), "rb");
+        infs = my_fopen(bin_filename);
 
         size_t buf_len = sizeof(magic);
         auto buf = std::make_unique<char[]>(buf_len);
@@ -249,9 +267,9 @@ v_import(const char *name)
 
     if (!use_binary)
     {
-        infs = std::fopen(src_filename.c_str(), "rb");
+        infs = my_fopen(src_filename);
 
-        std::FILE *outfs = std::fopen(bin_filename.c_str(), "wb");
+        std::FILE *outfs = my_fopen(bin_filename, true);
 
         {   char buf[sizeof(magic)];
 
@@ -418,12 +436,14 @@ main(int argc, char *argv[])
         }
         else
         {
-            if (!fs::exists(src_name))
+            fs::path src_path = fs::u8path(src_name);
+
+            if (!fs::exists(src_path))
             {
                 throw std::runtime_error("Source file not found: " + src_name);
             }
 
-            istr = std::fopen(src_name.c_str(), "rb");
+            istr = my_fopen(src_path);
         }
 
         voidc_local_ctx_t lctx(src_name, gctx);
