@@ -355,7 +355,7 @@ std::any call_action_t::act(context_t &ctx) const
 
 #endif
 
-    ctx.grammar.actions[q_fun](&ret, a.get(), N);
+    fun(&ret, a.get(), N);
 
     return ret;
 }
