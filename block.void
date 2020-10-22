@@ -149,7 +149,7 @@
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
-    v_add_local_symbol("voidc_ast_stmt_block_vtable", v_ast_generic_vtable, vtable_g);
+    v_add_local_symbol("voidc_ast_stmt_block_vtable", v_ast_generic_vtable, 0);     //- Sic!
 }
 
 
@@ -382,6 +382,16 @@
 
 
 //---------------------------------------------------------------------
+{
+    v_make_function_private("voidc_ast_stmt_block_destroy");
+    v_make_function_private("voidc_ast_stmt_block_accept");
+    v_make_global_private("voidc_ast_stmt_block_vtable");
+    v_make_function_private("mk_stmt_block_grammar_action");
+    v_make_function_private("compile_ast_stmt_block_t");
+}
+
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
@@ -401,6 +411,13 @@
 
     //-----------------------------------------------------------------
     v_set_module(0);
+}
+
+
+//---------------------------------------------------------------------
+{
+    v_make_symbol_global("v_ast_make_stmt_block");
+    v_make_symbol_global("voidc_enable_statement_block");
 }
 
 

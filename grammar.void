@@ -69,15 +69,15 @@
     LLVMSetInitializer(rn_count, int_z);
     LLVMSetInitializer(rn_num,   int_z);
 
-    v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_argument_ptr,  gr_arg);
-    v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_ptr, stmt_list);
+    v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_argument_ptr,  0);    //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_ptr, 0);    //- Sic!
 
-    v_add_local_symbol("voidc_ast_stmt_grammar_parsers_count",   int, pr_count);
-    v_add_local_symbol("voidc_ast_stmt_grammar_parser_number",   int, pr_num);
-    v_add_local_symbol("voidc_ast_stmt_grammar_arguments_count", int, ar_count);
-    v_add_local_symbol("voidc_ast_stmt_grammar_argument_number", int, ar_num);
-    v_add_local_symbol("voidc_ast_stmt_grammar_ranges_count",    int, rn_count);
-    v_add_local_symbol("voidc_ast_stmt_grammar_range_number",    int, rn_num);
+    v_add_local_symbol("voidc_ast_stmt_grammar_parsers_count",   int, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_parser_number",   int, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_arguments_count", int, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_argument_number", int, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_ranges_count",    int, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_range_number",    int, 0);   //- Sic!
 }
 
 
@@ -98,6 +98,8 @@
     v_store(int,                typ4);
 
     ft = LLVMFunctionType(void, typ0, 5, 0);
+
+    v_add_symbol_type("v_ast_make_stmt_call", ft);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_call", ft);
@@ -2171,6 +2173,8 @@
 {
     ft = LLVMFunctionType(void, 0, 0, 0);
 
+    v_add_symbol_type("voidc_enable_statement_grammar", ft);
+
     //-----------------------------------------------------------------
     v_function_hack("voidc_enable_statement_grammar", ft);
 }
@@ -3066,6 +3070,57 @@
 
 
 //---------------------------------------------------------------------
+{
+    v_make_global_private("voidc_ast_stmt_grammar_grammar_arg");
+    v_make_global_private("voidc_ast_stmt_grammar_stmt_list");
+    v_make_global_private("voidc_ast_stmt_grammar_parsers_count");
+    v_make_global_private("voidc_ast_stmt_grammar_parser_number");
+    v_make_global_private("voidc_ast_stmt_grammar_arguments_count");
+    v_make_global_private("voidc_ast_stmt_grammar_argument_number");
+    v_make_global_private("voidc_ast_stmt_grammar_ranges_count");
+    v_make_global_private("voidc_ast_stmt_grammar_range_number");
+
+    v_make_function_private("voidc_ast_stmt_grammar_parsers_inc");
+    v_make_function_private("voidc_ast_stmt_grammar_parsers_dec");
+    v_make_function_private("voidc_ast_stmt_grammar_arguments_inc");
+    v_make_function_private("voidc_ast_stmt_grammar_ranges_inc");
+    v_make_function_private("voidc_ast_stmt_grammar_stack_init");
+    v_make_function_private("mk_stmt_grammar_init_grammar_action");
+    v_make_function_private("mk_stmt_grammar_grammar_action");
+    v_make_function_private("mk_gr_stmt_parser_grammar_action");
+    v_make_function_private("mk_gr_stmt_parser_leftrec_grammar_action");
+    v_make_function_private("mk_gr_stmt_action_grammar_action");
+    v_make_function_private("mk_pr_special_grammar_action");
+    v_make_function_private("mk_pr_choice_grammar_action");
+    v_make_function_private("mk_pr_sequence_grammar_action");
+    v_make_function_private("mk_pr_catch_var_grammar_action");
+    v_make_function_private("voidc_make_parser_unary");
+    v_make_function_private("mk_pr_and_grammar_action");
+    v_make_function_private("mk_pr_not_grammar_action");
+    v_make_function_private("mk_pr_star_grammar_action");
+    v_make_function_private("mk_pr_plus_grammar_action");
+    v_make_function_private("mk_pr_question_grammar_action");
+    v_make_function_private("mk_pr_identifier_grammar_action");
+    v_make_function_private("mk_pr_external_grammar_action");
+    v_make_function_private("mk_pr_backref_grammar_action");
+    v_make_function_private("mk_pr_catch_str_grammar_action");
+    v_make_function_private("mk_pr_action_grammar_action");
+    v_make_function_private("mk_pr_class_grammar_action");
+    v_make_function_private("mk_pr_literal_grammar_action");
+    v_make_function_private("mk_pr_char_grammar_action");
+    v_make_function_private("mk_pr_dot_grammar_action");
+    v_make_function_private("mk_pr_range_grammar_action");
+    v_make_function_private("mk_pr_action_call_grammar_action");
+    v_make_function_private("mk_pr_action_return_grammar_action");
+    v_make_function_private("mk_pr_arg_identifier_grammar_action");
+    v_make_function_private("mk_pr_arg_backref_grammar_action");
+    v_make_function_private("mk_pr_arg_integer_grammar_action");
+    v_make_function_private("mk_pr_arg_string_grammar_action");
+    v_make_function_private("mk_pr_arg_char_grammar_action");
+}
+
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
@@ -3085,6 +3140,13 @@
 
     //-----------------------------------------------------------------
     v_set_module(0);
+}
+
+
+//---------------------------------------------------------------------
+{
+    v_make_symbol_global("v_ast_make_stmt_call");
+    v_make_symbol_global("voidc_enable_statement_grammar");
 }
 
 

@@ -149,7 +149,7 @@
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
-    v_add_local_symbol("voidc_ast_stmt_loop_vtable", v_ast_generic_vtable, vtable_g);
+    v_add_local_symbol("voidc_ast_stmt_loop_vtable", v_ast_generic_vtable, 0);      //- Sic!
 }
 
 
@@ -322,6 +322,8 @@
 {
     ft = LLVMFunctionType(void, 0, 0, 0);
 
+    v_add_symbol_type("voidc_enable_statement_loop", ft);
+
     //-----------------------------------------------------------------
     v_function_hack("voidc_enable_statement_loop", ft);
 }
@@ -417,6 +419,16 @@
 
 
 //---------------------------------------------------------------------
+{
+    v_make_function_private("voidc_ast_stmt_loop_destroy");
+    v_make_function_private("voidc_ast_stmt_loop_accept");
+    v_make_global_private("voidc_ast_stmt_loop_vtable");
+    v_make_function_private("mk_stmt_loop_grammar_action");
+    v_make_function_private("compile_ast_stmt_loop_t");
+}
+
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
@@ -439,5 +451,10 @@
 }
 
 
+//---------------------------------------------------------------------
+{
+    v_make_symbol_global("v_ast_make_stmt_loop");
+    v_make_symbol_global("voidc_enable_statement_loop");
+}
 
 

@@ -371,6 +371,7 @@
     //-------------------------------------------------------------
     //- Init/term registering helper
     //-------------------------------------------------------------
+    //- private
     //- fun init_term_helper(val_t_type: LLVMTypeRef, fun_name: char_ptr, p_dict: dict_ptr)
     //- {
     //-     arg0 = v_alloca(LLVMTypeRef, 2);
@@ -512,6 +513,7 @@
     //-------------------------------------------------------------
     //- Copy/move registering helper
     //-------------------------------------------------------------
+    //- private
     //- fun copy_move_helper(val_t_type: LLVMTypeRef, fun_name: char_ptr, p_dict: dict_ptr)
     //- {
     //-     arg0 = v_alloca(LLVMTypeRef, 3);
@@ -717,7 +719,7 @@
     //- fun v_util_initialize_std_string_impl(s: v_util_std_string_ref, n: int);
     //- fun v_util_terminate_std_string_impl(s: v_util_std_string_ref, n: int);
     //-
-    //- fun v_util_register_idcme_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_itcme_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     sstr = v_alloca(v_util_opaque_std_string);
     //-
@@ -771,7 +773,7 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    idcme_f = LLVMAddFunction(module, "v_util_register_idcme_impl", register_batch_ft);
+    idcme_f = LLVMAddFunction(module, "v_util_register_itcme_impl", register_batch_ft);
 
     val_t_type = LLVMGetParam(idcme_f, 0);
     prefix     = LLVMGetParam(idcme_f, 1);
@@ -1403,13 +1405,13 @@
     //-------------------------------------------------------------
     //- Init/Term/Copy/Move/Empty and std::any get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_idcmep_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_itcmep_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
     //- {
-    //-     v_util_register_idcme_impl(val_t_type, prefix, typename);
+    //-     v_util_register_itcme_impl(val_t_type, prefix, typename);
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);
     //- }
     //-------------------------------------------------------------
-    idcmep_f = LLVMAddFunction(module, "v_util_register_idcmep_impl", register_batch_ft);
+    idcmep_f = LLVMAddFunction(module, "v_util_register_itcmep_impl", register_batch_ft);
 
     val_t_type = LLVMGetParam(idcmep_f, 0);
     prefix     = LLVMGetParam(idcmep_f, 1);
@@ -1451,7 +1453,7 @@
     v_add_symbol_type("v_util_register_move_impl",       register_ft);
     v_add_symbol_type("v_util_register_empty_impl",      register_ft);
 
-    v_add_symbol_type("v_util_register_idcme_impl", register_batch_ft);
+    v_add_symbol_type("v_util_register_itcme_impl", register_batch_ft);
 
     v_add_symbol_type("v_util_register_std_any_get_value_impl",   register_ft);
     v_add_symbol_type("v_util_register_std_any_get_pointer_impl", register_ft);
@@ -1462,16 +1464,16 @@
     v_add_symbol_type("v_util_register_gs_pointer_impl", register_batch_ft);
     v_add_symbol_type("v_util_register_gs_vp_impl",      register_batch_ft);
 
-    v_add_symbol_type("v_util_register_idcmep_impl", register_batch_ft);
+    v_add_symbol_type("v_util_register_itcmep_impl", register_batch_ft);
 }
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_util_register_idcme_impl(v_util_opaque_function_dict_t, "v_util", "function_dict");
-    v_util_register_idcme_impl(v_util_opaque_std_any,         "v_util", "std_any");
-    v_util_register_idcme_impl(v_util_opaque_std_string,      "v_util", "std_string");
+{   v_util_register_itcme_impl(v_util_opaque_function_dict_t, "v_util", "function_dict");
+    v_util_register_itcme_impl(v_util_opaque_std_any,         "v_util", "std_any");
+    v_util_register_itcme_impl(v_util_opaque_std_string,      "v_util", "std_string");
 }
 
 

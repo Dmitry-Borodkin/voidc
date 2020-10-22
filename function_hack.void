@@ -19,7 +19,9 @@
 
 
 //---------------------------------------------------------------------
-{   module = LLVMModuleCreateWithName("function_hack_module");
+//- Function Hack module #1
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("function_hack_module_N1");
 
     v_set_module(module);
 
@@ -38,6 +40,7 @@
     n0 = LLVMConstInt(int, 0, 0);
     n1 = LLVMConstInt(int, 1, 0);
     n2 = LLVMConstInt(int, 2, 0);
+    n3 = LLVMConstInt(int, 3, 0);
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
@@ -226,6 +229,7 @@
     //-----------------------------------------------------------------
     //- "Function hack" compiler visitor method
     //-----------------------------------------------------------------
+    //- private
     //- fun voidc_function_hack_visitor_method(visitor:   voidc_visitor_ref,
     //-                                        stmt_list: v_ast_stmt_list_ref,
     //-                                        line:      int,
@@ -318,6 +322,7 @@
     //- }
     //-----------------------------------------------------------------
     method_f = LLVMAddFunction(module, "voidc_function_hack_visitor_method", v_ast_unit_visitor_method_t);
+    LLVMSetLinkage(method_f, LLVMPrivateLinkage);
 
     visitor   = LLVMGetParam(method_f, 0);
     stmt_list = LLVMGetParam(method_f, 1);
@@ -741,15 +746,17 @@
     //-     fun_name = v_get_argument(0);
     //-     fun_type = v_get_argument(1);
     //-
-    //-     add_sym_type_f = v_obtain_function("v_add_symbol_type");
+    //-     add_loc_sym_f = v_obtain_function("v_add_local_symbol");
     //-
-    //-     arg0 = v_alloca(LLVMValueRef, 2);
+    //-     arg0 = v_alloca(LLVMValueRef, 3);
     //-     arg1 = v_getelementptr(arg0, 1);
+    //-     arg2 = v_getelementptr(arg0, 2);
     //-
     //-     v_store(fun_name, arg0);
     //-     v_store(fun_type, arg1);
+    //-     v_store(0,        arg2);
     //-
-    //-     LLVMBuildCall(builder, add_sym_type_f, arg0, 2, "");
+    //-     LLVMBuildCall(builder, add_loc_sym_f, arg0, 3, "");
     //-
     //-     has_grammar_f = v_obtain_function("voidc_has_grammar");
     //-
@@ -813,14 +820,14 @@
     fun_type = LLVMBuildCall(builder, get_arg_f, val0, 1, "fun_type");
 
 
-    add_sym_type_fn = LLVMBuildGlobalStringPtr(builder, "v_add_symbol_type", "add_sym_type_fn");
+    add_loc_sym_fn = LLVMBuildGlobalStringPtr(builder, "v_add_local_symbol", "add_loc_sym_fn");
 
-    v_store(add_sym_type_fn, val0);
+    v_store(add_loc_sym_fn, val0);
 
-    add_sym_type_fv = LLVMBuildCall(builder, obtain_fun_f, val0, 1, "add_sym_type_fv");
+    add_loc_sym_fv = LLVMBuildCall(builder, obtain_fun_f, val0, 1, "add_loc_sym_fv");
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, LLVMValueRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, LLVMValueRef, n3, "arg0");
 
     LLVMBuildStore(builder, fun_name, arg0);
 
@@ -830,12 +837,26 @@
 
     LLVMBuildStore(builder, fun_type, arg1);
 
+    v_store(n2, val0);
 
-    v_store(builder_v,       val0);
-    v_store(add_sym_type_fv, val1);
-    v_store(arg0,            val2);
-    v_store(n2,              val3);
-    v_store(empty_str,       val4);
+    arg2 = LLVMBuildGEP(builder, arg0, val0, 1, "arg2");
+
+    void_ptr_v = v_obtain_global("void_ptr");
+
+    v_store(void_ptr_v, val0);
+
+    llvm_const_null_f = v_obtain_function("LLVMConstNull");
+
+    vnull_v = LLVMBuildCall(builder, llvm_const_null_f, val0, 1, "vnull_v");
+
+    LLVMBuildStore(builder, vnull_v, arg2);
+
+
+    v_store(builder_v,      val0);
+    v_store(add_loc_sym_fv, val1);
+    v_store(arg0,           val2);
+    v_store(n3,             val3);
+    v_store(empty_str,      val4);
 
     LLVMBuildCall(builder, llvm_build_call_f, val0, 5, "");
 
@@ -1091,15 +1112,123 @@
 
     //-----------------------------------------------------------------
     v_add_symbol_type("voidc_function_hack_unit_action_helper", unit_action_helper_ft);
-    v_add_symbol_type("voidc_function_hack_intrinsic_helper", helper_ft);
+    v_add_symbol_type("voidc_function_hack_intrinsic_helper",   helper_ft);
 
-    v_add_local_symbol("voidc_function_hack_intrinsic", voidc_intrinsic_t, intrinsic_f);
-    v_add_local_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t, return_f);
+    v_add_local_symbol("voidc_function_hack_intrinsic",        voidc_intrinsic_t, 0);   //- Sic!
+    v_add_local_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t, 0);   //- Sic!
 }
 
 {   v_add_intrinsic("v_function_hack", voidc_function_hack_intrinsic);
     v_add_intrinsic("v_return",        voidc_function_hack_return_intrinsic);
 }
 
+
+//---------------------------------------------------------------------
+//- Function Hack module #2
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("function_hack_module_N2");
+
+    v_set_module(module);
+}
+
+
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(LLVMTypeRef, 1);
+
+    char_ptr = LLVMPointerType(char, 0);
+
+    v_store(char_ptr, typ0);
+
+    ft = LLVMFunctionType(void, typ0, 1, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_make_symbol_global", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("fun_name", p0);
+}
+{
+    fun_type = v_find_symbol_type(fun_name);
+
+    v_add_symbol_type(fun_name, fun_type);
+}
+
+
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(LLVMTypeRef, 1);
+
+    char_ptr = LLVMPointerType(char, 0);
+
+    v_store(char_ptr, typ0);
+
+    ft = LLVMFunctionType(void, typ0, 1, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_make_function_private", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("fun_name", p0);
+}
+{
+    module = v_get_module();
+
+    f = LLVMGetNamedFunction(module, fun_name);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+}
+
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(LLVMTypeRef, 1);
+
+    char_ptr = LLVMPointerType(char, 0);
+
+    v_store(char_ptr, typ0);
+
+    ft = LLVMFunctionType(void, typ0, 1, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_make_global_private", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("var_name", p0);
+}
+{
+    module = v_get_module();
+
+    g = LLVMGetNamedGlobal(module, var_name);
+
+    LLVMSetLinkage(g, LLVMPrivateLinkage);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    //-----------------------------------------------------------------
+//  v_debug_print_module(1);
+
+    voidc_prepare_module_for_jit(module);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver, 0
+                               );
+
+    //-----------------------------------------------------------------
+    v_set_module(0);
+}
+
+
+//---------------------------------------------------------------------
+{
+    v_make_symbol_global("v_make_symbol_global");
+    v_make_symbol_global("v_make_function_private");
+    v_make_symbol_global("v_make_global_private");
+}
 
 
