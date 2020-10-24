@@ -263,9 +263,7 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
 
     assert(lctx.arg_types.empty());
 
-    auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*args->data[0]);
-
-    auto type = lctx.find_type(ident.name.c_str());
+    auto type = lctx.lookup_type(args->data[0]);
     assert(type);
 
     const char *fun = dict.at(type).c_str();

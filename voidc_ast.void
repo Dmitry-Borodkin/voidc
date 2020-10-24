@@ -59,6 +59,15 @@
 
     char_ptr = LLVMPointerType(char, 0);
 
+
+    //-------------------------------------------------------------
+    v_store(v_ast_argument_ref, arg0);
+
+    ft = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+
+    v_add_symbol_type("v_lookup_type", ft);         //- Sic! ...
+
+
     //-------------------------------------------------------------
     v_store(v_ast_unit_ref,      arg0);
     v_store(v_ast_stmt_list_ref, arg1);
@@ -202,6 +211,17 @@
     fun_t = LLVMFunctionType(char32_t, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_arg_char_get_char", fun_t);
+
+    //-------------------------------------------------------------
+    v_store(LLVMTypeRef, arg1);
+
+    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+
+    v_add_symbol_type("v_ast_make_arg_type", fun_t);
+
+    fun_t = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_arg_type_get_type", fun_t);
 
 
     //-------------------------------------------------------------

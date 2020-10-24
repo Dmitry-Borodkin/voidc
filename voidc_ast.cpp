@@ -226,7 +226,23 @@ v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_arg_char_t &>(**ptr);
 
-    return  r.c;
+    return  r.char_;
+}
+
+
+//-----------------------------------------------------------------
+void
+v_ast_make_arg_type(ast_argument_ptr_t *ret, LLVMTypeRef type)
+{
+    *ret = std::make_shared<const ast_arg_type_t>(type);
+}
+
+LLVMTypeRef
+v_ast_arg_type_get_type(const ast_argument_ptr_t *ptr)
+{
+    auto &r = dynamic_cast<const ast_arg_type_t &>(**ptr);
+
+    return  r.type;
 }
 
 

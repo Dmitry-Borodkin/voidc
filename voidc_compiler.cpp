@@ -229,6 +229,16 @@ void compile_ast_arg_char_t(const visitor_ptr_t *vis, char32_t c)
 
 
 //---------------------------------------------------------------------
+//- arg_type
+//---------------------------------------------------------------------
+static
+void compile_ast_arg_type_t(const visitor_ptr_t *vis, LLVMTypeRef type)
+{
+    assert(false && "This can not happen!");
+}
+
+
+//---------------------------------------------------------------------
 //- Compiler visitor
 //---------------------------------------------------------------------
 static

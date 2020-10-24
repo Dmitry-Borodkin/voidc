@@ -183,9 +183,11 @@
 
     builder = v_target_get_builder();
 
-    typename = v_ast_arg_identifier_get_name(args);
+    type = v_lookup_type(args);
 
-    type = v_find_type(typename);
+//    typename = v_ast_arg_identifier_get_name(args);
+//
+//    type = v_find_type(typename);
 
     ret = LLVMBuildArrayMalloc(builder, type, number, "ret");
 

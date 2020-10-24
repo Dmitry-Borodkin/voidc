@@ -30,13 +30,7 @@ v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*(*args)->data[0]);
-
-    auto type = lctx.find_type(ident.name.c_str());
-    if (!type)
-    {
-        throw std::runtime_error("Type not found: " + ident.name);
-    }
+    auto type = lctx.lookup_type((*args)->data[0]);
 
     LLVMValueRef v;
 
@@ -152,13 +146,7 @@ v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     (*args)->data[1]->accept(*vis);         //- Value
 
-    auto &ident = dynamic_cast<const ast_arg_identifier_t &>(*(*args)->data[2]);
-
-    auto type = lctx.find_type(ident.name.c_str());
-    if (!type)
-    {
-        throw std::runtime_error("Type not found: " + ident.name);
-    }
+    auto type = lctx.lookup_type((*args)->data[2]);
 
     LLVMValueRef v;
 
@@ -312,6 +300,25 @@ base_local_ctx_t::check_alias(const std::string &name)
     }
 
     return  name;
+}
+
+//---------------------------------------------------------------------
+LLVMTypeRef
+base_local_ctx_t::lookup_type(const ast_argument_ptr_t &arg)
+{
+    if (auto arg_type = std::dynamic_pointer_cast<const ast_arg_type_t>(arg))
+    {
+        return  arg_type->type;
+    }
+
+    auto &arg_ident = dynamic_cast<const ast_arg_identifier_t &>(*arg);
+
+    if (auto type = find_type(arg_ident.name.c_str()))
+    {
+        return type;
+    }
+
+    throw std::runtime_error("Type not found: " + arg_ident.name);
 }
 
 //---------------------------------------------------------------------
@@ -1450,6 +1457,16 @@ v_find_type(const char *name)
 #endif
 
     return  ret;
+}
+
+//---------------------------------------------------------------------
+LLVMTypeRef
+v_lookup_type(const ast_argument_ptr_t *arg)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return  lctx.lookup_type(*arg);
 }
 
 //---------------------------------------------------------------------

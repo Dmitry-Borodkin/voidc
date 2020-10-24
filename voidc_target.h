@@ -123,6 +123,8 @@ public:
 
     virtual LLVMTypeRef find_symbol_type(const char *raw_name) = 0;     //- No alias check!
 
+    LLVMTypeRef lookup_type(const ast_argument_ptr_t &arg);
+
 public:
     LLVMModuleRef module = nullptr;
 

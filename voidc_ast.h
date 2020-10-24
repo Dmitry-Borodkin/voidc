@@ -14,6 +14,8 @@
 
 #include <immer/vector.hpp>
 
+#include <llvm-c/Types.h>
+
 
 //-----------------------------------------------------------------
 //- Visitors ...
@@ -27,7 +29,8 @@
     DEF(ast_arg_identifier_t) \
     DEF(ast_arg_integer_t) \
     DEF(ast_arg_string_t) \
-    DEF(ast_arg_char_t)
+    DEF(ast_arg_char_t) \
+    DEF(ast_arg_type_t)
 
 #define DEF(type) \
 extern v_quark_t v_##type##_visitor_method_tag;
@@ -304,23 +307,45 @@ public:
 //---------------------------------------------------------------------
 struct ast_arg_char_t : public ast_argument_t
 {
-    const char32_t c;
+    const char32_t char_;
 
-    explicit ast_arg_char_t(char32_t _c)
-      : c(_c)
+    explicit ast_arg_char_t(char32_t _char_)
+      : char_(_char_)
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, char32_t c);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, char32_t char_);
 
     void accept(const visitor_ptr_t &visitor) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, c);
+        method(&visitor, char_);
     }
 
     AST_VISITOR_TAG(ast_arg_char_t)
+};
+
+//---------------------------------------------------------------------
+struct ast_arg_type_t : public ast_argument_t
+{
+    const LLVMTypeRef type;
+
+    explicit ast_arg_type_t(LLVMTypeRef _type)
+      : type(_type)
+    {}
+
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, LLVMTypeRef type);
+
+    void accept(const visitor_ptr_t &visitor) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+
+        method(&visitor, type);
+    }
+
+    AST_VISITOR_TAG(ast_arg_type_t)
 };
 
 
