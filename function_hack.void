@@ -1145,12 +1145,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_make_symbol_global", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("fun_name", p0);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("sym_name", p0);
 }
 {
-    fun_type = v_find_symbol_type(fun_name);
+    sym_type = v_find_symbol_type(sym_name);
 
-    v_add_symbol_type(fun_name, fun_type);
+    v_add_symbol_type(sym_name, sym_type);
 }
 
 
