@@ -59,7 +59,7 @@ struct ast_base_t
 public:
     virtual void accept(const visitor_ptr_t &visitor) const = 0;
 
-protected:
+public:
     virtual v_quark_t method_tag(void) const = 0;
 };
 
@@ -67,7 +67,6 @@ typedef std::shared_ptr<const ast_base_t> ast_base_ptr_t;
 
 //---------------------------------------------------------------------
 #define AST_VISITOR_TAG(type) \
-protected: \
     v_quark_t method_tag(void) const override { return v_##type##_visitor_method_tag; }
 
 

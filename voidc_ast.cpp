@@ -337,6 +337,14 @@ v_ast_generic_list_get_items(const ast_generic_list_ptr_t *ptr, ast_base_ptr_t *
 //-----------------------------------------------------------------
 //- Visitors ...
 //-----------------------------------------------------------------
+v_quark_t
+v_ast_base_get_visitor_method_tag(const ast_base_ptr_t *ptr)
+{
+    return  (*ptr)->method_tag();
+}
+
+
+//-----------------------------------------------------------------
 #define DEF(type) \
 v_quark_t v_##type##_visitor_method_tag;
 

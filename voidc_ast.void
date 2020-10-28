@@ -337,6 +337,14 @@
     //-------------------------------------------------------------
     //- Visitors ...
     //-------------------------------------------------------------
+    v_store(v_ast_base_ref, arg0);
+
+    ft = LLVMFunctionType(v_quark_t, arg0, 1, 0);
+
+    v_add_symbol_type("v_ast_base_get_visitor_method_tag", ft);
+
+
+    //-------------------------------------------------------------
     v_store(voidc_visitor_ref, arg0);
     v_store(size_t,            arg1);
     v_store(bool,              arg2);
