@@ -34,13 +34,13 @@ v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     LLVMValueRef v;
 
-    if ((*args)->data.size() == 1)
+    if ((*args)->data.size() == 1)              //- Just one
     {
         v = LLVMBuildAlloca(gctx.builder, type, lctx.ret_name);
     }
-    else
+    else                                        //- Array...
     {
-        (*args)->data[1]->accept(*vis);         //- Количество...
+        (*args)->data[1]->accept(*vis);             //- Array size
 
         v = LLVMBuildArrayAlloca(gctx.builder, type, lctx.args[0], lctx.ret_name);
 
@@ -89,13 +89,13 @@ v_store(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     assert(lctx.arg_types.empty());
 
-    (*args)->data[1]->accept(*vis);         //- Сначала "куда"
+    (*args)->data[1]->accept(*vis);         //- "Place" first (to obtain type)
 
     lctx.arg_types.resize(2);
 
     lctx.arg_types[1] = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
 
-    (*args)->data[0]->accept(*vis);         //- Теперь "что"
+    (*args)->data[0]->accept(*vis);         //- "Value" second
 
     auto v = LLVMBuildStore(gctx.builder, lctx.args[1], lctx.args[0]);
 

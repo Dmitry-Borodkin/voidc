@@ -20,6 +20,8 @@ _Pragma("clang attribute pop")
 
 #endif
 
+
+//---------------------------------------------------------------------
 #ifdef __unix
 
 #define VOIDC_DLLEXPORT_BEGIN_FUNCTION
