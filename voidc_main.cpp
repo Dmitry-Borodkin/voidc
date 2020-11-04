@@ -137,6 +137,7 @@ find_file_for_import(const fs::path &parent, const fs::path &filename)
     return  "";
 }
 
+
 //--------------------------------------------------------------------
 static inline
 std::FILE *
@@ -157,6 +158,133 @@ my_fopen(const fs::path &fpath, bool write=false)
 
 
 //--------------------------------------------------------------------
+static
+const char magic[8] = ".voidc\n";
+
+enum import_state_t
+{
+    ist_unknown,        //- ...
+    ist_good,           //- Usable binary
+    ist_bad             //- Need (re)compile
+};
+
+static
+std::map<std::string, import_state_t> import_state;
+
+static bool
+check_import_state(const fs::path &src_filename)
+{
+    auto src_filename_str = src_filename.string();
+
+    {   auto it = import_state.find(src_filename_str);
+
+        if (it != import_state.end())
+        {
+            return  (it->second != ist_bad);            //- "unknown" => kinda "good"...
+        }
+    }
+
+    //- Perform check
+
+    import_state[src_filename_str] = ist_unknown;
+
+    fs::path bin_filename = src_filename;
+
+    bin_filename += "c";
+
+    bool use_binary = true;
+
+    //- First, check bin_filename itself
+
+    if (!fs::exists(bin_filename))
+    {
+        use_binary = false;
+    }
+    else
+    {
+        auto st = fs::last_write_time(src_filename);
+        auto bt = fs::last_write_time(bin_filename);
+
+        if (st > bt)  use_binary = false;
+    }
+
+    if (!use_binary)
+    {
+        import_state[src_filename_str] = ist_bad;
+
+        return false;
+    }
+
+    //- Second, check for header ...
+
+    std::FILE *infs = my_fopen(bin_filename);
+
+    size_t buf_len = sizeof(magic);
+    auto buf = std::make_unique<char[]>(buf_len);
+
+    std::memset(buf.get(), 0, buf_len);
+
+    std::fread(buf.get(), buf_len, 1, infs);
+
+    if (std::strcmp(magic, buf.get()) != 0)
+    {
+        import_state[src_filename_str] = ist_bad;
+
+        std::fclose(infs);
+
+        return false;
+    }
+
+    //- Now, check for imports ...
+
+    std::fread(buf.get(), sizeof(size_t), 1, infs);
+
+    std::fseek(infs, *((size_t *)buf.get()), SEEK_SET);
+
+    fs::path parent_path = src_filename.parent_path();
+
+    while(use_binary)
+    {
+        size_t len;
+
+        std::fread(&len, sizeof(len), 1, infs);
+
+        if (std::feof(infs))  break;        //- WTF ?!?!?
+
+        if (len == 0)  break;
+
+        if (buf_len < len)
+        {
+            buf = std::make_unique<char[]>(len);
+
+            buf_len = len;
+        }
+
+        std::fread(buf.get(), len, 1, infs);
+
+        std::string name(buf.get(), len);
+
+        fs::path imp_filename = fs::u8path(name);
+
+        imp_filename = find_file_for_import(parent_path, imp_filename);
+
+        if (!fs::exists(imp_filename))
+        {
+            throw std::runtime_error("Import file not found: " + imp_filename.string());
+        }
+
+        use_binary = check_import_state(imp_filename);
+    }
+
+    std::fclose(infs);
+
+    import_state[src_filename_str] = (use_binary ? ist_good : ist_bad);
+
+    return use_binary;
+}
+
+
+//--------------------------------------------------------------------
 //- Intrinsics (functions)
 //--------------------------------------------------------------------
 extern "C"
@@ -172,45 +300,33 @@ v_import(const char *name)
 
     auto *parent_lctx = vctx.local_ctx;
 
+    parent_lctx->imports.insert(name);
+
     fs::path src_filename = fs::u8path(name);
 
     fs::path parent_path = fs::path(parent_lctx->filename).parent_path();
 
     src_filename = find_file_for_import(parent_path, src_filename);
 
+    auto src_filename_str = src_filename.string();
+
     if (!fs::exists(src_filename))
     {
-        throw std::runtime_error("Import file not found: " + src_filename.string());
+        throw std::runtime_error("Import file not found: " + src_filename_str);
     }
-
-    auto src_filename_str = src_filename.string();
 
     {   auto &tctx = *voidc_global_ctx_t::target;
 
-        if (tctx.imported.count(src_filename_str)) return;
+        if (tctx.imports.count(src_filename_str)) return;
 
-        tctx.imported.insert(src_filename_str);
+        tctx.imports.insert(src_filename_str);
     }
 
     fs::path bin_filename = src_filename;
 
     bin_filename += "c";
 
-    bool use_binary = true;
-
-    if (!fs::exists(bin_filename))
-    {
-        use_binary = false;
-    }
-    else
-    {
-        auto st = fs::last_write_time(src_filename);
-        auto bt = fs::last_write_time(bin_filename);
-
-        if (st > bt)  use_binary = false;
-    }
-
-    static const char magic[8] = ".voidc\n";
+    bool use_binary = check_import_state(src_filename);
 
     std::FILE *infs;
 
@@ -227,45 +343,41 @@ v_import(const char *name)
 
         std::fread(buf.get(), buf_len, 1, infs);
 
-        if (std::strcmp(magic, buf.get()) == 0)
+        assert(std::strcmp(magic, buf.get()) == 0);
+
+        std::fseek(infs, sizeof(size_t), SEEK_CUR);         //- Skip pointer to imports
+
+        auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
+
+        vpeg::context_t::current_ctx = nullptr;
+
+        while(!std::feof(infs))
         {
-            auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
+            size_t len;
 
-            vpeg::context_t::current_ctx = nullptr;
+            std::fread(&len, sizeof(len), 1, infs);
 
-            while(!std::feof(infs))
+            if (std::feof(infs))  break;        //- WTF ?!?!?
+
+            if (len == 0)  break;
+
+            if (buf_len < len)
             {
-                size_t len;
+                buf = std::make_unique<char[]>(len);
 
-                std::fread(&len, sizeof(len), 1, infs);
-
-                if (std::feof(infs))  break;        //- WTF ?!?!?
-
-                if (buf_len < len)
-                {
-                    buf = std::make_unique<char[]>(len);
-
-                    buf_len = len;
-                }
-
-                std::fread(buf.get(), len, 1, infs);
-
-                lctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
-
-                lctx.run_unit_action();
+                buf_len = len;
             }
 
-            vpeg::context_t::current_ctx = parent_vpeg_ctx;
-        }
-        else
-        {
-            std::fclose(infs);
+            std::fread(buf.get(), len, 1, infs);
 
-            use_binary = false;
+            lctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
+
+            lctx.run_unit_action();
         }
+
+        vpeg::context_t::current_ctx = parent_vpeg_ctx;
     }
-
-    if (!use_binary)
+    else        //- !use_binary
     {
         infs = my_fopen(src_filename);
 
@@ -276,6 +388,8 @@ v_import(const char *name)
             std::memset(buf, 0, sizeof(magic));
 
             std::fwrite(buf, sizeof(magic), 1, outfs);
+
+            std::fwrite(buf, sizeof(size_t), 1, outfs);         //- Pointer to imports...
         }
 
         {   vpeg::context_t pctx(infs, voidc_grammar);
@@ -305,9 +419,32 @@ v_import(const char *name)
             vpeg::context_t::current_ctx = parent_vpeg_ctx;
         }
 
+        size_t len = 0;
+
+        std::fwrite((char *)&len, sizeof(len), 1, outfs);       //- End of units
+
+        size_t imports_pos = std::ftell(outfs);
+
+        for (auto &it : lctx.imports)
+        {
+            len = it.length();
+
+            std::fwrite((char *)&len, sizeof(len), 1, outfs);
+
+            std::fwrite(it.data(), len, 1, outfs);
+        }
+
+        len = 0;
+
+        std::fwrite((char *)&len, sizeof(len), 1, outfs);       //- End of imports
+
+        //- Finish it...
+
         std::fseek(outfs, 0, SEEK_SET);
 
         std::fwrite(magic, sizeof(magic), 1, outfs);
+
+        std::fwrite((char *)&imports_pos, sizeof(imports_pos), 1, outfs);
 
         std::fclose(outfs);
     }

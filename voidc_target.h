@@ -34,6 +34,9 @@ public:
     virtual ~base_compile_ctx_t() = default;
 
 public:
+    std::set<std::string> imports;
+
+public:
     std::map<std::string, LLVMValueRef> constants;
 
     std::map<std::string, std::string> aliases;
@@ -71,9 +74,6 @@ public:
 
     const LLVMTypeRef opaque_void_type;
     const LLVMTypeRef void_ptr_type;
-
-public:
-    std::set<std::string> imported;
 
 public:
     static int debug_print_module;
