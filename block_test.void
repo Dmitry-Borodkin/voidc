@@ -6,6 +6,7 @@
 
 //---------------------------------------------------------------------
 {   voidc_enable_statement_block();
+    voidc_enable_statement_if_then_else();
 }
 
 
@@ -19,11 +20,15 @@
         printf(" 1\n");
         printf(" 1\n");
 
+        block
         {
             printf("  2\n");
             printf("  2\n");
             printf("  2\n");
             printf("  2\n");
+
+            if (1)  v_break();
+            else    printf("  DEAD!\n");
         }
 
         printf(" 1\n");

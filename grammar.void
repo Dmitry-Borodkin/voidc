@@ -8,13 +8,13 @@
     v_import("voidc_ast.void");
 }
 
-{   v_import("loop.void");
+{   v_import("function_hack.void");
     v_import("arithmetic.void");
-    v_import("function_hack.void");
+    v_import("loop.void");
 }
 
-{   voidc_enable_statement_block();
-    voidc_enable_statement_if_then_else();
+{   voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
     voidc_enable_statement_loop();
 }
 
@@ -456,7 +456,7 @@
     //-----------------------------------------------------------------
     //- ...
 
-    v_ast_make_stmt_block(stmt, voidc_ast_stmt_grammar_stmt_list);
+    v_ast_make_stmt_block(stmt, voidc_ast_stmt_grammar_stmt_list, 0);
 
     v_ast_make_stmt_list(gr_stmt_list, gr_stmt_list, stmt);
 
@@ -501,7 +501,7 @@
     //-----------------------------------------------------------------
     //- ...
 
-    v_ast_make_stmt_block(stmt, gr_stmt_list);
+    v_ast_make_stmt_block(stmt, gr_stmt_list, 0);
 
     v_std_any_set_pointer(ret, stmt);
 

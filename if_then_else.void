@@ -238,18 +238,8 @@
 //-
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(LLVMTypeRef, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-
-    v_store(v_util_std_any_ref, typ0);
-    v_store(v_util_std_any_ref, typ1);
-    v_store(size_t,             typ2);
-
-    ft = LLVMFunctionType(void, typ0, 3, 0);
-
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_stmt_if_then_else_grammar_action", ft);
+    f = v_function_hack("mk_stmt_if_then_else_grammar_action", v_peg_grammar_action_fun_t);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
     p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
