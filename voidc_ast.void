@@ -69,18 +69,23 @@
 
 
     //-------------------------------------------------------------
-    v_store(v_ast_unit_ref,      arg0);
-    v_store(v_ast_stmt_list_ref, arg1);
-    v_store(int,                 arg2);
-    v_store(int,                 arg3);
+    v_store(v_ast_unit_ref,      arg0);             //- (out)
+    v_store(v_ast_stmt_list_ref, arg1);             //-
+    v_store(int,                 arg2);             //- line
+    v_store(int,                 arg3);             //- column
 
     fun_t = LLVMFunctionType(void, arg0, 4, 0);
 
     v_add_symbol_type("v_ast_make_unit", fun_t);
 
+//  v_store(v_ast_unit_ref,      arg0);             //-
+//  v_store(v_ast_stmt_list_ref, arg1);             //- (out)
+
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_unit_get_stmt_list", fun_t);
+
+//  v_store(v_ast_unit_ref, arg0);                  //-
 
     fun_t = LLVMFunctionType(int, arg0, 1, 0);
 
@@ -88,136 +93,165 @@
     v_add_symbol_type("v_ast_unit_get_column", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_stmt_list_ref, arg0);
+    v_store(v_ast_stmt_list_ref, arg0);             //- (out)
 
     fun_t = LLVMFunctionType(void, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_make_stmt_list_nil", fun_t);
 
-    v_store(v_ast_stmt_list_ref, arg1);
-    v_store(v_ast_stmt_ref,      arg2);
+//  v_store(v_ast_stmt_list_ref, arg0);             //- (out)
+    v_store(v_ast_stmt_list_ref, arg1);             //- head
+    v_store(v_ast_stmt_ref,      arg2);             //- tail
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_stmt_list", fun_t);
 
+//  v_store(v_ast_stmt_list_ref, arg0);             //-
+
     fun_t = LLVMFunctionType(int, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_stmt_list_get_size", fun_t);
 
-    v_store(int,            arg1);
-    v_store(v_ast_stmt_ref, arg2);
+//  v_store(v_ast_stmt_list_ref, arg0);             //-
+    v_store(int,                 arg1);             //- index
+    v_store(v_ast_stmt_ref,      arg2);             //- (out)
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_stmt_list_get_stmt", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_stmt_ref, arg0);
-    v_store(char_ptr,       arg1);
-    v_store(v_ast_call_ref, arg2);
+    v_store(v_ast_stmt_ref, arg0);                  //- (out)
+    v_store(char_ptr,       arg1);                  //- return name or ""
+    v_store(v_ast_call_ref, arg2);                  //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_stmt", fun_t);
 
+//  v_store(v_ast_stmt_ref, arg0);                  //-
+
     fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_stmt_get_var_name", fun_t);
 
-    v_store(v_ast_call_ref, arg1);
+//  v_store(v_ast_stmt_ref, arg0);                  //-
+    v_store(v_ast_call_ref, arg1);                  //- (out)
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_stmt_get_call", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_call_ref,     arg0);
-    v_store(char_ptr,           arg1);
-    v_store(v_ast_arg_list_ref, arg2);
+    v_store(v_ast_call_ref,     arg0);              //- (out)
+    v_store(char_ptr,           arg1);              //- function name
+    v_store(v_ast_arg_list_ref, arg2);              //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_call", fun_t);
+                                                    //-
+//  v_store(v_ast_call_ref, arg0);
 
     fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_call_get_fun_name", fun_t);
 
-    v_store(v_ast_arg_list_ref, arg1);
+//  v_store(v_ast_call_ref,     arg0);              //-
+    v_store(v_ast_arg_list_ref, arg1);              //- (out)
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_call_get_arg_list", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_arg_list_ref, arg0);
-    v_store(v_ast_argument_ref, arg1);
-    v_store(int,                arg2);
+    v_store(v_ast_arg_list_ref, arg0);              //- (out)
+    v_store(v_ast_argument_ref, arg1);              //- array
+    v_store(int,                arg2);              //- length
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_arg_list", fun_t);
 
+//  v_store(v_ast_arg_list_ref, arg0);              //-
+
     fun_t = LLVMFunctionType(int, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_arg_list_get_count", fun_t);
 
+//  v_store(v_ast_arg_list_ref, arg0);              //-
+//  v_store(v_ast_argument_ref, arg1);              //- (out) - array of proper(!) length
+
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
-    v_add_symbol_type("v_ast_arg_list_get_args", fun_t);
+    v_add_symbol_type("v_ast_arg_list_get_args", fun_t);    //- ALL of them...
 
     //-------------------------------------------------------------
-    v_store(v_ast_argument_ref, arg0);
-    v_store(char_ptr,           arg1);
+    v_store(v_ast_argument_ref, arg0);              //- (out)
+    v_store(char_ptr,           arg1);              //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_arg_identifier", fun_t);
+
+//  v_store(v_ast_argument_ref, arg0);              //-
 
     fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_arg_identifier_get_name", fun_t);
 
     //-------------------------------------------------------------
-    v_store(intptr_t, arg1);
+//  v_store(v_ast_argument_ref, arg0);              //- (out)
+    v_store(intptr_t,           arg1);              //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_arg_integer", fun_t);
+
+//  v_store(v_ast_argument_ref, arg0);              //-
 
     fun_t = LLVMFunctionType(intptr_t, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_arg_integer_get_number", fun_t);
 
     //-------------------------------------------------------------
-    v_store(char_ptr, arg1);
+//  v_store(v_ast_argument_ref, arg0);              //- (out)
+    v_store(char_ptr,           arg1);              //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_arg_string", fun_t);
+
+//  v_store(v_ast_argument_ref, arg0);              //-
 
     fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_arg_string_get_string", fun_t);
 
     //-------------------------------------------------------------
-    v_store(char32_t, arg1);
+//  v_store(v_ast_argument_ref, arg0);              //- (out)
+    v_store(char32_t,           arg1);              //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_arg_char", fun_t);
+
+//  v_store(v_ast_argument_ref, arg0);              //-
 
     fun_t = LLVMFunctionType(char32_t, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_arg_char_get_char", fun_t);
 
     //-------------------------------------------------------------
-    v_store(LLVMTypeRef, arg1);
+//  v_store(v_ast_argument_ref, arg0);              //- (out)
+    v_store(LLVMTypeRef,        arg1);              //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_arg_type", fun_t);
+
+//  v_store(v_ast_argument_ref, arg0);              //-
 
     fun_t = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
 
@@ -231,65 +265,79 @@
 
     generic_vtable = LLVMStructCreateNamed(gc, "struct.v_ast_generic_vtable");
 
-    v_store(void_ptr, arg0);
+    v_store(void_ptr, arg0);                        //- object
 
     destroy_ft = LLVMFunctionType(void, arg0, 1, 0);
     destroy_p  = LLVMPointerType(destroy_ft, 0);
 
-    v_store(voidc_visitor_ref, arg1);
+//  v_store(void_ptr,          arg0);               //- object
+    v_store(voidc_visitor_ref, arg1);               //-
 
     accept_ft = LLVMFunctionType(void, arg0, 2, 0);
     accept_p  = LLVMPointerType(accept_ft, 0);
 
-    v_store(destroy_p, arg0);
-    v_store(accept_p,  arg1);
-    v_store(v_quark_t, arg2);
+    v_store(destroy_p, arg0);                       //-
+    v_store(accept_p,  arg1);                       //-
+    v_store(v_quark_t, arg2);                       //-
 
     LLVMStructSetBody(generic_vtable, arg0, 3, 0);
     v_add_symbol("v_ast_generic_vtable", LLVMOpaqueType, generic_vtable);
 
+    v_add_symbol("v_ast_generic_destroy_fun_t", LLVMOpaqueType, destroy_ft);
+    v_add_symbol("v_ast_generic_accept_fun_t",  LLVMOpaqueType, accept_ft);
+
     generic_vtable_ref = LLVMPointerType(generic_vtable, 0);
 
     //-------------------------------------------------------------
-    v_store(v_ast_generic_ref,  arg0);
-    v_store(generic_vtable_ref, arg1);
-    v_store(void_ptr,           arg2);
+    v_store(v_ast_generic_ref,  arg0);              //- (out)
+    v_store(generic_vtable_ref, arg1);              //-
+    v_store(void_ptr,           arg2);              //- object
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_generic", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_unit_ref, arg0);
+    v_store(v_ast_unit_ref,     arg0);              //- (out)
+//  v_store(generic_vtable_ref, arg1);              //-
+//  v_store(void_ptr,           arg2);              //- object
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_unit_generic", fun_t);
 
-    v_store(v_ast_stmt_ref, arg0);
+    v_store(v_ast_stmt_ref,     arg0);              //- (out)
+//  v_store(generic_vtable_ref, arg1);              //-
+//  v_store(void_ptr,           arg2);              //- object
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_stmt_generic", fun_t);
 
-    v_store(v_ast_call_ref, arg0);
+    v_store(v_ast_call_ref,     arg0);              //- (out)
+//  v_store(generic_vtable_ref, arg1);              //-
+//  v_store(void_ptr,           arg2);              //- object
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_call_generic", fun_t);
 
-    v_store(v_ast_argument_ref, arg0);
+    v_store(v_ast_argument_ref, arg0);              //- (out)
+//  v_store(generic_vtable_ref, arg1);              //-
+//  v_store(void_ptr,           arg2);              //- object
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_make_argument_generic", fun_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_generic_ref, arg0);
+    v_store(v_ast_generic_ref, arg0);               //-
 
     fun_t = LLVMFunctionType(generic_vtable_ref, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_generic_get_vtable", fun_t);
+
+//  v_store(v_ast_generic_ref, arg0);               //-
 
     fun_t = LLVMFunctionType(void_ptr, arg0, 1, 0);
 
@@ -297,47 +345,56 @@
 
 
     //-------------------------------------------------------------
-    v_store(v_ast_generic_list_ref, arg0);
-    v_store(v_quark_t,              arg1);
+    v_store(v_ast_generic_list_ref, arg0);          //- (out)
+    v_store(v_quark_t,              arg1);          //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
     v_add_symbol_type("v_ast_make_generic_list_nil", fun_t);
 
-    v_store(v_ast_base_ref, arg2);
-    v_store(int,            arg3);
+//  v_store(v_ast_generic_list_ref, arg0);          //- (out)
+//  v_store(v_quark_t,              arg1);          //-
+    v_store(v_ast_base_ref,         arg2);          //- array
+    v_store(int,                    arg3);          //- length
 
     fun_t = LLVMFunctionType(void, arg0, 4, 0);
 
     v_add_symbol_type("v_ast_make_generic_list", fun_t);
 
-    v_store(v_ast_generic_list_ref, arg1);
+//  v_store(v_ast_generic_list_ref, arg0);          //- (out)
+    v_store(v_ast_generic_list_ref, arg1);          //- head
+//  v_store(v_ast_base_ref,         arg2);          //- tail
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_generic_list_append", fun_t);
 
+//  v_store(v_ast_generic_list_ref, arg0);          //-
+
     fun_t = LLVMFunctionType(int, arg0, 1, 0);
 
     v_add_symbol_type("v_ast_generic_list_get_size", fun_t);
 
-    v_store(int, arg1);
+//  v_store(v_ast_generic_list_ref, arg0);          //-
+    v_store(int,                    arg1);          //- index
+//  v_store(v_ast_base_ref,         arg2);          //- (out) - one(!) item
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
     v_add_symbol_type("v_ast_generic_list_get_item", fun_t);
 
-    v_store(v_ast_base_ref, arg1);
+//  v_store(v_ast_generic_list_ref, arg0);          //-
+    v_store(v_ast_base_ref,         arg1);          //- (out) - array of proper(!) length
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
-    v_add_symbol_type("v_ast_generic_list_get_items", fun_t);
+    v_add_symbol_type("v_ast_generic_list_get_items", fun_t);       //- ALL of them
 
 
     //-------------------------------------------------------------
     //- Visitors ...
     //-------------------------------------------------------------
-    v_store(v_ast_base_ref, arg0);
+    v_store(v_ast_base_ref, arg0);                  //-
 
     ft = LLVMFunctionType(v_quark_t, arg0, 1, 0);
 
@@ -345,9 +402,9 @@
 
 
     //-------------------------------------------------------------
-    v_store(voidc_visitor_ref, arg0);
-    v_store(size_t,            arg1);
-    v_store(bool,              arg2);
+    v_store(voidc_visitor_ref, arg0);               //-
+    v_store(size_t,            arg1);               //- size of list
+    v_store(bool,              arg2);               //- start/stop (i.e. true/false)
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -355,8 +412,9 @@
 
     fun_ptr = LLVMPointerType(fun_t, 0);
 
-    v_store(voidc_visitor_ref, arg1);
-    v_store(fun_ptr,           arg2);
+//  v_store(voidc_visitor_ref, arg0);               //- (out)
+    v_store(voidc_visitor_ref, arg1);               //- (in)
+    v_store(fun_ptr,           arg2);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -367,9 +425,10 @@
     v_add_symbol_type("v_ast_arg_list_t_visitor_method_tag",  v_quark_t);
 
     //-------------------------------------------------------------
-    v_store(v_ast_stmt_list_ref, arg1);
-    v_store(int,                 arg2);
-    v_store(int,                 arg3);
+//  v_store(voidc_visitor_ref,   arg0);             //-
+    v_store(v_ast_stmt_list_ref, arg1);             //-
+    v_store(int,                 arg2);             //- line
+    v_store(int,                 arg3);             //- column
 
     fun_t = LLVMFunctionType(void, arg0, 4, 0);
 
@@ -377,8 +436,9 @@
 
     fun_ptr = LLVMPointerType(fun_t, 0);
 
-    v_store(voidc_visitor_ref, arg1);
-    v_store(fun_ptr,           arg2);
+//  v_store(voidc_visitor_ref, arg0);               //- (out)
+    v_store(voidc_visitor_ref, arg1);               //- (in)
+    v_store(fun_ptr,           arg2);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -387,8 +447,9 @@
     v_add_symbol_type("v_ast_unit_t_visitor_method_tag", v_quark_t);
 
     //-------------------------------------------------------------
-    v_store(v_util_std_string_ref, arg1);
-    v_store(v_ast_call_ref,        arg2);
+//  v_store(voidc_visitor_ref,     arg0);           //-
+    v_store(v_util_std_string_ref, arg1);           //-
+    v_store(v_ast_call_ref,        arg2);           //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -396,8 +457,9 @@
 
     fun_ptr = LLVMPointerType(fun_t, 0);
 
-    v_store(voidc_visitor_ref, arg1);
-    v_store(fun_ptr,           arg2);
+//  v_store(voidc_visitor_ref, arg0);               //- (out)
+    v_store(voidc_visitor_ref, arg1);               //- (in)
+    v_store(fun_ptr,           arg2);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -406,8 +468,9 @@
     v_add_symbol_type("v_ast_stmt_t_visitor_method_tag", v_quark_t);
 
     //-------------------------------------------------------------
-    v_store(v_util_std_string_ref, arg1);
-    v_store(v_ast_arg_list_ref,    arg2);
+//  v_store(voidc_visitor_ref,     arg0);           //-
+    v_store(v_util_std_string_ref, arg1);           //-
+    v_store(v_ast_arg_list_ref,    arg2);           //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -415,8 +478,9 @@
 
     fun_ptr = LLVMPointerType(fun_t, 0);
 
-    v_store(voidc_visitor_ref, arg1);
-    v_store(fun_ptr,           arg2);
+//  v_store(voidc_visitor_ref, arg0);               //- (out)
+    v_store(voidc_visitor_ref, arg1);               //- (in)
+    v_store(fun_ptr,           arg2);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -425,7 +489,8 @@
     v_add_symbol_type("v_ast_call_t_visitor_method_tag", v_quark_t);
 
     //-------------------------------------------------------------
-    v_store(v_util_std_string_ref, arg1);
+//  v_store(voidc_visitor_ref,     arg0);           //-
+    v_store(v_util_std_string_ref, arg1);           //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
@@ -433,8 +498,9 @@
 
     fun_ptr = LLVMPointerType(fun_t, 0);
 
-    v_store(voidc_visitor_ref, arg1);
-    v_store(fun_ptr,           arg2);
+//  v_store(voidc_visitor_ref, arg0);               //- (out)
+    v_store(voidc_visitor_ref, arg1);               //- (in)
+    v_store(fun_ptr,           arg2);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -443,7 +509,8 @@
     v_add_symbol_type("v_ast_arg_identifier_t_visitor_method_tag", v_quark_t);
 
     //-------------------------------------------------------------
-    v_store(intptr_t, arg1);
+//  v_store(voidc_visitor_ref, arg0);               //-
+    v_store(intptr_t,          arg1);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
@@ -451,8 +518,9 @@
 
     fun_ptr = LLVMPointerType(fun_t, 0);
 
-    v_store(voidc_visitor_ref, arg1);
-    v_store(fun_ptr,           arg2);
+//  v_store(voidc_visitor_ref, arg0);               //- (out)
+    v_store(voidc_visitor_ref, arg1);               //- (in)
+    v_store(fun_ptr,           arg2);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -461,7 +529,8 @@
     v_add_symbol_type("v_ast_arg_integer_t_visitor_method_tag", v_quark_t);
 
     //-------------------------------------------------------------
-    v_store(v_util_std_string_ref, arg1);
+//  v_store(voidc_visitor_ref,     arg0);           //-
+    v_store(v_util_std_string_ref, arg1);           //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
@@ -469,8 +538,9 @@
 
     fun_ptr = LLVMPointerType(fun_t, 0);
 
-    v_store(voidc_visitor_ref, arg1);
-    v_store(fun_ptr,           arg2);
+//  v_store(voidc_visitor_ref, arg0);               //- (out)
+    v_store(voidc_visitor_ref, arg1);               //- (in)
+    v_store(fun_ptr,           arg2);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -479,7 +549,8 @@
     v_add_symbol_type("v_ast_arg_string_t_visitor_method_tag", v_quark_t);
 
     //-------------------------------------------------------------
-    v_store(char32_t, arg1);
+//  v_store(voidc_visitor_ref, arg0);               //-
+    v_store(char32_t,          arg1);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 
@@ -487,8 +558,9 @@
 
     fun_ptr = LLVMPointerType(fun_t, 0);
 
-    v_store(voidc_visitor_ref, arg1);
-    v_store(fun_ptr,           arg2);
+//  v_store(voidc_visitor_ref, arg0);               //- (out)
+    v_store(voidc_visitor_ref, arg1);               //- (in)
+    v_store(fun_ptr,           arg2);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 3, 0);
 
@@ -498,8 +570,8 @@
 
 
     //-------------------------------------------------------------
-    v_store(v_ast_base_ref,    arg0);
-    v_store(voidc_visitor_ref, arg1);
+    v_store(v_ast_base_ref,    arg0);               //-
+    v_store(voidc_visitor_ref, arg1);               //-
 
     fun_t = LLVMFunctionType(void, arg0, 2, 0);
 

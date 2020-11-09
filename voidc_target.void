@@ -4,8 +4,7 @@
 //---------------------------------------------------------------------
 {   voidc_guard_import("voidc_target.void"); }
 
-{
-    arg0 = v_alloca(LLVMTypeRef, 2);
+{   arg0 = v_alloca(LLVMTypeRef, 2);
     arg1 = v_getelementptr(arg0, 1);
 
     v_store(LLVMTypeRef, arg0);
@@ -15,40 +14,46 @@
     v_add_symbol_type("LLVMPointerType", ft);
 }
 
-{
+{   char_ptr = LLVMPointerType(char, 0);
+
     arg0 = v_alloca(LLVMTypeRef, 2);
     arg1 = v_getelementptr(arg0, 1);
 
     v_store(LLVMContextRef, arg0);
-    cp = LLVMPointerType(char, 0);
-    v_store(cp, arg1);
+    v_store(char_ptr,       arg1);
+
     ft = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
     v_add_symbol_type("LLVMStructCreateNamed", ft);
 }
 
-{
-    char_ptr = LLVMPointerType(char, 0);
+{   char_ptr = LLVMPointerType(char, 0);
 
     arg0 = v_alloca(LLVMTypeRef, 3);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    v_store(char_ptr, arg0);
-    v_store(void_ptr, arg1);
+    v_store(char_ptr, arg0);            //- Symbol name
+    v_store(void_ptr, arg1);            //- Symbol value (for "linker")
 
     ft = LLVMFunctionType(void, arg0, 2, 0);
     v_add_symbol_type("v_add_symbol_value", ft);
 
-    v_store(LLVMTypeRef, arg1);
-    v_store(void_ptr,    arg2);
+//  v_store(char_ptr,    arg0);         //- Symbol name
+    v_store(LLVMTypeRef, arg1);         //- Symbol type
+    v_store(void_ptr,    arg2);         //- Symbol value
 
     ft = LLVMFunctionType(void, arg0, 3, 0);
+
     v_add_symbol_type("v_add_symbol",       ft);
     v_add_symbol_type("v_add_local_symbol", ft);
 }
 
-{
-    opaque_value_t = v_struct_create_named("struct.LLVMOpaqueValue");
+{   char_ptr = LLVMPointerType(char, 0);
+
+    v_add_local_symbol("char_ptr", LLVMOpaqueType, char_ptr);
+}
+
+{   opaque_value_t = v_struct_create_named("struct.LLVMOpaqueValue");
     v_add_symbol("LLVMOpaqueValue", LLVMOpaqueType, opaque_value_t);
 
     value_ref = LLVMPointerType(opaque_value_t, 0);
@@ -67,40 +72,51 @@
     v_add_symbol("LLVMBuilderRef", LLVMOpaqueType, builder_ref);
 }
 
-{
-    char_ptr = LLVMPointerType(char, 0);
-
-    arg0 = v_alloca(LLVMTypeRef, 2);
+{   arg0 = v_alloca(LLVMTypeRef, 2);
     arg1 = v_getelementptr(arg0, 1);
 
-    v_store(char_ptr,     arg0);
-    v_store(LLVMValueRef, arg1);
+    v_store(char_ptr,     arg0);        //- Constant/variable name
+    v_store(LLVMValueRef, arg1);        //- Constant/variable value
 
     ft = LLVMFunctionType(void, arg0, 2, 0);
     v_add_symbol_type("v_add_constant",       ft);
     v_add_symbol_type("v_add_local_constant", ft);
     v_add_symbol_type("v_add_variable",       ft);
 
+//  v_store(char_ptr, arg0);            //- Variable name
+
     ft = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
     v_add_symbol_type("v_get_variable", ft);
 
+//  v_store(char_ptr, arg0);            //- Symbol name
+
     ft = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
     v_add_symbol_type("v_find_symbol_type", ft);
-    v_add_symbol_type("v_find_type",        ft);
 
-    v_store(char_ptr, arg1);
+//  v_store(char_ptr, arg0);            //- Type(!) name
+
+//  ft = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
+    v_add_symbol_type("v_find_type", ft);
+
+//  v_store(char_ptr, arg0);            //- Alias name
+    v_store(char_ptr, arg1);            //- Aliasee
 
     ft = LLVMFunctionType(void, arg0, 2, 0);
     v_add_symbol_type("v_add_alias",       ft);
     v_add_symbol_type("v_add_local_alias", ft);
 
-    v_store(int, arg0);
+    v_store(int, arg0);                 //- index
 
     ft = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
     v_add_symbol_type("v_get_argument", ft);
+
+//  v_store(int, arg0);                 //- Number of modules...
+
+//  ft = LLVMFunctionType(LLVMValueRef, arg0, 1, 0);
     v_add_symbol_type("v_debug_print_module", ft);
 
-    v_store(int, arg1);
+//  v_store(int, arg0);                 //- line
+    v_store(int, arg1);                 //- column
 
     ft = LLVMFunctionType(void, arg0, 2, 0);
     v_add_symbol_type("voidc_prepare_unit_action", ft);
@@ -115,7 +131,7 @@
     ft = LLVMFunctionType(LLVMModuleRef, 0, 0, 0);
     v_add_symbol_type("v_get_module", ft);
 
-    v_store(LLVMModuleRef, arg0);
+    v_store(LLVMModuleRef, arg0);       //-
 
     ft = LLVMFunctionType(void, arg0, 1, 0);
     v_add_symbol_type("v_set_module", ft);
@@ -125,47 +141,44 @@
     ft = LLVMFunctionType(char_ptr, 0, 0, 0);
     v_add_symbol_type("v_get_return_name", ft);
 
-    v_store(LLVMValueRef, arg0);
+    v_store(LLVMValueRef, arg0);        //-
 
     ft = LLVMFunctionType(void, arg0, 1, 0);
     v_add_symbol_type("v_set_return_value", ft);
 }
 
-{
-    char_ptr = LLVMPointerType(char, 0);
-
-    arg0 = v_alloca(LLVMTypeRef, 2);
+{   arg0 = v_alloca(LLVMTypeRef, 2);
     arg1 = v_getelementptr(arg0, 1);
 
     visitor_ref  = LLVMPointerType(voidc_opaque_visitor_ptr, 0);
     arg_list_ref = LLVMPointerType(v_ast_opaque_arg_list_ptr, 0);
 
-    v_store(visitor_ref,  arg0);
-    v_store(arg_list_ref, arg1);
+    v_store(visitor_ref,  arg0);        //-
+    v_store(arg_list_ref, arg1);        //-
 
     intrinsic_t = LLVMFunctionType(void, arg0, 2, 0);
     v_add_symbol("voidc_intrinsic_t", LLVMOpaqueType, intrinsic_t);
 
     intrinsic_ref = LLVMPointerType(intrinsic_t, 0);
 
-    v_store(char_ptr,      arg0);
-    v_store(intrinsic_ref, arg1);
+    v_store(char_ptr,      arg0);       //- Intrinsic name
+    v_store(intrinsic_ref, arg1);       //- Intrinsic function
 
     ft = LLVMFunctionType(void, arg0, 2, 0);
     v_add_symbol_type("v_add_intrinsic", ft);
+
+//  v_store(char_ptr,      arg0);       //- Intrinsic name
 
     ft = LLVMFunctionType(intrinsic_ref, arg0, 1, 0);
     v_add_symbol_type("v_get_intrinsic", ft);
 }
 
-{
-    ft = LLVMFunctionType(LLVMContextRef, 0, 0, 0);
+{   ft = LLVMFunctionType(LLVMContextRef, 0, 0, 0);
     v_add_symbol_type("v_target_get_voidc_llvm_ctx", ft);
     v_add_symbol_type("v_target_get_llvm_ctx", ft);
 }
 
-{
-    gc = v_target_get_voidc_llvm_ctx();
+{   gc = v_target_get_voidc_llvm_ctx();
 
     g_ctx = LLVMStructCreateNamed(gc, "struct.v_target_opaque_global_ctx");
     l_ctx = LLVMStructCreateNamed(gc, "struct.v_target_opaque_local_ctx");
@@ -180,8 +193,7 @@
     v_add_symbol("v_target_local_ctx_ref",  LLVMOpaqueType, l_ref);
 }
 
-{
-    arg0 = v_alloca(LLVMTypeRef, 3);
+{   arg0 = v_alloca(LLVMTypeRef, 3);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
@@ -189,28 +201,26 @@
     v_add_symbol_type("v_target_get_voidc_global_ctx", ft);
     v_add_symbol_type("v_target_get_global_ctx", ft);
 
-    v_store(v_target_global_ctx_ref, arg0);
+    v_store(v_target_global_ctx_ref, arg0);         //-
 
     ft = LLVMFunctionType(void, arg0, 1, 0);
     v_add_symbol_type("v_target_set_global_ctx", ft);
     v_add_symbol_type("v_target_destroy_global_ctx", ft);
 
-    v_store(size_t, arg0);
-    v_store(size_t, arg1);
-    v_store(size_t, arg2);
+    v_store(size_t, arg0);                          //- sizeof(int)
+    v_store(size_t, arg1);                          //- sizeof(long)
+    v_store(size_t, arg2);                          //- sizeof(intptr_t)
 
     ft = LLVMFunctionType(v_target_global_ctx_ref, arg0, 3, 0);
     v_add_symbol_type("v_target_create_global_ctx", ft);
 
-    char_ptr = LLVMPointerType(char, 0);
-
-    v_store(char_ptr,                arg0);
-    v_store(v_target_global_ctx_ref, arg1);
+    v_store(char_ptr,                arg0);         //- Source file name (kind of...)
+    v_store(v_target_global_ctx_ref, arg1);         //- Parent global context
 
     ft = LLVMFunctionType(v_target_local_ctx_ref, arg0, 2, 0);
     v_add_symbol_type("v_target_create_local_ctx", ft);
 
-    v_store(v_target_local_ctx_ref, arg0);
+    v_store(v_target_local_ctx_ref, arg0);          //-
 
     ft = LLVMFunctionType(void, arg0, 1, 0);
     v_add_symbol_type("v_target_destroy_local_ctx", ft);
