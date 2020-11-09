@@ -1,0 +1,798 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_import("switch.void"); }
+
+{   v_import("grammar.void");
+}
+
+{   voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_statement_loop();
+    voidc_enable_statement_grammar();
+}
+
+
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(LLVMTypeRef, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    gc = LLVMGetGlobalContext();
+
+
+    //-----------------------------------------------------------------
+    //- stmt_switch quark ...
+    //-----------------------------------------------------------------
+    quark = v_quark_from_string("v_ast_stmt_switch_t_visitor_method_tag");
+
+    quark_ll = v_cast(LLVMZExt, quark, long_long);
+
+    quark_v = LLVMConstInt(v_quark_t, quark_ll, 0);
+
+    v_add_local_constant("quark", quark_v);
+
+    v_add_local_symbol("quark_v", LLVMOpaqueValue, quark_v);
+
+
+    //-----------------------------------------------------------------
+    //- stmt_switch method ...
+    //-----------------------------------------------------------------
+    v_store(voidc_visitor_ref,      typ0);
+    v_store(v_ast_argument_ref,     typ1);
+    v_store(v_ast_generic_list_ref, typ2);
+
+    method_ft  = LLVMFunctionType(void, typ0, 3, 0);
+    method_ref = LLVMPointerType(method_ft, 0);
+
+    v_add_local_symbol("method_ft",  LLVMOpaqueType, method_ft);
+    v_add_local_symbol("method_ref", LLVMOpaqueType, method_ref);
+
+
+    //-----------------------------------------------------------------
+    //- ast_stmt_switch_t ...
+    //-----------------------------------------------------------------
+    ast_stmt_switch_t = LLVMStructCreateNamed(gc, "struct.ast_stmt_switch_t");
+
+    v_store(v_ast_opaque_argument_ptr,     typ0);
+    v_store(v_ast_opaque_generic_list_ptr, typ1);
+
+    LLVMStructSetBody(ast_stmt_switch_t, typ0, 2, 0);
+
+    ast_stmt_switch_ref = LLVMPointerType(ast_stmt_switch_t, 0);
+
+    v_add_local_symbol("ast_stmt_switch_t",   LLVMOpaqueType, ast_stmt_switch_t);
+    v_add_local_symbol("ast_stmt_switch_ref", LLVMOpaqueType, ast_stmt_switch_ref);
+
+
+    //-----------------------------------------------------------------
+    //- ast_case_block_t ...
+    //-----------------------------------------------------------------
+    ast_case_block_t = LLVMStructCreateNamed(gc, "struct.ast_case_block_t");
+
+    v_store(v_ast_opaque_arg_list_ptr,  typ0);
+    v_store(v_ast_opaque_stmt_list_ptr, typ1);
+
+    LLVMStructSetBody(ast_case_block_t, typ0, 2, 0);
+
+    ast_case_block_ref = LLVMPointerType(ast_case_block_t, 0);
+
+    v_add_local_symbol("ast_case_block_t",   LLVMOpaqueType, ast_case_block_t);
+    v_add_local_symbol("ast_case_block_ref", LLVMOpaqueType, ast_case_block_ref);
+}
+
+
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("my_stmt_switch_mod");
+
+    v_set_module(module);
+}
+
+
+//---------------------------------------------------------------------
+//- stmt_switch destroy ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_switch_destroy", v_ast_generic_destroy_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
+}
+{
+    obj = v_cast(LLVMBitCast, void_obj, ast_stmt_switch_ref);
+
+    arg  = v_getelementptr(obj, 0, 0);
+    list = v_getelementptr(obj, 0, 1);
+
+    v_terminate(arg);
+    v_terminate(list);
+
+    v_mfree(obj);
+}
+
+
+//---------------------------------------------------------------------
+//- stmt_switch accept ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_switch_accept", v_ast_generic_accept_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("visitor",  p1);
+}
+{
+    obj = v_cast(LLVMBitCast, void_obj, ast_stmt_switch_ref);
+
+    arg  = v_getelementptr(obj, 0, 0);
+    list = v_getelementptr(obj, 0, 1);
+
+    void_method = voidc_visitor_get_void_method(visitor, quark);
+
+    method = v_cast(LLVMBitCast, void_method, method_ref);
+
+    method(visitor, arg, list);
+}
+
+
+//-----------------------------------------------------------------------
+//- stmt_switch vtable ...
+//-------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    val0 = v_alloca(LLVMValueRef, 3);
+    val1 = v_getelementptr(val0, 1);
+    val2 = v_getelementptr(val0, 2);
+
+    destroy_f = v_obtain_function("voidc_ast_stmt_switch_destroy");
+    accept_f  = v_obtain_function("voidc_ast_stmt_switch_accept");
+
+    v_store(destroy_f, val0);
+    v_store(accept_f,  val1);
+    v_store(quark_v,   val2);
+
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable, val0, 3);
+
+    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable, "voidc_ast_stmt_switch_vtable");
+
+    LLVMSetInitializer(vtable_g, vtable_v);
+
+    v_add_local_symbol("voidc_ast_stmt_switch_vtable", v_ast_generic_vtable, 0);        //- Sic!
+}
+
+
+//---------------------------------------------------------------------
+//- v_ast_make_stmt_switch - ...
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(LLVMTypeRef, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    v_store(v_ast_stmt_ref,         typ0);
+    v_store(v_ast_argument_ref,     typ1);
+    v_store(v_ast_generic_list_ref, typ2);
+
+    ft = LLVMFunctionType(void, typ0, 3, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_ast_make_stmt_switch", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",  p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("list", p2);
+}
+{
+    obj = v_malloc(ast_stmt_switch_t);
+
+    obj_arg  = v_getelementptr(obj, 0, 0);
+    obj_list = v_getelementptr(obj, 0, 1);
+
+    v_initialize(obj_arg);
+    v_initialize(obj_list);
+
+    v_copy(obj_arg,  arg);
+    v_copy(obj_list, list);
+
+    v_ast_make_stmt_generic(ret, voidc_ast_stmt_switch_vtable, obj);
+}
+
+
+//---------------------------------------------------------------------
+//- case_block destroy ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_case_block_destroy", v_ast_generic_destroy_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
+}
+{
+    obj = v_cast(LLVMBitCast, void_obj, ast_case_block_ref);
+
+    arg_list  = v_getelementptr(obj, 0, 0);
+    stmt_list = v_getelementptr(obj, 0, 1);
+
+    v_terminate(arg_list);
+    v_terminate(stmt_list);
+
+    v_mfree(obj);
+}
+
+
+//-----------------------------------------------------------------------
+//- case_block vtable ...
+//-------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    val0 = v_alloca(LLVMValueRef, 3);
+    val1 = v_getelementptr(val0, 1);
+    val2 = v_getelementptr(val0, 2);
+
+    destroy_f = v_obtain_function("voidc_ast_case_block_destroy");
+
+    typ0 = v_alloca(LLVMTypeRef, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    v_store(void_ptr,          typ0);               //- object
+    v_store(voidc_visitor_ref, typ1);               //-
+
+    accept_ft = LLVMFunctionType(void, typ0, 2, 0);
+    accept_p  = LLVMPointerType(accept_ft, 0);
+
+    accept_z = LLVMConstNull(accept_p);
+    quark_z  = LLVMConstNull(v_quark_t);
+
+    v_store(destroy_f, val0);
+    v_store(accept_z,  val1);       //- Zero!
+    v_store(quark_z,   val2);       //- Zero!
+
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable, val0, 3);
+
+    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable, "voidc_ast_case_block_vtable");
+
+    LLVMSetInitializer(vtable_g, vtable_v);
+
+    v_add_local_symbol("voidc_ast_case_block_vtable", v_ast_generic_vtable, 0);     //- Sic!
+}
+
+
+//---------------------------------------------------------------------
+//- v_ast_make_case_block - ...
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(LLVMTypeRef, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    v_store(v_ast_generic_ref,   typ0);
+    v_store(v_ast_arg_list_ref,  typ1);
+    v_store(v_ast_stmt_list_ref, typ2);
+
+    ft = LLVMFunctionType(void, typ0, 3, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_ast_make_case_block", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("stmt_list", p2);
+}
+{
+    obj = v_malloc(ast_case_block_t);
+
+    obj_arg_list  = v_getelementptr(obj, 0, 0);
+    obj_stmt_list = v_getelementptr(obj, 0, 1);
+
+    v_initialize(obj_arg_list);
+    v_initialize(obj_stmt_list);
+
+    v_copy(obj_arg_list,  arg_list);
+    v_copy(obj_stmt_list, stmt_list);
+
+    v_ast_make_generic(ret, voidc_ast_case_block_vtable, obj);
+}
+
+
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_case_item_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("any0",      p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("any_count", p2);
+}
+{
+    arg = v_std_any_get_pointer(v_ast_opaque_argument_ptr, any0);
+
+    if (arg)
+    {
+        v_std_any_set_pointer(ret, arg);    //- "Normal" case
+    }
+    else
+    {
+        arg = v_alloca(v_ast_opaque_argument_ptr);
+        v_initialize(arg);
+
+        v_std_any_set_pointer(ret, arg);    //- Empty - "default"
+
+        v_terminate(arg);
+    }
+}
+
+
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_case_block_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("any0",      p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("any_count", p2);
+}
+{
+    any1 = v_getelementptr(any0, 1);
+
+    case_list = v_std_any_get_pointer(v_ast_opaque_arg_list_ptr,  any0);
+    stmt_list = v_std_any_get_pointer(v_ast_opaque_stmt_list_ptr, any1);
+
+    case_block = v_alloca(v_ast_opaque_generic_ptr);
+    v_initialize(case_block);
+
+    v_ast_make_case_block(case_block, case_list, stmt_list);
+
+    ret_base = v_cast(LLVMBitCast, case_block, v_ast_base_ref);
+
+    v_std_any_set_pointer(ret, ret_base);
+    v_terminate(case_block);
+}
+
+
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_case_list_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("any0",      p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("any_count", p2);
+}
+{
+    any1 = v_getelementptr(any0, 1);
+
+    list = v_std_any_get_pointer(v_ast_opaque_generic_list_ptr, any0);
+    item = v_std_any_get_pointer(v_ast_opaque_base_ptr,         any1);
+
+    ret_list = v_alloca(v_ast_opaque_generic_list_ptr);
+    v_initialize(ret_list);
+
+    if (list)   v_ast_generic_list_append(ret_list, list, item);
+    else        v_ast_make_generic_list(ret_list, 0, item, 1);          //- Quark == 0 (!)
+
+    v_std_any_set_pointer(ret, ret_list);
+
+    v_terminate(ret_list);
+}
+
+
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_stmt_switch_grammar_action", v_peg_grammar_action_fun_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("any0",      p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("any_count", p2);
+}
+{
+    any1 = v_getelementptr(any0, 1);
+
+    arg  = v_std_any_get_pointer(v_ast_opaque_argument_ptr,     any0);
+    list = v_std_any_get_pointer(v_ast_opaque_generic_list_ptr, any1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    v_initialize(stmt);
+
+    v_ast_make_stmt_switch(stmt, arg, list);
+
+    v_std_any_set_pointer(ret, stmt);
+
+    v_terminate(stmt);
+}
+
+
+//---------------------------------------------------------------------
+//- compile_ast_stmt_switch_t - visitor method
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_ast_stmt_switch_t", method_ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("arg",     p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("list",    p2);
+}
+{
+    v_save_variables();
+
+
+    //- Compile switch argument
+
+    arg_base = v_cast(LLVMBitCast, arg, v_ast_base_ref);
+
+    v_ast_accept_visitor(arg_base, visitor);
+
+    arg0 = v_get_argument(0);       //- switch argument...
+
+    v_clear_arguments();
+
+
+    //- Count switch cases
+
+    ast_base = v_alloca(v_ast_opaque_base_ptr);
+    v_initialize(ast_base);
+
+    case_num = v_alloca(int);
+    v_store(0, case_num);
+
+    case_max = v_alloca(int);
+    v_store(0, case_max);
+
+    list_count = v_ast_generic_list_get_size(list);
+
+    case_idx = v_alloca(int);
+    v_store(0, case_idx);
+
+    loop
+    {
+        idx = v_load(case_idx);
+
+        fin = v_icmp(LLVMIntEQ, idx, list_count);
+        if (fin)  v_break();
+
+        v_ast_generic_list_get_item(list, idx, ast_base);
+
+        ast_generic = v_cast(LLVMBitCast, ast_base, v_ast_generic_ref);
+
+        obj = v_ast_generic_get_object(ast_generic);
+
+        case_block = v_cast(LLVMBitCast, obj, ast_case_block_ref);
+
+        case_list = v_getelementptr(case_block, 0, 0);
+
+        n = v_ast_arg_list_get_count(case_list);
+
+        num = v_load(case_num);
+
+        num = v_binop(LLVMAdd, num, n);
+
+        v_store(num, case_num);
+
+        max = v_load(case_max);
+
+        cmp = v_icmp(LLVMIntUGT, n, max);
+
+        if (cmp)  v_store(n, case_max);
+
+        idx = v_binop(LLVMAdd, idx, 1);
+
+        v_store(idx, case_idx);
+    }
+
+    num = v_load(case_num);
+
+
+    //- Generate llvm's switch statement...
+
+    builder = v_target_get_builder();
+
+    cur_b = LLVMGetInsertBlock(builder);
+
+    cur_f = LLVMGetBasicBlockParent(cur_b);
+
+    switch_default_b = LLVMAppendBasicBlock(cur_f, "switch_default_b");
+    switch_exit_b    = LLVMAppendBasicBlock(cur_f, "switch_exit_b");
+
+    switch_exit_bv = LLVMBasicBlockAsValue(switch_exit_b);
+
+    v_add_variable("voidc.internal_branch_target_break", switch_exit_bv);
+
+
+    switch_v = LLVMBuildSwitch(builder, arg0, switch_default_b, num);
+
+
+    //- Compile case blocks...
+
+    case_max = v_load(case_max);        //- Sic!
+
+    case_args = v_malloc(v_ast_opaque_argument_ptr, case_max);
+    v_initialize(case_args, case_max);
+
+    case_i = v_alloca(int);
+
+    case_b = v_alloca(LLVMBasicBlockRef);
+
+    v_store(0, case_idx);
+
+    loop
+    {
+        idx = v_load(case_idx);
+
+        fin = v_icmp(LLVMIntEQ, idx, list_count);
+        if (fin)  v_break();
+
+        v_ast_generic_list_get_item(list, idx, ast_base);
+
+        ast_generic = v_cast(LLVMBitCast, ast_base, v_ast_generic_ref);
+
+        obj = v_ast_generic_get_object(ast_generic);
+
+        case_block = v_cast(LLVMBitCast, obj, ast_case_block_ref);
+
+        case_list = v_getelementptr(case_block, 0, 0);
+
+        v_ast_arg_list_get_args(case_list, case_args);
+
+        n = v_ast_arg_list_get_count(case_list);
+
+        v_store(0, case_b);
+
+        cur_b = LLVMGetInsertBlock(builder);
+
+        v_store(0, case_i);
+
+        loop
+        {
+            i = v_load(case_i);
+
+            fin = v_icmp(LLVMIntEQ, i, n);
+            if (fin)  v_break();
+
+            case_arg_i = v_getelementptr(case_args, i);
+
+            emp = v_empty(case_arg_i);
+
+            if (emp)        //- default case
+            {
+                v_store(switch_default_b, case_b);
+
+                LLVMMoveBasicBlockAfter(switch_default_b, cur_b);
+            }
+
+            i = v_binop(LLVMAdd, i, 1);
+
+            v_store(i, case_i);
+        }
+
+        b = v_load(case_b);
+
+        if (b)  {}      //- Have default case
+        else            //- All "normal" cases
+        {
+            b = LLVMAppendBasicBlock(cur_f, "case_b");
+
+            v_store(b, case_b);
+        }
+
+        b = v_load(case_b);
+
+        trm_v = LLVMGetBasicBlockTerminator(cur_b);
+        if (trm_v) {}
+        else
+        {
+            LLVMBuildBr(builder, b);
+        }
+
+
+        LLVMPositionBuilderAtEnd(builder, b);
+
+        stmt_list = v_getelementptr(case_block, 0, 1);
+
+        base_ast = v_cast(LLVMBitCast, stmt_list, v_ast_base_ref);
+
+        v_ast_accept_visitor(base_ast, visitor);
+
+
+        v_store(0, case_i);
+
+        loop
+        {
+            i = v_load(case_i);
+
+            fin = v_icmp(LLVMIntEQ, i, n);
+            if (fin)  v_break();
+
+            case_arg_i = v_getelementptr(case_args, i);
+
+            i = v_binop(LLVMAdd, i, 1);
+
+            v_store(i, case_i);
+
+            emp = v_empty(case_arg_i);
+
+            if (emp)  v_continue();     //- default case
+
+            //- "Normal" case
+
+            base_ast = v_cast(LLVMBitCast, case_arg_i, v_ast_base_ref);
+
+            v_ast_accept_visitor(base_ast, visitor);
+
+            val = v_get_argument(0);
+
+            v_clear_arguments();
+
+            LLVMAddCase(switch_v, val, b);
+        }
+
+        idx = v_binop(LLVMAdd, idx, 1);
+
+        v_store(idx, case_idx);
+    }
+
+    cur_b = LLVMGetInsertBlock(builder);
+
+    LLVMMoveBasicBlockAfter(switch_exit_b, cur_b);
+
+    trm_v = LLVMGetBasicBlockTerminator(cur_b);
+    if (trm_v) {}
+    else
+    {
+        LLVMBuildBr(builder, switch_exit_b);
+    }
+
+    trm_v = LLVMGetBasicBlockTerminator(switch_default_b);
+    if (trm_v) {}
+    else
+    {
+        LLVMPositionBuilderAtEnd(builder, switch_default_b);
+
+        LLVMBuildBr(builder, switch_exit_b);
+    }
+
+
+    LLVMPositionBuilderAtEnd(builder, switch_exit_b);
+
+
+    v_terminate(case_args, case_max);
+    v_mfree(case_args);
+
+    v_terminate(ast_base);
+
+    v_restore_variables();
+}
+
+
+//---------------------------------------------------------------------
+//- void voidc_enable_statement_switch(void);
+//---------------------------------------------------------------------
+{
+    ft = LLVMFunctionType(void, 0, 0, 0);
+
+    v_add_symbol_type("voidc_enable_statement_switch", ft);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_enable_statement_switch", ft);
+}
+{
+    vhg = voidc_has_grammar();
+
+    if (vhg)
+    {
+        ghp = voidc_grammar_has_parser("stmt_switch");
+
+        if (ghp)  v_return();
+    }
+    else
+    {
+        v_return();
+    }
+
+
+    gr0 = v_alloca(v_peg_opaque_grammar_ptr);
+    v_initialize(gr0);
+
+    v_peg_get_grammar(gr0);
+
+
+    grammar gr0
+    {
+    actions:
+        mk_case_item   = mk_case_item_grammar_action;
+        mk_case_block  = mk_case_block_grammar_action;
+        mk_case_list   = mk_case_list_grammar_action;
+        mk_stmt_switch = mk_stmt_switch_grammar_action;
+
+    parsers:
+
+        stmt_switch = "switch" _ '(' _ a:arg _ ')' _ '{' _ l:case_list _ '}'    { mk_stmt_switch(a, l) };
+
+
+        case_list = l:case_list _ b:case_block      { mk_case_list(l, b) }
+                  / b:case_block                    { mk_case_list(0, b) };
+
+        case_list is left-recursive;
+
+
+        case_block = c:case_item_list _ s:stmt_list     { mk_case_block(c, s) };
+
+
+        case_item_list = l:case_item_list _ i:case_item     { mk_arg_list(l, i) }
+                       / i:case_item                        { mk_arg_list(0, i) };
+
+        case_item_list is left-recursive;
+
+
+        case_item = "case" _ a:arg _ ':'    { mk_case_item(a) }
+                  / "default" _ ':'         { mk_case_item(0) };
+
+
+        stmt += stmt_switch;
+    }
+
+
+    v_peg_set_grammar(gr0);
+
+
+    void_method = v_cast(LLVMBitCast, compile_ast_stmt_switch_t, void_ptr);
+
+    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, void_method);
+
+
+    v_terminate(gr0);
+}
+
+
+//---------------------------------------------------------------------
+{
+    v_make_function_private("voidc_ast_stmt_switch_destroy");
+    v_make_function_private("voidc_ast_stmt_switch_accept");
+    v_make_global_private("voidc_ast_stmt_switch_vtable");
+    v_make_function_private("v_ast_make_stmt_switch");
+
+    v_make_function_private("voidc_ast_case_block_destroy");
+    v_make_global_private("voidc_ast_case_block_vtable");
+    v_make_function_private("v_ast_make_case_block");
+
+    v_make_function_private("mk_case_item_grammar_action");
+    v_make_function_private("mk_case_block_grammar_action");
+    v_make_function_private("mk_case_list_grammar_action");
+    v_make_function_private("mk_stmt_switch_grammar_action");
+
+    v_make_function_private("compile_ast_stmt_switch_t");
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    //-----------------------------------------------------------------
+//  v_debug_print_module(1);
+
+    voidc_prepare_module_for_jit(module);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver, 0
+                               );
+
+    //-----------------------------------------------------------------
+    v_set_module(0);
+}
+
+
+//---------------------------------------------------------------------
+{
+    v_make_symbol_global("voidc_enable_statement_switch");
+}
+
+

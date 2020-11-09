@@ -1,0 +1,36 @@
+{   v_import("switch.void");
+}
+
+{   v_import("printf.void"); }
+
+
+//---------------------------------------------------------------------
+{   voidc_enable_statement_block();
+    voidc_enable_statement_switch();
+}
+
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    switch(1)
+    {
+    case 1:
+        printf("1\n");
+
+    case 2:
+        printf("2\n");
+        v_break();
+
+    case 3:
+        printf("3\n");
+
+    case 4:
+    default:
+        printf("4\n");
+    }
+}
+
+
+
