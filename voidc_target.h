@@ -57,6 +57,7 @@ public:
 
 public:
     const LLVMContextRef llvm_ctx;      //- Sic!
+    const LLVMModuleRef  llvm_mod;      //- Empty module just for LLVMGetTypeByName calls
 
     const LLVMBuilderRef builder;
 

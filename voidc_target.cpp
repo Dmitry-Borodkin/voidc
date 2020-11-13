@@ -13,6 +13,7 @@
 #include <llvm-c/Support.h>
 #include <llvm-c/Analysis.h>
 #include <llvm-c/Transforms/PassManagerBuilder.h>
+#include <llvm-c/Transforms/IPO.h>
 
 
 //---------------------------------------------------------------------
@@ -179,6 +180,7 @@ mk_int_type(LLVMContextRef ctx, size_t sz)
 
 base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
   : llvm_ctx(ctx),
+    llvm_mod(LLVMModuleCreateWithNameInContext("empty_mod", ctx)),
     builder(LLVMCreateBuilderInContext(ctx)),
     void_type     (LLVMVoidTypeInContext(ctx)),
     bool_type     (LLVMInt1TypeInContext(ctx)),
@@ -208,6 +210,7 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
 base_global_ctx_t::~base_global_ctx_t()
 {
     LLVMDisposeBuilder(builder);
+//  LLVMDisposeModule(llvm_mod);        //- WTF?
 }
 
 
@@ -430,20 +433,11 @@ LLVMOrcJITStackRef   voidc_global_ctx_t::jit;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 
 //---------------------------------------------------------------------
-extern "C"
-{
-VOIDC_DLLEXPORT_BEGIN_FUNCTION
-
-LLVMTypeRef v_struct_create_named(const char *name);
-
-VOIDC_DLLEXPORT_END
-}   //- extern "C"
-
 voidc_global_ctx_t::voidc_global_ctx_t()
   : base_global_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
-    LLVMOpaqueType_type   (v_struct_create_named("struct.LLVMOpaqueType")),
+    LLVMOpaqueType_type   (LLVMStructCreateNamed(llvm_ctx, "struct.LLVMOpaqueType")),
     LLVMTypeRef_type      (LLVMPointerType(LLVMOpaqueType_type, 0)),
-    LLVMOpaqueContext_type(v_struct_create_named("struct.LLVMOpaqueContext")),
+    LLVMOpaqueContext_type(LLVMStructCreateNamed(llvm_ctx, "struct.LLVMOpaqueContext")),
     LLVMContextRef_type   (LLVMPointerType(LLVMOpaqueContext_type, 0))
 {
     assert(voidc_global_ctx == nullptr);
@@ -559,6 +553,8 @@ voidc_global_ctx_t::static_initialize(void)
 
         LLVMPassManagerBuilderDispose(pm_builder);
     }
+
+    LLVMAddAlwaysInlinerPass(pass_manager);
 
     //-------------------------------------------------------------
     target = new voidc_global_ctx_t();      //- Sic!
@@ -1174,29 +1170,13 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 LLVMTypeRef
 v_struct_create_named(const char *name)
 {
-    auto voidc  = voidc_global_ctx_t::voidc;
     auto target = voidc_global_ctx_t::target;
 
-    if (voidc  &&  target != voidc)
-    {
-        return LLVMStructCreateNamed(target->llvm_ctx, name);
-    }
+    auto t = LLVMGetTypeByName(target->llvm_mod, name);
 
-    //- Working for voidc...
+    if (t)  return t;
 
-    static std::map<v_quark_t, LLVMTypeRef> structs;
-
-    auto quark = v_quark_from_string(name);
-
-    auto it = structs.find(quark);
-
-    if (it != structs.end())  return it->second;
-
-    auto ret = LLVMStructCreateNamed(LLVMGetGlobalContext(), name);
-
-    structs[quark] = ret;
-
-    return ret;
+    return LLVMStructCreateNamed(target->llvm_ctx, name);
 }
 
 
