@@ -1131,6 +1131,38 @@
 
 //---------------------------------------------------------------------
 {
+    typ0 = v_alloca(LLVMTypeRef, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    char_ptr = LLVMPointerType(char, 0);
+
+    v_store(LLVMValueRef, typ0);
+    v_store(int,          typ1);
+    v_store(char_ptr,     typ2);
+
+    ft = LLVMFunctionType(LLVMValueRef, typ0, 3, 0);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_add_parameter_name", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("fun",  p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("num",  p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("name", p2);
+}
+{
+    p = LLVMGetParam(fun, num);
+
+    LLVMSetValueName(p, name);
+
+    v_add_variable(name, p);
+
+    v_return(p);
+}
+
+
+//---------------------------------------------------------------------
+{
     typ0 = v_alloca(LLVMTypeRef, 1);
 
     char_ptr = LLVMPointerType(char, 0);
@@ -1223,6 +1255,7 @@
 
 //---------------------------------------------------------------------
 {
+    v_make_symbol_global("v_add_parameter_name");
     v_make_symbol_global("v_make_symbol_global");
     v_make_symbol_global("v_make_function_private");
     v_make_symbol_global("v_make_global_private");

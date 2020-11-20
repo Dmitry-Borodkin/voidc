@@ -87,7 +87,7 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_block_destroy", v_ast_generic_destroy_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
+    v_add_parameter_name(f, 0, "void_obj");
 }
 {
     obj = v_cast(LLVMBitCast, void_obj, ast_stmt_block_ref);
@@ -107,8 +107,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_block_accept", v_ast_generic_accept_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("visitor",  p1);
+    v_add_parameter_name(f, 0, "void_obj");
+    v_add_parameter_name(f, 1, "visitor");
 }
 {
     obj = v_cast(LLVMBitCast, void_obj, ast_stmt_block_ref);
@@ -170,9 +170,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_block", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("stmt_list", p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("flag",      p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "stmt_list");
+    v_add_parameter_name(f, 2, "flag");
 }
 {
     obj = v_malloc(ast_stmt_block_t);
@@ -197,9 +197,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_block_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     stmt_list = v_std_any_get_pointer(v_ast_opaque_stmt_list_ptr, arg_list);
@@ -235,8 +235,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t_helper_simple", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",    p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("stmt_list",  p1);
+    v_add_parameter_name(f, 0, "visitor");
+    v_add_parameter_name(f, 1, "stmt_list");
 }
 {
     base_ast = v_cast(LLVMBitCast, stmt_list, v_ast_base_ref);
@@ -259,8 +259,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t_helper_complex", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",    p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("stmt_list",  p1);
+    v_add_parameter_name(f, 0, "visitor");
+    v_add_parameter_name(f, 1, "stmt_list");
 }
 {
     builder = v_target_get_builder();
@@ -306,9 +306,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t", method_ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",    p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("stmt_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("flag",       p2);
+    v_add_parameter_name(f, 0, "visitor");
+    v_add_parameter_name(f, 1, "stmt_list");
+    v_add_parameter_name(f, 2, "flag");
 }
 {
     v_save_variables();

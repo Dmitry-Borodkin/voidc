@@ -97,7 +97,7 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_switch_destroy", v_ast_generic_destroy_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
+    v_add_parameter_name(f, 0, "void_obj");
 }
 {
     obj = v_cast(LLVMBitCast, void_obj, ast_stmt_switch_ref);
@@ -119,8 +119,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_switch_accept", v_ast_generic_accept_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("visitor",  p1);
+    v_add_parameter_name(f, 0, "void_obj");
+    v_add_parameter_name(f, 1, "visitor");
 }
 {
     obj = v_cast(LLVMBitCast, void_obj, ast_stmt_switch_ref);
@@ -180,9 +180,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_switch", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",  p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("list", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg");
+    v_add_parameter_name(f, 2, "list");
 }
 {
     obj = v_malloc(ast_stmt_switch_t);
@@ -207,7 +207,7 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_case_block_destroy", v_ast_generic_destroy_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
+    v_add_parameter_name(f, 0, "void_obj");
 }
 {
     obj = v_cast(LLVMBitCast, void_obj, ast_case_block_ref);
@@ -277,9 +277,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_case_block", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("stmt_list", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "stmt_list");
 }
 {
     obj = v_malloc(ast_case_block_t);
@@ -302,9 +302,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_item_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("any0",      p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("any_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "any0");
+    v_add_parameter_name(f, 2, "any_count");
 }
 {
     arg = v_std_any_get_pointer(v_ast_opaque_argument_ptr, any0);
@@ -330,9 +330,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_block_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("any0",      p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("any_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "any0");
+    v_add_parameter_name(f, 2, "any_count");
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -357,9 +357,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_list_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("any0",      p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("any_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "any0");
+    v_add_parameter_name(f, 2, "any_count");
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -384,9 +384,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_switch_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("any0",      p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("any_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "any0");
+    v_add_parameter_name(f, 2, "any_count");
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -412,9 +412,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_switch_t", method_ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg",     p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("list",    p2);
+    v_add_parameter_name(f, 0, "visitor");
+    v_add_parameter_name(f, 1, "arg");
+    v_add_parameter_name(f, 2, "list");
 }
 {
     v_save_variables();

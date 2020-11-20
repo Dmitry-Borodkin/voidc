@@ -104,11 +104,11 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_call", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("stmt",  p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("var",   p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("fun",   p2);
-    p3 = LLVMGetParam(f, 3);    v_add_variable("args",  p3);
-    p4 = LLVMGetParam(f, 4);    v_add_variable("count", p4);
+    v_add_parameter_name(f, 0, "stmt");
+    v_add_parameter_name(f, 1, "var");
+    v_add_parameter_name(f, 2, "fun");
+    v_add_parameter_name(f, 3, "args");
+    v_add_parameter_name(f, 4, "count");
 }
 {
     ar_l = v_alloca(v_ast_opaque_arg_list_ptr);
@@ -228,11 +228,11 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_stack_init", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("stmt_list", p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("type",      p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("prefix",    p2);
-    p3 = LLVMGetParam(f, 3);    v_add_variable("size",      p3);
-    p4 = LLVMGetParam(f, 4);    v_add_variable("do_init",   p4);
+    v_add_parameter_name(f, 0, "stmt_list");
+    v_add_parameter_name(f, 1, "type");
+    v_add_parameter_name(f, 2, "prefix");
+    v_add_parameter_name(f, 3, "size");
+    v_add_parameter_name(f, 4, "do_init");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -323,9 +323,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_grammar_init_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     gr_name = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -361,9 +361,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_grammar_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     gr_stmt_list = v_alloca(v_ast_opaque_stmt_list_ptr);
@@ -525,9 +525,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_parser_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg_l_1 = v_getelementptr(arg_list, 1);
@@ -686,9 +686,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_parser_leftrec_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -743,9 +743,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_action_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 4);
@@ -803,9 +803,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_special_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     //- assert(*voidc_ast_stmt_grammar_parser_number == 0);
@@ -869,9 +869,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_choice_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
@@ -939,9 +939,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_sequence_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
@@ -1009,9 +1009,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_catch_var_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -1078,7 +1078,7 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_make_parser_unary", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("fun", p0);
+    v_add_parameter_name(f, 0, "fun");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -1128,9 +1128,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_and_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     voidc_make_parser_unary("v_peg_make_and_parser");
@@ -1145,9 +1145,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_not_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     voidc_make_parser_unary("v_peg_make_not_parser");
@@ -1162,9 +1162,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_star_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     voidc_make_parser_unary("v_peg_make_star_parser");
@@ -1179,9 +1179,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_plus_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     voidc_make_parser_unary("v_peg_make_plus_parser");
@@ -1196,9 +1196,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_question_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     voidc_make_parser_unary("v_peg_make_question_parser");
@@ -1213,9 +1213,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_identifier_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -1271,9 +1271,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_external_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -1329,9 +1329,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_backref_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     br_num = v_std_any_get_value(intptr_t, arg_list);
@@ -1385,9 +1385,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_catch_str_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     voidc_make_parser_unary("v_peg_make_catch_string_parser");
@@ -1402,9 +1402,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -1455,9 +1455,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_class_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     rn_int = v_load(voidc_ast_stmt_grammar_range_number);
@@ -1518,9 +1518,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_literal_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -1576,9 +1576,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_char_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     ch = v_std_any_get_value(char32_t, arg_list);
@@ -1632,9 +1632,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_dot_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr);
@@ -1681,9 +1681,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_range_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
@@ -1768,9 +1768,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_call_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -1823,9 +1823,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_return_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -1862,9 +1862,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_identifier_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -1920,9 +1920,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_backref_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     br_num = v_std_any_get_value(intptr_t, arg_list);
@@ -2003,9 +2003,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_integer_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     num = v_std_any_get_value(intptr_t, arg_list);
@@ -2059,9 +2059,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_string_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
@@ -2117,9 +2117,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_char_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 2, "arg_count");
 }
 {
     ch = v_std_any_get_value(char32_t, arg_list);

@@ -81,7 +81,7 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_if_then_else_destroy", v_ast_generic_destroy_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
+    v_add_parameter_name(f, 0, "void_obj");
 }
 {
     obj = v_cast(LLVMBitCast, void_obj, ast_stmt_if_then_else_ref);
@@ -105,8 +105,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_if_then_else_accept", v_ast_generic_accept_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("void_obj", p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("visitor",  p1);
+    v_add_parameter_name(f, 0, "void_obj");
+    v_add_parameter_name(f, 1, "visitor");
 }
 {
     obj = v_cast(LLVMBitCast, void_obj, ast_stmt_if_then_else_ref);
@@ -169,10 +169,10 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_if_then_else", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("condition", p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("stmt_then", p2);
-    p3 = LLVMGetParam(f, 3);    v_add_variable("stmt_else", p3);
+    v_add_parameter_name(f, 0, "ret");
+    v_add_parameter_name(f, 1, "condition");
+    v_add_parameter_name(f, 2, "stmt_then");
+    v_add_parameter_name(f, 3, "stmt_else");
 }
 {
     obj = v_malloc(ast_stmt_if_then_else_t);
@@ -227,9 +227,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_if_then_else_grammar_action", v_peg_grammar_action_fun_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("ret",       p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("arg_list",  p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_count", p2);
+    ret       = v_add_parameter_name(f, 0, "ret");
+    arg_list  = v_add_parameter_name(f, 1, "arg_list");
+    arg_count = v_add_parameter_name(f, 2, "arg_count");
 
 
     val0 = v_alloca(LLVMValueRef, 3);
@@ -244,7 +244,7 @@
 
     v_store(n2, val0);
 
-    par_else = LLVMBuildGEP(builder, p1, val0, 1, "par_else");
+    par_else = LLVMBuildGEP(builder, arg_list, val0, 1, "par_else");
 
 
     get_arg_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, v_ast_opaque_stmt_ptr);
@@ -517,7 +517,7 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_if_then_else_join_helper", ft);
 
-    bblock = LLVMGetParam(f, 0);    v_add_variable("bblock", bblock);
+    bblock = v_add_parameter_name(f, 0, "bblock");
 
 
     builder = v_target_get_voidc_builder();
@@ -553,10 +553,10 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_if_then_else_t", method_ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",   p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("condition", p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("stmt_then", p2);
-    p3 = LLVMGetParam(f, 3);    v_add_variable("stmt_else", p3);
+    v_add_parameter_name(f, 0, "visitor");
+    v_add_parameter_name(f, 1, "condition");
+    v_add_parameter_name(f, 2, "stmt_then");
+    v_add_parameter_name(f, 3, "stmt_else");
 }
 {
     builder = v_target_get_builder();
