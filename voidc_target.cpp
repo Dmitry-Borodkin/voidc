@@ -179,7 +179,8 @@ mk_int_type(LLVMContextRef ctx, size_t sz)
 }
 
 base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
-  : llvm_ctx(ctx),
+  : types_ctx(ctx, int_size, long_size, ptr_size),
+    llvm_ctx(ctx),
     llvm_mod(LLVMModuleCreateWithNameInContext("empty_mod", ctx)),
     builder(LLVMCreateBuilderInContext(ctx)),
     void_type     (LLVMVoidTypeInContext(ctx)),

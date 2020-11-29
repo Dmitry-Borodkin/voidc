@@ -21,6 +21,7 @@ all: voidc
 
 OBJS = \
 voidc_ast.o \
+voidc_types.o \
 voidc_target.o \
 voidc_util.o \
 voidc_main.o \

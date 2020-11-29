@@ -6,6 +6,7 @@
 #define VOIDC_TARGET_H
 
 #include "voidc_ast.h"
+#include "voidc_types.h"
 
 #include <string>
 #include <vector>
@@ -54,6 +55,9 @@ class base_global_ctx_t : public base_compile_ctx_t
 public:
     base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size);
     ~base_global_ctx_t();
+
+public:
+    voidc_types_ctx_t types_ctx;
 
 public:
     const LLVMContextRef llvm_ctx;      //- Sic!
