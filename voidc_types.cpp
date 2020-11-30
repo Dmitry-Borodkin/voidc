@@ -17,30 +17,35 @@ v_type_t::~v_type_t() {}
 
 
 //---------------------------------------------------------------------
+template<>
 LLVMTypeRef
 v_type_void_t::obtain_llvm_type(void) const
 {
     return  LLVMVoidTypeInContext(context.llvm_ctx);
 }
 
+template<>
 LLVMTypeRef
 v_type_f16_t::obtain_llvm_type(void) const
 {
     return  LLVMHalfTypeInContext(context.llvm_ctx);
 }
 
+template<>
 LLVMTypeRef
 v_type_f32_t::obtain_llvm_type(void) const
 {
     return  LLVMFloatTypeInContext(context.llvm_ctx);
 }
 
+template<>
 LLVMTypeRef
 v_type_f64_t::obtain_llvm_type(void) const
 {
     return  LLVMDoubleTypeInContext(context.llvm_ctx);
 }
 
+template<>
 LLVMTypeRef
 v_type_f128_t::obtain_llvm_type(void) const
 {
@@ -49,15 +54,11 @@ v_type_f128_t::obtain_llvm_type(void) const
 
 
 //---------------------------------------------------------------------
-template<v_type_t::kind_t tag>
 LLVMTypeRef
-v_type_integer_base_t<tag>::obtain_llvm_type(void) const
+v_type_integer_base_t::obtain_llvm_type(void) const
 {
-    return  LLVMIntTypeInContext(this->context.llvm_ctx, bits);
+    return  LLVMIntTypeInContext(context.llvm_ctx, bits);
 }
-
-template LLVMTypeRef v_type_sint_t::obtain_llvm_type(void) const;
-template LLVMTypeRef v_type_uint_t::obtain_llvm_type(void) const;
 
 
 //---------------------------------------------------------------------
@@ -124,11 +125,11 @@ v_type_struct_t::obtain_llvm_type(void) const
             elts[i] = body->first[i]->llvm_type();
         }
 
-        if (t)
+        if (t)      //- Named opaque (so far) struct - set body...
         {
             LLVMStructSetBody(t, elts, N, body->second);
         }
-        else
+        else        //- Unnamed...
         {
             t = LLVMStructTypeInContext(context.llvm_ctx, elts, N, body->second);
         }

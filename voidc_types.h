@@ -75,19 +75,20 @@ private:
 };
 
 //---------------------------------------------------------------------
-template<v_type_t::kind_t tag>
-struct v_type_tag_t : public v_type_t
+template<typename T, v_type_t::kind_t tag>
+struct v_type_tag_t : public T
 {
     enum { type_tag = tag };
 
-    kind_t kind(void) const override
+    v_type_t::kind_t kind(void) const override
     {
         return tag;
     }
 
 protected:
-    explicit v_type_tag_t(voidc_types_ctx_t &ctx)
-      : v_type_t(ctx)
+    template<typename... Targs>
+    explicit v_type_tag_t(Targs&&... args)
+      : T(std::forward<Targs>(args)...)
     {}
 
 private:
@@ -99,62 +100,78 @@ private:
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-#define DEFINE_SIMPLE_TYPE(key) \
-class v_type_##key##_t : public v_type_tag_t<v_type_t::k_##key> \
-{ \
-    friend class voidc_types_ctx_t; \
-\
-    explicit v_type_##key##_t(voidc_types_ctx_t &ctx) \
-      : v_type_tag_t(ctx) \
-    {} \
-\
-    LLVMTypeRef obtain_llvm_type(void) const override; \
-\
-    v_type_##key##_t(const v_type_##key##_t &) = delete; \
-    v_type_##key##_t &operator=(const v_type_##key##_t &) = delete; \
+template<v_type_t::kind_t tag>
+class v_type_simple_t : public v_type_tag_t<v_type_t, tag>
+{
+    friend class voidc_types_ctx_t;
+
+    explicit v_type_simple_t(voidc_types_ctx_t &ctx)
+      : v_type_tag_t<v_type_t, tag>(ctx)
+    {}
+
+    LLVMTypeRef obtain_llvm_type(void) const override;
+
+    v_type_simple_t(const v_type_simple_t &) = delete;
+    v_type_simple_t &operator=(const v_type_simple_t &) = delete;
 };
 
-DEFINE_SIMPLE_TYPE(void)
-DEFINE_SIMPLE_TYPE(f16)
-DEFINE_SIMPLE_TYPE(f32)
-DEFINE_SIMPLE_TYPE(f64)
-DEFINE_SIMPLE_TYPE(f128)
+using v_type_void_t = v_type_simple_t<v_type_t::k_void>;
+using v_type_f16_t  = v_type_simple_t<v_type_t::k_f16>;
+using v_type_f32_t  = v_type_simple_t<v_type_t::k_f32>;
+using v_type_f64_t  = v_type_simple_t<v_type_t::k_f64>;
+using v_type_f128_t = v_type_simple_t<v_type_t::k_f128>;
 
-#undef DEFINE_SIMPLE_TYPE
+template<> extern LLVMTypeRef v_type_void_t::obtain_llvm_type(void) const;
+template<> extern LLVMTypeRef v_type_f16_t ::obtain_llvm_type(void) const;
+template<> extern LLVMTypeRef v_type_f32_t ::obtain_llvm_type(void) const;
+template<> extern LLVMTypeRef v_type_f64_t ::obtain_llvm_type(void) const;
+template<> extern LLVMTypeRef v_type_f128_t::obtain_llvm_type(void) const;
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-template<v_type_t::kind_t tag>
-class v_type_integer_base_t : public v_type_tag_t<tag>
+class v_type_integer_base_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
     const unsigned &bits;
 
+protected:
     explicit v_type_integer_base_t(voidc_types_ctx_t &ctx, const unsigned &_bits)
-      : v_type_tag_t<tag>(ctx),
+      : v_type_t(ctx),
         bits(_bits)
     {}
 
     LLVMTypeRef obtain_llvm_type(void) const override;
 
+private:
     v_type_integer_base_t(const v_type_integer_base_t &) = delete;
     v_type_integer_base_t &operator=(const v_type_integer_base_t &) = delete;
 };
 
-using v_type_sint_t = v_type_integer_base_t<v_type_t::k_sint>;
-using v_type_uint_t = v_type_integer_base_t<v_type_t::k_uint>;
+//---------------------------------------------------------------------
+template<v_type_t::kind_t tag>
+class v_type_integer_t : public v_type_tag_t<v_type_integer_base_t, tag>
+{
+    friend class voidc_types_ctx_t;
 
-extern template LLVMTypeRef v_type_sint_t::obtain_llvm_type(void) const;
-extern template LLVMTypeRef v_type_uint_t::obtain_llvm_type(void) const;
+    explicit v_type_integer_t(voidc_types_ctx_t &ctx, const unsigned &_bits)
+      : v_type_tag_t<v_type_integer_base_t, tag>(ctx, _bits)
+    {}
+
+    v_type_integer_t(const v_type_integer_t &) = delete;
+    v_type_integer_t &operator=(const v_type_integer_t &) = delete;
+};
+
+using v_type_sint_t = v_type_integer_t<v_type_t::k_sint>;
+using v_type_uint_t = v_type_integer_t<v_type_t::k_uint>;
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-class v_type_function_t : public v_type_tag_t<v_type_t::k_function>
+class v_type_function_t : public v_type_tag_t<v_type_t, v_type_t::k_function>
 {
     friend class voidc_types_ctx_t;
 
@@ -177,7 +194,7 @@ class v_type_function_t : public v_type_tag_t<v_type_t::k_function>
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-class v_type_pointer_t : public v_type_tag_t<v_type_t::k_pointer>
+class v_type_pointer_t : public v_type_tag_t<v_type_t, v_type_t::k_pointer>
 {
     friend class voidc_types_ctx_t;
 
@@ -200,7 +217,7 @@ class v_type_pointer_t : public v_type_tag_t<v_type_t::k_pointer>
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-class v_type_struct_t : public v_type_tag_t<v_type_t::k_struct>
+class v_type_struct_t : public v_type_tag_t<v_type_t, v_type_t::k_struct>
 {
     friend class voidc_types_ctx_t;
 
@@ -230,7 +247,7 @@ class v_type_struct_t : public v_type_tag_t<v_type_t::k_struct>
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-class v_type_array_t : public v_type_tag_t<v_type_t::k_array>
+class v_type_array_t : public v_type_tag_t<v_type_t, v_type_t::k_array>
 {
     friend class voidc_types_ctx_t;
 
@@ -253,28 +270,43 @@ class v_type_array_t : public v_type_tag_t<v_type_t::k_array>
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-template<v_type_t::kind_t tag>
-class v_type_vector_base_t : public v_type_tag_t<tag>
+class v_type_vector_base_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
+protected:
     using key_t = std::pair<v_type_t *, unsigned>;
 
     const key_t &key;
 
     explicit v_type_vector_base_t(voidc_types_ctx_t &ctx, const key_t &_key)
-      : v_type_tag_t<tag>(ctx),
+      : v_type_t(ctx),
         key(_key)
     {}
 
-    LLVMTypeRef obtain_llvm_type(void) const override;
-
+private:
     v_type_vector_base_t(const v_type_vector_base_t &) = delete;
     v_type_vector_base_t &operator=(const v_type_vector_base_t &) = delete;
 };
 
-using v_type_fvector_t = v_type_vector_base_t<v_type_t::k_fvector>;
-using v_type_svector_t = v_type_vector_base_t<v_type_t::k_svector>;
+//---------------------------------------------------------------------
+template<v_type_t::kind_t tag>
+class v_type_vector_t : public v_type_tag_t<v_type_vector_base_t, tag>
+{
+    friend class voidc_types_ctx_t;
+
+    explicit v_type_vector_t(voidc_types_ctx_t &ctx, const v_type_vector_base_t::key_t &_key)
+      : v_type_tag_t<v_type_vector_base_t, tag>(ctx, _key)
+    {}
+
+    LLVMTypeRef obtain_llvm_type(void) const override;
+
+    v_type_vector_t(const v_type_vector_t &) = delete;
+    v_type_vector_t &operator=(const v_type_vector_t &) = delete;
+};
+
+using v_type_fvector_t = v_type_vector_t<v_type_t::k_fvector>;
+using v_type_svector_t = v_type_vector_t<v_type_t::k_svector>;
 
 template<> extern LLVMTypeRef v_type_fvector_t::obtain_llvm_type(void) const;
 template<> extern LLVMTypeRef v_type_svector_t::obtain_llvm_type(void) const;
