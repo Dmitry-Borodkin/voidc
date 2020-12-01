@@ -4,8 +4,9 @@
 //---------------------------------------------------------------------
 #include "voidc_types.h"
 
-
+#include <cstdio>
 #include <cassert>
+#include <algorithm>
 
 #include <llvm/IR/DerivedTypes.h>
 
@@ -55,7 +56,7 @@ v_type_f128_t::obtain_llvm_type(void) const
 
 //---------------------------------------------------------------------
 LLVMTypeRef
-v_type_integer_base_t::obtain_llvm_type(void) const
+v_type_integer_t::obtain_llvm_type(void) const
 {
     return  LLVMIntTypeInContext(context.llvm_ctx, bits);
 }
@@ -103,41 +104,53 @@ v_type_struct_t::obtain_llvm_type(void) const
 {
     LLVMTypeRef t = nullptr;
 
-    if (name)
+    if (name_key)
     {
-        auto *c_name = name->c_str();
+        auto *c_name = name_key->c_str();
 
         t = LLVMGetTypeByName(context.llvm_mod, c_name);
 
         if (!t) t = LLVMStructCreateNamed(context.llvm_ctx, c_name);
     }
 
-    if (body)
+    if (body_key)
     {
         if (t  &&  !LLVMIsOpaqueStruct(t))  return t;
 
-        const std::size_t N = body->first.size();
+        const std::size_t N = body_key->first.size();
 
         LLVMTypeRef elts[N];
 
         for (unsigned i=0; i<N; ++i)
         {
-            elts[i] = body->first[i]->llvm_type();
+            elts[i] = body_key->first[i]->llvm_type();
         }
 
         if (t)      //- Named opaque (so far) struct - set body...
         {
-            LLVMStructSetBody(t, elts, N, body->second);
+            LLVMStructSetBody(t, elts, N, body_key->second);
         }
         else        //- Unnamed...
         {
-            t = LLVMStructTypeInContext(context.llvm_ctx, elts, N, body->second);
+            t = LLVMStructTypeInContext(context.llvm_ctx, elts, N, body_key->second);
         }
     }
 
     assert(t && "Unnamed struct without body");
 
     return t;
+}
+
+void
+v_type_struct_t::set_body(v_type_t **elts, unsigned count, bool packed)
+{
+    assert(is_opaque() && "Struct body already set");
+
+    auto *st = context.get_struct_type(elts, count, packed);
+
+    body_key = st->body_key;
+
+    if (cached_llvm_type)   obtain_llvm_type();
 }
 
 
@@ -200,16 +213,19 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     intptr_t_type (get_sint_type(8*ptr_size)),
     size_t_type   (get_uint_type(8*ptr_size)),
     char32_t_type (get_uint_type(32))
-{}
+{
+//  for (auto &it : sint_types)  printf("s: %d, %d\n", it.second->is_signed(), it.second->width());
+//  for (auto &it : uint_types)  printf("s: %d, %d\n", it.second->is_signed(), it.second->width());
+}
 
 
 //---------------------------------------------------------------------
 v_type_sint_t *
 voidc_types_ctx_t::get_sint_type(unsigned bits)
 {
-    auto [it, ex] = sint_types.try_emplace(bits, nullptr);
+    auto [it, nx] = sint_types.try_emplace(bits, nullptr);
 
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_sint_t(*this, it->first));
     }
@@ -220,9 +236,9 @@ voidc_types_ctx_t::get_sint_type(unsigned bits)
 v_type_uint_t *
 voidc_types_ctx_t::get_uint_type(unsigned bits)
 {
-    auto [it, ex] = uint_types.try_emplace(bits, nullptr);
+    auto [it, nx] = uint_types.try_emplace(bits, nullptr);
 
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_uint_t(*this, it->first));
     }
@@ -233,22 +249,21 @@ voidc_types_ctx_t::get_uint_type(unsigned bits)
 
 //---------------------------------------------------------------------
 v_type_function_t *
-voidc_types_ctx_t::get_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_args)
+voidc_types_ctx_t::get_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_arg)
 {
-    std::vector<v_type_t *> ft_data(count + 1);
+    const unsigned N = count + 1;
+
+    v_type_t *ft_data[N];
 
     ft_data[0] = ret;
 
-    for (unsigned i=0; i<count; ++i)
-    {
-        ft_data[i+1] = args[i];
-    }
+    std::copy_n(args, count, ft_data+1);
 
-    v_type_function_t::key_t key = { ft_data, var_args };
+    v_type_function_t::key_t key = { {ft_data, ft_data+N}, var_arg };
 
-    auto [it, ex] = function_types.try_emplace(key, nullptr);
+    auto [it, nx] = function_types.try_emplace(key, nullptr);
 
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_function_t(*this, it->first));
     }
@@ -263,9 +278,9 @@ voidc_types_ctx_t::get_pointer_type(v_type_t *et, unsigned addr_space)
 {
     v_type_pointer_t::key_t key = { et, addr_space };
 
-    auto [it, ex] = pointer_types.try_emplace(key, nullptr);
+    auto [it, nx] = pointer_types.try_emplace(key, nullptr);
 
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_pointer_t(*this, it->first));
     }
@@ -278,9 +293,9 @@ voidc_types_ctx_t::get_pointer_type(v_type_t *et, unsigned addr_space)
 v_type_struct_t *
 voidc_types_ctx_t::get_struct_type(const std::string &name)
 {
-    auto [it, ex] = named_struct_types.try_emplace(name, nullptr);
+    auto [it, nx] = named_struct_types.try_emplace(name, nullptr);
 
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_struct_t(*this, it->first));
     }
@@ -291,18 +306,11 @@ voidc_types_ctx_t::get_struct_type(const std::string &name)
 v_type_struct_t *
 voidc_types_ctx_t::get_struct_type(v_type_t **elts, unsigned count, bool packed)
 {
-    std::vector<v_type_t *> et_data(count);
+    v_type_struct_t::body_key_t key = { {elts, elts+count}, packed };
 
-    for (unsigned i=0; i<count; ++i)
-    {
-        et_data[i] = elts[i];
-    }
+    auto [it, nx] = anon_struct_types.try_emplace(key, nullptr);
 
-    v_type_struct_t::body_key_t key = { et_data, packed };
-
-    auto [it, ex] = anon_struct_types.try_emplace(key, nullptr);
-
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_struct_t(*this, it->first));
     }
@@ -317,9 +325,9 @@ voidc_types_ctx_t::get_array_type(v_type_t *et, uint64_t count)
 {
     v_type_array_t::key_t key = { et, count };
 
-    auto [it, ex] = array_types.try_emplace(key, nullptr);
+    auto [it, nx] = array_types.try_emplace(key, nullptr);
 
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_array_t(*this, it->first));
     }
@@ -334,9 +342,9 @@ voidc_types_ctx_t::get_fvector_type(v_type_t *et, unsigned count)
 {
     v_type_fvector_t::key_t key = { et, count };
 
-    auto [it, ex] = fvector_types.try_emplace(key, nullptr);
+    auto [it, nx] = fvector_types.try_emplace(key, nullptr);
 
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_fvector_t(*this, it->first));
     }
@@ -349,9 +357,9 @@ voidc_types_ctx_t::get_svector_type(v_type_t *et, unsigned count)
 {
     v_type_svector_t::key_t key = { et, count };
 
-    auto [it, ex] = svector_types.try_emplace(key, nullptr);
+    auto [it, nx] = svector_types.try_emplace(key, nullptr);
 
-    if (!ex)
+    if (nx)
     {
         it->second.reset(new v_type_svector_t(*this, it->first));
     }
