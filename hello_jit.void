@@ -1,21 +1,26 @@
 {   v_import("printf.void");
     v_import("voidc_internals.void");
+
+    v_import("llvm-c/Core.void");
+    v_import("llvm-c/OrcBindings.void");
 }
 
 {   module = LLVMModuleCreateWithName("hello_mod");
 
     builder = v_target_get_voidc_builder();
 
-    hello_ft = LLVMFunctionType(void, 0, 0, 0);
-    hello_f  = LLVMAddFunction(module, "hello", hello_ft);
+    hello_ft  = v_function_type(void, 0, 0, 0);
+    hello_ft_ = v_type_get_llvm_type(hello_ft);
+    hello_f   = LLVMAddFunction(module, "hello", hello_ft_);
 
     entry = LLVMAppendBasicBlock(hello_f, "entry");
 
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    printf_ft = v_find_symbol_type("printf");
-    printf_f  = LLVMAddFunction(module, "printf", printf_ft);
+    printf_ft  = v_find_symbol_type("printf");
+    printf_ft_ = v_type_get_llvm_type(printf_ft);
+    printf_f   = LLVMAddFunction(module, "printf", printf_ft_);
 
     str = LLVMBuildGlobalStringPtr(builder, "Hello world!\n", "str");
 

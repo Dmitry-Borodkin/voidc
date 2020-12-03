@@ -11,91 +11,81 @@
 //- Values -------------------------------------------------
 {
     _int = v_find_type("int");
+    llvm_int = v_type_get_llvm_type(_int);
 
-    val = LLVMConstInt(_int, 1, 0);
-    v_add_constant("LLVMBinaryTypeMachOUniversalBinary", val);
+    val = LLVMConstInt(llvm_int, 1, 0);
+    v_add_constant("LLVMBinaryTypeMachOUniversalBinary", _int, val);
 
-    val = LLVMConstInt(_int, 4, 0);
-    v_add_constant("LLVMBinaryTypeWinRes", val);
+    val = LLVMConstInt(llvm_int, 4, 0);
+    v_add_constant("LLVMBinaryTypeWinRes", _int, val);
 
-    val = LLVMConstInt(_int, 8, 0);
-    v_add_constant("LLVMBinaryTypeELF64L", val);
+    val = LLVMConstInt(llvm_int, 8, 0);
+    v_add_constant("LLVMBinaryTypeELF64L", _int, val);
 
-    val = LLVMConstInt(_int, 6, 0);
-    v_add_constant("LLVMBinaryTypeELF32L", val);
+    val = LLVMConstInt(llvm_int, 6, 0);
+    v_add_constant("LLVMBinaryTypeELF32L", _int, val);
 
-    val = LLVMConstInt(_int, 12, 0);
-    v_add_constant("LLVMBinaryTypeMachO64L", val);
+    val = LLVMConstInt(llvm_int, 12, 0);
+    v_add_constant("LLVMBinaryTypeMachO64L", _int, val);
 
-    val = LLVMConstInt(_int, 13, 0);
-    v_add_constant("LLVMBinaryTypeMachO64B", val);
+    val = LLVMConstInt(llvm_int, 13, 0);
+    v_add_constant("LLVMBinaryTypeMachO64B", _int, val);
 
-    val = LLVMConstInt(_int, 7, 0);
-    v_add_constant("LLVMBinaryTypeELF32B", val);
+    val = LLVMConstInt(llvm_int, 7, 0);
+    v_add_constant("LLVMBinaryTypeELF32B", _int, val);
 
-    val = LLVMConstInt(_int, 10, 0);
-    v_add_constant("LLVMBinaryTypeMachO32L", val);
+    val = LLVMConstInt(llvm_int, 10, 0);
+    v_add_constant("LLVMBinaryTypeMachO32L", _int, val);
 
-    val = LLVMConstInt(_int, 9, 0);
-    v_add_constant("LLVMBinaryTypeELF64B", val);
+    val = LLVMConstInt(llvm_int, 9, 0);
+    v_add_constant("LLVMBinaryTypeELF64B", _int, val);
 
-    val = LLVMConstInt(_int, 11, 0);
-    v_add_constant("LLVMBinaryTypeMachO32B", val);
+    val = LLVMConstInt(llvm_int, 11, 0);
+    v_add_constant("LLVMBinaryTypeMachO32B", _int, val);
 
-    val = LLVMConstInt(_int, 3, 0);
-    v_add_constant("LLVMBinaryTypeIR", val);
+    val = LLVMConstInt(llvm_int, 3, 0);
+    v_add_constant("LLVMBinaryTypeIR", _int, val);
 
-    val = LLVMConstInt(_int, 0, 0);
-    v_add_constant("LLVMBinaryTypeArchive", val);
+    val = LLVMConstInt(llvm_int, 0, 0);
+    v_add_constant("LLVMBinaryTypeArchive", _int, val);
 
-    val = LLVMConstInt(_int, 5, 0);
-    v_add_constant("LLVMBinaryTypeCOFF", val);
+    val = LLVMConstInt(llvm_int, 5, 0);
+    v_add_constant("LLVMBinaryTypeCOFF", _int, val);
 
-    val = LLVMConstInt(_int, 14, 0);
-    v_add_constant("LLVMBinaryTypeWasm", val);
+    val = LLVMConstInt(llvm_int, 14, 0);
+    v_add_constant("LLVMBinaryTypeWasm", _int, val);
 
-    val = LLVMConstInt(_int, 2, 0);
-    v_add_constant("LLVMBinaryTypeCOFFImportFile", val);
-
-}
-
-//- Known types --------------------------------------------
-{
-    c = v_target_get_llvm_ctx();
-
-    v = LLVMInt64TypeInContext(c);
-    v_add_local_symbol("uint64_t", LLVMOpaqueType, v);
+    val = LLVMConstInt(llvm_int, 2, 0);
+    v_add_constant("LLVMBinaryTypeCOFFImportFile", _int, val);
 
 }
 
 //- Types --------------------------------------------------
 {
-    v0 = v_target_get_llvm_ctx();
+    v0 = v_struct_type_named("struct.LLVMOpaqueSectionIterator");
+    v1 = v_pointer_type(v0, 0);
+    v_add_symbol("LLVMSectionIteratorRef", voidc_opaque_type, v1);
 
-    v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueSectionIterator");
-    v2 = LLVMPointerType(v1, 0);
-    v_add_symbol("LLVMSectionIteratorRef", LLVMOpaqueType, v2);
+    v2_int = v_find_type("int");
+    v_add_symbol("LLVMBinaryType", voidc_opaque_type, v2_int);
 
-    v3_int = v_find_type("int");
-    v_add_symbol("LLVMBinaryType", LLVMOpaqueType, v3_int);
+    v3 = v_struct_type_named("struct.LLVMOpaqueRelocationIterator");
+    v4 = v_pointer_type(v3, 0);
+    v_add_symbol("LLVMRelocationIteratorRef", voidc_opaque_type, v4);
 
-    v4 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueRelocationIterator");
-    v5 = LLVMPointerType(v4, 0);
-    v_add_symbol("LLVMRelocationIteratorRef", LLVMOpaqueType, v5);
+    v5 = v_struct_type_named("struct.LLVMOpaqueSymbolIterator");
+    v6 = v_pointer_type(v5, 0);
+    v_add_symbol("LLVMSymbolIteratorRef", voidc_opaque_type, v6);
 
-    v6 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueSymbolIterator");
-    v7 = LLVMPointerType(v6, 0);
-    v_add_symbol("LLVMSymbolIteratorRef", LLVMOpaqueType, v7);
-
-    v8 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueObjectFile");
-    v9 = LLVMPointerType(v8, 0);
-    v_add_symbol("LLVMObjectFileRef", LLVMOpaqueType, v9);
+    v7 = v_struct_type_named("struct.LLVMOpaqueObjectFile");
+    v8 = v_pointer_type(v7, 0);
+    v_add_symbol("LLVMObjectFileRef", voidc_opaque_type, v8);
 
 }
 
 //- Functions ----------------------------------------------
 {
-    arg0 = v_alloca(LLVMTypeRef, 4);
+    arg0 = v_alloca(v_type_ref, 4);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
@@ -105,182 +95,182 @@
     v1_LLVMSymbolIteratorRef = v_find_type("LLVMSymbolIteratorRef");
     v_store(v1_LLVMSymbolIteratorRef, arg1);
     v2_LLVMBool = v_find_type("LLVMBool");
-    v3 = LLVMFunctionType(v2_LLVMBool, arg0, 2, 0);
+    v3 = v_function_type(v2_LLVMBool, arg0, 2, false);
     v_add_symbol_type("LLVMIsSymbolIteratorAtEnd", v3);
 
     v4_LLVMSectionIteratorRef = v_find_type("LLVMSectionIteratorRef");
     v_store(v4_LLVMSectionIteratorRef, arg0);
     v5_uint64_t = v_find_type("uint64_t");
-    v6 = LLVMFunctionType(v5_uint64_t, arg0, 1, 0);
+    v6 = v_function_type(v5_uint64_t, arg0, 1, false);
     v_add_symbol_type("LLVMGetSectionSize", v6);
 
     v7_LLVMMemoryBufferRef = v_find_type("LLVMMemoryBufferRef");
     v_store(v7_LLVMMemoryBufferRef, arg0);
-    v8 = LLVMFunctionType(v0_LLVMObjectFileRef, arg0, 1, 0);
+    v8 = v_function_type(v0_LLVMObjectFileRef, arg0, 1, false);
     v_add_symbol_type("LLVMCreateObjectFile", v8);
 
     v9_LLVMBinaryRef = v_find_type("LLVMBinaryRef");
     v_store(v9_LLVMBinaryRef, arg0);
-    v10 = LLVMFunctionType(v4_LLVMSectionIteratorRef, arg0, 1, 0);
+    v10 = v_function_type(v4_LLVMSectionIteratorRef, arg0, 1, false);
     v_add_symbol_type("LLVMObjectFileCopySectionIterator", v10);
 
     v11_char = v_find_type("char");
-    v12 = LLVMPointerType(v11_char, 0);
+    v12 = v_pointer_type(v11_char, 0);
     v_store(v4_LLVMSectionIteratorRef, arg0);
-    v13 = LLVMFunctionType(v12, arg0, 1, 0);
+    v13 = v_function_type(v12, arg0, 1, false);
     v_add_symbol_type("LLVMGetSectionName", v13);
 
     v_store(v0_LLVMObjectFileRef, arg0);
-    v14 = LLVMFunctionType(v1_LLVMSymbolIteratorRef, arg0, 1, 0);
+    v14 = v_function_type(v1_LLVMSymbolIteratorRef, arg0, 1, false);
     v_add_symbol_type("LLVMGetSymbols", v14);
 
     v_store(v9_LLVMBinaryRef, arg0);
-    v15 = LLVMPointerType(v11_char, 0);
+    v15 = v_pointer_type(v11_char, 0);
     v_store(v15, arg1);
     v16_size_t = v_find_type("size_t");
     v_store(v16_size_t, arg2);
-    v17 = LLVMPointerType(v11_char, 0);
-    v18 = LLVMPointerType(v17, 0);
+    v17 = v_pointer_type(v11_char, 0);
+    v18 = v_pointer_type(v17, 0);
     v_store(v18, arg3);
-    v19 = LLVMFunctionType(v9_LLVMBinaryRef, arg0, 4, 0);
+    v19 = v_function_type(v9_LLVMBinaryRef, arg0, 4, false);
     v_add_symbol_type("LLVMMachOUniversalBinaryCopyObjectForArch", v19);
 
     v_store(v9_LLVMBinaryRef, arg0);
     v20_LLVMBinaryType = v_find_type("LLVMBinaryType");
-    v21 = LLVMFunctionType(v20_LLVMBinaryType, arg0, 1, 0);
+    v21 = v_function_type(v20_LLVMBinaryType, arg0, 1, false);
     v_add_symbol_type("LLVMBinaryGetType", v21);
 
     v_store(v1_LLVMSymbolIteratorRef, arg0);
-    v22 = LLVMFunctionType(v5_uint64_t, arg0, 1, 0);
+    v22 = v_function_type(v5_uint64_t, arg0, 1, false);
     v_add_symbol_type("LLVMGetSymbolAddress", v22);
 
     v_store(v1_LLVMSymbolIteratorRef, arg0);
     v23_void = v_find_type("void");
-    v24 = LLVMFunctionType(v23_void, arg0, 1, 0);
+    v24 = v_function_type(v23_void, arg0, 1, false);
     v_add_symbol_type("LLVMDisposeSymbolIterator", v24);
 
     v_store(v9_LLVMBinaryRef, arg0);
     v_store(v4_LLVMSectionIteratorRef, arg1);
-    v25 = LLVMFunctionType(v2_LLVMBool, arg0, 2, 0);
+    v25 = v_function_type(v2_LLVMBool, arg0, 2, false);
     v_add_symbol_type("LLVMObjectFileIsSectionIteratorAtEnd", v25);
 
     v_store(v4_LLVMSectionIteratorRef, arg0);
-    v26 = LLVMFunctionType(v5_uint64_t, arg0, 1, 0);
+    v26 = v_function_type(v5_uint64_t, arg0, 1, false);
     v_add_symbol_type("LLVMGetSectionAddress", v26);
 
-    v27 = LLVMPointerType(v11_char, 0);
+    v27 = v_pointer_type(v11_char, 0);
     v28_LLVMRelocationIteratorRef = v_find_type("LLVMRelocationIteratorRef");
     v_store(v28_LLVMRelocationIteratorRef, arg0);
-    v29 = LLVMFunctionType(v27, arg0, 1, 0);
+    v29 = v_function_type(v27, arg0, 1, false);
     v_add_symbol_type("LLVMGetRelocationValueString", v29);
 
     v_store(v1_LLVMSymbolIteratorRef, arg0);
-    v30 = LLVMFunctionType(v23_void, arg0, 1, 0);
+    v30 = v_function_type(v23_void, arg0, 1, false);
     v_add_symbol_type("LLVMMoveToNextSymbol", v30);
 
     v_store(v1_LLVMSymbolIteratorRef, arg0);
-    v31 = LLVMFunctionType(v5_uint64_t, arg0, 1, 0);
+    v31 = v_function_type(v5_uint64_t, arg0, 1, false);
     v_add_symbol_type("LLVMGetSymbolSize", v31);
 
     v_store(v4_LLVMSectionIteratorRef, arg0);
-    v32 = LLVMFunctionType(v28_LLVMRelocationIteratorRef, arg0, 1, 0);
+    v32 = v_function_type(v28_LLVMRelocationIteratorRef, arg0, 1, false);
     v_add_symbol_type("LLVMGetRelocations", v32);
 
-    v33 = LLVMPointerType(v11_char, 0);
+    v33 = v_pointer_type(v11_char, 0);
     v_store(v1_LLVMSymbolIteratorRef, arg0);
-    v34 = LLVMFunctionType(v33, arg0, 1, 0);
+    v34 = v_function_type(v33, arg0, 1, false);
     v_add_symbol_type("LLVMGetSymbolName", v34);
 
     v_store(v7_LLVMMemoryBufferRef, arg0);
     v35_LLVMContextRef = v_find_type("LLVMContextRef");
     v_store(v35_LLVMContextRef, arg1);
-    v36 = LLVMPointerType(v11_char, 0);
-    v37 = LLVMPointerType(v36, 0);
+    v36 = v_pointer_type(v11_char, 0);
+    v37 = v_pointer_type(v36, 0);
     v_store(v37, arg2);
-    v38 = LLVMFunctionType(v9_LLVMBinaryRef, arg0, 3, 0);
+    v38 = v_function_type(v9_LLVMBinaryRef, arg0, 3, false);
     v_add_symbol_type("LLVMCreateBinary", v38);
 
-    v39 = LLVMPointerType(v11_char, 0);
+    v39 = v_pointer_type(v11_char, 0);
     v_store(v28_LLVMRelocationIteratorRef, arg0);
-    v40 = LLVMFunctionType(v39, arg0, 1, 0);
+    v40 = v_function_type(v39, arg0, 1, false);
     v_add_symbol_type("LLVMGetRelocationTypeName", v40);
 
     v_store(v4_LLVMSectionIteratorRef, arg0);
     v_store(v1_LLVMSymbolIteratorRef, arg1);
-    v41 = LLVMFunctionType(v2_LLVMBool, arg0, 2, 0);
+    v41 = v_function_type(v2_LLVMBool, arg0, 2, false);
     v_add_symbol_type("LLVMGetSectionContainsSymbol", v41);
 
     v_store(v4_LLVMSectionIteratorRef, arg0);
-    v42 = LLVMFunctionType(v23_void, arg0, 1, 0);
+    v42 = v_function_type(v23_void, arg0, 1, false);
     v_add_symbol_type("LLVMMoveToNextSection", v42);
 
     v_store(v4_LLVMSectionIteratorRef, arg0);
     v_store(v1_LLVMSymbolIteratorRef, arg1);
-    v43 = LLVMFunctionType(v23_void, arg0, 2, 0);
+    v43 = v_function_type(v23_void, arg0, 2, false);
     v_add_symbol_type("LLVMMoveToContainingSection", v43);
 
     v_store(v0_LLVMObjectFileRef, arg0);
-    v44 = LLVMFunctionType(v23_void, arg0, 1, 0);
+    v44 = v_function_type(v23_void, arg0, 1, false);
     v_add_symbol_type("LLVMDisposeObjectFile", v44);
 
     v_store(v9_LLVMBinaryRef, arg0);
     v_store(v1_LLVMSymbolIteratorRef, arg1);
-    v45 = LLVMFunctionType(v2_LLVMBool, arg0, 2, 0);
+    v45 = v_function_type(v2_LLVMBool, arg0, 2, false);
     v_add_symbol_type("LLVMObjectFileIsSymbolIteratorAtEnd", v45);
 
     v_store(v4_LLVMSectionIteratorRef, arg0);
-    v46 = LLVMFunctionType(v23_void, arg0, 1, 0);
+    v46 = v_function_type(v23_void, arg0, 1, false);
     v_add_symbol_type("LLVMDisposeSectionIterator", v46);
 
-    v47 = LLVMPointerType(v11_char, 0);
+    v47 = v_pointer_type(v11_char, 0);
     v_store(v4_LLVMSectionIteratorRef, arg0);
-    v48 = LLVMFunctionType(v47, arg0, 1, 0);
+    v48 = v_function_type(v47, arg0, 1, false);
     v_add_symbol_type("LLVMGetSectionContents", v48);
 
     v_store(v9_LLVMBinaryRef, arg0);
-    v49 = LLVMFunctionType(v23_void, arg0, 1, 0);
+    v49 = v_function_type(v23_void, arg0, 1, false);
     v_add_symbol_type("LLVMDisposeBinary", v49);
 
     v_store(v9_LLVMBinaryRef, arg0);
-    v50 = LLVMFunctionType(v1_LLVMSymbolIteratorRef, arg0, 1, 0);
+    v50 = v_function_type(v1_LLVMSymbolIteratorRef, arg0, 1, false);
     v_add_symbol_type("LLVMObjectFileCopySymbolIterator", v50);
 
     v_store(v4_LLVMSectionIteratorRef, arg0);
     v_store(v28_LLVMRelocationIteratorRef, arg1);
-    v51 = LLVMFunctionType(v2_LLVMBool, arg0, 2, 0);
+    v51 = v_function_type(v2_LLVMBool, arg0, 2, false);
     v_add_symbol_type("LLVMIsRelocationIteratorAtEnd", v51);
 
     v_store(v28_LLVMRelocationIteratorRef, arg0);
-    v52 = LLVMFunctionType(v1_LLVMSymbolIteratorRef, arg0, 1, 0);
+    v52 = v_function_type(v1_LLVMSymbolIteratorRef, arg0, 1, false);
     v_add_symbol_type("LLVMGetRelocationSymbol", v52);
 
     v_store(v28_LLVMRelocationIteratorRef, arg0);
-    v53 = LLVMFunctionType(v23_void, arg0, 1, 0);
+    v53 = v_function_type(v23_void, arg0, 1, false);
     v_add_symbol_type("LLVMMoveToNextRelocation", v53);
 
     v_store(v9_LLVMBinaryRef, arg0);
-    v54 = LLVMFunctionType(v7_LLVMMemoryBufferRef, arg0, 1, 0);
+    v54 = v_function_type(v7_LLVMMemoryBufferRef, arg0, 1, false);
     v_add_symbol_type("LLVMBinaryCopyMemoryBuffer", v54);
 
     v_store(v28_LLVMRelocationIteratorRef, arg0);
-    v55 = LLVMFunctionType(v5_uint64_t, arg0, 1, 0);
+    v55 = v_function_type(v5_uint64_t, arg0, 1, false);
     v_add_symbol_type("LLVMGetRelocationOffset", v55);
 
     v_store(v0_LLVMObjectFileRef, arg0);
     v_store(v4_LLVMSectionIteratorRef, arg1);
-    v56 = LLVMFunctionType(v2_LLVMBool, arg0, 2, 0);
+    v56 = v_function_type(v2_LLVMBool, arg0, 2, false);
     v_add_symbol_type("LLVMIsSectionIteratorAtEnd", v56);
 
     v_store(v28_LLVMRelocationIteratorRef, arg0);
-    v57 = LLVMFunctionType(v5_uint64_t, arg0, 1, 0);
+    v57 = v_function_type(v5_uint64_t, arg0, 1, false);
     v_add_symbol_type("LLVMGetRelocationType", v57);
 
     v_store(v0_LLVMObjectFileRef, arg0);
-    v58 = LLVMFunctionType(v4_LLVMSectionIteratorRef, arg0, 1, 0);
+    v58 = v_function_type(v4_LLVMSectionIteratorRef, arg0, 1, false);
     v_add_symbol_type("LLVMGetSections", v58);
 
     v_store(v28_LLVMRelocationIteratorRef, arg0);
-    v59 = LLVMFunctionType(v23_void, arg0, 1, 0);
+    v59 = v_function_type(v23_void, arg0, 1, false);
     v_add_symbol_type("LLVMDisposeRelocationIterator", v59);
 
 }

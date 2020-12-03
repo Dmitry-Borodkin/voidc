@@ -4,6 +4,9 @@
 //---------------------------------------------------------------------
 #include "voidc_types.h"
 
+#include "voidc_target.h"
+#include "voidc_dllexport.h"
+
 #include <cstdio>
 #include <cassert>
 #include <algorithm>
@@ -146,7 +149,7 @@ v_type_struct_t::set_body(v_type_t **elts, unsigned count, bool packed)
 {
     assert(is_opaque() && "Struct body already set");
 
-    auto *st = context.get_struct_type(elts, count, packed);
+    auto *st = context.make_struct_type(elts, count, packed);
 
     body_key = st->body_key;
 
@@ -191,7 +194,7 @@ v_type_svector_t::obtain_llvm_type(void) const
 
 
 //---------------------------------------------------------------------
-//- ..
+//- ...
 //---------------------------------------------------------------------
 voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
   : llvm_ctx(ctx),
@@ -204,52 +207,52 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     f64_type (new v_type_f64_t (*this)),
     f128_type(new v_type_f128_t(*this)),
 
-    bool_type     (get_uint_type(1)),
-    char_type     (get_sint_type(8)),
-    short_type    (get_sint_type(16)),
-    int_type      (get_sint_type(8*int_size)),
-    long_type     (get_sint_type(8*long_size)),
-    long_long_type(get_sint_type(64)),
-    intptr_t_type (get_sint_type(8*ptr_size)),
-    size_t_type   (get_uint_type(8*ptr_size)),
-    char32_t_type (get_uint_type(32))
+    bool_type     (make_uint_type(1)),
+    char_type     (make_sint_type(8)),
+    short_type    (make_sint_type(16)),
+    int_type      (make_sint_type(8*int_size)),
+    unsigned_type (make_uint_type(8*int_size)),
+    long_type     (make_sint_type(8*long_size)),
+    long_long_type(make_sint_type(64)),
+    intptr_t_type (make_sint_type(8*ptr_size)),
+    size_t_type   (make_uint_type(8*ptr_size)),
+    char32_t_type (make_uint_type(32)),
+    uint64_t_type (make_uint_type(64))
+{
+}
+
+voidc_types_ctx_t::~voidc_types_ctx_t()
 {
 //  for (auto &it : sint_types)  printf("s: %d, %d\n", it.second->is_signed(), it.second->width());
-//  for (auto &it : uint_types)  printf("s: %d, %d\n", it.second->is_signed(), it.second->width());
+//  for (auto &it : uint_types)  printf("u: %d, %d\n", it.second->is_signed(), it.second->width());
 }
 
 
 //---------------------------------------------------------------------
 v_type_sint_t *
-voidc_types_ctx_t::get_sint_type(unsigned bits)
+voidc_types_ctx_t::make_sint_type(unsigned bits)
 {
     auto [it, nx] = sint_types.try_emplace(bits, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_sint_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_sint_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
 
 v_type_uint_t *
-voidc_types_ctx_t::get_uint_type(unsigned bits)
+voidc_types_ctx_t::make_uint_type(unsigned bits)
 {
     auto [it, nx] = uint_types.try_emplace(bits, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_uint_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_uint_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
 
 
 //---------------------------------------------------------------------
 v_type_function_t *
-voidc_types_ctx_t::get_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_arg)
+voidc_types_ctx_t::make_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_arg)
 {
     const unsigned N = count + 1;
 
@@ -263,108 +266,437 @@ voidc_types_ctx_t::get_function_type(v_type_t *ret, v_type_t **args, unsigned co
 
     auto [it, nx] = function_types.try_emplace(key, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_function_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_function_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
 
 
 //---------------------------------------------------------------------
 v_type_pointer_t *
-voidc_types_ctx_t::get_pointer_type(v_type_t *et, unsigned addr_space)
+voidc_types_ctx_t::make_pointer_type(v_type_t *et, unsigned addr_space)
 {
     v_type_pointer_t::key_t key = { et, addr_space };
 
     auto [it, nx] = pointer_types.try_emplace(key, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_pointer_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_pointer_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
 
 
 //---------------------------------------------------------------------
 v_type_struct_t *
-voidc_types_ctx_t::get_struct_type(const std::string &name)
+voidc_types_ctx_t::make_struct_type(const std::string &name)
 {
     auto [it, nx] = named_struct_types.try_emplace(name, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_struct_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_struct_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
 
 v_type_struct_t *
-voidc_types_ctx_t::get_struct_type(v_type_t **elts, unsigned count, bool packed)
+voidc_types_ctx_t::make_struct_type(v_type_t **elts, unsigned count, bool packed)
 {
     v_type_struct_t::body_key_t key = { {elts, elts+count}, packed };
 
     auto [it, nx] = anon_struct_types.try_emplace(key, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_struct_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_struct_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
 
 
 //---------------------------------------------------------------------
 v_type_array_t *
-voidc_types_ctx_t::get_array_type(v_type_t *et, uint64_t count)
+voidc_types_ctx_t::make_array_type(v_type_t *et, uint64_t count)
 {
     v_type_array_t::key_t key = { et, count };
 
     auto [it, nx] = array_types.try_emplace(key, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_array_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_array_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
 
 
 //---------------------------------------------------------------------
 v_type_fvector_t *
-voidc_types_ctx_t::get_fvector_type(v_type_t *et, unsigned count)
+voidc_types_ctx_t::make_fvector_type(v_type_t *et, unsigned count)
 {
     v_type_fvector_t::key_t key = { et, count };
 
     auto [it, nx] = fvector_types.try_emplace(key, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_fvector_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_fvector_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
 
 v_type_svector_t *
-voidc_types_ctx_t::get_svector_type(v_type_t *et, unsigned count)
+voidc_types_ctx_t::make_svector_type(v_type_t *et, unsigned count)
 {
     v_type_svector_t::key_t key = { et, count };
 
     auto [it, nx] = svector_types.try_emplace(key, nullptr);
 
-    if (nx)
-    {
-        it->second.reset(new v_type_svector_t(*this, it->first));
-    }
+    if (nx) it->second.reset(new v_type_svector_t(*this, it->first));
 
-    return it->second.get();
+    return  it->second.get();
 }
+
+
+//-----------------------------------------------------------------
+//- ...
+//-----------------------------------------------------------------
+void voidc_types_static_initialize(void)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+
+    auto int_type = gctx.int_type;
+    auto int_llvm_type = int_type->llvm_type();
+
+#define DEF(kind) \
+    gctx.constants["v_type_kind_" #kind] = \
+        { int_type, LLVMConstInt(int_llvm_type, v_type_t::k_##kind, 0) };
+
+    DEF(void)
+    DEF(f16)
+    DEF(f32)
+    DEF(f64)
+    DEF(f128)
+    DEF(sint)
+    DEF(uint)
+    DEF(function)
+    DEF(pointer)
+    DEF(struct)
+    DEF(array)
+    DEF(fvector)
+    DEF(svector)
+
+#undef DEF
+}
+
+//-----------------------------------------------------------------
+void voidc_types_static_terminate(void)
+{
+}
+
+
+//---------------------------------------------------------------------
+//- Intrinsics (functions)
+//---------------------------------------------------------------------
+extern "C"
+{
+
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+
+//---------------------------------------------------------------------
+int
+v_type_get_kind(v_type_t *type)
+{
+    return type->kind();
+}
+
+LLVMTypeRef
+v_type_get_llvm_type(v_type_t *type)
+{
+    return type->llvm_type();
+}
+
+v_type_t *
+v_type_get_scalar_type(v_type_t *type)
+{
+    return type->scalar_type();
+}
+
+
+//---------------------------------------------------------------------
+v_type_t *
+v_f16_type(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_f16_type();
+}
+
+v_type_t *
+v_f32_type(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_f32_type();
+}
+
+v_type_t *
+v_f64_type(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_f64_type();
+}
+
+v_type_t *
+v_f128_type(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_f128_type();
+}
+
+bool
+v_type_is_floating_point(v_type_t *type)
+{
+    return type->is_floating_point();
+}
+
+
+//---------------------------------------------------------------------
+v_type_t *
+v_sint_type(unsigned bits)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_sint_type(bits);
+}
+
+v_type_t *
+v_uint_type(unsigned bits)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_uint_type(bits);
+}
+
+bool
+v_type_is_integer(v_type_t *type)
+{
+    return bool(dynamic_cast<v_type_integer_t *>(type));
+}
+
+bool
+v_type_integer_is_signed(v_type_t *type)
+{
+    return static_cast<v_type_integer_t *>(type)->is_signed();
+}
+
+unsigned
+v_type_integer_get_width(v_type_t *type)
+{
+    return static_cast<v_type_integer_t *>(type)->width();
+}
+
+
+//---------------------------------------------------------------------
+v_type_t *
+v_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_arg)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_function_type(ret, args, count, var_arg);
+}
+
+bool
+v_type_is_function(v_type_t *type)
+{
+    return bool(dynamic_cast<v_type_function_t *>(type));
+}
+
+bool
+v_type_function_is_var_arg(v_type_t *type)
+{
+    return static_cast<v_type_function_t *>(type)->is_var_arg();
+}
+
+v_type_t *
+v_type_function_get_return_type(v_type_t *type)
+{
+    return static_cast<v_type_function_t *>(type)->return_type();
+}
+
+unsigned
+v_type_function_get_param_count(v_type_t *type)
+{
+    return static_cast<v_type_function_t *>(type)->param_count();
+}
+
+void
+v_type_function_get_param_types(v_type_t *type, v_type_t **params)
+{
+    auto fp = static_cast<v_type_function_t *>(type);
+
+    std::copy_n(fp->param_types(), fp->param_count(), params);
+}
+
+
+//---------------------------------------------------------------------
+v_type_t *
+v_pointer_type(v_type_t *elt, unsigned addr_space)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_pointer_type(elt, addr_space);
+}
+
+bool
+v_type_is_pointer(v_type_t *type)
+{
+    return bool(dynamic_cast<v_type_pointer_t *>(type));
+}
+
+v_type_t *
+v_type_pointer_get_element_type(v_type_t *type)
+{
+    return static_cast<v_type_pointer_t *>(type)->element_type();
+}
+
+unsigned
+v_type_pointer_get_address_space(v_type_t *type)
+{
+    return static_cast<v_type_pointer_t *>(type)->address_space();
+}
+
+
+//---------------------------------------------------------------------
+v_type_t *
+v_struct_type_named(const char *name)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_struct_type(name);
+}
+
+v_type_t *
+v_struct_type(v_type_t **elts, unsigned count, bool packed)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_struct_type(elts, count, packed);
+}
+
+bool
+v_type_is_struct(v_type_t *type)
+{
+    return bool(dynamic_cast<v_type_struct_t *>(type));
+}
+
+const char *
+v_type_struct_get_name(v_type_t *type)
+{
+    return static_cast<v_type_struct_t *>(type)->name();
+}
+
+bool
+v_type_struct_is_opaque(v_type_t *type)
+{
+    return static_cast<v_type_struct_t *>(type)->is_opaque();
+}
+
+void
+v_type_struct_set_body(v_type_t *type, v_type_t **elts, unsigned count, bool packed)
+{
+    static_cast<v_type_struct_t *>(type)->set_body(elts, count, packed);
+}
+
+unsigned
+v_type_struct_get_element_count(v_type_t *type)
+{
+    return static_cast<v_type_struct_t *>(type)->element_count();
+}
+
+void
+v_type_struct_get_element_types(v_type_t *type, v_type_t **elts)
+{
+    auto sp = static_cast<v_type_struct_t *>(type);
+
+    std::copy_n(sp->element_types(), sp->element_count(), elts);
+}
+
+v_type_t *
+v_type_struct_get_type_at_index(v_type_t *type, unsigned idx)
+{
+    return static_cast<v_type_struct_t *>(type)->element_types()[idx];
+}
+
+
+//---------------------------------------------------------------------
+v_type_t *
+v_array_type(v_type_t *elt, uint64_t count)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_array_type(elt, count);
+}
+
+bool
+v_type_is_array(v_type_t *type)
+{
+    return bool(dynamic_cast<v_type_array_t *>(type));
+}
+
+v_type_t *
+v_type_array_get_element_type(v_type_t *type)
+{
+    return static_cast<v_type_array_t *>(type)->element_type();
+}
+
+uint64_t
+v_type_array_get_length(v_type_t *type)
+{
+    return static_cast<v_type_array_t *>(type)->length();
+}
+
+
+//---------------------------------------------------------------------
+v_type_t *
+v_fvector_type(v_type_t *elt, unsigned count)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_fvector_type(elt, count);
+}
+
+v_type_t *
+v_svector_type(v_type_t *elt, unsigned count)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_svector_type(elt, count);
+}
+
+bool
+v_type_is_vector(v_type_t *type)
+{
+    return bool(dynamic_cast<v_type_vector_t *>(type));
+}
+
+v_type_t *
+v_type_vector_get_element_type(v_type_t *type)
+{
+    return static_cast<v_type_vector_t *>(type)->element_type();
+}
+
+unsigned
+v_type_vector_get_size(v_type_t *type)
+{
+    return static_cast<v_type_vector_t *>(type)->size();
+}
+
+bool
+v_type_vector_is_scalable(v_type_t *type)
+{
+    return static_cast<v_type_vector_t *>(type)->is_scalable();
+}
+
+
+VOIDC_DLLEXPORT_END
+
+//---------------------------------------------------------------------
+}   //- extern "C"
 
 

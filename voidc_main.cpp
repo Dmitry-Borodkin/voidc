@@ -541,9 +541,9 @@ main(int argc, char *argv[])
 
     utility::static_initialize();
 
-    {   auto char_ptr_type = LLVMPointerType(gctx.char_type, 0);
+    {   v_type_t *char_ptr_type = gctx.make_pointer_type(gctx.char_type, 0);
 
-        auto import_f_type = LLVMFunctionType(gctx.void_type, &char_ptr_type, 1, false);
+        v_type_t *import_f_type = gctx.make_function_type(gctx.make_void_type(), &char_ptr_type, 1, false);
 
         gctx.add_symbol_type("v_import",           import_f_type);
         gctx.add_symbol_type("voidc_import",       import_f_type);

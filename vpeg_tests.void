@@ -8,18 +8,21 @@
 
     v_set_module(module);
 
-    arg0 = v_alloca(LLVMTypeRef, 3);
-    arg1 = v_getelementptr(arg0, 1);
-    arg2 = v_getelementptr(arg0, 2);
+    typ0 = v_alloca(v_type_ref, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_util_std_any_ref, arg0);
-    v_store(v_util_std_any_ref, arg1);
-    v_store(size_t,             arg2);
+    bool_ = v_type_get_llvm_type(bool);
+
+    v_store(v_util_std_any_ref, typ0);
+    v_store(v_util_std_any_ref, typ1);
+    v_store(size_t,             typ2);
 
     builder = v_target_get_voidc_builder();
 
-    my_echo_ft = LLVMFunctionType(void, arg0, 3, 0);
-    my_echo_f  = LLVMAddFunction(module, "my_echo_grammar_action", my_echo_ft);
+    my_echo_ft  = v_function_type(void, typ0, 3, false);
+    my_echo_ft_ = v_type_get_llvm_type(my_echo_ft);
+    my_echo_f   = LLVMAddFunction(module, "my_echo_grammar_action", my_echo_ft_);
 
     entry = LLVMAppendBasicBlock(my_echo_f, "entry");
 
@@ -61,9 +64,9 @@
 
     v_store(par0, val0);
 
-    true = LLVMConstInt(bool, 1, 0);
+    true_ = LLVMConstInt(bool_, 1, 0);
 
-    v_store(true, val1);
+    v_store(true_, val1);
 
     LLVMBuildCall(builder, set_value_f, val0, 2, "");
 

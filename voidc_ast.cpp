@@ -232,12 +232,12 @@ v_ast_arg_char_get_char(const ast_argument_ptr_t *ptr)
 
 //-----------------------------------------------------------------
 void
-v_ast_make_arg_type(ast_argument_ptr_t *ret, LLVMTypeRef type)
+v_ast_make_arg_type(ast_argument_ptr_t *ret, v_type_t *type)
 {
     *ret = std::make_shared<const ast_arg_type_t>(type);
 }
 
-LLVMTypeRef
+v_type_t *
 v_ast_arg_type_get_type(const ast_argument_ptr_t *ptr)
 {
     auto &r = dynamic_cast<const ast_arg_type_t &>(**ptr);
@@ -392,15 +392,13 @@ v_ast_static_initialize(void)
 
     auto &gctx = *voidc_global_ctx_t::voidc;
 
-    auto content_type = LLVMArrayType(gctx.intptr_t_type, sizeof(ast_base_ptr_t)/sizeof(intptr_t));
-
-    auto gc = LLVMGetGlobalContext();
+    v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(ast_base_ptr_t)/sizeof(intptr_t));
 
 #define DEF(name) \
     static_assert(sizeof(ast_base_ptr_t) == sizeof(ast_##name##_ptr_t)); \
-    auto opaque_##name##_ptr_type = LLVMStructCreateNamed(gc, "struct.v_ast_opaque_" #name "_ptr"); \
-    LLVMStructSetBody(opaque_##name##_ptr_type, &content_type, 1, false); \
-    gctx.add_symbol("v_ast_opaque_" #name "_ptr", gctx.LLVMOpaqueType_type, (void *)opaque_##name##_ptr_type);
+    auto opaque_##name##_ptr_type = gctx.make_struct_type("struct.v_ast_opaque_" #name "_ptr"); \
+    opaque_##name##_ptr_type->set_body(&content_type, 1, false); \
+    gctx.add_symbol("v_ast_opaque_" #name "_ptr", gctx.opaque_type_type, (void *)opaque_##name##_ptr_type);
 
     DEF(base)
 

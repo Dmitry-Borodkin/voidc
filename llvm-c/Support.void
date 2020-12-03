@@ -10,39 +10,40 @@
 
 //- Functions ----------------------------------------------
 {
-    arg0 = v_alloca(LLVMTypeRef, 3);
+    arg0 = v_alloca(v_type_ref, 10);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
     v0_char = v_find_type("char");
-    v1 = LLVMPointerType(v0_char, 0);
+    v1 = v_pointer_type(v0_char, 0);
     v_store(v1, arg0);
     v2_LLVMBool = v_find_type("LLVMBool");
-    v3 = LLVMFunctionType(v2_LLVMBool, arg0, 1, 0);
+    v3 = v_function_type(v2_LLVMBool, arg0, 1, false);
     v_add_symbol_type("LLVMLoadLibraryPermanently", v3);
 
     v4_int = v_find_type("int");
     v_store(v4_int, arg0);
-    v5 = LLVMPointerType(v0_char, 0);
-    v6 = LLVMPointerType(v5, 0);
+    v5 = v_pointer_type(v0_char, 0);
+    v6 = v_pointer_type(v5, 0);
     v_store(v6, arg1);
-    v7 = LLVMPointerType(v0_char, 0);
+    v7 = v_pointer_type(v0_char, 0);
     v_store(v7, arg2);
     v8_void = v_find_type("void");
-    v9 = LLVMFunctionType(v8_void, arg0, 3, 0);
+    v9 = v_function_type(v8_void, arg0, 3, false);
     v_add_symbol_type("LLVMParseCommandLineOptions", v9);
 
-    v10 = LLVMPointerType(v0_char, 0);
+    v10 = v_pointer_type(v0_char, 0);
     v_store(v10, arg0);
-    v11_void_ptr = v_find_type("void_ptr");
-    v_store(v11_void_ptr, arg1);
-    v12 = LLVMFunctionType(v8_void, arg0, 2, 0);
+    v11 = v_pointer_type(v8_void, 0);
+    v_store(v11, arg1);
+    v12 = v_function_type(v8_void, arg0, 2, false);
     v_add_symbol_type("LLVMAddSymbol", v12);
 
-    v13 = LLVMPointerType(v0_char, 0);
-    v_store(v13, arg0);
-    v14 = LLVMFunctionType(v11_void_ptr, arg0, 1, 0);
-    v_add_symbol_type("LLVMSearchForAddressOfSymbol", v14);
+    v13 = v_pointer_type(v8_void, 0);
+    v14 = v_pointer_type(v0_char, 0);
+    v_store(v14, arg0);
+    v15 = v_function_type(v13, arg0, 1, false);
+    v_add_symbol_type("LLVMSearchForAddressOfSymbol", v15);
 
 }
 

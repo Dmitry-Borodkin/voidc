@@ -10,50 +10,42 @@
     v_import("TargetMachine.void");
 }
 
-//- Known types --------------------------------------------
-{
-    c = v_target_get_llvm_ctx();
-
-    v = LLVMInt64TypeInContext(c);
-    v_add_local_symbol("uint64_t", LLVMOpaqueType, v);
-}
-
 //- Types --------------------------------------------------
 {
-    arg0 = v_alloca(LLVMTypeRef, 2);
+    arg0 = v_alloca(v_type_ref, 2);
     arg1 = v_getelementptr(arg0, 1);
 
-    v0 = v_target_get_llvm_ctx();
-
-    v1 = LLVMStructCreateNamed(v0, "struct.LLVMOrcOpaqueJITStack");
-    v2 = LLVMPointerType(v1, 0);
-    v_store(v2, arg0);
-    v3_void_ptr = v_find_type("void_ptr");
-    v_store(v3_void_ptr, arg1);
+    v0 = v_struct_type_named("struct.LLVMOrcOpaqueJITStack");
+    v1 = v_pointer_type(v0, 0);
+    v_store(v1, arg0);
+    v2_void = v_find_type("void");
+    v3 = v_pointer_type(v2_void, 0);
+    v_store(v3, arg1);
     v4_uint64_t = v_find_type("uint64_t");
-    v5 = LLVMFunctionType(v4_uint64_t, arg0, 2, 0);
-    v6 = LLVMPointerType(v5, 0);
-    v_add_symbol("LLVMOrcLazyCompileCallbackFn", LLVMOpaqueType, v6);
+    v5 = v_function_type(v4_uint64_t, arg0, 2, false);
+    v6 = v_pointer_type(v5, 0);
+    v_add_symbol("LLVMOrcLazyCompileCallbackFn", voidc_opaque_type, v6);
 
-    v_add_symbol("LLVMOrcModuleHandle", LLVMOpaqueType, v4_uint64_t);
+    v_add_symbol("LLVMOrcModuleHandle", voidc_opaque_type, v4_uint64_t);
 
-    v_add_symbol("LLVMOrcTargetAddress", LLVMOpaqueType, v4_uint64_t);
+    v_add_symbol("LLVMOrcTargetAddress", voidc_opaque_type, v4_uint64_t);
 
     v7_char = v_find_type("char");
-    v8 = LLVMPointerType(v7_char, 0);
+    v8 = v_pointer_type(v7_char, 0);
     v_store(v8, arg0);
-    v_store(v3_void_ptr, arg1);
-    v9 = LLVMFunctionType(v4_uint64_t, arg0, 2, 0);
-    v10 = LLVMPointerType(v9, 0);
-    v_add_symbol("LLVMOrcSymbolResolverFn", LLVMOpaqueType, v10);
+    v9 = v_pointer_type(v2_void, 0);
+    v_store(v9, arg1);
+    v10 = v_function_type(v4_uint64_t, arg0, 2, false);
+    v11 = v_pointer_type(v10, 0);
+    v_add_symbol("LLVMOrcSymbolResolverFn", voidc_opaque_type, v11);
 
-    v_add_symbol("LLVMOrcJITStackRef", LLVMOpaqueType, v2);
+    v_add_symbol("LLVMOrcJITStackRef", voidc_opaque_type, v1);
 
 }
 
 //- Functions ----------------------------------------------
 {
-    arg0 = v_alloca(LLVMTypeRef, 5);
+    arg0 = v_alloca(v_type_ref, 5);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
@@ -64,121 +56,124 @@
     v1_LLVMJITEventListenerRef = v_find_type("LLVMJITEventListenerRef");
     v_store(v1_LLVMJITEventListenerRef, arg1);
     v2_void = v_find_type("void");
-    v3 = LLVMFunctionType(v2_void, arg0, 2, 0);
+    v3 = v_function_type(v2_void, arg0, 2, false);
     v_add_symbol_type("LLVMOrcUnregisterJITEventListener", v3);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
     v4_LLVMOrcModuleHandle = v_find_type("LLVMOrcModuleHandle");
-    v5 = LLVMPointerType(v4_LLVMOrcModuleHandle, 0);
+    v5 = v_pointer_type(v4_LLVMOrcModuleHandle, 0);
     v_store(v5, arg1);
     v6_LLVMMemoryBufferRef = v_find_type("LLVMMemoryBufferRef");
     v_store(v6_LLVMMemoryBufferRef, arg2);
     v7_LLVMOrcSymbolResolverFn = v_find_type("LLVMOrcSymbolResolverFn");
     v_store(v7_LLVMOrcSymbolResolverFn, arg3);
-    v8_void_ptr = v_find_type("void_ptr");
-    v_store(v8_void_ptr, arg4);
+    v8 = v_pointer_type(v2_void, 0);
+    v_store(v8, arg4);
     v9_LLVMErrorRef = v_find_type("LLVMErrorRef");
-    v10 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 5, 0);
+    v10 = v_function_type(v9_LLVMErrorRef, arg0, 5, false);
     v_add_symbol_type("LLVMOrcAddObjectFile", v10);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
     v11_char = v_find_type("char");
-    v12 = LLVMPointerType(v11_char, 0);
+    v12 = v_pointer_type(v11_char, 0);
     v_store(v12, arg1);
     v13_LLVMOrcTargetAddress = v_find_type("LLVMOrcTargetAddress");
     v_store(v13_LLVMOrcTargetAddress, arg2);
-    v14 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 3, 0);
+    v14 = v_function_type(v9_LLVMErrorRef, arg0, 3, false);
     v_add_symbol_type("LLVMOrcCreateIndirectStub", v14);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v15 = LLVMPointerType(v4_LLVMOrcModuleHandle, 0);
+    v15 = v_pointer_type(v4_LLVMOrcModuleHandle, 0);
     v_store(v15, arg1);
     v16_LLVMModuleRef = v_find_type("LLVMModuleRef");
     v_store(v16_LLVMModuleRef, arg2);
     v_store(v7_LLVMOrcSymbolResolverFn, arg3);
-    v_store(v8_void_ptr, arg4);
-    v17 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 5, 0);
-    v_add_symbol_type("LLVMOrcAddLazilyCompiledIR", v17);
+    v17 = v_pointer_type(v2_void, 0);
+    v_store(v17, arg4);
+    v18 = v_function_type(v9_LLVMErrorRef, arg0, 5, false);
+    v_add_symbol_type("LLVMOrcAddLazilyCompiledIR", v18);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v18 = LLVMPointerType(v11_char, 0);
-    v_store(v18, arg1);
+    v19 = v_pointer_type(v11_char, 0);
+    v_store(v19, arg1);
     v_store(v13_LLVMOrcTargetAddress, arg2);
-    v19 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 3, 0);
-    v_add_symbol_type("LLVMOrcSetIndirectStubPointer", v19);
+    v20 = v_function_type(v9_LLVMErrorRef, arg0, 3, false);
+    v_add_symbol_type("LLVMOrcSetIndirectStubPointer", v20);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v20 = LLVMPointerType(v13_LLVMOrcTargetAddress, 0);
-    v_store(v20, arg1);
-    v21 = LLVMPointerType(v11_char, 0);
-    v_store(v21, arg2);
-    v22 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 3, 0);
-    v_add_symbol_type("LLVMOrcGetSymbolAddress", v22);
+    v21 = v_pointer_type(v13_LLVMOrcTargetAddress, 0);
+    v_store(v21, arg1);
+    v22 = v_pointer_type(v11_char, 0);
+    v_store(v22, arg2);
+    v23 = v_function_type(v9_LLVMErrorRef, arg0, 3, false);
+    v_add_symbol_type("LLVMOrcGetSymbolAddress", v23);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v23 = LLVMPointerType(v4_LLVMOrcModuleHandle, 0);
-    v_store(v23, arg1);
+    v24 = v_pointer_type(v4_LLVMOrcModuleHandle, 0);
+    v_store(v24, arg1);
     v_store(v16_LLVMModuleRef, arg2);
     v_store(v7_LLVMOrcSymbolResolverFn, arg3);
-    v_store(v8_void_ptr, arg4);
-    v24 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 5, 0);
-    v_add_symbol_type("LLVMOrcAddEagerlyCompiledIR", v24);
+    v25 = v_pointer_type(v2_void, 0);
+    v_store(v25, arg4);
+    v26 = v_function_type(v9_LLVMErrorRef, arg0, 5, false);
+    v_add_symbol_type("LLVMOrcAddEagerlyCompiledIR", v26);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v25 = LLVMPointerType(v13_LLVMOrcTargetAddress, 0);
-    v_store(v25, arg1);
+    v27 = v_pointer_type(v13_LLVMOrcTargetAddress, 0);
+    v_store(v27, arg1);
     v_store(v4_LLVMOrcModuleHandle, arg2);
-    v26 = LLVMPointerType(v11_char, 0);
-    v_store(v26, arg3);
-    v27 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 4, 0);
-    v_add_symbol_type("LLVMOrcGetSymbolAddressIn", v27);
+    v28 = v_pointer_type(v11_char, 0);
+    v_store(v28, arg3);
+    v29 = v_function_type(v9_LLVMErrorRef, arg0, 4, false);
+    v_add_symbol_type("LLVMOrcGetSymbolAddressIn", v29);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v28 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 1, 0);
-    v_add_symbol_type("LLVMOrcDisposeInstance", v28);
+    v30 = v_function_type(v9_LLVMErrorRef, arg0, 1, false);
+    v_add_symbol_type("LLVMOrcDisposeInstance", v30);
 
-    v29 = LLVMPointerType(v11_char, 0);
-    v_store(v29, arg0);
-    v30 = LLVMFunctionType(v2_void, arg0, 1, 0);
-    v_add_symbol_type("LLVMOrcDisposeMangledSymbol", v30);
+    v31 = v_pointer_type(v11_char, 0);
+    v_store(v31, arg0);
+    v32 = v_function_type(v2_void, arg0, 1, false);
+    v_add_symbol_type("LLVMOrcDisposeMangledSymbol", v32);
 
-    v31 = LLVMPointerType(v11_char, 0);
+    v33 = v_pointer_type(v11_char, 0);
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v32 = LLVMFunctionType(v31, arg0, 1, 0);
-    v_add_symbol_type("LLVMOrcGetErrorMsg", v32);
+    v34 = v_function_type(v33, arg0, 1, false);
+    v_add_symbol_type("LLVMOrcGetErrorMsg", v34);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v33 = LLVMPointerType(v11_char, 0);
-    v34 = LLVMPointerType(v33, 0);
-    v_store(v34, arg1);
-    v35 = LLVMPointerType(v11_char, 0);
-    v_store(v35, arg2);
-    v36 = LLVMFunctionType(v2_void, arg0, 3, 0);
-    v_add_symbol_type("LLVMOrcGetMangledSymbol", v36);
+    v35 = v_pointer_type(v11_char, 0);
+    v36 = v_pointer_type(v35, 0);
+    v_store(v36, arg1);
+    v37 = v_pointer_type(v11_char, 0);
+    v_store(v37, arg2);
+    v38 = v_function_type(v2_void, arg0, 3, false);
+    v_add_symbol_type("LLVMOrcGetMangledSymbol", v38);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
     v_store(v1_LLVMJITEventListenerRef, arg1);
-    v37 = LLVMFunctionType(v2_void, arg0, 2, 0);
-    v_add_symbol_type("LLVMOrcRegisterJITEventListener", v37);
+    v39 = v_function_type(v2_void, arg0, 2, false);
+    v_add_symbol_type("LLVMOrcRegisterJITEventListener", v39);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
     v_store(v4_LLVMOrcModuleHandle, arg1);
-    v38 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 2, 0);
-    v_add_symbol_type("LLVMOrcRemoveModule", v38);
+    v40 = v_function_type(v9_LLVMErrorRef, arg0, 2, false);
+    v_add_symbol_type("LLVMOrcRemoveModule", v40);
 
-    v39_LLVMTargetMachineRef = v_find_type("LLVMTargetMachineRef");
-    v_store(v39_LLVMTargetMachineRef, arg0);
-    v40 = LLVMFunctionType(v0_LLVMOrcJITStackRef, arg0, 1, 0);
-    v_add_symbol_type("LLVMOrcCreateInstance", v40);
+    v41_LLVMTargetMachineRef = v_find_type("LLVMTargetMachineRef");
+    v_store(v41_LLVMTargetMachineRef, arg0);
+    v42 = v_function_type(v0_LLVMOrcJITStackRef, arg0, 1, false);
+    v_add_symbol_type("LLVMOrcCreateInstance", v42);
 
     v_store(v0_LLVMOrcJITStackRef, arg0);
-    v41 = LLVMPointerType(v13_LLVMOrcTargetAddress, 0);
-    v_store(v41, arg1);
-    v42_LLVMOrcLazyCompileCallbackFn = v_find_type("LLVMOrcLazyCompileCallbackFn");
-    v_store(v42_LLVMOrcLazyCompileCallbackFn, arg2);
-    v_store(v8_void_ptr, arg3);
-    v43 = LLVMFunctionType(v9_LLVMErrorRef, arg0, 4, 0);
-    v_add_symbol_type("LLVMOrcCreateLazyCompileCallback", v43);
+    v43 = v_pointer_type(v13_LLVMOrcTargetAddress, 0);
+    v_store(v43, arg1);
+    v44_LLVMOrcLazyCompileCallbackFn = v_find_type("LLVMOrcLazyCompileCallbackFn");
+    v_store(v44_LLVMOrcLazyCompileCallbackFn, arg2);
+    v45 = v_pointer_type(v2_void, 0);
+    v_store(v45, arg3);
+    v46 = v_function_type(v9_LLVMErrorRef, arg0, 4, false);
+    v_add_symbol_type("LLVMOrcCreateLazyCompileCallback", v46);
 
 }
 

@@ -4,30 +4,30 @@
 //---------------------------------------------------------------------
 {   voidc_guard_import("voidc_quark.void"); }
 
-{   v_import("llvm-c/Core.void"); }
+{   v_import("voidc_types.void"); }
 
 
 //---------------------------------------------------------------------
-{   quark_t = LLVMInt32Type();      //- Sic!
+{   quark_t = v_uint_type(32);      //- Sic!
 
-    v_add_symbol("v_quark_t", LLVMOpaqueType, quark_t);
+    v_add_symbol("v_quark_t", voidc_opaque_type, quark_t);
 }
 
 
 //---------------------------------------------------------------------
-{   char_ptr = LLVMPointerType(char, 0);
+{   char_ptr = v_pointer_type(char, 0);
 
-    typ = v_alloca(LLVMTypeRef);
+    typ = v_alloca(v_type_ref);
 
     v_store(char_ptr, typ);
 
-    fun_t = LLVMFunctionType(v_quark_t, typ, 1, 0);
-    v_add_symbol_type("v_quark_from_string", fun_t);
+    ft = v_function_type(v_quark_t, typ, 1, false);
+    v_add_symbol_type("v_quark_from_string", ft);
 
     v_store(v_quark_t, typ);
 
-    fun_t = LLVMFunctionType(char_ptr, typ, 1, 0);
-    v_add_symbol_type("v_quark_to_string", fun_t);
+    ft = v_function_type(char_ptr, typ, 1, 0);
+    v_add_symbol_type("v_quark_to_string", ft);
 }
 
 

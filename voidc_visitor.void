@@ -11,13 +11,13 @@
 {   v_util_register_itcmep_impl(voidc_opaque_visitor_ptr, "voidc", "visitor");
 }
 
-{   visitor_ref = LLVMPointerType(voidc_opaque_visitor_ptr, 0);
+{   visitor_ref = v_pointer_type(voidc_opaque_visitor_ptr, 0);
 
-    v_add_symbol("voidc_visitor_ref", LLVMOpaqueType, visitor_ref);
+    v_add_symbol("voidc_visitor_ref", voidc_opaque_type, visitor_ref);
 }
 
 
-{   arg0 = v_alloca(LLVMTypeRef, 4);
+{   arg0 = v_alloca(v_type_ref, 4);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
@@ -25,13 +25,15 @@
 
     v_store(voidc_visitor_ref, arg0);
 
-    ft = LLVMFunctionType(void, arg0, 1, 0);
+    ft = v_function_type(void, arg0, 1, false);
     v_add_symbol_type("voidc_make_visitor", ft);
 
 
     v_store(v_quark_t, arg1);
 
-    ft = LLVMFunctionType(void_ptr, arg0, 2, 0);
+    void_ptr = v_pointer_type(void, 0);
+
+    ft = v_function_type(void_ptr, arg0, 2, false);
     v_add_symbol_type("voidc_visitor_get_void_method", ft);
 
 
@@ -39,7 +41,7 @@
     v_store(v_quark_t,         arg2);
     v_store(void_ptr,          arg3);
 
-    ft = LLVMFunctionType(void, arg0, 4, 0);
+    ft = v_function_type(void, arg0, 4, false);
     v_add_symbol_type("voidc_visitor_set_void_method", ft);
 }
 

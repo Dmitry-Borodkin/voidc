@@ -5,6 +5,7 @@
 #ifndef VOIDC_AST_H
 #define VOIDC_AST_H
 
+#include "voidc_types.h"
 #include "voidc_visitor.h"
 #include "voidc_dllexport.h"
 
@@ -13,8 +14,6 @@
 #include <cstdio>
 
 #include <immer/vector.hpp>
-
-#include <llvm-c/Types.h>
 
 
 //-----------------------------------------------------------------
@@ -50,8 +49,6 @@ VOIDC_DLLEXPORT_END
 //---------------------------------------------------------------------
 //- AST classes
 //---------------------------------------------------------------------
-class compile_ctx_t;
-
 struct ast_base_t
 {
     virtual ~ast_base_t() = default;
@@ -328,14 +325,14 @@ public:
 //---------------------------------------------------------------------
 struct ast_arg_type_t : public ast_argument_t
 {
-    const LLVMTypeRef type;
+    v_type_t * const type;
 
-    explicit ast_arg_type_t(LLVMTypeRef _type)
+    explicit ast_arg_type_t(v_type_t *_type)
       : type(_type)
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, LLVMTypeRef type);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, v_type_t *type);
 
     void accept(const visitor_ptr_t &visitor) const override
     {

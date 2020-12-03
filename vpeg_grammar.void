@@ -10,76 +10,69 @@
 {   v_util_register_itcmep_impl(v_peg_opaque_grammar_ptr, "v_peg", "grammar");
 }
 
-{   grammar_ref = LLVMPointerType(v_peg_opaque_grammar_ptr, 0);
+{   grammar_ref = v_pointer_type(v_peg_opaque_grammar_ptr, 0);
 
-    v_add_symbol("v_peg_grammar_ref", LLVMOpaqueType, grammar_ref);
+    v_add_symbol("v_peg_grammar_ref", voidc_opaque_type, grammar_ref);
 }
 
-{   arg0 = v_alloca(LLVMTypeRef, 5);
-    arg1 = v_getelementptr(arg0, 1);
-    arg2 = v_getelementptr(arg0, 2);
-    arg3 = v_getelementptr(arg0, 3);
-    arg4 = v_getelementptr(arg0, 4);
+{   typ0 = v_alloca(v_type_ref, 5);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
 
-    char_ptr = LLVMPointerType(char, 0);
-    int_ptr  = LLVMPointerType(int, 0);
+    char_ptr = v_pointer_type(char, 0);
+    int_ptr  = v_pointer_type(int, 0);
 
-    v_store(v_peg_grammar_ref, arg0);
+    v_store(v_peg_grammar_ref, typ0);
 
-    fun_t = LLVMFunctionType(void, arg0, 1, 0);
+    ft = v_function_type(void, typ0, 1, false);
+    v_add_symbol_type("v_peg_make_grammar", ft);
 
-    v_add_symbol_type("v_peg_make_grammar", fun_t);
+    v_store(char_ptr,          typ1);
+    v_store(v_peg_parser_ref,  typ2);
+    v_store(int_ptr,           typ3);
 
-    v_store(char_ptr,          arg1);
-    v_store(v_peg_parser_ref,  arg2);
-    v_store(int_ptr,           arg3);
+    ft = v_function_type(void, typ0, 4, false);
+    v_add_symbol_type("v_peg_grammar_get_parser", ft);
 
-    fun_t = LLVMFunctionType(void, arg0, 4, 0);
+    v_store(v_peg_grammar_ref, typ1);
+    v_store(char_ptr,          typ2);
+    v_store(v_peg_parser_ref,  typ3);
+    v_store(int,               typ4);
 
-    v_add_symbol_type("v_peg_grammar_get_parser", fun_t);
+    ft = v_function_type(void, typ0, 5, false);
+    v_add_symbol_type("v_peg_grammar_set_parser", ft);
 
-    v_store(v_peg_grammar_ref, arg1);
-    v_store(char_ptr,          arg2);
-    v_store(v_peg_parser_ref,  arg3);
-    v_store(int,               arg4);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_peg_grammar_erase_parser", ft);
 
-    fun_t = LLVMFunctionType(void, arg0, 5, 0);
+    std_any_ref = v_pointer_type(v_util_opaque_std_any, 0);
 
-    v_add_symbol_type("v_peg_grammar_set_parser", fun_t);
+    v_store(std_any_ref, typ0);
+    v_store(std_any_ref, typ1);
+    v_store(size_t,      typ2);
 
-    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+    grammar_action_ft        = v_function_type(void, typ0, 3, false);
+    grammar_action_fun_ptr_t = v_pointer_type(grammar_action_ft, 0);
 
-    v_add_symbol_type("v_peg_grammar_erase_parser", fun_t);
+    v_add_symbol("v_peg_grammar_action_ft", voidc_opaque_type, grammar_action_ft);
 
-    std_any_ref = LLVMPointerType(v_util_opaque_std_any, 0);
+    v_store(v_peg_grammar_ref, typ0);
+    v_store(char_ptr,          typ1);
 
-    v_store(std_any_ref, arg0);
-    v_store(std_any_ref, arg1);
-    v_store(size_t,      arg2);
+    ft = v_function_type(grammar_action_fun_ptr_t, typ0, 2, false);
+    v_add_symbol_type("v_peg_grammar_get_action", ft);
 
-    grammar_action_fun_t     = LLVMFunctionType(void, arg0, 3, 0);
-    grammar_action_fun_ptr_t = LLVMPointerType(grammar_action_fun_t, 0);
+    v_store(v_peg_grammar_ref,        typ1);
+    v_store(char_ptr,                 typ2);
+    v_store(grammar_action_fun_ptr_t, typ3);
 
-    v_add_symbol("v_peg_grammar_action_fun_t", LLVMOpaqueType, grammar_action_fun_t);
+    ft = v_function_type(void, typ0, 4, false);
+    v_add_symbol_type("v_peg_grammar_set_action", ft);
 
-    v_store(v_peg_grammar_ref, arg0);
-    v_store(char_ptr,          arg1);
-
-    fun_t = LLVMFunctionType(grammar_action_fun_ptr_t, arg0, 2, 0);
-
-    v_add_symbol_type("v_peg_grammar_get_action", fun_t);
-
-    v_store(v_peg_grammar_ref,        arg1);
-    v_store(char_ptr,                 arg2);
-    v_store(grammar_action_fun_ptr_t, arg3);
-
-    fun_t = LLVMFunctionType(void, arg0, 4, 0);
-
-    v_add_symbol_type("v_peg_grammar_set_action", fun_t);
-
-    fun_t = LLVMFunctionType(void, arg0, 3, 0);
-
-    v_add_symbol_type("v_peg_grammar_erase_action", fun_t);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_peg_grammar_erase_action", ft);
 }
 
 

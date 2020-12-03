@@ -5,6 +5,7 @@
 #include "voidc_util.h"
 
 #include "voidc_dllexport.h"
+#include "voidc_types.h"
 #include "voidc_target.h"
 
 #include <cassert>
@@ -15,7 +16,7 @@
 
 
 //---------------------------------------------------------------------
-using v_util_function_dict_t = std::map<LLVMTypeRef, std::string>;
+using v_util_function_dict_t = std::map<v_type_t *, std::string>;
 
 extern "C"
 {
@@ -65,12 +66,12 @@ void v_init_term_helper(const visitor_ptr_t *vis,
 
     args->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
+    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
     const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
+    v_type_t    *ft = nullptr;
 
     if (!lctx.obtain_function(fun, ft, f))
     {
@@ -79,17 +80,15 @@ void v_init_term_helper(const visitor_ptr_t *vis,
 
     if (args->data.size() == 1)
     {
-        auto n = LLVMConstInt(gctx.int_type, 1, false);
+        auto n = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
 
         lctx.args.push_back(n);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
-
-    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -127,12 +126,12 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
 
     args->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
+    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
     const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
+    v_type_t    *ft = nullptr;
 
     if (!lctx.obtain_function(fun, ft, f))
     {
@@ -141,17 +140,15 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
 
     if (args->data.size() == 2)
     {
-        auto n = LLVMConstInt(gctx.int_type, 1, false);
+        auto n = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
 
         lctx.args.push_back(n);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
-
-    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -186,12 +183,12 @@ void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     (*args)->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
+    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
     const char *fun = v_util_empty_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
+    v_type_t    *ft = nullptr;
 
     if (!lctx.obtain_function(fun, ft, f))
     {
@@ -203,6 +200,7 @@ void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     lctx.args.clear();
     lctx.arg_types.clear();
 
+    lctx.ret_type  = gctx.bool_type;
     lctx.ret_value = v;
 }
 
@@ -224,12 +222,12 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     (*args)->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
+    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
     const char *fun = v_util_kind_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
+    v_type_t    *ft = nullptr;
 
     if (!lctx.obtain_function(fun, ft, f))
     {
@@ -241,6 +239,7 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     lctx.args.clear();
     lctx.arg_types.clear();
 
+    lctx.ret_type  = gctx.int_type;     //- ?
     lctx.ret_value = v;
 }
 
@@ -269,7 +268,7 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
     const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
+    v_type_t    *ft = nullptr;
 
     if (!lctx.obtain_function(fun, ft, f))
     {
@@ -284,6 +283,17 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
     lctx.arg_types.clear();
 
     lctx.ret_value = v;
+
+    if (&dict == &v_util_std_any_get_value_dict)
+    {
+        lctx.ret_type = type;
+    }
+    else
+    {
+        auto adsp = LLVMGetPointerAddressSpace(LLVMTypeOf(v));
+
+        lctx.ret_type = gctx.make_pointer_type(type, adsp);
+    }
 }
 
 //---------------------------------------------------------------------
@@ -317,24 +327,22 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
 
     (*args)->accept(*vis);
 
-    auto type = LLVMTypeOf(lctx.args[1]);
+    auto type = lctx.arg_types[1];
 
     const char *fun = v_util_std_any_set_value_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
+    v_type_t    *ft = nullptr;
 
     if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
-
-    lctx.ret_value = v;
 }
 
 
@@ -355,24 +363,22 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
 
     (*args)->accept(*vis);
 
-    auto type = LLVMGetElementType(LLVMTypeOf(lctx.args[1]));
+    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[1])->element_type();
 
     const char *fun = v_util_std_any_set_pointer_dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
+    v_type_t    *ft = nullptr;
 
     if (!lctx.obtain_function(fun, ft, f))
     {
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
-
-    lctx.ret_value = v;
 }
 
 
@@ -404,14 +410,12 @@ void static_initialize(void)
 #undef DEF
 
     //-----------------------------------------------------------------
-    auto gc = LLVMGetGlobalContext();
-
 #define DEF(ctype, name) \
     static_assert((sizeof(ctype) % sizeof(intptr_t)) == 0); \
-    auto name##_content_type = LLVMArrayType(gctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
-    auto opaque_##name##_type = LLVMStructCreateNamed(gc, "struct.v_util_opaque_" #name); \
-    LLVMStructSetBody(opaque_##name##_type, &name##_content_type, 1, false); \
-    gctx.add_symbol("v_util_opaque_" #name, gctx.LLVMOpaqueType_type, (void *)opaque_##name##_type);
+    v_type_t *name##_content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
+    auto opaque_##name##_type = gctx.make_struct_type("struct.v_util_opaque_" #name); \
+    opaque_##name##_type->set_body(&name##_content_type, 1, false); \
+    gctx.add_symbol("v_util_opaque_" #name, gctx.opaque_type_type, (void *)opaque_##name##_type);
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)
@@ -451,7 +455,7 @@ bool v_util_empty_function_dict_impl(const v_util_function_dict_t *ptr)
     return ptr->empty();
 }
 
-const char *v_util_function_dict_get(const v_util_function_dict_t *ptr, LLVMTypeRef type)
+const char *v_util_function_dict_get(const v_util_function_dict_t *ptr, v_type_t *type)
 {
     auto it = ptr->find(type);
 
@@ -463,7 +467,7 @@ const char *v_util_function_dict_get(const v_util_function_dict_t *ptr, LLVMType
     return nullptr;
 }
 
-void v_util_function_dict_set(v_util_function_dict_t *ptr, LLVMTypeRef type, const char *fun_name)
+void v_util_function_dict_set(v_util_function_dict_t *ptr, v_type_t *type, const char *fun_name)
 {
     (*ptr)[type] = fun_name;
 }
@@ -559,11 +563,15 @@ VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(c_type, v_util_std_any_set_pointer_##type_
 DEF_VAR(c_type, type_tag) \
 DEF_PTR(c_type, type_tag)
 
-DEF(bool,    bool)
-DEF(int8_t,  int8_t)
-DEF(int16_t, int16_t)
-DEF(int32_t, int32_t)
-DEF(int64_t, int64_t)
+DEF(bool,     bool)
+DEF(int8_t,   int8_t)
+DEF(uint8_t,  uint8_t)
+DEF(int16_t,  int16_t)
+DEF(uint16_t, uint16_t)
+DEF(int32_t,  int32_t)
+DEF(uint32_t, uint32_t)
+DEF(int64_t,  int64_t)
+DEF(uint64_t, uint64_t)
 
 DEF_PTR(std::string, std_string)
 

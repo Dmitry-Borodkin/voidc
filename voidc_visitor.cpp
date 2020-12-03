@@ -5,6 +5,7 @@
 #include "voidc_visitor.h"
 
 #include "voidc_util.h"
+#include "voidc_types.h"
 #include "voidc_target.h"
 #include "voidc_compiler.h"
 
@@ -22,14 +23,12 @@ voidc_visitor_t::static_initialize(void)
 
     auto &gctx = *voidc_global_ctx_t::voidc;
 
-    auto content_type = LLVMArrayType(gctx.intptr_t_type, sizeof(visitor_ptr_t)/sizeof(intptr_t));
+    v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(visitor_ptr_t)/sizeof(intptr_t));
 
-    auto gc = LLVMGetGlobalContext();
+    auto visitor_ptr_type = gctx.make_struct_type("struct.voidc_opaque_visitor_ptr");
 
-    auto visitor_ptr_type = LLVMStructCreateNamed(gc, "struct.voidc_opaque_visitor_ptr");
-
-    LLVMStructSetBody(visitor_ptr_type, &content_type, 1, false);
-    gctx.add_symbol("voidc_opaque_visitor_ptr", gctx.LLVMOpaqueType_type, (void *)visitor_ptr_type);
+    visitor_ptr_type->set_body(&content_type, 1, false);
+    gctx.add_symbol("voidc_opaque_visitor_ptr", gctx.opaque_type_type, (void *)visitor_ptr_type);
 
 
     voidc_compiler = make_voidc_compiler();

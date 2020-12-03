@@ -38,47 +38,29 @@ public:
     std::set<std::string> imports;
 
 public:
-    std::map<std::string, LLVMValueRef> constants;
+    std::map<std::string, std::pair<v_type_t *, LLVMValueRef>> constants;
 
     std::map<std::string, std::string> aliases;
 
 public:
-    virtual void add_symbol(const char *raw_name, LLVMTypeRef type, void *value) = 0;
+    virtual void add_symbol(const char *raw_name, v_type_t *type, void *value) = 0;
 };
 
 
 //---------------------------------------------------------------------
 //- Base Global Context
 //---------------------------------------------------------------------
-class base_global_ctx_t : public base_compile_ctx_t
+class base_global_ctx_t : public base_compile_ctx_t, public voidc_types_ctx_t
 {
 public:
     base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size);
     ~base_global_ctx_t();
 
 public:
-    voidc_types_ctx_t types_ctx;
-
-public:
-    const LLVMContextRef llvm_ctx;      //- Sic!
-    const LLVMModuleRef  llvm_mod;      //- Empty module just for LLVMGetTypeByName calls
-
     const LLVMBuilderRef builder;
 
-public:
-    const LLVMTypeRef void_type;
-    const LLVMTypeRef bool_type;
-    const LLVMTypeRef char_type;
-    const LLVMTypeRef short_type;
-    const LLVMTypeRef int_type;
-    const LLVMTypeRef long_type;
-    const LLVMTypeRef long_long_type;
-    const LLVMTypeRef intptr_t_type;
-    const LLVMTypeRef size_t_type;
-    const LLVMTypeRef char32_t_type;
-
-    const LLVMTypeRef opaque_void_type;
-    const LLVMTypeRef void_ptr_type;
+    v_type_t * const char_ptr_type;
+    v_type_t * const void_ptr_type;
 
 public:
     static int debug_print_module;
@@ -86,12 +68,12 @@ public:
     static void verify_module(LLVMModuleRef module);
 
 public:
-    virtual void add_symbol_type(const char *raw_name, LLVMTypeRef type) = 0;
+    virtual void add_symbol_type(const char *raw_name, v_type_t *type) = 0;
     virtual void add_symbol_value(const char *raw_name, void *value) = 0;
 
-    virtual LLVMTypeRef get_symbol_type(const char *raw_name) = 0;
-    virtual void *      get_symbol_value(const char *raw_name) = 0;
-    virtual void        get_symbol(const char *raw_name, LLVMTypeRef &type, void * &value) = 0;
+    virtual v_type_t *get_symbol_type(const char *raw_name) = 0;
+    virtual void *    get_symbol_value(const char *raw_name) = 0;
+    virtual void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) = 0;
 
 public:
     typedef void (*intrinsic_t)(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args);
@@ -124,31 +106,32 @@ public:
     const std::string check_alias(const std::string &name);
 
 public:
-    virtual LLVMTypeRef find_type(const char *type_name) = 0;           //- Alias checked
+    virtual v_type_t *find_type(const char *type_name) = 0;             //- Alias checked
 
-    virtual LLVMTypeRef find_symbol_type(const char *raw_name) = 0;     //- No alias check!
+    virtual v_type_t *find_symbol_type(const char *raw_name) = 0;       //- No alias check!
 
-    LLVMTypeRef lookup_type(const ast_argument_ptr_t &arg);
+    v_type_t *lookup_type(const ast_argument_ptr_t &arg);
 
 public:
     LLVMModuleRef module = nullptr;
 
-    bool obtain_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value);
+    bool obtain_function(const std::string &fun_name, v_type_t * &fun_type, LLVMValueRef &fun_value);
 
-    LLVMValueRef obtain_identifier(const std::string &name);
+    bool obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value);
 
 public:
-    typedef immer::map<std::string, LLVMValueRef> variables_t;
+    typedef immer::map<std::string, std::pair<v_type_t *, LLVMValueRef>> variables_t;
 
     variables_t vars;
 
     std::forward_list<variables_t> vars_stack;
 
 public:
-    std::vector<LLVMTypeRef>  arg_types;
+    std::vector<v_type_t *>   arg_types;
     std::vector<LLVMValueRef> args;
 
     const char  *ret_name;
+    v_type_t    *ret_type;
     LLVMValueRef ret_value;
 
 private:
@@ -182,24 +165,21 @@ public:
     static void prepare_module_for_jit(LLVMModuleRef module);
 
 public:
-    const LLVMTypeRef LLVMOpaqueType_type;
-    const LLVMTypeRef LLVMTypeRef_type;
-    const LLVMTypeRef LLVMOpaqueContext_type;
-    const LLVMTypeRef LLVMContextRef_type;
+    v_type_t * const opaque_type_type;
 
 public:
-    void add_symbol_type(const char *raw_name, LLVMTypeRef type) override;
+    void add_symbol_type(const char *raw_name, v_type_t *type) override;
     void add_symbol_value(const char *raw_name, void *value) override;
-    void add_symbol(const char *raw_name, LLVMTypeRef type, void *value) override;
+    void add_symbol(const char *raw_name, v_type_t *type, void *value) override;
 
-    LLVMTypeRef get_symbol_type(const char *raw_name) override;
-    void *      get_symbol_value(const char *raw_name) override;
-    void        get_symbol(const char *raw_name, LLVMTypeRef &type, void * &value) override;
+    v_type_t *get_symbol_type(const char *raw_name) override;
+    void *    get_symbol_value(const char *raw_name) override;
+    void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) override;
 
 private:
     friend class voidc_local_ctx_t;
 
-    std::map<std::string, LLVMTypeRef> symbol_types;        //- Mangled names!
+    std::map<std::string, v_type_t *> symbol_types;         //- Mangled names!
 };
 
 //---------------------------------------------------------------------
@@ -212,12 +192,12 @@ public:
     ~voidc_local_ctx_t() = default;
 
 public:
-    void add_symbol(const char *name, LLVMTypeRef type, void *value) override;
+    void add_symbol(const char *name, v_type_t *type, void *value) override;
 
 public:
-    LLVMTypeRef find_type(const char *type_name) override;          //- Alias checked
+    v_type_t *find_type(const char *type_name) override;            //- Alias checked
 
-    LLVMTypeRef find_symbol_type(const char *raw_name) override;    //- No check alias!
+    v_type_t *find_symbol_type(const char *raw_name) override;      //- No check alias!
 
 public:
     static uint64_t resolver(const char *name, void *);
@@ -230,7 +210,7 @@ public:
     LLVMMemoryBufferRef unit_buffer = nullptr;
 
 private:
-    std::map<std::string, std::pair<LLVMTypeRef, void *>> symbols;      //- Mangled names!
+    std::map<std::string, std::pair<v_type_t *, void *>> symbols;       //- Mangled names!
 };
 
 
@@ -244,16 +224,16 @@ public:
     ~target_global_ctx_t();
 
 public:
-    void add_symbol_type(const char *raw_name, LLVMTypeRef type) override;
+    void add_symbol_type(const char *raw_name, v_type_t *type) override;
     void add_symbol_value(const char *raw_name, void *value) override;
-    void add_symbol(const char *raw_name, LLVMTypeRef type, void *value) override;
+    void add_symbol(const char *raw_name, v_type_t *type, void *value) override;
 
-    LLVMTypeRef get_symbol_type(const char *raw_name) override;
-    void *      get_symbol_value(const char *raw_name) override;
-    void        get_symbol(const char *raw_name, LLVMTypeRef &type, void * &value) override;
+    v_type_t *get_symbol_type(const char *raw_name) override;
+    void *    get_symbol_value(const char *raw_name) override;
+    void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) override;
 
 private:
-    std::map<std::string, std::pair<LLVMTypeRef, void *>> symbols;
+    std::map<std::string, std::pair<v_type_t *, void *>> symbols;
 };
 
 //---------------------------------------------------------------------
@@ -266,15 +246,15 @@ public:
     ~target_local_ctx_t() = default;
 
 public:
-    void add_symbol(const char *raw_name, LLVMTypeRef type, void *value) override;
+    void add_symbol(const char *raw_name, v_type_t *type, void *value) override;
 
 public:
-    LLVMTypeRef find_type(const char *type_name) override;          //- Alias checked
+    v_type_t *find_type(const char *type_name) override;            //- Alias checked
 
-    LLVMTypeRef find_symbol_type(const char *raw_name) override;    //- No check alias!
+    v_type_t *find_symbol_type(const char *raw_name) override;      //- No check alias!
 
 private:
-    std::map<std::string, std::pair<LLVMTypeRef, void *>> symbols;
+    std::map<std::string, std::pair<v_type_t *, void *>> symbols;
 };
 
 

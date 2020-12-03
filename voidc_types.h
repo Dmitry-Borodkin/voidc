@@ -19,7 +19,7 @@ class voidc_types_ctx_t;
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Base class for voidc`s own types
 //---------------------------------------------------------------------
 struct v_type_t
 {
@@ -62,7 +62,6 @@ private:
 protected:
     virtual LLVMTypeRef obtain_llvm_type(void) const = 0;
 
-protected:
     const LLVMTypeRef &cached_llvm_type = _cached_llvm_type;
 
 private:
@@ -82,6 +81,9 @@ public:
 
         return ((k == k_f16) || (k == k_f32) || (k == k_f64) || (k == k_f128));
     }
+
+public:
+    virtual v_type_t *scalar_type(void) { return this; }        //- Sic!
 };
 
 //---------------------------------------------------------------------
@@ -96,9 +98,9 @@ struct v_type_tag_t : public T
     }
 
 protected:
-    template<typename... Targs>
-    explicit v_type_tag_t(Targs&&... args)
-      : T(std::forward<Targs>(args)...)
+    template<typename... Types>
+    explicit v_type_tag_t(Types&&... args)
+      : T(std::forward<Types>(args)...)
     {}
 
 private:
@@ -108,7 +110,7 @@ private:
 
 
 //---------------------------------------------------------------------
-//- ...
+//- "Simple" types: "void" and floating points...
 //---------------------------------------------------------------------
 template<v_type_t::kind_t tag>
 class v_type_simple_t : public v_type_tag_t<v_type_t, tag>
@@ -125,6 +127,7 @@ class v_type_simple_t : public v_type_tag_t<v_type_t, tag>
     v_type_simple_t &operator=(const v_type_simple_t &) = delete;
 };
 
+//---------------------------------------------------------------------
 using v_type_void_t = v_type_simple_t<v_type_t::k_void>;
 using v_type_f16_t  = v_type_simple_t<v_type_t::k_f16>;
 using v_type_f32_t  = v_type_simple_t<v_type_t::k_f32>;
@@ -139,7 +142,7 @@ template<> extern LLVMTypeRef v_type_f128_t::obtain_llvm_type(void) const;
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Integer types: signed/unsigned
 //---------------------------------------------------------------------
 class v_type_integer_t : public v_type_t
 {
@@ -179,12 +182,13 @@ class v_type_integer_tag_t : public v_type_tag_t<v_type_integer_t, tag>
     v_type_integer_tag_t &operator=(const v_type_integer_tag_t &) = delete;
 };
 
+//---------------------------------------------------------------------
 using v_type_sint_t = v_type_integer_tag_t<v_type_t::k_sint>;
 using v_type_uint_t = v_type_integer_tag_t<v_type_t::k_uint>;
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Function types
 //---------------------------------------------------------------------
 class v_type_function_t : public v_type_tag_t<v_type_t, v_type_t::k_function>
 {
@@ -216,7 +220,7 @@ public:
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Pointer types: typed(!) and (void *) allowed
 //---------------------------------------------------------------------
 class v_type_pointer_t : public v_type_tag_t<v_type_t, v_type_t::k_pointer>
 {
@@ -244,7 +248,7 @@ public:
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Structure types: named/unnamed...
 //---------------------------------------------------------------------
 class v_type_struct_t : public v_type_tag_t<v_type_t, v_type_t::k_struct>
 {
@@ -287,7 +291,7 @@ public:
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Array types
 //---------------------------------------------------------------------
 class v_type_array_t : public v_type_tag_t<v_type_t, v_type_t::k_array>
 {
@@ -310,12 +314,12 @@ class v_type_array_t : public v_type_tag_t<v_type_t, v_type_t::k_array>
 public:
     v_type_t *element_type(void) const { return key.first; }
 
-    uint64_t element_count(void) const { return key.second; }
+    uint64_t length(void) const { return key.second; }
 };
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Vector types: fixed/scalable
 //---------------------------------------------------------------------
 class v_type_vector_t : public v_type_t
 {
@@ -336,9 +340,12 @@ private:
     v_type_vector_t &operator=(const v_type_vector_t &) = delete;
 
 public:
+    v_type_t *scalar_type(void) override { return key.first; }
+
+public:
     v_type_t *element_type(void) const { return key.first; }
 
-    unsigned element_count(void) const { return key.second; }
+    unsigned size(void) const { return key.second; }
 
     bool is_scalable(void) const { return (kind() == k_svector); }
 };
@@ -359,6 +366,7 @@ class v_type_vector_tag_t : public v_type_tag_t<v_type_vector_t, tag>
     v_type_vector_tag_t &operator=(const v_type_vector_tag_t &) = delete;
 };
 
+//---------------------------------------------------------------------
 using v_type_fvector_t = v_type_vector_tag_t<v_type_t::k_fvector>;
 using v_type_svector_t = v_type_vector_tag_t<v_type_t::k_svector>;
 
@@ -366,43 +374,43 @@ template<> extern LLVMTypeRef v_type_fvector_t::obtain_llvm_type(void) const;
 template<> extern LLVMTypeRef v_type_svector_t::obtain_llvm_type(void) const;
 
 
-//---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
+//=====================================================================
+//- Context of types...
+//=====================================================================
 class voidc_types_ctx_t
 {
 
 public:
     voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size);
-    ~voidc_types_ctx_t() = default;
+    ~voidc_types_ctx_t();
 
 public:
-    const LLVMContextRef llvm_ctx;
-    const LLVMModuleRef  llvm_mod;
+    const LLVMContextRef llvm_ctx;          //- Sic!
+    const LLVMModuleRef  llvm_mod;          //- Empty module just for LLVMGetTypeByName calls
 
     const LLVMTypeRef opaque_void_type;     //- For (void *) ...
 
 public:
-    v_type_void_t *get_void_type(void)  { return void_type.get(); }
+    v_type_void_t *make_void_type(void) { return void_type.get(); }
 
-    v_type_f16_t  *get_f16_type(void)   { return f16_type.get(); }
-    v_type_f32_t  *get_f32_type(void)   { return f32_type.get(); }
-    v_type_f64_t  *get_f64_type(void)   { return f64_type.get(); }
-    v_type_f128_t *get_f128_type(void)  { return f128_type.get(); }
+    v_type_f16_t  *make_f16_type(void)  { return f16_type.get(); }
+    v_type_f32_t  *make_f32_type(void)  { return f32_type.get(); }
+    v_type_f64_t  *make_f64_type(void)  { return f64_type.get(); }
+    v_type_f128_t *make_f128_type(void) { return f128_type.get(); }
 
-    v_type_sint_t *get_sint_type(unsigned bits);
-    v_type_uint_t *get_uint_type(unsigned bits);
+    v_type_sint_t *make_sint_type(unsigned bits);
+    v_type_uint_t *make_uint_type(unsigned bits);
 
-    v_type_function_t *get_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_args=false);
-    v_type_pointer_t  *get_pointer_type(v_type_t *et, unsigned addr_space=0);
+    v_type_function_t *make_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_args=false);
+    v_type_pointer_t  *make_pointer_type(v_type_t *et, unsigned addr_space=0);
 
-    v_type_struct_t *get_struct_type(const std::string &name);
-    v_type_struct_t *get_struct_type(v_type_t **elts, unsigned count, bool packed=false);
+    v_type_struct_t *make_struct_type(const std::string &name);
+    v_type_struct_t *make_struct_type(v_type_t **elts, unsigned count, bool packed=false);
 
-    v_type_array_t *get_array_type(v_type_t *et, uint64_t count);
+    v_type_array_t *make_array_type(v_type_t *et, uint64_t count);
 
-    v_type_fvector_t *get_fvector_type(v_type_t *et, unsigned count);
-    v_type_svector_t *get_svector_type(v_type_t *et, unsigned count);
+    v_type_fvector_t *make_fvector_type(v_type_t *et, unsigned count);
+    v_type_svector_t *make_svector_type(v_type_t *et, unsigned count);
 
 private:
     std::unique_ptr<v_type_void_t> void_type;
@@ -431,12 +439,21 @@ public:
     v_type_sint_t * const char_type;
     v_type_sint_t * const short_type;
     v_type_sint_t * const int_type;
+    v_type_uint_t * const unsigned_type;
     v_type_sint_t * const long_type;
     v_type_sint_t * const long_long_type;
     v_type_sint_t * const intptr_t_type;
     v_type_uint_t * const size_t_type;
     v_type_uint_t * const char32_t_type;
+    v_type_uint_t * const uint64_t_type;
 };
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+void voidc_types_static_initialize(void);
+void voidc_types_static_terminate(void);
 
 
 #endif  //- VOIDC_TYPES_H

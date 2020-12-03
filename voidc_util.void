@@ -5,6 +5,10 @@
 {   voidc_guard_import("voidc_util.void"); }
 
 {   v_import("voidc_internals.void");
+    v_import("voidc_types.void");
+
+    v_import("llvm-c/Core.void");
+    v_import("llvm-c/OrcBindings.void");
 }
 
 
@@ -28,73 +32,65 @@
 //- Function dict utility
 //---------------------------------------------------------------------
 {
-    arg0 = v_alloca(LLVMTypeRef, 3);
-    arg1 = v_getelementptr(arg0, 1);
-    arg2 = v_getelementptr(arg0, 2);
+    typ0 = v_alloca(v_type_ref, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
-    dict_ptr_t = LLVMPointerType(v_util_opaque_function_dict_t, 0);
-    char_ptr_t = LLVMPointerType(char, 0);
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
+    char_ptr = v_pointer_type(char, 0);
 
-    v_store(dict_ptr_t,  arg0);
-    v_store(LLVMTypeRef, arg1);
+    v_store(dict_ptr,   typ0);
+    v_store(v_type_ref, typ1);
 
-    fun_t = LLVMFunctionType(char_ptr_t, arg0, 2, 0);
+    ft = v_function_type(char_ptr, typ0, 2, false);
+    v_add_symbol_type("v_util_function_dict_get", ft);
 
-    v_add_symbol_type("v_util_function_dict_get", fun_t);
+    v_store(char_ptr, typ2);
 
-    v_store(char_ptr_t, arg2);
-
-    fun_t = LLVMFunctionType(void, arg0, 3, 0);
-
-    v_add_symbol_type("v_util_function_dict_set", fun_t);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_util_function_dict_set", ft);
 }
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   std_any_ref = LLVMPointerType(v_util_opaque_std_any, 0);
+{   std_any_ref = v_pointer_type(v_util_opaque_std_any, 0);
+    v_add_symbol("v_util_std_any_ref", voidc_opaque_type, std_any_ref);
 
-    v_add_symbol("v_util_std_any_ref", LLVMOpaqueType, std_any_ref);
-
-    std_string_ref = LLVMPointerType(v_util_opaque_std_string, 0);
-
-    v_add_symbol("v_util_std_string_ref", LLVMOpaqueType, std_string_ref);
+    std_string_ref = v_pointer_type(v_util_opaque_std_string, 0);
+    v_add_symbol("v_util_std_string_ref", voidc_opaque_type, std_string_ref);
 }
 
 
 //---------------------------------------------------------------------
 //- std::string utility
 //---------------------------------------------------------------------
-{   arg0 = v_alloca(LLVMTypeRef, 2);
+{   arg0 = v_alloca(v_type_ref, 2);
     arg1 = v_getelementptr(arg0, 1);
 
     v_store(v_util_std_string_ref, arg0);
 
-    char_ptr_t = LLVMPointerType(char, 0);
+    char_ptr = v_pointer_type(char, 0);
 
-    fun_t = LLVMFunctionType(char_ptr_t, arg0, 1, 0);
+    ft = v_function_type(char_ptr, arg0, 1, false);
+    v_add_symbol_type("v_std_string_get", ft);
 
-    v_add_symbol_type("v_std_string_get", fun_t);
+    v_store(char_ptr, arg1);
 
-    v_store(char_ptr_t, arg1);
-
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_std_string_set",    fun_t);
-    v_add_symbol_type("v_std_string_append", fun_t);
+    ft = v_function_type(void, arg0, 2, false);
+    v_add_symbol_type("v_std_string_set",    ft);
+    v_add_symbol_type("v_std_string_append", ft);
 
     v_store(char32_t, arg1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_std_string_append_char", fun_t);
+    ft = v_function_type(void, arg0, 2, false);
+    v_add_symbol_type("v_std_string_append_char", ft);
 
     v_store(intptr_t, arg1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
-
-    v_add_symbol_type("v_std_string_append_number", fun_t);
+    ft = v_function_type(void, arg0, 2, false);
+    v_add_symbol_type("v_std_string_append_number", ft);
 }
 
 
@@ -103,15 +99,15 @@
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("voidc_util_void_module_N1");
 
-    typ0 = v_alloca(LLVMTypeRef, 2);
+    typ0 = v_alloca(v_type_ref, 2);
     typ1 = v_getelementptr(typ0, 1);
 
     val0 = v_alloca(LLVMValueRef, 3);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    char_ptr = LLVMPointerType(char, 0);
-    dict_ptr = LLVMPointerType(v_util_opaque_function_dict_t, 0);
+    char_ptr = v_pointer_type(char, 0);
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
@@ -129,6 +125,7 @@
     //-     if (fun_value)  v_return(fun_value);
     //-
     //-     fun_type = v_find_symbol_type(fun_name);
+    //-     fun_type = v_type_get_llvm_type(fun_type);
     //-
     //-     fun_value = LLVMAddFunction(module, fun_name, fun_type);
     //-
@@ -137,8 +134,9 @@
     //-----------------------------------------------------------------
     v_store(char_ptr, typ0);
 
-    obtain_fun_ft = LLVMFunctionType(LLVMValueRef, typ0, 1, 0);
-    obtain_fun_f  = LLVMAddFunction(module, "v_obtain_function", obtain_fun_ft);
+    obtain_fun_ft  = v_function_type(LLVMValueRef, typ0, 1, false);
+    obtain_fun_ft_ = v_type_get_llvm_type(obtain_fun_ft);
+    obtain_fun_f   = LLVMAddFunction(module, "v_obtain_function", obtain_fun_ft_);
 
     fun_name = LLVMGetParam(obtain_fun_f, 0);
 
@@ -147,11 +145,13 @@
 
 
     get_module_ft = v_find_symbol_type("v_get_module");
+    get_module_ft = v_type_get_llvm_type(get_module_ft);
     get_module_f  = LLVMAddFunction(module, "v_get_module", get_module_ft);
 
     module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "module_v");
 
     llvm_get_fun_ft = v_find_symbol_type("LLVMGetNamedFunction");
+    llvm_get_fun_ft = v_type_get_llvm_type(llvm_get_fun_ft);
     llvm_get_fun_f  = LLVMAddFunction(module, "LLVMGetNamedFunction", llvm_get_fun_ft);
 
     v_store(module_v, val0);
@@ -175,6 +175,7 @@
     LLVMPositionBuilderAtEnd(builder, else_b);
 
     find_sym_type_ft = v_find_symbol_type("v_find_symbol_type");
+    find_sym_type_ft = v_type_get_llvm_type(find_sym_type_ft);
     find_sym_type_f  = LLVMAddFunction(module, "v_find_symbol_type", find_sym_type_ft);
 
     v_store(fun_name, val0);
@@ -182,7 +183,17 @@
     fun_type = LLVMBuildCall(builder, find_sym_type_f, val0, 1, "fun_type");
 
 
+    get_llvm_type_ft = v_find_symbol_type("v_type_get_llvm_type");
+    get_llvm_type_ft = v_type_get_llvm_type(get_llvm_type_ft);
+    get_llvm_type_f  = LLVMAddFunction(module, "v_type_get_llvm_type", get_llvm_type_ft);
+
+    v_store(fun_type, val0);
+
+    fun_type = LLVMBuildCall(builder, get_llvm_type_f, val0, 1, "fun_type");
+
+
     llvm_add_fun_ft = v_find_symbol_type("LLVMAddFunction");
+    llvm_add_fun_ft = v_type_get_llvm_type(llvm_add_fun_ft);
     llvm_add_fun_f  = LLVMAddFunction(module, "LLVMAddFunction", llvm_add_fun_ft);
 
     v_store(module_v, val0);
@@ -195,9 +206,9 @@
 
 
     //-----------------------------------------------------------------
-    //- LLVMValueRef v_obtain_dict_function(const v_util_opaque_function_dict_t *dict, LLVMTypeRef type);
+    //- LLVMValueRef v_obtain_dict_function(const v_util_opaque_function_dict_t *dict, v_type_ref type);
     //-----------------------------------------------------------------
-    //- fun v_obtain_dict_function(dict: dict_ptr, type: LLVMTypeRef) -> LLVMValueRef
+    //- fun v_obtain_dict_function(dict: dict_ptr, type: v_type_ref) -> LLVMValueRef
     //- {
     //-     dfun_name = v_util_function_dict_get(dict, type);
     //-
@@ -206,11 +217,12 @@
     //-     v_return(fun_value);
     //- }
     //-----------------------------------------------------------------
-    v_store(dict_ptr,    typ0);
-    v_store(LLVMTypeRef, typ1);
+    v_store(dict_ptr,   typ0);
+    v_store(v_type_ref, typ1);
 
-    obtain_dfun_ft = LLVMFunctionType(LLVMValueRef, typ0, 2, 0);
-    obtain_dfun_f  = LLVMAddFunction(module, "v_obtain_dict_function", obtain_dfun_ft);
+    obtain_dfun_ft  = v_function_type(LLVMValueRef, typ0, 2, false);
+    obtain_dfun_ft_ = v_type_get_llvm_type(obtain_dfun_ft);
+    obtain_dfun_f   = LLVMAddFunction(module, "v_obtain_dict_function", obtain_dfun_ft_);
 
     dict_v = LLVMGetParam(obtain_dfun_f, 0);
     type_v = LLVMGetParam(obtain_dfun_f, 1);
@@ -220,6 +232,7 @@
 
 
     dict_get_ft = v_find_symbol_type("v_util_function_dict_get");
+    dict_get_ft = v_type_get_llvm_type(dict_get_ft);
     dict_get_f  = LLVMAddFunction(module, "v_util_function_dict_get", dict_get_ft);
 
     v_store(dict_v, val0);
@@ -246,6 +259,7 @@
     //-     if (var_value)  v_return(var_value);
     //-
     //-     var_type = v_find_symbol_type(var_name);
+    //-     var_type = v_type_get_llvm_type(var_type);
     //-
     //-     var_value = LLVMAddGlobal(module, var_type, var_name);
     //-
@@ -254,8 +268,9 @@
     //-----------------------------------------------------------------
     v_store(char_ptr, typ0);
 
-    obtain_var_ft = LLVMFunctionType(LLVMValueRef, typ0, 1, 0);
-    obtain_var_f  = LLVMAddFunction(module, "v_obtain_global", obtain_var_ft);
+    obtain_var_ft  = v_function_type(LLVMValueRef, typ0, 1, false);
+    obtain_var_ft_ = v_type_get_llvm_type(obtain_var_ft);
+    obtain_var_f   = LLVMAddFunction(module, "v_obtain_global", obtain_var_ft_);
 
     var_name = LLVMGetParam(obtain_var_f, 0);
 
@@ -266,6 +281,7 @@
     module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "module_v");
 
     llvm_get_var_ft = v_find_symbol_type("LLVMGetNamedGlobal");
+    llvm_get_var_ft = v_type_get_llvm_type(llvm_get_var_ft);
     llvm_get_var_f  = LLVMAddFunction(module, "LLVMGetNamedGlobal", llvm_get_var_ft);
 
     v_store(module_v, val0);
@@ -293,7 +309,13 @@
     var_type = LLVMBuildCall(builder, find_sym_type_f, val0, 1, "var_type");
 
 
+    v_store(var_type, val0);
+
+    var_type = LLVMBuildCall(builder, get_llvm_type_f, val0, 1, "var_type");
+
+
     llvm_add_var_ft = v_find_symbol_type("LLVMAddGlobal");
+    llvm_add_var_ft = v_type_get_llvm_type(llvm_add_var_ft);
     llvm_add_var_f  = LLVMAddFunction(module, "LLVMAddGlobal", llvm_add_var_ft);
 
     v_store(module_v, val0);
@@ -334,7 +356,7 @@
 
     v_set_module(module);
 
-    typ0 = v_alloca(LLVMTypeRef, 3);
+    typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -343,24 +365,38 @@
     val2 = v_getelementptr(val0, 2);
     val3 = v_getelementptr(val0, 3);
 
-    n0 = LLVMConstInt(int, 0, 0);
-    n1 = LLVMConstInt(int, 1, 0);
-    n2 = LLVMConstInt(int, 2, 0);
-    n3 = LLVMConstInt(int, 3, 0);
+    int_ = v_type_get_llvm_type(int);
 
-    dict_ptr = LLVMPointerType(v_util_opaque_function_dict_t, 0);
-    char_ptr = LLVMPointerType(char, 0);
+    n0 = LLVMConstInt(int_, 0, 0);
+    n1 = LLVMConstInt(int_, 1, 0);
+    n2 = LLVMConstInt(int_, 2, 0);
+    n3 = LLVMConstInt(int_, 3, 0);
 
-    v_store(LLVMTypeRef, typ0);
-    v_store(char_ptr,    typ1);
-    v_store(dict_ptr,    typ2);
+    v_type_ref_ = v_type_get_llvm_type(v_type_ref);
 
-    register_helper_ft = LLVMFunctionType(void, typ0, 3, 0);
-    register_ft        = LLVMFunctionType(void, typ0, 2, 0);
+    v_util_opaque_std_string_ = v_type_get_llvm_type(v_util_opaque_std_string);
+
+    bool_ = v_type_get_llvm_type(bool);
+
+    false_v = LLVMConstInt(bool_, 0, 0);
+
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
+    char_ptr = v_pointer_type(char, 0);
+
+    v_store(v_type_ref, typ0);
+    v_store(char_ptr,   typ1);
+    v_store(dict_ptr,   typ2);
+
+    register_helper_ft  = v_function_type(void, typ0, 3, false);
+    register_helper_ft_ = v_type_get_llvm_type(register_helper_ft);
+
+    register_ft  = v_function_type(void, typ0, 2, false);
+    register_ft_ = v_type_get_llvm_type(register_ft);
 
     v_store(char_ptr, typ2);
 
-    register_batch_ft = LLVMFunctionType(void, typ0, 3, 0);
+    register_batch_ft  = v_function_type(void, typ0, 3, false);
+    register_batch_ft_ = v_type_get_llvm_type(register_batch_ft);
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
@@ -370,24 +406,24 @@
     //- Init/term registering helper
     //-------------------------------------------------------------
     //- private
-    //- fun init_term_helper(val_t_type: LLVMTypeRef, fun_name: char_ptr, p_dict: dict_ptr)
+    //- fun init_term_helper(val_t_type: v_type_ref, fun_name: char_ptr, p_dict: dict_ptr)
     //- {
-    //-     arg0 = v_alloca(LLVMTypeRef, 2);
+    //-     arg0 = v_alloca(v_type_ref, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
-    //-     val_t_ptr = LLVMPointerType(val_t_type, 0);
+    //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(val_t_ptr, arg0);
     //-     v_store(int,       arg1);
     //-
-    //-     fun_type = LLVMFunctionType(void, arg0, 2, 0);
+    //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
     //-     v_add_symbol_type(fun_name, fun_type);
     //-
     //-     v_util_function_dict_set(p_dict, val_t_type, fun_name);
     //- }
     //-------------------------------------------------------------
-    init_term_helper_f = LLVMAddFunction(module, "init_term_helper", register_helper_ft);
+    init_term_helper_f = LLVMAddFunction(module, "init_term_helper", register_helper_ft_);
     LLVMSetLinkage(init_term_helper_f, LLVMPrivateLinkage);
 
     val_t_type = LLVMGetParam(init_term_helper_f, 0);
@@ -398,7 +434,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n2, "arg0");
 
     v_store(n1, val0);
 
@@ -408,7 +444,7 @@
     v_store(val_t_type, val0);
     v_store(n0,         val1);
 
-    pointer_type_f = v_obtain_function("LLVMPointerType");
+    pointer_type_f = v_obtain_function("v_pointer_type");
 
     val_t_ptr = LLVMBuildCall(builder, pointer_type_f, val0, 2, "val_t_ptr");
 
@@ -426,9 +462,9 @@
     v_store(void_type, val0);
     v_store(arg0,      val1);
     v_store(n2,        val2);
-    v_store(n0,        val3);
+    v_store(false_v,   val3);
 
-    function_type_f = v_obtain_function("LLVMFunctionType");
+    function_type_f = v_obtain_function("v_function_type");
 
     fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
@@ -455,12 +491,12 @@
     //-------------------------------------------------------------
     //- Init registering
     //-------------------------------------------------------------
-    //- fun v_util_register_initialize_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_initialize_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
     //-     init_term_helper(val_t_type, fun_name, v_util_initialize_dict);
     //- }
     //-------------------------------------------------------------
-    init_f = LLVMAddFunction(module, "v_util_register_initialize_impl", register_ft);
+    init_f = LLVMAddFunction(module, "v_util_register_initialize_impl", register_ft_);
 
     val_t_type = LLVMGetParam(init_f, 0);
     fun_name   = LLVMGetParam(init_f, 1);
@@ -483,12 +519,12 @@
     //-------------------------------------------------------------
     //- Terminate registering
     //-------------------------------------------------------------
-    //- fun v_util_register_terminate_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_terminate_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
     //-     init_term_helper(val_t_type, fun_name, v_util_terminate_dict);
     //- }
     //-------------------------------------------------------------
-    terminate_f = LLVMAddFunction(module, "v_util_register_terminate_impl", register_ft);
+    terminate_f = LLVMAddFunction(module, "v_util_register_terminate_impl", register_ft_);
 
     val_t_type = LLVMGetParam(terminate_f, 0);
     fun_name   = LLVMGetParam(terminate_f, 1);
@@ -512,26 +548,26 @@
     //- Copy/move registering helper
     //-------------------------------------------------------------
     //- private
-    //- fun copy_move_helper(val_t_type: LLVMTypeRef, fun_name: char_ptr, p_dict: dict_ptr)
+    //- fun copy_move_helper(val_t_type: v_type_ref, fun_name: char_ptr, p_dict: dict_ptr)
     //- {
-    //-     arg0 = v_alloca(LLVMTypeRef, 3);
+    //-     arg0 = v_alloca(v_type_ref, 3);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-     arg2 = v_getelementptr(arg0, 2);
     //-
-    //-     val_t_ptr = LLVMPointerType(val_t_type, 0);
+    //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(val_t_ptr, arg0);
     //-     v_store(val_t_ptr, arg1);
     //-     v_store(int,       arg2);
     //-
-    //-     fun_type = LLVMFunctionType(void, arg0, 3, 0);
+    //-     fun_type = v_function_type(void, arg0, 3, false);
     //-
     //-     v_add_symbol_type(fun_name, fun_type);
     //-
     //-     v_util_function_dict_set(p_dict, val_t_type, fun_name);
     //- }
     //-------------------------------------------------------------
-    copy_move_helper_f = LLVMAddFunction(module, "copy_move_helper", register_helper_ft);
+    copy_move_helper_f = LLVMAddFunction(module, "copy_move_helper", register_helper_ft_);
     LLVMSetLinkage(copy_move_helper_f, LLVMPrivateLinkage);
 
     val_t_type = LLVMGetParam(copy_move_helper_f, 0);
@@ -542,7 +578,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n3, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n3, "arg0");
 
     v_store(n1, val0);
 
@@ -569,7 +605,7 @@
     v_store(void_type, val0);
     v_store(arg0,      val1);
     v_store(n3,        val2);
-    v_store(n0,        val3);
+    v_store(false_v,   val3);
 
     fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
@@ -592,12 +628,12 @@
     //-------------------------------------------------------------
     //- Copy registering
     //-------------------------------------------------------------
-    //- fun v_util_register_copy_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_copy_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
     //-     copy_move_helper(val_t_type, fun_name, v_util_copy_dict);
     //- }
     //-------------------------------------------------------------
-    copy_f = LLVMAddFunction(module, "v_util_register_copy_impl", register_ft);
+    copy_f = LLVMAddFunction(module, "v_util_register_copy_impl", register_ft_);
 
     val_t_type = LLVMGetParam(copy_f, 0);
     fun_name   = LLVMGetParam(copy_f, 1);
@@ -620,12 +656,12 @@
     //-------------------------------------------------------------
     //- Move registering
     //-------------------------------------------------------------
-    //- fun v_util_register_move_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_move_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
     //-     copy_move_helper(val_t_type, fun_name, v_util_move_dict);
     //- }
     //-------------------------------------------------------------
-    move_f = LLVMAddFunction(module, "v_util_register_move_impl", register_ft);
+    move_f = LLVMAddFunction(module, "v_util_register_move_impl", register_ft_);
 
     val_t_type = LLVMGetParam(move_f, 0);
     fun_name   = LLVMGetParam(move_f, 1);
@@ -648,22 +684,22 @@
     //-------------------------------------------------------------
     //- "Empty" registering
     //-------------------------------------------------------------
-    //- fun v_util_register_empty_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_empty_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(LLVMTypeRef);
+    //-     arg0 = v_alloca(v_type_ref);
     //-
-    //-     val_t_ptr = LLVMPointerType(val_t_type, 0);
+    //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(val_t_ptr, arg0);
     //-
-    //-     fun_type = LLVMFunctionType(bool, arg0, 1, 0);
+    //-     fun_type = v_function_type(bool, arg0, 1, false);
     //-
     //-     v_add_symbol_type(fun_name, fun_type);
     //-
     //-     v_util_function_dict_set(v_util_empty_dict, val_t_type, fun_name);
     //- }
     //-------------------------------------------------------------
-    empty_f = LLVMAddFunction(module, "v_util_register_empty_impl", register_ft);
+    empty_f = LLVMAddFunction(module, "v_util_register_empty_impl", register_ft_);
 
     val_t_type = LLVMGetParam(empty_f, 0);
     fun_name   = LLVMGetParam(empty_f, 1);
@@ -672,7 +708,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildAlloca(builder, LLVMTypeRef, "arg0");
+    arg0 = LLVMBuildAlloca(builder, v_type_ref_, "arg0");
 
 
     v_store(val_t_type, val0);
@@ -689,7 +725,7 @@
     v_store(bool_type, val0);
     v_store(arg0,      val1);
     v_store(n1,        val2);
-    v_store(n0,        val3);
+    v_store(false_v,   val3);
 
     fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
@@ -717,7 +753,7 @@
     //- fun v_util_initialize_std_string_impl(s: v_util_std_string_ref, n: int);
     //- fun v_util_terminate_std_string_impl(s: v_util_std_string_ref, n: int);
     //-
-    //- fun v_util_register_itcme_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_itcme_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     sstr = v_alloca(v_util_opaque_std_string);
     //-
@@ -771,7 +807,7 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    idcme_f = LLVMAddFunction(module, "v_util_register_itcme_impl", register_batch_ft);
+    idcme_f = LLVMAddFunction(module, "v_util_register_itcme_impl", register_batch_ft_);
 
     val_t_type = LLVMGetParam(idcme_f, 0);
     prefix     = LLVMGetParam(idcme_f, 1);
@@ -781,15 +817,16 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
 
 
     v_store(v_util_std_string_ref, typ0);
     v_store(int,                   typ1);
 
-    sstr_i_d_ft = LLVMFunctionType(void, typ0, 2, 0);
-    sstr_init_f = LLVMAddFunction(module, "v_util_initialize_std_string_impl", sstr_i_d_ft);
-    sstr_term_f = LLVMAddFunction(module, "v_util_terminate_std_string_impl",  sstr_i_d_ft);
+    sstr_i_d_ft  = v_function_type(void, typ0, 2, false);
+    sstr_i_d_ft_ = v_type_get_llvm_type(sstr_i_d_ft);
+    sstr_init_f  = LLVMAddFunction(module, "v_util_initialize_std_string_impl", sstr_i_d_ft_);
+    sstr_term_f  = LLVMAddFunction(module, "v_util_terminate_std_string_impl",  sstr_i_d_ft_);
 
     v_store(sstr, val0);
     v_store(n1,   val1);
@@ -924,20 +961,20 @@
     //-------------------------------------------------------------
     //- std::any get_value registering
     //-------------------------------------------------------------
-    //- fun v_util_register_std_any_get_value_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_std_any_get_value_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(LLVMTypeRef);
+    //-     arg0 = v_alloca(v_type_ref);
     //-
     //-     v_store(v_util_std_any_ref, arg0);
     //-
-    //-     fun_type = LLVMFunctionType(val_t_type, arg0, 1, 0);
+    //-     fun_type = v_function_type(val_t_type, arg0, 1, false);
     //-
     //-     v_add_symbol_type(fun_name, fun_type);
     //-
     //-     v_util_function_dict_set(v_util_std_any_get_value_dict, val_t_type, fun_name);
     //- }
     //-------------------------------------------------------------
-    get_value_f = LLVMAddFunction(module, "v_util_register_std_any_get_value_impl", register_ft);
+    get_value_f = LLVMAddFunction(module, "v_util_register_std_any_get_value_impl", register_ft_);
 
     val_t_type = LLVMGetParam(get_value_f, 0);
     fun_name   = LLVMGetParam(get_value_f, 1);
@@ -949,7 +986,7 @@
     std_any_ptr_type = v_obtain_global("v_util_std_any_ref");
 
 
-    arg0 = LLVMBuildAlloca(builder, LLVMTypeRef, "arg0");
+    arg0 = LLVMBuildAlloca(builder, v_type_ref_, "arg0");
 
     LLVMBuildStore(builder, std_any_ptr_type, arg0);
 
@@ -957,7 +994,7 @@
     v_store(val_t_type, val0);
     v_store(arg0,       val1);
     v_store(n1,         val2);
-    v_store(n0,         val3);
+    v_store(false_v,    val3);
 
     fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
@@ -982,22 +1019,22 @@
     //-------------------------------------------------------------
     //- std::any get_pointer registering
     //-------------------------------------------------------------
-    //- fun v_util_register_std_any_get_pointer_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_std_any_get_pointer_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(LLVMTypeRef);
+    //-     arg0 = v_alloca(v_type_ref);
     //-
-    //-     val_t_ptr = LLVMPointerType(val_t_type, 0);
+    //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(v_util_std_any_ref, arg0);
     //-
-    //-     fun_type = LLVMFunctionType(val_t_ptr, arg0, 1, 0);
+    //-     fun_type = v_function_type(val_t_ptr, arg0, 1, false);
     //-
     //-     v_add_symbol_type(fun_name, fun_type);
     //-
     //-     v_util_function_dict_set(v_util_std_any_get_pointer_dict, val_t_type, fun_name);
     //- }
     //-------------------------------------------------------------
-    get_pointer_f = LLVMAddFunction(module, "v_util_register_std_any_get_pointer_impl", register_ft);
+    get_pointer_f = LLVMAddFunction(module, "v_util_register_std_any_get_pointer_impl", register_ft_);
 
     val_t_type = LLVMGetParam(get_pointer_f, 0);
     fun_name   = LLVMGetParam(get_pointer_f, 1);
@@ -1006,7 +1043,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n1, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n1, "arg0");
 
 
     LLVMBuildStore(builder, std_any_ptr_type, arg0);
@@ -1021,7 +1058,7 @@
     v_store(val_t_ptr, val0);
     v_store(arg0,      val1);
     v_store(n1,        val2);
-    v_store(n0,        val3);
+    v_store(false_v,   val3);
 
     fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
@@ -1046,22 +1083,22 @@
     //-------------------------------------------------------------
     //- std::any set_value registering
     //-------------------------------------------------------------
-    //- fun v_util_register_std_any_set_value_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_std_any_set_value_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(LLVMTypeRef, 2);
+    //-     arg0 = v_alloca(v_type_ref, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
     //-     v_store(v_util_std_any_ref, arg0);
     //-     v_store(val_t_type,         arg1);
     //-
-    //-     fun_type = LLVMFunctionType(void, arg0, 2, 0);
+    //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
     //-     v_add_symbol_type(fun_name, fun_type);
     //-
     //-     v_util_function_dict_set(v_util_std_any_set_value_dict, val_t_type, fun_name);
     //- }
     //-------------------------------------------------------------
-    set_value_f = LLVMAddFunction(module, "v_util_register_std_any_set_value_impl", register_ft);
+    set_value_f = LLVMAddFunction(module, "v_util_register_std_any_set_value_impl", register_ft_);
 
     val_t_type = LLVMGetParam(set_value_f, 0);
     fun_name   = LLVMGetParam(set_value_f, 1);
@@ -1070,7 +1107,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n2, "arg0");
 
     v_store(n1, val0);
 
@@ -1085,7 +1122,7 @@
     v_store(void_type, val0);
     v_store(arg0,      val1);
     v_store(n2,        val2);
-    v_store(n0,        val3);
+    v_store(false_v,   val3);
 
     fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
@@ -1110,24 +1147,24 @@
     //-------------------------------------------------------------
     //- std::any set_pointer registering
     //-------------------------------------------------------------
-    //- fun v_util_register_std_any_set_pointer_impl(val_t_type: LLVMTypeRef, fun_name: char_ptr)
+    //- fun v_util_register_std_any_set_pointer_impl(val_t_type: v_type_ref, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(LLVMTypeRef, 2);
+    //-     arg0 = v_alloca(v_type_ref, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
-    //-     val_t_ptr = LLVMPointerType(val_t_type, 0);
+    //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(v_util_std_any_ref, arg0);
     //-     v_store(val_t_ptr,          arg1);
     //-
-    //-     fun_type = LLVMFunctionType(void, arg0, 2, 0);
+    //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
     //-     v_add_symbol_type(fun_name, fun_type);
     //-
     //-     v_util_function_dict_set(v_util_std_any_set_pointer_dict, val_t_type, fun_name);
     //- }
     //-------------------------------------------------------------
-    set_pointer_f = LLVMAddFunction(module, "v_util_register_std_any_set_pointer_impl", register_ft);
+    set_pointer_f = LLVMAddFunction(module, "v_util_register_std_any_set_pointer_impl", register_ft_);
 
     val_t_type = LLVMGetParam(set_pointer_f, 0);
     fun_name   = LLVMGetParam(set_pointer_f, 1);
@@ -1136,7 +1173,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, LLVMTypeRef, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n2, "arg0");
 
     v_store(n1, val0);
 
@@ -1157,7 +1194,7 @@
     v_store(void_type, val0);
     v_store(arg0,      val1);
     v_store(n2,        val2);
-    v_store(n0,        val3);
+    v_store(false_v,   val3);
 
     fun_type = LLVMBuildCall(builder, function_type_f, val0, 4, "fun_type");
 
@@ -1182,7 +1219,7 @@
     //-------------------------------------------------------------
     //- std::any get_value/set_value batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_gs_value_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_gs_value_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     sstr = v_alloca(v_util_opaque_std_string);
     //-
@@ -1209,7 +1246,7 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    gs_value_f = LLVMAddFunction(module, "v_util_register_gs_value_impl", register_batch_ft);
+    gs_value_f = LLVMAddFunction(module, "v_util_register_gs_value_impl", register_batch_ft_);
 
     val_t_type = LLVMGetParam(gs_value_f, 0);
     prefix     = LLVMGetParam(gs_value_f, 1);
@@ -1219,7 +1256,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
 
     v_store(sstr, val0);
     v_store(n1,   val1);
@@ -1278,7 +1315,7 @@
     //-------------------------------------------------------------
     //- std::any get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_gs_pointer_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_gs_pointer_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     sstr = v_alloca(v_util_opaque_std_string);
     //-
@@ -1305,7 +1342,7 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    gs_pointer_f = LLVMAddFunction(module, "v_util_register_gs_pointer_impl", register_batch_ft);
+    gs_pointer_f = LLVMAddFunction(module, "v_util_register_gs_pointer_impl", register_batch_ft_);
 
     val_t_type = LLVMGetParam(gs_pointer_f, 0);
     prefix     = LLVMGetParam(gs_pointer_f, 1);
@@ -1315,7 +1352,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
 
     v_store(sstr, val0);
     v_store(n1,   val1);
@@ -1374,13 +1411,13 @@
     //-------------------------------------------------------------
     //- std::any get_value/set_value/get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_gs_vp_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_gs_vp_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     v_util_register_std_any_gs_value_impl(val_t_type, prefix, typename);
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);
     //- }
     //-------------------------------------------------------------
-    gs_vp_f = LLVMAddFunction(module, "v_util_register_gs_vp_impl", register_batch_ft);
+    gs_vp_f = LLVMAddFunction(module, "v_util_register_gs_vp_impl", register_batch_ft_);
 
     val_t_type = LLVMGetParam(gs_vp_f, 0);
     prefix     = LLVMGetParam(gs_vp_f, 1);
@@ -1403,13 +1440,13 @@
     //-------------------------------------------------------------
     //- Init/Term/Copy/Move/Empty and std::any get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_itcmep_impl(val_t_type: LLVMTypeRef, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_itcmep_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     v_util_register_itcme_impl(val_t_type, prefix, typename);
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);
     //- }
     //-------------------------------------------------------------
-    idcmep_f = LLVMAddFunction(module, "v_util_register_itcmep_impl", register_batch_ft);
+    idcmep_f = LLVMAddFunction(module, "v_util_register_itcmep_impl", register_batch_ft_);
 
     val_t_type = LLVMGetParam(idcmep_f, 0);
     prefix     = LLVMGetParam(idcmep_f, 1);
@@ -1479,25 +1516,19 @@
 //- std::any support...
 //---------------------------------------------------------------------
 {
-    type = LLVMInt1Type();
+    type = v_uint_type(1);      v_util_register_gs_vp_impl(type, "v_util", "bool");
 
-    v_util_register_gs_vp_impl(type, "v_util", "bool");
+    type = v_sint_type(8);      v_util_register_gs_vp_impl(type, "v_util", "int8_t");
+    type = v_uint_type(8);      v_util_register_gs_vp_impl(type, "v_util", "uint8_t");
 
-    type = LLVMInt8Type();
+    type = v_sint_type(16);     v_util_register_gs_vp_impl(type, "v_util", "int16_t");
+    type = v_uint_type(16);     v_util_register_gs_vp_impl(type, "v_util", "uint16_t");
 
-    v_util_register_gs_vp_impl(type, "v_util", "int8_t");
+    type = v_sint_type(32);     v_util_register_gs_vp_impl(type, "v_util", "int32_t");
+    type = v_uint_type(32);     v_util_register_gs_vp_impl(type, "v_util", "uint32_t");
 
-    type = LLVMInt16Type();
-
-    v_util_register_gs_vp_impl(type, "v_util", "int16_t");
-
-    type = LLVMInt32Type();
-
-    v_util_register_gs_vp_impl(type, "v_util", "int32_t");
-
-    type = LLVMInt64Type();
-
-    v_util_register_gs_vp_impl(type, "v_util", "int64_t");
+    type = v_sint_type(64);     v_util_register_gs_vp_impl(type, "v_util", "int64_t");
+    type = v_uint_type(64);     v_util_register_gs_vp_impl(type, "v_util", "uint64_t");
 
     //-----------------------------------------------------------------
     v_util_register_gs_pointer_impl(v_util_opaque_std_string, "v_util", "std_string");

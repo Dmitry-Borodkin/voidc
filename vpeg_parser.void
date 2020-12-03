@@ -12,40 +12,37 @@
     v_util_register_itcmep_impl(v_peg_opaque_argument_ptr, "v_peg", "argument");
 }
 
-{   parser_ref = LLVMPointerType(v_peg_opaque_parser_ptr, 0);
+{   parser_ref = v_pointer_type(v_peg_opaque_parser_ptr, 0);
+    v_add_symbol("v_peg_parser_ref", voidc_opaque_type, parser_ref);
 
-    v_add_symbol("v_peg_parser_ref", LLVMOpaqueType, parser_ref);
+    action_ref = v_pointer_type(v_peg_opaque_action_ptr, 0);
+    v_add_symbol("v_peg_action_ref", voidc_opaque_type, action_ref);
 
-    action_ref = LLVMPointerType(v_peg_opaque_action_ptr, 0);
-
-    v_add_symbol("v_peg_action_ref", LLVMOpaqueType, action_ref);
-
-    argument_ref = LLVMPointerType(v_peg_opaque_argument_ptr, 0);
-
-    v_add_symbol("v_peg_argument_ref", LLVMOpaqueType, argument_ref);
+    argument_ref = v_pointer_type(v_peg_opaque_argument_ptr, 0);
+    v_add_symbol("v_peg_argument_ref", voidc_opaque_type, argument_ref);
 }
 
-{   v_add_symbol("v_peg_parser_kind",   LLVMOpaqueType, int);
-    v_add_symbol("v_peg_action_kind",   LLVMOpaqueType, int);
-    v_add_symbol("v_peg_argument_kind", LLVMOpaqueType, int);
+{   v_add_symbol("v_peg_parser_kind",   voidc_opaque_type, int);
+    v_add_symbol("v_peg_action_kind",   voidc_opaque_type, int);
+    v_add_symbol("v_peg_argument_kind", voidc_opaque_type, int);
 
-    arg = v_alloca(LLVMTypeRef);
+    typ = v_alloca(v_type_ref);
 
-    v_store(v_peg_parser_ref, arg);
+    v_store(v_peg_parser_ref, typ);
 
-    fun_t = LLVMFunctionType(int, arg, 1, 0);
+    fun_t = v_function_type(int, typ, 1, false);
 
     v_add_symbol_type("v_peg_parser_get_kind", fun_t);
 
-    v_store(v_peg_action_ref, arg);
+    v_store(v_peg_action_ref, typ);
 
-    fun_t = LLVMFunctionType(int, arg, 1, 0);
+    fun_t = v_function_type(int, typ, 1, false);
 
     v_add_symbol_type("v_peg_action_get_kind", fun_t);
 
-    v_store(v_peg_argument_ref, arg);
+    v_store(v_peg_argument_ref, typ);
 
-    fun_t = LLVMFunctionType(int, arg, 1, 0);
+    fun_t = v_function_type(int, typ, 1, false);
 
     v_add_symbol_type("v_peg_argument_get_kind", fun_t);
 
@@ -54,42 +51,42 @@
     v_util_function_dict_set(v_util_kind_dict, v_peg_opaque_argument_ptr, "v_peg_argument_get_kind");
 }
 
-{   arg0 = v_alloca(LLVMTypeRef, 4);
-    arg1 = v_getelementptr(arg0, 1);
-    arg2 = v_getelementptr(arg0, 2);
-    arg3 = v_getelementptr(arg0, 3);
+{   typ0 = v_alloca(v_type_ref, 4);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
 
-    char_ptr = LLVMPointerType(char, 0);
+    char_ptr = v_pointer_type(char, 0);
 
-    v_store(v_peg_parser_ref, arg0);
+    v_store(v_peg_parser_ref, typ0);
 
-    fun_t = LLVMFunctionType(int, arg0, 1, 0);
+    fun_t = v_function_type(int, typ0, 1, false);
 
     v_add_symbol_type("v_peg_parser_get_parsers_count", fun_t);
 
-    v_store(v_peg_parser_ref, arg1);
+    v_store(v_peg_parser_ref, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_parser_get_parsers", fun_t);
 
-    v_store(int, arg2);
+    v_store(int, typ2);
 
-    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+    fun_t = v_function_type(void, typ0, 3, false);
 
     v_add_symbol_type("v_peg_make_choice_parser",   fun_t);
     v_add_symbol_type("v_peg_make_sequence_parser", fun_t);
 
-    v_store(v_peg_parser_ref, arg2);
+    v_store(v_peg_parser_ref, typ2);
 
-    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+    fun_t = v_function_type(void, typ0, 3, false);
 
     v_add_symbol_type("v_peg_choice_parser_append",   fun_t);
     v_add_symbol_type("v_peg_choice_parser_concat",   fun_t);
     v_add_symbol_type("v_peg_sequence_parser_append", fun_t);
     v_add_symbol_type("v_peg_sequence_parser_concat", fun_t);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_and_parser",      fun_t);
     v_add_symbol_type("v_peg_make_not_parser",      fun_t);
@@ -97,173 +94,173 @@
     v_add_symbol_type("v_peg_make_star_parser",     fun_t);
     v_add_symbol_type("v_peg_make_plus_parser",     fun_t);
 
-    v_store(char_ptr,         arg1);
-//  v_store(v_peg_parser_ref, arg2);
+    v_store(char_ptr,         typ1);
+//  v_store(v_peg_parser_ref, typ2);
 
-    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+    fun_t = v_function_type(void, typ0, 3, false);
 
     v_add_symbol_type("v_peg_make_catch_variable_parser", fun_t);
 
-    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
+    fun_t = v_function_type(char_ptr, typ0, 1, false);
 
     v_add_symbol_type("v_peg_catch_variable_parser_get_name", fun_t);
 
-    v_store(v_peg_parser_ref, arg1);
+    v_store(v_peg_parser_ref, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_catch_string_parser", fun_t);
 
-    v_store(char_ptr, arg1);
+    v_store(char_ptr, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_identifier_parser", fun_t);
 
-    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
+    fun_t = v_function_type(char_ptr, typ0, 1, false);
 
     v_add_symbol_type("v_peg_identifier_parser_get_identifier", fun_t);
 
-    v_store(int, arg1);
+    v_store(int, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_backref_parser", fun_t);
 
-    fun_t = LLVMFunctionType(int, arg0, 1, 0);
+    fun_t = v_function_type(int, typ0, 1, false);
 
     v_add_symbol_type("v_peg_backref_parser_get_number", fun_t);
 
-    v_store(v_peg_action_ref, arg1);
+    v_store(v_peg_action_ref, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_action_parser",       fun_t);
     v_add_symbol_type("v_peg_action_parser_get_action", fun_t);
 
-    v_store(char_ptr, arg1);
+    v_store(char_ptr, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_literal_parser", fun_t);
 
-    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
+    fun_t = v_function_type(char_ptr, typ0, 1, false);
 
     v_add_symbol_type("v_peg_literal_parser_get_literal", fun_t);
 
-    v_store(char32_t, arg1);
+    v_store(char32_t, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_character_parser", fun_t);
 
-    fun_t = LLVMFunctionType(char32_t, arg0, 1, 0);
+    fun_t = v_function_type(char32_t, typ0, 1, false);
 
     v_add_symbol_type("v_peg_character_parser_get_character", fun_t);
 
-    range_t = LLVMArrayType(char32_t, 2);
+    range_t = v_array_type(char32_t, 2);
 
-    v_add_symbol("v_peg_class_parser_range_t", LLVMOpaqueType, range_t);
+    v_add_symbol("v_peg_class_parser_range_t", voidc_opaque_type, range_t);
 
-    range_ptr_t = LLVMPointerType(range_t, 0);
+    range_ptr_t = v_pointer_type(range_t, 0);
 
-    v_store(range_ptr_t, arg1);
-    v_store(int,         arg2);
+    v_store(range_ptr_t, typ1);
+    v_store(int,         typ2);
 
-    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+    fun_t = v_function_type(void, typ0, 3, false);
 
     v_add_symbol_type("v_peg_make_class_parser", fun_t);
 
-    fun_t = LLVMFunctionType(int, arg0, 1, 0);
+    fun_t = v_function_type(int, typ0, 1, false);
 
     v_add_symbol_type("v_peg_class_parser_get_ranges_count", fun_t);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_class_parser_get_ranges", fun_t);
 
-    fun_t = LLVMFunctionType(void, arg0, 1, 0);
+    fun_t = v_function_type(void, typ0, 1, false);
 
     v_add_symbol_type("v_peg_make_dot_parser", fun_t);
 
-    v_store(v_peg_action_ref,   arg0);
-    v_store(char_ptr,           arg1);
-    v_store(v_peg_argument_ref, arg2);
-    v_store(int,                arg3);
+    v_store(v_peg_action_ref,   typ0);
+    v_store(char_ptr,           typ1);
+    v_store(v_peg_argument_ref, typ2);
+    v_store(int,                typ3);
 
-    fun_t = LLVMFunctionType(void, arg0, 4, 0);
+    fun_t = v_function_type(void, typ0, 4, false);
 
     v_add_symbol_type("v_peg_make_call_action", fun_t);
 
-    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
+    fun_t = v_function_type(char_ptr, typ0, 1, false);
 
     v_add_symbol_type("v_peg_call_action_get_function_name", fun_t);
 
-    fun_t = LLVMFunctionType(int, arg0, 1, 0);
+    fun_t = v_function_type(int, typ0, 1, false);
 
     v_add_symbol_type("v_peg_call_action_get_arguments_count", fun_t);
 
-    v_store(v_peg_argument_ref, arg1);
+    v_store(v_peg_argument_ref, typ1);
 
-    fun_t = LLVMFunctionType(int, arg0, 2, 0);
+    fun_t = v_function_type(int, typ0, 2, false);
 
     v_add_symbol_type("v_peg_call_action_get_arguments", fun_t);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_return_action",         fun_t);
     v_add_symbol_type("v_peg_return_action_get_argument", fun_t);
 
-    v_store(v_peg_argument_ref, arg0);
-    v_store(char_ptr,           arg1);
+    v_store(v_peg_argument_ref, typ0);
+    v_store(char_ptr,           typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_identifier_argument", fun_t);
 
-    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
+    fun_t = v_function_type(char_ptr, typ0, 1, false);
 
     v_add_symbol_type("v_peg_identifier_argument_get_identifier", fun_t);
 
-    v_store(int, arg1);
-    v_store(int, arg2);
+    v_store(int, typ1);
+    v_store(int, typ2);
 
-    fun_t = LLVMFunctionType(void, arg0, 3, 0);
+    fun_t = v_function_type(void, typ0, 3, false);
 
     v_add_symbol_type("v_peg_make_backref_argument", fun_t);
 
-    fun_t = LLVMFunctionType(int, arg0, 1, 0);
+    fun_t = v_function_type(int, typ0, 1, false);
 
     v_add_symbol_type("v_peg_backref_argument_get_number", fun_t);
     v_add_symbol_type("v_peg_backref_argument_get_kind",   fun_t);
 
-    v_store(intptr_t, arg1);
+    v_store(intptr_t, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_integer_argument", fun_t);
 
-    fun_t = LLVMFunctionType(intptr_t, arg0, 1, 0);
+    fun_t = v_function_type(intptr_t, typ0, 1, false);
 
     v_add_symbol_type("v_peg_integer_argument_get_number", fun_t);
 
-    v_store(char_ptr, arg1);
+    v_store(char_ptr, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_literal_argument", fun_t);
 
-    fun_t = LLVMFunctionType(char_ptr, arg0, 1, 0);
+    fun_t = v_function_type(char_ptr, typ0, 1, false);
 
     v_add_symbol_type("v_peg_literal_argument_get_literal", fun_t);
 
-    v_store(char32_t, arg1);
+    v_store(char32_t, typ1);
 
-    fun_t = LLVMFunctionType(void, arg0, 2, 0);
+    fun_t = v_function_type(void, typ0, 2, false);
 
     v_add_symbol_type("v_peg_make_character_argument", fun_t);
 
-    fun_t = LLVMFunctionType(char32_t, arg0, 1, 0);
+    fun_t = v_function_type(char32_t, typ0, 1, false);
 
     v_add_symbol_type("v_peg_character_argument_get_character", fun_t);
 }

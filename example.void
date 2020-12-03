@@ -1,16 +1,17 @@
-{   v_import("voidc_util.void");
+{
+    v_import("voidc_util.void");
 
     v_import("printf.void");
 }
 
 {
-    char_ptr = LLVMPointerType(char, 0);
+    char_ptr = v_pointer_type(char, 0);
 
-    arg = v_alloca(LLVMTypeRef);
+    arg = v_alloca(v_type_ref);
 
     v_store(char_ptr, arg);
 
-    puts_ft = LLVMFunctionType(int, arg, 1, 0);
+    puts_ft = v_function_type(int, arg, 1, 0);
 
     v_add_symbol_type("puts", puts_ft);
 }
@@ -59,9 +60,9 @@
 {
     puts_ft = v_find_symbol_type("puts");
 
-    puts_ft_ptr = LLVMPointerType(puts_ft, 0);
+    puts_ft_ptr = v_pointer_type(puts_ft, 0);
 
-    v_add_local_symbol("puts_ft_ptr", LLVMOpaqueType, puts_ft_ptr);
+    v_add_local_symbol("puts_ft_ptr", voidc_opaque_type, puts_ft_ptr);
 }
 
 {   v_add_local_alias("puts_ft_p", "puts_ft_ptr");

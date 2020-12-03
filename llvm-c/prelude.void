@@ -4,25 +4,21 @@
 //---------------------------------------------------------------------
 {   voidc_guard_import("llvm-c/prelude.void"); }
 
-{   v_import("voidc_target.void"); }
+{   v_import("voidc_types.void"); }
 
 {
-    arg0 = v_alloca(LLVMTypeRef, 3);
+    w = v_type_integer_get_width(long_long);
+    ull = v_uint_type(w);
+
+    arg0 = v_alloca(v_type_ref, 3);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    v_store(LLVMContextRef, arg0);
-
-    ft = LLVMFunctionType(LLVMTypeRef, arg0, 1, 0);
-    v_add_symbol_type("LLVMInt64TypeInContext", ft);
-    v_add_symbol_type("LLVMInt8TypeInContext", ft);
-    v_add_symbol_type("LLVMDoubleTypeInContext", ft);
-
     v_store(LLVMTypeRef, arg0);
-    v_store(long_long,   arg1);
+    v_store(ull,         arg1);
     v_store(int,         arg2);
 
-    ft = LLVMFunctionType(LLVMValueRef, arg0, 3, 0);
+    ft = v_function_type(LLVMValueRef, arg0, 3, false);
     v_add_symbol_type("LLVMConstInt", ft);
 }
 

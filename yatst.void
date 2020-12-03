@@ -79,7 +79,7 @@
     v_terminate(str0, 2);
 }
 
-{   ft = LLVMFunctionType(size_t, 0, 0, 0);
+{   ft = v_function_type(uint64_t, 0, 0, false);
     v_add_symbol_type("llvm.readcyclecounter", ft);
 
     v_add_alias("llvm_readcyclecounter", "llvm.readcyclecounter");
@@ -88,7 +88,7 @@
 {   v0 = llvm_readcyclecounter();
     v1 = llvm_readcyclecounter();
 
-    printf("\n%lu\n%lu\n", v0, v1);
+    printf("\n%llu\n%llu\n", v0, v1);
 }
 
 
@@ -112,13 +112,16 @@
 
     builder = v_target_get_voidc_builder();
 
-    typ0 = v_alloca(LLVMTypeRef, 2);
+    typ0 = v_alloca(v_type_ref, 2);
     typ1 = v_getelementptr(typ0, 1);
+
+    void_ptr = v_pointer_type(void, 0);
 
     v_store(void_ptr, typ0);
 
-    destroy_ft = LLVMFunctionType(void, typ0, 1, 0);
-    destroy_f  = LLVMAddFunction(module, "destroy_f", destroy_ft);
+    destroy_ft  = v_function_type(void, typ0, 1, 0);
+    destroy_ft_ = v_type_get_llvm_type(destroy_ft);
+    destroy_f   = LLVMAddFunction(module, "destroy_f", destroy_ft_);
     LLVMSetLinkage(destroy_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(destroy_f, "entry");
@@ -141,8 +144,9 @@
 
     v_store(voidc_visitor_ref, typ1);
 
-    accept_ft = LLVMFunctionType(void, typ0, 2, 0);
-    accept_f  = LLVMAddFunction(module, "accept_f", accept_ft);
+    accept_ft  = v_function_type(void, typ0, 2, 0);
+    accept_ft_ = v_type_get_llvm_type(accept_ft);
+    accept_f   = LLVMAddFunction(module, "accept_f", accept_ft_);
     LLVMSetLinkage(accept_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(accept_f, "entry");
@@ -164,17 +168,21 @@
     //-------------------------------------------------------------
     quark_v = v_quark_from_string("Just test");
 
-    quark_ll = v_cast(LLVMZExt, quark_v, long_long);
+    quark_ll = v_cast(quark_v, long_long);      //- unsigned long long !
 
-    quark = LLVMConstInt(v_quark_t, quark_ll, 0);
+    v_quark_t_ = v_type_get_llvm_type(v_quark_t);
+
+    quark = LLVMConstInt(v_quark_t_, quark_ll, 0);
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
     v_store(quark,     val2);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable, val0, 3);
+    v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable, "vtable_g");
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
+
+    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "vtable_g");
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
@@ -212,7 +220,7 @@
     v_initialize(vis);
 
 
-    obj = v_cast(LLVMBitCast, gen, v_ast_base_ref);     //- ?..
+    obj = v_cast(gen, v_ast_base_ref);     //- ?..
 
     v_ast_accept_visitor(obj, vis);
 
@@ -228,8 +236,6 @@
 //---------------------------------------------------------------------
 //- Quarks
 //---------------------------------------------------------------------
-{   v_import("voidc_quark.void"); }
-
 {   printf("\n");
 
     q = v_quark_from_string("");

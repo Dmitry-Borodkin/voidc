@@ -4,28 +4,35 @@
 //---------------------------------------------------------------------
 {   voidc_guard_import("voidc_internals.void"); }
 
-{   v_import("llvm-c/Core.void");
-    v_import("llvm-c/OrcBindings.void");
+{   typ0 = v_alloca(v_type_ref, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    v_store(v_type_ref, typ0);          //- Element type
+    v_store(unsigned,   typ1);          //- Address space
+
+    ft = v_function_type(v_type_ref, typ0, 2, false);
+    v_add_symbol_type("v_pointer_type", ft);
 }
 
-{   char_ptr = LLVMPointerType(char, 0);
+{   char_ptr = v_pointer_type(char, 0);
+    void_ptr = v_pointer_type(void, 0);
 
-    arg0 = v_alloca(LLVMTypeRef, 2);
-    arg1 = v_getelementptr(arg0, 1);
+    typ0 = v_alloca(v_type_ref, 2);
+    typ1 = v_getelementptr(typ0, 1);
 
-    v_store(char_ptr, arg0);
-    v_store(void_ptr, arg1);
+    v_store(char_ptr, typ0);            //- Symbol name (mangled)
+    v_store(void_ptr, typ1);            //- Context for resolver
 
-    type = LLVMFunctionType(intptr_t, arg0, 2, 0);
+    type = v_function_type(uint64_t, typ0, 2, false);
     v_add_symbol_type("voidc_resolver", type);
 
-    type = LLVMGetElementType(LLVMTargetMachineRef);
+    type = v_struct_type_named("struct.LLVMOpaqueTargetMachine");
     v_add_symbol_type("voidc_target_machine", type);
 
-    type = LLVMGetElementType(LLVMOrcJITStackRef);
+    type = v_struct_type_named("struct.LLVMOrcOpaqueJITStack");
     v_add_symbol_type("voidc_jit", type);
 
-    type = LLVMGetElementType(LLVMPassManagerRef);
+    type = v_struct_type_named("struct.LLVMOpaquePassManager");
     v_add_symbol_type("voidc_pass_manager", type);
 }
 

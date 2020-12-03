@@ -10,92 +10,90 @@
 
 //- Types --------------------------------------------------
 {
-    v0 = v_target_get_llvm_ctx();
+    v0 = v_struct_type_named("struct.LLVMOpaqueDiagnosticInfo");
+    v1 = v_pointer_type(v0, 0);
+    v_add_symbol("LLVMDiagnosticInfoRef", voidc_opaque_type, v1);
 
-    v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueBinary");
-    v2 = LLVMPointerType(v1, 0);
-    v_add_symbol("LLVMBinaryRef", LLVMOpaqueType, v2);
+    v2 = v_struct_type_named("struct.LLVMComdat");
+    v3 = v_pointer_type(v2, 0);
+    v_add_symbol("LLVMComdatRef", voidc_opaque_type, v3);
 
-    v3 = LLVMStructCreateNamed(v0, "struct.LLVMOpaquePassManager");
-    v4 = LLVMPointerType(v3, 0);
-    v_add_symbol("LLVMPassManagerRef", LLVMOpaqueType, v4);
+    v4 = v_struct_type_named("struct.LLVMOpaquePassManager");
+    v5 = v_pointer_type(v4, 0);
+    v_add_symbol("LLVMPassManagerRef", voidc_opaque_type, v5);
 
-    v5 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueBasicBlock");
-    v6 = LLVMPointerType(v5, 0);
-    v_add_symbol("LLVMBasicBlockRef", LLVMOpaqueType, v6);
+    v6 = v_struct_type_named("struct.LLVMOpaqueBasicBlock");
+    v7 = v_pointer_type(v6, 0);
+    v_add_symbol("LLVMBasicBlockRef", voidc_opaque_type, v7);
 
-    v7 = LLVMStructCreateNamed(v0, "struct.LLVMComdat");
-    v8 = LLVMPointerType(v7, 0);
-    v_add_symbol("LLVMComdatRef", LLVMOpaqueType, v8);
+    v8 = v_struct_type_named("struct.LLVMOpaqueType");
+    v9 = v_pointer_type(v8, 0);
+    v_add_symbol("LLVMTypeRef", voidc_opaque_type, v9);
 
-    v9 = v_struct_create_named("struct.LLVMOpaqueType");
-    v10 = LLVMPointerType(v9, 0);
-    v_add_symbol("LLVMTypeRef", LLVMOpaqueType, v10);
+    v10_int = v_find_type("int");
+    v_add_symbol("LLVMBool", voidc_opaque_type, v10_int);
 
-    v11_int = v_find_type("int");
-    v_add_symbol("LLVMBool", LLVMOpaqueType, v11_int);
+    v11 = v_struct_type_named("struct.LLVMOpaqueMetadata");
+    v12 = v_pointer_type(v11, 0);
+    v_add_symbol("LLVMMetadataRef", voidc_opaque_type, v12);
 
-    v12 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueMetadata");
-    v13 = LLVMPointerType(v12, 0);
-    v_add_symbol("LLVMMetadataRef", LLVMOpaqueType, v13);
+    v13 = v_struct_type_named("struct.LLVMOpaqueJITEventListener");
+    v14 = v_pointer_type(v13, 0);
+    v_add_symbol("LLVMJITEventListenerRef", voidc_opaque_type, v14);
 
-    v14 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueJITEventListener");
-    v15 = LLVMPointerType(v14, 0);
-    v_add_symbol("LLVMJITEventListenerRef", LLVMOpaqueType, v15);
+    v15 = v_struct_type_named("struct.LLVMOpaqueValueMetadataEntry");
+    v_add_symbol("LLVMValueMetadataEntry", voidc_opaque_type, v15);
 
-    v16 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueValueMetadataEntry");
-    v_add_symbol("LLVMValueMetadataEntry", LLVMOpaqueType, v16);
+    v16 = v_struct_type_named("struct.LLVMOpaquePassRegistry");
+    v17 = v_pointer_type(v16, 0);
+    v_add_symbol("LLVMPassRegistryRef", voidc_opaque_type, v17);
 
-    v17 = LLVMStructCreateNamed(v0, "struct.LLVMOpaquePassRegistry");
-    v18 = LLVMPointerType(v17, 0);
-    v_add_symbol("LLVMPassRegistryRef", LLVMOpaqueType, v18);
+    v18 = v_struct_type_named("struct.LLVMOpaqueModule");
+    v19 = v_pointer_type(v18, 0);
+    v_add_symbol("LLVMModuleRef", voidc_opaque_type, v19);
 
-    v19 = v_struct_create_named("struct.LLVMOpaqueModule");
-    v20 = LLVMPointerType(v19, 0);
-    v_add_symbol("LLVMModuleRef", LLVMOpaqueType, v20);
+    v20 = v_struct_type_named("struct.LLVMOpaqueMemoryBuffer");
+    v21 = v_pointer_type(v20, 0);
+    v_add_symbol("LLVMMemoryBufferRef", voidc_opaque_type, v21);
 
-    v21 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueMemoryBuffer");
-    v22 = LLVMPointerType(v21, 0);
-    v_add_symbol("LLVMMemoryBufferRef", LLVMOpaqueType, v22);
+    v22 = v_struct_type_named("struct.LLVMOpaqueValue");
+    v23 = v_pointer_type(v22, 0);
+    v_add_symbol("LLVMValueRef", voidc_opaque_type, v23);
 
-    v23 = v_struct_create_named("struct.LLVMOpaqueValue");
-    v24 = LLVMPointerType(v23, 0);
-    v_add_symbol("LLVMValueRef", LLVMOpaqueType, v24);
+    v24 = v_struct_type_named("struct.LLVMOpaqueModuleFlagEntry");
+    v_add_symbol("LLVMModuleFlagEntry", voidc_opaque_type, v24);
 
-    v25 = v_struct_create_named("struct.LLVMOpaqueBuilder");
-    v26 = LLVMPointerType(v25, 0);
-    v_add_symbol("LLVMBuilderRef", LLVMOpaqueType, v26);
+    v25 = v_struct_type_named("struct.LLVMOpaqueBinary");
+    v26 = v_pointer_type(v25, 0);
+    v_add_symbol("LLVMBinaryRef", voidc_opaque_type, v26);
 
-    v27 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueAttributeRef");
-    v28 = LLVMPointerType(v27, 0);
-    v_add_symbol("LLVMAttributeRef", LLVMOpaqueType, v28);
+    v27 = v_struct_type_named("struct.LLVMOpaqueAttributeRef");
+    v28 = v_pointer_type(v27, 0);
+    v_add_symbol("LLVMAttributeRef", voidc_opaque_type, v28);
 
-    v29 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueDIBuilder");
-    v30 = LLVMPointerType(v29, 0);
-    v_add_symbol("LLVMDIBuilderRef", LLVMOpaqueType, v30);
+    v29 = v_struct_type_named("struct.LLVMOpaqueDIBuilder");
+    v30 = v_pointer_type(v29, 0);
+    v_add_symbol("LLVMDIBuilderRef", voidc_opaque_type, v30);
 
-    v31 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueDiagnosticInfo");
-    v32 = LLVMPointerType(v31, 0);
-    v_add_symbol("LLVMDiagnosticInfoRef", LLVMOpaqueType, v32);
+    v31 = v_struct_type_named("struct.LLVMOpaqueBuilder");
+    v32 = v_pointer_type(v31, 0);
+    v_add_symbol("LLVMBuilderRef", voidc_opaque_type, v32);
 
-    v33 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueModuleFlagEntry");
-    v_add_symbol("LLVMModuleFlagEntry", LLVMOpaqueType, v33);
+    v33 = v_struct_type_named("struct.LLVMOpaqueContext");
+    v34 = v_pointer_type(v33, 0);
+    v_add_symbol("LLVMContextRef", voidc_opaque_type, v34);
 
-    v34 = v_struct_create_named("struct.LLVMOpaqueContext");
-    v35 = LLVMPointerType(v34, 0);
-    v_add_symbol("LLVMContextRef", LLVMOpaqueType, v35);
+    v35 = v_struct_type_named("struct.LLVMOpaqueNamedMDNode");
+    v36 = v_pointer_type(v35, 0);
+    v_add_symbol("LLVMNamedMDNodeRef", voidc_opaque_type, v36);
 
-    v36 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueNamedMDNode");
-    v37 = LLVMPointerType(v36, 0);
-    v_add_symbol("LLVMNamedMDNodeRef", LLVMOpaqueType, v37);
+    v37 = v_struct_type_named("struct.LLVMOpaqueModuleProvider");
+    v38 = v_pointer_type(v37, 0);
+    v_add_symbol("LLVMModuleProviderRef", voidc_opaque_type, v38);
 
-    v38 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueModuleProvider");
-    v39 = LLVMPointerType(v38, 0);
-    v_add_symbol("LLVMModuleProviderRef", LLVMOpaqueType, v39);
-
-    v40 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueUse");
-    v41 = LLVMPointerType(v40, 0);
-    v_add_symbol("LLVMUseRef", LLVMOpaqueType, v41);
+    v39 = v_struct_type_named("struct.LLVMOpaqueUse");
+    v40 = v_pointer_type(v39, 0);
+    v_add_symbol("LLVMUseRef", voidc_opaque_type, v40);
 
 }
 

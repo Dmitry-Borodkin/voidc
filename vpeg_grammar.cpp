@@ -5,6 +5,7 @@
 #include "vpeg_grammar.h"
 
 #include "vpeg_context.h"
+#include "voidc_types.h"
 #include "voidc_target.h"
 #include "voidc_util.h"
 
@@ -118,15 +119,13 @@ void grammar_t::static_initialize(void)
 
     auto &gctx = *voidc_global_ctx_t::voidc;
 
-    auto content_type = LLVMArrayType(gctx.intptr_t_type, sizeof(parser_ptr_t)/sizeof(intptr_t));
-
-    auto gc = LLVMGetGlobalContext();
+    v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(parser_ptr_t)/sizeof(intptr_t));
 
 #define DEF(name) \
     static_assert(sizeof(parser_ptr_t) == sizeof(name##_ptr_t)); \
-    auto name##_ptr_type = LLVMStructCreateNamed(gc, "struct.v_peg_opaque_" #name "_ptr"); \
-    LLVMStructSetBody(name##_ptr_type, &content_type, 1, false); \
-    gctx.add_symbol("v_peg_opaque_" #name "_ptr", gctx.LLVMOpaqueType_type, (void *)name##_ptr_type);
+    auto name##_ptr_type = gctx.make_struct_type("struct.v_peg_opaque_" #name "_ptr"); \
+    name##_ptr_type->set_body(&content_type, 1, false); \
+    gctx.add_symbol("v_peg_opaque_" #name "_ptr", gctx.opaque_type_type, (void *)name##_ptr_type);
 
     DEF(grammar)
 

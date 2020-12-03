@@ -1,25 +1,23 @@
 {   voidc_guard_import("printf.void"); }
 
-{   arg0 = v_alloca(LLVMTypeRef, 2);
-    arg1 = v_getelementptr(arg0, 1);
+{   typ0 = v_alloca(v_type_ref, 2);
+    typ1 = v_getelementptr(typ0, 1);
 
-    v_store(LLVMTypeRef, arg0);
-    v_store(int,         arg1);
+    v_store(v_type_ref, typ0);          //- Element type
+    v_store(unsigned,   typ1);          //- Address space
 
-    ft = LLVMFunctionType(LLVMTypeRef, arg0, 2, 0);
-
-    v_add_symbol_type("LLVMPointerType", ft);
+    ft = v_function_type(v_type_ref, typ0, 2, false);
+    v_add_symbol_type("v_pointer_type", ft);
 }
 
-{   char_ptr = LLVMPointerType(char, 0);
+{   char_ptr = v_pointer_type(char, 0);
 
-    arg = v_alloca(LLVMTypeRef);
+    typ = v_alloca(v_type_ref);
 
-    v_store(char_ptr, arg);
+    v_store(char_ptr, typ);
 
-    printf_ft = LLVMFunctionType(int, arg, 1, 1);
-
-    v_add_symbol_type("printf", printf_ft);
+    ft = v_function_type(int, typ, 1, true);
+    v_add_symbol_type("printf", ft);
 }
 
 

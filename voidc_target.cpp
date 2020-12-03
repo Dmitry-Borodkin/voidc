@@ -32,22 +32,25 @@ v_alloca(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     }
 
     auto type = lctx.lookup_type((*args)->data[0]);
+    auto llvm_type = type->llvm_type();
 
     LLVMValueRef v;
 
     if ((*args)->data.size() == 1)              //- Just one
     {
-        v = LLVMBuildAlloca(gctx.builder, type, lctx.ret_name);
+        v = LLVMBuildAlloca(gctx.builder, llvm_type, lctx.ret_name);
     }
     else                                        //- Array...
     {
         (*args)->data[1]->accept(*vis);             //- Array size
 
-        v = LLVMBuildArrayAlloca(gctx.builder, type, lctx.args[0], lctx.ret_name);
+        v = LLVMBuildArrayAlloca(gctx.builder, llvm_type, lctx.args[0], lctx.ret_name);
 
         lctx.args.clear();
+        lctx.arg_types.clear();
     }
 
+    lctx.ret_type  = gctx.make_pointer_type(type, LLVMGetPointerAddressSpace(LLVMTypeOf(v)));
     lctx.ret_value = v;
 }
 
@@ -70,9 +73,61 @@ v_getelementptr(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     auto v = LLVMBuildGEP(gctx.builder, lctx.args[0], &lctx.args[1], lctx.args.size()-1, lctx.ret_name);
 
-    lctx.args.clear();
-
     lctx.ret_value = v;
+
+    auto *p = static_cast<v_type_pointer_t *>(lctx.arg_types[0]->scalar_type());
+
+    v_type_t *t = p->element_type();
+
+    for (int i=2, e=lctx.args.size(); i<e; ++i)
+    {
+        if (auto *ti = dynamic_cast<v_type_array_t *>(t))
+        {
+            t = ti->element_type();
+            continue;
+        }
+
+        if (auto *ti = dynamic_cast<v_type_vector_t *>(t))
+        {
+            t = ti->element_type();
+            continue;
+        }
+
+        if (auto *ti = dynamic_cast<v_type_struct_t *>(t))
+        {
+            auto idx = lctx.args[i];
+
+            auto num = unsigned(LLVMConstIntGetZExtValue(idx));
+
+            t = ti->element_types()[num];
+            continue;
+        }
+
+        assert(false && "Wrong GEP index");
+
+        t = nullptr;
+        break;
+    }
+
+    t = gctx.make_pointer_type(t, p->address_space());
+
+    for (int i=0, e=lctx.args.size(); i<e; ++i)
+    {
+        if (auto *vt = dynamic_cast<v_type_vector_t *>(lctx.arg_types[i]))
+        {
+            auto count = vt->size();
+
+            if (vt->is_scalable())  t = gctx.make_svector_type(t, count);
+            else                    t = gctx.make_fvector_type(t, count);
+
+            break;
+        }
+    }
+
+    lctx.ret_type = t;
+
+    lctx.args.clear();
+    lctx.arg_types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -94,16 +149,14 @@ v_store(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     lctx.arg_types.resize(2);
 
-    lctx.arg_types[1] = LLVMGetElementType(LLVMTypeOf(lctx.args[0]));
+    lctx.arg_types[1] = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
     (*args)->data[0]->accept(*vis);         //- "Value" second
 
-    auto v = LLVMBuildStore(gctx.builder, lctx.args[1], lctx.args[0]);
+    LLVMBuildStore(gctx.builder, lctx.args[1], lctx.args[0]);
 
     lctx.args.clear();
     lctx.arg_types.clear();
-
-    lctx.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -123,9 +176,11 @@ v_load(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     auto v = LLVMBuildLoad(gctx.builder, lctx.args[0], lctx.ret_name);
 
-    lctx.args.clear();
-
     lctx.ret_value = v;
+    lctx.ret_type  = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+
+    lctx.args.clear();
+    lctx.arg_types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -136,25 +191,100 @@ v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
     auto &lctx = *gctx.local_ctx;
 
     assert(*args);
-    if ((*args)->data.size() != 3)
+    if ((*args)->data.size() != 2)
     {
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    (*args)->data[0]->accept(*vis);         //- Opcode
+    (*args)->data[0]->accept(*vis);         //- Value
 
-    auto opcode = LLVMOpcode(LLVMConstIntGetZExtValue(lctx.args[0]));
+    auto src_type = lctx.arg_types[0];
+    auto dst_type = lctx.lookup_type((*args)->data[1]);
 
-    (*args)->data[1]->accept(*vis);         //- Value
+    auto src_stype = src_type->scalar_type();
+    auto dst_stype = dst_type->scalar_type();
 
-    auto type = lctx.lookup_type((*args)->data[2]);
+    auto opcode = LLVMOpcode(0);
+
+    if (src_stype->is_floating_point())
+    {
+        if (dst_stype->is_floating_point())
+        {
+            auto sk = src_stype->kind();
+            auto dk = dst_stype->kind();
+
+            if (sk == dk)       opcode = LLVMBitCast;       //- ?
+            else if (sk > dk)   opcode = LLVMFPTrunc;
+            else                opcode = LLVMFPExt;
+        }
+        else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+        {
+            if (idt->is_signed()) opcode = LLVMFPToSI;
+            else                  opcode = LLVMFPToUI;
+        }
+        else
+        {
+            throw std::runtime_error("Bad cast from floating point");
+        }
+    }
+    else if (auto *ist = dynamic_cast<v_type_integer_t *>(src_stype))
+    {
+        if (dst_stype->is_floating_point())
+        {
+            if (ist->is_signed()) opcode = LLVMSIToFP;
+            else                  opcode = LLVMUIToFP;
+        }
+        else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+        {
+            auto sw = ist->width();
+            auto dw = idt->width();
+
+            if (sw == dw)       opcode = LLVMBitCast;       //- ?
+            else if (sw > dw)   opcode = LLVMTrunc;
+            else
+            {
+                if (ist->is_signed()) opcode = LLVMSExt;        //- ?
+                else                  opcode = LLVMZExt;        //- ?
+            }
+        }
+        else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+        {
+            opcode = LLVMIntToPtr;
+        }
+        else
+        {
+            throw std::runtime_error("Bad cast from integer");
+        }
+    }
+    else if (auto *pst = dynamic_cast<v_type_pointer_t *>(src_stype))
+    {
+        if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+        {
+            opcode = LLVMPtrToInt;
+        }
+        else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+        {
+            if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
+            else                                                opcode = LLVMAddrSpaceCast;
+        }
+        else
+        {
+            throw std::runtime_error("Bad cast from pointer");
+        }
+    }
+    else
+    {
+        throw std::runtime_error("Bad cast");
+    }
 
     LLVMValueRef v;
 
-    v = LLVMBuildCast(gctx.builder, opcode, lctx.args[1], type, lctx.ret_name);
+    v = LLVMBuildCast(gctx.builder, opcode, lctx.args[0], dst_type->llvm_type(), lctx.ret_name);
 
     lctx.args.clear();
+    lctx.arg_types.clear();
 
+    lctx.ret_type  = dst_type;
     lctx.ret_value = v;
 }
 
@@ -162,39 +292,11 @@ v_cast(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 //---------------------------------------------------------------------
 //- Base Global Context
 //---------------------------------------------------------------------
-static LLVMTypeRef
-mk_int_type(LLVMContextRef ctx, size_t sz)
-{
-    switch(sz)
-    {
-    case  1:    return LLVMInt8TypeInContext(ctx);
-    case  2:    return LLVMInt16TypeInContext(ctx);
-    case  4:    return LLVMInt32TypeInContext(ctx);
-    case  8:    return LLVMInt64TypeInContext(ctx);
-    case 16:    return LLVMInt128TypeInContext(ctx);
-
-    default:
-        throw std::runtime_error("Bad integer size: " + std::to_string(sz));
-    }
-}
-
 base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
-  : types_ctx(ctx, int_size, long_size, ptr_size),
-    llvm_ctx(ctx),
-    llvm_mod(LLVMModuleCreateWithNameInContext("empty_mod", ctx)),
+  : voidc_types_ctx_t(ctx, int_size, long_size, ptr_size),
     builder(LLVMCreateBuilderInContext(ctx)),
-    void_type     (LLVMVoidTypeInContext(ctx)),
-    bool_type     (LLVMInt1TypeInContext(ctx)),
-    char_type     (LLVMInt8TypeInContext(ctx)),
-    short_type    (LLVMInt16TypeInContext(ctx)),
-    int_type      (mk_int_type(ctx, int_size)),
-    long_type     (mk_int_type(ctx, long_size)),
-    long_long_type(LLVMInt64TypeInContext(ctx)),
-    intptr_t_type (mk_int_type(ctx, ptr_size)),
-    size_t_type   (mk_int_type(ctx, ptr_size)),
-    char32_t_type (LLVMInt32TypeInContext(ctx)),
-    opaque_void_type(LLVMStructCreateNamed(ctx, "struct.v_target_opaque_void")),
-    void_ptr_type   (LLVMPointerType(opaque_void_type, 0))
+    char_ptr_type(make_pointer_type(char_type, 0)),             //- address space 0 !?
+    void_ptr_type(make_pointer_type(make_void_type(), 0))       //- address space 0 !?
 {
 #define DEF(name) \
     intrinsics[#name] = name;
@@ -211,7 +313,6 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
 base_global_ctx_t::~base_global_ctx_t()
 {
     LLVMDisposeBuilder(builder);
-//  LLVMDisposeModule(llvm_mod);        //- WTF?
 }
 
 
@@ -250,26 +351,29 @@ base_global_ctx_t::initialize(void)
 {
     assert(voidc_global_ctx_t::voidc);
 
-    auto opaque_type = voidc_global_ctx_t::voidc->LLVMOpaqueType_type;
+    auto opaque_type = voidc_global_ctx_t::voidc->opaque_type_type;
+
+    add_symbol("void", opaque_type, (void *)make_void_type());
 
 #define DEF(name) \
     add_symbol(#name, opaque_type, (void *)name##_type);
 
-    DEF(void)
     DEF(bool)
     DEF(char)
     DEF(short)
     DEF(int)
+    DEF(unsigned)
     DEF(long)
     DEF(long_long)
     DEF(intptr_t)
     DEF(size_t)
     DEF(char32_t)
-
-    add_symbol("v_target_opaque_void", opaque_type, opaque_void_type);      //- ?
-    DEF(void_ptr)
+    DEF(uint64_t)
 
 #undef DEF
+
+    constants["false"] = { bool_type, LLVMConstInt(bool_type->llvm_type(), 0, false) };
+    constants["true"]  = { bool_type, LLVMConstInt(bool_type->llvm_type(), 1, false) };
 }
 
 
@@ -307,7 +411,7 @@ base_local_ctx_t::check_alias(const std::string &name)
 }
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 base_local_ctx_t::lookup_type(const ast_argument_ptr_t &arg)
 {
     if (auto arg_type = std::dynamic_pointer_cast<const ast_arg_type_t>(arg))
@@ -327,14 +431,15 @@ base_local_ctx_t::lookup_type(const ast_argument_ptr_t &arg)
 
 //---------------------------------------------------------------------
 bool
-base_local_ctx_t::obtain_function(const std::string &fun_name, LLVMTypeRef &fun_type, LLVMValueRef &fun_value)
+base_local_ctx_t::obtain_function(const std::string &fun_name, v_type_t * &fun_type, LLVMValueRef &fun_value)
 {
     fun_type  = nullptr;
     fun_value = nullptr;
 
-    if (auto p = vars.find(fun_name))
+    if (auto *p = vars.find(fun_name))
     {
-        fun_value = *p;
+        fun_type  = p->first;
+        fun_value = p->second;
     }
     else
     {
@@ -342,45 +447,42 @@ base_local_ctx_t::obtain_function(const std::string &fun_name, LLVMTypeRef &fun_
 
         auto cname = raw_name.c_str();
 
+        fun_type  = find_symbol_type(cname);
         fun_value = LLVMGetNamedFunction(module, cname);
 
         if (!fun_value)
         {
-            fun_type = find_symbol_type(cname);
-
             if (fun_type)
             {
-                fun_value = LLVMAddFunction(module, cname, fun_type);
+                fun_value = LLVMAddFunction(module, cname, fun_type->llvm_type());
             }
         }
     }
 
-    if (!fun_value) return  false;
+    if (!fun_type)  return false;
+    if (!fun_value) return false;
 
-    if (!fun_type)
+    if (auto *ft = dynamic_cast<v_type_pointer_t *>(fun_type))
     {
-        fun_type = LLVMTypeOf(fun_value);
+        fun_type = ft->element_type();
     }
 
-    if (LLVMGetTypeKind(fun_type) == LLVMPointerTypeKind)
-    {
-        fun_type = LLVMGetElementType(fun_type);    //- ?!?!?!?
-    }
-
-    if (LLVMGetTypeKind(fun_type) != LLVMFunctionTypeKind)  return false;
+    if (fun_type->kind() != v_type_t::k_function) return false;
 
     return true;
 }
 
 //---------------------------------------------------------------------
-LLVMValueRef
-base_local_ctx_t::obtain_identifier(const std::string &name)
+bool
+base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value)
 {
-    LLVMValueRef value = nullptr;
+    type  = nullptr;
+    value = nullptr;
 
-    if (auto p = vars.find(name))
+    if (auto *p = vars.find(name))
     {
-        value = *p;
+        type  = p->first;
+        value = p->second;
     }
     else
     {
@@ -388,35 +490,44 @@ base_local_ctx_t::obtain_identifier(const std::string &name)
 
         {   auto it = constants.find(raw_name);
 
-            if (it != constants.end())  value = it->second;
+            if (it != constants.end())
+            {
+                type  = it->second.first;
+                value = it->second.second;
+            }
         }
 
         if (!value)
         {
             auto it = global_ctx.constants.find(raw_name);
 
-            if (it != global_ctx.constants.end())  value = it->second;
+            if (it != global_ctx.constants.end())
+            {
+                type  = it->second.first;
+                value = it->second.second;
+            }
         }
 
         if (!value)
         {
             auto cname = raw_name.c_str();
 
+            type  = find_symbol_type(cname);
             value = LLVMGetNamedGlobal(module, cname);
 
             if (!value)
             {
-                LLVMTypeRef type = find_symbol_type(cname);
-
                 if (type)
                 {
-                    value = LLVMAddGlobal(module, type, cname);
+                    value = LLVMAddGlobal(module, type->llvm_type(), cname);
                 }
             }
+
+            type = global_ctx.make_pointer_type(type, 0);       //- Sic!
         }
     }
 
-    return value;
+    return bool(value);
 }
 
 
@@ -436,10 +547,7 @@ LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
   : base_global_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
-    LLVMOpaqueType_type   (LLVMStructCreateNamed(llvm_ctx, "struct.LLVMOpaqueType")),
-    LLVMTypeRef_type      (LLVMPointerType(LLVMOpaqueType_type, 0)),
-    LLVMOpaqueContext_type(LLVMStructCreateNamed(llvm_ctx, "struct.LLVMOpaqueContext")),
-    LLVMContextRef_type   (LLVMPointerType(LLVMOpaqueContext_type, 0))
+    opaque_type_type(make_struct_type("struct.voidc_opaque_type"))
 {
     assert(voidc_global_ctx == nullptr);
 
@@ -447,37 +555,33 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     initialize();
 
-#define DEF(name) \
-    add_symbol(#name, LLVMOpaqueType_type, (void *)name##_type);
+    add_symbol("voidc_opaque_type", opaque_type_type, opaque_type_type);
 
-    DEF(LLVMOpaqueType)
-    DEF(LLVMTypeRef)
-    DEF(LLVMOpaqueContext)
-    DEF(LLVMContextRef)
+    {   auto type_ref_type = make_pointer_type(opaque_type_type, 0);
 
-#undef DEF
+        add_symbol("v_type_ref", opaque_type_type, type_ref_type);
 
-    {   auto char_ptr_type = LLVMPointerType(char_type, 0);
+        auto unsigned_type = make_uint_type(8*sizeof(int));
 
-        LLVMTypeRef args[] =
+        v_type_t *types[] =
         {
-            LLVMTypeRef_type,
-            LLVMPointerType(LLVMTypeRef_type, 0),
-            int_type,
-            int_type
+            type_ref_type,
+            make_pointer_type(type_ref_type, 0),
+            unsigned_type,
+            bool_type
         };
 
 #define DEF(name, ret, num) \
-        add_symbol_type(#name, LLVMFunctionType(ret, args, num, false));
+        add_symbol_type(#name, make_function_type(ret, types, num, false));
 
-        DEF(LLVMFunctionType, LLVMTypeRef_type, 4)
+        DEF(v_function_type, type_ref_type, 4)
 
-        args[0] = char_ptr_type;
-        args[1] = LLVMTypeRef_type;
+        types[0] = char_ptr_type;
+        types[1] = type_ref_type;
 
-        DEF(v_add_symbol_type, void_type, 2)
+        DEF(v_add_symbol_type, make_void_type(), 2)
 
-        DEF(v_struct_create_named, LLVMTypeRef_type, 1)
+        DEF(v_struct_type_named, type_ref_type, 1)
 
 #undef DEF
     }
@@ -560,6 +664,8 @@ voidc_global_ctx_t::static_initialize(void)
     //-------------------------------------------------------------
     target = new voidc_global_ctx_t();      //- Sic!
 
+    voidc_types_static_initialize();
+
     //-------------------------------------------------------------
     voidc->add_symbol_value("voidc_resolver", (void *)voidc_local_ctx_t::resolver);
 
@@ -591,6 +697,8 @@ voidc_global_ctx_t::static_initialize(void)
 void
 voidc_global_ctx_t::static_terminate(void)
 {
+    voidc_types_static_terminate();
+
     LLVMDisposePassManager(pass_manager);
 
     LLVMDisposeMessage(voidc_triple);
@@ -624,7 +732,7 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 
 //---------------------------------------------------------------------
 void
-voidc_global_ctx_t::add_symbol_type(const char *raw_name, LLVMTypeRef type)
+voidc_global_ctx_t::add_symbol_type(const char *raw_name, v_type_t *type)
 {
     char *m_name = nullptr;
 
@@ -650,7 +758,7 @@ voidc_global_ctx_t::add_symbol_value(const char *raw_name, void *value)
 
 //---------------------------------------------------------------------
 void
-voidc_global_ctx_t::add_symbol(const char *raw_name, LLVMTypeRef type, void *value)
+voidc_global_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     char *m_name = nullptr;
 
@@ -665,10 +773,10 @@ voidc_global_ctx_t::add_symbol(const char *raw_name, LLVMTypeRef type, void *val
 
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 voidc_global_ctx_t::get_symbol_type(const char *raw_name)
 {
-    LLVMTypeRef type = nullptr;
+    v_type_t *type = nullptr;
 
     char *m_name = nullptr;
 
@@ -703,7 +811,7 @@ voidc_global_ctx_t::get_symbol_value(const char *raw_name)
 
 //---------------------------------------------------------------------
 void
-voidc_global_ctx_t::get_symbol(const char *raw_name, LLVMTypeRef &type, void * &value)
+voidc_global_ctx_t::get_symbol(const char *raw_name, v_type_t * &type, void * &value)
 {
     type  = nullptr;
     value = nullptr;
@@ -732,7 +840,7 @@ voidc_local_ctx_t::voidc_local_ctx_t(const std::string filename, base_global_ctx
 
 //---------------------------------------------------------------------
 void
-voidc_local_ctx_t::add_symbol(const char *raw_name, LLVMTypeRef type, void *value)
+voidc_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     char *m_name = nullptr;
 
@@ -744,10 +852,10 @@ voidc_local_ctx_t::add_symbol(const char *raw_name, LLVMTypeRef type, void *valu
 }
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 voidc_local_ctx_t::find_type(const char *type_name)
 {
-    LLVMTypeRef tt = nullptr;
+    v_type_t *tt = nullptr;
 
     void *tv = nullptr;
 
@@ -782,19 +890,19 @@ voidc_local_ctx_t::find_type(const char *type_name)
 
     LLVMOrcDisposeMangledSymbol(m_name);
 
-    if (tt != voidc_global_ctx_t::voidc->LLVMOpaqueType_type)
+    if (tt != voidc_global_ctx_t::voidc->opaque_type_type)
     {
         tv = nullptr;
     }
 
-    return (LLVMTypeRef)tv;
+    return (v_type_t *)tv;
 }
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 voidc_local_ctx_t::find_symbol_type(const char *raw_name)
 {
-    LLVMTypeRef type = nullptr;
+    v_type_t *type = nullptr;
 
     char *m_name = nullptr;
 
@@ -1003,15 +1111,12 @@ target_global_ctx_t::target_global_ctx_t(size_t int_size, size_t long_size, size
     initialize();
 }
 
-target_global_ctx_t::~target_global_ctx_t()
-{
-    LLVMContextDispose(llvm_ctx);
-}
+target_global_ctx_t::~target_global_ctx_t() {}
 
 
 //---------------------------------------------------------------------
 void
-target_global_ctx_t::add_symbol_type(const char *raw_name, LLVMTypeRef type)
+target_global_ctx_t::add_symbol_type(const char *raw_name, v_type_t *type)
 {
     auto it = symbols.find(raw_name);
 
@@ -1021,7 +1126,7 @@ target_global_ctx_t::add_symbol_type(const char *raw_name, LLVMTypeRef type)
     }
     else
     {
-        symbols[raw_name] = { type, nullptr };
+        symbols[raw_name] = {type, nullptr};
     }
 }
 
@@ -1037,20 +1142,20 @@ target_global_ctx_t::add_symbol_value(const char *raw_name, void *value)
     }
     else
     {
-        symbols[raw_name] = { nullptr, value };
+        symbols[raw_name] = {nullptr, value};
     }
 }
 
 //---------------------------------------------------------------------
 void
-target_global_ctx_t::add_symbol(const char *raw_name, LLVMTypeRef type, void *value)
+target_global_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
-    symbols[raw_name] = { type, value };
+    symbols[raw_name] = {type, value};
 }
 
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 target_global_ctx_t::get_symbol_type(const char *raw_name)
 {
     auto it = symbols.find(raw_name);
@@ -1079,7 +1184,7 @@ target_global_ctx_t::get_symbol_value(const char *raw_name)
 
 //---------------------------------------------------------------------
 void
-target_global_ctx_t::get_symbol(const char *raw_name, LLVMTypeRef &type, void * &value)
+target_global_ctx_t::get_symbol(const char *raw_name, v_type_t * &type, void * &value)
 {
     type  = nullptr;
     value = nullptr;
@@ -1106,16 +1211,16 @@ target_local_ctx_t::target_local_ctx_t(const std::string filename, base_global_c
 
 //---------------------------------------------------------------------
 void
-target_local_ctx_t::add_symbol(const char *raw_name, LLVMTypeRef type, void *value)
+target_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     symbols[raw_name] = {type, value};
 }
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 target_local_ctx_t::find_type(const char *type_name)
 {
-    LLVMTypeRef tt = nullptr;
+    v_type_t *tt = nullptr;
 
     void *tv = nullptr;
 
@@ -1135,16 +1240,16 @@ target_local_ctx_t::find_type(const char *type_name)
         global_ctx.get_symbol(raw_name.c_str(), tt, tv);
     }
 
-    if (tt != voidc_global_ctx_t::voidc->LLVMOpaqueType_type)
+    if (tt != voidc_global_ctx_t::voidc->opaque_type_type)
     {
         tv = nullptr;
     }
 
-    return (LLVMTypeRef)tv;
+    return (v_type_t *)tv;
 }
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 target_local_ctx_t::find_symbol_type(const char *raw_name)
 {
     auto it = symbols.find(raw_name);
@@ -1168,22 +1273,8 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------
-LLVMTypeRef
-v_struct_create_named(const char *name)
-{
-    auto target = voidc_global_ctx_t::target;
-
-    auto t = LLVMGetTypeByName(target->llvm_mod, name);
-
-    if (t)  return t;
-
-    return LLVMStructCreateNamed(target->llvm_ctx, name);
-}
-
-
-//---------------------------------------------------------------------
 void
-v_add_symbol_type(const char *raw_name, LLVMTypeRef type)
+v_add_symbol_type(const char *raw_name, v_type_t *type)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
@@ -1199,7 +1290,7 @@ v_add_symbol_value(const char *raw_name, void *value)
 }
 
 void
-v_add_symbol(const char *raw_name, LLVMTypeRef type, void *value)
+v_add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
@@ -1207,16 +1298,16 @@ v_add_symbol(const char *raw_name, LLVMTypeRef type, void *value)
 }
 
 void
-v_add_constant(const char *name, LLVMValueRef val)
+v_add_constant(const char *name, v_type_t *type, LLVMValueRef value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.constants[name] = val;
+    gctx.constants[name] = {type, value};
 }
 
 //---------------------------------------------------------------------
 void
-v_add_local_symbol(const char *raw_name, LLVMTypeRef type, void *value)
+v_add_local_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -1225,12 +1316,12 @@ v_add_local_symbol(const char *raw_name, LLVMTypeRef type, void *value)
 }
 
 void
-v_add_local_constant(const char *name, LLVMValueRef val)
+v_add_local_constant(const char *name, v_type_t *type, LLVMValueRef value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.constants[name] = val;
+    lctx.constants[name] = {type, value};
 }
 
 //---------------------------------------------------------------------
@@ -1292,22 +1383,49 @@ voidc_finish_unit_action(void)
 
 //---------------------------------------------------------------------
 void
-v_add_variable(const char *name, LLVMValueRef val)
+v_add_variable(const char *name, v_type_t *type, LLVMValueRef value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.vars = lctx.vars.set(name, val);
+    lctx.vars = lctx.vars.set(name, {type, value});
+}
+
+v_type_t *
+v_get_variable_type(const char *name)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (auto *pv = lctx.vars.find(name))  return pv->first;
+    else                                  return nullptr;
 }
 
 LLVMValueRef
-v_get_variable(const char *name)
+v_get_variable_value(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    if (auto *pv = lctx.vars.find(name))  return *pv;
+    if (auto *pv = lctx.vars.find(name))  return pv->second;
     else                                  return nullptr;
+}
+
+bool
+v_get_variable(const char *name, v_type_t **type, LLVMValueRef *value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (auto *pv = lctx.vars.find(name))
+    {
+        if (type)   *type  = pv->first;
+        if (value)  *value = pv->second;
+
+        return true;
+    }
+
+    return false;
 }
 
 //---------------------------------------------------------------------
@@ -1341,14 +1459,34 @@ v_restore_variables(void)
 }
 
 //---------------------------------------------------------------------
+v_type_t *
+v_get_argument_type(int num)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return  lctx.arg_types[num];
+}
+
 LLVMValueRef
-v_get_argument(int num)
+v_get_argument_value(int num)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     return  lctx.args[num];
 }
+
+void
+v_get_argument(int num, v_type_t **type, LLVMValueRef *value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (type)   *type  = lctx.arg_types[num];
+    if (value)  *value = lctx.args[num];
+}
+
 
 void
 v_clear_arguments(void)
@@ -1371,6 +1509,15 @@ v_get_return_name(void)
 }
 
 void
+v_set_return_type(v_type_t *type)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.ret_type = type;
+}
+
+void
 v_set_return_value(LLVMValueRef val)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -1381,34 +1528,26 @@ v_set_return_value(LLVMValueRef val)
 
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 v_find_symbol_type(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    LLVMTypeRef type = nullptr;
+    v_type_t *type = nullptr;
 
     auto raw_name = lctx.check_alias(name);
 
-    {   LLVMValueRef value = nullptr;
+    {   auto it = lctx.constants.find(raw_name);
 
-        {   auto it = lctx.constants.find(raw_name);
+        if (it != lctx.constants.end())  type = it->second.first;
+    }
 
-            if (it != lctx.constants.end())  value = it->second;
-        }
+    if (!type)
+    {
+        auto it = gctx.constants.find(raw_name);
 
-        if (!value)
-        {
-            auto it = gctx.constants.find(raw_name);
-
-            if (it != gctx.constants.end())  value = it->second;
-        }
-
-        if (value)
-        {
-            type = LLVMTypeOf(value);
-        }
+        if (it != gctx.constants.end())  type = it->second.first;
     }
 
     if (!type)
@@ -1420,7 +1559,7 @@ v_find_symbol_type(const char *name)
 }
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 v_find_type(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -1441,7 +1580,7 @@ v_find_type(const char *name)
 }
 
 //---------------------------------------------------------------------
-LLVMTypeRef
+v_type_t *
 v_lookup_type(const ast_argument_ptr_t *arg)
 {
     auto &gctx = *voidc_global_ctx_t::target;

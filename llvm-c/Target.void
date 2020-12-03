@@ -11,248 +11,256 @@
 //- Values -------------------------------------------------
 {
     _int = v_find_type("int");
+    llvm_int = v_type_get_llvm_type(_int);
 
-    val = LLVMConstInt(_int, 1, 0);
-    v_add_constant("LLVMLittleEndian", val);
+    val = LLVMConstInt(llvm_int, 1, 0);
+    v_add_constant("LLVMLittleEndian", _int, val);
 
-    val = LLVMConstInt(_int, 0, 0);
-    v_add_constant("LLVMBigEndian", val);
+    val = LLVMConstInt(llvm_int, 0, 0);
+    v_add_constant("LLVMBigEndian", _int, val);
 
+}
+
+//- Known types --------------------------------------------
+{
+    _long_long = v_find_type("long_long");
+    w = v_type_integer_get_width(_long_long);
+    v = v_uint_type(w);
+    v_add_local_symbol("unsigned_long_long", voidc_opaque_type, v);
 }
 
 //- Types --------------------------------------------------
 {
-    v0 = v_target_get_llvm_ctx();
+    v0 = v_struct_type_named("struct.LLVMOpaqueTargetLibraryInfotData");
+    v1 = v_pointer_type(v0, 0);
+    v_add_symbol("LLVMTargetLibraryInfoRef", voidc_opaque_type, v1);
 
-    v1 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueTargetLibraryInfotData");
-    v2 = LLVMPointerType(v1, 0);
-    v_add_symbol("LLVMTargetLibraryInfoRef", LLVMOpaqueType, v2);
-
-    v3 = LLVMStructCreateNamed(v0, "struct.LLVMOpaqueTargetData");
-    v4 = LLVMPointerType(v3, 0);
-    v_add_symbol("LLVMTargetDataRef", LLVMOpaqueType, v4);
+    v2 = v_struct_type_named("struct.LLVMOpaqueTargetData");
+    v3 = v_pointer_type(v2, 0);
+    v_add_symbol("LLVMTargetDataRef", voidc_opaque_type, v3);
 
 }
 
 //- Functions ----------------------------------------------
 {
-    arg0 = v_alloca(LLVMTypeRef, 3);
+    arg0 = v_alloca(v_type_ref, 3);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
     v0_LLVMTargetDataRef = v_find_type("LLVMTargetDataRef");
     v_store(v0_LLVMTargetDataRef, arg0);
-    v1_int = v_find_type("int");
-    v_store(v1_int, arg1);
-    v2 = LLVMFunctionType(v1_int, arg0, 2, 0);
+    v1_unsigned = v_find_type("unsigned");
+    v_store(v1_unsigned, arg1);
+    v2 = v_function_type(v1_unsigned, arg0, 2, false);
     v_add_symbol_type("LLVMPointerSizeForAS", v2);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v3_LLVMValueRef = v_find_type("LLVMValueRef");
     v_store(v3_LLVMValueRef, arg1);
-    v4 = LLVMFunctionType(v1_int, arg0, 2, 0);
+    v4 = v_function_type(v1_unsigned, arg0, 2, false);
     v_add_symbol_type("LLVMPreferredAlignmentOfGlobal", v4);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v5_void = v_find_type("void");
-    v6 = LLVMFunctionType(v5_void, arg0, 1, 0);
+    v6 = v_function_type(v5_void, arg0, 1, false);
     v_add_symbol_type("LLVMDisposeTargetData", v6);
 
-    v7 = LLVMFunctionType(v5_void, arg0, 0, 0);
+    v7 = v_function_type(v5_void, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeAMDGPUTarget", v7);
 
-    v8 = LLVMFunctionType(v5_void, arg0, 0, 0);
+    v8 = v_function_type(v5_void, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeAMDGPUTargetInfo", v8);
 
     v9_LLVMBool = v_find_type("LLVMBool");
-    v10 = LLVMFunctionType(v9_LLVMBool, arg0, 0, 0);
+    v10 = v_function_type(v9_LLVMBool, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeNativeAsmPrinter", v10);
 
-    v11 = LLVMFunctionType(v5_void, arg0, 0, 0);
+    v11 = v_function_type(v5_void, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeX86TargetMC", v11);
 
-    v12 = LLVMFunctionType(v9_LLVMBool, arg0, 0, 0);
+    v12 = v_function_type(v9_LLVMBool, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeNativeAsmParser", v12);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v13_LLVMTypeRef = v_find_type("LLVMTypeRef");
     v_store(v13_LLVMTypeRef, arg1);
-    v14 = LLVMFunctionType(v1_int, arg0, 2, 0);
+    v14 = v_function_type(v1_unsigned, arg0, 2, false);
     v_add_symbol_type("LLVMPreferredAlignmentOfType", v14);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v_store(v13_LLVMTypeRef, arg1);
-    v15_long_long = v_find_type("long_long");
-    v_store(v15_long_long, arg2);
-    v16 = LLVMFunctionType(v1_int, arg0, 3, 0);
+    v15_unsigned_long_long = v_find_type("unsigned_long_long");
+    v_store(v15_unsigned_long_long, arg2);
+    v16 = v_function_type(v1_unsigned, arg0, 3, false);
     v_add_symbol_type("LLVMElementAtOffset", v16);
 
-    v17 = LLVMFunctionType(v9_LLVMBool, arg0, 0, 0);
+    v17 = v_function_type(v9_LLVMBool, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeNativeTarget", v17);
 
-    v18 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeNVPTXAsmPrinter", v18);
+    v18 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeBPFTarget", v18);
 
-    v19 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAMDGPUAsmPrinter", v19);
+    v19 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeNVPTXAsmPrinter", v19);
 
-    v20 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAMDGPUTargetMC", v20);
+    v20 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAMDGPUAsmPrinter", v20);
+
+    v21 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeX86Disassembler", v21);
 
     v_store(v0_LLVMTargetDataRef, arg0);
-    v21 = LLVMFunctionType(v13_LLVMTypeRef, arg0, 1, 0);
-    v_add_symbol_type("LLVMIntPtrType", v21);
+    v22 = v_function_type(v13_LLVMTypeRef, arg0, 1, false);
+    v_add_symbol_type("LLVMIntPtrType", v22);
 
-    v22 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeX86Disassembler", v22);
+    v23 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAMDGPUTargetMC", v23);
 
-    v23 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeX86Target", v23);
-
-    v24 = LLVMFunctionType(v5_void, arg0, 0, 0);
+    v24 = v_function_type(v5_void, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeAllTargets", v24);
 
-    v25 = LLVMFunctionType(v5_void, arg0, 0, 0);
+    v25 = v_function_type(v5_void, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeX86TargetInfo", v25);
 
-    v26 = LLVMFunctionType(v5_void, arg0, 0, 0);
+    v26 = v_function_type(v5_void, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeBPFAsmParser", v26);
 
     v27_LLVMModuleRef = v_find_type("LLVMModuleRef");
     v_store(v27_LLVMModuleRef, arg0);
     v_store(v0_LLVMTargetDataRef, arg1);
-    v28 = LLVMFunctionType(v5_void, arg0, 2, 0);
+    v28 = v_function_type(v5_void, arg0, 2, false);
     v_add_symbol_type("LLVMSetModuleDataLayout", v28);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v_store(v13_LLVMTypeRef, arg1);
-    v29 = LLVMFunctionType(v1_int, arg0, 2, 0);
+    v29 = v_function_type(v1_unsigned, arg0, 2, false);
     v_add_symbol_type("LLVMABIAlignmentOfType", v29);
 
     v30_char = v_find_type("char");
-    v31 = LLVMPointerType(v30_char, 0);
+    v31 = v_pointer_type(v30_char, 0);
     v_store(v31, arg0);
-    v32 = LLVMFunctionType(v0_LLVMTargetDataRef, arg0, 1, 0);
+    v32 = v_function_type(v0_LLVMTargetDataRef, arg0, 1, false);
     v_add_symbol_type("LLVMCreateTargetData", v32);
 
-    v33 = LLVMFunctionType(v5_void, arg0, 0, 0);
+    v33 = v_function_type(v5_void, arg0, 0, false);
     v_add_symbol_type("LLVMInitializeBPFTargetMC", v33);
 
-    v_add_symbol_type("LLVMByteOrder", v1_int);
+    v34_int = v_find_type("int");
+    v_add_symbol_type("LLVMByteOrder", v34_int);
 
-    v34 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeBPFTargetInfo", v34);
+    v35 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeBPFTargetInfo", v35);
 
-    v35 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeX86AsmPrinter", v35);
-
-    v_store(v0_LLVMTargetDataRef, arg0);
-    v_store(v1_int, arg1);
-    v36 = LLVMFunctionType(v13_LLVMTypeRef, arg0, 2, 0);
-    v_add_symbol_type("LLVMIntPtrTypeForAS", v36);
+    v36 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeX86AsmPrinter", v36);
 
     v_store(v0_LLVMTargetDataRef, arg0);
-    v_store(v13_LLVMTypeRef, arg1);
-    v37 = LLVMFunctionType(v15_long_long, arg0, 2, 0);
-    v_add_symbol_type("LLVMSizeOfTypeInBits", v37);
+    v_store(v1_unsigned, arg1);
+    v37 = v_function_type(v13_LLVMTypeRef, arg0, 2, false);
+    v_add_symbol_type("LLVMIntPtrTypeForAS", v37);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v_store(v13_LLVMTypeRef, arg1);
-    v38 = LLVMFunctionType(v1_int, arg0, 2, 0);
-    v_add_symbol_type("LLVMCallFrameAlignmentOfType", v38);
-
-    v39 = LLVMFunctionType(v9_LLVMBool, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeNativeDisassembler", v39);
-
-    v40_LLVMTargetLibraryInfoRef = v_find_type("LLVMTargetLibraryInfoRef");
-    v_store(v40_LLVMTargetLibraryInfoRef, arg0);
-    v41_LLVMPassManagerRef = v_find_type("LLVMPassManagerRef");
-    v_store(v41_LLVMPassManagerRef, arg1);
-    v42 = LLVMFunctionType(v5_void, arg0, 2, 0);
-    v_add_symbol_type("LLVMAddTargetLibraryInfo", v42);
-
-    v43 = LLVMPointerType(v30_char, 0);
-    v_store(v0_LLVMTargetDataRef, arg0);
-    v44 = LLVMFunctionType(v43, arg0, 1, 0);
-    v_add_symbol_type("LLVMCopyStringRepOfTargetData", v44);
-
-    v45 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAllAsmParsers", v45);
-
-    v46 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAMDGPUAsmParser", v46);
+    v38 = v_function_type(v15_unsigned_long_long, arg0, 2, false);
+    v_add_symbol_type("LLVMSizeOfTypeInBits", v38);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v_store(v13_LLVMTypeRef, arg1);
-    v_store(v1_int, arg2);
-    v47 = LLVMFunctionType(v15_long_long, arg0, 3, 0);
-    v_add_symbol_type("LLVMOffsetOfElement", v47);
+    v39 = v_function_type(v1_unsigned, arg0, 2, false);
+    v_add_symbol_type("LLVMCallFrameAlignmentOfType", v39);
 
-    v48_LLVMContextRef = v_find_type("LLVMContextRef");
-    v_store(v48_LLVMContextRef, arg0);
+    v40 = v_function_type(v9_LLVMBool, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeNativeDisassembler", v40);
+
+    v41_LLVMTargetLibraryInfoRef = v_find_type("LLVMTargetLibraryInfoRef");
+    v_store(v41_LLVMTargetLibraryInfoRef, arg0);
+    v42_LLVMPassManagerRef = v_find_type("LLVMPassManagerRef");
+    v_store(v42_LLVMPassManagerRef, arg1);
+    v43 = v_function_type(v5_void, arg0, 2, false);
+    v_add_symbol_type("LLVMAddTargetLibraryInfo", v43);
+
+    v44 = v_pointer_type(v30_char, 0);
+    v_store(v0_LLVMTargetDataRef, arg0);
+    v45 = v_function_type(v44, arg0, 1, false);
+    v_add_symbol_type("LLVMCopyStringRepOfTargetData", v45);
+
+    v46 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAllAsmParsers", v46);
+
+    v47 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAMDGPUAsmParser", v47);
+
+    v_store(v0_LLVMTargetDataRef, arg0);
+    v_store(v13_LLVMTypeRef, arg1);
+    v_store(v1_unsigned, arg2);
+    v48 = v_function_type(v15_unsigned_long_long, arg0, 3, false);
+    v_add_symbol_type("LLVMOffsetOfElement", v48);
+
+    v49_LLVMContextRef = v_find_type("LLVMContextRef");
+    v_store(v49_LLVMContextRef, arg0);
     v_store(v0_LLVMTargetDataRef, arg1);
-    v_store(v1_int, arg2);
-    v49 = LLVMFunctionType(v13_LLVMTypeRef, arg0, 3, 0);
-    v_add_symbol_type("LLVMIntPtrTypeForASInContext", v49);
+    v_store(v1_unsigned, arg2);
+    v50 = v_function_type(v13_LLVMTypeRef, arg0, 3, false);
+    v_add_symbol_type("LLVMIntPtrTypeForASInContext", v50);
 
-    v50 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeBPFDisassembler", v50);
+    v51 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeBPFDisassembler", v51);
 
-    v51 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeNVPTXTarget", v51);
+    v52 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeX86Target", v52);
 
-    v_store(v48_LLVMContextRef, arg0);
+    v_store(v49_LLVMContextRef, arg0);
     v_store(v0_LLVMTargetDataRef, arg1);
-    v52 = LLVMFunctionType(v13_LLVMTypeRef, arg0, 2, 0);
-    v_add_symbol_type("LLVMIntPtrTypeInContext", v52);
+    v53 = v_function_type(v13_LLVMTypeRef, arg0, 2, false);
+    v_add_symbol_type("LLVMIntPtrTypeInContext", v53);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v_store(v13_LLVMTypeRef, arg1);
-    v53 = LLVMFunctionType(v15_long_long, arg0, 2, 0);
-    v_add_symbol_type("LLVMABISizeOfType", v53);
+    v54 = v_function_type(v15_unsigned_long_long, arg0, 2, false);
+    v_add_symbol_type("LLVMABISizeOfType", v54);
 
     v_store(v0_LLVMTargetDataRef, arg0);
     v_store(v13_LLVMTypeRef, arg1);
-    v54 = LLVMFunctionType(v15_long_long, arg0, 2, 0);
-    v_add_symbol_type("LLVMStoreSizeOfType", v54);
+    v55 = v_function_type(v15_unsigned_long_long, arg0, 2, false);
+    v_add_symbol_type("LLVMStoreSizeOfType", v55);
 
     v_store(v27_LLVMModuleRef, arg0);
-    v55 = LLVMFunctionType(v0_LLVMTargetDataRef, arg0, 1, 0);
-    v_add_symbol_type("LLVMGetModuleDataLayout", v55);
+    v56 = v_function_type(v0_LLVMTargetDataRef, arg0, 1, false);
+    v_add_symbol_type("LLVMGetModuleDataLayout", v56);
 
     v_store(v0_LLVMTargetDataRef, arg0);
-    v56 = LLVMFunctionType(v1_int, arg0, 1, 0);
-    v_add_symbol_type("LLVMPointerSize", v56);
+    v57 = v_function_type(v1_unsigned, arg0, 1, false);
+    v_add_symbol_type("LLVMPointerSize", v57);
 
-    v57 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAMDGPUDisassembler", v57);
+    v58 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAMDGPUDisassembler", v58);
 
-    v58 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAllAsmPrinters", v58);
+    v59 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAllAsmPrinters", v59);
 
-    v59 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeNVPTXTargetInfo", v59);
+    v60 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeNVPTXTargetInfo", v60);
 
-    v60 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAllTargetInfos", v60);
+    v61 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAllTargetInfos", v61);
 
-    v61 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAllTargetMCs", v61);
+    v62 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAllTargetMCs", v62);
 
-    v62 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeNVPTXTargetMC", v62);
+    v63 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeNVPTXTargetMC", v63);
 
-    v63 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeAllDisassemblers", v63);
+    v64 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeAllDisassemblers", v64);
 
-    v64 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeBPFTarget", v64);
+    v65 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeNVPTXTarget", v65);
 
-    v65 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeX86AsmParser", v65);
+    v66 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeX86AsmParser", v66);
 
-    v66 = LLVMFunctionType(v5_void, arg0, 0, 0);
-    v_add_symbol_type("LLVMInitializeBPFAsmPrinter", v66);
+    v67 = v_function_type(v5_void, arg0, 0, false);
+    v_add_symbol_type("LLVMInitializeBPFAsmPrinter", v67);
 
 }
 

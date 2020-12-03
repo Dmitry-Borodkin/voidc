@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------
 #include "voidc_compiler.h"
 
+#include "voidc_types.h"
 #include "voidc_target.h"
 
 
@@ -63,11 +64,12 @@ void compile_ast_stmt_t(const visitor_ptr_t *vis, const std::string *vname, cons
     auto &var_name = *vname;
 
     lctx.ret_name  = var_name.c_str();
+    lctx.ret_type  = nullptr;
     lctx.ret_value = nullptr;
 
     (*call)->accept(*vis);
 
-    if (lctx.ret_name[0])   lctx.vars = lctx.vars.set(var_name, lctx.ret_value);
+    if (lctx.ret_name[0])   lctx.vars = lctx.vars.set(var_name, {lctx.ret_type, lctx.ret_value});
 }
 
 
@@ -91,18 +93,21 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
         return;
     }
 
-    LLVMValueRef f  = nullptr;
-    LLVMTypeRef  ft = nullptr;
+    LLVMValueRef f = nullptr;
+    v_type_t    *t = nullptr;
 
-    bool ok = lctx.obtain_function(fun_name, ft, f);
-    if (!ok)
+    if (!lctx.obtain_function(fun_name, t, f))
     {
         throw std::runtime_error("Function not found: " + fun_name);
     }
 
-    lctx.arg_types.resize(LLVMCountParamTypes(ft));
+    auto ft = static_cast<v_type_function_t *>(t);
 
-    LLVMGetParamTypes(ft, lctx.arg_types.data());
+    auto count = ft->param_count();
+
+    lctx.arg_types.resize(count);
+
+    std::copy_n(ft->param_types(), count, lctx.arg_types.data());
 
     if (*args) (*args)->accept(*vis);
 
@@ -111,6 +116,7 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
     lctx.args.clear();
     lctx.arg_types.clear();
 
+    lctx.ret_type  = ft->return_type();
     lctx.ret_value = v;
 }
 
@@ -124,8 +130,10 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    LLVMValueRef v = lctx.obtain_identifier(*name);
-    if (!v)
+    LLVMValueRef v = nullptr;
+    v_type_t    *t = nullptr;
+
+    if (!lctx.obtain_identifier(*name, t, v))
     {
         throw std::runtime_error("Identifier not found: " + *name);
     }
@@ -135,16 +143,19 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
     if (idx < lctx.arg_types.size())
     {
         auto at = lctx.arg_types[idx];
-        auto vt = LLVMTypeOf(v);
 
-        auto void_ptr_type = voidc_global_ctx_t::voidc->void_ptr_type;
-
-        if (at != vt  &&
-            at == void_ptr_type  &&
-            LLVMGetTypeKind(vt) == LLVMPointerTypeKind)
+        if (at != t  &&
+            at == gctx.void_ptr_type  &&
+            t->kind() == v_type_t::k_pointer)
         {
-            v = LLVMBuildPointerCast(gctx.builder, v, void_ptr_type, name->c_str());
+            v = LLVMBuildPointerCast(gctx.builder, v, at->llvm_type(), name->c_str());
         }
+    }
+    else
+    {
+        assert(idx == lctx.arg_types.size());
+
+        lctx.arg_types.push_back(t);
     }
 
     lctx.args.push_back(v);
@@ -160,24 +171,30 @@ void compile_ast_arg_integer_t(const visitor_ptr_t *vis, intptr_t num)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto idx = lctx.args.size();
+    v_type_t *t = gctx.int_type;
 
-    LLVMTypeRef t = gctx.int_type;
+    auto idx = lctx.args.size();
 
     if (idx < lctx.arg_types.size())
     {
         t = lctx.arg_types[idx];
     }
+    else
+    {
+        assert(idx == lctx.arg_types.size());
+
+        lctx.arg_types.push_back(t);
+    }
 
     LLVMValueRef v;
 
-    if (LLVMGetTypeKind(t) == LLVMPointerTypeKind  &&  num == 0)
+    if (t->kind() == v_type_t::k_pointer  &&  num == 0)
     {
-        v = LLVMConstPointerNull(t);
+        v = LLVMConstPointerNull(t->llvm_type());
     }
     else
     {
-        v = LLVMConstInt(t, num, false);     //- ?
+        v = LLVMConstInt(t->llvm_type(), num, false);       //- ?
     }
 
     lctx.args.push_back(v);
@@ -201,12 +218,16 @@ void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
     {
         auto at = lctx.arg_types[idx];
 
-        auto void_ptr_type = voidc_global_ctx_t::voidc->void_ptr_type;
-
-        if (at == void_ptr_type)
+        if (at == gctx.void_ptr_type)
         {
-            v = LLVMBuildPointerCast(gctx.builder, v, void_ptr_type, "void_str");
+            v = LLVMBuildPointerCast(gctx.builder, v, at->llvm_type(), "void_str");
         }
+    }
+    else
+    {
+        assert(idx == lctx.arg_types.size());
+
+        lctx.arg_types.push_back(gctx.char_ptr_type);
     }
 
     lctx.args.push_back(v);
@@ -222,7 +243,22 @@ void compile_ast_arg_char_t(const visitor_ptr_t *vis, char32_t c)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto v = LLVMConstInt(gctx.int_type, c, false);      //- int ?
+    v_type_t *t = gctx.char32_t_type;
+
+    auto idx = lctx.args.size();
+
+    if (idx < lctx.arg_types.size())
+    {
+        t = lctx.arg_types[idx];
+    }
+    else
+    {
+        assert(idx == lctx.arg_types.size());
+
+        lctx.arg_types.push_back(t);
+    }
+
+    auto v = LLVMConstInt(t->llvm_type(), c, false);
 
     lctx.args.push_back(v);
 }
@@ -232,7 +268,7 @@ void compile_ast_arg_char_t(const visitor_ptr_t *vis, char32_t c)
 //- arg_type
 //---------------------------------------------------------------------
 static
-void compile_ast_arg_type_t(const visitor_ptr_t *vis, LLVMTypeRef type)
+void compile_ast_arg_type_t(const visitor_ptr_t *vis, v_type_t *type)
 {
     assert(false && "This can not happen!");
 }
