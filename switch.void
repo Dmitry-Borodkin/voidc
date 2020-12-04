@@ -15,11 +15,9 @@
 
 
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(LLVMTypeRef, 3);
+{   typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
-
-    gc = LLVMGetGlobalContext();
 
 
     //-----------------------------------------------------------------
@@ -27,11 +25,13 @@
     //-----------------------------------------------------------------
     quark = v_quark_from_string("v_ast_stmt_switch_t_visitor_method_tag");
 
-    quark_ll = v_cast(LLVMZExt, quark, long_long);
+    quark_ll = v_cast(quark, long_long);
 
-    quark_v = LLVMConstInt(v_quark_t, quark_ll, 0);
+    v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 
-    v_add_local_constant("quark", quark_v);
+    quark_v = LLVMConstInt(v_quark_t_, quark_ll, 0);
+
+    v_add_local_constant("quark", v_quark_t, quark_v);
 
     v_add_local_symbol("quark_v", LLVMOpaqueValue, quark_v);
 
@@ -43,43 +43,43 @@
     v_store(v_ast_argument_ref,     typ1);
     v_store(v_ast_generic_list_ref, typ2);
 
-    method_ft  = LLVMFunctionType(void, typ0, 3, 0);
-    method_ref = LLVMPointerType(method_ft, 0);
+    method_ft  = v_function_type(void, typ0, 3, false);
+    method_ref = v_pointer_type(method_ft, 0);
 
-    v_add_local_symbol("method_ft",  LLVMOpaqueType, method_ft);
-    v_add_local_symbol("method_ref", LLVMOpaqueType, method_ref);
+    v_add_local_symbol("method_ft",  voidc_opaque_type, method_ft);
+    v_add_local_symbol("method_ref", voidc_opaque_type, method_ref);
 
 
     //-----------------------------------------------------------------
     //- ast_stmt_switch_t ...
     //-----------------------------------------------------------------
-    ast_stmt_switch_t = LLVMStructCreateNamed(gc, "struct.ast_stmt_switch_t");
+    ast_stmt_switch_t = v_struct_type_named("struct.ast_stmt_switch_t");
 
     v_store(v_ast_opaque_argument_ptr,     typ0);
     v_store(v_ast_opaque_generic_list_ptr, typ1);
 
-    LLVMStructSetBody(ast_stmt_switch_t, typ0, 2, 0);
+    v_type_struct_set_body(ast_stmt_switch_t, typ0, 2, false);
 
-    ast_stmt_switch_ref = LLVMPointerType(ast_stmt_switch_t, 0);
+    ast_stmt_switch_ref = v_pointer_type(ast_stmt_switch_t, 0);
 
-    v_add_local_symbol("ast_stmt_switch_t",   LLVMOpaqueType, ast_stmt_switch_t);
-    v_add_local_symbol("ast_stmt_switch_ref", LLVMOpaqueType, ast_stmt_switch_ref);
+    v_add_local_symbol("ast_stmt_switch_t",   voidc_opaque_type, ast_stmt_switch_t);
+    v_add_local_symbol("ast_stmt_switch_ref", voidc_opaque_type, ast_stmt_switch_ref);
 
 
     //-----------------------------------------------------------------
     //- ast_case_block_t ...
     //-----------------------------------------------------------------
-    ast_case_block_t = LLVMStructCreateNamed(gc, "struct.ast_case_block_t");
+    ast_case_block_t = v_struct_type_named("struct.ast_case_block_t");
 
     v_store(v_ast_opaque_arg_list_ptr,  typ0);
     v_store(v_ast_opaque_stmt_list_ptr, typ1);
 
-    LLVMStructSetBody(ast_case_block_t, typ0, 2, 0);
+    v_type_struct_set_body(ast_case_block_t, typ0, 2, false);
 
-    ast_case_block_ref = LLVMPointerType(ast_case_block_t, 0);
+    ast_case_block_ref = v_pointer_type(ast_case_block_t, 0);
 
-    v_add_local_symbol("ast_case_block_t",   LLVMOpaqueType, ast_case_block_t);
-    v_add_local_symbol("ast_case_block_ref", LLVMOpaqueType, ast_case_block_ref);
+    v_add_local_symbol("ast_case_block_t",   voidc_opaque_type, ast_case_block_t);
+    v_add_local_symbol("ast_case_block_ref", voidc_opaque_type, ast_case_block_ref);
 }
 
 
@@ -87,6 +87,10 @@
 {   module = LLVMModuleCreateWithName("my_stmt_switch_mod");
 
     v_set_module(module);
+
+    void_ptr = v_pointer_type(void, 0);
+
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 
@@ -97,10 +101,10 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_switch_destroy", v_ast_generic_destroy_fun_t);
 
-    v_add_parameter_name(f, 0, "void_obj");
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
 }
 {
-    obj = v_cast(LLVMBitCast, void_obj, ast_stmt_switch_ref);
+    obj = v_cast(void_obj, ast_stmt_switch_ref);
 
     arg  = v_getelementptr(obj, 0, 0);
     list = v_getelementptr(obj, 0, 1);
@@ -119,18 +123,18 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_switch_accept", v_ast_generic_accept_fun_t);
 
-    v_add_parameter_name(f, 0, "void_obj");
-    v_add_parameter_name(f, 1, "visitor");
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
+    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ref);
 }
 {
-    obj = v_cast(LLVMBitCast, void_obj, ast_stmt_switch_ref);
+    obj = v_cast(void_obj, ast_stmt_switch_ref);
 
     arg  = v_getelementptr(obj, 0, 0);
     list = v_getelementptr(obj, 0, 1);
 
     void_method = voidc_visitor_get_void_method(visitor, quark);
 
-    method = v_cast(LLVMBitCast, void_method, method_ref);
+    method = v_cast(void_method, method_ref);
 
     method(visitor, arg, list);
 }
@@ -153,9 +157,11 @@
     v_store(accept_f,  val1);
     v_store(quark_v,   val2);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable, val0, 3);
+    v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable, "voidc_ast_stmt_switch_vtable");
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
+
+    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_stmt_switch_vtable");
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
@@ -167,7 +173,7 @@
 //- v_ast_make_stmt_switch - ...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(LLVMTypeRef, 3);
+    typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -175,14 +181,14 @@
     v_store(v_ast_argument_ref,     typ1);
     v_store(v_ast_generic_list_ref, typ2);
 
-    ft = LLVMFunctionType(void, typ0, 3, 0);
+    ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_switch", ft);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg");
-    v_add_parameter_name(f, 2, "list");
+    v_add_parameter_name(f, 0, "ret",  v_ast_stmt_ref);
+    v_add_parameter_name(f, 1, "arg",  v_ast_argument_ref);
+    v_add_parameter_name(f, 2, "list", v_ast_generic_list_ref);
 }
 {
     obj = v_malloc(ast_stmt_switch_t);
@@ -207,10 +213,10 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_case_block_destroy", v_ast_generic_destroy_fun_t);
 
-    v_add_parameter_name(f, 0, "void_obj");
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
 }
 {
-    obj = v_cast(LLVMBitCast, void_obj, ast_case_block_ref);
+    obj = v_cast(void_obj, ast_case_block_ref);
 
     arg_list  = v_getelementptr(obj, 0, 0);
     stmt_list = v_getelementptr(obj, 0, 1);
@@ -234,25 +240,23 @@
 
     destroy_f = v_obtain_function("voidc_ast_case_block_destroy");
 
-    typ0 = v_alloca(LLVMTypeRef, 2);
-    typ1 = v_getelementptr(typ0, 1);
+    accept_p  = v_pointer_type(v_ast_generic_accept_fun_t, 0);
+    accept_p_ = v_type_get_llvm_type(accept_p);
 
-    v_store(void_ptr,          typ0);               //- object
-    v_store(voidc_visitor_ref, typ1);               //-
+    v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 
-    accept_ft = LLVMFunctionType(void, typ0, 2, 0);
-    accept_p  = LLVMPointerType(accept_ft, 0);
-
-    accept_z = LLVMConstNull(accept_p);
-    quark_z  = LLVMConstNull(v_quark_t);
+    accept_z = LLVMConstNull(accept_p_);
+    quark_z  = LLVMConstNull(v_quark_t_);
 
     v_store(destroy_f, val0);
     v_store(accept_z,  val1);       //- Zero!
     v_store(quark_z,   val2);       //- Zero!
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable, val0, 3);
+    v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable, "voidc_ast_case_block_vtable");
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
+
+    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_case_block_vtable");
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
@@ -264,7 +268,7 @@
 //- v_ast_make_case_block - ...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(LLVMTypeRef, 3);
+    typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -272,14 +276,14 @@
     v_store(v_ast_arg_list_ref,  typ1);
     v_store(v_ast_stmt_list_ref, typ2);
 
-    ft = LLVMFunctionType(void, typ0, 3, 0);
+    ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_case_block", ft);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "stmt_list");
+    v_add_parameter_name(f, 0, "ret",       v_ast_generic_ref);
+    v_add_parameter_name(f, 1, "arg_list",  v_ast_arg_list_ref);
+    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ref);
 }
 {
     obj = v_malloc(ast_case_block_t);
@@ -302,9 +306,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_item_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "any0");
-    v_add_parameter_name(f, 2, "any_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     arg = v_std_any_get_pointer(v_ast_opaque_argument_ptr, any0);
@@ -330,9 +334,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_block_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "any0");
-    v_add_parameter_name(f, 2, "any_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -345,7 +349,7 @@
 
     v_ast_make_case_block(case_block, case_list, stmt_list);
 
-    ret_base = v_cast(LLVMBitCast, case_block, v_ast_base_ref);
+    ret_base = v_cast(case_block, v_ast_base_ref);
 
     v_std_any_set_pointer(ret, ret_base);
     v_terminate(case_block);
@@ -357,9 +361,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_list_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "any0");
-    v_add_parameter_name(f, 2, "any_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -384,9 +388,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_switch_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "any0");
-    v_add_parameter_name(f, 2, "any_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -412,9 +416,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_switch_t", method_ft);
 
-    v_add_parameter_name(f, 0, "visitor");
-    v_add_parameter_name(f, 1, "arg");
-    v_add_parameter_name(f, 2, "list");
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ref);
+    v_add_parameter_name(f, 1, "arg",     v_ast_argument_ref);
+    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ref);
 }
 {
     v_save_variables();
@@ -422,11 +426,11 @@
 
     //- Compile switch argument
 
-    arg_base = v_cast(LLVMBitCast, arg, v_ast_base_ref);
+    arg_base = v_cast(arg, v_ast_base_ref);
 
     v_ast_accept_visitor(arg_base, visitor);
 
-    arg0 = v_get_argument(0);       //- switch argument...
+    arg0 = v_get_argument_value(0);     //- switch argument...
 
     v_clear_arguments();
 
@@ -456,11 +460,11 @@
 
         v_ast_generic_list_get_item(list, idx, ast_base);
 
-        ast_generic = v_cast(LLVMBitCast, ast_base, v_ast_generic_ref);
+        ast_generic = v_cast(ast_base, v_ast_generic_ref);
 
         obj = v_ast_generic_get_object(ast_generic);
 
-        case_block = v_cast(LLVMBitCast, obj, ast_case_block_ref);
+        case_block = v_cast(obj, ast_case_block_ref);
 
         case_list = v_getelementptr(case_block, 0, 0);
 
@@ -499,7 +503,7 @@
 
     switch_exit_bv = LLVMBasicBlockAsValue(switch_exit_b);
 
-    v_add_variable("voidc.internal_branch_target_break", switch_exit_bv);
+    v_add_variable("voidc.internal_branch_target_break", LLVMValueRef, switch_exit_bv);
 
 
     switch_v = LLVMBuildSwitch(builder, arg0, switch_default_b, num);
@@ -527,11 +531,11 @@
 
         v_ast_generic_list_get_item(list, idx, ast_base);
 
-        ast_generic = v_cast(LLVMBitCast, ast_base, v_ast_generic_ref);
+        ast_generic = v_cast(ast_base, v_ast_generic_ref);
 
         obj = v_ast_generic_get_object(ast_generic);
 
-        case_block = v_cast(LLVMBitCast, obj, ast_case_block_ref);
+        case_block = v_cast(obj, ast_case_block_ref);
 
         case_list = v_getelementptr(case_block, 0, 0);
 
@@ -592,7 +596,7 @@
 
         stmt_list = v_getelementptr(case_block, 0, 1);
 
-        base_ast = v_cast(LLVMBitCast, stmt_list, v_ast_base_ref);
+        base_ast = v_cast(stmt_list, v_ast_base_ref);
 
         v_ast_accept_visitor(base_ast, visitor);
 
@@ -618,11 +622,11 @@
 
             //- "Normal" case
 
-            base_ast = v_cast(LLVMBitCast, case_arg_i, v_ast_base_ref);
+            base_ast = v_cast(case_arg_i, v_ast_base_ref);
 
             v_ast_accept_visitor(base_ast, visitor);
 
-            val = v_get_argument(0);
+            val = v_get_argument_value(0);
 
             v_clear_arguments();
 
@@ -671,7 +675,7 @@
 //- void voidc_enable_statement_switch(void);
 //---------------------------------------------------------------------
 {
-    ft = LLVMFunctionType(void, 0, 0, 0);
+    ft = v_function_type(void, 0, 0, false);
 
     v_add_symbol_type("voidc_enable_statement_switch", ft);
 
@@ -738,7 +742,7 @@
     v_peg_set_grammar(gr0);
 
 
-    void_method = v_cast(LLVMBitCast, compile_ast_stmt_switch_t, void_ptr);
+    void_method = v_cast(compile_ast_stmt_switch_t, void_ptr);
 
     voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, void_method);
 

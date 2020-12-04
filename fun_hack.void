@@ -7,22 +7,22 @@
 //- int QWERTY(int, char *);
 //---------------------------------------------------------------------
 {
-    arg0 = v_alloca(LLVMTypeRef, 2);
+    arg0 = v_alloca(v_type_ref, 2);
     arg1 = v_getelementptr(arg0, 1);
 
-    char_ptr = LLVMPointerType(char, 0);
+    char_ptr = v_pointer_type(char, 0);
 
     v_store(int,      arg0);
     v_store(char_ptr, arg1);
 
-    ft = LLVMFunctionType(int, arg0, 2, 0);
+    ft = v_function_type(int, arg0, 2, false);
 
     //-------------------------------------------------------------
     f = v_function_hack("QWERTY", ft);
     //-------------------------------------------------------------
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("num", p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("str", p1);
+    v_add_parameter_name(f, 0, "num", int);
+    v_add_parameter_name(f, 1, "str", char_ptr);
 }
 {
     printf("QWERTY: %d, %s\n", num, str);
@@ -55,7 +55,7 @@
 
 //---------------------------------------------------------------------
 {
-    hello_ft = LLVMFunctionType(void, 0, 0, 0);
+    hello_ft = v_function_type(void, 0, 0, false);
 
     //-------------------------------------------------------------
     f = v_function_hack("hello", hello_ft);
@@ -68,7 +68,7 @@
 
 //---------------------------------------------------------------------
 {
-    hello2_ft = LLVMFunctionType(void, 0, 0, 0);
+    hello2_ft = v_function_type(void, 0, 0, false);
 
     //-------------------------------------------------------------
     f = v_function_hack("hello2", hello2_ft);

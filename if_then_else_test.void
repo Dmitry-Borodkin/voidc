@@ -1,4 +1,4 @@
-{   v_import("block.void");
+{   v_import("arithmetic.void");
     v_import("if_then_else.void");
 }
 
@@ -6,40 +6,40 @@
 }
 
 //---------------------------------------------------------------------
-{   voidc_enable_statement_block();
-    voidc_enable_statement_if_then_else();
+{   voidc_enable_statement_if_then_else();
 }
 
 
 //---------------------------------------------------------------------
 {
-    char_ptr = LLVMPointerType(char, 0);
+    char_ptr = v_pointer_type(char, 0);
 
-    typ = v_alloca(LLVMTypeRef);
+    typ = v_alloca(v_type_ref);
 
     v_store(char_ptr, typ);
 
-    ft = LLVMFunctionType(void, typ, 1, 0);
+    ft = v_function_type(void, typ, 1, false);
 
+    //-----------------------------------------------------------------
     f = v_function_hack("test_print", ft);
 
-    p = LLVMGetParam(f, 0);     v_add_variable("str", p);
+    v_add_parameter_name(f, 0, "str", char_ptr);
 }
 {
     ch0 = v_load(str);
 
-    if (ch0)
-    {
-        printf("\'%c\'\n", ch0);
+    if (ch0)  printf("\'%c\'\n", ch0);
+    else      printf("\n");
 
-        str1 = v_getelementptr(str, 1);
+    zch = v_cast(0, char);
 
-        test_print(str1);
-    }
-    else
-    {
-        printf("\n");
-    }
+    zf = v_icmp(LLVMIntEQ, ch0, zch);
+
+    if (zf) v_return();
+
+    str1 = v_getelementptr(str, 1);
+
+    test_print(str1);
 }
 
 

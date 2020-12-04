@@ -20,22 +20,24 @@
 
     c = v_icmp(LLVMIntUGT, v, 5);
 
-    vc = v_cast(LLVMZExt, c, int);
+    vc = v_cast(c, int);
 
     printf("%d\n", vc);
 }
 
 
-{   double = LLVMDoubleType();
+{   double = v_f64_type();
 
-    v_add_local_symbol("double", LLVMOpaqueType, double);
+    v_add_local_symbol("double", voidc_opaque_type, double);
 
-    half = LLVMConstRealOfString(double, "0.5");
+    double_ = v_type_get_llvm_type(double);
 
-    v_add_local_constant("half", half);
+    half = LLVMConstRealOfString(double_, "0.5");
+
+    v_add_local_constant("half", double, half);
 }
 
-{   f1 = v_cast(LLVMUIToFP, 1, double);
+{   f1 = v_cast(1, double);
 
     v = v_binop(LLVMFAdd, f1, half);
     v = v_binop(LLVMFMul, v, v);
@@ -44,18 +46,44 @@
 
     c = v_fcmp(LLVMRealUGT, v, f1);
 
-    vc = v_cast(LLVMZExt, c, int);
+    vc = v_cast(c, int);
 
     printf("%d\n", vc);
+}
 
 
+{   quad = v_f128_type();
+
+    v_add_local_symbol("quad", voidc_opaque_type, quad);
+
+    quad_ = v_type_get_llvm_type(quad);
+
+    half = LLVMConstRealOfString(quad_, "0.25");
+
+    v_add_local_constant("half_q", quad, half);
+}
+
+{   f1 = v_cast(5, quad);
+
+    v = v_binop(LLVMFAdd, f1, half_q);
+    v = v_binop(LLVMFMul, v, v);
+
+    vd = v_cast(v, double);
+
+    printf("%g\n", vd);
+
+    c = v_fcmp(LLVMRealUGT, v, f1);
+
+    vc = v_cast(c, int);
+
+    printf("%d\n", vc);
 }
 
 
 //---------------------------------------------------------------------
 //- int fib_helper(int v0, int v1, int n);
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(LLVMTypeRef, 3);
+{   typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -63,13 +91,14 @@
     v_store(int, typ1);
     v_store(int, typ2);
 
-    ft = LLVMFunctionType(int, typ0, 3, 0);
+    ft = v_function_type(int, typ0, 3, false);
 
+    //-----------------------------------------------------------------
     f = v_function_hack("fib_helper", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("v0", p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("v1", p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("n",  p2);
+    v_add_parameter_name(f, 0, "v0", int);
+    v_add_parameter_name(f, 1, "v1", int);
+    v_add_parameter_name(f, 2, "n",  int);
 }
 {
     if (n)
@@ -91,15 +120,16 @@
 //---------------------------------------------------------------------
 //- "uint" fib(int n);
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(LLVMTypeRef);
+{   typ0 = v_alloca(v_type_ref);
 
     v_store(int, typ0);
 
-    ft = LLVMFunctionType(int, typ0, 1, 0);
+    ft = v_function_type(int, typ0, 1, false);
 
+    //-----------------------------------------------------------------
     f = v_function_hack("fib", ft);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("n", p0);
+    v_add_parameter_name(f, 0, "n", int);
 }
 {
     ret = fib_helper(1, 0, n);      //- Sic!
@@ -110,7 +140,7 @@
 
 //---------------------------------------------------------------------
 {
-    n = v_cast(LLVMZExt, 47, int);
+    n = v_cast(47, int);
 
     v = fib(n);
 

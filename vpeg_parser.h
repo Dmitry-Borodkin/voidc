@@ -759,7 +759,7 @@ public:
 public:
     std::any value(context_t &ctx) const override
     {
-        return (int32_t)ucs4;
+        return (uint32_t)ucs4;
     }
 
 public:

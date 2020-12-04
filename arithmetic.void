@@ -24,30 +24,33 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_binop_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor");
-    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ref);
+    v_add_parameter_name(f, 1, "arg_list", v_ast_arg_list_ref);
 }
 {
     builder = v_target_get_builder();
 
-    arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
+    arg_base = v_cast(arg_list, v_ast_base_ref);
 
     v_ast_accept_visitor(arg_base, visitor);
 
-    arg0 = v_get_argument(0);
+    arg0 = v_get_argument_value(0);
 
     opv = LLVMConstIntGetZExtValue(arg0);
 
-    opc = v_cast(LLVMTrunc, opv, LLVMOpcode);
+    opc = v_cast(opv, LLVMOpcode);
 
-    lhs = v_get_argument(1);
-    rhs = v_get_argument(2);
+    lhs = v_get_argument_value(1);
+    rhs = v_get_argument_value(2);
 
     rname = v_get_return_name();
 
     ret = LLVMBuildBinOp(builder, opc, lhs, rhs, rname);
 
     v_set_return_value(ret);
+
+    t = v_get_argument_type(1);
+    v_set_return_type(t);
 
     v_clear_arguments();
 }
@@ -60,30 +63,31 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_icmp_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor");
-    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ref);
+    v_add_parameter_name(f, 1, "arg_list", v_ast_arg_list_ref);
 }
 {
     builder = v_target_get_builder();
 
-    arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
+    arg_base = v_cast(arg_list, v_ast_base_ref);
 
     v_ast_accept_visitor(arg_base, visitor);
 
-    arg0 = v_get_argument(0);
+    arg0 = v_get_argument_value(0);
 
     opv = LLVMConstIntGetZExtValue(arg0);
 
-    opc = v_cast(LLVMTrunc, opv, LLVMIntPredicate);
+    opc = v_cast(opv, LLVMIntPredicate);
 
-    lhs = v_get_argument(1);
-    rhs = v_get_argument(2);
+    lhs = v_get_argument_value(1);
+    rhs = v_get_argument_value(2);
 
     rname = v_get_return_name();
 
     ret = LLVMBuildICmp(builder, opc, lhs, rhs, rname);
 
     v_set_return_value(ret);
+    v_set_return_type(bool);
 
     v_clear_arguments();
 }
@@ -96,30 +100,31 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_fcmp_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor");
-    v_add_parameter_name(f, 1, "arg_list");
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ref);
+    v_add_parameter_name(f, 1, "arg_list", v_ast_arg_list_ref);
 }
 {
     builder = v_target_get_builder();
 
-    arg_base = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
+    arg_base = v_cast(arg_list, v_ast_base_ref);
 
     v_ast_accept_visitor(arg_base, visitor);
 
-    arg0 = v_get_argument(0);
+    arg0 = v_get_argument_value(0);
 
     opv = LLVMConstIntGetZExtValue(arg0);
 
-    opc = v_cast(LLVMTrunc, opv, LLVMRealPredicate);
+    opc = v_cast(opv, LLVMRealPredicate);
 
-    lhs = v_get_argument(1);
-    rhs = v_get_argument(2);
+    lhs = v_get_argument_value(1);
+    rhs = v_get_argument_value(2);
 
     rname = v_get_return_name();
 
     ret = LLVMBuildFCmp(builder, opc, lhs, rhs, rname);
 
     v_set_return_value(ret);
+    v_set_return_type(bool);
 
     v_clear_arguments();
 }

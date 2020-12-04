@@ -1111,7 +1111,10 @@ target_global_ctx_t::target_global_ctx_t(size_t int_size, size_t long_size, size
     initialize();
 }
 
-target_global_ctx_t::~target_global_ctx_t() {}
+target_global_ctx_t::~target_global_ctx_t()
+{
+    LLVMContextDispose(llvm_ctx);
+}
 
 
 //---------------------------------------------------------------------

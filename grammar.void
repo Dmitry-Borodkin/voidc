@@ -24,10 +24,11 @@
 
     v_set_module(module);
 
+    char_ptr = v_pointer_type(char, 0);
+    void_ptr = v_pointer_type(void, 0);
 
-    char_ptr = LLVMPointerType(char, 0);
-
-    v_add_local_symbol("char_ptr", LLVMOpaqueType, char_ptr);
+    v_add_local_symbol("char_ptr", voidc_opaque_type, char_ptr);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 
@@ -37,34 +38,40 @@
 {
     module = v_get_module();
 
-    gr_arg = LLVMAddGlobal(module, v_ast_opaque_argument_ptr, "voidc_ast_stmt_grammar_grammar_arg");
+    v_ast_opaque_argument_ptr_ = v_type_get_llvm_type(v_ast_opaque_argument_ptr);
 
-    gr_arg_z = LLVMConstNull(v_ast_opaque_argument_ptr);
+    gr_arg = LLVMAddGlobal(module, v_ast_opaque_argument_ptr_, "voidc_ast_stmt_grammar_grammar_arg");
+
+    gr_arg_z = LLVMConstNull(v_ast_opaque_argument_ptr_);
 
     LLVMSetInitializer(gr_arg, gr_arg_z);
 
-    stmt_list = LLVMAddGlobal(module, v_ast_opaque_stmt_list_ptr, "voidc_ast_stmt_grammar_stmt_list");
+    v_ast_opaque_stmt_list_ptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_list_ptr);
 
-    stmt_list_z = LLVMConstNull(v_ast_opaque_stmt_list_ptr);
+    stmt_list = LLVMAddGlobal(module, v_ast_opaque_stmt_list_ptr_, "voidc_ast_stmt_grammar_stmt_list");
+
+    stmt_list_z = LLVMConstNull(v_ast_opaque_stmt_list_ptr_);
 
     LLVMSetInitializer(stmt_list, stmt_list_z);
 
-    pr_count = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_parsers_count");
-    pr_num   = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_parser_number");
+    int_ = v_type_get_llvm_type(int);
 
-    int_z = LLVMConstNull(int);
+    pr_count = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_parsers_count");
+    pr_num   = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_parser_number");
+
+    int_z = LLVMConstNull(int_);
 
     LLVMSetInitializer(pr_count, int_z);
     LLVMSetInitializer(pr_num,   int_z);
 
-    ar_count = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_arguments_count");
-    ar_num   = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_argument_number");
+    ar_count = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_arguments_count");
+    ar_num   = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_argument_number");
 
     LLVMSetInitializer(ar_count, int_z);
     LLVMSetInitializer(ar_num,   int_z);
 
-    rn_count = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_ranges_count");
-    rn_num   = LLVMAddGlobal(module, int, "voidc_ast_stmt_grammar_range_number");
+    rn_count = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_ranges_count");
+    rn_num   = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_range_number");
 
     LLVMSetInitializer(rn_count, int_z);
     LLVMSetInitializer(rn_num,   int_z);
@@ -85,7 +92,7 @@
 //- Some utility ...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(LLVMTypeRef, 5);
+    typ0 = v_alloca(v_type_ref, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
@@ -97,18 +104,18 @@
     v_store(v_ast_argument_ref, typ3);
     v_store(int,                typ4);
 
-    ft = LLVMFunctionType(void, typ0, 5, 0);
+    ft = v_function_type(void, typ0, 5, false);
 
     v_add_symbol_type("v_ast_make_stmt_call", ft);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_call", ft);
 
-    v_add_parameter_name(f, 0, "stmt");
-    v_add_parameter_name(f, 1, "var");
-    v_add_parameter_name(f, 2, "fun");
-    v_add_parameter_name(f, 3, "args");
-    v_add_parameter_name(f, 4, "count");
+    v_add_parameter_name(f, 0, "stmt",  v_ast_stmt_ref);
+    v_add_parameter_name(f, 1, "var",   char_ptr);
+    v_add_parameter_name(f, 2, "fun",   char_ptr);
+    v_add_parameter_name(f, 3, "args",  v_ast_argument_ref);
+    v_add_parameter_name(f, 4, "count", int);
 }
 {
     ar_l = v_alloca(v_ast_opaque_arg_list_ptr);
@@ -130,7 +137,7 @@
 
 //---------------------------------------------------------------------
 {
-    ft = LLVMFunctionType(void, 0, 0, 0);
+    ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_parsers_inc", ft);
@@ -151,7 +158,7 @@
 
 //---------------------------------------------------------------------
 {
-    ft = LLVMFunctionType(void, 0, 0, 0);
+    ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_parsers_dec", ft);
@@ -167,7 +174,7 @@
 
 //---------------------------------------------------------------------
 {
-    ft = LLVMFunctionType(void, 0, 0, 0);
+    ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_arguments_inc", ft);
@@ -189,7 +196,7 @@
 
 //---------------------------------------------------------------------
 {
-    ft = LLVMFunctionType(void, 0, 0, 0);
+    ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_ranges_inc", ft);
@@ -211,7 +218,7 @@
 
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(LLVMTypeRef, 5);
+    typ0 = v_alloca(v_type_ref, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
@@ -223,16 +230,16 @@
     v_store(int,                 typ3);
     v_store(bool,                typ4);
 
-    ft = LLVMFunctionType(void, typ0, 5, 0);
+    ft = v_function_type(void, typ0, 5, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_stack_init", ft);
 
-    v_add_parameter_name(f, 0, "stmt_list");
-    v_add_parameter_name(f, 1, "type");
-    v_add_parameter_name(f, 2, "prefix");
-    v_add_parameter_name(f, 3, "size");
-    v_add_parameter_name(f, 4, "do_init");
+    v_add_parameter_name(f, 0, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 1, "type",      char_ptr);
+    v_add_parameter_name(f, 2, "prefix",    char_ptr);
+    v_add_parameter_name(f, 3, "size",      int);
+    v_add_parameter_name(f, 4, "do_init",   bool);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -245,7 +252,7 @@
 
     v_ast_make_arg_identifier(arg0, type);
 
-    num = v_cast(LLVMZExt, size, intptr_t);
+    num = v_cast(size, intptr_t);
 
     v_ast_make_arg_integer(arg1, num);
 
@@ -279,7 +286,7 @@
 
     v_store(1, n_v);
 
-    n1 = v_cast(LLVMZExt, 1, intptr_t);
+    n1 = v_cast(1, intptr_t);
 
     loop
     {
@@ -323,12 +330,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_grammar_init_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    gr_name = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    gr_name = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     gr_str = v_std_string_get(gr_name);
 
@@ -361,9 +368,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_grammar_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     gr_stmt_list = v_alloca(v_ast_opaque_stmt_list_ptr);
@@ -474,8 +481,8 @@
     //-----------------------------------------------------------------
     //- ...
 
-    pr_num = v_cast(LLVMZExt, pr_count, intptr_t);
-    ar_num = v_cast(LLVMZExt, ar_count, intptr_t);
+    pr_num = v_cast(pr_count, intptr_t);
+    ar_num = v_cast(ar_count, intptr_t);
 
     //-----------------------------------------------------------------
     //- Arguments "stack" clear
@@ -525,18 +532,18 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_parser_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg_l_1 = v_getelementptr(arg_list, 1);
+    any1 = v_getelementptr(any0, 1);
 
-    pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     pr_str = v_std_string_get(pr_sstr);
 
-    as_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_l_1);
+    as_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any1);
 
     as_0 = v_std_string_get(as_sstr);
     as_1 = v_getelementptr(as_0, 1);
@@ -561,7 +568,7 @@
 
     c1 = v_load(as_1);
 
-    cz = v_cast(LLVMTrunc, 0, char);
+    cz = v_cast(0, char);
 
     is_z = v_icmp(LLVMIntEQ, c1, cz);
 
@@ -610,7 +617,7 @@
 
         c0 = v_load(as_0);
 
-        ce = v_cast(LLVMTrunc, '=', char);
+        ce = v_cast('=', char);
 
         is_e = v_icmp(LLVMIntEQ, c0, ce);
 
@@ -634,7 +641,7 @@
 
         k = v_load(c_k);
 
-        cp = v_cast(LLVMTrunc, '+', char);
+        cp = v_cast('+', char);
 
         is_p = v_icmp(LLVMIntEQ, k, cp);
 
@@ -686,12 +693,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_parser_leftrec_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     pr_str = v_std_string_get(pr_sstr);
 
@@ -743,9 +750,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_action_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 4);
@@ -762,16 +769,16 @@
     v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
     v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
 
-    act_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    act_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     act_str = v_std_string_get(act_sstr);
 
     v_ast_make_arg_string(arg2, act_str);
 
 
-    arg_l_1 = v_getelementptr(arg_list, 1);
+    any1 = v_getelementptr(any0, 1);
 
-    fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_l_1);
+    fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any1);
 
     if (fun_sstr)
     {
@@ -803,14 +810,14 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_special_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     //- assert(*voidc_ast_stmt_grammar_parser_number == 0);
 
-    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     arg_str = v_std_string_get(arg_sstr);
 
@@ -835,7 +842,7 @@
         v_ast_make_arg_integer(arg2, 0);
 
 
-        c_rpar = v_cast(LLVMTrunc, ')', char);
+        c_rpar = v_cast(')', char);
 
         f = v_icmp(LLVMIntEQ, c1, c_rpar);
 
@@ -869,9 +876,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_choice_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
@@ -886,9 +893,9 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
-    n1 = v_cast(LLVMZExt, 1, intptr_t);
+    n1 = v_cast(1, intptr_t);
 
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
 
@@ -939,9 +946,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_sequence_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
@@ -956,9 +963,9 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
-    n1 = v_cast(LLVMZExt, 1, intptr_t);
+    n1 = v_cast(1, intptr_t);
 
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
 
@@ -1009,12 +1016,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_catch_var_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     arg_str = v_std_string_get(arg_sstr);
 
@@ -1031,9 +1038,9 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
-    n1 = v_cast(LLVMZExt, 1, intptr_t);
+    n1 = v_cast(1, intptr_t);
 
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
 
@@ -1069,16 +1076,16 @@
 //- voidc_make_parser_unary - grammar action helper
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(LLVMTypeRef);
+    typ0 = v_alloca(v_type_ref);
 
     v_store(char_ptr, typ0);
 
-    ft = LLVMFunctionType(void, typ0, 1, 0);
+    ft = v_function_type(void, typ0, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_make_parser_unary", ft);
 
-    v_add_parameter_name(f, 0, "fun");
+    v_add_parameter_name(f, 0, "fun", char_ptr);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -1092,9 +1099,9 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
-    n1 = v_cast(LLVMZExt, 1, intptr_t);
+    n1 = v_cast(1, intptr_t);
 
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
 
@@ -1128,9 +1135,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_and_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_and_parser");
@@ -1145,9 +1152,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_not_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_not_parser");
@@ -1162,9 +1169,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_star_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_star_parser");
@@ -1179,9 +1186,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_plus_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_plus_parser");
@@ -1196,9 +1203,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_question_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_question_parser");
@@ -1213,12 +1220,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_identifier_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     id_str = v_std_string_get(id_sstr);
 
@@ -1234,7 +1241,7 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1271,12 +1278,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_external_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     id_str = v_std_string_get(id_sstr);
 
@@ -1292,7 +1299,7 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1329,12 +1336,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_backref_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    br_num = v_std_any_get_value(intptr_t, arg_list);
+    br_num = v_std_any_get_value(intptr_t, any0);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -1348,7 +1355,7 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1385,9 +1392,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_catch_str_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_catch_string_parser");
@@ -1402,9 +1409,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -1418,7 +1425,7 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1455,19 +1462,19 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_class_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     rn_int = v_load(voidc_ast_stmt_grammar_range_number);
 
-    rn_num = v_cast(LLVMZExt, rn_int, intptr_t);
+    rn_num = v_cast(rn_int, intptr_t);
 
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
@@ -1518,12 +1525,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_literal_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     lit_str = v_std_string_get(lit_sstr);
 
@@ -1539,7 +1546,7 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1576,12 +1583,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_char_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    ch = v_std_any_get_value(char32_t, arg_list);
+    ch = v_std_any_get_value(char32_t, any0);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -1595,7 +1602,7 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1632,9 +1639,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_dot_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr);
@@ -1646,7 +1653,7 @@
 
     pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
 
-    pr_num = v_cast(LLVMZExt, pr_int, intptr_t);
+    pr_num = v_cast(pr_int, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1681,9 +1688,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_range_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
@@ -1698,7 +1705,7 @@
 
     rn_int = v_load(voidc_ast_stmt_grammar_range_number);
 
-    rn_num = v_cast(LLVMZExt, rn_int, intptr_t);
+    rn_num = v_cast(rn_int, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -1726,7 +1733,7 @@
     v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
 
 
-    c0 = v_std_any_get_value(char32_t, arg_list);
+    c0 = v_std_any_get_value(char32_t, any0);
 
     v_ast_make_arg_char(arg0, c0);
 
@@ -1737,9 +1744,9 @@
     v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
 
 
-    ar_l_1 = v_getelementptr(arg_list, 1);
+    any1 = v_getelementptr(any0, 1);
 
-    c1 = v_std_any_get_value(char32_t, ar_l_1);
+    c1 = v_std_any_get_value(char32_t, any1);
 
     v_ast_make_arg_char(arg0, c1);
 
@@ -1768,19 +1775,19 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_call_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     fun_str = v_std_string_get(fun_sstr);
 
 
     ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
 
-    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+    ar_num = v_cast(ar_int, intptr_t);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 4);
@@ -1823,9 +1830,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_return_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -1862,12 +1869,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_identifier_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     id_str = v_std_string_get(id_sstr);
 
@@ -1883,7 +1890,7 @@
 
     ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
 
-    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+    ar_num = v_cast(ar_int, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -1920,17 +1927,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_backref_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    br_num = v_std_any_get_value(intptr_t, arg_list);
+    br_num = v_std_any_get_value(intptr_t, any0);
 
 
-    ar_l_1 = v_getelementptr(arg_list, 1);
+    any1 = v_getelementptr(any0, 1);
 
-    bk_ptr = v_std_any_get_pointer(char32_t, ar_l_1);
+    bk_ptr = v_std_any_get_pointer(char32_t, any1);
 
     bk_v = v_alloca(int);
 
@@ -1950,7 +1957,7 @@
 
     bk_int = v_load(bk_v);
 
-    bk_num = v_cast(LLVMZExt, bk_int, intptr_t);
+    bk_num = v_cast(bk_int, intptr_t);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
@@ -1965,7 +1972,7 @@
 
     ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
 
-    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+    ar_num = v_cast(ar_int, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -2003,12 +2010,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_integer_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    num = v_std_any_get_value(intptr_t, arg_list);
+    num = v_std_any_get_value(intptr_t, any0);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -2022,7 +2029,7 @@
 
     ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
 
-    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+    ar_num = v_cast(ar_int, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -2059,12 +2066,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_string_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, arg_list);
+    lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     lit_str = v_std_string_get(lit_sstr);
 
@@ -2080,7 +2087,7 @@
 
     ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
 
-    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+    ar_num = v_cast(ar_int, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -2117,12 +2124,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_char_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret");
-    v_add_parameter_name(f, 1, "arg_list");
-    v_add_parameter_name(f, 2, "arg_count");
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    ch = v_std_any_get_value(char32_t, arg_list);
+    ch = v_std_any_get_value(char32_t, any0);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
@@ -2136,7 +2143,7 @@
 
     ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
 
-    ar_num = v_cast(LLVMZExt, ar_int, intptr_t);
+    ar_num = v_cast(ar_int, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -2171,7 +2178,7 @@
 //- Enable statement grammar
 //---------------------------------------------------------------------
 {
-    ft = LLVMFunctionType(void, 0, 0, 0);
+    ft = v_function_type(void, 0, 0, false);
 
     v_add_symbol_type("voidc_enable_statement_grammar", ft);
 

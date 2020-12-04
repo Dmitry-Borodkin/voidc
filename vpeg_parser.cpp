@@ -279,7 +279,7 @@ std::any character_parser_t::parse(context_t &ctx) const
 {
     if (!ctx.expect(ucs4))  return std::any();
 
-    return (int32_t)ucs4;
+    return (uint32_t)ucs4;
 }
 
 //-------------------------------------------------------------
@@ -313,7 +313,7 @@ std::any class_parser_t::parse(context_t &ctx) const
         {
             ctx.get_character();
 
-            return (int32_t)ucs4;
+            return (uint32_t)ucs4;
         }
     }
 
@@ -329,7 +329,7 @@ std::any dot_parser_t::parse(context_t &ctx) const
 
     ctx.get_character();
 
-    return (int32_t)ucs4;
+    return (uint32_t)ucs4;
 }
 
 
