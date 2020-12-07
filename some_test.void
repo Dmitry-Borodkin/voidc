@@ -1,9 +1,7 @@
 {   v_import("if_then_else_test.void"); }
 {   v_import("arithmetic_test.void"); }
 
-{   long_ = v_type_get_llvm_type(long);
-
-    w = LLVMGetIntTypeWidth(long_);
+{   w = v_type_integer_get_width(long);
 
     printf("long: %d\n", w);
 }

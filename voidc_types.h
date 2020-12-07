@@ -282,9 +282,9 @@ public:
 
     void set_body(v_type_t **elts, unsigned count, bool packed=false);
 
-    unsigned element_count(void) { return unsigned(body_key->first.size()); }
+    unsigned element_count(void) const { return unsigned(body_key->first.size()); }
 
-    v_type_t * const *element_types(void) { return body_key->first.data(); }
+    v_type_t * const *element_types(void) const { return body_key->first.data(); }
 
     bool is_packed(void) const { return body_key->second; }
 };

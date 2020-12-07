@@ -555,13 +555,11 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     initialize();
 
-    add_symbol("voidc_opaque_type", opaque_type_type, opaque_type_type);
+    add_symbol("voidc_opaque_type", opaque_type_type, opaque_type_type);        //- Sic!
 
     {   auto type_ref_type = make_pointer_type(opaque_type_type, 0);
 
         add_symbol("v_type_ref", opaque_type_type, type_ref_type);
-
-        auto unsigned_type = make_uint_type(8*sizeof(int));
 
         v_type_t *types[] =
         {
