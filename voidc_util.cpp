@@ -48,7 +48,7 @@ namespace utility
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_init_term_helper(const visitor_ptr_t *vis,
+void v_init_term_helper(const visitor_ptr_t *vis, void *aux,
                         const ast_arg_list_ptr_t &args,
                         const v_util_function_dict_t &dict
                        )
@@ -64,7 +64,7 @@ void v_init_term_helper(const visitor_ptr_t *vis,
 
     assert(lctx.arg_types.empty());
 
-    args->accept(*vis);
+    args->accept(*vis, aux);
 
     auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
@@ -93,22 +93,22 @@ void v_init_term_helper(const visitor_ptr_t *vis,
 
 //---------------------------------------------------------------------
 static
-void v_initialize(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_initialize(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
-    v_init_term_helper(vis, *args, v_util_initialize_dict);
+    v_init_term_helper(vis, aux, *args, v_util_initialize_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_terminate(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_terminate(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
-    v_init_term_helper(vis, *args, v_util_terminate_dict);
+    v_init_term_helper(vis, aux, *args, v_util_terminate_dict);
 }
 
 
 //---------------------------------------------------------------------
 static
-void v_copy_move_helper(const visitor_ptr_t *vis,
+void v_copy_move_helper(const visitor_ptr_t *vis, void *aux,
                         const ast_arg_list_ptr_t &args,
                         const v_util_function_dict_t &dict
                        )
@@ -124,7 +124,7 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
 
     assert(lctx.arg_types.empty());
 
-    args->accept(*vis);
+    args->accept(*vis, aux);
 
     auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
@@ -153,22 +153,22 @@ void v_copy_move_helper(const visitor_ptr_t *vis,
 
 //---------------------------------------------------------------------
 static
-void v_copy(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_copy(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
-    v_copy_move_helper(vis, *args, v_util_copy_dict);
+    v_copy_move_helper(vis, aux, *args, v_util_copy_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_move(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_move(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
-    v_copy_move_helper(vis, *args, v_util_move_dict);
+    v_copy_move_helper(vis, aux, *args, v_util_move_dict);
 }
 
 
 //---------------------------------------------------------------------
 static
-void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_empty(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
@@ -181,7 +181,7 @@ void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     assert(lctx.arg_types.empty());
 
-    (*args)->accept(*vis);
+    (*args)->accept(*vis, aux);
 
     auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
@@ -207,7 +207,7 @@ void v_empty(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static
-void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_kind(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
@@ -220,7 +220,7 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
     assert(lctx.arg_types.empty());
 
-    (*args)->accept(*vis);
+    (*args)->accept(*vis, aux);
 
     auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
 
@@ -246,7 +246,7 @@ void v_kind(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_helper(const visitor_ptr_t *vis,
+void v_std_any_get_helper(const visitor_ptr_t *vis, void *aux,
                           const ast_arg_list_ptr_t &args,
                           const v_util_function_dict_t &dict
                          )
@@ -275,7 +275,7 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    args->data[1]->accept(*vis);
+    args->data[1]->accept(*vis, aux);
 
     auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
@@ -298,21 +298,21 @@ void v_std_any_get_helper(const visitor_ptr_t *vis,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_std_any_get_value(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
-    v_std_any_get_helper(vis, *args, v_util_std_any_get_value_dict);
+    v_std_any_get_helper(vis, aux, *args, v_util_std_any_get_value_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_std_any_get_pointer(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
-    v_std_any_get_helper(vis, *args, v_util_std_any_get_pointer_dict);
+    v_std_any_get_helper(vis, aux, *args, v_util_std_any_get_pointer_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_std_any_set_value(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
@@ -325,7 +325,7 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
 
     assert(lctx.arg_types.empty());
 
-    (*args)->accept(*vis);
+    (*args)->accept(*vis, aux);
 
     auto type = lctx.arg_types[1];
 
@@ -348,7 +348,7 @@ void v_std_any_set_value(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *arg
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args)
+void v_std_any_set_pointer(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
@@ -361,7 +361,7 @@ void v_std_any_set_pointer(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *a
 
     assert(lctx.arg_types.empty());
 
-    (*args)->accept(*vis);
+    (*args)->accept(*vis, aux);
 
     auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[1])->element_type();
 

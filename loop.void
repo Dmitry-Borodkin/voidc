@@ -13,8 +13,15 @@
 }
 
 
-{   typ0 = v_alloca(v_type_ref, 2);
+//---------------------------------------------------------------------
+{   void_ptr = v_pointer_type(void, 0);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+}
+
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
 
     //-----------------------------------------------------------------
@@ -37,9 +44,10 @@
     //- method ...
     //-----------------------------------------------------------------
     v_store(voidc_visitor_ref, typ0);
-    v_store(v_ast_stmt_ref,    typ1);
+    v_store(void_ptr,          typ1);
+    v_store(v_ast_stmt_ref,    typ2);
 
-    method_ft  = v_function_type(void, typ0, 2, false);
+    method_ft  = v_function_type(void, typ0, 3, false);
     method_ref = v_pointer_type(method_ft, 0);
 
     v_add_local_symbol("method_ft",  voidc_opaque_type, method_ft);
@@ -66,10 +74,6 @@
 {   module = LLVMModuleCreateWithName("my_stmt_loop_mod");
 
     v_set_module(module);
-
-    void_ptr = v_pointer_type(void, 0);
-
-    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 
@@ -102,6 +106,7 @@
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
     v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ref);
+    v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
     obj = v_cast(void_obj, ast_stmt_loop_ref);
@@ -112,7 +117,7 @@
 
     method = v_cast(void_method, method_ref);
 
-    method(visitor, stmt);
+    method(visitor, aux, stmt);
 }
 
 
@@ -209,7 +214,8 @@
     f = v_function_hack("compile_ast_stmt_loop_t", method_ft);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "stmt",    v_ast_stmt_ref);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "stmt",    v_ast_stmt_ref);
 }
 {
     v_save_variables();
@@ -239,7 +245,7 @@
 
     base_ast = v_cast(stmt, v_ast_base_ref);
 
-    v_ast_accept_visitor(base_ast, visitor);
+    v_ast_accept_visitor(base_ast, visitor, aux);
 
 
     cur_b = LLVMGetInsertBlock(builder);

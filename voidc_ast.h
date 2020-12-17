@@ -54,7 +54,7 @@ struct ast_base_t
     virtual ~ast_base_t() = default;
 
 public:
-    virtual void accept(const visitor_ptr_t &visitor) const = 0;
+    virtual void accept(const visitor_ptr_t &visitor, void *aux) const = 0;
 
 public:
     virtual v_quark_t method_tag(void) const = 0;
@@ -97,20 +97,20 @@ struct ast_list_t : public ast_base_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, size_t count, bool start);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux, size_t count, bool start);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, data.size(), true);
+        method(&visitor, aux, data.size(), true);
 
         for (auto &it : data)
         {
-            it->accept(visitor);
+            it->accept(visitor, aux);
         }
 
-        method(&visitor, data.size(), false);
+        method(&visitor, aux, data.size(), false);
     }
 };
 
@@ -170,13 +170,14 @@ struct ast_unit_t : public ast_unit_base_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stmts, int l, int col);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     const ast_stmt_list_ptr_t *stmts, int l, int col);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, &stmt_list, line, column);
+        method(&visitor, aux, &stmt_list, line, column);
     }
 
     AST_VISITOR_TAG(ast_unit_t)
@@ -196,13 +197,14 @@ struct ast_stmt_t : public ast_stmt_base_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *vname, const ast_call_ptr_t *call);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     const std::string *vname, const ast_call_ptr_t *call);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, &var_name, &call);
+        method(&visitor, aux, &var_name, &call);
     }
 
     AST_VISITOR_TAG(ast_stmt_t)
@@ -221,13 +223,14 @@ struct ast_call_t : public ast_call_base_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *fname, const ast_arg_list_ptr_t *args);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     const std::string *fname, const ast_arg_list_ptr_t *args);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, &fun_name, &arg_list);
+        method(&visitor, aux, &fun_name, &arg_list);
     }
 
     AST_VISITOR_TAG(ast_call_t)
@@ -244,13 +247,14 @@ struct ast_arg_identifier_t : public ast_argument_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *name);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     const std::string *name);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, &name);
+        method(&visitor, aux, &name);
     }
 
     AST_VISITOR_TAG(ast_arg_identifier_t)
@@ -266,13 +270,14 @@ struct ast_arg_integer_t : public ast_argument_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, intptr_t num);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     intptr_t num);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, number);
+        method(&visitor, aux, number);
     }
 
     AST_VISITOR_TAG(ast_arg_integer_t)
@@ -288,13 +293,14 @@ struct ast_arg_string_t : public ast_argument_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, const std::string *str);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     const std::string *str);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, &string);
+        method(&visitor, aux, &string);
     }
 
     AST_VISITOR_TAG(ast_arg_string_t)
@@ -310,13 +316,14 @@ struct ast_arg_char_t : public ast_argument_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, char32_t char_);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     char32_t char_);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, char_);
+        method(&visitor, aux, char_);
     }
 
     AST_VISITOR_TAG(ast_arg_char_t)
@@ -332,13 +339,14 @@ struct ast_arg_type_t : public ast_argument_t
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, v_type_t *type);
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     v_type_t *type);
 
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
         auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
 
-        method(&visitor, type);
+        method(&visitor, aux, type);
     }
 
     AST_VISITOR_TAG(ast_arg_type_t)
@@ -355,7 +363,7 @@ struct ast_generic_vtable
 {
     void (*destroy)(void *object);
 
-    void (*accept)(const void *object, const visitor_ptr_t *visitor);
+    void (*accept)(const void *object, const visitor_ptr_t *visitor, void *aux);
 
     v_quark_t visitor_method_tag;
 };
@@ -378,9 +386,9 @@ struct ast_generic_t : public virtual ast_base_t
     }
 
 public:
-    void accept(const visitor_ptr_t &visitor) const override
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        vtable->accept(object, &visitor);
+        vtable->accept(object, &visitor, aux);
     }
 
     const ast_generic_vtable * const vtable;

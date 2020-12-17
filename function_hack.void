@@ -258,6 +258,7 @@
     //-----------------------------------------------------------------
     //- private
     //- fun voidc_function_hack_visitor_method(visitor:   voidc_visitor_ref,
+    //-                                        aux:       void_ptr,
     //-                                        stmt_list: v_ast_stmt_list_ref,
     //-                                        line:      int,
     //-                                        column:    int
@@ -265,7 +266,7 @@
     //- {
     //-     base_ast = v_cast(stmt_list, v_ast_base_ref);
     //-
-    //-     v_ast_accept_visitor(base_ast, visitor);
+    //-     v_ast_accept_visitor(base_ast, visitor, aux);
     //-
     //-     builder = v_target_get_builder();
     //-
@@ -358,9 +359,10 @@
     LLVMSetLinkage(method_f, LLVMPrivateLinkage);
 
     visitor   = LLVMGetParam(method_f, 0);
-    stmt_list = LLVMGetParam(method_f, 1);
-    line      = LLVMGetParam(method_f, 2);
-    column    = LLVMGetParam(method_f, 3);
+    aux       = LLVMGetParam(method_f, 1);
+    stmt_list = LLVMGetParam(method_f, 2);
+    line      = LLVMGetParam(method_f, 3);
+    column    = LLVMGetParam(method_f, 4);
 
     entry = LLVMAppendBasicBlock(method_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -372,10 +374,11 @@
 
     v_store(base_ast, val0);
     v_store(visitor,  val1);
+    v_store(aux,      val2);
 
     accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
     get_builder_f = v_obtain_function("v_target_get_builder");
@@ -792,13 +795,13 @@
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_intrinsic(visitor: voidc_visitor_ref, arg_list: v_ast_arg_list_ref)
+    //- fun voidc_function_hack_intrinsic(visitor: voidc_visitor_ref, aux: void_ptr, arg_list: v_ast_arg_list_ref)
     //- {
     //-     builder = v_target_get_builder();
     //-
     //-     base_args = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
     //-
-    //-     v_ast_accept_visitor(base_args, visitor);
+    //-     v_ast_accept_visitor(base_args, visitor, aux);
     //-
     //-     fun_name = v_get_argument_value(0);     //- :char_ptr
     //-     fun_type = v_get_argument_value(1);     //- :v_type_ref
@@ -850,7 +853,8 @@
     intrinsic_f = LLVMAddFunction(module, "voidc_function_hack_intrinsic", voidc_intrinsic_t_);
 
     visitor  = LLVMGetParam(intrinsic_f, 0);
-    arg_list = LLVMGetParam(intrinsic_f, 1);
+    aux      = LLVMGetParam(intrinsic_f, 1);
+    arg_list = LLVMGetParam(intrinsic_f, 2);
 
     entry = LLVMAppendBasicBlock(intrinsic_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -867,8 +871,9 @@
 
     v_store(base_args, val0);
     v_store(visitor,   val1);
+    v_store(aux,       val2);
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
     get_arg_val_f = v_obtain_function("v_get_argument_value");
@@ -1039,7 +1044,7 @@
     //-----------------------------------------------------------------
     //- "Return" intrinsic
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_return_intrinsic(visitor: voidc_visitor_ref, arg_list: v_ast_arg_list_ref)
+    //- fun voidc_function_hack_return_intrinsic(visitor: voidc_visitor_ref, aux: void_ptr, arg_list: v_ast_arg_list_ref)
     //- {
     //-     builder = v_target_get_builder();
     //-
@@ -1054,7 +1059,7 @@
     //-
     //-         base_arg0 = v_cast(args, v_ast_base_ref);
     //-
-    //-         v_ast_accept_visitor(base_arg0, visitor);
+    //-         v_ast_accept_visitor(base_arg0, visitor, aux);
     //-
     //-         ret = v_get_argument_value(0);
     //-
@@ -1073,7 +1078,8 @@
     return_f = LLVMAddFunction(module, "voidc_function_hack_return_intrinsic", voidc_intrinsic_t_);
 
     visitor  = LLVMGetParam(return_f, 0);
-    arg_list = LLVMGetParam(return_f, 1);
+    aux      = LLVMGetParam(return_f, 1);
+    arg_list = LLVMGetParam(return_f, 2);
 
     entry = LLVMAppendBasicBlock(return_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -1126,8 +1132,9 @@
 
     v_store(base_arg0, val0);
     v_store(visitor,   val1);
+    v_store(aux,       val2);
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
     v_store(n0, val0);

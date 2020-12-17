@@ -69,7 +69,7 @@
     v_add_symbol("LLVMBuilderRef", voidc_opaque_type, builder_ref);
 }
 
-{   typ0 = v_alloca(v_type_ref, 2);
+{   typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -178,16 +178,18 @@
     v_add_symbol_type("v_set_return_value", ft);
 }
 
-{   typ0 = v_alloca(v_type_ref, 2);
+{   typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
     visitor_ref  = v_pointer_type(voidc_opaque_visitor_ptr, 0);
     arg_list_ref = v_pointer_type(v_ast_opaque_arg_list_ptr, 0);
 
     v_store(visitor_ref,  typ0);        //-
-    v_store(arg_list_ref, typ1);        //-
+    v_store(void_ptr,     typ1);        //-
+    v_store(arg_list_ref, typ2);        //-
 
-    intrinsic_t = v_function_type(void, typ0, 2, false);
+    intrinsic_t = v_function_type(void, typ0, 3, false);
     v_add_symbol("voidc_intrinsic_t", voidc_opaque_type, intrinsic_t);
 
     intrinsic_ref = v_pointer_type(intrinsic_t, 0);

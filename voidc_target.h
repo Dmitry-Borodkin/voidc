@@ -76,7 +76,7 @@ public:
     virtual void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) = 0;
 
 public:
-    typedef void (*intrinsic_t)(const visitor_ptr_t *vis, const ast_arg_list_ptr_t *args);
+    typedef void (*intrinsic_t)(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args);
 
     std::map<std::string, intrinsic_t> intrinsics;
 

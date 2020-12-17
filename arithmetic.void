@@ -14,6 +14,9 @@
     module = LLVMModuleCreateWithName("voidc_arithmetic_intrinsic_module");
 
     v_set_module(module);       //- Sic!
+
+    void_ptr = v_pointer_type(void, 0);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 
@@ -25,14 +28,15 @@
     f = v_function_hack("voidc_binop_intrinsic", voidc_intrinsic_t);
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "arg_list", v_ast_arg_list_ref);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_arg_list_ref);
 }
 {
     builder = v_target_get_builder();
 
     arg_base = v_cast(arg_list, v_ast_base_ref);
 
-    v_ast_accept_visitor(arg_base, visitor);
+    v_ast_accept_visitor(arg_base, visitor, aux);
 
     arg0 = v_get_argument_value(0);
 
@@ -64,14 +68,15 @@
     f = v_function_hack("voidc_icmp_intrinsic", voidc_intrinsic_t);
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "arg_list", v_ast_arg_list_ref);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_arg_list_ref);
 }
 {
     builder = v_target_get_builder();
 
     arg_base = v_cast(arg_list, v_ast_base_ref);
 
-    v_ast_accept_visitor(arg_base, visitor);
+    v_ast_accept_visitor(arg_base, visitor, aux);
 
     arg0 = v_get_argument_value(0);
 
@@ -101,14 +106,15 @@
     f = v_function_hack("voidc_fcmp_intrinsic", voidc_intrinsic_t);
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "arg_list", v_ast_arg_list_ref);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_arg_list_ref);
 }
 {
     builder = v_target_get_builder();
 
     arg_base = v_cast(arg_list, v_ast_base_ref);
 
-    v_ast_accept_visitor(arg_base, visitor);
+    v_ast_accept_visitor(arg_base, visitor, aux);
 
     arg0 = v_get_argument_value(0);
 

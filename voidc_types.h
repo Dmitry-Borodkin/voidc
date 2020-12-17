@@ -5,6 +5,8 @@
 #ifndef VOIDC_TYPES_H
 #define VOIDC_TYPES_H
 
+#include "voidc_quark.h"
+
 #include <utility>
 #include <map>
 #include <vector>
@@ -43,7 +45,9 @@ struct v_type_t
         k_array,        //- ...
 
         k_fvector,      //- Fixed vector
-        k_svector       //- Scalable vector
+        k_svector,      //- Scalable vector
+
+        k_generic       //- Generic ...
     };
 
     virtual kind_t kind(void) const = 0;
@@ -372,6 +376,36 @@ using v_type_svector_t = v_type_vector_tag_t<v_type_t::k_svector>;
 
 template<> extern LLVMTypeRef v_type_fvector_t::obtain_llvm_type(void) const;
 template<> extern LLVMTypeRef v_type_svector_t::obtain_llvm_type(void) const;
+
+
+//---------------------------------------------------------------------
+//- Generic types
+//---------------------------------------------------------------------
+class v_type_generic_t : public v_type_tag_t<v_type_t, v_type_t::k_generic>
+{
+    friend class voidc_types_ctx_t;
+
+    using key_t = std::pair<v_quark_t, std::vector<void *>>;
+
+    const key_t &key;
+
+    explicit v_type_generic_t(voidc_types_ctx_t &ctx, const key_t &_key)
+      : v_type_tag_t(ctx),
+        key(_key)
+    {}
+
+    LLVMTypeRef obtain_llvm_type(void) const override;
+
+    v_type_generic_t(const v_type_generic_t &) = delete;
+    v_type_generic_t &operator=(const v_type_generic_t &) = delete;
+
+public:
+    v_quark_t quark(void) const { return key.first; }
+
+    unsigned element_count(void) const { return unsigned(key.second.size() - 1); }
+
+    void * const *elements(void) { return key.second.data() + 1; }
+};
 
 
 //=====================================================================

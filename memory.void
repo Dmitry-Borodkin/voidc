@@ -14,13 +14,16 @@
     module = LLVMModuleCreateWithName("voidc_memory_intrinsics_module");
 
     v_set_module(module);       //- Sic!
+
+    void_ptr = v_pointer_type(void, 0);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 
 //---------------------------------------------------------------------
 //- v_malloc
 //---------------------------------------------------------------------
-//- fun voidc_memory_malloc_intrinsic(visitor: voidc_visitor_t, arg_list: v_ast_arg_list_ref)
+//- fun voidc_memory_malloc_intrinsic(visitor: voidc_visitor_t, aux: void_ptr, arg_list: v_ast_arg_list_ref)
 //- {
 //-     arg_count = v_ast_arg_list_get_count(arg_list);
 //-
@@ -49,7 +52,7 @@
 //-
 //-         base_arg1 = v_cast(arg1, v_ast_base_ref);
 //-
-//-         v_ast_accept_visitor(base_arg1, visitor);
+//-         v_ast_accept_visitor(base_arg1, visitor, aux);
 //-
 //-         num = v_get_argument_value(0);
 //-
@@ -64,7 +67,8 @@
     malloc_f = v_function_hack("voidc_memory_malloc_intrinsic", voidc_intrinsic_t);
 
     visitor  = v_add_parameter_name(malloc_f, 0, "visitor",  voidc_visitor_ref);
-    arg_list = v_add_parameter_name(malloc_f, 1, "arg_list", v_ast_arg_list_ref);
+    aux      = v_add_parameter_name(malloc_f, 1, "aux",      void_ptr);
+    arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", v_ast_arg_list_ref);
 
 
     val0 = v_alloca(LLVMValueRef, 3);
@@ -170,8 +174,9 @@
 
     v_store(base_arg1, val0);
     v_store(visitor,   val1);
+    v_store(aux,       val2);
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
     get_arg_val_f = v_obtain_function("v_get_argument_value");
@@ -223,14 +228,15 @@
     f = v_function_hack("voidc_memory_mfree_intrinsic", voidc_intrinsic_t);
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "arg_list", v_ast_arg_list_ref);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_arg_list_ref);
 }
 {
     builder = v_target_get_builder();
 
     arg_base = v_cast(arg_list, v_ast_base_ref);
 
-    v_ast_accept_visitor(arg_base, visitor);
+    v_ast_accept_visitor(arg_base, visitor, aux);
 
     arg = v_get_argument_value(0);
 

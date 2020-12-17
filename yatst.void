@@ -112,8 +112,9 @@
 
     builder = v_target_get_voidc_builder();
 
-    typ0 = v_alloca(v_type_ref, 2);
+    typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
     void_ptr = v_pointer_type(void, 0);
 
@@ -143,8 +144,9 @@
 
 
     v_store(voidc_visitor_ref, typ1);
+    v_store(void_ptr,          typ2);
 
-    accept_ft  = v_function_type(void, typ0, 2, 0);
+    accept_ft  = v_function_type(void, typ0, 3, 0);
     accept_ft_ = v_type_get_llvm_type(accept_ft);
     accept_f   = LLVMAddFunction(module, "accept_f", accept_ft_);
     LLVMSetLinkage(accept_f, LLVMPrivateLinkage);
@@ -222,7 +224,7 @@
 
     obj = v_cast(gen, v_ast_base_ref);     //- ?..
 
-    v_ast_accept_visitor(obj, vis);
+    v_ast_accept_visitor(obj, vis, 0);
 
 
 

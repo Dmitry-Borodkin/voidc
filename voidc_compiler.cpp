@@ -17,15 +17,16 @@ visitor_ptr_t voidc_compiler;
 //---------------------------------------------------------------------
 //- AST Visitor - Compiler (level 0) ...
 //---------------------------------------------------------------------
-static void compile_ast_stmt_list_t(const visitor_ptr_t *vis, size_t count, bool start) {}
-static void compile_ast_arg_list_t(const visitor_ptr_t *vis, size_t count, bool start) {}
+static void compile_ast_stmt_list_t(const visitor_ptr_t *vis, void *aux, size_t count, bool start) {}
+static void compile_ast_arg_list_t(const visitor_ptr_t *vis, void *aux, size_t count, bool start) {}
 
 
 //---------------------------------------------------------------------
 //- unit
 //---------------------------------------------------------------------
 static
-void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stmt_list, int line, int column)
+void compile_ast_unit_t(const visitor_ptr_t *vis, void *aux,
+                        const ast_stmt_list_ptr_t *stmt_list, int line, int column)
 {
     if (!*stmt_list)  return;
 
@@ -42,7 +43,7 @@ void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stm
 
     lctx.prepare_unit_action(line, column);
 
-    (*stmt_list)->accept(*vis);
+    (*stmt_list)->accept(*vis, aux);
 
     lctx.finish_unit_action();
 
@@ -56,7 +57,8 @@ void compile_ast_unit_t(const visitor_ptr_t *vis, const ast_stmt_list_ptr_t *stm
 //- stmt
 //---------------------------------------------------------------------
 static
-void compile_ast_stmt_t(const visitor_ptr_t *vis, const std::string *vname, const ast_call_ptr_t *call)
+void compile_ast_stmt_t(const visitor_ptr_t *vis, void *aux,
+                        const std::string *vname, const ast_call_ptr_t *call)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -67,7 +69,7 @@ void compile_ast_stmt_t(const visitor_ptr_t *vis, const std::string *vname, cons
     lctx.ret_type  = nullptr;
     lctx.ret_value = nullptr;
 
-    (*call)->accept(*vis);
+    (*call)->accept(*vis, aux);
 
     if (lctx.ret_name[0])   lctx.vars = lctx.vars.set(var_name, {lctx.ret_type, lctx.ret_value});
 }
@@ -77,7 +79,8 @@ void compile_ast_stmt_t(const visitor_ptr_t *vis, const std::string *vname, cons
 //- call
 //---------------------------------------------------------------------
 static
-void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, const ast_arg_list_ptr_t *args)
+void compile_ast_call_t(const visitor_ptr_t *vis, void *aux,
+                        const std::string *fname, const ast_arg_list_ptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -88,7 +91,7 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
 
     if (gctx.intrinsics.count(fun_name))
     {
-        gctx.intrinsics[fun_name](vis, args);
+        gctx.intrinsics[fun_name](vis, aux, args);
 
         return;
     }
@@ -109,7 +112,7 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
 
     std::copy_n(ft->param_types(), count, lctx.arg_types.data());
 
-    if (*args) (*args)->accept(*vis);
+    if (*args) (*args)->accept(*vis, aux);
 
     auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
 
@@ -125,7 +128,8 @@ void compile_ast_call_t(const visitor_ptr_t *vis, const std::string *fname, cons
 //- arg_identifier
 //---------------------------------------------------------------------
 static
-void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *name)
+void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, void *aux,
+                                  const std::string *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -166,7 +170,8 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, const std::string *n
 //- arg_integer
 //---------------------------------------------------------------------
 static
-void compile_ast_arg_integer_t(const visitor_ptr_t *vis, intptr_t num)
+void compile_ast_arg_integer_t(const visitor_ptr_t *vis, void *aux,
+                               intptr_t num)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -205,7 +210,8 @@ void compile_ast_arg_integer_t(const visitor_ptr_t *vis, intptr_t num)
 //- arg_string
 //---------------------------------------------------------------------
 static
-void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
+void compile_ast_arg_string_t(const visitor_ptr_t *vis, void *aux,
+                              const std::string *str)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -238,7 +244,8 @@ void compile_ast_arg_string_t(const visitor_ptr_t *vis, const std::string *str)
 //- arg_char
 //---------------------------------------------------------------------
 static
-void compile_ast_arg_char_t(const visitor_ptr_t *vis, char32_t c)
+void compile_ast_arg_char_t(const visitor_ptr_t *vis, void *aux,
+                            char32_t c)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -268,7 +275,8 @@ void compile_ast_arg_char_t(const visitor_ptr_t *vis, char32_t c)
 //- arg_type
 //---------------------------------------------------------------------
 static
-void compile_ast_arg_type_t(const visitor_ptr_t *vis, v_type_t *type)
+void compile_ast_arg_type_t(const visitor_ptr_t *vis, void *aux,
+                            v_type_t *type)
 {
     assert(false && "This can not happen!");
 }

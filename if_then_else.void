@@ -12,10 +12,17 @@
 
 
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ref, 4);
+{   void_ptr = v_pointer_type(void, 0);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+}
+
+
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ref, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
 
 
     //-----------------------------------------------------------------
@@ -38,11 +45,12 @@
     //- method ...
     //-----------------------------------------------------------------
     v_store(voidc_visitor_ref,  typ0);
-    v_store(v_ast_argument_ref, typ1);
-    v_store(v_ast_stmt_ref,     typ2);
+    v_store(void_ptr,           typ1);
+    v_store(v_ast_argument_ref, typ2);
     v_store(v_ast_stmt_ref,     typ3);
+    v_store(v_ast_stmt_ref,     typ4);
 
-    method_ft  = v_function_type(void, typ0, 4, false);
+    method_ft  = v_function_type(void, typ0, 5, false);
     method_ref = v_pointer_type(method_ft, 0);
 
     v_add_local_symbol("method_ft",  voidc_opaque_type, method_ft);
@@ -71,10 +79,6 @@
 {   module = LLVMModuleCreateWithName("my_stmt_if_then_else_mod");
 
     v_set_module(module);
-
-    void_ptr = v_pointer_type(void, 0);
-
-    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 
@@ -111,6 +115,7 @@
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
     v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ref);
+    v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
     obj = v_cast(void_obj, ast_stmt_if_then_else_ref);
@@ -123,7 +128,7 @@
 
     method = v_cast(void_method, method_ref);
 
-    method(visitor, condition, stmt_then, stmt_else);
+    method(visitor, aux, condition, stmt_then, stmt_else);
 }
 
 
@@ -330,6 +335,7 @@
 //- compile_ast_stmt_if_then_else_branch_helper
 //---------------------------------------------------------------------
 //- fun compile_ast_stmt_if_then_else_branch_helper(visitor:  voidc_visitor_ref,
+//-                                                 aux,      void_ptr,
 //-                                                 stmt:     v_ast_stmt_ref,
 //-                                                 bblock_v: bblock_ptr
 //-                                                )
@@ -343,7 +349,7 @@
 //-     {
 //-         base_ast = v_cast(stmt, v_ast_base_ref);
 //-
-//-         v_ast_accept_visitor(base_ast, visitor);
+//-         v_ast_accept_visitor(base_ast, visitor, aux);
 //-
 //-         cur_b = LLVMGetInsertBlock(builder);
 //-
@@ -370,28 +376,32 @@
 //-
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref, 3);
+    typ0 = v_alloca(v_type_ref, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
 
     bblock_ptr = v_pointer_type(LLVMBasicBlockRef, 0);
 
     v_store(voidc_visitor_ref,  typ0);
-    v_store(v_ast_stmt_ref,     typ1);
-    v_store(bblock_ptr,         typ2);
+    v_store(void_ptr,           typ1);
+    v_store(v_ast_stmt_ref,     typ2);
+    v_store(bblock_ptr,         typ3);
 
-    ft = v_function_type(void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 4, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_if_then_else_branch_helper", ft);
 
     visitor  = LLVMGetParam(f, 0);
-    stmt     = LLVMGetParam(f, 1);
-    bblock_v = LLVMGetParam(f, 2);
+    aux      = LLVMGetParam(f, 1);
+    stmt     = LLVMGetParam(f, 2);
+    bblock_v = LLVMGetParam(f, 3);
 
 
-    val0 = v_alloca(LLVMValueRef, 2);
+    val0 = v_alloca(LLVMValueRef, 3);
     val1 = v_getelementptr(val0, 1);
+    val2 = v_getelementptr(val0, 2);
 
     builder = v_target_get_voidc_builder();
 
@@ -423,10 +433,11 @@
 
     v_store(base_ast, val0);
     v_store(visitor,  val1);
+    v_store(aux,      val2);
 
     accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
     v_store(builder_v, val0);
@@ -571,16 +582,17 @@
     f = v_function_hack("compile_ast_stmt_if_then_else_t", method_ft);
 
     v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "condition", v_ast_argument_ref);
-    v_add_parameter_name(f, 2, "stmt_then", v_ast_stmt_ref);
-    v_add_parameter_name(f, 3, "stmt_else", v_ast_stmt_ref);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "condition", v_ast_argument_ref);
+    v_add_parameter_name(f, 3, "stmt_then", v_ast_stmt_ref);
+    v_add_parameter_name(f, 4, "stmt_else", v_ast_stmt_ref);
 }
 {
     builder = v_target_get_builder();
 
     base_cond = v_cast(condition, v_ast_base_ref);
 
-    v_ast_accept_visitor(base_cond, visitor);
+    v_ast_accept_visitor(base_cond, visitor, aux);
 
     cond_a = v_get_argument_value(0);
 
@@ -601,11 +613,11 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
-    compile_ast_stmt_if_then_else_branch_helper(visitor, stmt_then, bblock_v);
+    compile_ast_stmt_if_then_else_branch_helper(visitor, aux, stmt_then, bblock_v);
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 
-    compile_ast_stmt_if_then_else_branch_helper(visitor, stmt_else, bblock_v);
+    compile_ast_stmt_if_then_else_branch_helper(visitor, aux, stmt_else, bblock_v);
 
     bblock = v_load(bblock_v);
 

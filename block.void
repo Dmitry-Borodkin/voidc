@@ -22,9 +22,15 @@
 
 
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ref, 3);
+{   void_ptr = v_pointer_type(void, 0);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+}
+
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ref, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
 
 
     //-----------------------------------------------------------------
@@ -47,10 +53,11 @@
     //- method ...
     //-----------------------------------------------------------------
     v_store(voidc_visitor_ref,   typ0);
-    v_store(v_ast_stmt_list_ref, typ1);
-    v_store(bool,                typ2);
+    v_store(void_ptr,            typ1);
+    v_store(v_ast_stmt_list_ref, typ2);
+    v_store(bool,                typ3);
 
-    method_ft  = v_function_type(void, typ0, 3, false);
+    method_ft  = v_function_type(void, typ0, 4, false);
     method_ref = v_pointer_type(method_ft, 0);
 
     v_add_local_symbol("method_ft",  voidc_opaque_type, method_ft);
@@ -78,10 +85,6 @@
 {   module = LLVMModuleCreateWithName("my_stmt_block_mod");
 
     v_set_module(module);
-
-    void_ptr = v_pointer_type(void, 0);
-
-    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 
@@ -114,6 +117,7 @@
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
     v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ref);
+    v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
     obj = v_cast(void_obj, ast_stmt_block_ref);
@@ -127,7 +131,7 @@
 
     flag = v_load(flag_ptr);
 
-    method(visitor, stmt_list, flag);
+    method(visitor, aux, stmt_list, flag);
 }
 
 
@@ -231,43 +235,49 @@
 //---------------------------------------------------------------------
 //- compile_ast_stmt_block_t_helper_simple
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ref, 2);
+{   typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
     v_store(voidc_visitor_ref,   typ0);
-    v_store(v_ast_stmt_list_ref, typ1);
+    v_store(void_ptr,            typ1);
+    v_store(v_ast_stmt_list_ref, typ2);
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t_helper_simple", ft);
 
     v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ref);
 }
 {
     base_ast = v_cast(stmt_list, v_ast_base_ref);
 
-    v_ast_accept_visitor(base_ast, visitor);
+    v_ast_accept_visitor(base_ast, visitor, aux);
 }
 
 
 //---------------------------------------------------------------------
 //- compile_ast_stmt_block_t_helper_complex
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ref, 2);
+{   typ0 = v_alloca(v_type_ref, 3);
     typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
     v_store(voidc_visitor_ref,   typ0);
-    v_store(v_ast_stmt_list_ref, typ1);
+    v_store(void_ptr,            typ1);
+    v_store(v_ast_stmt_list_ref, typ2);
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t_helper_complex", ft);
 
     v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ref);
 }
 {
     builder = v_target_get_builder();
@@ -285,7 +295,7 @@
 
     base_ast = v_cast(stmt_list, v_ast_base_ref);
 
-    v_ast_accept_visitor(base_ast, visitor);
+    v_ast_accept_visitor(base_ast, visitor, aux);
 
 
     cur_b = LLVMGetInsertBlock(builder);
@@ -314,14 +324,15 @@
     f = v_function_hack("compile_ast_stmt_block_t", method_ft);
 
     v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ref);
-    v_add_parameter_name(f, 1, "stmt_list", v_ast_stmt_list_ref);
-    v_add_parameter_name(f, 2, "flag",      bool);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 3, "flag",      bool);
 }
 {
     v_save_variables();
 
-    if (flag)   compile_ast_stmt_block_t_helper_complex(visitor, stmt_list);
-    else        compile_ast_stmt_block_t_helper_simple(visitor, stmt_list);
+    if (flag)   compile_ast_stmt_block_t_helper_complex(visitor, aux, stmt_list);
+    else        compile_ast_stmt_block_t_helper_simple(visitor, aux, stmt_list);
 
     v_restore_variables();
 }
