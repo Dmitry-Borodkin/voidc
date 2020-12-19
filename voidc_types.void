@@ -25,8 +25,8 @@
     //-----------------------------------------------------------------
     v_store(v_type_ref, typ0);          //-
 
-    ft = v_function_type(int, typ0, 1, false);
-    v_add_symbol_type("v_type_get_kind", ft);
+    ft = v_function_type(char32_t, typ0, 1, false);     //- Hack: char32_t == uint32_t == v_quark_t ...
+    v_add_symbol_type("v_type_get_method_tag", ft);
 
 //  v_store(v_type_ref, typ0);          //-
 

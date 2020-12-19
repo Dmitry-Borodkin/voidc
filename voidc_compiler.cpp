@@ -150,7 +150,7 @@ void compile_ast_arg_identifier_t(const visitor_ptr_t *vis, void *aux,
 
         if (at != t  &&
             at == gctx.void_ptr_type  &&
-            t->kind() == v_type_t::k_pointer)
+            t->method_tag() == v_type_pointer_visitor_method_tag)
         {
             v = LLVMBuildPointerCast(gctx.builder, v, at->llvm_type(), name->c_str());
         }
@@ -193,7 +193,7 @@ void compile_ast_arg_integer_t(const visitor_ptr_t *vis, void *aux,
 
     LLVMValueRef v;
 
-    if (t->kind() == v_type_t::k_pointer  &&  num == 0)
+    if (t->method_tag() == v_type_pointer_visitor_method_tag  &&  num == 0)
     {
         v = LLVMConstPointerNull(t->llvm_type());
     }
@@ -296,11 +296,7 @@ make_voidc_compiler(void)
         voidc_visitor_t vis;
 
 #define DEF(type) \
-        auto set_##type = [&vis](type::visitor_method_t method) \
-        { \
-            vis = vis.set_void_method(v_##type##_visitor_method_tag, (void *)method); \
-        }; \
-        set_##type(compile_##type);
+        vis = vis.set_void_method(v_##type##_visitor_method_tag, (void *)compile_##type);
 
         DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
 

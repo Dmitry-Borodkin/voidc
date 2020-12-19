@@ -75,7 +75,7 @@ v_getelementptr(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *a
 
     lctx.ret_value = v;
 
-    auto *p = static_cast<v_type_pointer_t *>(lctx.arg_types[0]->scalar_type());
+    auto *p = static_cast<v_type_pointer_t *>(v_type_get_scalar_type(lctx.arg_types[0]));
 
     v_type_t *t = p->element_type();
 
@@ -201,20 +201,20 @@ v_cast(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
     auto src_type = lctx.arg_types[0];
     auto dst_type = lctx.lookup_type((*args)->data[1]);
 
-    auto src_stype = src_type->scalar_type();
-    auto dst_stype = dst_type->scalar_type();
+    auto src_stype = v_type_get_scalar_type(src_type);
+    auto dst_stype = v_type_get_scalar_type(dst_type);
 
     auto opcode = LLVMOpcode(0);
 
-    if (src_stype->is_floating_point())
+    if (v_type_is_floating_point(src_stype))
     {
-        if (dst_stype->is_floating_point())
+        if (v_type_is_floating_point(dst_stype))
         {
-            auto sk = src_stype->kind();
-            auto dk = dst_stype->kind();
+            auto sz = v_type_floating_point_get_width(src_stype);
+            auto dz = v_type_floating_point_get_width(dst_stype);
 
-            if (sk == dk)       opcode = LLVMBitCast;       //- ?
-            else if (sk > dk)   opcode = LLVMFPTrunc;
+            if (sz == dz)       opcode = LLVMBitCast;       //- ?
+            else if (sz > dz)   opcode = LLVMFPTrunc;
             else                opcode = LLVMFPExt;
         }
         else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
@@ -229,7 +229,7 @@ v_cast(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
     }
     else if (auto *ist = dynamic_cast<v_type_integer_t *>(src_stype))
     {
-        if (dst_stype->is_floating_point())
+        if (v_type_is_floating_point(dst_stype))
         {
             if (ist->is_signed()) opcode = LLVMSIToFP;
             else                  opcode = LLVMUIToFP;
@@ -467,7 +467,7 @@ base_local_ctx_t::obtain_function(const std::string &fun_name, v_type_t * &fun_t
         fun_type = ft->element_type();
     }
 
-    if (fun_type->kind() != v_type_t::k_function) return false;
+    if (fun_type->method_tag() != v_type_function_visitor_method_tag) return false;
 
     return true;
 }
@@ -552,8 +552,6 @@ voidc_global_ctx_t::voidc_global_ctx_t()
     assert(voidc_global_ctx == nullptr);
 
     voidc_global_ctx = this;
-
-    initialize();
 
     add_symbol("voidc_opaque_type", opaque_type_type, opaque_type_type);        //- Sic!
 
@@ -660,9 +658,11 @@ voidc_global_ctx_t::static_initialize(void)
     LLVMAddAlwaysInlinerPass(pass_manager);
 
     //-------------------------------------------------------------
+    voidc_types_static_initialize();        //- Sic!
+
     target = new voidc_global_ctx_t();      //- Sic!
 
-    voidc_types_static_initialize();
+    static_cast<voidc_global_ctx_t *>(target)->initialize();    //- Sic!
 
     //-------------------------------------------------------------
     voidc->add_symbol_value("voidc_resolver", (void *)voidc_local_ctx_t::resolver);

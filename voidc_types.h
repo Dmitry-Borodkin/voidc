@@ -5,7 +5,7 @@
 #ifndef VOIDC_TYPES_H
 #define VOIDC_TYPES_H
 
-#include "voidc_quark.h"
+#include "voidc_visitor.h"
 
 #include <utility>
 #include <map>
@@ -21,128 +21,135 @@ class voidc_types_ctx_t;
 
 
 //---------------------------------------------------------------------
+//- Visitor tags...
+//---------------------------------------------------------------------
+#define DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF) \
+    DEF(void)       /* ...                                      */    \
+\
+    DEF(f16)        /* "half"                                   */    \
+    DEF(f32)        /* "float"                                  */    \
+    DEF(f64)        /* "double"                                 */    \
+    DEF(f128)       /* "fp128" (quad)                           */    \
+\
+    DEF(sint)       /* Signed integer                           */    \
+    DEF(uint)       /* Unsigned integer                         */    \
+\
+    DEF(function)   /* ...                                      */    \
+    DEF(pointer)    /* Typed(!) pointer ((void *) - ok!)        */    \
+    DEF(struct)     /* (Un-)named structs ("tuples" in fact)    */    \
+    DEF(array)      /* ...                                      */    \
+\
+    DEF(fvector)    /* Fixed vector                             */    \
+    DEF(svector)    /* Scalable vector                          */
+
+
+#define DEF(tag) \
+extern v_quark_t v_type_##tag##_visitor_method_tag;
+
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
+    DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF)
+
+    extern visitor_ptr_t voidc_llvm_type_visitor;
+
+VOIDC_DLLEXPORT_END
+}
+
+#undef DEF
+
+
+//---------------------------------------------------------------------
 //- Base class for voidc`s own types
 //---------------------------------------------------------------------
 struct v_type_t
 {
     virtual ~v_type_t();
 
-    enum kind_t
-    {
-        k_void,         //- ...
+public:
+    virtual void accept(const visitor_ptr_t &visitor, void *aux) const = 0;
 
-        k_f16,          //- "half"
-        k_f32,          //- "float"
-        k_f64,          //- "double"
-        k_f128,         //- "fp128"
-
-        k_sint,         //- Signed integer
-        k_uint,         //- Unsigned integer
-
-        k_function,     //- ...
-        k_pointer,      //- Typed(!) pointer ((void *) - ok!)
-        k_struct,       //- (Un-)named structs ("tuples" in fact)
-        k_array,        //- ...
-
-        k_fvector,      //- Fixed vector
-        k_svector,      //- Scalable vector
-
-        k_generic       //- Generic ...
-    };
-
-    virtual kind_t kind(void) const = 0;
+public:
+    virtual v_quark_t method_tag(void) const = 0;
 
 protected:
-    voidc_types_ctx_t &context;
-
-    explicit v_type_t(voidc_types_ctx_t &ctx)
-      : context(ctx)
-    {}
+    explicit v_type_t() {}
 
 private:
     v_type_t(const v_type_t &) = delete;
     v_type_t &operator=(const v_type_t &) = delete;
 
 protected:
-    virtual LLVMTypeRef obtain_llvm_type(void) const = 0;
-
-    const LLVMTypeRef &cached_llvm_type = _cached_llvm_type;
-
-private:
-    LLVMTypeRef _cached_llvm_type = nullptr;
+    LLVMTypeRef cached_llvm_type = nullptr;
 
 public:
     LLVMTypeRef llvm_type(void)
     {
-        if (!cached_llvm_type)  _cached_llvm_type = obtain_llvm_type();
+        if (!cached_llvm_type)
+        {
+            accept(voidc_llvm_type_visitor, &cached_llvm_type);
+        }
 
         return cached_llvm_type;
     }
-
-    bool is_floating_point(void)    //- ?...
-    {
-        auto k = kind();
-
-        return ((k == k_f16) || (k == k_f32) || (k == k_f64) || (k == k_f128));
-    }
-
-public:
-    virtual v_type_t *scalar_type(void) { return this; }        //- Sic!
 };
 
 //---------------------------------------------------------------------
-template<typename T, v_type_t::kind_t tag>
-struct v_type_tag_t : public T
-{
-    enum { type_tag = tag };
-
-    v_type_t::kind_t kind(void) const override
-    {
-        return tag;
-    }
-
-protected:
-    template<typename... Types>
-    explicit v_type_tag_t(Types&&... args)
-      : T(std::forward<Types>(args)...)
-    {}
-
-private:
-    v_type_tag_t(const v_type_tag_t &) = delete;
-    v_type_tag_t &operator=(const v_type_tag_t &) = delete;
-};
+#define TYPE_VISITOR_TAG(tag) \
+    v_quark_t method_tag(void) const override { return v_type_##tag##_visitor_method_tag; }
 
 
 //---------------------------------------------------------------------
 //- "Simple" types: "void" and floating points...
 //---------------------------------------------------------------------
-template<v_type_t::kind_t tag>
-class v_type_simple_t : public v_type_tag_t<v_type_t, tag>
+class v_type_simple_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
-    explicit v_type_simple_t(voidc_types_ctx_t &ctx)
-      : v_type_tag_t<v_type_t, tag>(ctx)
+protected:
+    explicit v_type_simple_t()
+      : v_type_t()
     {}
 
-    LLVMTypeRef obtain_llvm_type(void) const override;
-
+private:
     v_type_simple_t(const v_type_simple_t &) = delete;
     v_type_simple_t &operator=(const v_type_simple_t &) = delete;
+
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux);
+
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+
+        method(&visitor, aux);
+    }
 };
 
 //---------------------------------------------------------------------
-using v_type_void_t = v_type_simple_t<v_type_t::k_void>;
-using v_type_f16_t  = v_type_simple_t<v_type_t::k_f16>;
-using v_type_f32_t  = v_type_simple_t<v_type_t::k_f32>;
-using v_type_f64_t  = v_type_simple_t<v_type_t::k_f64>;
-using v_type_f128_t = v_type_simple_t<v_type_t::k_f128>;
+template<const v_quark_t &tag>
+class v_type_simple_tag_t : public v_type_simple_t
+{
+    friend class voidc_types_ctx_t;
 
-template<> extern LLVMTypeRef v_type_void_t::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_f16_t ::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_f32_t ::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_f64_t ::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_f128_t::obtain_llvm_type(void) const;
+    explicit v_type_simple_tag_t()
+      : v_type_simple_t()
+    {}
+
+    v_type_simple_tag_t(const v_type_simple_tag_t &) = delete;
+    v_type_simple_tag_t &operator=(const v_type_simple_tag_t &) = delete;
+
+public:
+    v_quark_t method_tag(void) const override { return tag; }
+};
+
+//---------------------------------------------------------------------
+using v_type_void_t = v_type_simple_tag_t<v_type_void_visitor_method_tag>;
+using v_type_f16_t  = v_type_simple_tag_t<v_type_f16_visitor_method_tag>;
+using v_type_f32_t  = v_type_simple_tag_t<v_type_f32_visitor_method_tag>;
+using v_type_f64_t  = v_type_simple_tag_t<v_type_f64_visitor_method_tag>;
+using v_type_f128_t = v_type_simple_tag_t<v_type_f128_visitor_method_tag>;
 
 
 //---------------------------------------------------------------------
@@ -155,46 +162,58 @@ class v_type_integer_t : public v_type_t
     const unsigned &bits;
 
 protected:
-    explicit v_type_integer_t(voidc_types_ctx_t &ctx, const unsigned &_bits)
-      : v_type_t(ctx),
+    explicit v_type_integer_t(const unsigned &_bits)
+      : v_type_t(),
         bits(_bits)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
 private:
     v_type_integer_t(const v_type_integer_t &) = delete;
     v_type_integer_t &operator=(const v_type_integer_t &) = delete;
 
 public:
-    bool is_signed(void) const { return (kind() == k_sint); }
+    bool is_signed(void) const { return (method_tag() == v_type_sint_visitor_method_tag); }
 
     unsigned width(void) const { return bits; }
+
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     unsigned bits, bool _signed);
+
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+
+        method(&visitor, aux, width(), is_signed());
+    }
 };
 
 //---------------------------------------------------------------------
-template<v_type_t::kind_t tag>
-class v_type_integer_tag_t : public v_type_tag_t<v_type_integer_t, tag>
+template<const v_quark_t &tag>
+class v_type_integer_tag_t : public v_type_integer_t
 {
     friend class voidc_types_ctx_t;
 
-    explicit v_type_integer_tag_t(voidc_types_ctx_t &ctx, const unsigned &_bits)
-      : v_type_tag_t<v_type_integer_t, tag>(ctx, _bits)
+    explicit v_type_integer_tag_t(const unsigned &_bits)
+      : v_type_integer_t(_bits)
     {}
 
     v_type_integer_tag_t(const v_type_integer_tag_t &) = delete;
     v_type_integer_tag_t &operator=(const v_type_integer_tag_t &) = delete;
+
+public:
+    v_quark_t method_tag(void) const override { return tag; }
 };
 
 //---------------------------------------------------------------------
-using v_type_sint_t = v_type_integer_tag_t<v_type_t::k_sint>;
-using v_type_uint_t = v_type_integer_tag_t<v_type_t::k_uint>;
+using v_type_sint_t = v_type_integer_tag_t<v_type_sint_visitor_method_tag>;
+using v_type_uint_t = v_type_integer_tag_t<v_type_uint_visitor_method_tag>;
 
 
 //---------------------------------------------------------------------
 //- Function types
 //---------------------------------------------------------------------
-class v_type_function_t : public v_type_tag_t<v_type_t, v_type_t::k_function>
+class v_type_function_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
@@ -202,12 +221,10 @@ class v_type_function_t : public v_type_tag_t<v_type_t, v_type_t::k_function>
 
     const key_t &key;
 
-    explicit v_type_function_t(voidc_types_ctx_t &ctx, const key_t &_key)
-      : v_type_tag_t(ctx),
+    explicit v_type_function_t(const key_t &_key)
+      : v_type_t(),
         key(_key)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
     v_type_function_t(const v_type_function_t &) = delete;
     v_type_function_t &operator=(const v_type_function_t &) = delete;
@@ -219,14 +236,27 @@ public:
 
     unsigned param_count(void) const { return unsigned(key.first.size() - 1); }
 
-    v_type_t * const *param_types(void) { return key.first.data() + 1; }
+    v_type_t * const *param_types(void) const { return key.first.data() + 1; }
+
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     v_type_t *ret, v_type_t * const *args, unsigned count, bool var_arg);
+
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+
+        method(&visitor, aux, return_type(), param_types(), param_count(), is_var_arg());
+    }
+
+    TYPE_VISITOR_TAG(function)
 };
 
 
 //---------------------------------------------------------------------
 //- Pointer types: typed(!) and (void *) allowed
 //---------------------------------------------------------------------
-class v_type_pointer_t : public v_type_tag_t<v_type_t, v_type_t::k_pointer>
+class v_type_pointer_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
@@ -234,12 +264,10 @@ class v_type_pointer_t : public v_type_tag_t<v_type_t, v_type_t::k_pointer>
 
     const key_t &key;
 
-    explicit v_type_pointer_t(voidc_types_ctx_t &ctx, const key_t &_key)
-      : v_type_tag_t(ctx),
+    explicit v_type_pointer_t(const key_t &_key)
+      : v_type_t(),
         key(_key)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
     v_type_pointer_t(const v_type_pointer_t &) = delete;
     v_type_pointer_t &operator=(const v_type_pointer_t &) = delete;
@@ -248,13 +276,26 @@ public:
     v_type_t *element_type(void) const { return key.first; }
 
     unsigned address_space(void) const { return key.second; }
+
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     v_type_t *elt, unsigned addr_space);
+
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+
+        method(&visitor, aux, element_type(), address_space());
+    }
+
+    TYPE_VISITOR_TAG(pointer)
 };
 
 
 //---------------------------------------------------------------------
 //- Structure types: named/unnamed...
 //---------------------------------------------------------------------
-class v_type_struct_t : public v_type_tag_t<v_type_t, v_type_t::k_struct>
+class v_type_struct_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
@@ -264,17 +305,15 @@ class v_type_struct_t : public v_type_tag_t<v_type_t, v_type_t::k_struct>
     const name_key_t *name_key = nullptr;
     const body_key_t *body_key = nullptr;
 
-    explicit v_type_struct_t(voidc_types_ctx_t &ctx, const name_key_t &_name)
-      : v_type_tag_t(ctx),
+    explicit v_type_struct_t(const name_key_t &_name)
+      : v_type_t(),
         name_key(&_name)
     {}
 
-    explicit v_type_struct_t(voidc_types_ctx_t &ctx, const body_key_t &_body)
-      : v_type_tag_t(ctx),
+    explicit v_type_struct_t(const body_key_t &_body)
+      : v_type_t(),
         body_key(&_body)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
     v_type_struct_t(const v_type_struct_t &) = delete;
     v_type_struct_t &operator=(const v_type_struct_t &) = delete;
@@ -291,13 +330,31 @@ public:
     v_type_t * const *element_types(void) const { return body_key->first.data(); }
 
     bool is_packed(void) const { return body_key->second; }
+
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     const char *name, bool opaque,
+                                     v_type_t * const *elts, unsigned count, bool packed);
+
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+
+        v_type_t * const *elts = (is_opaque() ? nullptr : element_types());
+        unsigned         count = (is_opaque() ? 0       : element_count());
+        bool            packed = (is_opaque() ? false   : is_packed());
+
+        method(&visitor, aux, name(), is_opaque(), elts, count, packed);
+    }
+
+    TYPE_VISITOR_TAG(struct)
 };
 
 
 //---------------------------------------------------------------------
 //- Array types
 //---------------------------------------------------------------------
-class v_type_array_t : public v_type_tag_t<v_type_t, v_type_t::k_array>
+class v_type_array_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
@@ -305,12 +362,10 @@ class v_type_array_t : public v_type_tag_t<v_type_t, v_type_t::k_array>
 
     const key_t &key;
 
-    explicit v_type_array_t(voidc_types_ctx_t &ctx, const key_t &_key)
-      : v_type_tag_t(ctx),
+    explicit v_type_array_t(const key_t &_key)
+      : v_type_t(),
         key(_key)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
     v_type_array_t(const v_type_array_t &) = delete;
     v_type_array_t &operator=(const v_type_array_t &) = delete;
@@ -319,6 +374,19 @@ public:
     v_type_t *element_type(void) const { return key.first; }
 
     uint64_t length(void) const { return key.second; }
+
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     v_type_t *elt, uint64_t length);
+
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+
+        method(&visitor, aux, element_type(), length());
+    }
+
+    TYPE_VISITOR_TAG(array)
 };
 
 
@@ -334,8 +402,8 @@ protected:
 
     const key_t &key;
 
-    explicit v_type_vector_t(voidc_types_ctx_t &ctx, const key_t &_key)
-      : v_type_t(ctx),
+    explicit v_type_vector_t(const key_t &_key)
+      : v_type_t(),
         key(_key)
     {}
 
@@ -344,68 +412,122 @@ private:
     v_type_vector_t &operator=(const v_type_vector_t &) = delete;
 
 public:
-    v_type_t *scalar_type(void) override { return key.first; }
-
-public:
     v_type_t *element_type(void) const { return key.first; }
 
     unsigned size(void) const { return key.second; }
 
-    bool is_scalable(void) const { return (kind() == k_svector); }
+    bool is_scalable(void) const { return (method_tag() == v_type_svector_visitor_method_tag); }
+
+public:
+    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+                                     v_type_t *elt, unsigned size, bool scalable);
+
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    {
+        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+
+        method(&visitor, aux, element_type(), size(), is_scalable());
+    }
 };
 
 //---------------------------------------------------------------------
-template<v_type_t::kind_t tag>
-class v_type_vector_tag_t : public v_type_tag_t<v_type_vector_t, tag>
+template<const v_quark_t &tag>
+class v_type_vector_tag_t : public v_type_vector_t
 {
     friend class voidc_types_ctx_t;
 
-    explicit v_type_vector_tag_t(voidc_types_ctx_t &ctx, const v_type_vector_t::key_t &_key)
-      : v_type_tag_t<v_type_vector_t, tag>(ctx, _key)
+    explicit v_type_vector_tag_t(const v_type_vector_t::key_t &_key)
+      : v_type_vector_t(_key)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
     v_type_vector_tag_t(const v_type_vector_tag_t &) = delete;
     v_type_vector_tag_t &operator=(const v_type_vector_tag_t &) = delete;
+
+public:
+    v_quark_t method_tag(void) const override { return tag; }
 };
 
 //---------------------------------------------------------------------
-using v_type_fvector_t = v_type_vector_tag_t<v_type_t::k_fvector>;
-using v_type_svector_t = v_type_vector_tag_t<v_type_t::k_svector>;
-
-template<> extern LLVMTypeRef v_type_fvector_t::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_svector_t::obtain_llvm_type(void) const;
+using v_type_fvector_t = v_type_vector_tag_t<v_type_fvector_visitor_method_tag>;
+using v_type_svector_t = v_type_vector_tag_t<v_type_svector_visitor_method_tag>;
 
 
 //---------------------------------------------------------------------
 //- Generic types
 //---------------------------------------------------------------------
-class v_type_generic_t : public v_type_tag_t<v_type_t, v_type_t::k_generic>
+extern "C"
+{
+
+struct type_generic_vtable
+{
+    void (*destroy)(void * const *elts, unsigned count);
+
+    void (*accept)(void * const *elts, unsigned count, const visitor_ptr_t *visitor, void *aux);
+
+    v_quark_t visitor_method_tag;
+};
+
+//---------------------------------------------------------------------
+}   //- extern "C"
+
+
+//---------------------------------------------------------------------
+class v_type_generic_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
-    using key_t = std::pair<v_quark_t, std::vector<void *>>;
+    using key_t = std::pair<const type_generic_vtable *, std::vector<void *>>;
 
     const key_t &key;
 
-    explicit v_type_generic_t(voidc_types_ctx_t &ctx, const key_t &_key)
-      : v_type_tag_t(ctx),
+    explicit v_type_generic_t(const key_t &_key)
+      : v_type_t(),
         key(_key)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
     v_type_generic_t(const v_type_generic_t &) = delete;
     v_type_generic_t &operator=(const v_type_generic_t &) = delete;
 
 public:
-    v_quark_t quark(void) const { return key.first; }
-
     unsigned element_count(void) const { return unsigned(key.second.size() - 1); }
 
-    void * const *elements(void) { return key.second.data() + 1; }
+    void * const *elements(void) const { return key.second.data() + 1; }
+
+public:
+    ~v_type_generic_t() override
+    {
+        key.first->destroy(elements(), element_count());
+    }
+
+    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    {
+        key.first->accept(elements(), element_count(), &visitor, aux);
+    }
+
+    v_quark_t method_tag(void) const override { return key.first->visitor_method_tag; }
 };
+
+
+//---------------------------------------------------------------------
+//- Intrinsics (functions)
+//---------------------------------------------------------------------
+extern "C"
+{
+
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+
+v_type_t *v_type_get_scalar_type(v_type_t *type);
+
+bool      v_type_is_floating_point(v_type_t *type);
+
+unsigned  v_type_floating_point_get_width(v_type_t *type);
+
+
+VOIDC_DLLEXPORT_END
+
+//---------------------------------------------------------------------
+}   //- extern "C"
 
 
 //=====================================================================
@@ -425,26 +547,28 @@ public:
     const LLVMTypeRef opaque_void_type;     //- For (void *) ...
 
 public:
-    v_type_void_t *make_void_type(void) { return void_type.get(); }
+    v_type_void_t     *make_void_type(void) { return void_type.get(); }
 
-    v_type_f16_t  *make_f16_type(void)  { return f16_type.get(); }
-    v_type_f32_t  *make_f32_type(void)  { return f32_type.get(); }
-    v_type_f64_t  *make_f64_type(void)  { return f64_type.get(); }
-    v_type_f128_t *make_f128_type(void) { return f128_type.get(); }
+    v_type_f16_t      *make_f16_type(void)  { return f16_type.get(); }
+    v_type_f32_t      *make_f32_type(void)  { return f32_type.get(); }
+    v_type_f64_t      *make_f64_type(void)  { return f64_type.get(); }
+    v_type_f128_t     *make_f128_type(void) { return f128_type.get(); }
 
-    v_type_sint_t *make_sint_type(unsigned bits);
-    v_type_uint_t *make_uint_type(unsigned bits);
+    v_type_sint_t     *make_sint_type(unsigned bits);
+    v_type_uint_t     *make_uint_type(unsigned bits);
 
     v_type_function_t *make_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_args=false);
     v_type_pointer_t  *make_pointer_type(v_type_t *et, unsigned addr_space=0);
 
-    v_type_struct_t *make_struct_type(const std::string &name);
-    v_type_struct_t *make_struct_type(v_type_t **elts, unsigned count, bool packed=false);
+    v_type_struct_t   *make_struct_type(const std::string &name);
+    v_type_struct_t   *make_struct_type(v_type_t **elts, unsigned count, bool packed=false);
 
-    v_type_array_t *make_array_type(v_type_t *et, uint64_t count);
+    v_type_array_t    *make_array_type(v_type_t *et, uint64_t count);
 
-    v_type_fvector_t *make_fvector_type(v_type_t *et, unsigned count);
-    v_type_svector_t *make_svector_type(v_type_t *et, unsigned count);
+    v_type_fvector_t  *make_fvector_type(v_type_t *et, unsigned count);
+    v_type_svector_t  *make_svector_type(v_type_t *et, unsigned count);
+
+    v_type_generic_t  *make_generic_type(const type_generic_vtable *vtab, void **elts, unsigned count);
 
 private:
     std::unique_ptr<v_type_void_t> void_type;
@@ -467,6 +591,8 @@ private:
 
     std::map<v_type_fvector_t::key_t, std::unique_ptr<v_type_fvector_t>> fvector_types;
     std::map<v_type_svector_t::key_t, std::unique_ptr<v_type_svector_t>> svector_types;
+
+    std::map<v_type_generic_t::key_t, std::unique_ptr<v_type_generic_t>> generic_types;
 
 public:
     v_type_uint_t * const bool_type;
