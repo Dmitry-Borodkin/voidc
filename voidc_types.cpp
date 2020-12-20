@@ -764,12 +764,71 @@ v_type_vector_is_scalable(v_type_t *type)
 
 
 //---------------------------------------------------------------------
+v_type_t *
+v_generic_type(const type_generic_vtable *vtab, void **elts, unsigned count)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_generic_type(vtab, elts, count);
+}
+
+const type_generic_vtable *
+v_type_generic_get_vtable(v_type_t *type)
+{
+    return static_cast<v_type_generic_t *>(type)->vtable();
+}
+
+unsigned
+v_type_generic_get_element_count(v_type_t *type)
+{
+    return static_cast<v_type_generic_t *>(type)->element_count();
+}
+
+void
+v_type_generic_get_elements(v_type_t *type, void **elts)
+{
+    auto gp = static_cast<v_type_generic_t *>(type);
+
+    std::copy_n(gp->elements(), gp->element_count(), elts);
+}
+
+void *
+v_type_generic_get_element_at_index(v_type_t *type, unsigned idx)
+{
+    return static_cast<v_type_generic_t *>(type)->elements()[idx];
+}
+
+
+//---------------------------------------------------------------------
+//- Visitors ...
+//---------------------------------------------------------------------
 #define DEF(tag) \
 v_quark_t v_type_##tag##_visitor_method_tag;
 
     DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF)
 
 #undef DEF
+
+
+#define DEF(tag) \
+void \
+v_visitor_set_method_type_##tag##_t(visitor_ptr_t *dst, const visitor_ptr_t *src, v_type_##tag##_t::visitor_method_t method) \
+{ \
+    auto visitor = (*src)->set_void_method(v_type_##tag##_visitor_method_tag, (void *)method); \
+    *dst = std::make_shared<const voidc_visitor_t>(visitor); \
+}
+
+    DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF)
+
+#undef DEF
+
+
+//---------------------------------------------------------------------
+void
+v_type_accept_visitor(v_type_t *type, const visitor_ptr_t *visitor, void *aux)
+{
+    type->accept(*visitor, aux);
+}
 
 
 //---------------------------------------------------------------------

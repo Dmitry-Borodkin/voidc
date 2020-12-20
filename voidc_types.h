@@ -489,6 +489,8 @@ class v_type_generic_t : public v_type_t
     v_type_generic_t &operator=(const v_type_generic_t &) = delete;
 
 public:
+    const type_generic_vtable *vtable(void) const { return key.first; }
+
     unsigned element_count(void) const { return unsigned(key.second.size() - 1); }
 
     void * const *elements(void) const { return key.second.data() + 1; }
@@ -496,15 +498,15 @@ public:
 public:
     ~v_type_generic_t() override
     {
-        key.first->destroy(elements(), element_count());
+        vtable()->destroy(elements(), element_count());
     }
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        key.first->accept(elements(), element_count(), &visitor, aux);
+        vtable()->accept(elements(), element_count(), &visitor, aux);
     }
 
-    v_quark_t method_tag(void) const override { return key.first->visitor_method_tag; }
+    v_quark_t method_tag(void) const override { return vtable()->visitor_method_tag; }
 };
 
 
