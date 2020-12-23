@@ -101,16 +101,16 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
+        auto tag = method_tag();
 
-        method(&visitor, aux, data.size(), true);
+        visitor->visit<visitor_method_t>(tag, visitor, aux, data.size(), true);
 
         for (auto &it : data)
         {
             it->accept(visitor, aux);
         }
 
-        method(&visitor, aux, data.size(), false);
+        visitor->visit<visitor_method_t>(tag, visitor, aux, data.size(), false);
     }
 };
 
@@ -175,9 +175,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, &stmt_list, line, column);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &stmt_list, line, column);
     }
 
     AST_VISITOR_TAG(ast_unit_t)
@@ -202,9 +200,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, &var_name, &call);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &var_name, &call);
     }
 
     AST_VISITOR_TAG(ast_stmt_t)
@@ -228,9 +224,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, &fun_name, &arg_list);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &fun_name, &arg_list);
     }
 
     AST_VISITOR_TAG(ast_call_t)
@@ -252,9 +246,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, &name);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &name);
     }
 
     AST_VISITOR_TAG(ast_arg_identifier_t)
@@ -275,9 +267,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, number);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, number);
     }
 
     AST_VISITOR_TAG(ast_arg_integer_t)
@@ -298,9 +288,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, &string);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &string);
     }
 
     AST_VISITOR_TAG(ast_arg_string_t)
@@ -321,9 +309,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, char_);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, char_);
     }
 
     AST_VISITOR_TAG(ast_arg_char_t)
@@ -344,9 +330,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, type);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, type);
     }
 
     AST_VISITOR_TAG(ast_arg_type_t)

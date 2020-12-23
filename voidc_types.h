@@ -121,9 +121,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux);
     }
 };
 
@@ -182,9 +180,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, width(), is_signed());
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, width(), is_signed());
     }
 };
 
@@ -244,9 +240,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, return_type(), param_types(), param_count(), is_var_arg());
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, return_type(), param_types(), param_count(), is_var_arg());
     }
 
     TYPE_VISITOR_TAG(function)
@@ -283,9 +277,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, element_type(), address_space());
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, element_type(), address_space());
     }
 
     TYPE_VISITOR_TAG(pointer)
@@ -338,13 +330,11 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
         v_type_t * const *elts = (is_opaque() ? nullptr : element_types());
         unsigned         count = (is_opaque() ? 0       : element_count());
         bool            packed = (is_opaque() ? false   : is_packed());
 
-        method(&visitor, aux, name(), is_opaque(), elts, count, packed);
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, name(), is_opaque(), elts, count, packed);
     }
 
     TYPE_VISITOR_TAG(struct)
@@ -381,9 +371,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, element_type(), length());
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, element_type(), length());
     }
 
     TYPE_VISITOR_TAG(array)
@@ -424,9 +412,7 @@ public:
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        auto method = visitor_method_t(visitor->void_methods.at(method_tag()));
-
-        method(&visitor, aux, element_type(), size(), is_scalable());
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, element_type(), size(), is_scalable());
     }
 };
 

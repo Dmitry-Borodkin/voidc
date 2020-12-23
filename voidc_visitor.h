@@ -11,6 +11,12 @@
 
 
 //---------------------------------------------------------------------
+class voidc_visitor_t;
+
+typedef std::shared_ptr<const voidc_visitor_t> visitor_ptr_t;
+
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 class voidc_visitor_t
@@ -47,6 +53,22 @@ public:
 public:
     const void_methods_map_t &void_methods = _void_methods;
 
+public:
+    template<typename FunT, typename... Targs>
+    void visit(v_quark_t q, const visitor_ptr_t &self, void *aux, Targs... args) const
+    {
+        if (auto *void_f = void_methods.find(q))    //- First, try given quark
+        {
+            reinterpret_cast<FunT>(*void_f)(&self, aux, args...);
+        }
+        else    //- Otherwise, try special case at quark 0
+        {
+            typedef void (*zf_t)(const visitor_ptr_t *, void *);
+
+            reinterpret_cast<zf_t>(void_methods.at(0))(&self, aux);
+        }
+    }
+
 private:
     void_methods_map_t _void_methods;
 
@@ -56,7 +78,7 @@ private:
     {}
 };
 
-typedef std::shared_ptr<const voidc_visitor_t> visitor_ptr_t;
+//typedef std::shared_ptr<const voidc_visitor_t> visitor_ptr_t;
 
 
 #endif  //- VOIDC_VISITOR_H
