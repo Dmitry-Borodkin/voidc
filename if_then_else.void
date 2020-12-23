@@ -712,6 +712,11 @@
     pp15 = v_getelementptr(pp0, 15);
 
 
+    //-----------------------------------------------------------------
+    //- stmt_if_then_else <- "if" _ '(' _ cond:arg _ ')' _ then:stmt _
+    //-                      "else" !ident_cont _ else:stmt             { mk_stmt_if_then_else(cond, then, else) }
+    //-                    / "if" _ '(' _ cond:arg _ ')' _ then:stmt    { mk_stmt_if_then_else(cond, then, 0) }
+
     v_peg_make_literal_parser(pp1, "if");
 
     v_peg_make_identifier_parser(pp2, "_");

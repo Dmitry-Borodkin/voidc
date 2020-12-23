@@ -434,6 +434,10 @@
     pp7 = v_getelementptr(pp0, 7);
 
 
+    //-----------------------------------------------------------------
+    //- stmt_block <- "block" _ '{' _ l:stmt_list _ '}'     { mk_stmt_block(l, 1) }
+    //-             /           '{' _ l:stmt_list _ '}'     { mk_stmt_block(l, 0) }
+
     v_peg_make_literal_parser(pp0, "block");
     v_peg_make_identifier_parser(pp1, "_");
 

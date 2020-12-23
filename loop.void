@@ -319,6 +319,10 @@
     pp3 = v_getelementptr(pp0, 3);
     pp4 = v_getelementptr(pp0, 4);
 
+
+    //-----------------------------------------------------------------
+    //- stmt_loop <- "loop" !ident_cont _ s:stmt    { mk_stmt_loop(s) }
+
     v_peg_make_literal_parser(pp0, "loop");
     v_peg_make_identifier_parser(pp1, "ident_cont");
     v_peg_make_not_parser(pp1, pp1);
