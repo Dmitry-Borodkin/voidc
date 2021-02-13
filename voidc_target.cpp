@@ -272,6 +272,18 @@ v_cast(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
             throw std::runtime_error("Bad cast from pointer");
         }
     }
+    else if (auto *pst = dynamic_cast<v_type_reference_t *>(src_stype))
+    {
+        if (auto *pdt = dynamic_cast<v_type_reference_t *>(dst_stype))
+        {
+            if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
+            else                                                opcode = LLVMAddrSpaceCast;
+        }
+        else
+        {
+            throw std::runtime_error("Bad cast from reference");
+        }
+    }
     else
     {
         throw std::runtime_error("Bad cast");
@@ -286,6 +298,54 @@ v_cast(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 
     lctx.ret_type  = dst_type;
     lctx.ret_value = v;
+}
+
+//---------------------------------------------------------------------
+static void
+v_pointer(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 1)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    (*args)->data[0]->accept(*vis, aux);
+
+    auto rt = static_cast<v_type_reference_t *>(lctx.arg_types[0]);
+
+    lctx.ret_value = lctx.args[0];
+    lctx.ret_type  = gctx.make_pointer_type(rt->element_type(), rt->address_space());
+
+    lctx.args.clear();
+    lctx.arg_types.clear();
+}
+
+//---------------------------------------------------------------------
+static void
+v_reference(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 1)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    (*args)->data[0]->accept(*vis, aux);
+
+    auto pt = static_cast<v_type_pointer_t *>(lctx.arg_types[0]);
+
+    lctx.ret_value = lctx.args[0];
+    lctx.ret_type  = gctx.make_reference_type(pt->element_type(), pt->address_space());
+
+    lctx.args.clear();
+    lctx.arg_types.clear();
 }
 
 
@@ -306,6 +366,8 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     DEF(v_store)
     DEF(v_load)
     DEF(v_cast)
+    DEF(v_pointer)
+    DEF(v_reference)
 
 #undef DEF
 }
