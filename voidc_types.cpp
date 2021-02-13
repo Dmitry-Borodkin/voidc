@@ -106,8 +106,8 @@ v_type_function_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
 
 //---------------------------------------------------------------------
 static void
-v_type_pointer_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
-                                v_type_t *elt, unsigned addr_space)
+v_type_refptr_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
+                               v_type_t *elt, unsigned addr_space, bool reference)
 {
     auto &ret = *(LLVMTypeRef *)aux;
     auto &gctx = *voidc_global_ctx_t::target;
@@ -125,6 +125,9 @@ v_type_pointer_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
 
     ret = LLVMPointerType(et, addr_space);
 }
+
+#define v_type_pointer_obtain_llvm_type   v_type_refptr_obtain_llvm_type
+#define v_type_reference_obtain_llvm_type v_type_refptr_obtain_llvm_type
 
 
 //---------------------------------------------------------------------
@@ -320,6 +323,19 @@ voidc_types_ctx_t::make_pointer_type(v_type_t *et, unsigned addr_space)
     auto [it, nx] = pointer_types.try_emplace(key, nullptr);
 
     if (nx) it->second.reset(new v_type_pointer_t(it->first));
+
+    return  it->second.get();
+}
+
+//---------------------------------------------------------------------
+v_type_reference_t *
+voidc_types_ctx_t::make_reference_type(v_type_t *et, unsigned addr_space)
+{
+    v_type_reference_t::key_t key = { et, addr_space };
+
+    auto [it, nx] = reference_types.try_emplace(key, nullptr);
+
+    if (nx) it->second.reset(new v_type_reference_t(it->first));
 
     return  it->second.get();
 }
@@ -612,22 +628,36 @@ v_pointer_type(v_type_t *elt, unsigned addr_space)
     return gctx.make_pointer_type(elt, addr_space);
 }
 
+v_type_t *
+v_reference_type(v_type_t *elt, unsigned addr_space)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_reference_type(elt, addr_space);
+}
+
 bool
 v_type_is_pointer(v_type_t *type)
 {
-    return bool(dynamic_cast<v_type_pointer_t *>(type));
+    return bool(dynamic_cast<v_type_pointer_t *>(type));        //- ?
+}
+
+bool
+v_type_is_reference(v_type_t *type)
+{
+    return bool(dynamic_cast<v_type_reference_t *>(type));      //- ?
 }
 
 v_type_t *
-v_type_pointer_get_element_type(v_type_t *type)
+v_type_refptr_get_element_type(v_type_t *type)
 {
-    return static_cast<v_type_pointer_t *>(type)->element_type();
+    return static_cast<v_type_refptr_t *>(type)->element_type();
 }
 
 unsigned
-v_type_pointer_get_address_space(v_type_t *type)
+v_type_refptr_get_address_space(v_type_t *type)
 {
-    return static_cast<v_type_pointer_t *>(type)->address_space();
+    return static_cast<v_type_refptr_t *>(type)->address_space();
 }
 
 

@@ -36,6 +36,7 @@ class voidc_types_ctx_t;
 \
     DEF(function)   /* ...                                      */    \
     DEF(pointer)    /* Typed(!) pointer ((void *) - ok!)        */    \
+    DEF(reference)  /* References...                            */    \
     DEF(struct)     /* (Un-)named structs ("tuples" in fact)    */    \
     DEF(array)      /* ...                                      */    \
 \
@@ -248,40 +249,63 @@ public:
 
 
 //---------------------------------------------------------------------
-//- Pointer types: typed(!) and (void *) allowed
+//- Pointer/reference types
 //---------------------------------------------------------------------
-class v_type_pointer_t : public v_type_t
+class v_type_refptr_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
+protected:
     using key_t = std::pair<v_type_t *, unsigned>;
 
     const key_t &key;
 
-    explicit v_type_pointer_t(const key_t &_key)
+    explicit v_type_refptr_t(const key_t &_key)
       : v_type_t(),
         key(_key)
     {}
 
-    v_type_pointer_t(const v_type_pointer_t &) = delete;
-    v_type_pointer_t &operator=(const v_type_pointer_t &) = delete;
+private:
+    v_type_refptr_t(const v_type_refptr_t &) = delete;
+    v_type_refptr_t &operator=(const v_type_refptr_t &) = delete;
 
 public:
     v_type_t *element_type(void) const { return key.first; }
 
     unsigned address_space(void) const { return key.second; }
 
+    bool is_reference(void) const { return (method_tag() == v_type_reference_visitor_method_tag); }
+
 public:
     typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
-                                     v_type_t *elt, unsigned addr_space);
+                                     v_type_t *elt, unsigned addr_space, bool reference);
 
     void accept(const visitor_ptr_t &visitor, void *aux) const override
     {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, element_type(), address_space());
+        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, element_type(), address_space(), is_reference());
     }
-
-    TYPE_VISITOR_TAG(pointer)
 };
+
+//---------------------------------------------------------------------
+template<const v_quark_t &tag>
+class v_type_refptr_tag_t : public v_type_refptr_t
+{
+    friend class voidc_types_ctx_t;
+
+    explicit v_type_refptr_tag_t(const v_type_refptr_t::key_t &_key)
+      : v_type_refptr_t(_key)
+    {}
+
+    v_type_refptr_tag_t(const v_type_refptr_tag_t &) = delete;
+    v_type_refptr_tag_t &operator=(const v_type_refptr_tag_t &) = delete;
+
+public:
+    v_quark_t method_tag(void) const override { return tag; }
+};
+
+//---------------------------------------------------------------------
+using v_type_pointer_t   = v_type_refptr_tag_t<v_type_pointer_visitor_method_tag>;
+using v_type_reference_t = v_type_refptr_tag_t<v_type_reference_visitor_method_tag>;
 
 
 //---------------------------------------------------------------------
@@ -535,28 +559,30 @@ public:
     const LLVMTypeRef opaque_void_type;     //- For (void *) ...
 
 public:
-    v_type_void_t     *make_void_type(void) { return void_type.get(); }
+    v_type_void_t      *make_void_type(void) { return void_type.get(); }
 
-    v_type_f16_t      *make_f16_type(void)  { return f16_type.get(); }
-    v_type_f32_t      *make_f32_type(void)  { return f32_type.get(); }
-    v_type_f64_t      *make_f64_type(void)  { return f64_type.get(); }
-    v_type_f128_t     *make_f128_type(void) { return f128_type.get(); }
+    v_type_f16_t       *make_f16_type(void)  { return f16_type.get(); }
+    v_type_f32_t       *make_f32_type(void)  { return f32_type.get(); }
+    v_type_f64_t       *make_f64_type(void)  { return f64_type.get(); }
+    v_type_f128_t      *make_f128_type(void) { return f128_type.get(); }
 
-    v_type_sint_t     *make_sint_type(unsigned bits);
-    v_type_uint_t     *make_uint_type(unsigned bits);
+    v_type_sint_t      *make_sint_type(unsigned bits);
+    v_type_uint_t      *make_uint_type(unsigned bits);
 
-    v_type_function_t *make_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_args=false);
-    v_type_pointer_t  *make_pointer_type(v_type_t *et, unsigned addr_space=0);
+    v_type_function_t  *make_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_args=false);
 
-    v_type_struct_t   *make_struct_type(const std::string &name);
-    v_type_struct_t   *make_struct_type(v_type_t **elts, unsigned count, bool packed=false);
+    v_type_pointer_t   *make_pointer_type  (v_type_t *et, unsigned addr_space=0);
+    v_type_reference_t *make_reference_type(v_type_t *et, unsigned addr_space=0);
 
-    v_type_array_t    *make_array_type(v_type_t *et, uint64_t count);
+    v_type_struct_t    *make_struct_type(const std::string &name);
+    v_type_struct_t    *make_struct_type(v_type_t **elts, unsigned count, bool packed=false);
 
-    v_type_fvector_t  *make_fvector_type(v_type_t *et, unsigned count);
-    v_type_svector_t  *make_svector_type(v_type_t *et, unsigned count);
+    v_type_array_t     *make_array_type(v_type_t *et, uint64_t count);
 
-    v_type_generic_t  *make_generic_type(const type_generic_vtable *vtab, void **elts, unsigned count);
+    v_type_fvector_t   *make_fvector_type(v_type_t *et, unsigned count);
+    v_type_svector_t   *make_svector_type(v_type_t *et, unsigned count);
+
+    v_type_generic_t   *make_generic_type(const type_generic_vtable *vtab, void **elts, unsigned count);
 
 private:
     std::unique_ptr<v_type_void_t> void_type;
@@ -570,7 +596,9 @@ private:
     std::map<unsigned, std::unique_ptr<v_type_uint_t>> uint_types;
 
     std::map<v_type_function_t::key_t, std::unique_ptr<v_type_function_t>> function_types;
-    std::map<v_type_pointer_t::key_t,  std::unique_ptr<v_type_pointer_t>>  pointer_types;
+
+    std::map<v_type_pointer_t::key_t,   std::unique_ptr<v_type_pointer_t>>   pointer_types;
+    std::map<v_type_reference_t::key_t, std::unique_ptr<v_type_reference_t>> reference_types;
 
     std::map<v_type_struct_t::name_key_t, std::unique_ptr<v_type_struct_t>> named_struct_types;
     std::map<v_type_struct_t::body_key_t, std::unique_ptr<v_type_struct_t>> anon_struct_types;

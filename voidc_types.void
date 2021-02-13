@@ -92,22 +92,24 @@
 //  v_store(unsigned,   typ1);          //- Address space
 //
 //  ft = v_function_type(v_type_ref, typ0, 2, false);
-//  v_add_symbol_type("v_pointer_type", ft);
+//  v_add_symbol_type("v_pointer_type",   ft);
+    v_add_symbol_type("v_reference_type", ft);
 
 //  v_store(v_type_ref, typ0);          //-
 
     ft = v_function_type(bool, typ0, 1, false);
-    v_add_symbol_type("v_type_is_pointer", ft);
+    v_add_symbol_type("v_type_is_pointer",   ft);
+    v_add_symbol_type("v_type_is_reference", ft);
 
 //  v_store(v_type_ref, typ0);          //-
 
     ft = v_function_type(v_type_ref, typ0, 1, false);
-    v_add_symbol_type("v_type_pointer_get_element_type", ft);
+    v_add_symbol_type("v_type_refptr_get_element_type", ft);
 
 //  v_store(v_type_ref, typ0);          //-
 
     ft = v_function_type(unsigned, typ0, 1, false);
-    v_add_symbol_type("v_type_pointer_get_address_space", ft);
+    v_add_symbol_type("v_type_refptr_get_address_space", ft);
 
     //-----------------------------------------------------------------
 //  v_store(char_ptr, typ0);            //- Struct name
@@ -385,9 +387,11 @@
     v_store(void_ptr,    typ1);                     //-
     v_store(v_type_ref,  typ2);                     //- element type
     v_store(unsigned,    typ3);                     //- address space
+    v_store(bool,        typ4);                     //- reference
 
-    ft = v_function_type(void, typ0, 4, false);
-    v_add_symbol("v_type_pointer_visitor_method_t", voidc_opaque_type, ft);
+    ft = v_function_type(void, typ0, 5, false);
+    v_add_symbol("v_type_pointer_visitor_method_t",   voidc_opaque_type, ft);
+    v_add_symbol("v_type_reference_visitor_method_t", voidc_opaque_type, ft);
 
     fun_ptr = v_pointer_type(ft, 0);
 
@@ -396,9 +400,11 @@
     v_store(fun_ptr,     typ2);                     //-
 
     ft = v_function_type(void, typ0, 3, false);
-    v_add_symbol_type("v_visitor_set_method_type_pointer_t", ft);
+    v_add_symbol_type("v_visitor_set_method_type_pointer_t",   ft);
+    v_add_symbol_type("v_visitor_set_method_type_reference_t", ft);
 
-    v_add_symbol_type("v_type_pointer_visitor_method_tag", quark_t);
+    v_add_symbol_type("v_type_pointer_visitor_method_tag",   quark_t);
+    v_add_symbol_type("v_type_reference_visitor_method_tag", quark_t);
 
     //-------------------------------------------------------------
     v_store(visitor_ref, typ0);                     //-
