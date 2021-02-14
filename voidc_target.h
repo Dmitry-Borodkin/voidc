@@ -134,7 +134,14 @@ public:
     v_type_t    *ret_type;
     LLVMValueRef ret_value;
 
+public:
+    LLVMValueRef make_temporary(v_type_t *type, LLVMValueRef value);
+
+    void clear_temporaries(void);
+
 private:
+    LLVMValueRef temporaries_stack_ptr = nullptr;
+
     base_local_ctx_t * const parent_ctx = nullptr;
 };
 

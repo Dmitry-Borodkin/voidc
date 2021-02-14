@@ -436,6 +436,15 @@ base_global_ctx_t::initialize(void)
 
     constants["false"] = { bool_type, LLVMConstInt(bool_type->llvm_type(), 0, false) };
     constants["true"]  = { bool_type, LLVMConstInt(bool_type->llvm_type(), 1, false) };
+
+    //-----------------------------------------------------------------
+    v_type_t *i8_ptr_type = make_pointer_type(make_sint_type(8), 0);
+
+    auto stacksave_ft    = make_function_type(i8_ptr_type, nullptr, 0, false);
+    auto stackrestore_ft = make_function_type(make_void_type(), &i8_ptr_type, 1, false);
+
+    add_symbol_type("llvm.stacksave",    stacksave_ft);
+    add_symbol_type("llvm.stackrestore", stackrestore_ft);
 }
 
 
@@ -590,6 +599,43 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
     }
 
     return bool(value);
+}
+
+//---------------------------------------------------------------------
+LLVMValueRef
+base_local_ctx_t::make_temporary(v_type_t *type, LLVMValueRef value)
+{
+    if (!temporaries_stack_ptr)
+    {
+        v_type_t    *llvm_stacksave_ft;
+        LLVMValueRef llvm_stacksave_f;
+
+        obtain_function("llvm.stacksave", llvm_stacksave_ft, llvm_stacksave_f);
+
+        temporaries_stack_ptr = LLVMBuildCall(global_ctx.builder, llvm_stacksave_f, nullptr, 0, "tmp_stack_ptr");
+    }
+
+    auto tmp = LLVMBuildAlloca(global_ctx.builder, type->llvm_type(), "tmp");
+
+    LLVMBuildStore(global_ctx.builder, value, tmp);
+
+    return  tmp;
+}
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::clear_temporaries(void)
+{
+    if (!temporaries_stack_ptr) return;
+
+    v_type_t    *llvm_stackrestore_ft;
+    LLVMValueRef llvm_stackrestore_f;
+
+    obtain_function("llvm.stackrestore", llvm_stackrestore_ft, llvm_stackrestore_f);
+
+    LLVMBuildCall(global_ctx.builder, llvm_stackrestore_f, &temporaries_stack_ptr, 1, "");
+
+    temporaries_stack_ptr = nullptr;
 }
 
 
