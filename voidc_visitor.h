@@ -78,7 +78,5 @@ private:
     {}
 };
 
-//typedef std::shared_ptr<const voidc_visitor_t> visitor_ptr_t;
-
 
 #endif  //- VOIDC_VISITOR_H
