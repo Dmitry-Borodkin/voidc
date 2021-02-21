@@ -38,7 +38,7 @@
 
     v_set_module(module);
 
-    typ0 = v_alloca(v_type_ref, 3);
+    typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -69,8 +69,8 @@
     //-----------------------------------------------------------------
     //- Saved global variables
     //-----------------------------------------------------------------
-    //- var saved_module_g:   LLVMModuleRef            = 0;
-    //- var saved_compiler_g: voidc_opaque_visitor_ptr = 0;
+    //- var saved_module_g:   LLVMModuleRef             = 0;
+    //- var saved_compiler_g: voidc_opaque_visitor_sptr = 0;
     //-----------------------------------------------------------------
     LLVMModuleRef_ = v_type_get_llvm_type(LLVMModuleRef);
 
@@ -82,12 +82,12 @@
     LLVMSetInitializer(saved_module_g, saved_module_z);
 
 
-    voidc_opaque_visitor_ptr_ = v_type_get_llvm_type(voidc_opaque_visitor_ptr);
+    voidc_opaque_visitor_sptr_ = v_type_get_llvm_type(voidc_opaque_visitor_sptr);
 
-    saved_compiler_g = LLVMAddGlobal(module, voidc_opaque_visitor_ptr_, "saved_compiler_g");
+    saved_compiler_g = LLVMAddGlobal(module, voidc_opaque_visitor_sptr_, "saved_compiler_g");
     LLVMSetLinkage(saved_compiler_g, LLVMPrivateLinkage);
 
-    saved_compiler_z = LLVMConstNull(voidc_opaque_visitor_ptr_);
+    saved_compiler_z = LLVMConstNull(voidc_opaque_visitor_sptr_);
 
     LLVMSetInitializer(saved_compiler_g, saved_compiler_z);
 
@@ -257,14 +257,14 @@
     //- "Function hack" compiler visitor method
     //-----------------------------------------------------------------
     //- private
-    //- fun voidc_function_hack_visitor_method(visitor:   voidc_visitor_ref,
+    //- fun voidc_function_hack_visitor_method(visitor:   voidc_visitor_ptr,
     //-                                        aux:       void_ptr,
-    //-                                        stmt_list: v_ast_stmt_list_ref,
+    //-                                        stmt_list: v_ast_stmt_list_ptr,
     //-                                        line:      int,
     //-                                        column:    int
     //-                                       )
     //- {
-    //-     base_ast = v_cast(stmt_list, v_ast_base_ref);
+    //-     base_ast = v_cast(stmt_list, v_ast_base_ptr);
     //-
     //-     v_ast_accept_visitor(base_ast, visitor, aux);
     //-
@@ -368,9 +368,9 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    v_ast_base_ref_ = v_type_get_llvm_type(v_ast_base_ref);
+    v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
 
-    base_ast = LLVMBuildBitCast(builder, stmt_list, v_ast_base_ref_, "base_ast");
+    base_ast = LLVMBuildBitCast(builder, stmt_list, v_ast_base_ptr_, "base_ast");
 
     v_store(base_ast, val0);
     v_store(visitor,  val1);
@@ -450,7 +450,7 @@
     v_store(saved_compiler_g, val1);
     v_store(n1,               val2);
 
-    vis_move_f = v_obtain_dict_function(v_util_move_dict, voidc_opaque_visitor_ptr);
+    vis_move_f = v_obtain_dict_function(v_util_move_dict, voidc_opaque_visitor_sptr);
 
     LLVMBuildCall(builder, vis_move_f, val0, 3, "");
 
@@ -660,7 +660,7 @@
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic helper
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_intrinsic_helper(fun_name: char_ptr, fun_type: v_type_ref) -> LLVMValueRef
+    //- fun voidc_function_hack_intrinsic_helper(fun_name: char_ptr, fun_type: v_type_ptr) -> LLVMValueRef
     //- {
     //-     old_module = v_get_module();
     //-
@@ -692,14 +692,14 @@
     //- }
     //-----------------------------------------------------------------
     v_store(char_ptr,   typ0);
-    v_store(v_type_ref, typ1);
+    v_store(v_type_ptr, typ1);
 
     helper_ft  = v_function_type(LLVMValueRef, typ0, 2, 0);
     helper_ft_ = v_type_get_llvm_type(helper_ft);
     helper_f   = LLVMAddFunction(module, "voidc_function_hack_intrinsic_helper", helper_ft_);
 
     fun_name = LLVMGetParam(helper_f, 0);       //- :char_ptr
-    fun_type = LLVMGetParam(helper_f, 1);       //- :v_type_ref
+    fun_type = LLVMGetParam(helper_f, 1);       //- :v_type_ptr
 
     entry = LLVMAppendBasicBlock(helper_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -766,7 +766,7 @@
     v_store(saved_compiler_g, val0);
     v_store(n1,               val1);
 
-    vis_init_f = v_obtain_dict_function(v_util_initialize_dict, voidc_opaque_visitor_ptr);
+    vis_init_f = v_obtain_dict_function(v_util_initialize_dict, voidc_opaque_visitor_sptr);
 
     LLVMBuildCall(builder, vis_init_f, val0, 2, "");
 
@@ -775,7 +775,7 @@
     v_store(voidc_compiler_v, val1);
     v_store(n1,               val2);
 
-    vis_copy_f = v_obtain_dict_function(v_util_copy_dict, voidc_opaque_visitor_ptr);
+    vis_copy_f = v_obtain_dict_function(v_util_copy_dict, voidc_opaque_visitor_sptr);
 
     LLVMBuildCall(builder, vis_copy_f, val0, 3, "");
 
@@ -795,16 +795,16 @@
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_intrinsic(visitor: voidc_visitor_ref, aux: void_ptr, arg_list: v_ast_arg_list_ref)
+    //- fun voidc_function_hack_intrinsic(visitor: voidc_visitor_ptr, aux: void_ptr, arg_list: v_ast_arg_list_ptr)
     //- {
     //-     builder = v_target_get_builder();
     //-
-    //-     base_args = v_cast(LLVMBitCast, arg_list, v_ast_base_ref);
+    //-     base_args = v_cast(LLVMBitCast, arg_list, v_ast_base_ptr);
     //-
     //-     v_ast_accept_visitor(base_args, visitor, aux);
     //-
     //-     fun_name = v_get_argument_value(0);     //- :char_ptr
-    //-     fun_type = v_get_argument_value(1);     //- :v_type_ref
+    //-     fun_type = v_get_argument_value(1);     //- :v_type_ptr
     //-
     //-     add_loc_sym_f = v_obtain_function("v_add_local_symbol");
     //-
@@ -863,9 +863,9 @@
     builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
 
 
-    v_ast_base_ref_ = v_type_get_llvm_type(v_ast_base_ref);
+    v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
 
-    base_args = LLVMBuildBitCast(builder, arg_list, v_ast_base_ref_, "base_args");
+    base_args = LLVMBuildBitCast(builder, arg_list, v_ast_base_ptr_, "base_args");
 
     accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
 
@@ -1044,7 +1044,7 @@
     //-----------------------------------------------------------------
     //- "Return" intrinsic
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_return_intrinsic(visitor: voidc_visitor_ref, aux: void_ptr, arg_list: v_ast_arg_list_ref)
+    //- fun voidc_function_hack_return_intrinsic(visitor: voidc_visitor_ptr, aux: void_ptr, arg_list: v_ast_arg_list_ptr)
     //- {
     //-     builder = v_target_get_builder();
     //-
@@ -1052,12 +1052,12 @@
     //-
     //-     if (args_count)
     //-     {
-    //-         args = v_alloca(v_ast_opaque_argument_ptr, args_count);
+    //-         args = v_alloca(v_ast_opaque_argument_sptr, args_count);
     //-         v_initialize(args, args_count);
     //-
     //-         v_ast_arg_list_get_args(arg_list, args);
     //-
-    //-         base_arg0 = v_cast(args, v_ast_base_ref);
+    //-         base_arg0 = v_cast(args, v_ast_base_ptr);
     //-
     //-         v_ast_accept_visitor(base_arg0, visitor, aux);
     //-
@@ -1107,15 +1107,15 @@
     LLVMPositionBuilderAtEnd(builder, then_b);
 
 
-    v_ast_opaque_argument_ptr_ = v_type_get_llvm_type(v_ast_opaque_argument_ptr);
+    v_ast_opaque_argument_sptr_ = v_type_get_llvm_type(v_ast_opaque_argument_sptr);
 
-    args_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_argument_ptr_, args_count_v, "args_v");
+    args_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_argument_sptr_, args_count_v, "args_v");
 
 
     v_store(args_v,       val0);
     v_store(args_count_v, val1);
 
-    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_argument_ptr);
+    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_argument_sptr);
 
     LLVMBuildCall(builder, arg_init_f, val0, 2, "");
 
@@ -1128,7 +1128,7 @@
     LLVMBuildCall(builder, arg_list_get_args_f, val0, 2, "");
 
 
-    base_arg0 = LLVMBuildBitCast(builder, args_v, v_ast_base_ref_, "base_arg0");
+    base_arg0 = LLVMBuildBitCast(builder, args_v, v_ast_base_ptr_, "base_arg0");
 
     v_store(base_arg0, val0);
     v_store(visitor,   val1);
@@ -1153,7 +1153,7 @@
     v_store(args_v,       val0);
     v_store(args_count_v, val1);
 
-    arg_term_f = v_obtain_dict_function(v_util_terminate_dict, v_ast_opaque_argument_ptr);
+    arg_term_f = v_obtain_dict_function(v_util_terminate_dict, v_ast_opaque_argument_sptr);
 
     LLVMBuildCall(builder, arg_term_f, val0, 2, "");
 
@@ -1220,7 +1220,7 @@
 
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref, 4);
+    typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
@@ -1228,7 +1228,7 @@
     v_store(LLVMValueRef, typ0);
     v_store(int,          typ1);
     v_store(char_ptr,     typ2);
-    v_store(v_type_ref,   typ3);
+    v_store(v_type_ptr,   typ3);
 
     ft = v_function_type(LLVMValueRef, typ0, 4, false);
 
@@ -1238,7 +1238,7 @@
     p0 = LLVMGetParam(f, 0);    v_add_variable("fun",  LLVMValueRef, p0);
     p1 = LLVMGetParam(f, 1);    v_add_variable("num",  int,          p1);
     p2 = LLVMGetParam(f, 2);    v_add_variable("name", char_ptr,     p2);
-    p3 = LLVMGetParam(f, 3);    v_add_variable("type", v_type_ref,   p3);
+    p3 = LLVMGetParam(f, 3);    v_add_variable("type", v_type_ptr,   p3);
 }
 {
     p = LLVMGetParam(fun, num);
@@ -1253,7 +1253,7 @@
 
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ref);
+    typ = v_alloca(v_type_ptr);
 
     v_store(char_ptr, typ);
 
@@ -1273,7 +1273,7 @@
 
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ref);
+    typ = v_alloca(v_type_ptr);
 
     v_store(char_ptr, typ);
 
@@ -1294,7 +1294,7 @@
 
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ref);
+    typ = v_alloca(v_type_ptr);
 
     v_store(char_ptr, typ);
 

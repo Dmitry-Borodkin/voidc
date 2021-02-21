@@ -32,7 +32,7 @@
 //- Function dict utility
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref, 3);
+    typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -40,7 +40,7 @@
     char_ptr = v_pointer_type(char, 0);
 
     v_store(dict_ptr,   typ0);
-    v_store(v_type_ref, typ1);
+    v_store(v_type_ptr, typ1);
 
     ft = v_function_type(char_ptr, typ0, 2, false);
     v_add_symbol_type("v_util_function_dict_get", ft);
@@ -62,21 +62,21 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   std_any_ref = v_pointer_type(v_util_opaque_std_any, 0);
-    v_add_symbol("v_util_std_any_ref", voidc_opaque_type, std_any_ref);
+{   std_any_ptr = v_pointer_type(v_util_opaque_std_any, 0);
+    v_add_symbol("v_util_std_any_ptr", voidc_opaque_type, std_any_ptr);
 
-    std_string_ref = v_pointer_type(v_util_opaque_std_string, 0);
-    v_add_symbol("v_util_std_string_ref", voidc_opaque_type, std_string_ref);
+    std_string_ptr = v_pointer_type(v_util_opaque_std_string, 0);
+    v_add_symbol("v_util_std_string_ptr", voidc_opaque_type, std_string_ptr);
 }
 
 
 //---------------------------------------------------------------------
 //- std::string utility
 //---------------------------------------------------------------------
-{   arg0 = v_alloca(v_type_ref, 2);
+{   arg0 = v_alloca(v_type_ptr, 2);
     arg1 = v_getelementptr(arg0, 1);
 
-    v_store(v_util_std_string_ref, arg0);
+    v_store(v_util_std_string_ptr, arg0);
 
     char_ptr = v_pointer_type(char, 0);
 
@@ -106,7 +106,7 @@
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("voidc_util_void_module_N1");
 
-    typ0 = v_alloca(v_type_ref, 2);
+    typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
     val0 = v_alloca(LLVMValueRef, 3);
@@ -213,9 +213,9 @@
 
 
     //-----------------------------------------------------------------
-    //- LLVMValueRef v_obtain_dict_function(const v_util_opaque_function_dict_t *dict, v_type_ref type);
+    //- LLVMValueRef v_obtain_dict_function(const v_util_opaque_function_dict_t *dict, v_type_ptr type);
     //-----------------------------------------------------------------
-    //- fun v_obtain_dict_function(dict: dict_ptr, type: v_type_ref) -> LLVMValueRef
+    //- fun v_obtain_dict_function(dict: dict_ptr, type: v_type_ptr) -> LLVMValueRef
     //- {
     //-     dfun_name = v_util_function_dict_get(dict, type);
     //-
@@ -225,7 +225,7 @@
     //- }
     //-----------------------------------------------------------------
     v_store(dict_ptr,   typ0);
-    v_store(v_type_ref, typ1);
+    v_store(v_type_ptr, typ1);
 
     obtain_dfun_ft  = v_function_type(LLVMValueRef, typ0, 2, false);
     obtain_dfun_ft_ = v_type_get_llvm_type(obtain_dfun_ft);
@@ -363,7 +363,7 @@
 
     v_set_module(module);
 
-    typ0 = v_alloca(v_type_ref, 3);
+    typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -379,7 +379,7 @@
     n2 = LLVMConstInt(int_, 2, 0);
     n3 = LLVMConstInt(int_, 3, 0);
 
-    v_type_ref_ = v_type_get_llvm_type(v_type_ref);
+    v_type_ptr_ = v_type_get_llvm_type(v_type_ptr);
 
     v_util_opaque_std_string_ = v_type_get_llvm_type(v_util_opaque_std_string);
 
@@ -390,7 +390,7 @@
     dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
     char_ptr = v_pointer_type(char, 0);
 
-    v_store(v_type_ref, typ0);
+    v_store(v_type_ptr, typ0);
     v_store(char_ptr,   typ1);
     v_store(dict_ptr,   typ2);
 
@@ -413,9 +413,9 @@
     //- Init/term registering helper
     //-------------------------------------------------------------
     //- private
-    //- fun init_term_helper(val_t_type: v_type_ref, fun_name: char_ptr, p_dict: dict_ptr)
+    //- fun init_term_helper(val_t_type: v_type_ptr, fun_name: char_ptr, p_dict: dict_ptr)
     //- {
-    //-     arg0 = v_alloca(v_type_ref, 2);
+    //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
@@ -441,7 +441,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n2, "arg0");
 
     v_store(n1, val0);
 
@@ -498,7 +498,7 @@
     //-------------------------------------------------------------
     //- Init registering
     //-------------------------------------------------------------
-    //- fun v_util_register_initialize_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_initialize_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
     //-     init_term_helper(val_t_type, fun_name, v_util_initialize_dict);
     //- }
@@ -526,7 +526,7 @@
     //-------------------------------------------------------------
     //- Terminate registering
     //-------------------------------------------------------------
-    //- fun v_util_register_terminate_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_terminate_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
     //-     init_term_helper(val_t_type, fun_name, v_util_terminate_dict);
     //- }
@@ -555,9 +555,9 @@
     //- Copy/move registering helper
     //-------------------------------------------------------------
     //- private
-    //- fun copy_move_helper(val_t_type: v_type_ref, fun_name: char_ptr, p_dict: dict_ptr)
+    //- fun copy_move_helper(val_t_type: v_type_ptr, fun_name: char_ptr, p_dict: dict_ptr)
     //- {
-    //-     arg0 = v_alloca(v_type_ref, 3);
+    //-     arg0 = v_alloca(v_type_ptr, 3);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-     arg2 = v_getelementptr(arg0, 2);
     //-
@@ -585,7 +585,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n3, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n3, "arg0");
 
     v_store(n1, val0);
 
@@ -635,7 +635,7 @@
     //-------------------------------------------------------------
     //- Copy registering
     //-------------------------------------------------------------
-    //- fun v_util_register_copy_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_copy_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
     //-     copy_move_helper(val_t_type, fun_name, v_util_copy_dict);
     //- }
@@ -663,7 +663,7 @@
     //-------------------------------------------------------------
     //- Move registering
     //-------------------------------------------------------------
-    //- fun v_util_register_move_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_move_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
     //-     copy_move_helper(val_t_type, fun_name, v_util_move_dict);
     //- }
@@ -691,9 +691,9 @@
     //-------------------------------------------------------------
     //- "Empty" registering
     //-------------------------------------------------------------
-    //- fun v_util_register_empty_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_empty_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(v_type_ref);
+    //-     arg0 = v_alloca(v_type_ptr);
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
@@ -715,7 +715,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildAlloca(builder, v_type_ref_, "arg0");
+    arg0 = LLVMBuildAlloca(builder, v_type_ptr_, "arg0");
 
 
     v_store(val_t_type, val0);
@@ -757,10 +757,10 @@
     //-------------------------------------------------------------
     //- Init/Term/Copy/Move/Empty batch registering
     //-------------------------------------------------------------
-    //- fun v_util_initialize_std_string_impl(s: v_util_std_string_ref, n: int);
-    //- fun v_util_terminate_std_string_impl(s: v_util_std_string_ref, n: int);
+    //- fun v_util_initialize_std_string_impl(s: v_util_std_string_ptr, n: int);
+    //- fun v_util_terminate_std_string_impl(s: v_util_std_string_ptr, n: int);
     //-
-    //- fun v_util_register_itcme_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_itcme_impl(val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     sstr = v_alloca(v_util_opaque_std_string);
     //-
@@ -827,7 +827,7 @@
     sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
 
 
-    v_store(v_util_std_string_ref, typ0);
+    v_store(v_util_std_string_ptr, typ0);
     v_store(int,                   typ1);
 
     sstr_i_d_ft  = v_function_type(void, typ0, 2, false);
@@ -968,11 +968,11 @@
     //-------------------------------------------------------------
     //- std::any get_value registering
     //-------------------------------------------------------------
-    //- fun v_util_register_std_any_get_value_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_std_any_get_value_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(v_type_ref);
+    //-     arg0 = v_alloca(v_type_ptr);
     //-
-    //-     v_store(v_util_std_any_ref, arg0);
+    //-     v_store(v_util_std_any_ptr, arg0);
     //-
     //-     fun_type = v_function_type(val_t_type, arg0, 1, false);
     //-
@@ -990,10 +990,10 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    std_any_ptr_type = v_obtain_global("v_util_std_any_ref");
+    std_any_ptr_type = v_obtain_global("v_util_std_any_ptr");
 
 
-    arg0 = LLVMBuildAlloca(builder, v_type_ref_, "arg0");
+    arg0 = LLVMBuildAlloca(builder, v_type_ptr_, "arg0");
 
     LLVMBuildStore(builder, std_any_ptr_type, arg0);
 
@@ -1026,13 +1026,13 @@
     //-------------------------------------------------------------
     //- std::any get_pointer registering
     //-------------------------------------------------------------
-    //- fun v_util_register_std_any_get_pointer_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_std_any_get_pointer_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(v_type_ref);
+    //-     arg0 = v_alloca(v_type_ptr);
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
-    //-     v_store(v_util_std_any_ref, arg0);
+    //-     v_store(v_util_std_any_ptr, arg0);
     //-
     //-     fun_type = v_function_type(val_t_ptr, arg0, 1, false);
     //-
@@ -1050,7 +1050,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n1, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n1, "arg0");
 
 
     LLVMBuildStore(builder, std_any_ptr_type, arg0);
@@ -1090,12 +1090,12 @@
     //-------------------------------------------------------------
     //- std::any set_value registering
     //-------------------------------------------------------------
-    //- fun v_util_register_std_any_set_value_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_std_any_set_value_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(v_type_ref, 2);
+    //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
-    //-     v_store(v_util_std_any_ref, arg0);
+    //-     v_store(v_util_std_any_ptr, arg0);
     //-     v_store(val_t_type,         arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
@@ -1114,7 +1114,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n2, "arg0");
 
     v_store(n1, val0);
 
@@ -1154,14 +1154,14 @@
     //-------------------------------------------------------------
     //- std::any set_pointer registering
     //-------------------------------------------------------------
-    //- fun v_util_register_std_any_set_pointer_impl(val_t_type: v_type_ref, fun_name: char_ptr)
+    //- fun v_util_register_std_any_set_pointer_impl(val_t_type: v_type_ptr, fun_name: char_ptr)
     //- {
-    //-     arg0 = v_alloca(v_type_ref, 2);
+    //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
-    //-     v_store(v_util_std_any_ref, arg0);
+    //-     v_store(v_util_std_any_ptr, arg0);
     //-     v_store(val_t_ptr,          arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
@@ -1180,7 +1180,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, v_type_ref_, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n2, "arg0");
 
     v_store(n1, val0);
 
@@ -1226,7 +1226,7 @@
     //-------------------------------------------------------------
     //- std::any get_value/set_value batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_gs_value_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_gs_value_impl(val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     sstr = v_alloca(v_util_opaque_std_string);
     //-
@@ -1322,7 +1322,7 @@
     //-------------------------------------------------------------
     //- std::any get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_gs_pointer_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_gs_pointer_impl(val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     sstr = v_alloca(v_util_opaque_std_string);
     //-
@@ -1418,7 +1418,7 @@
     //-------------------------------------------------------------
     //- std::any get_value/set_value/get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_gs_vp_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_gs_vp_impl(val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     v_util_register_std_any_gs_value_impl(val_t_type, prefix, typename);
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);
@@ -1447,7 +1447,7 @@
     //-------------------------------------------------------------
     //- Init/Term/Copy/Move/Empty and std::any get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- fun v_util_register_itcmep_impl(val_t_type: v_type_ref, prefix: char_ptr, typename: char_ptr)
+    //- fun v_util_register_itcmep_impl(val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr)
     //- {
     //-     v_util_register_itcme_impl(val_t_type, prefix, typename);
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);

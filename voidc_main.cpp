@@ -27,7 +27,7 @@
 //---------------------------------------------------------------------
 static vpeg::grammar_t voidc_grammar;
 
-static ast_unit_ptr_t
+static ast_unit_sptr_t
 parse_unit(vpeg::context_t &pctx)
 {
     static const auto unit_q = v_quark_from_string("unit");
@@ -36,7 +36,7 @@ parse_unit(vpeg::context_t &pctx)
 
     pctx.memo.clear();
 
-    if (auto unit = std::any_cast<ast_unit_ptr_t>(&ret))  return *unit;
+    if (auto unit = std::any_cast<ast_unit_sptr_t>(&ret))  return *unit;
 
     size_t line, column;
 

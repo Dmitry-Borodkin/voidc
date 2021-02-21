@@ -27,7 +27,7 @@
 }
 
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ref, 4);
+{   typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
@@ -52,16 +52,16 @@
     //-----------------------------------------------------------------
     //- method ...
     //-----------------------------------------------------------------
-    v_store(voidc_visitor_ref,   typ0);
+    v_store(voidc_visitor_ptr,   typ0);
     v_store(void_ptr,            typ1);
-    v_store(v_ast_stmt_list_ref, typ2);
+    v_store(v_ast_stmt_list_ptr, typ2);
     v_store(bool,                typ3);
 
     method_ft  = v_function_type(void, typ0, 4, false);
-    method_ref = v_pointer_type(method_ft, 0);
+    method_ptr = v_pointer_type(method_ft, 0);
 
     v_add_local_symbol("method_ft",  voidc_opaque_type, method_ft);
-    v_add_local_symbol("method_ref", voidc_opaque_type, method_ref);
+    v_add_local_symbol("method_ptr", voidc_opaque_type, method_ptr);
 
 
     //-----------------------------------------------------------------
@@ -69,15 +69,15 @@
     //-----------------------------------------------------------------
     ast_stmt_block_t = v_struct_type_named("struct.ast_stmt_block_t");
 
-    v_store(v_ast_opaque_stmt_list_ptr, typ0);
-    v_store(bool,                       typ1);
+    v_store(v_ast_opaque_stmt_list_sptr, typ0);
+    v_store(bool,                        typ1);
 
     v_type_struct_set_body(ast_stmt_block_t, typ0, 2, false);
 
-    ast_stmt_block_ref = v_pointer_type(ast_stmt_block_t, 0);
+    ast_stmt_block_ptr = v_pointer_type(ast_stmt_block_t, 0);
 
     v_add_local_symbol("ast_stmt_block_t",   voidc_opaque_type, ast_stmt_block_t);
-    v_add_local_symbol("ast_stmt_block_ref", voidc_opaque_type, ast_stmt_block_ref);
+    v_add_local_symbol("ast_stmt_block_ptr", voidc_opaque_type, ast_stmt_block_ptr);
 }
 
 
@@ -98,7 +98,7 @@
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
 }
 {
-    obj = v_cast(void_obj, ast_stmt_block_ref);
+    obj = v_cast(void_obj, ast_stmt_block_ptr);
 
     stmt_list = v_getelementptr(obj, 0, 0);
 
@@ -116,18 +116,18 @@
     f = v_function_hack("voidc_ast_stmt_block_accept", v_ast_generic_accept_fun_t);
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
-    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ref);
+    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
-    obj = v_cast(void_obj, ast_stmt_block_ref);
+    obj = v_cast(void_obj, ast_stmt_block_ptr);
 
     stmt_list = v_getelementptr(obj, 0, 0);
     flag_ptr  = v_getelementptr(obj, 0, 1);
 
     void_method = voidc_visitor_get_void_method(visitor, quark);
 
-    method = v_cast(void_method, method_ref);
+    method = v_cast(void_method, method_ptr);
 
     flag = v_load(flag_ptr);
 
@@ -168,12 +168,12 @@
 //- v_ast_make_stmt_block - ...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref, 3);
+    typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_ast_stmt_ref,      typ0);
-    v_store(v_ast_stmt_list_ref, typ1);
+    v_store(v_ast_stmt_ptr,      typ0);
+    v_store(v_ast_stmt_list_ptr, typ1);
     v_store(bool,                typ2);
 
     ft = v_function_type(void, typ0, 3, false);
@@ -181,8 +181,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_block", ft);
 
-    v_add_parameter_name(f, 0, "ret",       v_ast_stmt_ref);
-    v_add_parameter_name(f, 1, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 0, "ret",       v_ast_stmt_ptr);
+    v_add_parameter_name(f, 1, "stmt_list", v_ast_stmt_list_ptr);
     v_add_parameter_name(f, 2, "flag",      bool);
 }
 {
@@ -208,12 +208,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_block_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    stmt_list = v_std_any_get_pointer(v_ast_opaque_stmt_list_ptr, any0);
+    stmt_list = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any0);
 
     flag_par = v_getelementptr(any0, 1);
 
@@ -221,7 +221,7 @@
 
     flag = v_cast(flag, bool);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
     v_ast_make_stmt_block(stmt, stmt_list, flag);
@@ -235,25 +235,25 @@
 //---------------------------------------------------------------------
 //- compile_ast_stmt_block_t_helper_simple
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ref, 3);
+{   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(voidc_visitor_ref,   typ0);
+    v_store(voidc_visitor_ptr,   typ0);
     v_store(void_ptr,            typ1);
-    v_store(v_ast_stmt_list_ref, typ2);
+    v_store(v_ast_stmt_list_ptr, typ2);
 
     ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t_helper_simple", ft);
 
-    v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ref);
+    v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",       void_ptr);
-    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ptr);
 }
 {
-    base_ast = v_cast(stmt_list, v_ast_base_ref);
+    base_ast = v_cast(stmt_list, v_ast_base_ptr);
 
     v_ast_accept_visitor(base_ast, visitor, aux);
 }
@@ -262,22 +262,22 @@
 //---------------------------------------------------------------------
 //- compile_ast_stmt_block_t_helper_complex
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ref, 3);
+{   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(voidc_visitor_ref,   typ0);
+    v_store(voidc_visitor_ptr,   typ0);
     v_store(void_ptr,            typ1);
-    v_store(v_ast_stmt_list_ref, typ2);
+    v_store(v_ast_stmt_list_ptr, typ2);
 
     ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t_helper_complex", ft);
 
-    v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ref);
+    v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",       void_ptr);
-    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ptr);
 }
 {
     builder = v_target_get_builder();
@@ -293,7 +293,7 @@
     v_add_variable("voidc.internal_branch_target_break", LLVMValueRef, block_exit_bv);
 
 
-    base_ast = v_cast(stmt_list, v_ast_base_ref);
+    base_ast = v_cast(stmt_list, v_ast_base_ptr);
 
     v_ast_accept_visitor(base_ast, visitor, aux);
 
@@ -323,9 +323,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_block_t", method_ft);
 
-    v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ref);
+    v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",       void_ptr);
-    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ptr);
     v_add_parameter_name(f, 3, "flag",      bool);
 }
 {
@@ -422,7 +422,7 @@
     LLVMPositionBuilderAtEnd(builder, work_b);
 }
 {
-    pp0 = v_alloca(v_peg_opaque_parser_ptr, 8);
+    pp0 = v_alloca(v_peg_opaque_parser_sptr, 8);
     v_initialize(pp0, 8);
 
     pp1 = v_getelementptr(pp0, 1);
@@ -453,7 +453,7 @@
     v_peg_make_character_parser(pp6, '}');
 
 
-    ar0 = v_alloca(v_peg_opaque_argument_ptr, 2);
+    ar0 = v_alloca(v_peg_opaque_argument_sptr, 2);
     v_initialize(ar0, 2);
 
     ar1 = v_getelementptr(ar0, 1);
@@ -464,7 +464,7 @@
     v_peg_make_integer_argument(ar1, 1);
 
 
-    act = v_alloca(v_peg_opaque_action_ptr);
+    act = v_alloca(v_peg_opaque_action_sptr);
     v_initialize(act);
 
     v_peg_make_call_action(act, "mk_stmt_block", ar0, 2);
@@ -488,7 +488,7 @@
     v_peg_make_choice_parser(pp0, pp0, 2);
 
 
-    gr0 = v_alloca(v_peg_opaque_grammar_ptr);
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);

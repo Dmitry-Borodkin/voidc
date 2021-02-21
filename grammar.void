@@ -38,19 +38,19 @@
 {
     module = v_get_module();
 
-    v_ast_opaque_argument_ptr_ = v_type_get_llvm_type(v_ast_opaque_argument_ptr);
+    v_ast_opaque_argument_sptr_ = v_type_get_llvm_type(v_ast_opaque_argument_sptr);
 
-    gr_arg = LLVMAddGlobal(module, v_ast_opaque_argument_ptr_, "voidc_ast_stmt_grammar_grammar_arg");
+    gr_arg = LLVMAddGlobal(module, v_ast_opaque_argument_sptr_, "voidc_ast_stmt_grammar_grammar_arg");
 
-    gr_arg_z = LLVMConstNull(v_ast_opaque_argument_ptr_);
+    gr_arg_z = LLVMConstNull(v_ast_opaque_argument_sptr_);
 
     LLVMSetInitializer(gr_arg, gr_arg_z);
 
-    v_ast_opaque_stmt_list_ptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_list_ptr);
+    v_ast_opaque_stmt_list_sptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_list_sptr);
 
-    stmt_list = LLVMAddGlobal(module, v_ast_opaque_stmt_list_ptr_, "voidc_ast_stmt_grammar_stmt_list");
+    stmt_list = LLVMAddGlobal(module, v_ast_opaque_stmt_list_sptr_, "voidc_ast_stmt_grammar_stmt_list");
 
-    stmt_list_z = LLVMConstNull(v_ast_opaque_stmt_list_ptr_);
+    stmt_list_z = LLVMConstNull(v_ast_opaque_stmt_list_sptr_);
 
     LLVMSetInitializer(stmt_list, stmt_list_z);
 
@@ -76,8 +76,8 @@
     LLVMSetInitializer(rn_count, int_z);
     LLVMSetInitializer(rn_num,   int_z);
 
-    v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_argument_ptr,  0);    //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_ptr, 0);    //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_argument_sptr,  0);    //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
 
     v_add_local_symbol("voidc_ast_stmt_grammar_parsers_count",   int, 0);   //- Sic!
     v_add_local_symbol("voidc_ast_stmt_grammar_parser_number",   int, 0);   //- Sic!
@@ -92,16 +92,16 @@
 //- Some utility ...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref, 5);
+    typ0 = v_alloca(v_type_ptr, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
 
-    v_store(v_ast_stmt_ref,     typ0);
+    v_store(v_ast_stmt_ptr,     typ0);
     v_store(char_ptr,           typ1);
     v_store(char_ptr,           typ2);
-    v_store(v_ast_argument_ref, typ3);
+    v_store(v_ast_argument_ptr, typ3);
     v_store(int,                typ4);
 
     ft = v_function_type(void, typ0, 5, false);
@@ -111,17 +111,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_call", ft);
 
-    v_add_parameter_name(f, 0, "stmt",  v_ast_stmt_ref);
+    v_add_parameter_name(f, 0, "stmt",  v_ast_stmt_ptr);
     v_add_parameter_name(f, 1, "var",   char_ptr);
     v_add_parameter_name(f, 2, "fun",   char_ptr);
-    v_add_parameter_name(f, 3, "args",  v_ast_argument_ref);
+    v_add_parameter_name(f, 3, "args",  v_ast_argument_ptr);
     v_add_parameter_name(f, 4, "count", int);
 }
 {
-    ar_l = v_alloca(v_ast_opaque_arg_list_ptr);
+    ar_l = v_alloca(v_ast_opaque_arg_list_sptr);
     v_initialize(ar_l);
 
-    call = v_alloca(v_ast_opaque_call_ptr);
+    call = v_alloca(v_ast_opaque_call_sptr);
     v_initialize(call);
 
     v_ast_make_arg_list(ar_l, args, count);
@@ -218,13 +218,13 @@
 
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref, 5);
+    typ0 = v_alloca(v_type_ptr, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
 
-    v_store(v_ast_stmt_list_ref, typ0);
+    v_store(v_ast_stmt_list_ptr, typ0);
     v_store(char_ptr,            typ1);
     v_store(char_ptr,            typ2);
     v_store(int,                 typ3);
@@ -235,14 +235,14 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_stack_init", ft);
 
-    v_add_parameter_name(f, 0, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 0, "stmt_list", v_ast_stmt_list_ptr);
     v_add_parameter_name(f, 1, "type",      char_ptr);
     v_add_parameter_name(f, 2, "prefix",    char_ptr);
     v_add_parameter_name(f, 3, "size",      int);
     v_add_parameter_name(f, 4, "do_init",   bool);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -256,7 +256,7 @@
 
     v_ast_make_arg_integer(arg1, num);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -330,8 +330,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_grammar_init_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -368,12 +368,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_grammar_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    gr_stmt_list = v_alloca(v_ast_opaque_stmt_list_ptr);
+    gr_stmt_list = v_alloca(v_ast_opaque_stmt_list_sptr);
     v_initialize(gr_stmt_list);
 
     v_ast_make_stmt_list_nil(gr_stmt_list);
@@ -386,7 +386,7 @@
 
 
     voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
-                                      "v_peg_opaque_parser_ptr",
+                                      "v_peg_opaque_parser_sptr",
                                       "v.pr",
                                       pr_count,
                                       1
@@ -400,7 +400,7 @@
 
 
     voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
-                                      "v_peg_opaque_argument_ptr",
+                                      "v_peg_opaque_argument_sptr",
                                       "v.ar",
                                       ar_count,
                                       1
@@ -424,19 +424,19 @@
     //-----------------------------------------------------------------
     //- ...
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
     //-----------------------------------------------------------------
     //- ...
 
-    v_ast_make_arg_identifier(arg0, "v_peg_opaque_action_ptr");
+    v_ast_make_arg_identifier(arg0, "v_peg_opaque_action_sptr");
 
     v_ast_make_stmt_call(stmt, "v.act", "v_alloca", arg0, 1);
 
@@ -532,8 +532,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_parser_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -549,7 +549,7 @@
     as_1 = v_getelementptr(as_0, 1);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 5);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 5);
     v_initialize(arg0, 5);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -557,10 +557,10 @@
     arg3 = v_getelementptr(arg0, 3);
     arg4 = v_getelementptr(arg0, 4);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
-    stmt_list = v_alloca(v_ast_opaque_stmt_list_ptr);
+    stmt_list = v_alloca(v_ast_opaque_stmt_list_sptr);
     v_initialize(stmt_list);
 
     v_copy(stmt_list, voidc_ast_stmt_grammar_stmt_list);
@@ -693,8 +693,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_parser_leftrec_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -703,7 +703,7 @@
     pr_str = v_std_string_get(pr_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 5);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 5);
     v_initialize(arg0, 5);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -711,7 +711,7 @@
     arg3 = v_getelementptr(arg0, 3);
     arg4 = v_getelementptr(arg0, 4);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -750,19 +750,19 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_gr_stmt_action_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 4);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 4);
     v_initialize(arg0, 4);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -810,8 +810,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_special_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -827,13 +827,13 @@
 
     if (c1)     //- "(/)" or "()"
     {
-        arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+        arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
         v_initialize(arg0, 3);
 
         arg1 = v_getelementptr(arg0, 1);
         arg2 = v_getelementptr(arg0, 2);
 
-        stmt = v_alloca(v_ast_opaque_stmt_ptr);
+        stmt = v_alloca(v_ast_opaque_stmt_sptr);
         v_initialize(stmt);
 
         v_ast_make_arg_identifier(arg0, "v.pr0");
@@ -876,18 +876,18 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_choice_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -946,18 +946,18 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_sequence_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1016,8 +1016,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_catch_var_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1026,13 +1026,13 @@
     arg_str = v_std_string_get(arg_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1076,7 +1076,7 @@
 //- voidc_make_parser_unary - grammar action helper
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref);
+    typ0 = v_alloca(v_type_ptr);
 
     v_store(char_ptr, typ0);
 
@@ -1088,12 +1088,12 @@
     v_add_parameter_name(f, 0, "fun", char_ptr);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1135,8 +1135,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_and_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1152,8 +1152,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_not_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1169,8 +1169,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_star_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1186,8 +1186,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_plus_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1203,8 +1203,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_question_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1220,8 +1220,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_identifier_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1230,12 +1230,12 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1278,8 +1278,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_external_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1288,12 +1288,12 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1336,20 +1336,20 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_backref_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     br_num = v_std_any_get_value(intptr_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1392,8 +1392,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_catch_str_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1409,17 +1409,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1462,8 +1462,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_class_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1477,13 +1477,13 @@
     pr_num = v_cast(pr_int, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1525,8 +1525,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_literal_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1535,12 +1535,12 @@
     lit_str = v_std_string_get(lit_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1583,20 +1583,20 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_char_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     ch = v_std_any_get_value(char32_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1639,15 +1639,15 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_dot_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr);
     v_initialize(arg0);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1688,18 +1688,18 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_range_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1775,8 +1775,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_call_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1790,14 +1790,14 @@
     ar_num = v_cast(ar_int, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 4);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 4);
     v_initialize(arg0, 4);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1830,17 +1830,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_action_return_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1869,8 +1869,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_identifier_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1879,12 +1879,12 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -1927,8 +1927,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_backref_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1960,13 +1960,13 @@
     bk_num = v_cast(bk_int, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 3);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -2010,20 +2010,20 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_integer_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     num = v_std_any_get_value(intptr_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -2066,8 +2066,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_string_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -2076,12 +2076,12 @@
     lit_str = v_std_string_get(lit_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -2124,20 +2124,20 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_pr_arg_char_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     ch = v_std_any_get_value(char32_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_ptr, 2);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -2203,7 +2203,7 @@
     voidc_enable_statement_block();
 
 
-    pp0 = v_alloca(v_peg_opaque_parser_ptr, 13);
+    pp0 = v_alloca(v_peg_opaque_parser_sptr, 13);
     v_initialize(pp0, 13);
 
     pp1 = v_getelementptr(pp0, 1);
@@ -2219,16 +2219,16 @@
     pp11 = v_getelementptr(pp0, 11);
     pp12 = v_getelementptr(pp0, 12);
 
-    ar0 = v_alloca(v_peg_opaque_argument_ptr, 3);
+    ar0 = v_alloca(v_peg_opaque_argument_sptr, 3);
     v_initialize(ar0, 3);
 
     ar1 = v_getelementptr(ar0, 1);
     ar2 = v_getelementptr(ar0, 2);
 
-    act = v_alloca(v_peg_opaque_action_ptr);
+    act = v_alloca(v_peg_opaque_action_sptr);
     v_initialize(act);
 
-    gr0 = v_alloca(v_peg_opaque_grammar_ptr);
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
     v_initialize(gr0);
 
 

@@ -115,17 +115,17 @@ std::any grammar_t::parse(v_quark_t q_name, context_t &ctx) const
 //-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {
-    static_assert((sizeof(parser_ptr_t) % sizeof(intptr_t)) == 0);
+    static_assert((sizeof(parser_sptr_t) % sizeof(intptr_t)) == 0);
 
     auto &gctx = *voidc_global_ctx_t::voidc;
 
-    v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(parser_ptr_t)/sizeof(intptr_t));
+    v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(parser_sptr_t)/sizeof(intptr_t));
 
 #define DEF(name) \
-    static_assert(sizeof(parser_ptr_t) == sizeof(name##_ptr_t)); \
-    auto name##_ptr_type = gctx.make_struct_type("struct.v_peg_opaque_" #name "_ptr"); \
-    name##_ptr_type->set_body(&content_type, 1, false); \
-    gctx.add_symbol("v_peg_opaque_" #name "_ptr", gctx.opaque_type_type, (void *)name##_ptr_type);
+    static_assert(sizeof(parser_sptr_t) == sizeof(name##_sptr_t)); \
+    auto name##_sptr_type = gctx.make_struct_type("struct.v_peg_opaque_" #name "_sptr"); \
+    name##_sptr_type->set_body(&content_type, 1, false); \
+    gctx.add_symbol("v_peg_opaque_" #name "_sptr", gctx.opaque_type_type, (void *)name##_sptr_type);
 
     DEF(grammar)
 
@@ -158,13 +158,13 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //-----------------------------------------------------------------
 #define DEF(name) \
-    VOIDC_DEFINE_INITIALIZE_IMPL(name##_ptr_t, v_peg_initialize_##name##_impl) \
-    VOIDC_DEFINE_TERMINATE_IMPL(name##_ptr_t, v_peg_terminate_##name##_impl) \
-    VOIDC_DEFINE_COPY_IMPL(name##_ptr_t, v_peg_copy_##name##_impl) \
-    VOIDC_DEFINE_MOVE_IMPL(name##_ptr_t, v_peg_move_##name##_impl) \
-    VOIDC_DEFINE_EMPTY_IMPL(name##_ptr_t, v_peg_empty_##name##_impl) \
-    VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(name##_ptr_t, v_peg_std_any_get_pointer_##name##_impl) \
-    VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(name##_ptr_t, v_peg_std_any_set_pointer_##name##_impl)
+    VOIDC_DEFINE_INITIALIZE_IMPL(name##_sptr_t, v_peg_initialize_##name##_impl) \
+    VOIDC_DEFINE_TERMINATE_IMPL(name##_sptr_t, v_peg_terminate_##name##_impl) \
+    VOIDC_DEFINE_COPY_IMPL(name##_sptr_t, v_peg_copy_##name##_impl) \
+    VOIDC_DEFINE_MOVE_IMPL(name##_sptr_t, v_peg_move_##name##_impl) \
+    VOIDC_DEFINE_EMPTY_IMPL(name##_sptr_t, v_peg_empty_##name##_impl) \
+    VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(name##_sptr_t, v_peg_std_any_get_pointer_##name##_impl) \
+    VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(name##_sptr_t, v_peg_std_any_set_pointer_##name##_impl)
 
     DEF(grammar)
 
@@ -172,14 +172,14 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //-----------------------------------------------------------------
-void v_peg_make_grammar(grammar_ptr_t *ret)
+void v_peg_make_grammar(grammar_sptr_t *ret)
 {
     *ret = std::make_shared<const grammar_t>();
 }
 
 
 //-----------------------------------------------------------------
-void v_peg_grammar_get_parser(const grammar_ptr_t *ptr, const char *name, parser_ptr_t *parser, int *leftrec)
+void v_peg_grammar_get_parser(const grammar_sptr_t *ptr, const char *name, parser_sptr_t *parser, int *leftrec)
 {
     if (auto *pair = (*ptr)->parsers.find(v_quark_from_string(name)))
     {
@@ -192,14 +192,14 @@ void v_peg_grammar_get_parser(const grammar_ptr_t *ptr, const char *name, parser
     }
 }
 
-void v_peg_grammar_set_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, const parser_ptr_t *parser, int leftrec)
+void v_peg_grammar_set_parser(grammar_sptr_t *dst, const grammar_sptr_t *src, const char *name, const parser_sptr_t *parser, int leftrec)
 {
     auto grammar = (*src)->set_parser(name, *parser, leftrec);
 
     *dst = std::make_shared<const grammar_t>(grammar);
 }
 
-void v_peg_grammar_erase_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name)
+void v_peg_grammar_erase_parser(grammar_sptr_t *dst, const grammar_sptr_t *src, const char *name)
 {
     auto grammar = (*src)->erase_parser(name);
 
@@ -208,7 +208,7 @@ void v_peg_grammar_erase_parser(grammar_ptr_t *dst, const grammar_ptr_t *src, co
 
 
 grammar_action_fun_t
-v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
+v_peg_grammar_get_action(const grammar_sptr_t *ptr, const char *name)
 {
     if (auto *fun = (*ptr)->actions.find(v_quark_from_string(name)))
     {
@@ -220,14 +220,14 @@ v_peg_grammar_get_action(const grammar_ptr_t *ptr, const char *name)
     }
 }
 
-void v_peg_grammar_set_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name, grammar_action_fun_t fun)
+void v_peg_grammar_set_action(grammar_sptr_t *dst, const grammar_sptr_t *src, const char *name, grammar_action_fun_t fun)
 {
     auto grammar = (*src)->set_action(name, fun);
 
     *dst = std::make_shared<const grammar_t>(grammar);
 }
 
-void v_peg_grammar_erase_action(grammar_ptr_t *dst, const grammar_ptr_t *src, const char *name)
+void v_peg_grammar_erase_action(grammar_sptr_t *dst, const grammar_sptr_t *src, const char *name)
 {
     auto grammar = (*src)->erase_action(name);
 

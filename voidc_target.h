@@ -76,7 +76,7 @@ public:
     virtual void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) = 0;
 
 public:
-    typedef void (*intrinsic_t)(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args);
+    typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args);
 
     std::map<std::string, intrinsic_t> intrinsics;
 
@@ -110,7 +110,7 @@ public:
 
     virtual v_type_t *find_symbol_type(const char *raw_name) = 0;       //- No alias check!
 
-    v_type_t *lookup_type(const ast_argument_ptr_t &arg);
+    v_type_t *lookup_type(const ast_argument_sptr_t &arg);
 
 public:
     LLVMModuleRef module = nullptr;

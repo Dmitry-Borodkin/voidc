@@ -19,13 +19,13 @@
 //---------------------------------------------------------------------
 //{   v_debug_print_module(1); }
 {
-    qwe = v_alloca(v_peg_opaque_grammar_ptr);
+    qwe = v_alloca(v_peg_opaque_grammar_sptr);
     v_initialize(qwe);
 
     v_peg_make_grammar(qwe);
 
 
-    dot = v_alloca(v_peg_opaque_parser_ptr);
+    dot = v_alloca(v_peg_opaque_parser_sptr);
     v_initialize(dot);
 
     v_peg_make_dot_parser(dot);
@@ -80,15 +80,15 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_test_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_ptr);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr);
     v_initialize(arg0);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
@@ -108,7 +108,7 @@
 //---------------------------------------------------------------------
 //{   v_debug_print_module(1); }
 {
-    gr0 = v_alloca(v_peg_opaque_grammar_ptr);
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);

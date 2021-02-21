@@ -22,7 +22,7 @@ v_type_t::~v_type_t() {}
 
 //---------------------------------------------------------------------
 static void
-v_type_void_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
+v_type_void_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
 {
     auto &ret = *(LLVMTypeRef *)aux;
     auto &gctx = *voidc_global_ctx_t::target;
@@ -31,7 +31,7 @@ v_type_void_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
 }
 
 static void
-v_type_f16_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
+v_type_f16_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
 {
     auto &ret = *(LLVMTypeRef *)aux;
     auto &gctx = *voidc_global_ctx_t::target;
@@ -40,7 +40,7 @@ v_type_f16_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
 }
 
 static void
-v_type_f32_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
+v_type_f32_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
 {
     auto &ret = *(LLVMTypeRef *)aux;
     auto &gctx = *voidc_global_ctx_t::target;
@@ -49,7 +49,7 @@ v_type_f32_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
 }
 
 static void
-v_type_f64_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
+v_type_f64_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
 {
     auto &ret = *(LLVMTypeRef *)aux;
     auto &gctx = *voidc_global_ctx_t::target;
@@ -58,7 +58,7 @@ v_type_f64_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
 }
 
 static void
-v_type_f128_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
+v_type_f128_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
 {
     auto &ret = *(LLVMTypeRef *)aux;
     auto &gctx = *voidc_global_ctx_t::target;
@@ -69,7 +69,7 @@ v_type_f128_obtain_llvm_type(const visitor_ptr_t *vis, void *aux)
 
 //---------------------------------------------------------------------
 static void
-v_type_integer_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
+v_type_integer_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
                                 unsigned bits, bool _signed)
 {
     auto &ret = *(LLVMTypeRef *)aux;
@@ -84,7 +84,7 @@ v_type_integer_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
 
 //---------------------------------------------------------------------
 static void
-v_type_function_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
+v_type_function_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
                                  v_type_t *_ret, v_type_t * const *args, unsigned count, bool var_arg)
 {
     auto &ret = *(LLVMTypeRef *)aux;
@@ -106,7 +106,7 @@ v_type_function_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
 
 //---------------------------------------------------------------------
 static void
-v_type_refptr_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
+v_type_refptr_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
                                v_type_t *elt, unsigned addr_space, bool reference)
 {
     auto &ret = *(LLVMTypeRef *)aux;
@@ -132,7 +132,7 @@ v_type_refptr_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
 
 //---------------------------------------------------------------------
 static void
-v_type_struct_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
+v_type_struct_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
                                const char *name, bool opaque,
                                v_type_t * const *_elts, unsigned count, bool packed)
 {
@@ -203,7 +203,7 @@ v_type_struct_t::set_body(v_type_t **elts, unsigned count, bool packed)
 
 //---------------------------------------------------------------------
 static void
-v_type_array_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
+v_type_array_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
                               v_type_t *elt, uint64_t length)
 {
     auto &ret = *(LLVMTypeRef *)aux;
@@ -218,7 +218,7 @@ v_type_array_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
 
 //---------------------------------------------------------------------
 static void
-v_type_vector_obtain_llvm_type(const visitor_ptr_t *vis, void *aux,
+v_type_vector_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
                                v_type_t *elt, unsigned size, bool scalable)
 {
     auto &ret = *(LLVMTypeRef *)aux;
@@ -842,7 +842,7 @@ v_quark_t v_type_##tag##_visitor_method_tag;
 
 #define DEF(tag) \
 void \
-v_visitor_set_method_type_##tag##_t(visitor_ptr_t *dst, const visitor_ptr_t *src, v_type_##tag##_t::visitor_method_t method) \
+v_visitor_set_method_type_##tag##_t(visitor_sptr_t *dst, const visitor_sptr_t *src, v_type_##tag##_t::visitor_method_t method) \
 { \
     auto visitor = (*src)->set_void_method(v_type_##tag##_visitor_method_tag, (void *)method); \
     *dst = std::make_shared<const voidc_visitor_t>(visitor); \
@@ -855,14 +855,14 @@ v_visitor_set_method_type_##tag##_t(visitor_ptr_t *dst, const visitor_ptr_t *src
 
 //---------------------------------------------------------------------
 void
-v_type_accept_visitor(v_type_t *type, const visitor_ptr_t *visitor, void *aux)
+v_type_accept_visitor(v_type_t *type, const visitor_sptr_t *visitor, void *aux)
 {
     type->accept(*visitor, aux);
 }
 
 
 //---------------------------------------------------------------------
-visitor_ptr_t voidc_llvm_type_visitor;
+visitor_sptr_t voidc_llvm_type_visitor;
 
 
 //---------------------------------------------------------------------

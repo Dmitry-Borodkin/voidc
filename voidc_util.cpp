@@ -48,8 +48,8 @@ namespace utility
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_init_term_helper(const visitor_ptr_t *vis, void *aux,
-                        const ast_arg_list_ptr_t &args,
+void v_init_term_helper(const visitor_sptr_t *vis, void *aux,
+                        const ast_arg_list_sptr_t &args,
                         const v_util_function_dict_t &dict
                        )
 {
@@ -93,14 +93,14 @@ void v_init_term_helper(const visitor_ptr_t *vis, void *aux,
 
 //---------------------------------------------------------------------
 static
-void v_initialize(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_initialize(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     v_init_term_helper(vis, aux, *args, v_util_initialize_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_terminate(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_terminate(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     v_init_term_helper(vis, aux, *args, v_util_terminate_dict);
 }
@@ -108,8 +108,8 @@ void v_terminate(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *
 
 //---------------------------------------------------------------------
 static
-void v_copy_move_helper(const visitor_ptr_t *vis, void *aux,
-                        const ast_arg_list_ptr_t &args,
+void v_copy_move_helper(const visitor_sptr_t *vis, void *aux,
+                        const ast_arg_list_sptr_t &args,
                         const v_util_function_dict_t &dict
                        )
 {
@@ -153,14 +153,14 @@ void v_copy_move_helper(const visitor_ptr_t *vis, void *aux,
 
 //---------------------------------------------------------------------
 static
-void v_copy(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_copy(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     v_copy_move_helper(vis, aux, *args, v_util_copy_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_move(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_move(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     v_copy_move_helper(vis, aux, *args, v_util_move_dict);
 }
@@ -168,7 +168,7 @@ void v_move(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static
-void v_empty(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_empty(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
@@ -207,7 +207,7 @@ void v_empty(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args
 
 //---------------------------------------------------------------------
 static
-void v_kind(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_kind(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
@@ -246,8 +246,8 @@ void v_kind(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_helper(const visitor_ptr_t *vis, void *aux,
-                          const ast_arg_list_ptr_t &args,
+void v_std_any_get_helper(const visitor_sptr_t *vis, void *aux,
+                          const ast_arg_list_sptr_t &args,
                           const v_util_function_dict_t &dict
                          )
 {
@@ -298,21 +298,21 @@ void v_std_any_get_helper(const visitor_ptr_t *vis, void *aux,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_value(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_std_any_get_value(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     v_std_any_get_helper(vis, aux, *args, v_util_std_any_get_value_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_pointer(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_std_any_get_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     v_std_any_get_helper(vis, aux, *args, v_util_std_any_get_pointer_dict);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_value(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_std_any_set_value(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
@@ -348,7 +348,7 @@ void v_std_any_set_value(const visitor_ptr_t *vis, void *aux, const ast_arg_list
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_pointer(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+void v_std_any_set_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;

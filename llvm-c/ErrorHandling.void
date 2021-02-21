@@ -10,7 +10,7 @@
 
 //- Types --------------------------------------------------
 {
-    arg0 = v_alloca(v_type_ref, 10);
+    arg0 = v_alloca(v_type_ptr);
 
     v0_char = v_find_type("char");
     v1 = v_pointer_type(v0_char, 0);
@@ -24,7 +24,7 @@
 
 //- Functions ----------------------------------------------
 {
-    arg0 = v_alloca(v_type_ref, 10);
+    arg0 = v_alloca(v_type_ptr);
 
     v0_void = v_find_type("void");
     v1 = v_function_type(v0_void, arg0, 0, false);

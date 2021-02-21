@@ -4,20 +4,20 @@
 //---------------------------------------------------------------------
 {   voidc_guard_import("voidc_internals.void"); }
 
-{   typ0 = v_alloca(v_type_ref, 2);
+{   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
-    v_store(v_type_ref, typ0);          //- Element type
+    v_store(v_type_ptr, typ0);          //- Element type
     v_store(unsigned,   typ1);          //- Address space
 
-    ft = v_function_type(v_type_ref, typ0, 2, false);
+    ft = v_function_type(v_type_ptr, typ0, 2, false);
     v_add_symbol_type("v_pointer_type", ft);
 }
 
 {   char_ptr = v_pointer_type(char, 0);
     void_ptr = v_pointer_type(void, 0);
 
-    typ0 = v_alloca(v_type_ref, 2);
+    typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
     v_store(char_ptr, typ0);            //- Symbol name (mangled)

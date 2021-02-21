@@ -6,9 +6,9 @@
 
 {   v_import("vpeg_grammar.void"); }
 
-{   typ = v_alloca(v_type_ref);
+{   typ = v_alloca(v_type_ptr);
 
-    v_store(v_peg_grammar_ref, typ);
+    v_store(v_peg_grammar_ptr, typ);
 
     ft = v_function_type(void, typ, 1, false);
     v_add_symbol_type("v_peg_get_grammar", ft);
@@ -23,7 +23,7 @@
 
     v_set_module(module);
 
-    typ0 = v_alloca(v_type_ref);
+    typ0 = v_alloca(v_type_ptr);
 
     val0 = v_alloca(LLVMValueRef, 4);
     val1 = v_getelementptr(val0, 1);
@@ -39,8 +39,8 @@
 
     int_ptr_ = v_type_get_llvm_type(int_ptr);
 
-    v_peg_opaque_grammar_ptr_ = v_type_get_llvm_type(v_peg_opaque_grammar_ptr);
-    v_peg_opaque_parser_ptr_  = v_type_get_llvm_type(v_peg_opaque_parser_ptr);
+    v_peg_opaque_grammar_sptr_ = v_type_get_llvm_type(v_peg_opaque_grammar_sptr);
+    v_peg_opaque_parser_sptr_  = v_type_get_llvm_type(v_peg_opaque_parser_sptr);
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
@@ -56,9 +56,9 @@
     entry = LLVMAppendBasicBlock(has_grammar_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    grm = LLVMBuildAlloca(builder, v_peg_opaque_grammar_ptr_, "grm");
+    grm = LLVMBuildAlloca(builder, v_peg_opaque_grammar_sptr_, "grm");
 
-    grammar_init_f = v_obtain_dict_function(v_util_initialize_dict, v_peg_opaque_grammar_ptr);
+    grammar_init_f = v_obtain_dict_function(v_util_initialize_dict, v_peg_opaque_grammar_sptr);
 
     v_store(grm, val0);
     v_store(n1,  val1);
@@ -69,13 +69,13 @@
 
     LLVMBuildCall(builder, get_grammar_f, val0, 1, "");
 
-    grammar_empty_f = v_obtain_dict_function(v_util_empty_dict, v_peg_opaque_grammar_ptr);
+    grammar_empty_f = v_obtain_dict_function(v_util_empty_dict, v_peg_opaque_grammar_sptr);
 
     nok = LLVMBuildCall(builder, grammar_empty_f, val0, 1, "nok");
 
     ok = LLVMBuildNot(builder, nok, "ok");
 
-    grammar_term_f = v_obtain_dict_function(v_util_terminate_dict, v_peg_opaque_grammar_ptr);
+    grammar_term_f = v_obtain_dict_function(v_util_terminate_dict, v_peg_opaque_grammar_sptr);
 
 //  v_store(grm, val0);
 //  v_store(n1,  val1);
@@ -100,7 +100,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    gr0 = LLVMBuildAlloca(builder, v_peg_opaque_grammar_ptr_, "gr0");
+    gr0 = LLVMBuildAlloca(builder, v_peg_opaque_grammar_sptr_, "gr0");
 
     v_store(gr0, val0);
     v_store(n1,  val1);
@@ -110,9 +110,9 @@
     LLVMBuildCall(builder, get_grammar_f, val0, 1, "");
 
 
-    pr0 = LLVMBuildAlloca(builder, v_peg_opaque_parser_ptr_, "pr0");
+    pr0 = LLVMBuildAlloca(builder, v_peg_opaque_parser_sptr_, "pr0");
 
-    parser_init_f = v_obtain_dict_function(v_util_initialize_dict, v_peg_opaque_parser_ptr);
+    parser_init_f = v_obtain_dict_function(v_util_initialize_dict, v_peg_opaque_parser_sptr);
 
     v_store(pr0, val0);
 //  v_store(n1,  val1);
@@ -132,7 +132,7 @@
     LLVMBuildCall(builder, get_parser_f, val0, 4, "");
 
 
-    parser_empty_f = v_obtain_dict_function(v_util_empty_dict, v_peg_opaque_parser_ptr);
+    parser_empty_f = v_obtain_dict_function(v_util_empty_dict, v_peg_opaque_parser_sptr);
 
     v_store(pr0, val0);
 
@@ -141,7 +141,7 @@
     ok = LLVMBuildNot(builder, nok, "ok");
 
 
-    parser_term_f = v_obtain_dict_function(v_util_terminate_dict, v_peg_opaque_parser_ptr);
+    parser_term_f = v_obtain_dict_function(v_util_terminate_dict, v_peg_opaque_parser_sptr);
 
 //  v_store(pr0, val0);
     v_store(n1,  val1);

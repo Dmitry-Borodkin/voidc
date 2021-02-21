@@ -17,10 +17,6 @@
 
 
 //---------------------------------------------------------------------
-class voidc_types_ctx_t;
-
-
-//---------------------------------------------------------------------
 //- Visitor tags...
 //---------------------------------------------------------------------
 #define DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF) \
@@ -53,7 +49,7 @@ VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
     DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF)
 
-    extern visitor_ptr_t voidc_llvm_type_visitor;
+    extern visitor_sptr_t voidc_llvm_type_visitor;
 
 VOIDC_DLLEXPORT_END
 }
@@ -69,7 +65,7 @@ struct v_type_t
     virtual ~v_type_t();
 
 public:
-    virtual void accept(const visitor_ptr_t &visitor, void *aux) const = 0;
+    virtual void accept(const visitor_sptr_t &visitor, void *aux) const = 0;
 
 public:
     virtual v_quark_t method_tag(void) const = 0;
@@ -118,9 +114,9 @@ private:
     v_type_simple_t &operator=(const v_type_simple_t &) = delete;
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux);
+    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux);
 
-    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor, void *aux) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), visitor, aux);
     }
@@ -176,10 +172,10 @@ public:
     unsigned width(void) const { return bits; }
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      unsigned bits, bool _signed);
 
-    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor, void *aux) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), visitor, aux, width(), is_signed());
     }
@@ -236,10 +232,10 @@ public:
     v_type_t * const *param_types(void) const { return key.first.data() + 1; }
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      v_type_t *ret, v_type_t * const *args, unsigned count, bool var_arg);
 
-    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor, void *aux) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), visitor, aux, return_type(), param_types(), param_count(), is_var_arg());
     }
@@ -277,10 +273,10 @@ public:
     bool is_reference(void) const { return (method_tag() == v_type_reference_visitor_method_tag); }
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      v_type_t *elt, unsigned addr_space, bool reference);
 
-    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor, void *aux) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), visitor, aux, element_type(), address_space(), is_reference());
     }
@@ -348,11 +344,11 @@ public:
     bool is_packed(void) const { return body_key->second; }
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      const char *name, bool opaque,
                                      v_type_t * const *elts, unsigned count, bool packed);
 
-    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor, void *aux) const override
     {
         v_type_t * const *elts = (is_opaque() ? nullptr : element_types());
         unsigned         count = (is_opaque() ? 0       : element_count());
@@ -390,10 +386,10 @@ public:
     uint64_t length(void) const { return key.second; }
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      v_type_t *elt, uint64_t length);
 
-    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor, void *aux) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), visitor, aux, element_type(), length());
     }
@@ -431,10 +427,10 @@ public:
     bool is_scalable(void) const { return (method_tag() == v_type_svector_visitor_method_tag); }
 
 public:
-    typedef void (*visitor_method_t)(const visitor_ptr_t *vis, void *aux,
+    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      v_type_t *elt, unsigned size, bool scalable);
 
-    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor, void *aux) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), visitor, aux, element_type(), size(), is_scalable());
     }
@@ -472,7 +468,7 @@ struct type_generic_vtable
 {
     void (*destroy)(void * const *elts, unsigned count);
 
-    void (*accept)(void * const *elts, unsigned count, const visitor_ptr_t *visitor, void *aux);
+    void (*accept)(void * const *elts, unsigned count, const visitor_sptr_t *visitor, void *aux);
 
     v_quark_t visitor_method_tag;
 };
@@ -511,7 +507,7 @@ public:
         vtable()->destroy(elements(), element_count());
     }
 
-    void accept(const visitor_ptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor, void *aux) const override
     {
         vtable()->accept(elements(), element_count(), &visitor, aux);
     }

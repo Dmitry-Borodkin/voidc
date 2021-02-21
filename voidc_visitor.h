@@ -13,7 +13,7 @@
 //---------------------------------------------------------------------
 class voidc_visitor_t;
 
-typedef std::shared_ptr<const voidc_visitor_t> visitor_ptr_t;
+typedef std::shared_ptr<const voidc_visitor_t> visitor_sptr_t;
 
 
 //---------------------------------------------------------------------
@@ -55,7 +55,7 @@ public:
 
 public:
     template<typename FunT, typename... Targs>
-    void visit(v_quark_t q, const visitor_ptr_t &self, void *aux, Targs... args) const
+    void visit(v_quark_t q, const visitor_sptr_t &self, void *aux, Targs... args) const
     {
         if (auto *void_f = void_methods.find(q))    //- First, try given quark
         {
@@ -63,7 +63,7 @@ public:
         }
         else    //- Otherwise, try special case at quark 0
         {
-            typedef void (*zf_t)(const visitor_ptr_t *, void *);
+            typedef void (*zf_t)(const visitor_sptr_t *, void *);
 
             reinterpret_cast<zf_t>(void_methods.at(0))(&self, aux);
         }

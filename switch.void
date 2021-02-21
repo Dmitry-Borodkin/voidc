@@ -20,7 +20,7 @@
 }
 
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ref, 4);
+{   typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
@@ -45,16 +45,16 @@
     //-----------------------------------------------------------------
     //- stmt_switch method ...
     //-----------------------------------------------------------------
-    v_store(voidc_visitor_ref,      typ0);
+    v_store(voidc_visitor_ptr,      typ0);
     v_store(void_ptr,               typ1);
-    v_store(v_ast_argument_ref,     typ2);
-    v_store(v_ast_generic_list_ref, typ3);
+    v_store(v_ast_argument_ptr,     typ2);
+    v_store(v_ast_generic_list_ptr, typ3);
 
     method_ft  = v_function_type(void, typ0, 4, false);
-    method_ref = v_pointer_type(method_ft, 0);
+    method_ptr = v_pointer_type(method_ft, 0);
 
     v_add_local_symbol("method_ft",  voidc_opaque_type, method_ft);
-    v_add_local_symbol("method_ref", voidc_opaque_type, method_ref);
+    v_add_local_symbol("method_ptr", voidc_opaque_type, method_ptr);
 
 
     //-----------------------------------------------------------------
@@ -62,15 +62,15 @@
     //-----------------------------------------------------------------
     ast_stmt_switch_t = v_struct_type_named("struct.ast_stmt_switch_t");
 
-    v_store(v_ast_opaque_argument_ptr,     typ0);
-    v_store(v_ast_opaque_generic_list_ptr, typ1);
+    v_store(v_ast_opaque_argument_sptr,     typ0);
+    v_store(v_ast_opaque_generic_list_sptr, typ1);
 
     v_type_struct_set_body(ast_stmt_switch_t, typ0, 2, false);
 
-    ast_stmt_switch_ref = v_pointer_type(ast_stmt_switch_t, 0);
+    ast_stmt_switch_ptr = v_pointer_type(ast_stmt_switch_t, 0);
 
     v_add_local_symbol("ast_stmt_switch_t",   voidc_opaque_type, ast_stmt_switch_t);
-    v_add_local_symbol("ast_stmt_switch_ref", voidc_opaque_type, ast_stmt_switch_ref);
+    v_add_local_symbol("ast_stmt_switch_ptr", voidc_opaque_type, ast_stmt_switch_ptr);
 
 
     //-----------------------------------------------------------------
@@ -78,15 +78,15 @@
     //-----------------------------------------------------------------
     ast_case_block_t = v_struct_type_named("struct.ast_case_block_t");
 
-    v_store(v_ast_opaque_arg_list_ptr,  typ0);
-    v_store(v_ast_opaque_stmt_list_ptr, typ1);
+    v_store(v_ast_opaque_arg_list_sptr,  typ0);
+    v_store(v_ast_opaque_stmt_list_sptr, typ1);
 
     v_type_struct_set_body(ast_case_block_t, typ0, 2, false);
 
-    ast_case_block_ref = v_pointer_type(ast_case_block_t, 0);
+    ast_case_block_ptr = v_pointer_type(ast_case_block_t, 0);
 
     v_add_local_symbol("ast_case_block_t",   voidc_opaque_type, ast_case_block_t);
-    v_add_local_symbol("ast_case_block_ref", voidc_opaque_type, ast_case_block_ref);
+    v_add_local_symbol("ast_case_block_ptr", voidc_opaque_type, ast_case_block_ptr);
 }
 
 
@@ -107,7 +107,7 @@
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
 }
 {
-    obj = v_cast(void_obj, ast_stmt_switch_ref);
+    obj = v_cast(void_obj, ast_stmt_switch_ptr);
 
     arg  = v_getelementptr(obj, 0, 0);
     list = v_getelementptr(obj, 0, 1);
@@ -127,18 +127,18 @@
     f = v_function_hack("voidc_ast_stmt_switch_accept", v_ast_generic_accept_fun_t);
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
-    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ref);
+    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
-    obj = v_cast(void_obj, ast_stmt_switch_ref);
+    obj = v_cast(void_obj, ast_stmt_switch_ptr);
 
     arg  = v_getelementptr(obj, 0, 0);
     list = v_getelementptr(obj, 0, 1);
 
     void_method = voidc_visitor_get_void_method(visitor, quark);
 
-    method = v_cast(void_method, method_ref);
+    method = v_cast(void_method, method_ptr);
 
     method(visitor, aux, arg, list);
 }
@@ -177,22 +177,22 @@
 //- v_ast_make_stmt_switch - ...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref, 3);
+    typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_ast_stmt_ref,         typ0);
-    v_store(v_ast_argument_ref,     typ1);
-    v_store(v_ast_generic_list_ref, typ2);
+    v_store(v_ast_stmt_ptr,         typ0);
+    v_store(v_ast_argument_ptr,     typ1);
+    v_store(v_ast_generic_list_ptr, typ2);
 
     ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_switch", ft);
 
-    v_add_parameter_name(f, 0, "ret",  v_ast_stmt_ref);
-    v_add_parameter_name(f, 1, "arg",  v_ast_argument_ref);
-    v_add_parameter_name(f, 2, "list", v_ast_generic_list_ref);
+    v_add_parameter_name(f, 0, "ret",  v_ast_stmt_ptr);
+    v_add_parameter_name(f, 1, "arg",  v_ast_argument_ptr);
+    v_add_parameter_name(f, 2, "list", v_ast_generic_list_ptr);
 }
 {
     obj = v_malloc(ast_stmt_switch_t);
@@ -220,7 +220,7 @@
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
 }
 {
-    obj = v_cast(void_obj, ast_case_block_ref);
+    obj = v_cast(void_obj, ast_case_block_ptr);
 
     arg_list  = v_getelementptr(obj, 0, 0);
     stmt_list = v_getelementptr(obj, 0, 1);
@@ -272,22 +272,22 @@
 //- v_ast_make_case_block - ...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ref, 3);
+    typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_ast_generic_ref,   typ0);
-    v_store(v_ast_arg_list_ref,  typ1);
-    v_store(v_ast_stmt_list_ref, typ2);
+    v_store(v_ast_generic_ptr,   typ0);
+    v_store(v_ast_arg_list_ptr,  typ1);
+    v_store(v_ast_stmt_list_ptr, typ2);
 
     ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_case_block", ft);
 
-    v_add_parameter_name(f, 0, "ret",       v_ast_generic_ref);
-    v_add_parameter_name(f, 1, "arg_list",  v_ast_arg_list_ref);
-    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ref);
+    v_add_parameter_name(f, 0, "ret",       v_ast_generic_ptr);
+    v_add_parameter_name(f, 1, "arg_list",  v_ast_arg_list_ptr);
+    v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ptr);
 }
 {
     obj = v_malloc(ast_case_block_t);
@@ -310,12 +310,12 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_item_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg = v_std_any_get_pointer(v_ast_opaque_argument_ptr, any0);
+    arg = v_std_any_get_pointer(v_ast_opaque_argument_sptr, any0);
 
     if (arg)
     {
@@ -323,7 +323,7 @@
     }
     else
     {
-        arg = v_alloca(v_ast_opaque_argument_ptr);
+        arg = v_alloca(v_ast_opaque_argument_sptr);
         v_initialize(arg);
 
         v_std_any_set_pointer(ret, arg);    //- Empty - "default"
@@ -338,22 +338,22 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_block_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
 
-    case_list = v_std_any_get_pointer(v_ast_opaque_arg_list_ptr,  any0);
-    stmt_list = v_std_any_get_pointer(v_ast_opaque_stmt_list_ptr, any1);
+    case_list = v_std_any_get_pointer(v_ast_opaque_arg_list_sptr,  any0);
+    stmt_list = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any1);
 
-    case_block = v_alloca(v_ast_opaque_generic_ptr);
+    case_block = v_alloca(v_ast_opaque_generic_sptr);
     v_initialize(case_block);
 
     v_ast_make_case_block(case_block, case_list, stmt_list);
 
-    ret_base = v_cast(case_block, v_ast_base_ref);
+    ret_base = v_cast(case_block, v_ast_base_ptr);
 
     v_std_any_set_pointer(ret, ret_base);
     v_terminate(case_block);
@@ -365,17 +365,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_list_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
 
-    list = v_std_any_get_pointer(v_ast_opaque_generic_list_ptr, any0);
-    item = v_std_any_get_pointer(v_ast_opaque_base_ptr,         any1);
+    list = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any0);
+    item = v_std_any_get_pointer(v_ast_opaque_base_sptr,         any1);
 
-    ret_list = v_alloca(v_ast_opaque_generic_list_ptr);
+    ret_list = v_alloca(v_ast_opaque_generic_list_sptr);
     v_initialize(ret_list);
 
     if (list)   v_ast_generic_list_append(ret_list, list, item);
@@ -392,17 +392,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_switch_grammar_action", v_peg_grammar_action_fun_t);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ref);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ref);
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
 
-    arg  = v_std_any_get_pointer(v_ast_opaque_argument_ptr,     any0);
-    list = v_std_any_get_pointer(v_ast_opaque_generic_list_ptr, any1);
+    arg  = v_std_any_get_pointer(v_ast_opaque_argument_sptr,     any0);
+    list = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_ptr);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
     v_ast_make_stmt_switch(stmt, arg, list);
@@ -420,10 +420,10 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_switch_t", method_ft);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ref);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "arg",     v_ast_argument_ref);
-    v_add_parameter_name(f, 3, "list",    v_ast_generic_list_ref);
+    v_add_parameter_name(f, 2, "arg",     v_ast_argument_ptr);
+    v_add_parameter_name(f, 3, "list",    v_ast_generic_list_ptr);
 }
 {
     v_save_variables();
@@ -431,7 +431,7 @@
 
     //- Compile switch argument
 
-    arg_base = v_cast(arg, v_ast_base_ref);
+    arg_base = v_cast(arg, v_ast_base_ptr);
 
     v_ast_accept_visitor(arg_base, visitor, aux);
 
@@ -442,7 +442,7 @@
 
     //- Count switch cases
 
-    ast_base = v_alloca(v_ast_opaque_base_ptr);
+    ast_base = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast_base);
 
     case_num = v_alloca(int);
@@ -465,11 +465,11 @@
 
         v_ast_generic_list_get_item(list, idx, ast_base);
 
-        ast_generic = v_cast(ast_base, v_ast_generic_ref);
+        ast_generic = v_cast(ast_base, v_ast_generic_ptr);
 
         obj = v_ast_generic_get_object(ast_generic);
 
-        case_block = v_cast(obj, ast_case_block_ref);
+        case_block = v_cast(obj, ast_case_block_ptr);
 
         case_list = v_getelementptr(case_block, 0, 0);
 
@@ -518,7 +518,7 @@
 
     case_max = v_load(case_max);        //- Sic!
 
-    case_args = v_malloc(v_ast_opaque_argument_ptr, case_max);
+    case_args = v_malloc(v_ast_opaque_argument_sptr, case_max);
     v_initialize(case_args, case_max);
 
     case_i = v_alloca(int);
@@ -536,11 +536,11 @@
 
         v_ast_generic_list_get_item(list, idx, ast_base);
 
-        ast_generic = v_cast(ast_base, v_ast_generic_ref);
+        ast_generic = v_cast(ast_base, v_ast_generic_ptr);
 
         obj = v_ast_generic_get_object(ast_generic);
 
-        case_block = v_cast(obj, ast_case_block_ref);
+        case_block = v_cast(obj, ast_case_block_ptr);
 
         case_list = v_getelementptr(case_block, 0, 0);
 
@@ -601,7 +601,7 @@
 
         stmt_list = v_getelementptr(case_block, 0, 1);
 
-        base_ast = v_cast(stmt_list, v_ast_base_ref);
+        base_ast = v_cast(stmt_list, v_ast_base_ptr);
 
         v_ast_accept_visitor(base_ast, visitor, aux);
 
@@ -627,7 +627,7 @@
 
             //- "Normal" case
 
-            base_ast = v_cast(case_arg_i, v_ast_base_ref);
+            base_ast = v_cast(case_arg_i, v_ast_base_ptr);
 
             v_ast_accept_visitor(base_ast, visitor, aux);
 
@@ -702,7 +702,7 @@
     }
 
 
-    gr0 = v_alloca(v_peg_opaque_grammar_ptr);
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);

@@ -26,7 +26,7 @@ extern "C" typedef void (*grammar_action_fun_t)(std::any *ret, const std::any *a
 class grammar_t
 {
 public:
-    using parsers_map_t = immer::map<v_quark_t, std::pair<parser_ptr_t, bool>>;
+    using parsers_map_t = immer::map<v_quark_t, std::pair<parser_sptr_t, bool>>;
     using actions_map_t = immer::map<v_quark_t, grammar_action_fun_t>;
 
 public:
@@ -54,12 +54,12 @@ public:
     static void static_terminate(void);
 
 public:
-    grammar_t set_parser(v_quark_t q_name, const parser_ptr_t &parser, bool leftrec=false) const
+    grammar_t set_parser(v_quark_t q_name, const parser_sptr_t &parser, bool leftrec=false) const
     {
         return  grammar_t(_parsers.set(q_name, {parser, leftrec}), actions);
     }
 
-    grammar_t set_parser(const char *name, const parser_ptr_t &parser, bool leftrec=false) const
+    grammar_t set_parser(const char *name, const parser_sptr_t &parser, bool leftrec=false) const
     {
         return  set_parser(v_quark_from_string(name), parser, leftrec);
     }
@@ -121,7 +121,7 @@ private:
     {}
 };
 
-typedef std::shared_ptr<const grammar_t> grammar_ptr_t;
+typedef std::shared_ptr<const grammar_t> grammar_sptr_t;
 
 
 //---------------------------------------------------------------------

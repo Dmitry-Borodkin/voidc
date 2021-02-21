@@ -4,20 +4,20 @@
 //---------------------------------------------------------------------
 {   voidc_guard_import("voidc_target.void"); }
 
-{   typ0 = v_alloca(v_type_ref, 2);
+{   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
-    v_store(v_type_ref, typ0);          //- Element type
+    v_store(v_type_ptr, typ0);          //- Element type
     v_store(unsigned,   typ1);          //- Address space
 
-    ft = v_function_type(v_type_ref, typ0, 2, false);
+    ft = v_function_type(v_type_ptr, typ0, 2, false);
     v_add_symbol_type("v_pointer_type", ft);
 }
 
 {   char_ptr = v_pointer_type(char, 0);
     void_ptr = v_pointer_type(void, 0);
 
-    typ0 = v_alloca(v_type_ref, 3);
+    typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
@@ -28,7 +28,7 @@
     v_add_symbol_type("v_add_symbol_value", ft);
 
 //  v_store(char_ptr,   typ0);          //- Symbol name
-    v_store(v_type_ref, typ1);          //- Symbol type
+    v_store(v_type_ptr, typ1);          //- Symbol type
     v_store(void_ptr,   typ2);          //- Symbol value
 
     ft = v_function_type(void, typ0, 3, false);
@@ -69,12 +69,12 @@
     v_add_symbol("LLVMBuilderRef", voidc_opaque_type, builder_ref);
 }
 
-{   typ0 = v_alloca(v_type_ref, 3);
+{   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
     v_store(char_ptr,     typ0);        //- Constant/variable name
-    v_store(v_type_ref,   typ1);        //- Constant/variable type
+    v_store(v_type_ptr,   typ1);        //- Constant/variable type
     v_store(LLVMValueRef, typ2);        //- Constant/variable value
 
     ft = v_function_type(void, typ0, 3, false);
@@ -84,7 +84,7 @@
 
 //  v_store(char_ptr, typ0);            //- Variable name
 
-    ft = v_function_type(v_type_ref, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_add_symbol_type("v_get_variable_type", ft);
 
 //  v_store(char_ptr, typ0);            //- Variable name
@@ -92,7 +92,7 @@
     ft = v_function_type(LLVMValueRef, typ0, 1, false);
     v_add_symbol_type("v_get_variable_value", ft);
 
-    t_ptr = v_pointer_type(v_type_ref, 0);
+    t_ptr = v_pointer_type(v_type_ptr, 0);
     v_ptr = v_pointer_type(LLVMValueRef, 0);
 
 //  v_store(char_ptr, typ0);            //- Variable name
@@ -104,12 +104,12 @@
 
 //  v_store(char_ptr, typ0);            //- Symbol name
 
-    ft = v_function_type(v_type_ref, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_add_symbol_type("v_find_symbol_type", ft);
 
 //  v_store(char_ptr, typ0);            //- Type(!) name
 
-//  ft = v_function_type(v_type_ref, typ0, 1, false);
+//  ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_add_symbol_type("v_find_type", ft);
 
 //  v_store(char_ptr, typ0);            //- Alias name
@@ -121,7 +121,7 @@
 
     v_store(int, typ0);                 //- index
 
-    ft = v_function_type(v_type_ref, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_add_symbol_type("v_get_argument_type", ft);
 
 //  v_store(int, typ0);                 //- index
@@ -167,7 +167,7 @@
     ft = v_function_type(char_ptr, 0, 0, false);
     v_add_symbol_type("v_get_return_name", ft);
 
-    v_store(v_type_ref, typ0);          //-
+    v_store(v_type_ptr, typ0);          //-
 
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("v_set_return_type", ft);
@@ -178,31 +178,31 @@
     v_add_symbol_type("v_set_return_value", ft);
 }
 
-{   typ0 = v_alloca(v_type_ref, 3);
+{   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    visitor_ref  = v_pointer_type(voidc_opaque_visitor_ptr, 0);
-    arg_list_ref = v_pointer_type(v_ast_opaque_arg_list_ptr, 0);
+    visitor_ptr  = v_pointer_type(voidc_opaque_visitor_sptr, 0);
+    arg_list_ptr = v_pointer_type(v_ast_opaque_arg_list_sptr, 0);
 
-    v_store(visitor_ref,  typ0);        //-
+    v_store(visitor_ptr,  typ0);        //-
     v_store(void_ptr,     typ1);        //-
-    v_store(arg_list_ref, typ2);        //-
+    v_store(arg_list_ptr, typ2);        //-
 
     intrinsic_t = v_function_type(void, typ0, 3, false);
     v_add_symbol("voidc_intrinsic_t", voidc_opaque_type, intrinsic_t);
 
-    intrinsic_ref = v_pointer_type(intrinsic_t, 0);
+    intrinsic_ptr = v_pointer_type(intrinsic_t, 0);
 
     v_store(char_ptr,      typ0);       //- Intrinsic name
-    v_store(intrinsic_ref, typ1);       //- Intrinsic function
+    v_store(intrinsic_ptr, typ1);       //- Intrinsic function
 
     ft = v_function_type(void, typ0, 2, false);
     v_add_symbol_type("v_add_intrinsic", ft);
 
 //  v_store(char_ptr,      typ0);       //- Intrinsic name
 
-    ft = v_function_type(intrinsic_ref, typ0, 1, false);
+    ft = v_function_type(intrinsic_ptr, typ0, 1, false);
     v_add_symbol_type("v_get_intrinsic", ft);
 }
 
@@ -217,22 +217,22 @@
     v_add_symbol("v_target_opaque_global_ctx", voidc_opaque_type, g_ctx);
     v_add_symbol("v_target_opaque_local_ctx",  voidc_opaque_type, l_ctx);
 
-    g_ref = v_pointer_type(g_ctx, 0);
-    l_ref = v_pointer_type(l_ctx, 0);
+    g_ptr = v_pointer_type(g_ctx, 0);
+    l_ptr = v_pointer_type(l_ctx, 0);
 
-    v_add_symbol("v_target_global_ctx_ref", voidc_opaque_type, g_ref);
-    v_add_symbol("v_target_local_ctx_ref",  voidc_opaque_type, l_ref);
+    v_add_symbol("v_target_global_ctx_ptr", voidc_opaque_type, g_ptr);
+    v_add_symbol("v_target_local_ctx_ptr",  voidc_opaque_type, l_ptr);
 }
 
-{   typ0 = v_alloca(v_type_ref, 3);
+{   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    ft = v_function_type(v_target_global_ctx_ref, 0, 0, false);
+    ft = v_function_type(v_target_global_ctx_ptr, 0, 0, false);
     v_add_symbol_type("v_target_get_voidc_global_ctx", ft);
     v_add_symbol_type("v_target_get_global_ctx", ft);
 
-    v_store(v_target_global_ctx_ref, typ0);         //-
+    v_store(v_target_global_ctx_ptr, typ0);         //-
 
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("v_target_set_global_ctx", ft);
@@ -242,16 +242,16 @@
     v_store(size_t, typ1);                          //- sizeof(long)
     v_store(size_t, typ2);                          //- sizeof(intptr_t)
 
-    ft = v_function_type(v_target_global_ctx_ref, typ0, 3, false);
+    ft = v_function_type(v_target_global_ctx_ptr, typ0, 3, false);
     v_add_symbol_type("v_target_create_global_ctx", ft);
 
     v_store(char_ptr,                typ0);         //- Source file name (kind of...)
-    v_store(v_target_global_ctx_ref, typ1);         //- Parent global context
+    v_store(v_target_global_ctx_ptr, typ1);         //- Parent global context
 
-    ft = v_function_type(v_target_local_ctx_ref, typ0, 2, false);
+    ft = v_function_type(v_target_local_ctx_ptr, typ0, 2, false);
     v_add_symbol_type("v_target_create_local_ctx", ft);
 
-    v_store(v_target_local_ctx_ref, typ0);          //-
+    v_store(v_target_local_ctx_ptr, typ0);          //-
 
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("v_target_destroy_local_ctx", ft);

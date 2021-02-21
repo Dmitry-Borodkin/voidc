@@ -7,15 +7,15 @@
 {   v_import("vpeg_parser.void");
 }
 
-{   v_util_register_itcmep_impl(v_peg_opaque_grammar_ptr, "v_peg", "grammar");
+{   v_util_register_itcmep_impl(v_peg_opaque_grammar_sptr, "v_peg", "grammar");
 }
 
-{   grammar_ref = v_pointer_type(v_peg_opaque_grammar_ptr, 0);
+{   grammar_ptr = v_pointer_type(v_peg_opaque_grammar_sptr, 0);
 
-    v_add_symbol("v_peg_grammar_ref", voidc_opaque_type, grammar_ref);
+    v_add_symbol("v_peg_grammar_ptr", voidc_opaque_type, grammar_ptr);
 }
 
-{   typ0 = v_alloca(v_type_ref, 5);
+{   typ0 = v_alloca(v_type_ptr, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
@@ -24,21 +24,21 @@
     char_ptr = v_pointer_type(char, 0);
     int_ptr  = v_pointer_type(int, 0);
 
-    v_store(v_peg_grammar_ref, typ0);
+    v_store(v_peg_grammar_ptr, typ0);
 
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("v_peg_make_grammar", ft);
 
     v_store(char_ptr,          typ1);
-    v_store(v_peg_parser_ref,  typ2);
+    v_store(v_peg_parser_ptr,  typ2);
     v_store(int_ptr,           typ3);
 
     ft = v_function_type(void, typ0, 4, false);
     v_add_symbol_type("v_peg_grammar_get_parser", ft);
 
-    v_store(v_peg_grammar_ref, typ1);
+    v_store(v_peg_grammar_ptr, typ1);
     v_store(char_ptr,          typ2);
-    v_store(v_peg_parser_ref,  typ3);
+    v_store(v_peg_parser_ptr,  typ3);
     v_store(int,               typ4);
 
     ft = v_function_type(void, typ0, 5, false);
@@ -47,10 +47,10 @@
     ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_peg_grammar_erase_parser", ft);
 
-    std_any_ref = v_pointer_type(v_util_opaque_std_any, 0);
+    std_any_ptr = v_pointer_type(v_util_opaque_std_any, 0);
 
-    v_store(std_any_ref, typ0);
-    v_store(std_any_ref, typ1);
+    v_store(std_any_ptr, typ0);
+    v_store(std_any_ptr, typ1);
     v_store(size_t,      typ2);
 
     grammar_action_ft        = v_function_type(void, typ0, 3, false);
@@ -58,13 +58,13 @@
 
     v_add_symbol("v_peg_grammar_action_fun_t", voidc_opaque_type, grammar_action_ft);
 
-    v_store(v_peg_grammar_ref, typ0);
+    v_store(v_peg_grammar_ptr, typ0);
     v_store(char_ptr,          typ1);
 
     ft = v_function_type(grammar_action_fun_ptr_t, typ0, 2, false);
     v_add_symbol_type("v_peg_grammar_get_action", ft);
 
-    v_store(v_peg_grammar_ref,        typ1);
+    v_store(v_peg_grammar_ptr,        typ1);
     v_store(char_ptr,                 typ2);
     v_store(grammar_action_fun_ptr_t, typ3);
 

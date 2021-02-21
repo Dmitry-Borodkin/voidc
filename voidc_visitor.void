@@ -8,22 +8,22 @@
     v_import("voidc_quark.void");
 }
 
-{   v_util_register_itcmep_impl(voidc_opaque_visitor_ptr, "voidc", "visitor");
+{   v_util_register_itcmep_impl(voidc_opaque_visitor_sptr, "voidc", "visitor");
 }
 
-{   visitor_ref = v_pointer_type(voidc_opaque_visitor_ptr, 0);
+{   visitor_ptr = v_pointer_type(voidc_opaque_visitor_sptr, 0);
 
-    v_add_symbol("voidc_visitor_ref", voidc_opaque_type, visitor_ref);
+    v_add_symbol("voidc_visitor_ptr", voidc_opaque_type, visitor_ptr);
 }
 
 
-{   arg0 = v_alloca(v_type_ref, 4);
+{   arg0 = v_alloca(v_type_ptr, 4);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
 
-    v_store(voidc_visitor_ref, arg0);
+    v_store(voidc_visitor_ptr, arg0);
 
     ft = v_function_type(void, arg0, 1, false);
     v_add_symbol_type("voidc_make_visitor", ft);
@@ -37,7 +37,7 @@
     v_add_symbol_type("voidc_visitor_get_void_method", ft);
 
 
-    v_store(voidc_visitor_ref, arg1);
+    v_store(voidc_visitor_ptr, arg1);
     v_store(v_quark_t,         arg2);
     v_store(void_ptr,          arg3);
 

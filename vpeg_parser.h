@@ -85,7 +85,7 @@ public:
     virtual void get_parsers(std::shared_ptr<const parser_t> *p) const {}
 };
 
-typedef std::shared_ptr<const parser_t> parser_ptr_t;
+typedef std::shared_ptr<const parser_t> parser_sptr_t;
 
 template<parser_t::kind_t tag>
 using parser_tag_t = node_tag_t<parser_t, tag>;
@@ -109,7 +109,7 @@ struct action_t : public node_t<action_kind_t>
     virtual std::any act(context_t &ctx) const = 0;
 };
 
-typedef std::shared_ptr<const action_t> action_ptr_t;
+typedef std::shared_ptr<const action_t> action_sptr_t;
 
 template<action_t::kind_t tag>
 using action_tag_t = node_tag_t<action_t, tag>;
@@ -136,7 +136,7 @@ struct argument_t : public node_t<argument_kind_t>
     virtual std::any value(context_t &ctx) const = 0;
 };
 
-typedef std::shared_ptr<const argument_t> argument_ptr_t;
+typedef std::shared_ptr<const argument_t> argument_sptr_t;
 
 template<argument_t::kind_t tag>
 using argument_tag_t = node_tag_t<argument_t, tag>;
@@ -149,20 +149,20 @@ template<parser_t::kind_t tag>
 class parser_array_t : public parser_tag_t<tag>
 {
 protected:
-    explicit parser_array_t(const std::initializer_list<parser_ptr_t> &list)
+    explicit parser_array_t(const std::initializer_list<parser_sptr_t> &list)
       : array(list)
     {}
 
-    parser_array_t(const parser_ptr_t *list, size_t count)
+    parser_array_t(const parser_sptr_t *list, size_t count)
       : array(list, list+count)
     {}
 
-    parser_array_t(const parser_array_t<tag> &head, const parser_ptr_t &tail)
+    parser_array_t(const parser_array_t<tag> &head, const parser_sptr_t &tail)
       : array(head.array.push_back(tail))
     {}
 
 public:
-    const immer::array<parser_ptr_t> array;
+    const immer::array<parser_sptr_t> array;
 
 public:
     size_t parsers_count(void) const override
@@ -170,7 +170,7 @@ public:
         return array.size();
     }
 
-    void get_parsers(parser_ptr_t *p) const override
+    void get_parsers(parser_sptr_t *p) const override
     {
         std::copy(array.begin(), array.end(), p);
     }
@@ -181,15 +181,15 @@ public:
 class choice_parser_t : public parser_array_t<parser_t::k_choice>
 {
 public:
-    explicit choice_parser_t(const std::initializer_list<parser_ptr_t> &list)
+    explicit choice_parser_t(const std::initializer_list<parser_sptr_t> &list)
       : parser_array_t<k_choice>(list)
     {}
 
-    choice_parser_t(const parser_ptr_t *list, size_t count)
+    choice_parser_t(const parser_sptr_t *list, size_t count)
       : parser_array_t<k_choice>(list, count)
     {}
 
-    choice_parser_t(const choice_parser_t &head, const parser_ptr_t &tail)
+    choice_parser_t(const choice_parser_t &head, const parser_sptr_t &tail)
       : parser_array_t<k_choice>(head, tail)
     {}
 
@@ -199,21 +199,21 @@ public:
 
 inline
 std::shared_ptr<const choice_parser_t>
-mk_choice_parser(const std::initializer_list<parser_ptr_t> &list)
+mk_choice_parser(const std::initializer_list<parser_sptr_t> &list)
 {
     return std::make_shared<const choice_parser_t>(list);
 }
 
 inline
 std::shared_ptr<const choice_parser_t>
-mk_choice_parser(const parser_ptr_t *list, size_t count)
+mk_choice_parser(const parser_sptr_t *list, size_t count)
 {
     return std::make_shared<const choice_parser_t>(list, count);
 }
 
 inline
 std::shared_ptr<const choice_parser_t>
-mk_choice_parser(const choice_parser_t &head, const parser_ptr_t &tail)
+mk_choice_parser(const choice_parser_t &head, const parser_sptr_t &tail)
 {
     return std::make_shared<const choice_parser_t>(head, tail);
 }
@@ -223,15 +223,15 @@ mk_choice_parser(const choice_parser_t &head, const parser_ptr_t &tail)
 class sequence_parser_t : public parser_array_t<parser_t::k_sequence>
 {
 public:
-    explicit sequence_parser_t(const std::initializer_list<parser_ptr_t> &list)
+    explicit sequence_parser_t(const std::initializer_list<parser_sptr_t> &list)
       : parser_array_t<k_sequence>(list)
     {}
 
-    sequence_parser_t(const parser_ptr_t *list, size_t count)
+    sequence_parser_t(const parser_sptr_t *list, size_t count)
       : parser_array_t<k_sequence>(list, count)
     {}
 
-    sequence_parser_t(const sequence_parser_t &head, const parser_ptr_t &tail)
+    sequence_parser_t(const sequence_parser_t &head, const parser_sptr_t &tail)
       : parser_array_t<k_sequence>(head, tail)
     {}
 
@@ -241,21 +241,21 @@ public:
 
 inline
 std::shared_ptr<const sequence_parser_t>
-mk_sequence_parser(const std::initializer_list<parser_ptr_t> &list)
+mk_sequence_parser(const std::initializer_list<parser_sptr_t> &list)
 {
     return std::make_shared<const sequence_parser_t>(list);
 }
 
 inline
 std::shared_ptr<const sequence_parser_t>
-mk_sequence_parser(const parser_ptr_t *list, size_t count)
+mk_sequence_parser(const parser_sptr_t *list, size_t count)
 {
     return std::make_shared<const sequence_parser_t>(list, count);
 }
 
 inline
 std::shared_ptr<const sequence_parser_t>
-mk_sequence_parser(const sequence_parser_t &head, const parser_ptr_t &tail)
+mk_sequence_parser(const sequence_parser_t &head, const parser_sptr_t &tail)
 {
     return std::make_shared<const sequence_parser_t>(head, tail);
 }
@@ -266,17 +266,17 @@ template<parser_t::kind_t tag>
 class parser_unary_t : public parser_tag_t<tag>
 {
 protected:
-    explicit parser_unary_t(const parser_ptr_t &_parser)
+    explicit parser_unary_t(const parser_sptr_t &_parser)
       : parser(_parser)
     {}
 
 public:
-    const parser_ptr_t parser;
+    const parser_sptr_t parser;
 
 public:
     size_t parsers_count(void) const override { return 1; }
 
-    void get_parsers(parser_ptr_t *p) const override { *p = parser; }
+    void get_parsers(parser_sptr_t *p) const override { *p = parser; }
 };
 
 
@@ -284,7 +284,7 @@ public:
 class and_parser_t : public parser_unary_t<parser_t::k_and>
 {
 public:
-    explicit and_parser_t(const parser_ptr_t &_parser)
+    explicit and_parser_t(const parser_sptr_t &_parser)
       : parser_unary_t<k_and>(_parser)
     {}
 
@@ -294,7 +294,7 @@ public:
 
 inline
 std::shared_ptr<const and_parser_t>
-mk_and_parser(const parser_ptr_t &_parser)
+mk_and_parser(const parser_sptr_t &_parser)
 {
     return std::make_shared<const and_parser_t>(_parser);
 }
@@ -303,7 +303,7 @@ mk_and_parser(const parser_ptr_t &_parser)
 class not_parser_t : public parser_unary_t<parser_t::k_not>
 {
 public:
-    explicit not_parser_t(const parser_ptr_t &_parser)
+    explicit not_parser_t(const parser_sptr_t &_parser)
       : parser_unary_t<k_not>(_parser)
     {}
 
@@ -313,7 +313,7 @@ public:
 
 inline
 std::shared_ptr<const not_parser_t>
-mk_not_parser(const parser_ptr_t &_parser)
+mk_not_parser(const parser_sptr_t &_parser)
 {
     return std::make_shared<const not_parser_t>(_parser);
 }
@@ -322,7 +322,7 @@ mk_not_parser(const parser_ptr_t &_parser)
 class question_parser_t : public parser_unary_t<parser_t::k_question>
 {
 public:
-    explicit question_parser_t(const parser_ptr_t &_parser)
+    explicit question_parser_t(const parser_sptr_t &_parser)
       : parser_unary_t<k_question>(_parser)
     {}
 
@@ -332,7 +332,7 @@ public:
 
 inline
 std::shared_ptr<const question_parser_t>
-mk_question_parser(const parser_ptr_t &_parser)
+mk_question_parser(const parser_sptr_t &_parser)
 {
     return std::make_shared<const question_parser_t>(_parser);
 }
@@ -341,7 +341,7 @@ mk_question_parser(const parser_ptr_t &_parser)
 class star_parser_t : public parser_unary_t<parser_t::k_star>
 {
 public:
-    explicit star_parser_t(const parser_ptr_t &_parser)
+    explicit star_parser_t(const parser_sptr_t &_parser)
       : parser_unary_t<k_star>(_parser)
     {}
 
@@ -351,7 +351,7 @@ public:
 
 inline
 std::shared_ptr<const star_parser_t>
-mk_star_parser(const parser_ptr_t &_parser)
+mk_star_parser(const parser_sptr_t &_parser)
 {
     return std::make_shared<const star_parser_t>(_parser);
 }
@@ -360,7 +360,7 @@ mk_star_parser(const parser_ptr_t &_parser)
 class plus_parser_t : public parser_unary_t<parser_t::k_plus>
 {
 public:
-    explicit plus_parser_t(const parser_ptr_t &_parser)
+    explicit plus_parser_t(const parser_sptr_t &_parser)
       : parser_unary_t<k_plus>(_parser)
     {}
 
@@ -370,7 +370,7 @@ public:
 
 inline
 std::shared_ptr<const plus_parser_t>
-mk_plus_parser(const parser_ptr_t &_parser)
+mk_plus_parser(const parser_sptr_t &_parser)
 {
     return std::make_shared<const plus_parser_t>(_parser);
 }
@@ -379,7 +379,7 @@ mk_plus_parser(const parser_ptr_t &_parser)
 class catch_variable_parser_t : public parser_unary_t<parser_t::k_catch_variable>
 {
 public:
-    catch_variable_parser_t(const char *name, const parser_ptr_t &parser)
+    catch_variable_parser_t(const char *name, const parser_sptr_t &parser)
       : parser_unary_t<k_catch_variable>(parser),
         q_name(v_quark_from_string(name))
     {}
@@ -393,7 +393,7 @@ public:
 
 inline
 std::shared_ptr<const catch_variable_parser_t>
-mk_catch_variable_parser(const char *name, const parser_ptr_t &parser)
+mk_catch_variable_parser(const char *name, const parser_sptr_t &parser)
 {
     return std::make_shared<const catch_variable_parser_t>(name, parser);
 }
@@ -402,7 +402,7 @@ mk_catch_variable_parser(const char *name, const parser_ptr_t &parser)
 class catch_string_parser_t : public parser_unary_t<parser_t::k_catch_string>
 {
 public:
-    explicit catch_string_parser_t(const parser_ptr_t &_parser)
+    explicit catch_string_parser_t(const parser_sptr_t &_parser)
       : parser_unary_t<k_catch_string>(_parser)
     {}
 
@@ -412,7 +412,7 @@ public:
 
 inline
 std::shared_ptr<const catch_string_parser_t>
-mk_catch_string_parser(const parser_ptr_t &_parser)
+mk_catch_string_parser(const parser_sptr_t &_parser)
 {
     return std::make_shared<const catch_string_parser_t>(_parser);
 }
@@ -466,7 +466,7 @@ mk_backref_parser(size_t _number)
 class action_parser_t : public parser_tag_t<parser_t::k_action>
 {
 public:
-    explicit action_parser_t(const action_ptr_t &_action)
+    explicit action_parser_t(const action_sptr_t &_action)
       : action(_action)
     {}
 
@@ -474,12 +474,12 @@ public:
     std::any parse(context_t &ctx) const override;
 
 public:
-    const action_ptr_t action;
+    const action_sptr_t action;
 };
 
 inline
 std::shared_ptr<const action_parser_t>
-mk_action_parser(const action_ptr_t &_action)
+mk_action_parser(const action_sptr_t &_action)
 {
     return std::make_shared<const action_parser_t>(_action);
 }
@@ -583,12 +583,12 @@ mk_dot_parser(void)
 class call_action_t : public action_tag_t<action_t::k_call>
 {
 public:
-    call_action_t(const char *fun, const std::initializer_list<argument_ptr_t> &list)
+    call_action_t(const char *fun, const std::initializer_list<argument_sptr_t> &list)
       : q_fun(v_quark_from_string(fun)),
         args(list)
     {}
 
-    call_action_t(const char *fun, const argument_ptr_t *list, size_t count)
+    call_action_t(const char *fun, const argument_sptr_t *list, size_t count)
       : q_fun(v_quark_from_string(fun)),
         args(list, list+count)
     {}
@@ -599,19 +599,19 @@ public:
 public:
     const v_quark_t q_fun;
 
-    const immer::array<argument_ptr_t> args;
+    const immer::array<argument_sptr_t> args;
 };
 
 inline
 std::shared_ptr<const call_action_t>
-mk_call_action(const char *fun, const std::initializer_list<argument_ptr_t> &list)
+mk_call_action(const char *fun, const std::initializer_list<argument_sptr_t> &list)
 {
     return std::make_shared<const call_action_t>(fun, list);
 }
 
 inline
 std::shared_ptr<const call_action_t>
-mk_call_action(const char *fun, const argument_ptr_t *list, size_t count)
+mk_call_action(const char *fun, const argument_sptr_t *list, size_t count)
 {
     return std::make_shared<const call_action_t>(fun, list, count);
 }
@@ -620,7 +620,7 @@ mk_call_action(const char *fun, const argument_ptr_t *list, size_t count)
 class return_action_t : public action_tag_t<action_t::k_return>
 {
 public:
-    explicit return_action_t(const argument_ptr_t &_arg)
+    explicit return_action_t(const argument_sptr_t &_arg)
       : arg(_arg)
     {}
 
@@ -631,12 +631,12 @@ public:
     }
 
 public:
-    const argument_ptr_t arg;
+    const argument_sptr_t arg;
 };
 
 inline
 std::shared_ptr<const return_action_t>
-mk_return_action(const argument_ptr_t &arg)
+mk_return_action(const argument_sptr_t &arg)
 {
     return std::make_shared<const return_action_t>(arg);
 }

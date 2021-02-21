@@ -20,7 +20,7 @@
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static void
-v_alloca(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+v_alloca(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -56,7 +56,7 @@ v_alloca(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_getelementptr(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -132,7 +132,7 @@ v_getelementptr(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *a
 
 //---------------------------------------------------------------------
 static void
-v_store(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+v_store(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -161,7 +161,7 @@ v_store(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_load(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+v_load(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -185,7 +185,7 @@ v_load(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_cast(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+v_cast(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -302,7 +302,7 @@ v_cast(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_pointer(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+v_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -326,7 +326,7 @@ v_pointer(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_reference(const visitor_ptr_t *vis, void *aux, const ast_arg_list_ptr_t *args)
+v_reference(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -483,7 +483,7 @@ base_local_ctx_t::check_alias(const std::string &name)
 
 //---------------------------------------------------------------------
 v_type_t *
-base_local_ctx_t::lookup_type(const ast_argument_ptr_t &arg)
+base_local_ctx_t::lookup_type(const ast_argument_sptr_t &arg)
 {
     if (auto arg_type = std::dynamic_pointer_cast<const ast_arg_type_t>(arg))
     {
@@ -663,14 +663,14 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     add_symbol("voidc_opaque_type", opaque_type_type, opaque_type_type);        //- Sic!
 
-    {   auto type_ref_type = make_pointer_type(opaque_type_type, 0);
+    {   auto type_ptr_type = make_pointer_type(opaque_type_type, 0);
 
-        add_symbol("v_type_ref", opaque_type_type, type_ref_type);
+        add_symbol("v_type_ptr", opaque_type_type, type_ptr_type);
 
         v_type_t *types[] =
         {
-            type_ref_type,
-            make_pointer_type(type_ref_type, 0),
+            type_ptr_type,
+            make_pointer_type(type_ptr_type, 0),
             unsigned_type,
             bool_type
         };
@@ -678,14 +678,14 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 #define DEF(name, ret, num) \
         add_symbol_type(#name, make_function_type(ret, types, num, false));
 
-        DEF(v_function_type, type_ref_type, 4)
+        DEF(v_function_type, type_ptr_type, 4)
 
         types[0] = char_ptr_type;
-        types[1] = type_ref_type;
+        types[1] = type_ptr_type;
 
         DEF(v_add_symbol_type, make_void_type(), 2)
 
-        DEF(v_struct_type_named, type_ref_type, 1)
+        DEF(v_struct_type_named, type_ptr_type, 1)
 
 #undef DEF
     }
@@ -1690,7 +1690,7 @@ v_find_type(const char *name)
 
 //---------------------------------------------------------------------
 v_type_t *
-v_lookup_type(const ast_argument_ptr_t *arg)
+v_lookup_type(const ast_argument_sptr_t *arg)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;

@@ -203,7 +203,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 //---------------------------------------------------------------------
 //- Intrinsics (functions)
 //---------------------------------------------------------------------
-void v_peg_get_grammar(grammar_ptr_t *ptr)
+void v_peg_get_grammar(grammar_sptr_t *ptr)
 {
     if (context_t::current_ctx)
     {
@@ -215,7 +215,7 @@ void v_peg_get_grammar(grammar_ptr_t *ptr)
     }
 }
 
-void v_peg_set_grammar(const grammar_ptr_t *ptr)
+void v_peg_set_grammar(const grammar_sptr_t *ptr)
 {
     if (context_t::current_ctx)
     {
