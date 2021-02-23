@@ -41,7 +41,7 @@ public:
 public:
     struct variables_t
     {
-        immer::map<v_quark_t, std::any>     values;
+        grammar_t::values_map_t             values;
         immer::vector<std::array<size_t,2>> strings;
     };
 

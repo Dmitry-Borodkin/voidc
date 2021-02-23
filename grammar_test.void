@@ -85,29 +85,50 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr);
-    v_initialize(arg0);
+    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
 
     stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
 
 
-    v_ast_make_arg_string(arg0, "Hello test!\n");
+    v_ast_make_arg_string(arg0, "Hello test: %s\n");
 
-    v_ast_make_stmt_call(stmt, "", "printf", arg0, 1);
+
+    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+
+    arg_str = v_std_string_get(arg_sstr);
+
+    v_ast_make_arg_string(arg1, arg_str);
+
+
+    v_ast_make_stmt_call(stmt, "", "printf", arg0, 2);
 
 
     v_std_any_set_pointer(ret, stmt);
 
 
     v_terminate(stmt);
-    v_terminate(arg0);
+    v_terminate(arg0, 2);
 }
 
 
 //---------------------------------------------------------------------
 //{   v_debug_print_module(1); }
 {
+    any0 = v_alloca(v_util_opaque_std_any);
+    v_initialize(any0);
+
+    str0 = v_alloca(v_util_opaque_std_string);
+    v_initialize(str0);
+
+    v_std_string_set(str0, "ZZZ");
+
+    v_std_any_set_pointer(any0, str0);
+
+
     gr0 = v_alloca(v_peg_opaque_grammar_sptr);
     v_initialize(gr0);
 
@@ -116,17 +137,23 @@
 
     grammar gr0
     {
+    values:
+        str_test = any0;
+
     actions:
         mk_test = mk_test_grammar_action;
 
     parsers:
-        stmt =+ "test" _ ';'    { mk_test() };
+        stmt =+ "test" _ ';'    { mk_test(str_test) };
     }
 
     v_peg_set_grammar(gr0);
 
 
     v_terminate(gr0);
+
+    v_terminate(str0);
+    v_terminate(any0);
 }
 
 //{   v_debug_print_module(1); }

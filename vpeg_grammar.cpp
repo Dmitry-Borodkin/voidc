@@ -40,14 +40,14 @@ std::any grammar_t::parse(v_quark_t q_name, context_t &ctx) const
 
     std::swap(ctx.variables, saved_vars);       //- save (and clear)
 
-    auto st = ctx.get_state();
+    {   auto &vvec = ctx.variables.values;
+        auto &svec = ctx.variables.strings;
 
-    {   auto &svec = ctx.variables.strings;
-
-        svec = svec.push_back({st.position, 0});    //- #0
-
-        st.variables.strings = svec;        //- Sic!
+        vvec = values;                                  //- "Global" values
+        svec = svec.push_back({ctx.get_position(), 0}); //- #0
     }
+
+    auto st = ctx.get_state();
 
     std::any ret;
 
@@ -207,6 +207,7 @@ void v_peg_grammar_erase_parser(grammar_sptr_t *dst, const grammar_sptr_t *src, 
 }
 
 
+//-----------------------------------------------------------------
 grammar_action_fun_t
 v_peg_grammar_get_action(const grammar_sptr_t *ptr, const char *name)
 {
@@ -230,6 +231,27 @@ void v_peg_grammar_set_action(grammar_sptr_t *dst, const grammar_sptr_t *src, co
 void v_peg_grammar_erase_action(grammar_sptr_t *dst, const grammar_sptr_t *src, const char *name)
 {
     auto grammar = (*src)->erase_action(name);
+
+    *dst = std::make_shared<const grammar_t>(grammar);
+}
+
+
+//-----------------------------------------------------------------
+void v_peg_grammar_get_value(const grammar_sptr_t *ptr, const char *name, std::any *value)
+{
+    *value = (*ptr)->values.find(v_quark_from_string(name));
+}
+
+void v_peg_grammar_set_value(grammar_sptr_t *dst, const grammar_sptr_t *src, const char *name, const std::any *value)
+{
+    auto grammar = (*src)->set_value(name, *value);
+
+    *dst = std::make_shared<const grammar_t>(grammar);
+}
+
+void v_peg_grammar_erase_value(grammar_sptr_t *dst, const grammar_sptr_t *src, const char *name)
+{
+    auto grammar = (*src)->erase_value(name);
 
     *dst = std::make_shared<const grammar_t>(grammar);
 }

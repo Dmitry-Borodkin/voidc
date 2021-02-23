@@ -73,6 +73,22 @@
 
     ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_peg_grammar_erase_action", ft);
+
+    v_store(char_ptr,    typ1);
+    v_store(std_any_ptr, typ2);
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_peg_grammar_get_value", ft);
+
+    v_store(v_peg_grammar_ptr, typ1);
+    v_store(char_ptr,          typ2);
+    v_store(std_any_ptr,       typ3);
+
+    ft = v_function_type(void, typ0, 4, false);
+    v_add_symbol_type("v_peg_grammar_set_value", ft);
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_peg_grammar_erase_value", ft);
 }
 
 
