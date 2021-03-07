@@ -6,7 +6,12 @@
 {   v_import("printf.void"); }
 
 
-{   vptr = v_alloca(int);
+//{   v_debug_print_module(1); }
+{
+    vptr = v_alloca(int);
+
+    printf("vptr: %p\n", vptr);
+
 
     v_store(777, vptr);
 
@@ -14,6 +19,12 @@
 
 
     printf("vref: %d\n", vref);
+
+
+    vptr_1 = v_pointer(vref);
+
+
+    printf("vptr_1: %p\n", vptr_1);
 }
 
 
