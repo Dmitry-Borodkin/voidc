@@ -1572,6 +1572,15 @@ v_restore_variables(void)
 }
 
 //---------------------------------------------------------------------
+void
+v_add_argument_type(v_type_t *type)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.arg_types.push_back(type);
+}
+
 v_type_t *
 v_get_argument_type(int num)
 {

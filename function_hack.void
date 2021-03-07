@@ -682,6 +682,10 @@
     //-
     //-     LLVMPositionBuilderAtEnd(builder, entry);
     //-
+    //-     ret_type = v_type_function_get_return_type(fun_type);
+    //-
+    //-     v_add_variable("voidc.internal_return_type", ret_type, 0);
+    //-
     //-     v_initialize(saved_compiler_g);
     //-
     //-     v_copy(saved_compiler_g, voidc_compiler);
@@ -763,6 +767,27 @@
     LLVMBuildCall(builder, llvm_position_builder_at_end_f, val0, 2, "");
 
 
+    v_store(fun_type, val0);
+
+    get_return_type_f = v_obtain_function("v_type_function_get_return_type");
+
+    ret_type_v = LLVMBuildCall(builder, get_return_type_f, val0, 1, "ret_type_v");
+
+
+    ret_type_var_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_return_type", "ret_type_var_n");
+
+    LLVMValueRef_    = v_type_get_llvm_type(LLVMValueRef);
+    null_value_ref_v = LLVMConstNull(LLVMValueRef_);
+
+    v_store(ret_type_var_n,   val0);
+    v_store(ret_type_v,       val1);
+    v_store(null_value_ref_v, val2);
+
+    add_var_f = v_obtain_function("v_add_variable");
+
+    LLVMBuildCall(builder, add_var_f, val0, 3, "");
+
+
     v_store(saved_compiler_g, val0);
     v_store(n1,               val1);
 
@@ -799,7 +824,7 @@
     //- {
     //-     builder = v_target_get_builder();
     //-
-    //-     base_args = v_cast(LLVMBitCast, arg_list, v_ast_base_ptr);
+    //-     base_args = v_cast(arg_list, v_ast_base_ptr);
     //-
     //-     v_ast_accept_visitor(base_args, visitor, aux);
     //-
@@ -1057,6 +1082,10 @@
     //-
     //-         v_ast_arg_list_get_args(arg_list, args);
     //-
+    //-         ret_type = v_get_variable_type("voidc.internal_return_type");
+    //-
+    //-         v_add_argument_type(ret_type);
+    //-
     //-         base_arg0 = v_cast(args, v_ast_base_ptr);
     //-
     //-         v_ast_accept_visitor(base_arg0, visitor, aux);
@@ -1126,6 +1155,20 @@
     arg_list_get_args_f = v_obtain_function("v_ast_arg_list_get_args");
 
     LLVMBuildCall(builder, arg_list_get_args_f, val0, 2, "");
+
+
+    v_store(ret_type_var_n, val0);
+
+    get_var_type_f = v_obtain_function("v_get_variable_type");
+
+    ret_type_v = LLVMBuildCall(builder, get_var_type_f, val0, 1, "ret_type_v");
+
+
+    v_store(ret_type_v, val0);
+
+    add_arg_type_f = v_obtain_function("v_add_argument_type");
+
+    LLVMBuildCall(builder, add_arg_type_f, val0, 1, "");
 
 
     base_arg0 = LLVMBuildBitCast(builder, args_v, v_ast_base_ptr_, "base_arg0");

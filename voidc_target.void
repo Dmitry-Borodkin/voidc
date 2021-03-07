@@ -119,6 +119,11 @@
     v_add_symbol_type("v_add_alias",       ft);
     v_add_symbol_type("v_add_local_alias", ft);
 
+    v_store(v_type_ptr, typ0);          //- type
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_add_symbol_type("v_add_argument_type", ft);
+
     v_store(int, typ0);                 //- index
 
     ft = v_function_type(v_type_ptr, typ0, 1, false);
@@ -136,7 +141,7 @@
     ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_get_argument", ft);
 
-//  v_store(int, typ0);                 //- Number of modules...
+//  v_store(int, typ0);                 //- Number of prints/modules...
 
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("v_debug_print_module", ft);

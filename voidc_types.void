@@ -78,6 +78,11 @@
 
 //  v_store(v_type_ptr, typ0);          //-
 
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
+    v_add_symbol_type("v_type_function_get_return_type", ft);
+
+//  v_store(v_type_ptr, typ0);          //-
+
     ft = v_function_type(unsigned, typ0, 1, false);
     v_add_symbol_type("v_type_function_get_param_count", ft);
 

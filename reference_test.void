@@ -45,7 +45,7 @@
 }
 
 
-{   v_debug_print_module(1); }
+//{ v_debug_print_module(1); }
 {
     tryref(888);
 
@@ -58,5 +58,67 @@
     tryref(vref);
 }
 
+
+{   typ0 = v_alloca(v_type_ptr);
+
+    int_ref = v_reference_type(int, 0);
+
+    v_store(int_ref, typ0);
+
+    ft = v_function_type(int_ref, typ0, 1, false);
+
+    f = v_function_hack("retref", ft);
+
+    v_add_parameter_name(f, 0, "vref", int_ref);
+}
+{
+    v_return(vref);
+}
+
+
+//{ v_debug_print_module(1); }
+{
+    vptr = v_alloca(int);
+
+    v_store(555, vptr);
+
+    vref = v_reference(vptr);
+
+    vref_1 = retref(vref);
+
+    tryref(vref_1);
+}
+
+
+//{ v_debug_print_module(2); }
+{   typ0 = v_alloca(v_type_ptr);
+
+    int_ref = v_reference_type(int, 0);
+
+    v_store(int_ref, typ0);
+
+    ft = v_function_type(int, typ0, 1, false);
+
+    f = v_function_hack("retint", ft);
+
+    v_add_parameter_name(f, 0, "vref", int_ref);
+}
+{
+    v_return(vref);
+}
+
+
+//{ v_debug_print_module(1); }
+{
+    vptr = v_alloca(int);
+
+    v_store(444, vptr);
+
+    vref = v_reference(vptr);
+
+    val = retint(vref);
+
+    printf("val: %d\n", val);
+}
 
 
