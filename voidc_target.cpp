@@ -196,6 +196,8 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
+    lctx.arg_types.push_back(nullptr);      //- Get type "as is"...
+
     (*args)->data[0]->accept(*vis, aux);        //- Value
 
     auto src_type = lctx.arg_types[0];
@@ -312,6 +314,8 @@ v_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
     {
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
+
+    lctx.arg_types.push_back(nullptr);      //- Get type "as is"...
 
     (*args)->data[0]->accept(*vis, aux);
 

@@ -152,9 +152,14 @@ void compile_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
 
         if (idx < lctx.arg_types.size())
         {
-            auto at = lctx.arg_types[idx];
-
-            do_load = (at->method_tag() != v_type_reference_visitor_method_tag);
+            if (auto at = lctx.arg_types[idx])
+            {
+                do_load = (at->method_tag() != v_type_reference_visitor_method_tag);
+            }
+            else        //- Get type "as is"...
+            {
+                lctx.arg_types[idx] = t;
+            }
         }
         else
         {
@@ -173,20 +178,25 @@ void compile_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
     {
         if (idx < lctx.arg_types.size())
         {
-            auto at = lctx.arg_types[idx];
-
-            bool is_reference = (at->method_tag() == v_type_reference_visitor_method_tag);
-
-            if (is_reference) at = static_cast<v_type_reference_t *>(at)->element_type();
-
-            if (at != t  &&
-                at == gctx.void_ptr_type  &&
-                t->method_tag() == v_type_pointer_visitor_method_tag)
+            if (auto at = lctx.arg_types[idx])
             {
-                v = LLVMBuildPointerCast(gctx.builder, v, at->llvm_type(), name->c_str());
-            }
+                bool is_reference = (at->method_tag() == v_type_reference_visitor_method_tag);
 
-            if (is_reference) v = lctx.make_temporary(at, v);
+                if (is_reference) at = static_cast<v_type_reference_t *>(at)->element_type();
+
+                if (at != t  &&
+                    at == gctx.void_ptr_type  &&
+                    t->method_tag() == v_type_pointer_visitor_method_tag)
+                {
+                    v = LLVMBuildPointerCast(gctx.builder, v, at->llvm_type(), name->c_str());
+                }
+
+                if (is_reference) v = lctx.make_temporary(at, v);
+            }
+            else        //- Get type "as is"...
+            {
+                lctx.arg_types[idx] = t;
+            }
         }
         else
         {
@@ -195,6 +205,8 @@ void compile_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
             lctx.arg_types.push_back(t);
         }
     }
+
+    assert(idx < lctx.arg_types.size());
 
     lctx.args.push_back(v);
 }
@@ -216,7 +228,8 @@ void compile_ast_arg_integer_t(const visitor_sptr_t *vis, void *aux,
 
     if (idx < lctx.arg_types.size())
     {
-        t = lctx.arg_types[idx];
+        if (auto at = lctx.arg_types[idx])  t = at;
+        else                                lctx.arg_types[idx] = t;
     }
     else
     {
@@ -224,6 +237,8 @@ void compile_ast_arg_integer_t(const visitor_sptr_t *vis, void *aux,
 
         lctx.arg_types.push_back(t);
     }
+
+    assert(idx < lctx.arg_types.size());
 
     bool is_reference = (t->method_tag() == v_type_reference_visitor_method_tag);
 
@@ -262,18 +277,23 @@ void compile_ast_arg_string_t(const visitor_sptr_t *vis, void *aux,
 
     if (idx < lctx.arg_types.size())
     {
-        auto t = lctx.arg_types[idx];
-
-        bool is_reference = (t->method_tag() == v_type_reference_visitor_method_tag);
-
-        if (is_reference) t = static_cast<v_type_reference_t *>(t)->element_type();
-
-        if (t == gctx.void_ptr_type)
+        if (auto t = lctx.arg_types[idx])
         {
-            v = LLVMBuildPointerCast(gctx.builder, v, t->llvm_type(), "void_str");
-        }
+            bool is_reference = (t->method_tag() == v_type_reference_visitor_method_tag);
 
-        if (is_reference) v = lctx.make_temporary(t, v);
+            if (is_reference) t = static_cast<v_type_reference_t *>(t)->element_type();
+
+            if (t == gctx.void_ptr_type)
+            {
+                v = LLVMBuildPointerCast(gctx.builder, v, t->llvm_type(), "void_str");
+            }
+
+            if (is_reference) v = lctx.make_temporary(t, v);
+        }
+        else        //- Get type "as is"...
+        {
+            lctx.arg_types[idx] = gctx.char_ptr_type;
+        }
     }
     else
     {
@@ -281,6 +301,8 @@ void compile_ast_arg_string_t(const visitor_sptr_t *vis, void *aux,
 
         lctx.arg_types.push_back(gctx.char_ptr_type);
     }
+
+    assert(idx < lctx.arg_types.size());
 
     lctx.args.push_back(v);
 }
@@ -302,7 +324,8 @@ void compile_ast_arg_char_t(const visitor_sptr_t *vis, void *aux,
 
     if (idx < lctx.arg_types.size())
     {
-        t = lctx.arg_types[idx];
+        if (auto at = lctx.arg_types[idx])  t = at;
+        else                                lctx.arg_types[idx] = t;
     }
     else
     {
@@ -310,6 +333,8 @@ void compile_ast_arg_char_t(const visitor_sptr_t *vis, void *aux,
 
         lctx.arg_types.push_back(t);
     }
+
+    assert(idx < lctx.arg_types.size());
 
     bool is_reference = (t->method_tag() == v_type_reference_visitor_method_tag);
 
