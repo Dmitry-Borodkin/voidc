@@ -1,6 +1,7 @@
 {   v_import("voidc_types.void"); }
 
 {   v_import("function_hack.void");
+    v_import("memory.void");
 }
 
 {   v_import("printf.void"); }
@@ -119,6 +120,42 @@
     val = retint(vref);
 
     printf("val: %d\n", val);
+}
+
+
+//{ v_debug_print_module(1); }
+{
+    vptr = v_alloca(int);
+
+    vref = v_reference(vptr);
+
+    v_assign(vref, 333);
+
+    printf("vref: %d\n", vref);
+}
+
+
+//{ v_debug_print_module(4); }
+{
+    vptr = v_malloc(long);
+
+    vtyp = v_reference_type(long, 0);
+
+    v_add_local_symbol("vref", vtyp, vptr);
+}
+
+{
+    v_assign(vref, 12345678900);
+}
+
+{
+    printf("vref: %ld\n", vref);
+}
+
+{
+    vptr = v_pointer(vref);
+
+    v_mfree(vptr);
 }
 
 

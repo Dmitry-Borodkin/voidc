@@ -352,6 +352,35 @@ v_reference(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *arg
     lctx.arg_types.clear();
 }
 
+//---------------------------------------------------------------------
+static void
+v_assign(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    assert(lctx.arg_types.empty());
+
+    lctx.arg_types.push_back(nullptr);          //- Get type "as is"...
+
+    (*args)->data[0]->accept(*vis, aux);        //- "Place" first (to obtain type)
+
+    lctx.arg_types.push_back(static_cast<v_type_reference_t *>(lctx.arg_types[0])->element_type());
+
+    (*args)->data[1]->accept(*vis, aux);        //- "Value" second
+
+    LLVMBuildStore(gctx.builder, lctx.args[1], lctx.args[0]);
+
+    lctx.args.clear();
+    lctx.arg_types.clear();
+}
+
 
 //---------------------------------------------------------------------
 //- Base Global Context
@@ -372,6 +401,7 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     DEF(v_cast)
     DEF(v_pointer)
     DEF(v_reference)
+    DEF(v_assign)
 
 #undef DEF
 }
@@ -590,15 +620,17 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
             type  = find_symbol_type(cname);
             value = LLVMGetNamedGlobal(module, cname);
 
-            if (!value)
-            {
-                if (type)
-                {
-                    value = LLVMAddGlobal(module, type->llvm_type(), cname);
-                }
-            }
+            if (!type)  return false;
 
-            type = global_ctx.make_pointer_type(type, 0);       //- Sic!
+            v_type_t *t = type;
+
+            bool is_reference = (type->method_tag() == v_type_reference_visitor_method_tag);
+
+            if (is_reference) t = static_cast<v_type_reference_t *>(t)->element_type();
+
+            if (!value) value = LLVMAddGlobal(module, t->llvm_type(), cname);
+
+            if (!is_reference)  type = global_ctx.make_pointer_type(type, 0);       //- Sic!
         }
     }
 

@@ -258,7 +258,25 @@
     //-
     //-     if (var_value)  v_return(var_value);
     //-
-    //-     var_type  = v_find_symbol_type(var_name);
+    //-     var_type = v_find_symbol_type(var_name);
+    //-
+    //-     var_type_p = v_alloca(v_type_ptr);
+    //-
+    //-     is_ref = v_type_is_reference(var_type);
+    //-
+    //-     if (is_ref)
+    //-     {
+    //-         elt_type = v_type_refptr_get_element_type(var_type);
+    //-
+    //-         v_store(elt_type, var_type_p);
+    //-     }
+    //-     else
+    //-     {
+    //-         v_store(var_type, var_type_p);
+    //-     }
+    //-
+    //-     var_type  = v_load(var_type_p);
+    //-
     //-     var_type_ = v_type_get_llvm_type(var_type);
     //-
     //-     var_value = LLVMAddGlobal(module, var_type_, var_name);
@@ -307,6 +325,55 @@
     v_store(var_name, val0);
 
     var_type = LLVMBuildCall(builder, find_sym_type_f, val0, 1, "var_type");
+
+
+    v_type_ptr_ = v_type_get_llvm_type(v_type_ptr);
+
+    var_type_p = LLVMBuildAlloca(builder, v_type_ptr_, "var_type_p");
+
+
+    type_is_ref_ft = v_find_symbol_type("v_type_is_reference");
+    type_is_ref_ft = v_type_get_llvm_type(type_is_ref_ft);
+    type_is_ref_f  = LLVMAddFunction(module, "v_type_is_reference", type_is_ref_ft);
+
+    v_store(var_type, val0);
+
+    is_ref = LLVMBuildCall(builder, type_is_ref_f, val0, 1, "is_ref");
+
+
+    then_b1 = LLVMAppendBasicBlock(obtain_var_f, "then_b1");
+    else_b1 = LLVMAppendBasicBlock(obtain_var_f, "else_b1");
+    cont_b1 = LLVMAppendBasicBlock(obtain_var_f, "cont_b1");
+
+    LLVMBuildCondBr(builder, is_ref, then_b1, else_b1);
+
+
+    LLVMPositionBuilderAtEnd(builder, then_b1);
+
+    get_elt_type_ft = v_find_symbol_type("v_type_refptr_get_element_type");
+    get_elt_type_ft = v_type_get_llvm_type(get_elt_type_ft);
+    get_elt_type_f  = LLVMAddFunction(module, "v_type_refptr_get_element_type", get_elt_type_ft);
+
+//  v_store(var_type, val0);
+
+    elt_type = LLVMBuildCall(builder, get_elt_type_f, val0, 1, "elt_type");
+
+    LLVMBuildStore(builder, elt_type, var_type_p);
+
+    LLVMBuildBr(builder, cont_b1);
+
+
+    LLVMPositionBuilderAtEnd(builder, else_b1);
+
+    LLVMBuildStore(builder, var_type, var_type_p);
+
+    LLVMBuildBr(builder, cont_b1);
+
+
+    LLVMPositionBuilderAtEnd(builder, cont_b1);
+
+
+    var_type = LLVMBuildLoad(builder, var_type_p, "var_type");
 
 
     v_store(var_type, val0);
