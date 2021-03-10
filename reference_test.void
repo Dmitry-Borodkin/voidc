@@ -137,9 +137,9 @@
 
 //{ v_debug_print_module(4); }
 {
-    vptr = v_malloc(long);
+    vptr = v_malloc(long_long);
 
-    vtyp = v_reference_type(long, 0);
+    vtyp = v_reference_type(long_long, 0);
 
     v_add_local_symbol("vref", vtyp, vptr);
 }
@@ -149,7 +149,7 @@
 }
 
 {
-    printf("vref: %ld\n", vref);
+    printf("vref: %lld\n", vref);
 }
 
 {
@@ -167,9 +167,9 @@
 
     v_assign(vref, 222);
 
-    val = v_cast(vref, long);
+    val = v_cast(vref, long_long);
 
-    printf("val: %ld\n", val);
+    printf("val: %lld\n", val);
 }
 
 
