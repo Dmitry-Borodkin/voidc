@@ -14,26 +14,25 @@
 
 //---------------------------------------------------------------------
 {
-    vn0 = v_alloca(int, 2);
-    vn1 = v_getelementptr(vn0, 1);
+    i = v_alloca(int, 2);
+    j = v_getelementptr(i, 1);
 
-    v_store(0, vn0);
+    i = v_reference(i);
+    j = v_reference(j);
+
+    v_assign(i, 0);
 
     loop
     {
-        i = v_load(vn0);
-
         c = v_icmp(LLVMIntEQ, i, 5);
 
         if (c)  v_break();
 
 
-        v_store(0, vn1);
+        v_assign(j, 0);
 
         loop
         {
-            j = v_load(vn1);
-
             c = v_icmp(LLVMIntEQ, j, 7);
 
             if (c)  v_break();
@@ -44,13 +43,13 @@
 
             j1 = v_binop(LLVMAdd, j, 1);
 
-            v_store(j1, vn1);
+            v_assign(j, j1);
         }
 
 
         i1 = v_binop(LLVMAdd, i, 1);
 
-        v_store(i1, vn0);
+        v_assign(i, i1);
     }
 
     printf("\n");
@@ -73,37 +72,34 @@
     v0 = v_alloca(long_long, 2);
     v1 = v_getelementptr(v0, 1);
 
-    v_store(1, v0);
-    v_store(0, v1);
+    v0 = v_reference(v0);
+    v1 = v_reference(v1);
 
-    vn = v_alloca(int);
+    v_assign(v0, 1);
+    v_assign(v1, 0);
 
-    v_store(0, vn);
+    i = v_alloca(int);
+    i = v_reference(i);
+
+    v_assign(i, 0);
 
     loop
     {
-        i = v_load(vn);
-
         c = v_icmp(LLVMIntEQ, i, n);
 
         if (c)  v_break();
 
-        t0 = v_load(v0);
-        t1 = v_load(v1);
+        v2 = v_binop(LLVMAdd, v0, v1);
 
-        t2 = v_binop(LLVMAdd, t0, t1);
+        v_assign(v0, v1);
+        v_assign(v1, v2);
 
-        v_store(t1, v0);
-        v_store(t2, v1);
+        i1 = v_binop(LLVMAdd, i, 1);
 
-        i = v_binop(LLVMAdd, i, 1);
-
-        v_store(i, vn);
+        v_assign(i, i1);
     }
 
-    r = v_load(v1);
-
-    v_return(r);
+    v_return(v1);
 }
 
 //---------------------------------------------------------------------
