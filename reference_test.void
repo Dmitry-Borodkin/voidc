@@ -159,3 +159,17 @@
 }
 
 
+{ v_debug_print_module(1); }
+{
+    vptr = v_alloca(int);
+
+    vref = v_reference(vptr);
+
+    v_assign(vref, 222);
+
+    val = v_cast(vref, long);
+
+    printf("val: %ld\n", val);
+}
+
+

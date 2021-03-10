@@ -79,12 +79,14 @@
     v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_argument_sptr,  0);    //- Sic!
     v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
 
-    v_add_local_symbol("voidc_ast_stmt_grammar_parsers_count",   int, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_parser_number",   int, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_arguments_count", int, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_argument_number", int, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_ranges_count",    int, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_range_number",    int, 0);   //- Sic!
+    int_ref = v_reference_type(int, 0);
+
+    v_add_local_symbol("voidc_ast_stmt_grammar_parsers_count",   int_ref, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_parser_number",   int_ref, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_arguments_count", int_ref, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_argument_number", int_ref, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_ranges_count",    int_ref, 0);   //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_range_number",    int_ref, 0);   //- Sic!
 }
 
 
@@ -143,17 +145,13 @@
     f = v_function_hack("voidc_ast_stmt_grammar_parsers_inc", ft);
 }
 {
-    number = v_load(voidc_ast_stmt_grammar_parser_number);
+    number = v_binop(LLVMAdd, voidc_ast_stmt_grammar_parser_number, 1);
 
-    number = v_binop(LLVMAdd, number, 1);
+    v_assign(voidc_ast_stmt_grammar_parser_number, number);
 
-    v_store(number, voidc_ast_stmt_grammar_parser_number);
+    gt = v_icmp(LLVMIntUGT, number, voidc_ast_stmt_grammar_parsers_count);
 
-    count = v_load(voidc_ast_stmt_grammar_parsers_count);
-
-    gt = v_icmp(LLVMIntUGT, number, count);
-
-    if (gt) v_store(number, voidc_ast_stmt_grammar_parsers_count);
+    if (gt) v_assign(voidc_ast_stmt_grammar_parsers_count, number);
 }
 
 //---------------------------------------------------------------------
@@ -164,11 +162,9 @@
     f = v_function_hack("voidc_ast_stmt_grammar_parsers_dec", ft);
 }
 {
-    number = v_load(voidc_ast_stmt_grammar_parser_number);
+    number = v_binop(LLVMSub, voidc_ast_stmt_grammar_parser_number, 1);
 
-    number = v_binop(LLVMSub, number, 1);
-
-    v_store(number, voidc_ast_stmt_grammar_parser_number);
+    v_assign(voidc_ast_stmt_grammar_parser_number, number);
 }
 
 
@@ -180,17 +176,13 @@
     f = v_function_hack("voidc_ast_stmt_grammar_arguments_inc", ft);
 }
 {
-    number = v_load(voidc_ast_stmt_grammar_argument_number);
+    number = v_binop(LLVMAdd, voidc_ast_stmt_grammar_argument_number, 1);
 
-    number = v_binop(LLVMAdd, number, 1);
+    v_assign(voidc_ast_stmt_grammar_argument_number, number);
 
-    v_store(number, voidc_ast_stmt_grammar_argument_number);
+    gt = v_icmp(LLVMIntUGT, number, voidc_ast_stmt_grammar_arguments_count);
 
-    count = v_load(voidc_ast_stmt_grammar_arguments_count);
-
-    gt = v_icmp(LLVMIntUGT, number, count);
-
-    if (gt) v_store(number, voidc_ast_stmt_grammar_arguments_count);
+    if (gt) v_assign(voidc_ast_stmt_grammar_arguments_count, number);
 }
 
 
@@ -202,17 +194,13 @@
     f = v_function_hack("voidc_ast_stmt_grammar_ranges_inc", ft);
 }
 {
-    number = v_load(voidc_ast_stmt_grammar_range_number);
+    number = v_binop(LLVMAdd, voidc_ast_stmt_grammar_range_number, 1);
 
-    number = v_binop(LLVMAdd, number, 1);
+    v_assign(voidc_ast_stmt_grammar_range_number, number);
 
-    v_store(number, voidc_ast_stmt_grammar_range_number);
+    gt = v_icmp(LLVMIntUGT, number, voidc_ast_stmt_grammar_ranges_count);
 
-    count = v_load(voidc_ast_stmt_grammar_ranges_count);
-
-    gt = v_icmp(LLVMIntUGT, number, count);
-
-    if (gt) v_store(number, voidc_ast_stmt_grammar_ranges_count);
+    if (gt) v_assign(voidc_ast_stmt_grammar_ranges_count, number);
 }
 
 
@@ -350,12 +338,12 @@
     v_ast_make_stmt_list_nil(voidc_ast_stmt_grammar_stmt_list);
 
 
-    v_store(2, voidc_ast_stmt_grammar_parsers_count);       //- Sic!
-    v_store(0, voidc_ast_stmt_grammar_parser_number);
-    v_store(1, voidc_ast_stmt_grammar_arguments_count);     //- ...
-    v_store(0, voidc_ast_stmt_grammar_argument_number);
-    v_store(1, voidc_ast_stmt_grammar_ranges_count);        //- ...
-    v_store(0, voidc_ast_stmt_grammar_range_number);
+    v_assign(voidc_ast_stmt_grammar_parsers_count  , 2);     //- Sic!
+    v_assign(voidc_ast_stmt_grammar_parser_number  , 0);
+    v_assign(voidc_ast_stmt_grammar_arguments_count, 1);     //- ...
+    v_assign(voidc_ast_stmt_grammar_argument_number, 0);
+    v_assign(voidc_ast_stmt_grammar_ranges_count   , 1);     //- ...
+    v_assign(voidc_ast_stmt_grammar_range_number   , 0);
 
 
     v_std_any_set_value(ret, 1);
@@ -382,13 +370,10 @@
     //-----------------------------------------------------------------
     //- Parsers "stack"
 
-    pr_count = v_load(voidc_ast_stmt_grammar_parsers_count);
-
-
     voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
                                       "v_peg_opaque_parser_sptr",
                                       "v.pr",
-                                      pr_count,
+                                      voidc_ast_stmt_grammar_parsers_count,
                                       1
                                      );
 
@@ -396,13 +381,10 @@
     //-----------------------------------------------------------------
     //- Arguments "stack"
 
-    ar_count = v_load(voidc_ast_stmt_grammar_arguments_count);
-
-
     voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
                                       "v_peg_opaque_argument_sptr",
                                       "v.ar",
-                                      ar_count,
+                                      voidc_ast_stmt_grammar_arguments_count,
                                       1
                                      );
 
@@ -410,13 +392,10 @@
     //-----------------------------------------------------------------
     //- Ranges "stack"
 
-    rn_count = v_load(voidc_ast_stmt_grammar_ranges_count);
-
-
     voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
                                       "v_peg_class_parser_range_t",
                                       "v.rn",
-                                      rn_count,
+                                      voidc_ast_stmt_grammar_ranges_count,
                                       0
                                      );
 
@@ -481,8 +460,8 @@
     //-----------------------------------------------------------------
     //- ...
 
-    pr_num = v_cast(pr_count, intptr_t);
-    ar_num = v_cast(ar_count, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parsers_count,   intptr_t);
+    ar_num = v_cast(voidc_ast_stmt_grammar_arguments_count, intptr_t);
 
     //-----------------------------------------------------------------
     //- Arguments "stack" clear
@@ -580,10 +559,10 @@
         v_ast_make_arg_string(arg2, pr_str);
 
 
-        pr_num = v_load(voidc_ast_stmt_grammar_parser_number);
-
-        if (pr_num)     //- Assign parser from v.pr0  (BTW - assert(pr_num == 1);)
+        if (voidc_ast_stmt_grammar_parser_number)   //- Assign parser from v.pr0
         {
+            //- assert(pr_num == 1);
+
             v_ast_make_arg_identifier(arg3, "v.pr0");       //- Sic!
 
             v_ast_make_arg_integer(arg4, 0);
@@ -675,7 +654,7 @@
 
     v_copy(voidc_ast_stmt_grammar_stmt_list, stmt_list);
 
-    v_store(0, voidc_ast_stmt_grammar_parser_number);
+    v_assign(voidc_ast_stmt_grammar_parser_number, 0);
 
     v_std_any_set_value(ret, 1);
 
@@ -877,7 +856,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    //- assert(*voidc_ast_stmt_grammar_parser_number == 0);
+    //- assert(voidc_ast_stmt_grammar_parser_number == 0);
 
     arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
@@ -953,9 +932,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     n1 = v_cast(1, intptr_t);
 
@@ -1023,9 +1000,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     n1 = v_cast(1, intptr_t);
 
@@ -1098,9 +1073,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     n1 = v_cast(1, intptr_t);
 
@@ -1159,9 +1132,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     n1 = v_cast(1, intptr_t);
 
@@ -1301,9 +1272,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1359,9 +1328,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1415,9 +1382,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1485,9 +1450,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1529,14 +1492,8 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    rn_int = v_load(voidc_ast_stmt_grammar_range_number);
-
-    rn_num = v_cast(rn_int, intptr_t);
-
-
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    rn_num = v_cast(voidc_ast_stmt_grammar_range_number,  intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
@@ -1569,7 +1526,7 @@
 
     voidc_ast_stmt_grammar_parsers_inc();
 
-    v_store(0, voidc_ast_stmt_grammar_range_number);
+    v_assign(voidc_ast_stmt_grammar_range_number, 0);
 
 
     v_std_any_set_value(ret, 1);
@@ -1606,9 +1563,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1662,9 +1617,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1713,9 +1666,7 @@
     v_initialize(stmt);
 
 
-    pr_int = v_load(voidc_ast_stmt_grammar_parser_number);
-
-    pr_num = v_cast(pr_int, intptr_t);
+    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
     pr_sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(pr_sstr);
@@ -1765,9 +1716,7 @@
     v_initialize(stmt);
 
 
-    rn_int = v_load(voidc_ast_stmt_grammar_range_number);
-
-    rn_num = v_cast(rn_int, intptr_t);
+    rn_num = v_cast(voidc_ast_stmt_grammar_range_number, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -1847,9 +1796,7 @@
     fun_str = v_std_string_get(fun_sstr);
 
 
-    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
-
-    ar_num = v_cast(ar_int, intptr_t);
+    ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
 
     arg0 = v_alloca(v_ast_opaque_argument_sptr, 4);
@@ -1875,7 +1822,7 @@
 
     v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
 
-    v_store(0, voidc_ast_stmt_grammar_argument_number);
+    v_assign(voidc_ast_stmt_grammar_argument_number, 0);
 
 
     v_std_any_set_value(ret, 1);
@@ -1913,7 +1860,7 @@
 
     v_ast_make_stmt_list(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
 
-    v_store(0, voidc_ast_stmt_grammar_argument_number);
+    v_assign(voidc_ast_stmt_grammar_argument_number, 0);
 
 
     v_std_any_set_value(ret, 1);
@@ -1950,9 +1897,7 @@
     v_initialize(stmt);
 
 
-    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
-
-    ar_num = v_cast(ar_int, intptr_t);
+    ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -2032,9 +1977,7 @@
     v_initialize(stmt);
 
 
-    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
-
-    ar_num = v_cast(ar_int, intptr_t);
+    ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -2089,9 +2032,7 @@
     v_initialize(stmt);
 
 
-    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
-
-    ar_num = v_cast(ar_int, intptr_t);
+    ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -2147,9 +2088,7 @@
     v_initialize(stmt);
 
 
-    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
-
-    ar_num = v_cast(ar_int, intptr_t);
+    ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
@@ -2203,9 +2142,7 @@
     v_initialize(stmt);
 
 
-    ar_int = v_load(voidc_ast_stmt_grammar_argument_number);
-
-    ar_num = v_cast(ar_int, intptr_t);
+    ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);

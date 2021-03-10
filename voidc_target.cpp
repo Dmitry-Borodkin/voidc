@@ -200,100 +200,110 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 
     (*args)->data[0]->accept(*vis, aux);        //- Value
 
+    auto src_value = lctx.args[0];
+
     auto src_type = lctx.arg_types[0];
     auto dst_type = lctx.lookup_type((*args)->data[1]);
 
-    auto src_stype = v_type_get_scalar_type(src_type);
-    auto dst_stype = v_type_get_scalar_type(dst_type);
-
     auto opcode = LLVMOpcode(0);
 
-    if (v_type_is_floating_point(src_stype))
+    if (auto *pst = dynamic_cast<v_type_reference_t *>(src_type))
     {
-        if (v_type_is_floating_point(dst_stype))
+        if (auto *pdt = dynamic_cast<v_type_reference_t *>(dst_type))
         {
-            auto sz = v_type_floating_point_get_width(src_stype);
-            auto dz = v_type_floating_point_get_width(dst_stype);
+            //- WTF ?!?!?!?!?!?!?
 
-            if (sz == dz)       opcode = LLVMBitCast;       //- ?
-            else if (sz > dz)   opcode = LLVMFPTrunc;
-            else                opcode = LLVMFPExt;
-        }
-        else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
-        {
-            if (idt->is_signed()) opcode = LLVMFPToSI;
-            else                  opcode = LLVMFPToUI;
+            if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
+            else                                                opcode = LLVMAddrSpaceCast;
         }
         else
         {
-            throw std::runtime_error("Bad cast from floating point");
+            src_value = LLVMBuildLoad(gctx.builder, src_value, "tmp");
+
+            src_type  = pst->element_type();
         }
     }
-    else if (auto *ist = dynamic_cast<v_type_integer_t *>(src_stype))
-    {
-        if (v_type_is_floating_point(dst_stype))
-        {
-            if (ist->is_signed()) opcode = LLVMSIToFP;
-            else                  opcode = LLVMUIToFP;
-        }
-        else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
-        {
-            auto sw = ist->width();
-            auto dw = idt->width();
 
-            if (sw == dw)       opcode = LLVMBitCast;       //- ?
-            else if (sw > dw)   opcode = LLVMTrunc;
+    if (!opcode)
+    {
+        auto src_stype = v_type_get_scalar_type(src_type);
+        auto dst_stype = v_type_get_scalar_type(dst_type);
+
+        if (v_type_is_floating_point(src_stype))
+        {
+            if (v_type_is_floating_point(dst_stype))
+            {
+                auto sz = v_type_floating_point_get_width(src_stype);
+                auto dz = v_type_floating_point_get_width(dst_stype);
+
+                if (sz == dz)       opcode = LLVMBitCast;       //- ?
+                else if (sz > dz)   opcode = LLVMFPTrunc;
+                else                opcode = LLVMFPExt;
+            }
+            else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+            {
+                if (idt->is_signed()) opcode = LLVMFPToSI;
+                else                  opcode = LLVMFPToUI;
+            }
             else
             {
-                if (ist->is_signed()) opcode = LLVMSExt;        //- ?
-                else                  opcode = LLVMZExt;        //- ?
+                throw std::runtime_error("Bad cast from floating point");
             }
         }
-        else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+        else if (auto *ist = dynamic_cast<v_type_integer_t *>(src_stype))
         {
-            opcode = LLVMIntToPtr;
+            if (v_type_is_floating_point(dst_stype))
+            {
+                if (ist->is_signed()) opcode = LLVMSIToFP;
+                else                  opcode = LLVMUIToFP;
+            }
+            else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+            {
+                auto sw = ist->width();
+                auto dw = idt->width();
+
+                if (sw == dw)       opcode = LLVMBitCast;       //- ?
+                else if (sw > dw)   opcode = LLVMTrunc;
+                else
+                {
+                    if (ist->is_signed()) opcode = LLVMSExt;        //- ?
+                    else                  opcode = LLVMZExt;        //- ?
+                }
+            }
+            else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+            {
+                opcode = LLVMIntToPtr;
+            }
+            else
+            {
+                throw std::runtime_error("Bad cast from integer");
+            }
+        }
+        else if (auto *pst = dynamic_cast<v_type_pointer_t *>(src_stype))
+        {
+            if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+            {
+                opcode = LLVMPtrToInt;
+            }
+            else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+            {
+                if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
+                else                                                opcode = LLVMAddrSpaceCast;
+            }
+            else
+            {
+                throw std::runtime_error("Bad cast from pointer");
+            }
         }
         else
         {
-            throw std::runtime_error("Bad cast from integer");
+            throw std::runtime_error("Bad cast");
         }
-    }
-    else if (auto *pst = dynamic_cast<v_type_pointer_t *>(src_stype))
-    {
-        if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
-        {
-            opcode = LLVMPtrToInt;
-        }
-        else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
-        {
-            if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
-            else                                                opcode = LLVMAddrSpaceCast;
-        }
-        else
-        {
-            throw std::runtime_error("Bad cast from pointer");
-        }
-    }
-    else if (auto *pst = dynamic_cast<v_type_reference_t *>(src_stype))
-    {
-        if (auto *pdt = dynamic_cast<v_type_reference_t *>(dst_stype))
-        {
-            if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
-            else                                                opcode = LLVMAddrSpaceCast;
-        }
-        else
-        {
-            throw std::runtime_error("Bad cast from reference");
-        }
-    }
-    else
-    {
-        throw std::runtime_error("Bad cast");
     }
 
     LLVMValueRef v;
 
-    v = LLVMBuildCast(gctx.builder, opcode, lctx.args[0], dst_type->llvm_type(), lctx.ret_name);
+    v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), lctx.ret_name);
 
     lctx.args.clear();
     lctx.arg_types.clear();
