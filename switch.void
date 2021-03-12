@@ -249,12 +249,12 @@
 
     v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 
-    accept_z = LLVMConstNull(accept_p_);
-    quark_z  = LLVMConstNull(v_quark_t_);
+    accept_u = LLVMGetUndef(accept_p_);
+    quark_u  = LLVMGetUndef(v_quark_t_);
 
     v_store(destroy_f, val0);
-    v_store(accept_z,  val1);       //- Zero!
-    v_store(quark_z,   val2);       //- Zero!
+    v_store(accept_u,  val1);       //- Undef!
+    v_store(quark_u,   val2);       //- Undef!
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 

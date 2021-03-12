@@ -77,9 +77,9 @@
     saved_module_g = LLVMAddGlobal(module, LLVMModuleRef_, "saved_module_g");
     LLVMSetLinkage(saved_module_g, LLVMPrivateLinkage);
 
-    saved_module_z = LLVMConstNull(LLVMModuleRef_);
+    saved_module_u = LLVMGetUndef(LLVMModuleRef_);
 
-    LLVMSetInitializer(saved_module_g, saved_module_z);
+    LLVMSetInitializer(saved_module_g, saved_module_u);
 
 
     voidc_opaque_visitor_sptr_ = v_type_get_llvm_type(voidc_opaque_visitor_sptr);
@@ -87,9 +87,9 @@
     saved_compiler_g = LLVMAddGlobal(module, voidc_opaque_visitor_sptr_, "saved_compiler_g");
     LLVMSetLinkage(saved_compiler_g, LLVMPrivateLinkage);
 
-    saved_compiler_z = LLVMConstNull(voidc_opaque_visitor_sptr_);
+    saved_compiler_u = LLVMGetUndef(voidc_opaque_visitor_sptr_);
 
-    LLVMSetInitializer(saved_compiler_g, saved_compiler_z);
+    LLVMSetInitializer(saved_compiler_g, saved_compiler_u);
 
 
     //-----------------------------------------------------------------

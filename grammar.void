@@ -42,39 +42,39 @@
 
     gr_arg = LLVMAddGlobal(module, v_ast_opaque_argument_sptr_, "voidc_ast_stmt_grammar_grammar_arg");
 
-    gr_arg_z = LLVMConstNull(v_ast_opaque_argument_sptr_);
+    gr_arg_u = LLVMGetUndef(v_ast_opaque_argument_sptr_);
 
-    LLVMSetInitializer(gr_arg, gr_arg_z);
+    LLVMSetInitializer(gr_arg, gr_arg_u);
 
     v_ast_opaque_stmt_list_sptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_list_sptr);
 
     stmt_list = LLVMAddGlobal(module, v_ast_opaque_stmt_list_sptr_, "voidc_ast_stmt_grammar_stmt_list");
 
-    stmt_list_z = LLVMConstNull(v_ast_opaque_stmt_list_sptr_);
+    stmt_list_u = LLVMGetUndef(v_ast_opaque_stmt_list_sptr_);
 
-    LLVMSetInitializer(stmt_list, stmt_list_z);
+    LLVMSetInitializer(stmt_list, stmt_list_u);
 
     int_ = v_type_get_llvm_type(int);
 
     pr_count = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_parsers_count");
     pr_num   = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_parser_number");
 
-    int_z = LLVMConstNull(int_);
+    int_u = LLVMGetUndef(int_);
 
-    LLVMSetInitializer(pr_count, int_z);
-    LLVMSetInitializer(pr_num,   int_z);
+    LLVMSetInitializer(pr_count, int_u);
+    LLVMSetInitializer(pr_num,   int_u);
 
     ar_count = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_arguments_count");
     ar_num   = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_argument_number");
 
-    LLVMSetInitializer(ar_count, int_z);
-    LLVMSetInitializer(ar_num,   int_z);
+    LLVMSetInitializer(ar_count, int_u);
+    LLVMSetInitializer(ar_num,   int_u);
 
     rn_count = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_ranges_count");
     rn_num   = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_range_number");
 
-    LLVMSetInitializer(rn_count, int_z);
-    LLVMSetInitializer(rn_num,   int_z);
+    LLVMSetInitializer(rn_count, int_u);
+    LLVMSetInitializer(rn_num,   int_u);
 
     v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_argument_sptr,  0);    //- Sic!
     v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
