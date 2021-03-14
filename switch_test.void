@@ -1,4 +1,7 @@
 {   v_import("switch.void");
+
+    v_import("arithmetic.void");
+    v_import("loop.void");
 }
 
 {   v_import("printf.void"); }
@@ -7,6 +10,10 @@
 //---------------------------------------------------------------------
 {
     voidc_enable_statement_switch();
+
+    voidc_enable_statement_loop();
+    voidc_enable_statement_block();
+    voidc_enable_statement_if_then_else();
 }
 
 
@@ -32,5 +39,40 @@
     }
 }
 
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    c = v_alloca(int);  c = v_reference(c);
+    n = v_alloca(int);  n = v_reference(n);
+
+    v_assign(c,   0);
+    v_assign(n, 999);
+
+    loop
+    {
+        f = v_icmp(LLVMIntSLE, n, 0);
+        if (f)  v_break();
+
+        switch(n)
+        {
+        default:    c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 9:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 8:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 7:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 6:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 5:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 4:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 3:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 2:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        case 1:     c1 = v_binop(LLVMAdd, c, 1);    v_assign(c, c1);
+        }
+
+        n1 = v_binop(LLVMSub, n, 10);   v_assign(n, n1);
+    }
+
+    printf("c: %d\n", c);
+}
 
 
