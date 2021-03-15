@@ -497,9 +497,9 @@ class v_type_generic_t : public v_type_t
 public:
     const type_generic_vtable *vtable(void) const { return key.first; }
 
-    unsigned element_count(void) const { return unsigned(key.second.size() - 1); }
+    unsigned element_count(void) const { return unsigned(key.second.size()); }
 
-    void * const *elements(void) const { return key.second.data() + 1; }
+    void * const *elements(void) const { return key.second.data(); }
 
 public:
     ~v_type_generic_t() override
