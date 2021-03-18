@@ -5,7 +5,6 @@
 #include "voidc_types.h"
 
 #include "voidc_target.h"
-#include "voidc_dllexport.h"
 
 #include <cstdio>
 #include <cassert>
@@ -21,218 +20,176 @@ v_type_t::~v_type_t() {}
 
 
 //---------------------------------------------------------------------
-static void
-v_type_void_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
+template<>
+LLVMTypeRef
+v_type_void_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    ret = LLVMVoidTypeInContext(gctx.llvm_ctx);
+    return  LLVMVoidTypeInContext(context.llvm_ctx);
 }
 
-static void
-v_type_f16_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
+template<>
+LLVMTypeRef
+v_type_f16_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    ret = LLVMHalfTypeInContext(gctx.llvm_ctx);
+    return  LLVMHalfTypeInContext(context.llvm_ctx);
 }
 
-static void
-v_type_f32_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
+template<>
+LLVMTypeRef
+v_type_f32_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    ret = LLVMFloatTypeInContext(gctx.llvm_ctx);
+    return  LLVMFloatTypeInContext(context.llvm_ctx);
 }
 
-static void
-v_type_f64_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
+template<>
+LLVMTypeRef
+v_type_f64_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    ret = LLVMDoubleTypeInContext(gctx.llvm_ctx);
+    return  LLVMDoubleTypeInContext(context.llvm_ctx);
 }
 
-static void
-v_type_f128_obtain_llvm_type(const visitor_sptr_t *vis, void *aux)
+template<>
+LLVMTypeRef
+v_type_f128_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    ret = LLVMFP128TypeInContext(gctx.llvm_ctx);
+    return  LLVMFP128TypeInContext(context.llvm_ctx);
 }
 
 
 //---------------------------------------------------------------------
-static void
-v_type_integer_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
-                                unsigned bits, bool _signed)
+LLVMTypeRef
+v_type_integer_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    ret = LLVMIntTypeInContext(gctx.llvm_ctx, bits);
+    return  LLVMIntTypeInContext(context.llvm_ctx, bits);
 }
-
-#define v_type_sint_obtain_llvm_type v_type_integer_obtain_llvm_type
-#define v_type_uint_obtain_llvm_type v_type_integer_obtain_llvm_type
 
 
 //---------------------------------------------------------------------
-static void
-v_type_function_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
-                                 v_type_t *_ret, v_type_t * const *args, unsigned count, bool var_arg)
+LLVMTypeRef
+v_type_function_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-
-    const std::size_t N = count + 1;
+    const std::size_t N = key.first.size();
 
     LLVMTypeRef ft[N];
 
-    ft[0] = _ret->llvm_type();
-
-    for (unsigned i=1; i<N; ++i)
+    for (unsigned i=0; i<N; ++i)
     {
-        ft[i] = args[i-1]->llvm_type();
+        ft[i] = key.first[i]->llvm_type();
     }
 
-    ret = LLVMFunctionType(ft[0], ft+1, N-1, var_arg);
+    return  LLVMFunctionType(ft[0], ft+1, N-1, key.second);
 }
 
 
 //---------------------------------------------------------------------
-static void
-v_type_refptr_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
-                               v_type_t *elt, unsigned addr_space, bool reference)
+LLVMTypeRef
+v_type_refptr_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-    auto &gctx = *voidc_global_ctx_t::target;
-
     LLVMTypeRef et = nullptr;
 
-    if (elt->method_tag() == v_type_void_visitor_method_tag)
+    if (key.first->kind() == v_type_t::k_void)
     {
-        et = gctx.opaque_void_type;
+        et = context.opaque_void_type;
     }
     else
     {
-        et = elt->llvm_type();
+        et = key.first->llvm_type();
     }
 
-    ret = LLVMPointerType(et, addr_space);
+    return  LLVMPointerType(et, key.second);
 }
-
-#define v_type_pointer_obtain_llvm_type   v_type_refptr_obtain_llvm_type
-#define v_type_reference_obtain_llvm_type v_type_refptr_obtain_llvm_type
 
 
 //---------------------------------------------------------------------
-static void
-v_type_struct_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
-                               const char *name, bool opaque,
-                               v_type_t * const *_elts, unsigned count, bool packed)
+LLVMTypeRef
+v_type_struct_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-    auto &gctx = *voidc_global_ctx_t::target;
-
     LLVMTypeRef t = nullptr;
 
-    if (name)
+    if (name_key)
     {
-        t = LLVMGetTypeByName(gctx.llvm_mod, name);
+        auto *c_name = name_key->c_str();
 
-        if (!t) t = LLVMStructCreateNamed(gctx.llvm_ctx, name);
+        t = LLVMGetTypeByName(context.llvm_mod, c_name);
+
+        if (!t) t = LLVMStructCreateNamed(context.llvm_ctx, c_name);
     }
 
-    if (!opaque)
+    if (body_key)
     {
-        if (t  &&  !LLVMIsOpaqueStruct(t))
-        {
-            ret = t;
+        if (t  &&  !LLVMIsOpaqueStruct(t))  return t;
 
-            return;
-        }
-
-        const std::size_t N = count;
+        const std::size_t N = body_key->first.size();
 
         LLVMTypeRef elts[N];
 
         for (unsigned i=0; i<N; ++i)
         {
-            elts[i] = _elts[i]->llvm_type();
+            elts[i] = body_key->first[i]->llvm_type();
         }
 
         if (t)      //- Named opaque (so far) struct - set body...
         {
-            LLVMStructSetBody(t, elts, N, packed);
+            LLVMStructSetBody(t, elts, N, body_key->second);
         }
         else        //- Unnamed...
         {
-            t = LLVMStructTypeInContext(gctx.llvm_ctx, elts, N, packed);
+            t = LLVMStructTypeInContext(context.llvm_ctx, elts, N, body_key->second);
         }
     }
 
     assert(t && "Unnamed struct without body");
 
-    ret = t;
+    return t;
 }
 
 void
 v_type_struct_t::set_body(v_type_t **elts, unsigned count, bool packed)
 {
-    auto &gctx = *voidc_global_ctx_t::target;
-
     assert(is_opaque() && "Struct body already set");
 
-    auto *st = gctx.make_struct_type(elts, count, packed);
+    auto *st = context.make_struct_type(elts, count, packed);
 
     body_key = st->body_key;
 
-    if (cached_llvm_type)
-    {
-        cached_llvm_type = nullptr;     //- Sic!
-
-        llvm_type();
-    }
+    if (cached_llvm_type)   obtain_llvm_type();
 }
 
 
 //---------------------------------------------------------------------
-static void
-v_type_array_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
-                              v_type_t *elt, uint64_t length)
+LLVMTypeRef
+v_type_array_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-
-    auto et = elt->llvm_type();
+    auto et = key.first->llvm_type();
 
     using namespace llvm;
 
-    ret = wrap(ArrayType::get(unwrap(et), length));
+    return  wrap(ArrayType::get(unwrap(et), key.second));
 }
 
 
 //---------------------------------------------------------------------
-static void
-v_type_vector_obtain_llvm_type(const visitor_sptr_t *vis, void *aux,
-                               v_type_t *elt, unsigned size, bool scalable)
+template<>
+LLVMTypeRef
+v_type_fvector_t::obtain_llvm_type(void) const
 {
-    auto &ret = *(LLVMTypeRef *)aux;
-
-    auto et = elt->llvm_type();
+    auto et = key.first->llvm_type();
 
     using namespace llvm;
 
-    if (scalable)   ret = wrap(ScalableVectorType::get(unwrap(et), size));
-    else            ret = wrap(FixedVectorType::get(unwrap(et), size));
+    return  wrap(FixedVectorType::get(unwrap(et), key.second));
 }
 
-#define v_type_fvector_obtain_llvm_type v_type_vector_obtain_llvm_type
-#define v_type_svector_obtain_llvm_type v_type_vector_obtain_llvm_type
+template<>
+LLVMTypeRef
+v_type_svector_t::obtain_llvm_type(void) const
+{
+    auto et = key.first->llvm_type();
+
+    using namespace llvm;
+
+    return  wrap(ScalableVectorType::get(unwrap(et), key.second));
+}
 
 
 //---------------------------------------------------------------------
@@ -243,11 +200,11 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     llvm_mod(LLVMModuleCreateWithNameInContext("empty_mod", ctx)),
     opaque_void_type(LLVMStructCreateNamed(ctx, "struct.v_target_opaque_void")),
 
-    void_type(new v_type_void_t()),
-    f16_type (new v_type_f16_t()),
-    f32_type (new v_type_f32_t()),
-    f64_type (new v_type_f64_t()),
-    f128_type(new v_type_f128_t()),
+    void_type(new v_type_void_t(*this)),
+    f16_type (new v_type_f16_t (*this)),
+    f32_type (new v_type_f32_t (*this)),
+    f64_type (new v_type_f64_t (*this)),
+    f128_type(new v_type_f128_t(*this)),
 
     bool_type     (make_uint_type(1)),
     char_type     (make_sint_type(8)),
@@ -276,7 +233,7 @@ voidc_types_ctx_t::make_sint_type(unsigned bits)
 {
     auto [it, nx] = sint_types.try_emplace(bits, nullptr);
 
-    if (nx) it->second.reset(new v_type_sint_t(it->first));
+    if (nx) it->second.reset(new v_type_sint_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -286,7 +243,7 @@ voidc_types_ctx_t::make_uint_type(unsigned bits)
 {
     auto [it, nx] = uint_types.try_emplace(bits, nullptr);
 
-    if (nx) it->second.reset(new v_type_uint_t(it->first));
+    if (nx) it->second.reset(new v_type_uint_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -308,7 +265,7 @@ voidc_types_ctx_t::make_function_type(v_type_t *ret, v_type_t **args, unsigned c
 
     auto [it, nx] = function_types.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new v_type_function_t(it->first));
+    if (nx) it->second.reset(new v_type_function_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -322,7 +279,7 @@ voidc_types_ctx_t::make_pointer_type(v_type_t *et, unsigned addr_space)
 
     auto [it, nx] = pointer_types.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new v_type_pointer_t(it->first));
+    if (nx) it->second.reset(new v_type_pointer_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -335,7 +292,7 @@ voidc_types_ctx_t::make_reference_type(v_type_t *et, unsigned addr_space)
 
     auto [it, nx] = reference_types.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new v_type_reference_t(it->first));
+    if (nx) it->second.reset(new v_type_reference_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -347,7 +304,7 @@ voidc_types_ctx_t::make_struct_type(const std::string &name)
 {
     auto [it, nx] = named_struct_types.try_emplace(name, nullptr);
 
-    if (nx) it->second.reset(new v_type_struct_t(it->first));
+    if (nx) it->second.reset(new v_type_struct_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -359,7 +316,7 @@ voidc_types_ctx_t::make_struct_type(v_type_t **elts, unsigned count, bool packed
 
     auto [it, nx] = anon_struct_types.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new v_type_struct_t(it->first));
+    if (nx) it->second.reset(new v_type_struct_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -373,7 +330,7 @@ voidc_types_ctx_t::make_array_type(v_type_t *et, uint64_t count)
 
     auto [it, nx] = array_types.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new v_type_array_t(it->first));
+    if (nx) it->second.reset(new v_type_array_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -387,7 +344,7 @@ voidc_types_ctx_t::make_fvector_type(v_type_t *et, unsigned count)
 
     auto [it, nx] = fvector_types.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new v_type_fvector_t(it->first));
+    if (nx) it->second.reset(new v_type_fvector_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -399,21 +356,7 @@ voidc_types_ctx_t::make_svector_type(v_type_t *et, unsigned count)
 
     auto [it, nx] = svector_types.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new v_type_svector_t(it->first));
-
-    return  it->second.get();
-}
-
-
-//-----------------------------------------------------------------
-v_type_generic_t *
-voidc_types_ctx_t::make_generic_type(const type_generic_vtable *vtab, void **elts, unsigned count)
-{
-    v_type_generic_t::key_t key = { vtab, { elts, elts+count } };
-
-    auto [it, nx] = generic_types.try_emplace(key, nullptr);
-
-    if (nx) it->second.reset(new v_type_generic_t(it->first));
+    if (nx) it->second.reset(new v_type_svector_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -424,23 +367,31 @@ voidc_types_ctx_t::make_generic_type(const type_generic_vtable *vtab, void **elt
 //-----------------------------------------------------------------
 void voidc_types_static_initialize(void)
 {
-#define DEF(tag) \
-    v_type_##tag##_visitor_method_tag = v_quark_from_string("v_type_" #tag "_visitor_method_tag");
+    auto &gctx = *voidc_global_ctx_t::voidc;
 
-    DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF)
+    auto int_type = gctx.int_type;
+    auto int_llvm_type = int_type->llvm_type();
+
+#define DEF(kind) \
+    gctx.constants["v_type_kind_" #kind] = \
+        { int_type, LLVMConstInt(int_llvm_type, v_type_t::k_##kind, 0) };
+
+    DEF(void)
+    DEF(f16)
+    DEF(f32)
+    DEF(f64)
+    DEF(f128)
+    DEF(sint)
+    DEF(uint)
+    DEF(function)
+    DEF(pointer)
+    DEF(reference)
+    DEF(struct)
+    DEF(array)
+    DEF(fvector)
+    DEF(svector)
 
 #undef DEF
-
-    voidc_visitor_t vis;
-
-#define DEF(tag) \
-    vis = vis.set_void_method(v_type_##tag##_visitor_method_tag, (void *)v_type_##tag##_obtain_llvm_type);
-
-    DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF)
-
-#undef DEF
-
-    voidc_llvm_type_visitor = std::make_shared<const voidc_visitor_t>(vis);
 }
 
 //-----------------------------------------------------------------
@@ -459,10 +410,10 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------
-v_quark_t
-v_type_get_method_tag(v_type_t *type)
+int
+v_type_get_kind(v_type_t *type)
 {
-    return type->method_tag();
+    return type->kind();
 }
 
 LLVMTypeRef
@@ -519,25 +470,33 @@ v_f128_type(void)
 bool
 v_type_is_floating_point(v_type_t *type)
 {
-    auto tag = type->method_tag();
+    switch(type->kind())
+    {
+    case v_type_t::k_f16:
+    case v_type_t::k_f32:
+    case v_type_t::k_f64:
+    case v_type_t::k_f128:
 
-    return (tag == v_type_f16_visitor_method_tag  ||
-            tag == v_type_f32_visitor_method_tag  ||
-            tag == v_type_f64_visitor_method_tag  ||
-            tag == v_type_f128_visitor_method_tag);
+        return true;
+
+    default:
+
+        return false;
+    }
 }
 
 unsigned
 v_type_floating_point_get_width(v_type_t *type)
 {
-    auto tag = type->method_tag();
+    switch(type->kind())
+    {
+    case v_type_t::k_f16:   return 16;
+    case v_type_t::k_f32:   return 32;
+    case v_type_t::k_f64:   return 64;
+    case v_type_t::k_f128:  return 128;
 
-    if (tag == v_type_f16_visitor_method_tag)   return 16;
-    if (tag == v_type_f32_visitor_method_tag)   return 32;
-    if (tag == v_type_f64_visitor_method_tag)   return 64;
-    if (tag == v_type_f128_visitor_method_tag)  return 128;
-
-    return 0;   //- ?
+    default:                return 0;   //- ?
+    }
 }
 
 
@@ -791,78 +750,6 @@ v_type_vector_is_scalable(v_type_t *type)
 {
     return static_cast<v_type_vector_t *>(type)->is_scalable();
 }
-
-
-//---------------------------------------------------------------------
-v_type_t *
-v_generic_type(const type_generic_vtable *vtab, void **elts, unsigned count)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    return gctx.make_generic_type(vtab, elts, count);
-}
-
-const type_generic_vtable *
-v_type_generic_get_vtable(v_type_t *type)
-{
-    return static_cast<v_type_generic_t *>(type)->vtable();
-}
-
-unsigned
-v_type_generic_get_element_count(v_type_t *type)
-{
-    return static_cast<v_type_generic_t *>(type)->element_count();
-}
-
-void
-v_type_generic_get_elements(v_type_t *type, void **elts)
-{
-    auto gp = static_cast<v_type_generic_t *>(type);
-
-    std::copy_n(gp->elements(), gp->element_count(), elts);
-}
-
-void *
-v_type_generic_get_element_at_index(v_type_t *type, unsigned idx)
-{
-    return static_cast<v_type_generic_t *>(type)->elements()[idx];
-}
-
-
-//---------------------------------------------------------------------
-//- Visitors ...
-//---------------------------------------------------------------------
-#define DEF(tag) \
-v_quark_t v_type_##tag##_visitor_method_tag;
-
-    DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF)
-
-#undef DEF
-
-
-#define DEF(tag) \
-void \
-v_visitor_set_method_type_##tag##_t(visitor_sptr_t *dst, const visitor_sptr_t *src, v_type_##tag##_t::visitor_method_t method) \
-{ \
-    auto visitor = (*src)->set_void_method(v_type_##tag##_visitor_method_tag, (void *)method); \
-    *dst = std::make_shared<const voidc_visitor_t>(visitor); \
-}
-
-    DEFINE_TYPE_VISITOR_METHOD_TAGS(DEF)
-
-#undef DEF
-
-
-//---------------------------------------------------------------------
-void
-v_type_accept_visitor(v_type_t *type, const visitor_sptr_t *visitor, void *aux)
-{
-    type->accept(*visitor, aux);
-}
-
-
-//---------------------------------------------------------------------
-visitor_sptr_t voidc_llvm_type_visitor;
 
 
 //---------------------------------------------------------------------

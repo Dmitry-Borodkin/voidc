@@ -582,7 +582,7 @@ base_local_ctx_t::obtain_function(const std::string &fun_name, v_type_t * &fun_t
         fun_type = ft->element_type();
     }
 
-    if (fun_type->method_tag() != v_type_function_visitor_method_tag) return false;
+    if (fun_type->kind() != v_type_t::k_function) return false;
 
     return true;
 }
@@ -634,7 +634,7 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
 
             v_type_t *t = type;
 
-            bool is_reference = (type->method_tag() == v_type_reference_visitor_method_tag);
+            bool is_reference = (type->kind() == v_type_t::k_reference);
 
             if (is_reference) t = static_cast<v_type_reference_t *>(t)->element_type();
 
@@ -812,9 +812,9 @@ voidc_global_ctx_t::static_initialize(void)
     LLVMAddAlwaysInlinerPass(pass_manager);
 
     //-------------------------------------------------------------
-    voidc_types_static_initialize();        //- Sic!
-
     target = new voidc_global_ctx_t();      //- Sic!
+
+    voidc_types_static_initialize();        //- Sic!
 
     static_cast<voidc_global_ctx_t *>(target)->initialize();    //- Sic!
 
