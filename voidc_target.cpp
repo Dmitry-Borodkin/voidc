@@ -529,11 +529,6 @@ base_local_ctx_t::check_alias(const std::string &name)
 v_type_t *
 base_local_ctx_t::lookup_type(const ast_argument_sptr_t &arg)
 {
-    if (auto arg_type = std::dynamic_pointer_cast<const ast_arg_type_t>(arg))
-    {
-        return  arg_type->type;
-    }
-
     auto &arg_ident = dynamic_cast<const ast_arg_identifier_t &>(*arg);
 
     if (auto type = find_type(arg_ident.name.c_str()))

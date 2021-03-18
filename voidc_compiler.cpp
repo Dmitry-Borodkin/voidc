@@ -349,17 +349,6 @@ void compile_ast_arg_char_t(const visitor_sptr_t *vis, void *aux,
 
 
 //---------------------------------------------------------------------
-//- arg_type
-//---------------------------------------------------------------------
-static
-void compile_ast_arg_type_t(const visitor_sptr_t *vis, void *aux,
-                            v_type_t *type)
-{
-    assert(false && "This can not happen!");
-}
-
-
-//---------------------------------------------------------------------
 //- Compiler visitor
 //---------------------------------------------------------------------
 static

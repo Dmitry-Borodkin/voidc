@@ -27,8 +27,7 @@
     DEF(ast_arg_identifier_t) \
     DEF(ast_arg_integer_t) \
     DEF(ast_arg_string_t) \
-    DEF(ast_arg_char_t) \
-    DEF(ast_arg_type_t)
+    DEF(ast_arg_char_t)
 
 #define DEF(type) \
 extern v_quark_t v_##type##_visitor_method_tag;
@@ -312,27 +311,6 @@ public:
     }
 
     AST_VISITOR_TAG(ast_arg_char_t)
-};
-
-//---------------------------------------------------------------------
-struct ast_arg_type_t : public ast_argument_t
-{
-    v_type_t * const type;
-
-    explicit ast_arg_type_t(v_type_t *_type)
-      : type(_type)
-    {}
-
-public:
-    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
-                                     v_type_t *type);
-
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
-    {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, type);
-    }
-
-    AST_VISITOR_TAG(ast_arg_type_t)
 };
 
 

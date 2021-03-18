@@ -227,22 +227,6 @@ v_ast_arg_char_get_char(const ast_argument_sptr_t *ptr)
 
 
 //-----------------------------------------------------------------
-void
-v_ast_make_arg_type(ast_argument_sptr_t *ret, v_type_t *type)
-{
-    *ret = std::make_shared<const ast_arg_type_t>(type);
-}
-
-v_type_t *
-v_ast_arg_type_get_type(const ast_argument_sptr_t *ptr)
-{
-    auto &r = dynamic_cast<const ast_arg_type_t &>(**ptr);
-
-    return  r.type;
-}
-
-
-//-----------------------------------------------------------------
 //- Generics ...
 //-----------------------------------------------------------------
 void
