@@ -1579,6 +1579,16 @@ v_get_variable(const char *name, v_type_t **type, LLVMValueRef *value)
 }
 
 //---------------------------------------------------------------------
+intptr_t
+v_get_variables_size(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return  intptr_t(lctx.vars.size());
+}
+
+//---------------------------------------------------------------------
 void
 v_clear_variables(void)
 {
@@ -1668,12 +1678,39 @@ v_get_return_name(void)
 }
 
 void
+v_set_return_name(const char *name)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.ret_name = name;
+}
+
+v_type_t *
+v_get_return_type(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return lctx.ret_type;
+}
+
+void
 v_set_return_type(v_type_t *type)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     lctx.ret_type = type;
+}
+
+LLVMValueRef
+v_get_return_value(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return lctx.ret_value;
 }
 
 void
@@ -1730,7 +1767,7 @@ v_find_type(const char *name)
 
     if (!ret)
     {
-//      printf("v_find_type: %s  not found!\n", name);
+        printf("v_find_type: %s  not found!\n", name);
     }
 
 #endif

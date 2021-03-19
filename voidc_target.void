@@ -159,6 +159,9 @@
     v_add_symbol_type("v_restore_variables", ft);
     v_add_symbol_type("v_clear_arguments", ft);
 
+    ft = v_function_type(intptr_t, 0, 0, false);
+    v_add_symbol_type("v_get_variables_size", ft);
+
     ft = v_function_type(LLVMModuleRef, 0, 0, false);
     v_add_symbol_type("v_get_module", ft);
 
@@ -171,6 +174,12 @@
 
     ft = v_function_type(char_ptr, 0, 0, false);
     v_add_symbol_type("v_get_return_name", ft);
+
+    ft = v_function_type(v_type_ptr, 0, 0, false);
+    v_add_symbol_type("v_get_return_type", ft);
+
+    ft = v_function_type(LLVMValueRef, 0, 0, false);
+    v_add_symbol_type("v_get_return_value", ft);
 
     v_store(v_type_ptr, typ0);          //-
 
