@@ -146,7 +146,29 @@ v_type_struct_t::obtain_llvm_type(void) const
 void
 v_type_struct_t::set_body(v_type_t **elts, unsigned count, bool packed)
 {
-    assert(is_opaque() && "Struct body already set");
+    if (!is_opaque())       //- Check!
+    {
+        auto &[e, p] = *body_key;
+
+        bool ok = (p == packed  &&  e.size() == count);
+
+        if (ok)
+        {
+            for (unsigned i=0; i<count; ++i)
+            {
+                if (e[i] != elts[i])
+                {
+                    ok = false;
+
+                    break;
+                }
+            }
+        }
+
+        if (ok) return;
+
+        throw std::runtime_error("Struct body does not match: " + *name_key);
+    }
 
     auto *st = context.make_struct_type(elts, count, packed);
 
