@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------
-//- Copyright (C) 2020 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- Copyright (C) 2020-2021 Dmitry Borodkin <borodkin-dn@yandex.ru>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
 #ifndef VOIDC_AST_H
