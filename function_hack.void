@@ -1073,20 +1073,20 @@
     //- {
     //-     builder = v_target_get_builder();
     //-
-    //-     args_count = v_ast_arg_list_get_count(arg_list);
+    //-     args_count = v_list_get_size(arg_list);
     //-
     //-     if (args_count)
     //-     {
-    //-         args = v_alloca(v_ast_opaque_argument_sptr, args_count);
-    //-         v_initialize(args, args_count);
+    //-         arg0 = v_alloca(v_ast_opaque_argument_sptr);
+    //-         v_initialize(arg0);
     //-
-    //-         v_ast_arg_list_get_args(arg_list, args);
+    //-         v_list_get_items(arg_list, 0, arg0, 1);
     //-
     //-         ret_type = v_get_variable_type("voidc.internal_return_type");
     //-
     //-         v_add_argument_type(ret_type);
     //-
-    //-         base_arg0 = v_cast(args, v_ast_base_ptr);
+    //-         base_arg0 = v_cast(arg0, v_ast_base_ptr);
     //-
     //-         v_ast_accept_visitor(base_arg0, visitor, aux);
     //-
@@ -1094,7 +1094,7 @@
     //-
     //-         LLVMBuildRet(builder, ret);
     //-
-    //-         v_terminate(args, args_count);
+    //-         v_terminate(arg0);
     //-
     //-         v_clear_arguments();
     //-     }
@@ -1119,9 +1119,9 @@
 
     v_store(arg_list, val0);
 
-    arg_list_get_count_f = v_obtain_function("v_ast_arg_list_get_count");
+    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, v_ast_opaque_arg_list_sptr);
 
-    args_count_v = LLVMBuildCall(builder, arg_list_get_count_f, val0, 1, "args_count_v");
+    args_count_v = LLVMBuildCall(builder, list_get_size_f, val0, 1, "args_count_v");
 
 
     then_b = LLVMAppendBasicBlock(return_f, "then_b");
@@ -1138,11 +1138,11 @@
 
     v_ast_opaque_argument_sptr_ = v_type_get_llvm_type(v_ast_opaque_argument_sptr);
 
-    args_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_argument_sptr_, args_count_v, "args_v");
+    arg0_v = LLVMBuildAlloca(builder, v_ast_opaque_argument_sptr_, "arg0_v");
 
 
-    v_store(args_v,       val0);
-    v_store(args_count_v, val1);
+    v_store(arg0_v, val0);
+    v_store(n1,     val1);
 
     arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_argument_sptr);
 
@@ -1150,11 +1150,13 @@
 
 
     v_store(arg_list, val0);
-    v_store(args_v,   val1);
+    v_store(n0,       val1);
+    v_store(arg0_v,   val2);
+    v_store(n1,       val3);
 
-    arg_list_get_args_f = v_obtain_function("v_ast_arg_list_get_args");
+    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_arg_list_sptr);
 
-    LLVMBuildCall(builder, arg_list_get_args_f, val0, 2, "");
+    LLVMBuildCall(builder, list_get_items_f, val0, 4, "");
 
 
     v_store(ret_type_var_n, val0);
@@ -1171,7 +1173,7 @@
     LLVMBuildCall(builder, add_arg_type_f, val0, 1, "");
 
 
-    base_arg0 = LLVMBuildBitCast(builder, args_v, v_ast_base_ptr_, "base_arg0");
+    base_arg0 = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg0");
 
     v_store(base_arg0, val0);
     v_store(visitor,   val1);
@@ -1193,8 +1195,8 @@
     LLVMBuildCall(builder, llvm_build_ret_f, val0, 2, "");
 
 
-    v_store(args_v,       val0);
-    v_store(args_count_v, val1);
+    v_store(arg0_v, val0);
+    v_store(n1,     val1);
 
     arg_term_f = v_obtain_dict_function(v_util_terminate_dict, v_ast_opaque_argument_sptr);
 

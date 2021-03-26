@@ -17,7 +17,7 @@ extern "C"
 //---------------------------------------------------------------------
 VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 #define DEF(name) \
     VOIDC_DEFINE_INITIALIZE_IMPL(ast_##name##_sptr_t, v_ast_initialize_##name##_impl) \
     VOIDC_DEFINE_TERMINATE_IMPL(ast_##name##_sptr_t, v_ast_terminate_##name##_impl) \
@@ -75,32 +75,7 @@ v_ast_unit_get_column(const ast_unit_sptr_t *ptr)
     return r.column;
 }
 
-//-----------------------------------------------------------------
-void
-v_ast_make_stmt_list_nil(ast_stmt_list_sptr_t *ret)
-{
-    *ret = std::make_shared<const ast_stmt_list_t>();
-}
-
-void
-v_ast_make_stmt_list(ast_stmt_list_sptr_t *ret, const ast_stmt_list_sptr_t *list, const ast_stmt_sptr_t *stmt)
-{
-    *ret = std::make_shared<const ast_stmt_list_t>(*list, *stmt);
-}
-
-int
-v_ast_stmt_list_get_size(const ast_stmt_list_sptr_t *ptr)
-{
-    return (*ptr)->data.size();
-}
-
-void
-v_ast_stmt_list_get_stmt(const ast_stmt_list_sptr_t *ptr, int i, ast_stmt_sptr_t *ret)
-{
-    *ret = (*ptr)->data[i];
-}
-
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_make_stmt(ast_stmt_sptr_t *ret, const char *var, const ast_call_sptr_t *call)
 {
@@ -123,7 +98,7 @@ v_ast_stmt_get_call(const ast_stmt_sptr_t *ptr, ast_call_sptr_t *call)
     *call = r.call;
 }
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_make_call(ast_call_sptr_t *ret, const char *fun, const ast_arg_list_sptr_t *list)
 {
@@ -146,26 +121,7 @@ v_ast_call_get_arg_list(const ast_call_sptr_t *ptr, ast_arg_list_sptr_t *list)
     *list = r.arg_list;
 }
 
-//-----------------------------------------------------------------
-void
-v_ast_make_arg_list(ast_arg_list_sptr_t *ret, const ast_argument_sptr_t *list, int count)
-{
-    *ret = std::make_shared<const ast_arg_list_t>(list, count);
-}
-
-int
-v_ast_arg_list_get_count(const ast_arg_list_sptr_t *ptr)
-{
-    return  int((*ptr)->data.size());
-}
-
-void
-v_ast_arg_list_get_args(const ast_arg_list_sptr_t *ptr, ast_argument_sptr_t *ret)
-{
-    std::copy((*ptr)->data.begin(), (*ptr)->data.end(), ret);
-}
-
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_make_arg_identifier(ast_argument_sptr_t *ret, const char *name)
 {
@@ -180,7 +136,7 @@ v_ast_arg_identifier_get_name(const ast_argument_sptr_t *ptr)
     return  r.name.c_str();
 }
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_make_arg_integer(ast_argument_sptr_t *ret, intptr_t number)
 {
@@ -195,7 +151,7 @@ v_ast_arg_integer_get_number(const ast_argument_sptr_t *ptr)
     return  r.number;
 }
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_make_arg_string(ast_argument_sptr_t *ret, const char *string)
 {
@@ -210,7 +166,7 @@ v_ast_arg_string_get_string(const ast_argument_sptr_t *ptr)
     return  r.string.c_str();
 }
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_make_arg_char(ast_argument_sptr_t *ret, char32_t c)
 {
@@ -226,16 +182,16 @@ v_ast_arg_char_get_char(const ast_argument_sptr_t *ptr)
 }
 
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 //- Generics ...
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_make_generic(ast_generic_sptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
     *ret = std::make_shared<const ast_generic_t>(vtab, obj);
 }
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_make_unit_generic(ast_unit_sptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
@@ -260,7 +216,7 @@ v_ast_make_argument_generic(ast_argument_sptr_t *ret, const ast_generic_vtable *
     *ret = std::make_shared<const ast_argument_generic_t>(vtab, obj);
 }
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 const ast_generic_vtable *
 v_ast_generic_get_vtable(const ast_generic_sptr_t *ptr)
 {
@@ -274,49 +230,9 @@ v_ast_generic_get_object(const ast_generic_sptr_t *ptr)
 }
 
 
-//-----------------------------------------------------------------
-void
-v_ast_make_generic_list_nil(ast_generic_list_sptr_t *ret, v_quark_t tag)
-{
-    *ret = std::make_shared<const ast_generic_list_t>(tag);
-}
-
-void
-v_ast_make_generic_list(ast_generic_list_sptr_t *ret, v_quark_t tag, const ast_base_sptr_t *list, int count)
-{
-    *ret = std::make_shared<const ast_generic_list_t>(tag, list, count);
-}
-
-void
-v_ast_generic_list_append(ast_generic_list_sptr_t *ret,
-                          const ast_generic_list_sptr_t *list,
-                          const ast_base_sptr_t *item)
-{
-    *ret = std::make_shared<const ast_generic_list_t>(*list, *item);
-}
-
-int
-v_ast_generic_list_get_size(const ast_generic_list_sptr_t *ptr)
-{
-    return (*ptr)->data.size();
-}
-
-void
-v_ast_generic_list_get_item(const ast_generic_list_sptr_t *ptr, int i, ast_base_sptr_t *ret)
-{
-    *ret = (*ptr)->data[i];
-}
-
-void
-v_ast_generic_list_get_items(const ast_generic_list_sptr_t *ptr, ast_base_sptr_t *ret)
-{
-    std::copy((*ptr)->data.begin(), (*ptr)->data.end(), ret);
-}
-
-
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 //- Visitors ...
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 v_quark_t
 v_ast_base_get_visitor_method_tag(const ast_base_sptr_t *ptr)
 {
@@ -324,7 +240,7 @@ v_ast_base_get_visitor_method_tag(const ast_base_sptr_t *ptr)
 }
 
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 #define DEF(type) \
 v_quark_t v_##type##_visitor_method_tag;
 
@@ -346,12 +262,92 @@ v_visitor_set_method_##type(visitor_sptr_t *dst, const visitor_sptr_t *src, type
 #undef DEF
 
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 void
 v_ast_accept_visitor(const ast_base_sptr_t *object, const visitor_sptr_t *visitor, void *aux)
 {
     (*object)->accept(*visitor, aux);
 }
+
+
+//---------------------------------------------------------------------
+//- Lists ...
+//---------------------------------------------------------------------
+#define AST_DEFINE_LIST_APPEND_IMPL(list_t, fun_name, item_t) \
+void fun_name(std::shared_ptr<const list_t> *ret, const std::shared_ptr<const list_t> *list, const item_t *items, int count) \
+{ \
+    (*ret) = std::make_shared<const list_t>(*list, items, count); \
+}
+
+#define AST_DEFINE_LIST_GET_SIZE_IMPL(list_t, fun_name) \
+int fun_name(const std::shared_ptr<const list_t> *list) \
+{ \
+    return int((*list)->data.size()); \
+}
+
+#define AST_DEFINE_LIST_GET_ITEMS_IMPL(list_t, fun_name, item_t) \
+void fun_name(const std::shared_ptr<const list_t> *list, int idx, item_t *items, int count) \
+{ \
+    std::copy_n((*list)->data.begin() + idx, size_t(count), items); \
+}
+
+
+#define AST_DEFINE_LIST_AGSGI_IMPL(list_t, item_t, name) \
+\
+    AST_DEFINE_LIST_APPEND_IMPL(list_t, v_ast_list_append_##name##_impl, item_t) \
+    AST_DEFINE_LIST_GET_SIZE_IMPL(list_t, v_ast_list_get_size_##name##_impl) \
+    AST_DEFINE_LIST_GET_ITEMS_IMPL(list_t, v_ast_list_get_items_##name##_impl, item_t)
+
+
+//---------------------------------------------------------------------
+void
+v_ast_make_list_nil_stmt_list_impl(ast_stmt_list_sptr_t *ret)
+{
+    (*ret) = std::make_shared<const ast_stmt_list_t>();
+}
+
+void
+v_ast_make_list_stmt_list_impl(ast_stmt_list_sptr_t *ret,
+                               const ast_stmt_sptr_t *items, int count)
+{
+    (*ret) = std::make_shared<const ast_stmt_list_t>(items, size_t(count));
+}
+
+AST_DEFINE_LIST_AGSGI_IMPL(ast_stmt_list_t, ast_stmt_sptr_t, stmt_list)
+
+
+//---------------------------------------------------------------------
+void
+v_ast_make_list_nil_arg_list_impl(ast_arg_list_sptr_t *ret)
+{
+    (*ret) = std::make_shared<const ast_arg_list_t>();
+}
+
+void
+v_ast_make_list_arg_list_impl(ast_arg_list_sptr_t *ret,
+                              const ast_argument_sptr_t *items, int count)
+{
+    (*ret) = std::make_shared<const ast_arg_list_t>(items, size_t(count));
+}
+
+AST_DEFINE_LIST_AGSGI_IMPL(ast_arg_list_t, ast_argument_sptr_t, arg_list)
+
+
+//---------------------------------------------------------------------
+void
+v_ast_make_list_nil_generic_list_impl(ast_generic_list_sptr_t *ret, v_quark_t tag)
+{
+    (*ret) = std::make_shared<const ast_generic_list_t>(tag);
+}
+
+void
+v_ast_make_list_generic_list_impl(ast_generic_list_sptr_t *ret, v_quark_t tag,
+                                  const ast_base_sptr_t *items, int count)
+{
+    (*ret) = std::make_shared<const ast_generic_list_t>(tag, items, size_t(count));
+}
+
+AST_DEFINE_LIST_AGSGI_IMPL(ast_generic_list_t, ast_base_sptr_t, generic_list)
 
 
 //---------------------------------------------------------------------

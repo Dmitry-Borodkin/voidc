@@ -52,6 +52,70 @@
 }
 
 //---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ptr, 4);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+
+
+    //-----------------------------------------------------------------
+    v_store(v_ast_stmt_list_ptr, typ0);
+
+    ft = v_function_type(void, typ0, 1, false);
+
+    v_util_register_make_list_nil_impl(v_ast_opaque_stmt_list_sptr, "v_ast_make_list_nil_stmt_list_impl", ft);
+
+//  v_store(v_ast_stmt_list_ptr, typ0);
+    v_store(v_ast_stmt_ptr,      typ1);
+    v_store(int,                 typ2);
+
+    ft = v_function_type(void, typ0, 3, false);
+
+    v_util_register_make_list_impl(v_ast_opaque_stmt_list_sptr, "v_ast_make_list_stmt_list_impl", ft);
+
+    v_util_register_list_agsgi_impl(v_ast_opaque_stmt_list_sptr, v_ast_opaque_stmt_sptr, "v_ast", "stmt_list");
+
+
+    //-----------------------------------------------------------------
+    v_store(v_ast_arg_list_ptr, typ0);
+
+    ft = v_function_type(void, typ0, 1, false);
+
+    v_util_register_make_list_nil_impl(v_ast_opaque_arg_list_sptr, "v_ast_make_list_nil_arg_list_impl", ft);
+
+//  v_store(v_ast_arg_list_ptr, typ0);
+    v_store(v_ast_argument_ptr, typ1);
+//  v_store(int,                typ2);
+
+    ft = v_function_type(void, typ0, 3, false);
+
+    v_util_register_make_list_impl(v_ast_opaque_arg_list_sptr, "v_ast_make_list_arg_list_impl", ft);
+
+    v_util_register_list_agsgi_impl(v_ast_opaque_arg_list_sptr, v_ast_opaque_argument_sptr, "v_ast", "arg_list");
+
+
+    //-----------------------------------------------------------------
+    v_store(v_ast_generic_list_ptr, typ0);
+    v_store(v_quark_t,              typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+
+    v_util_register_make_list_nil_impl(v_ast_opaque_generic_list_sptr, "v_ast_make_list_nil_generic_list_impl", ft);
+
+//  v_store(v_ast_generic_list_ptr, typ0);
+//  v_store(v_quark_t,              typ1);
+    v_store(v_ast_base_ptr,         typ2);
+    v_store(int,                    typ3);
+
+    ft = v_function_type(void, typ0, 4, false);
+
+    v_util_register_make_list_impl(v_ast_opaque_generic_list_sptr, "v_ast_make_list_generic_list_impl", ft);
+
+    v_util_register_list_agsgi_impl(v_ast_opaque_generic_list_sptr, v_ast_opaque_base_sptr, "v_ast", "generic_list");
+}
+
+
+//---------------------------------------------------------------------
 {   arg0 = v_alloca(v_type_ptr, 5);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
@@ -90,31 +154,6 @@
     v_add_symbol_type("v_ast_unit_get_column", ft);
 
     //-------------------------------------------------------------
-    v_store(v_ast_stmt_list_ptr, arg0);             //- (out)
-
-    ft = v_function_type(void, arg0, 1, false);
-    v_add_symbol_type("v_ast_make_stmt_list_nil", ft);
-
-//  v_store(v_ast_stmt_list_ptr, arg0);             //- (out)
-    v_store(v_ast_stmt_list_ptr, arg1);             //- head
-    v_store(v_ast_stmt_ptr,      arg2);             //- tail
-
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_ast_make_stmt_list", ft);
-
-//  v_store(v_ast_stmt_list_ptr, arg0);             //-
-
-    ft = v_function_type(int, arg0, 1, false);
-    v_add_symbol_type("v_ast_stmt_list_get_size", ft);
-
-//  v_store(v_ast_stmt_list_ptr, arg0);             //-
-    v_store(int,                 arg1);             //- index
-    v_store(v_ast_stmt_ptr,      arg2);             //- (out)
-
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_ast_stmt_list_get_stmt", ft);
-
-    //-------------------------------------------------------------
     v_store(v_ast_stmt_ptr, arg0);                  //- (out)
     v_store(char_ptr,       arg1);                  //- return name or ""
     v_store(v_ast_call_ptr, arg2);                  //-
@@ -151,25 +190,6 @@
 
     ft = v_function_type(void, arg0, 2, false);
     v_add_symbol_type("v_ast_call_get_arg_list", ft);
-
-    //-------------------------------------------------------------
-    v_store(v_ast_arg_list_ptr, arg0);              //- (out)
-    v_store(v_ast_argument_ptr, arg1);              //- array
-    v_store(int,                arg2);              //- length
-
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_ast_make_arg_list", ft);
-
-//  v_store(v_ast_arg_list_ptr, arg0);              //-
-
-    ft = v_function_type(int, arg0, 1, false);
-    v_add_symbol_type("v_ast_arg_list_get_count", ft);
-
-//  v_store(v_ast_arg_list_ptr, arg0);              //-
-//  v_store(v_ast_argument_ptr, arg1);              //- (out) - array of proper(!) length
-
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_arg_list_get_args", ft);    //- ALL of them...
 
     //-------------------------------------------------------------
     v_store(v_ast_argument_ptr, arg0);              //- (out)
@@ -298,47 +318,6 @@
 
     ft = v_function_type(void_ptr, arg0, 1, false);
     v_add_symbol_type("v_ast_generic_get_object", ft);
-
-
-    //-------------------------------------------------------------
-    v_store(v_ast_generic_list_ptr, arg0);          //- (out)
-    v_store(v_quark_t,              arg1);          //-
-
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_make_generic_list_nil", ft);
-
-//  v_store(v_ast_generic_list_ptr, arg0);          //- (out)
-//  v_store(v_quark_t,              arg1);          //-
-    v_store(v_ast_base_ptr,         arg2);          //- array
-    v_store(int,                    arg3);          //- length
-
-    ft = v_function_type(void, arg0, 4, false);
-    v_add_symbol_type("v_ast_make_generic_list", ft);
-
-//  v_store(v_ast_generic_list_ptr, arg0);          //- (out)
-    v_store(v_ast_generic_list_ptr, arg1);          //- head
-//  v_store(v_ast_base_ptr,         arg2);          //- tail
-
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_ast_generic_list_append", ft);
-
-//  v_store(v_ast_generic_list_ptr, arg0);          //-
-
-    ft = v_function_type(int, arg0, 1, false);
-    v_add_symbol_type("v_ast_generic_list_get_size", ft);
-
-//  v_store(v_ast_generic_list_ptr, arg0);          //-
-    v_store(int,                    arg1);          //- index
-//  v_store(v_ast_base_ptr,         arg2);          //- (out) - one(!) item
-
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_ast_generic_list_get_item", ft);
-
-//  v_store(v_ast_generic_list_ptr, arg0);          //-
-    v_store(v_ast_base_ptr,         arg1);          //- (out) - array of proper(!) length
-
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_generic_list_get_items", ft);       //- ALL of them
 
 
     //-------------------------------------------------------------

@@ -25,18 +25,16 @@
 //---------------------------------------------------------------------
 //- fun voidc_memory_malloc_intrinsic(visitor: voidc_visitor_t, aux: void_ptr, arg_list: v_ast_arg_list_ptr)
 //- {
-//-     arg_count = v_ast_arg_list_get_count(arg_list);
+//-     args_count = v_list_get_size(arg_list);
 //-
 //-     args = v_alloca(v_ast_opaque_argument_sptr, args_count);
 //-     v_initialize(args, args_count);
 //-
-//-     v_ast_arg_list_get_args(arg_list, args);
+//-     v_list_get_items(arg_list, 0, arg0, args_count);
 //-
 //-     num_var = v_alloca(LLVMValueRef);
 //-
-//-     n1 = v_cast(1, int);
-//-
-//-     ok = v_icmp(LLVMIntEQ, args_count, n1);
+//-     ok = v_icmp(LLVMIntEQ, args_count, 1);
 //-
 //-     if (ok)
 //-     {
@@ -71,9 +69,10 @@
     arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", v_ast_arg_list_ptr);
 
 
-    val0 = v_alloca(LLVMValueRef, 3);
+    val0 = v_alloca(LLVMValueRef, 4);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
+    val3 = v_getelementptr(val0, 3);
 
     int_ = v_type_get_llvm_type(int);
 
@@ -86,9 +85,9 @@
 
     v_store(arg_list, val0);
 
-    arg_list_get_count_f = v_obtain_function("v_ast_arg_list_get_count");
+    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, v_ast_opaque_arg_list_sptr);
 
-    args_count_v = LLVMBuildCall(builder, arg_list_get_count_f, val0, 1, "args_count_v");
+    args_count_v = LLVMBuildCall(builder, list_get_size_f, val0, 1, "args_count_v");
 
 
     v_ast_opaque_argument_sptr_ = v_type_get_llvm_type(v_ast_opaque_argument_sptr);
@@ -104,12 +103,14 @@
     LLVMBuildCall(builder, arg_init_f, val0, 2, "");
 
 
-    v_store(arg_list, val0);
-    v_store(args_v,   val1);
+    v_store(arg_list,     val0);
+    v_store(n0,           val1);
+    v_store(args_v,       val2);
+    v_store(args_count_v, val3);
 
-    arg_list_get_args_f = v_obtain_function("v_ast_arg_list_get_args");
+    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_arg_list_sptr);
 
-    LLVMBuildCall(builder, arg_list_get_args_f, val0, 2, "");
+    LLVMBuildCall(builder, list_get_items_f, val0, 4, "");
 
 
     then_b = LLVMAppendBasicBlock(malloc_f, "then_b");

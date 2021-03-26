@@ -13,11 +13,12 @@
 #include <cstdio>
 
 #include <immer/vector.hpp>
+#include <immer/vector_transient.hpp>
 
 
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 //- Visitor tags...
-//-----------------------------------------------------------------
+//---------------------------------------------------------------------
 #define DEFINE_AST_VISITOR_METHOD_TAGS(DEF) \
     DEF(ast_stmt_list_t) \
     DEF(ast_arg_list_t) \
@@ -85,13 +86,18 @@ struct ast_list_t : public ast_base_t
 
     ast_list_t() : data{} {}
 
+    ast_list_t(const std::shared_ptr<const T> *items, size_t count)
+      : data(items, items+count)
+    {}
+
     ast_list_t(const std::shared_ptr<const ast_list_t<T>> &list,
-               const std::shared_ptr<const T>             &item)
+               const std::shared_ptr<const T> &item)
       : data(list->data.push_back(item))
     {}
 
-    ast_list_t(const std::shared_ptr<const T> *list, size_t count)
-      : data(list, list+count)
+    ast_list_t(const std::shared_ptr<const ast_list_t<T>> &list,
+               const std::shared_ptr<const T> *items, size_t count)
+      : data(list->do_append(items, count))
     {}
 
 public:
@@ -110,6 +116,17 @@ public:
 
         visitor->visit<visitor_method_t>(tag, visitor, aux, data.size(), false);
     }
+
+private:
+    immer::vector<std::shared_ptr<const T>>
+    do_append(const std::shared_ptr<const T> *list, size_t count) const
+    {
+        auto t = data.transient();
+
+        for (size_t i=0; i<count; ++i)  t.push_back(list[i]);
+
+        return t.persistent();
+    }
 };
 
 //---------------------------------------------------------------------
@@ -117,13 +134,18 @@ struct ast_stmt_list_t : public ast_list_t<ast_stmt_base_t>
 {
     ast_stmt_list_t() = default;
 
+    ast_stmt_list_t(const std::shared_ptr<const ast_stmt_base_t> *items, size_t count)
+      : ast_list_t<ast_stmt_base_t>(items, count)
+    {}
+
     ast_stmt_list_t(const std::shared_ptr<const ast_stmt_list_t> &list,
                     const std::shared_ptr<const ast_stmt_base_t> &item)
       : ast_list_t<ast_stmt_base_t>(list, item)
     {}
 
-    ast_stmt_list_t(const std::shared_ptr<const ast_stmt_base_t> *list, size_t count)
-      : ast_list_t<ast_stmt_base_t>(list, count)
+    ast_stmt_list_t(const std::shared_ptr<const ast_stmt_list_t> &list,
+                    const std::shared_ptr<const ast_stmt_base_t> *items, size_t count)
+      : ast_list_t<ast_stmt_base_t>(list, items, count)
     {}
 
     AST_VISITOR_TAG(ast_stmt_list_t)
@@ -136,13 +158,18 @@ struct ast_arg_list_t : public ast_list_t<ast_argument_t>
 {
     ast_arg_list_t() = default;
 
+    ast_arg_list_t(const std::shared_ptr<const ast_argument_t> *items, size_t count)
+      : ast_list_t<ast_argument_t>(items, count)
+    {}
+
     ast_arg_list_t(const std::shared_ptr<const ast_arg_list_t> &list,
                    const std::shared_ptr<const ast_argument_t> &item)
       : ast_list_t<ast_argument_t>(list, item)
     {}
 
-    ast_arg_list_t(const std::shared_ptr<const ast_argument_t> *list, size_t count)
-      : ast_list_t<ast_argument_t>(list, count)
+    ast_arg_list_t(const std::shared_ptr<const ast_arg_list_t> &list,
+                   const std::shared_ptr<const ast_argument_t> *items, size_t count)
+      : ast_list_t<ast_argument_t>(list, items, count)
     {}
 
     AST_VISITOR_TAG(ast_arg_list_t)
@@ -405,15 +432,21 @@ struct ast_generic_list_t : public ast_list_t<ast_base_t>
       : visitor_method_tag(tag)
     {}
 
+    ast_generic_list_t(v_quark_t tag, const ast_base_sptr_t *items, size_t count)
+      : ast_list_t<ast_base_t>(items, count),
+        visitor_method_tag(tag)
+    {}
+
     ast_generic_list_t(const std::shared_ptr<const ast_generic_list_t> &list,
                        const ast_base_sptr_t &item)
       : ast_list_t<ast_base_t>(list, item),
         visitor_method_tag(list->visitor_method_tag)
     {}
 
-    ast_generic_list_t(v_quark_t tag, const ast_base_sptr_t *list, size_t count)
-      : ast_list_t<ast_base_t>(list, count),
-        visitor_method_tag(tag)
+    ast_generic_list_t(const std::shared_ptr<const ast_generic_list_t> &list,
+                       const ast_base_sptr_t *items, size_t count)
+      : ast_list_t<ast_base_t>(list, items, count),
+        visitor_method_tag(list->visitor_method_tag)
     {}
 
 protected:

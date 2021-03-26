@@ -378,8 +378,8 @@
     ret_list = v_alloca(v_ast_opaque_generic_list_sptr);
     v_initialize(ret_list);
 
-    if (list)   v_ast_generic_list_append(ret_list, list, item);
-    else        v_ast_make_generic_list(ret_list, 0, item, 1);          //- Quark == 0 (!)
+    if (list)   v_list_append(ret_list, list, item);
+    else        v_make_list(ret_list, 0, item, 1);          //- Quark == 0 (!)
 
     v_std_any_set_pointer(ret, ret_list);
 
@@ -451,7 +451,7 @@
     case_max = v_alloca(int);   case_max = v_reference(case_max);
     v_assign(case_max, 0);
 
-    list_count = v_ast_generic_list_get_size(list);
+    list_count = v_list_get_size(list);
 
     case_idx = v_alloca(int);   case_idx = v_reference(case_idx);
     v_assign(case_idx, 0);
@@ -461,7 +461,7 @@
         fin = v_icmp(LLVMIntEQ, case_idx, list_count);
         if (fin)  v_break();
 
-        v_ast_generic_list_get_item(list, case_idx, ast_base);
+        v_list_get_items(list, case_idx, ast_base);
 
         ast_generic = v_cast(ast_base, v_ast_generic_ptr);
 
@@ -471,7 +471,7 @@
 
         case_list = v_getelementptr(case_block, 0, 0);
 
-        n = v_ast_arg_list_get_count(case_list);
+        n = v_list_get_size(case_list);
 
         num = v_binop(LLVMAdd, case_num, n);
 
@@ -522,7 +522,7 @@
         fin = v_icmp(LLVMIntEQ, case_idx, list_count);
         if (fin)  v_break();
 
-        v_ast_generic_list_get_item(list, case_idx, ast_base);
+        v_list_get_items(list, case_idx, ast_base);
 
         ast_generic = v_cast(ast_base, v_ast_generic_ptr);
 
@@ -532,9 +532,9 @@
 
         case_list = v_getelementptr(case_block, 0, 0);
 
-        v_ast_arg_list_get_args(case_list, case_args);
+        n = v_list_get_size(case_list);
 
-        n = v_ast_arg_list_get_count(case_list);
+        v_list_get_items(case_list, 0, case_args, n);
 
         v_assign(case_b, 0);
 
