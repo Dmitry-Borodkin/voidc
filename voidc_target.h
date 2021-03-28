@@ -127,12 +127,21 @@ public:
     std::forward_list<variables_t> vars_stack;
 
 public:
-    std::vector<v_type_t *>   arg_types;
-    std::vector<LLVMValueRef> args;
+    struct arguments_t
+    {
+        std::vector<v_type_t *>   types;
+        std::vector<LLVMValueRef> values;
 
-    const char  *ret_name;
-    v_type_t    *ret_type;
-    LLVMValueRef ret_value;
+        const char  *ret_name  = "";
+        v_type_t    *ret_type  = nullptr;
+        LLVMValueRef ret_value = nullptr;
+    };
+
+    typedef std::shared_ptr<arguments_t> args_sptr_t;
+
+    args_sptr_t args = std::make_shared<arguments_t>();
+
+    std::forward_list<args_sptr_t> args_stack;
 
 public:
     LLVMValueRef make_temporary(v_type_t *type, LLVMValueRef value);

@@ -187,8 +187,7 @@ struct ast_unit_t : public ast_unit_base_t
     const int column;
 
     explicit ast_unit_t(const ast_stmt_list_sptr_t &_stmt_list,
-                        int _line, int _column
-                        )
+                        int _line, int _column)
       : stmt_list(_stmt_list),
         line(_line),
         column(_column)

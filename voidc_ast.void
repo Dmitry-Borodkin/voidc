@@ -330,6 +330,10 @@
 
 
     //-------------------------------------------------------------
+    quark_ref = v_reference_type(v_quark_t, 0);
+
+
+    //-------------------------------------------------------------
     v_store(voidc_visitor_ptr, arg0);               //- visitor
     v_store(void_ptr,          arg1);               //- aux
     v_store(size_t,            arg2);               //- size of list
@@ -348,8 +352,8 @@
     v_add_symbol_type("v_visitor_set_method_ast_stmt_list_t", ft);
     v_add_symbol_type("v_visitor_set_method_ast_arg_list_t",  ft);
 
-    v_add_symbol_type("v_ast_stmt_list_t_visitor_method_tag", v_quark_t);
-    v_add_symbol_type("v_ast_arg_list_t_visitor_method_tag",  v_quark_t);
+    v_add_symbol_type("v_ast_stmt_list_t_visitor_method_tag", quark_ref);
+    v_add_symbol_type("v_ast_arg_list_t_visitor_method_tag",  quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr,   arg0);             //-
@@ -370,7 +374,7 @@
     ft = v_function_type(void, arg0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_unit_t", ft);
 
-    v_add_symbol_type("v_ast_unit_t_visitor_method_tag", v_quark_t);
+    v_add_symbol_type("v_ast_unit_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr,     arg0);           //-
@@ -390,7 +394,7 @@
     ft = v_function_type(void, arg0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_stmt_t", ft);
 
-    v_add_symbol_type("v_ast_stmt_t_visitor_method_tag", v_quark_t);
+    v_add_symbol_type("v_ast_stmt_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr,     arg0);           //-
@@ -410,7 +414,7 @@
     ft = v_function_type(void, arg0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_call_t", ft);
 
-    v_add_symbol_type("v_ast_call_t_visitor_method_tag", v_quark_t);
+    v_add_symbol_type("v_ast_call_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr,     arg0);           //-
@@ -429,7 +433,7 @@
     ft = v_function_type(void, arg0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_arg_identifier_t", ft);
 
-    v_add_symbol_type("v_ast_arg_identifier_t_visitor_method_tag", v_quark_t);
+    v_add_symbol_type("v_ast_arg_identifier_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr, arg0);               //-
@@ -448,7 +452,7 @@
     ft = v_function_type(void, arg0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_arg_integer_t", ft);
 
-    v_add_symbol_type("v_ast_arg_integer_t_visitor_method_tag", v_quark_t);
+    v_add_symbol_type("v_ast_arg_integer_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr,     arg0);           //-
@@ -467,7 +471,7 @@
     ft = v_function_type(void, arg0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_arg_string_t", ft);
 
-    v_add_symbol_type("v_ast_arg_string_t_visitor_method_tag", v_quark_t);
+    v_add_symbol_type("v_ast_arg_string_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr, arg0);               //-
@@ -486,7 +490,7 @@
     ft = v_function_type(void, arg0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_arg_char_t", ft);
 
-    v_add_symbol_type("v_ast_arg_char_t_visitor_method_tag", v_quark_t);
+    v_add_symbol_type("v_ast_arg_char_t_visitor_method_tag", quark_ref);
 
 
     //-------------------------------------------------------------

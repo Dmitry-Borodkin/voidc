@@ -65,6 +65,7 @@ void v_init_term_helper(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(args);
     if (args->data.size() < 1  ||  args->data.size() > 2)
@@ -72,11 +73,11 @@ void v_init_term_helper(const visitor_sptr_t *vis, void *aux,
         throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     args->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     const char *fun = dict.at(type).c_str();
 
@@ -92,13 +93,13 @@ void v_init_term_helper(const visitor_sptr_t *vis, void *aux,
     {
         auto n = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
 
-        lctx.args.push_back(n);
+        larg.values.push_back(n);
     }
 
-    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), "");
+    LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -125,6 +126,7 @@ void v_copy_move_helper(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(args);
     if (args->data.size() < 2  ||  args->data.size() > 3)
@@ -132,11 +134,11 @@ void v_copy_move_helper(const visitor_sptr_t *vis, void *aux,
         throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     args->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     const char *fun = dict.at(type).c_str();
 
@@ -152,13 +154,13 @@ void v_copy_move_helper(const visitor_sptr_t *vis, void *aux,
     {
         auto n = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
 
-        lctx.args.push_back(n);
+        larg.values.push_back(n);
     }
 
-    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), "");
+    LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -182,6 +184,7 @@ void v_empty(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *ar
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -189,11 +192,11 @@ void v_empty(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *ar
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     const char *fun = v_util_empty_dict.at(type).c_str();
 
@@ -205,13 +208,13 @@ void v_empty(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *ar
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 
-    lctx.ret_type  = gctx.bool_type;
-    lctx.ret_value = v;
+    larg.ret_type  = gctx.bool_type;
+    larg.ret_value = v;
 }
 
 
@@ -221,6 +224,7 @@ void v_kind(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *arg
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -228,11 +232,11 @@ void v_kind(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *arg
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     const char *fun = v_util_kind_dict.at(type).c_str();
 
@@ -244,13 +248,13 @@ void v_kind(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *arg
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 
-    lctx.ret_type  = gctx.int_type;     //- ?
-    lctx.ret_value = v;
+    larg.ret_type  = gctx.int_type;     //- ?
+    larg.ret_value = v;
 }
 
 
@@ -263,6 +267,7 @@ void v_std_any_get_helper(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(args);
     if (args->data.size() != 2)
@@ -270,7 +275,7 @@ void v_std_any_get_helper(const visitor_sptr_t *vis, void *aux,
         throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     auto type = lctx.lookup_type(args->data[0]);
     assert(type);
@@ -287,22 +292,22 @@ void v_std_any_get_helper(const visitor_sptr_t *vis, void *aux,
 
     args->data[1]->accept(*vis, aux);
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 
-    lctx.ret_value = v;
+    larg.ret_value = v;
 
     if (&dict == &v_util_std_any_get_value_dict)
     {
-        lctx.ret_type = type;
+        larg.ret_type = type;
     }
     else
     {
         auto adsp = LLVMGetPointerAddressSpace(LLVMTypeOf(v));
 
-        lctx.ret_type = gctx.make_pointer_type(type, adsp);
+        larg.ret_type = gctx.make_pointer_type(type, adsp);
     }
 }
 
@@ -326,6 +331,7 @@ void v_std_any_set_value(const visitor_sptr_t *vis, void *aux, const ast_arg_lis
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -333,11 +339,11 @@ void v_std_any_set_value(const visitor_sptr_t *vis, void *aux, const ast_arg_lis
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->accept(*vis, aux);
 
-    auto type = lctx.arg_types[1];
+    auto type = larg.types[1];
 
     const char *fun = v_util_std_any_set_value_dict.at(type).c_str();
 
@@ -349,10 +355,10 @@ void v_std_any_set_value(const visitor_sptr_t *vis, void *aux, const ast_arg_lis
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), "");
+    LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 
@@ -362,6 +368,7 @@ void v_std_any_set_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_l
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -369,11 +376,11 @@ void v_std_any_set_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_l
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[1])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[1])->element_type();
 
     const char *fun = v_util_std_any_set_pointer_dict.at(type).c_str();
 
@@ -385,10 +392,10 @@ void v_std_any_set_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_l
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), "");
+    LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 
@@ -402,17 +409,18 @@ void v_make_list_helper(const visitor_sptr_t *vis, void *aux,
 
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     if (args->data.size() < 1)
     {
         throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     args->data[0]->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     const char *fun = dict.at(type).c_str();
 
@@ -428,19 +436,19 @@ void v_make_list_helper(const visitor_sptr_t *vis, void *aux,
 
     auto count = ft->param_count();
 
-    lctx.arg_types.resize(count);
+    larg.types.resize(count);
 
-    std::copy_n(ft->param_types(), count, lctx.arg_types.data());
+    std::copy_n(ft->param_types(), count, larg.types.data());
 
     for (int i=1, sz=args->data.size(); i<sz; ++i)
     {
         args->data[i]->accept(*vis, aux);
     }
 
-    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), "");
+    LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -464,6 +472,7 @@ void v_list_append(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() < 3  ||  (*args)->data.size() > 4)
@@ -471,11 +480,11 @@ void v_list_append(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     const char *fun = v_util_list_append_dict.at(type).c_str();
 
@@ -491,13 +500,13 @@ void v_list_append(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr
     {
         auto n1 = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
 
-        lctx.args.push_back(n1);
+        larg.values.push_back(n1);
     }
 
-    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), "");
+    LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 
@@ -507,6 +516,7 @@ void v_list_get_size(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sp
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -514,11 +524,11 @@ void v_list_get_size(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sp
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     const char *fun = v_util_list_get_size_dict.at(type).c_str();
 
@@ -530,13 +540,13 @@ void v_list_get_size(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sp
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 
-    lctx.ret_type  = gctx.int_type;     //- ?
-    lctx.ret_value = v;
+    larg.ret_type  = gctx.int_type;     //- ?
+    larg.ret_value = v;
 }
 
 
@@ -546,6 +556,7 @@ void v_list_get_items(const visitor_sptr_t *vis, void *aux, const ast_arg_list_s
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() < 3  ||  (*args)->data.size() > 4)
@@ -553,11 +564,11 @@ void v_list_get_items(const visitor_sptr_t *vis, void *aux, const ast_arg_list_s
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->accept(*vis, aux);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    auto type = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     const char *fun = v_util_list_get_items_dict.at(type).c_str();
 
@@ -573,13 +584,13 @@ void v_list_get_items(const visitor_sptr_t *vis, void *aux, const ast_arg_list_s
     {
         auto n1 = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
 
-        lctx.args.push_back(n1);
+        larg.values.push_back(n1);
     }
 
-    LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), "");
+    LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 

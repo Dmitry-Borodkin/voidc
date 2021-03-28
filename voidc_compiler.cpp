@@ -37,7 +37,7 @@ void compile_ast_unit_t(const visitor_sptr_t *vis, void *aux,
     auto &gctx = *voidc_global_ctx_t::target;                           //- target == voidc (!)
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);     //- Sic!
 
-    assert(lctx.args.empty());
+    assert(lctx.args->values.empty());
 
     auto saved_module = lctx.module;
 
@@ -62,16 +62,17 @@ void compile_ast_stmt_t(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     auto &var_name = *vname;
 
-    lctx.ret_name  = var_name.c_str();
-    lctx.ret_type  = nullptr;
-    lctx.ret_value = nullptr;
+    larg.ret_name  = var_name.c_str();
+    larg.ret_type  = nullptr;
+    larg.ret_value = nullptr;
 
     (*call)->accept(*vis, aux);
 
-    if (lctx.ret_name[0])   lctx.vars = lctx.vars.set(var_name, {lctx.ret_type, lctx.ret_value});
+    if (larg.ret_name[0])   lctx.vars = lctx.vars.set(var_name, {larg.ret_type, larg.ret_value});
 }
 
 
@@ -84,8 +85,9 @@ void compile_ast_call_t(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    assert(lctx.args.empty());
+    assert(larg.values.empty());
 
     auto &fun_name = *fname;
 
@@ -108,21 +110,21 @@ void compile_ast_call_t(const visitor_sptr_t *vis, void *aux,
 
     auto count = ft->param_count();
 
-    lctx.arg_types.resize(count);
+    larg.types.resize(count);
 
-    std::copy_n(ft->param_types(), count, lctx.arg_types.data());
+    std::copy_n(ft->param_types(), count, larg.types.data());
 
     if (*args) (*args)->accept(*vis, aux);
 
-    auto v = LLVMBuildCall(gctx.builder, f, lctx.args.data(), lctx.args.size(), lctx.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
 
     lctx.clear_temporaries();
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 
-    lctx.ret_type  = ft->return_type();
-    lctx.ret_value = v;
+    larg.ret_type  = ft->return_type();
+    larg.ret_value = v;
 }
 
 
@@ -135,6 +137,7 @@ void compile_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     LLVMValueRef v = nullptr;
     v_type_t    *t = nullptr;
@@ -144,30 +147,30 @@ void compile_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
         throw std::runtime_error("Identifier not found: " + *name);
     }
 
-    auto idx = lctx.args.size();
+    auto idx = larg.values.size();
 
     if (t->kind() == v_type_t::k_reference)
     {
         bool do_load = false;
 
-        if (idx < lctx.arg_types.size())
+        if (idx < larg.types.size())
         {
-            if (auto at = lctx.arg_types[idx])
+            if (auto at = larg.types[idx])
             {
                 do_load = (at->kind() != v_type_t::k_reference);
             }
             else        //- Get type "as is"...
             {
-                lctx.arg_types[idx] = t;
+                larg.types[idx] = t;
             }
         }
         else
         {
-            assert(idx == lctx.arg_types.size());
+            assert(idx == larg.types.size());
 
             t = static_cast<v_type_reference_t *>(t)->element_type();
 
-            lctx.arg_types.push_back(t);
+            larg.types.push_back(t);
 
             do_load = true;
         }
@@ -176,9 +179,9 @@ void compile_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
     }
     else
     {
-        if (idx < lctx.arg_types.size())
+        if (idx < larg.types.size())
         {
-            if (auto at = lctx.arg_types[idx])
+            if (auto at = larg.types[idx])
             {
                 bool is_reference = (at->kind() == v_type_t::k_reference);
 
@@ -195,20 +198,20 @@ void compile_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
             }
             else        //- Get type "as is"...
             {
-                lctx.arg_types[idx] = t;
+                larg.types[idx] = t;
             }
         }
         else
         {
-            assert(idx == lctx.arg_types.size());
+            assert(idx == larg.types.size());
 
-            lctx.arg_types.push_back(t);
+            larg.types.push_back(t);
         }
     }
 
-    assert(idx < lctx.arg_types.size());
+    assert(idx < larg.types.size());
 
-    lctx.args.push_back(v);
+    larg.values.push_back(v);
 }
 
 
@@ -221,24 +224,25 @@ void compile_ast_arg_integer_t(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     v_type_t *t = gctx.int_type;
 
-    auto idx = lctx.args.size();
+    auto idx = larg.values.size();
 
-    if (idx < lctx.arg_types.size())
+    if (idx < larg.types.size())
     {
-        if (auto at = lctx.arg_types[idx])  t = at;
-        else                                lctx.arg_types[idx] = t;
+        if (auto at = larg.types[idx])  t = at;
+        else                            larg.types[idx] = t;
     }
     else
     {
-        assert(idx == lctx.arg_types.size());
+        assert(idx == larg.types.size());
 
-        lctx.arg_types.push_back(t);
+        larg.types.push_back(t);
     }
 
-    assert(idx < lctx.arg_types.size());
+    assert(idx < larg.types.size());
 
     bool is_reference = (t->kind() == v_type_t::k_reference);
 
@@ -257,7 +261,7 @@ void compile_ast_arg_integer_t(const visitor_sptr_t *vis, void *aux,
 
     if (is_reference) v = lctx.make_temporary(t, v);
 
-    lctx.args.push_back(v);
+    larg.values.push_back(v);
 }
 
 
@@ -270,14 +274,15 @@ void compile_ast_arg_string_t(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     auto v = LLVMBuildGlobalStringPtr(gctx.builder, str->c_str(), "str");
 
-    auto idx = lctx.args.size();
+    auto idx = larg.values.size();
 
-    if (idx < lctx.arg_types.size())
+    if (idx < larg.types.size())
     {
-        if (auto t = lctx.arg_types[idx])
+        if (auto t = larg.types[idx])
         {
             bool is_reference = (t->kind() == v_type_t::k_reference);
 
@@ -292,19 +297,19 @@ void compile_ast_arg_string_t(const visitor_sptr_t *vis, void *aux,
         }
         else        //- Get type "as is"...
         {
-            lctx.arg_types[idx] = gctx.char_ptr_type;
+            larg.types[idx] = gctx.char_ptr_type;
         }
     }
     else
     {
-        assert(idx == lctx.arg_types.size());
+        assert(idx == larg.types.size());
 
-        lctx.arg_types.push_back(gctx.char_ptr_type);
+        larg.types.push_back(gctx.char_ptr_type);
     }
 
-    assert(idx < lctx.arg_types.size());
+    assert(idx < larg.types.size());
 
-    lctx.args.push_back(v);
+    larg.values.push_back(v);
 }
 
 
@@ -317,24 +322,25 @@ void compile_ast_arg_char_t(const visitor_sptr_t *vis, void *aux,
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     v_type_t *t = gctx.char32_t_type;
 
-    auto idx = lctx.args.size();
+    auto idx = larg.values.size();
 
-    if (idx < lctx.arg_types.size())
+    if (idx < larg.types.size())
     {
-        if (auto at = lctx.arg_types[idx])  t = at;
-        else                                lctx.arg_types[idx] = t;
+        if (auto at = larg.types[idx])  t = at;
+        else                            larg.types[idx] = t;
     }
     else
     {
-        assert(idx == lctx.arg_types.size());
+        assert(idx == larg.types.size());
 
-        lctx.arg_types.push_back(t);
+        larg.types.push_back(t);
     }
 
-    assert(idx < lctx.arg_types.size());
+    assert(idx < larg.types.size());
 
     bool is_reference = (t->kind() == v_type_t::k_reference);
 
@@ -344,7 +350,7 @@ void compile_ast_arg_char_t(const visitor_sptr_t *vis, void *aux,
 
     if (is_reference) v = lctx.make_temporary(t, v);
 
-    lctx.args.push_back(v);
+    larg.values.push_back(v);
 }
 
 

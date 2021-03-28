@@ -24,6 +24,7 @@ v_alloca(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() < 1  ||  (*args)->data.size() > 2)
@@ -38,20 +39,20 @@ v_alloca(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 
     if ((*args)->data.size() == 1)              //- Just one
     {
-        v = LLVMBuildAlloca(gctx.builder, llvm_type, lctx.ret_name);
+        v = LLVMBuildAlloca(gctx.builder, llvm_type, larg.ret_name);
     }
     else                                        //- Array...
     {
         (*args)->data[1]->accept(*vis, aux);        //- Array size
 
-        v = LLVMBuildArrayAlloca(gctx.builder, llvm_type, lctx.args[0], lctx.ret_name);
+        v = LLVMBuildArrayAlloca(gctx.builder, llvm_type, larg.values[0], larg.ret_name);
 
-        lctx.args.clear();
-        lctx.arg_types.clear();
+        larg.values.clear();
+        larg.types.clear();
     }
 
-    lctx.ret_type  = gctx.make_pointer_type(type, LLVMGetPointerAddressSpace(LLVMTypeOf(v)));
-    lctx.ret_value = v;
+    larg.ret_type  = gctx.make_pointer_type(type, LLVMGetPointerAddressSpace(LLVMTypeOf(v)));
+    larg.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -60,6 +61,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t 
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() < 2)
@@ -67,19 +69,19 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t 
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->accept(*vis, aux);
 
-    auto v = LLVMBuildGEP(gctx.builder, lctx.args[0], &lctx.args[1], lctx.args.size()-1, lctx.ret_name);
+    auto v = LLVMBuildGEP(gctx.builder, larg.values[0], &larg.values[1], larg.values.size()-1, larg.ret_name);
 
-    lctx.ret_value = v;
+    larg.ret_value = v;
 
-    auto *p = static_cast<v_type_pointer_t *>(v_type_get_scalar_type(lctx.arg_types[0]));
+    auto *p = static_cast<v_type_pointer_t *>(v_type_get_scalar_type(larg.types[0]));
 
     v_type_t *t = p->element_type();
 
-    for (int i=2, e=lctx.args.size(); i<e; ++i)
+    for (int i=2, e=larg.values.size(); i<e; ++i)
     {
         if (auto *ti = dynamic_cast<v_type_array_t *>(t))
         {
@@ -95,7 +97,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t 
 
         if (auto *ti = dynamic_cast<v_type_struct_t *>(t))
         {
-            auto idx = lctx.args[i];
+            auto idx = larg.values[i];
 
             auto num = unsigned(LLVMConstIntGetZExtValue(idx));
 
@@ -111,9 +113,9 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t 
 
     t = gctx.make_pointer_type(t, p->address_space());
 
-    for (int i=0, e=lctx.args.size(); i<e; ++i)
+    for (int i=0, e=larg.values.size(); i<e; ++i)
     {
-        if (auto *vt = dynamic_cast<v_type_vector_t *>(lctx.arg_types[i]))
+        if (auto *vt = dynamic_cast<v_type_vector_t *>(larg.types[i]))
         {
             auto count = vt->size();
 
@@ -124,10 +126,10 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t 
         }
     }
 
-    lctx.ret_type = t;
+    larg.ret_type = t;
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -136,6 +138,7 @@ v_store(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -143,20 +146,20 @@ v_store(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
     (*args)->data[1]->accept(*vis, aux);        //- "Place" first (to obtain type)
 
-    lctx.arg_types.resize(2);
+    larg.types.resize(2);
 
-    lctx.arg_types[1] = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    larg.types[1] = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
     (*args)->data[0]->accept(*vis, aux);        //- "Value" second
 
-    LLVMBuildStore(gctx.builder, lctx.args[1], lctx.args[0]);
+    LLVMBuildStore(gctx.builder, larg.values[1], larg.values[0]);
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -165,6 +168,7 @@ v_load(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -174,13 +178,13 @@ v_load(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 
     (*args)->data[0]->accept(*vis, aux);
 
-    auto v = LLVMBuildLoad(gctx.builder, lctx.args[0], lctx.ret_name);
+    auto v = LLVMBuildLoad(gctx.builder, larg.values[0], larg.ret_name);
 
-    lctx.ret_value = v;
-    lctx.ret_type  = static_cast<v_type_pointer_t *>(lctx.arg_types[0])->element_type();
+    larg.ret_value = v;
+    larg.ret_type  = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -189,6 +193,7 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -196,13 +201,13 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    lctx.arg_types.push_back(nullptr);      //- Get type "as is"...
+    larg.types.push_back(nullptr);      //- Get type "as is"...
 
     (*args)->data[0]->accept(*vis, aux);        //- Value
 
-    auto src_value = lctx.args[0];
+    auto src_value = larg.values[0];
 
-    auto src_type = lctx.arg_types[0];
+    auto src_type = larg.types[0];
     auto dst_type = lctx.lookup_type((*args)->data[1]);
 
     auto opcode = LLVMOpcode(0);
@@ -303,13 +308,13 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 
     LLVMValueRef v;
 
-    v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), lctx.ret_name);
+    v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), larg.ret_name);
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 
-    lctx.ret_type  = dst_type;
-    lctx.ret_value = v;
+    larg.ret_type  = dst_type;
+    larg.ret_value = v;
 }
 
 //---------------------------------------------------------------------
@@ -318,6 +323,7 @@ v_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -325,17 +331,17 @@ v_pointer(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    lctx.arg_types.push_back(nullptr);      //- Get type "as is"...
+    larg.types.push_back(nullptr);      //- Get type "as is"...
 
     (*args)->data[0]->accept(*vis, aux);
 
-    auto rt = static_cast<v_type_reference_t *>(lctx.arg_types[0]);
+    auto rt = static_cast<v_type_reference_t *>(larg.types[0]);
 
-    lctx.ret_value = lctx.args[0];
-    lctx.ret_type  = gctx.make_pointer_type(rt->element_type(), rt->address_space());
+    larg.ret_value = larg.values[0];
+    larg.ret_type  = gctx.make_pointer_type(rt->element_type(), rt->address_space());
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -344,6 +350,7 @@ v_reference(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *arg
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 1)
@@ -353,13 +360,13 @@ v_reference(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *arg
 
     (*args)->data[0]->accept(*vis, aux);
 
-    auto pt = static_cast<v_type_pointer_t *>(lctx.arg_types[0]);
+    auto pt = static_cast<v_type_pointer_t *>(larg.types[0]);
 
-    lctx.ret_value = lctx.args[0];
-    lctx.ret_type  = gctx.make_reference_type(pt->element_type(), pt->address_space());
+    larg.ret_value = larg.values[0];
+    larg.ret_type  = gctx.make_reference_type(pt->element_type(), pt->address_space());
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
@@ -368,6 +375,7 @@ v_assign(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
     assert(*args);
     if ((*args)->data.size() != 2)
@@ -375,20 +383,20 @@ v_assign(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
         throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
     }
 
-    assert(lctx.arg_types.empty());
+    assert(larg.types.empty());
 
-    lctx.arg_types.push_back(nullptr);          //- Get type "as is"...
+    larg.types.push_back(nullptr);              //- Get type "as is"...
 
     (*args)->data[0]->accept(*vis, aux);        //- "Place" first (to obtain type)
 
-    lctx.arg_types.push_back(static_cast<v_type_reference_t *>(lctx.arg_types[0])->element_type());
+    larg.types.push_back(static_cast<v_type_reference_t *>(larg.types[0])->element_type());
 
     (*args)->data[1]->accept(*vis, aux);        //- "Value" second
 
-    LLVMBuildStore(gctx.builder, lctx.args[1], lctx.args[0]);
+    LLVMBuildStore(gctx.builder, larg.values[1], larg.values[0]);
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
 }
 
 
@@ -1624,8 +1632,9 @@ v_add_argument_type(v_type_t *type)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    lctx.arg_types.push_back(type);
+    larg.types.push_back(type);
 }
 
 v_type_t *
@@ -1633,8 +1642,9 @@ v_get_argument_type(int num)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    return  lctx.arg_types[num];
+    return  larg.types[num];
 }
 
 LLVMValueRef
@@ -1642,8 +1652,9 @@ v_get_argument_value(int num)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    return  lctx.args[num];
+    return  larg.values[num];
 }
 
 void
@@ -1651,20 +1662,44 @@ v_get_argument(int num, v_type_t **type, LLVMValueRef *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    if (type)   *type  = lctx.arg_types[num];
-    if (value)  *value = lctx.args[num];
+    if (type)   *type  = larg.types[num];
+    if (value)  *value = larg.values[num];
 }
-
 
 void
 v_clear_arguments(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    lctx.args.clear();
-    lctx.arg_types.clear();
+    larg.values.clear();
+    larg.types.clear();
+}
+
+//---------------------------------------------------------------------
+void
+v_save_arguments(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.args_stack.push_front(lctx.args);
+
+    lctx.args = std::make_shared<base_local_ctx_t::arguments_t>();
+}
+
+void
+v_restore_arguments(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.args = lctx.args_stack.front();
+
+    lctx.args_stack.pop_front();
 }
 
 //---------------------------------------------------------------------
@@ -1673,8 +1708,9 @@ v_get_return_name(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    return lctx.ret_name;
+    return larg.ret_name;
 }
 
 void
@@ -1682,8 +1718,9 @@ v_set_return_name(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    lctx.ret_name = name;
+    larg.ret_name = name;
 }
 
 v_type_t *
@@ -1691,8 +1728,9 @@ v_get_return_type(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    return lctx.ret_type;
+    return larg.ret_type;
 }
 
 void
@@ -1700,8 +1738,9 @@ v_set_return_type(v_type_t *type)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    lctx.ret_type = type;
+    larg.ret_type = type;
 }
 
 LLVMValueRef
@@ -1709,8 +1748,9 @@ v_get_return_value(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    return lctx.ret_value;
+    return larg.ret_value;
 }
 
 void
@@ -1718,8 +1758,9 @@ v_set_return_value(LLVMValueRef val)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
 
-    lctx.ret_value = val;
+    larg.ret_value = val;
 }
 
 
