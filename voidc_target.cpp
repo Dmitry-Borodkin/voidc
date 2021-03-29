@@ -1686,9 +1686,9 @@ v_save_arguments(void)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.args_stack.push_front(lctx.args);
+    lctx.args_stack.push_front(std::move(lctx.args));
 
-    lctx.args = std::make_shared<base_local_ctx_t::arguments_t>();
+    lctx.args = std::make_unique<base_local_ctx_t::arguments_t>();
 }
 
 void
@@ -1697,7 +1697,7 @@ v_restore_arguments(void)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.args = lctx.args_stack.front();
+    lctx.args = std::move(lctx.args_stack.front());
 
     lctx.args_stack.pop_front();
 }

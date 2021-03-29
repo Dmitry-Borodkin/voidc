@@ -137,11 +137,11 @@ public:
         LLVMValueRef ret_value = nullptr;
     };
 
-    typedef std::shared_ptr<arguments_t> args_sptr_t;
+    typedef std::unique_ptr<arguments_t> args_uptr_t;
 
-    args_sptr_t args = std::make_shared<arguments_t>();
+    args_uptr_t args = std::make_unique<arguments_t>();
 
-    std::forward_list<args_sptr_t> args_stack;
+    std::forward_list<args_uptr_t> args_stack;
 
 public:
     LLVMValueRef make_temporary(v_type_t *type, LLVMValueRef value);
