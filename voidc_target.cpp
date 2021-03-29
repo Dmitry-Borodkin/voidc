@@ -1719,17 +1719,6 @@ v_get_argument(int num, v_type_t **type, LLVMValueRef *value)
     if (value)  *value = larg.values[num];
 }
 
-void
-v_clear_arguments(void)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-    auto &larg = *lctx.args;
-
-    larg.values.clear();
-    larg.types.clear();
-}
-
 //---------------------------------------------------------------------
 void
 v_save_arguments(void)
@@ -1751,6 +1740,17 @@ v_restore_arguments(void)
     lctx.args = std::move(lctx.args_stack.front());
 
     lctx.args_stack.pop_front();
+}
+
+void
+v_clear_arguments(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
+
+    larg.values.clear();
+    larg.types.clear();
 }
 
 //---------------------------------------------------------------------
