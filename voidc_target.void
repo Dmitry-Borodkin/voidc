@@ -124,6 +124,11 @@
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("v_add_argument_type", ft);
 
+    v_store(LLVMValueRef, typ0);        //- value
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_add_symbol_type("v_add_argument_value", ft);
+
     v_store(int, typ0);                 //- index
 
     ft = v_function_type(v_type_ptr, typ0, 1, false);
@@ -161,8 +166,20 @@
     v_add_symbol_type("v_save_arguments", ft);
     v_add_symbol_type("v_restore_arguments", ft);
 
-    ft = v_function_type(intptr_t, 0, 0, false);
+    ft = v_function_type(size_t, 0, 0, false);
     v_add_symbol_type("v_get_variables_size", ft);
+    v_add_symbol_type("v_get_argument_types_size", ft);
+    v_add_symbol_type("v_get_argument_values_size", ft);
+
+    type_ptr_ptr = v_pointer_type(v_type_ptr, 0);
+
+    ft = v_function_type(type_ptr_ptr, 0, 0, false);
+    v_add_symbol_type("v_get_argument_types_data", ft);
+
+    value_ref_ptr = v_pointer_type(LLVMValueRef, 0);
+
+    ft = v_function_type(value_ref_ptr, 0, 0, false);
+    v_add_symbol_type("v_get_argument_values_data", ft);
 
     ft = v_function_type(LLVMModuleRef, 0, 0, false);
     v_add_symbol_type("v_get_module", ft);

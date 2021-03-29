@@ -1587,13 +1587,13 @@ v_get_variable(const char *name, v_type_t **type, LLVMValueRef *value)
 }
 
 //---------------------------------------------------------------------
-intptr_t
+size_t
 v_get_variables_size(void)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    return  intptr_t(lctx.vars.size());
+    return  lctx.vars.size();
 }
 
 //---------------------------------------------------------------------
@@ -1627,6 +1627,47 @@ v_restore_variables(void)
 }
 
 //---------------------------------------------------------------------
+size_t
+v_get_argument_types_size(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
+
+    return larg.types.size();
+}
+
+size_t
+v_get_argument_values_size(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
+
+    return larg.values.size();
+}
+
+v_type_t **
+v_get_argument_types_data(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
+
+    return larg.types.data();
+}
+
+LLVMValueRef *
+v_get_argument_values_data(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
+
+    return larg.values.data();
+}
+
+//---------------------------------------------------------------------
 void
 v_add_argument_type(v_type_t *type)
 {
@@ -1635,6 +1676,16 @@ v_add_argument_type(v_type_t *type)
     auto &larg = *lctx.args;
 
     larg.types.push_back(type);
+}
+
+void
+v_add_argument_value(LLVMValueRef value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
+
+    larg.values.push_back(value);
 }
 
 v_type_t *
