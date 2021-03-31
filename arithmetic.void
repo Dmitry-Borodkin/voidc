@@ -47,9 +47,7 @@
     lhs = v_get_argument_value(1);
     rhs = v_get_argument_value(2);
 
-    rname = v_get_return_name();
-
-    ret = LLVMBuildBinOp(builder, opc, lhs, rhs, rname);
+    ret = LLVMBuildBinOp(builder, opc, lhs, rhs, "");
 
     v_set_return_value(ret);
 
@@ -87,9 +85,7 @@
     lhs = v_get_argument_value(1);
     rhs = v_get_argument_value(2);
 
-    rname = v_get_return_name();
-
-    ret = LLVMBuildICmp(builder, opc, lhs, rhs, rname);
+    ret = LLVMBuildICmp(builder, opc, lhs, rhs, "");
 
     v_set_return_value(ret);
     v_set_return_type(bool);
@@ -125,9 +121,7 @@
     lhs = v_get_argument_value(1);
     rhs = v_get_argument_value(2);
 
-    rname = v_get_return_name();
-
-    ret = LLVMBuildFCmp(builder, opc, lhs, rhs, rname);
+    ret = LLVMBuildFCmp(builder, opc, lhs, rhs, "");
 
     v_set_return_value(ret);
     v_set_return_type(bool);

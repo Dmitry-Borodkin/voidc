@@ -208,7 +208,7 @@ void v_empty(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *ar
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
     larg.values.clear();
     larg.types.clear();
@@ -248,7 +248,7 @@ void v_kind(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *arg
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
     larg.values.clear();
     larg.types.clear();
@@ -292,7 +292,7 @@ void v_std_any_get_helper(const visitor_sptr_t *vis, void *aux,
 
     args->data[1]->accept(*vis, aux);
 
-    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
     larg.values.clear();
     larg.types.clear();
@@ -540,7 +540,7 @@ void v_list_get_size(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sp
         throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
     }
 
-    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
     larg.values.clear();
     larg.types.clear();

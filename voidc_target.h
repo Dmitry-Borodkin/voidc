@@ -132,7 +132,6 @@ public:
         std::vector<v_type_t *>   types;
         std::vector<LLVMValueRef> values;
 
-        const char  *ret_name  = "";
         v_type_t    *ret_type  = nullptr;
         LLVMValueRef ret_value = nullptr;
     };

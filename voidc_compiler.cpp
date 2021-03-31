@@ -64,15 +64,19 @@ void compile_ast_stmt_t(const visitor_sptr_t *vis, void *aux,
     auto &lctx = *gctx.local_ctx;
     auto &larg = *lctx.args;
 
-    auto &var_name = *vname;
-
-    larg.ret_name  = var_name.c_str();
     larg.ret_type  = nullptr;
     larg.ret_value = nullptr;
 
     (*call)->accept(*vis, aux);
 
-    if (larg.ret_name[0])   lctx.vars = lctx.vars.set(var_name, {larg.ret_type, larg.ret_value});
+    auto const &ret_name = vname->c_str();
+
+    if (ret_name[0])
+    {
+        LLVMSetValueName2(larg.ret_value, ret_name, vname->size());
+
+        lctx.vars = lctx.vars.set(*vname, {larg.ret_type, larg.ret_value});
+    }
 }
 
 
@@ -116,7 +120,7 @@ void compile_ast_call_t(const visitor_sptr_t *vis, void *aux,
 
     if (*args) (*args)->accept(*vis, aux);
 
-    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), larg.ret_name);
+    auto v = LLVMBuildCall(gctx.builder, f, larg.values.data(), larg.values.size(), "");
 
     lctx.clear_temporaries();
 

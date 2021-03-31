@@ -863,9 +863,7 @@
     //-
     //-     helper_f = v_obtain_function("voidc_function_hack_intrinsic_helper");
     //-
-    //-     ret_name = v_get_return_name();
-    //-
-    //-     ret = LLVMBuildCall(builder, helper_f, arg0, 2, ret_name);
+    //-     ret = LLVMBuildCall(builder, helper_f, arg0, 2, "");
     //-
     //-     v_set_return_type(LLVMValueRef);
     //-     v_set_return_value(ret);
@@ -1026,16 +1024,11 @@
     helper_fv = LLVMBuildCall(builder, obtain_fun_f, val0, 1, "helper_fv");
 
 
-    get_ret_name_f = v_obtain_function("v_get_return_name");
-
-    ret_name = LLVMBuildCall(builder, get_ret_name_f, 0, 0, "ret_name");
-
-
     v_store(builder_v, val0);
     v_store(helper_fv, val1);
     v_store(arg0,      val2);
     v_store(n2,        val3);
-    v_store(ret_name,  val4);
+    v_store(empty_str, val4);
 
     ret_v = LLVMBuildCall(builder, llvm_build_call_f, val0, 5, "ret_v");
 

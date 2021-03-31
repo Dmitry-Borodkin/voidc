@@ -39,13 +39,13 @@ v_alloca(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 
     if ((*args)->data.size() == 1)              //- Just one
     {
-        v = LLVMBuildAlloca(gctx.builder, llvm_type, larg.ret_name);
+        v = LLVMBuildAlloca(gctx.builder, llvm_type, "");
     }
     else                                        //- Array...
     {
         (*args)->data[1]->accept(*vis, aux);        //- Array size
 
-        v = LLVMBuildArrayAlloca(gctx.builder, llvm_type, larg.values[0], larg.ret_name);
+        v = LLVMBuildArrayAlloca(gctx.builder, llvm_type, larg.values[0], "");
 
         larg.values.clear();
         larg.types.clear();
@@ -73,7 +73,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t 
 
     (*args)->accept(*vis, aux);
 
-    auto v = LLVMBuildGEP(gctx.builder, larg.values[0], &larg.values[1], larg.values.size()-1, larg.ret_name);
+    auto v = LLVMBuildGEP(gctx.builder, larg.values[0], &larg.values[1], larg.values.size()-1, "");
 
     larg.ret_value = v;
 
@@ -178,7 +178,7 @@ v_load(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 
     (*args)->data[0]->accept(*vis, aux);
 
-    auto v = LLVMBuildLoad(gctx.builder, larg.values[0], larg.ret_name);
+    auto v = LLVMBuildLoad(gctx.builder, larg.values[0], "");
 
     larg.ret_value = v;
     larg.ret_type  = static_cast<v_type_pointer_t *>(larg.types[0])->element_type();
@@ -308,7 +308,7 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args)
 
     LLVMValueRef v;
 
-    v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), larg.ret_name);
+    v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), "");
 
     larg.values.clear();
     larg.types.clear();
@@ -1754,26 +1754,6 @@ v_clear_arguments(void)
 }
 
 //---------------------------------------------------------------------
-const char *
-v_get_return_name(void)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-    auto &larg = *lctx.args;
-
-    return larg.ret_name;
-}
-
-void
-v_set_return_name(const char *name)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-    auto &larg = *lctx.args;
-
-    larg.ret_name = name;
-}
-
 v_type_t *
 v_get_return_type(void)
 {
