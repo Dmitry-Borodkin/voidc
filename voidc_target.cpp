@@ -650,6 +650,82 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
     return bool(value);
 }
 
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::push_argument(v_type_t *t, LLVMValueRef v)
+{
+    auto &gctx = global_ctx;
+    auto &larg = *args;
+
+    auto idx = larg.values.size();
+
+    if (t->kind() == v_type_t::k_reference)
+    {
+        bool do_load = false;
+
+        if (idx < larg.types.size())
+        {
+            if (auto at = larg.types[idx])
+            {
+                do_load = (at->kind() != v_type_t::k_reference);
+            }
+            else        //- Get type "as is"...
+            {
+                larg.types[idx] = t;
+            }
+        }
+        else
+        {
+            assert(idx == larg.types.size());
+
+            t = static_cast<v_type_reference_t *>(t)->element_type();
+
+            larg.types.push_back(t);
+
+            do_load = true;
+        }
+
+        if (do_load)  v = LLVMBuildLoad(gctx.builder, v, "tmp");
+    }
+    else
+    {
+        if (idx < larg.types.size())
+        {
+            if (auto at = larg.types[idx])
+            {
+                bool is_reference = (at->kind() == v_type_t::k_reference);
+
+                if (is_reference) at = static_cast<v_type_reference_t *>(at)->element_type();
+
+                if (at != t  &&
+                    at == gctx.void_ptr_type  &&
+                    t->kind() == v_type_t::k_pointer)
+                {
+                    v = LLVMBuildPointerCast(gctx.builder, v, at->llvm_type(), "");
+                }
+
+                if (is_reference) v = make_temporary(at, v);
+            }
+            else        //- Get type "as is"...
+            {
+                larg.types[idx] = t;
+            }
+        }
+        else
+        {
+            assert(idx == larg.types.size());
+
+            larg.types.push_back(t);
+        }
+    }
+
+    assert(idx < larg.types.size());
+
+    larg.values.push_back(v);
+}
+
+
 //---------------------------------------------------------------------
 LLVMValueRef
 base_local_ctx_t::make_temporary(v_type_t *type, LLVMValueRef value)
@@ -1717,6 +1793,16 @@ v_get_argument(int num, v_type_t **type, LLVMValueRef *value)
 
     if (type)   *type  = larg.types[num];
     if (value)  *value = larg.values[num];
+}
+
+//---------------------------------------------------------------------
+void
+v_push_argument(v_type_t *type, LLVMValueRef value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.push_argument(type, value);
 }
 
 //---------------------------------------------------------------------

@@ -143,6 +143,9 @@ public:
     std::forward_list<args_uptr_t> args_stack;
 
 public:
+    void push_argument(v_type_t *type, LLVMValueRef value);
+
+public:
     LLVMValueRef make_temporary(v_type_t *type, LLVMValueRef value);
 
     void clear_temporaries(void);

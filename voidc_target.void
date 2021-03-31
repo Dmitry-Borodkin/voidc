@@ -146,7 +146,13 @@
     ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_get_argument", ft);
 
-//  v_store(int, typ0);                 //- Number of prints/modules...
+    v_store(v_type_ptr,   typ0);        //- type
+    v_store(LLVMValueRef, typ1);        //- value
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol_type("v_push_argument", ft);
+
+    v_store(int, typ0);                 //- Number of prints/modules...
 
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("v_debug_print_module", ft);

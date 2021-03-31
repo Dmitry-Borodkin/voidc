@@ -240,6 +240,9 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     char32_t_type (make_uint_type(32)),
     uint64_t_type (make_uint_type(64))
 {
+    assert(int_size == sizeof(int));            //- Actually, not implemented yet...
+    assert(long_size == sizeof(long));          //- Actually, not implemented yet...
+    assert(ptr_size == sizeof(intptr_t));       //- Actually, not implemented yet...
 }
 
 voidc_types_ctx_t::~voidc_types_ctx_t()

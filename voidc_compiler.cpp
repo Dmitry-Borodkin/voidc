@@ -151,71 +151,7 @@ void compile_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
         throw std::runtime_error("Identifier not found: " + *name);
     }
 
-    auto idx = larg.values.size();
-
-    if (t->kind() == v_type_t::k_reference)
-    {
-        bool do_load = false;
-
-        if (idx < larg.types.size())
-        {
-            if (auto at = larg.types[idx])
-            {
-                do_load = (at->kind() != v_type_t::k_reference);
-            }
-            else        //- Get type "as is"...
-            {
-                larg.types[idx] = t;
-            }
-        }
-        else
-        {
-            assert(idx == larg.types.size());
-
-            t = static_cast<v_type_reference_t *>(t)->element_type();
-
-            larg.types.push_back(t);
-
-            do_load = true;
-        }
-
-        if (do_load)  v = LLVMBuildLoad(gctx.builder, v, "tmp");
-    }
-    else
-    {
-        if (idx < larg.types.size())
-        {
-            if (auto at = larg.types[idx])
-            {
-                bool is_reference = (at->kind() == v_type_t::k_reference);
-
-                if (is_reference) at = static_cast<v_type_reference_t *>(at)->element_type();
-
-                if (at != t  &&
-                    at == gctx.void_ptr_type  &&
-                    t->kind() == v_type_t::k_pointer)
-                {
-                    v = LLVMBuildPointerCast(gctx.builder, v, at->llvm_type(), name->c_str());
-                }
-
-                if (is_reference) v = lctx.make_temporary(at, v);
-            }
-            else        //- Get type "as is"...
-            {
-                larg.types[idx] = t;
-            }
-        }
-        else
-        {
-            assert(idx == larg.types.size());
-
-            larg.types.push_back(t);
-        }
-    }
-
-    assert(idx < larg.types.size());
-
-    larg.values.push_back(v);
+    lctx.push_argument(t, v);
 }
 
 
