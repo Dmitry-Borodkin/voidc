@@ -16,6 +16,7 @@ extern "C"
 VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
 extern visitor_sptr_t voidc_compiler;
+extern visitor_sptr_t voidc_type_calc;
 
 VOIDC_DLLEXPORT_END
 
@@ -24,9 +25,10 @@ VOIDC_DLLEXPORT_END
 
 
 //---------------------------------------------------------------------
-//- Compiler (level 0) ...
+//- Compilers (level 0) ...
 //---------------------------------------------------------------------
 visitor_sptr_t make_voidc_compiler(void);
+visitor_sptr_t make_voidc_type_calc(void);
 
 
 #endif  //- VOIDC_COMPILER_H

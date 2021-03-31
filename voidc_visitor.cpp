@@ -31,13 +31,15 @@ voidc_visitor_t::static_initialize(void)
     gctx.add_symbol("voidc_opaque_visitor_sptr", gctx.opaque_type_type, (void *)visitor_sptr_type);
 
 
-    voidc_compiler = make_voidc_compiler();
+    voidc_compiler  = make_voidc_compiler();
+    voidc_type_calc = make_voidc_type_calc();
 }
 
 //-----------------------------------------------------------------
 void
 voidc_visitor_t::static_terminate(void)
 {
+    voidc_type_calc.reset();
     voidc_compiler.reset();
 }
 

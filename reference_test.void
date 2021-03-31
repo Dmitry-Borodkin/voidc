@@ -135,7 +135,7 @@
 }
 
 
-//{ v_debug_print_module(4); }
+{ v_debug_print_module(4); }
 {
     vptr = v_malloc(long_long);
 
@@ -153,9 +153,11 @@
 }
 
 {
-    vptr = v_pointer(vref);
+    vqwe = v_pointer(vref);
 
-    v_mfree(vptr);
+    printf("vqwe: %p\n", vqwe);
+
+    v_mfree(vqwe);
 }
 
 

@@ -12,11 +12,12 @@
 //- ...
 //---------------------------------------------------------------------
 visitor_sptr_t voidc_compiler;
+visitor_sptr_t voidc_type_calc;
 
 
-//---------------------------------------------------------------------
+//=====================================================================
 //- AST Visitor - Compiler (level 0) ...
-//---------------------------------------------------------------------
+//=====================================================================
 static void compile_ast_stmt_list_t(const visitor_sptr_t *vis, void *aux, size_t count, bool start) {}
 static void compile_ast_arg_list_t(const visitor_sptr_t *vis, void *aux, size_t count, bool start) {}
 
@@ -73,7 +74,14 @@ void compile_ast_stmt_t(const visitor_sptr_t *vis, void *aux,
 
     if (ret_name[0])
     {
-        LLVMSetValueName2(larg.ret_value, ret_name, vname->size());
+        size_t len = 0;
+
+        LLVMGetValueName2(larg.ret_value, &len);
+
+        if (len == 0)
+        {
+            LLVMSetValueName2(larg.ret_value, ret_name, vname->size());
+        }
 
         lctx.vars = lctx.vars.set(*vname, {larg.ret_type, larg.ret_value});
     }
@@ -294,9 +302,34 @@ void compile_ast_arg_char_t(const visitor_sptr_t *vis, void *aux,
 }
 
 
-//---------------------------------------------------------------------
-//- Compiler visitor
-//---------------------------------------------------------------------
+//=====================================================================
+//- Type calculator - just arg_identifier...
+//=====================================================================
+static
+void typecalc_ast_arg_identifier_t(const visitor_sptr_t *vis, void *aux,
+                                   const std::string *name)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (auto type = lctx.find_type(name->c_str()))
+    {
+        assert(aux);
+
+        auto ret = reinterpret_cast<v_type_t **>(aux);
+
+        *ret = type;
+    }
+    else
+    {
+        throw std::runtime_error("Type not found: " + *name);
+    }
+}
+
+
+//=====================================================================
+//- Compiler visitor(s)
+//=====================================================================
 static
 visitor_sptr_t compile_visitor_level_zero;
 
@@ -323,7 +356,31 @@ make_voidc_compiler(void)
 }
 
 
+//---------------------------------------------------------------------
+static
+visitor_sptr_t typecalc_visitor_level_zero;
 
+visitor_sptr_t
+make_voidc_type_calc(void)
+{
+    if (!typecalc_visitor_level_zero)
+    {
+        voidc_visitor_t vis;
+
+#define DEF(type) \
+        vis = vis.set_void_method(v_##type##_visitor_method_tag, (void *)typecalc_##type);
+
+        DEF(ast_arg_identifier_t)
+
+#undef DEF
+
+        typecalc_visitor_level_zero = std::make_shared<const voidc_visitor_t>(vis);
+    }
+
+    assert(typecalc_visitor_level_zero);
+
+    return  typecalc_visitor_level_zero;
+}
 
 
 

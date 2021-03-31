@@ -15,6 +15,8 @@
 #include <llvm-c/Transforms/PassManagerBuilder.h>
 #include <llvm-c/Transforms/IPO.h>
 
+#include "voidc_compiler.h"
+
 
 //---------------------------------------------------------------------
 //- Intrinsics (true)
@@ -537,14 +539,11 @@ base_local_ctx_t::check_alias(const std::string &name)
 v_type_t *
 base_local_ctx_t::lookup_type(const ast_argument_sptr_t &arg)
 {
-    auto &arg_ident = dynamic_cast<const ast_arg_identifier_t &>(*arg);
+    v_type_t *ret;
 
-    if (auto type = find_type(arg_ident.name.c_str()))
-    {
-        return type;
-    }
+    arg->accept(voidc_type_calc, &ret);
 
-    throw std::runtime_error("Type not found: " + arg_ident.name);
+    return ret;
 }
 
 //---------------------------------------------------------------------
