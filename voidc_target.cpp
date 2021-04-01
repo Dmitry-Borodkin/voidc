@@ -1678,6 +1678,16 @@ v_get_argument_values_data(void)
 
 //---------------------------------------------------------------------
 void
+v_set_argument_type(int idx, v_type_t *type)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+    auto &larg = *lctx.args;
+
+    larg.types[idx] = type;
+}
+
+void
 v_add_argument_type(v_type_t *type)
 {
     auto &gctx = *voidc_global_ctx_t::target;
