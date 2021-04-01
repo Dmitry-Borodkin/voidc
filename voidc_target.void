@@ -149,8 +149,8 @@
     v_store(v_type_ptr,   typ0);        //- type
     v_store(LLVMValueRef, typ1);        //- value
 
-    ft = v_function_type(void, typ0, 2, false);
-    v_add_symbol_type("v_push_argument", ft);
+    ft = v_function_type(LLVMValueRef, typ0, 2, false);
+    v_add_symbol_type("v_make_temporary", ft);
 
     v_store(int, typ0);                 //- Number of prints/modules...
 
@@ -171,6 +171,8 @@
     v_add_symbol_type("v_clear_arguments", ft);
     v_add_symbol_type("v_save_arguments", ft);
     v_add_symbol_type("v_restore_arguments", ft);
+    v_add_symbol_type("v_push_temporaries", ft);
+    v_add_symbol_type("v_pop_temporaries", ft);
 
     ft = v_function_type(size_t, 0, 0, false);
     v_add_symbol_type("v_get_variables_size", ft);
