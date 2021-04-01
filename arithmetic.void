@@ -4,7 +4,12 @@
 //---------------------------------------------------------------------
 {   voidc_guard_import("arithmetic.void"); }
 
-{   v_import("function_hack.void"); }
+{   v_import("function_hack.void");
+    v_import("if_then_else.void");
+}
+
+{   voidc_enable_statement_if_then_else();
+}
 
 
 //---------------------------------------------------------------------
@@ -59,6 +64,44 @@
 
 
 //---------------------------------------------------------------------
+//- Some utility...
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr);
+
+    v_store(v_type_ptr, typ0);
+
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("make_return_type", ft);
+
+    v_add_parameter_name(f, 0, "type", v_type_ptr);
+}
+{
+    bool_type = v_find_type("bool");
+
+
+    f = v_type_is_vector(type);
+
+    if (f)  v_cast(0, int);         //- Kinda NOP
+    else    v_return(bool_type);
+
+    sz = v_type_vector_get_size(type);
+    sc = v_type_vector_is_scalable(type);
+
+    fv_type = v_fvector_type(bool_type, sz);
+
+    if (sc) v_cast(0, int);         //- Kinda NOP
+    else    v_return(fv_type);
+
+    sv_type = v_svector_type(bool_type, sz);
+
+    v_return(sv_type);
+}
+
+
+//---------------------------------------------------------------------
 //- v_icmp
 //---------------------------------------------------------------------
 {
@@ -88,7 +131,12 @@
     ret = LLVMBuildICmp(builder, opc, lhs, rhs, "");
 
     v_set_return_value(ret);
-    v_set_return_type(bool);
+
+    t = v_get_argument_type(1);
+
+    t = make_return_type(t);
+
+    v_set_return_type(t);
 
     v_clear_arguments();
 }
@@ -124,7 +172,12 @@
     ret = LLVMBuildFCmp(builder, opc, lhs, rhs, "");
 
     v_set_return_value(ret);
-    v_set_return_type(bool);
+
+    t = v_get_argument_type(1);
+
+    t = make_return_type(t);
+
+    v_set_return_type(t);
 
     v_clear_arguments();
 }
@@ -134,6 +187,8 @@
 //- ...
 //---------------------------------------------------------------------
 {
+    v_make_function_private("make_return_type");
+
     module = v_get_module();
 
     v_set_module(0);
