@@ -84,7 +84,7 @@
 
     f = v_type_is_vector(type);
 
-    if (f)  v_cast(0, int);         //- Kinda NOP
+    if (f)  ;
     else    v_return(bool_type);
 
     sz = v_type_vector_get_size(type);
@@ -92,7 +92,7 @@
 
     fv_type = v_fvector_type(bool_type, sz);
 
-    if (sc) v_cast(0, int);         //- Kinda NOP
+    if (sc) ;
     else    v_return(fv_type);
 
     sv_type = v_svector_type(bool_type, sz);

@@ -344,7 +344,7 @@
 //-
 //-     no_stmt = v_empty(stmt);
 //-
-//-     if (no_stmt) {}
+//-     if (no_stmt) ;
 //-     else
 //-     {
 //-         base_ast = v_cast(stmt, v_ast_base_ptr);
@@ -360,7 +360,7 @@
 //-
 //-     bblock = v_load(bblock_v);
 //-
-//-     if (bblock) {}
+//-     if (bblock) ;
 //-     else
 //-     {
 //-         cur_b = LLVMGetInsertBlock(builder);
@@ -526,7 +526,7 @@
 //---------------------------------------------------------------------
 //- fun compile_ast_stmt_if_then_else_join_helper(bblock: LLVMBasicBlockRef)
 //- {
-//-     if (bblock) {}
+//-     if (bblock) ;
 //-     else
 //-     {
 //-         v_return();

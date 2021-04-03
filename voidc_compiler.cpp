@@ -61,6 +61,8 @@ static
 void compile_ast_stmt_t(const visitor_sptr_t *vis, void *aux,
                         const std::string *vname, const ast_call_sptr_t *call)
 {
+    if (!*call) return;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
     auto &larg = *lctx.args;

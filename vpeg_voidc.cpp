@@ -61,9 +61,11 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
 {
     std::string s = "";
 
-    if (auto p = std::any_cast<const std::string>(args+0)) { s = *p; }
+    if (auto p = std::any_cast<const std::string>(args+0))  { s = *p; }
 
-    auto c = std::any_cast<ast_call_sptr_t>(args[1]);
+    ast_call_sptr_t c;
+
+    if (auto p = std::any_cast<ast_call_sptr_t>(args+1))    { c = *p; }
 
     ast_stmt_sptr_t ptr = std::make_shared<const ast_stmt_t>(s, c);
 
@@ -372,6 +374,7 @@ vpeg::grammar_t make_voidc_grammar(void)
     //-------------------------------------------------------------
     //- stmt <- v:identifier _ '=' _ c:call _ ';'   { mk_stmt(v, c) }
     //-       / c:call _ ';'                        { mk_stmt(0, c) }
+    //-       / ';'                                 { mk_stmt(0, 0) }
 
     gr = gr.set_parser("stmt",
     mk_choice_parser(
@@ -405,6 +408,18 @@ vpeg::grammar_t make_voidc_grammar(void)
                 {
                     mk_integer_argument(0),
                     mk_identifier_argument("c")
+                })
+            )
+        }),
+        mk_sequence_parser(
+        {
+            mk_character_parser(';'),
+
+            mk_action_parser(
+                mk_call_action("mk_stmt",
+                {
+                    mk_integer_argument(0),
+                    mk_integer_argument(0)
                 })
             )
         })

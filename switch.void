@@ -563,7 +563,7 @@
             v_assign(case_i, i);
         }
 
-        if (case_b)  {}     //- Have default case
+        if (case_b) ;       //- Have default case
         else                //- All "normal" cases
         {
             b = LLVMAppendBasicBlock(cur_f, "case_b");
@@ -572,7 +572,7 @@
         }
 
         trm_v = LLVMGetBasicBlockTerminator(cur_b);
-        if (trm_v) {}
+        if (trm_v) ;
         else
         {
             LLVMBuildBr(builder, case_b);
@@ -628,14 +628,14 @@
     LLVMMoveBasicBlockAfter(switch_exit_b, cur_b);
 
     trm_v = LLVMGetBasicBlockTerminator(cur_b);
-    if (trm_v) {}
+    if (trm_v) ;
     else
     {
         LLVMBuildBr(builder, switch_exit_b);
     }
 
     trm_v = LLVMGetBasicBlockTerminator(switch_default_b);
-    if (trm_v) {}
+    if (trm_v) ;
     else
     {
         LLVMPositionBuilderAtEnd(builder, switch_default_b);
