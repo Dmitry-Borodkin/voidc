@@ -717,9 +717,9 @@
 
 
     //-----------------------------------------------------------------
-    //- stmt_if_then_else <- "if" _ '(' _ cond:arg _ ')' _ then:stmt _
+    //- stmt_if_then_else <- "if" _ '(' _ cond:expr _ ')' _ then:stmt _
     //-                      "else" !ident_cont _ else:stmt             { mk_stmt_if_then_else(cond, then, else) }
-    //-                    / "if" _ '(' _ cond:arg _ ')' _ then:stmt    { mk_stmt_if_then_else(cond, then, 0) }
+    //-                    / "if" _ '(' _ cond:expr _ ')' _ then:stmt   { mk_stmt_if_then_else(cond, then, 0) }
 
     v_peg_make_literal_parser(pp1, "if");
 
@@ -727,7 +727,7 @@
     v_peg_make_character_parser(pp3, '(');
     v_peg_make_identifier_parser(pp4, "_");
 
-    v_peg_make_identifier_parser(pp5, "arg");
+    v_peg_make_identifier_parser(pp5, "expr");
     v_peg_make_catch_variable_parser(pp5, "cond", pp5);
 
     v_peg_make_identifier_parser(pp6, "_");

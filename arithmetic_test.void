@@ -132,19 +132,15 @@
     v_add_parameter_name(f, 0, "n", int);
 }
 {
-    ret = fib_helper(1, 0, n);      //- Sic!
-
-    v_return(ret);
+    v_return(fib_helper(1, 0, n));      //- Sic!
 }
 
 
 //---------------------------------------------------------------------
 {
-    n = v_cast(47, int);
+    n = 47;
 
-    v = fib(n);
-
-    printf("fib(%d): %u\n", n, v);
+    printf("fib(%d): %u\n", n, fib(n));
 }
 
 

@@ -39,21 +39,16 @@ mk_unit(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_stmt_list_nil(std::any *ret, const std::any *args, size_t)
-{
-    *ret = stmt_list_nil;
-}
-
-static void
 mk_stmt_list(std::any *ret, const std::any *args, size_t)
 {
     auto plst = std::any_cast<ast_stmt_list_sptr_t>(args+0);
 
-    if (!plst) plst = &stmt_list_nil;
+    if (!plst)  plst = &stmt_list_nil;
 
-    auto item = std::any_cast<ast_stmt_sptr_t>(args[1]);
+    auto item = std::any_cast<ast_stmt_sptr_t>(args+1);
 
-    *ret = std::make_shared<const ast_stmt_list_t>(*plst, item);          //- Sic!
+    if (item)   *ret = std::make_shared<const ast_stmt_list_t>(*plst, *item);
+    else        *ret = *plst;
 }
 
 static void
@@ -63,25 +58,19 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
 
     if (auto p = std::any_cast<const std::string>(args+0))  { s = *p; }
 
-//    ast_call_sptr_t c;
-//
-//    if (auto p = std::any_cast<ast_call_sptr_t>(args+1))    { c = *p; }
+    ast_expr_sptr_t e;
 
-    ast_expr_sptr_t c;
+    if (auto p = std::any_cast<ast_expr_sptr_t>(args+1))    { e = *p; }
 
-    if (auto p = std::any_cast<ast_expr_sptr_t>(args+1))    { c = *p; }
-
-    ast_stmt_sptr_t ptr = std::make_shared<const ast_stmt_t>(s, c);
+    ast_stmt_sptr_t ptr = std::make_shared<const ast_stmt_t>(s, e);
 
     *ret = ptr;
 }
 
 static void
-mk_call(std::any *ret, const std::any *args, size_t)
+mk_expr_call(std::any *ret, const std::any *args, size_t)
 {
-    auto n = std::any_cast<const std::string>(args[0]);
-
-    ast_expr_sptr_t f = std::make_shared<const ast_expr_identifier_t>(n);
+    auto f = std::any_cast<ast_expr_sptr_t>(args[0]);
 
     auto a = std::any_cast<ast_expr_list_sptr_t>(args[1]);
 
@@ -91,25 +80,20 @@ mk_call(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_arg_list_nil(std::any *ret, const std::any *args, size_t)
-{
-    *ret = expr_list_nil;
-}
-
-static void
-mk_arg_list(std::any *ret, const std::any *args, size_t)
+mk_expr_list(std::any *ret, const std::any *args, size_t)
 {
     auto plst = std::any_cast<ast_expr_list_sptr_t>(args+0);
 
     if (!plst) plst = &expr_list_nil;
 
-    auto item = std::any_cast<ast_expr_sptr_t>(args[1]);
+    auto item = std::any_cast<ast_expr_sptr_t>(args+1);
 
-    *ret = std::make_shared<const ast_expr_list_t>(*plst, item);        //- Sic!
+    if (item)   *ret = std::make_shared<const ast_expr_list_t>(*plst, *item);
+    else        *ret = *plst;
 }
 
 static void
-mk_arg_identifier(std::any *ret, const std::any *args, size_t)
+mk_expr_identifier(std::any *ret, const std::any *args, size_t)
 {
     auto n = std::any_cast<const std::string>(args[0]);
 
@@ -119,7 +103,7 @@ mk_arg_identifier(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_arg_integer(std::any *ret, const std::any *args, size_t)
+mk_expr_integer(std::any *ret, const std::any *args, size_t)
 {
     auto n = std::any_cast<intptr_t>(args[0]);
 
@@ -129,7 +113,7 @@ mk_arg_integer(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_arg_string(std::any *ret, const std::any *args, size_t)
+mk_expr_string(std::any *ret, const std::any *args, size_t)
 {
     auto s = std::any_cast<const std::string>(args[0]);
 
@@ -139,7 +123,7 @@ mk_arg_string(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_arg_char(std::any *ret, const std::any *args, size_t)
+mk_expr_char(std::any *ret, const std::any *args, size_t)
 {
 //  auto c = std::any_cast<char32_t>(args[0]);
     auto c = (char32_t)std::any_cast<uint32_t>(args[0]);
@@ -244,16 +228,14 @@ vpeg::grammar_t make_voidc_grammar(void)
 #define DEF(name) gr = gr.set_action(#name, name);
 
     DEF(mk_unit)
-    DEF(mk_stmt_list_nil)
     DEF(mk_stmt_list)
     DEF(mk_stmt)
-    DEF(mk_call)
-    DEF(mk_arg_list_nil)
-    DEF(mk_arg_list)
-    DEF(mk_arg_identifier)
-    DEF(mk_arg_integer)
-    DEF(mk_arg_string)
-    DEF(mk_arg_char)
+    DEF(mk_expr_call)
+    DEF(mk_expr_list)
+    DEF(mk_expr_identifier)
+    DEF(mk_expr_integer)
+    DEF(mk_expr_string)
+    DEF(mk_expr_char)
     DEF(mk_neg_integer)
     DEF(mk_dec_integer)
     DEF(mk_string)
@@ -267,10 +249,10 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(stmt_list)
     DEF(stmt_list_lr)
     DEF(stmt)
-    DEF(call)
-    DEF(arg_list)
-    DEF(arg_list_lr)
-    DEF(arg)
+    DEF(expr)
+    DEF(expr_list)
+    DEF(expr_list_lr)
+    DEF(prim)
 
     DEF(identifier)
     DEF(ident_start)
@@ -330,7 +312,7 @@ vpeg::grammar_t make_voidc_grammar(void)
 
     //-------------------------------------------------------------
     //- stmt_list <- stmt_list_lr
-    //-            /                    { mk_stmt_list_nil() }
+    //-            /                    { mk_stmt_list(0, 0) }
 
     gr = gr.set_parser("stmt_list",
     mk_choice_parser(
@@ -338,7 +320,11 @@ vpeg::grammar_t make_voidc_grammar(void)
         ip_stmt_list_lr,
 
         mk_action_parser(
-            mk_call_action("mk_stmt_list_nil", {})
+            mk_call_action("mk_stmt_list",
+            {
+                mk_integer_argument(0),
+                mk_integer_argument(0)
+            })
         )
     }));
 
@@ -378,8 +364,8 @@ vpeg::grammar_t make_voidc_grammar(void)
     }), true);      //- Left recursion!
 
     //-------------------------------------------------------------
-    //- stmt <- v:identifier _ '=' _ c:call _ ';'   { mk_stmt(v, c) }
-    //-       / c:call _ ';'                        { mk_stmt(0, c) }
+    //- stmt <- v:identifier _ '=' _ e:expr _ ';'   { mk_stmt(v, e) }
+    //-       / e:expr _ ';'                        { mk_stmt(0, e) }
     //-       / ';'                                 { mk_stmt(0, 0) }
 
     gr = gr.set_parser("stmt",
@@ -391,7 +377,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             ip__,
             mk_character_parser('='),
             ip__,
-            mk_catch_variable_parser("c", ip_call),
+            mk_catch_variable_parser("e", ip_expr),
             ip__,
             mk_character_parser(';'),
 
@@ -399,13 +385,13 @@ vpeg::grammar_t make_voidc_grammar(void)
                 mk_call_action("mk_stmt",
                 {
                     mk_identifier_argument("v"),
-                    mk_identifier_argument("c")
+                    mk_identifier_argument("e")
                 })
             )
         }),
         mk_sequence_parser(
         {
-            mk_catch_variable_parser("c", ip_call),
+            mk_catch_variable_parser("e", ip_expr),
             ip__,
             mk_character_parser(';'),
 
@@ -413,7 +399,7 @@ vpeg::grammar_t make_voidc_grammar(void)
                 mk_call_action("mk_stmt",
                 {
                     mk_integer_argument(0),
-                    mk_identifier_argument("c")
+                    mk_identifier_argument("e")
                 })
             )
         }),
@@ -432,86 +418,95 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- call <- f:identifier _ '(' _ a:arg_list _ ')'   { mk_call(f, a) }
+    //- expr <- f:expr _ '(' _ a:expr_list _ ')'   { mk_expr_call(f, a) }
+    //-       / prim
 
-    gr = gr.set_parser("call",
-    mk_sequence_parser(
+    gr = gr.set_parser("expr",
+    mk_choice_parser(
     {
-        mk_catch_variable_parser("f", ip_identifier),
-        ip__,
-        mk_character_parser('('),
-        ip__,
-        mk_catch_variable_parser("a", ip_arg_list),
-        ip__,
-        mk_character_parser(')'),
+        mk_sequence_parser(
+        {
+            mk_catch_variable_parser("f", ip_expr),
+            ip__,
+            mk_character_parser('('),
+            ip__,
+            mk_catch_variable_parser("a", ip_expr_list),
+            ip__,
+            mk_character_parser(')'),
+
+            mk_action_parser(
+                mk_call_action("mk_expr_call",
+                {
+                    mk_identifier_argument("f"),
+                    mk_identifier_argument("a")
+                })
+            )
+        }),
+        ip_prim
+    }), true);      //- Left recursion!
+
+    //-------------------------------------------------------------
+    //- expr_list <- expr_list_lr
+    //-            /                 { mk_expr_list(0, 0) }
+
+    gr = gr.set_parser("expr_list",
+    mk_choice_parser(
+    {
+        ip_expr_list_lr,
 
         mk_action_parser(
-            mk_call_action("mk_call",
+            mk_call_action("mk_expr_list",
             {
-                mk_identifier_argument("f"),
-                mk_identifier_argument("a")
+                mk_integer_argument(0),
+                mk_integer_argument(0)
             })
         )
     }));
 
     //-------------------------------------------------------------
-    //- arg_list <- arg_list_lr
-    //-           /                 { mk_arg_list_nil() }
+    //- expr_list_lr <- l:expr_list_lr _ ',' _ e:expr  { mk_expr_list(l, e) }
+    //-               / e:expr                         { mk_expr_list(0, e) }
 
-    gr = gr.set_parser("arg_list",
-    mk_choice_parser(
-    {
-        ip_arg_list_lr,
-
-        mk_action_parser(
-            mk_call_action("mk_arg_list_nil", {})
-        )
-    }));
-
-    //-------------------------------------------------------------
-    //- arg_list_lr <- l:arg_list_lr _ ',' _ a:arg  { mk_arg_list(l, a) }
-    //-              / a:arg                        { mk_arg_list(0, a) }
-
-    gr = gr.set_parser("arg_list_lr",
+    gr = gr.set_parser("expr_list_lr",
     mk_choice_parser(
     {
         mk_sequence_parser(
         {
-            mk_catch_variable_parser("l", ip_arg_list_lr),
+            mk_catch_variable_parser("l", ip_expr_list_lr),
             ip__,
             mk_character_parser(','),
             ip__,
-            mk_catch_variable_parser("a", ip_arg),
+            mk_catch_variable_parser("e", ip_expr),
 
             mk_action_parser(
-                mk_call_action("mk_arg_list",
+                mk_call_action("mk_expr_list",
                 {
                     mk_identifier_argument("l"),
-                    mk_identifier_argument("a")
+                    mk_identifier_argument("e")
                 })
             )
         }),
         mk_sequence_parser(
         {
-            mk_catch_variable_parser("a", ip_arg),
+            mk_catch_variable_parser("e", ip_expr),
 
             mk_action_parser(
-                mk_call_action("mk_arg_list",
+                mk_call_action("mk_expr_list",
                 {
                     mk_integer_argument(0),
-                    mk_identifier_argument("a")
+                    mk_identifier_argument("e")
                 })
             )
         })
     }), true);      //- Left recursion!
 
     //-------------------------------------------------------------
-    //- arg <- i:identifier     { mk_arg_identifier(i) }
-    //-      / n:integer        { mk_arg_integer(n) }
-    //-      / s:string         { mk_arg_string(s) }
-    //-      / c:char           { mk_arg_char(c) }
+    //- prim <- i:identifier     { mk_expr_identifier(i) }
+    //-       / n:integer        { mk_expr_integer(n) }
+    //-       / s:string         { mk_expr_string(s) }
+    //-       / c:char           { mk_expr_char(c) }
 
-    gr = gr.set_parser("arg",
+    gr = gr.set_parser("prim",
     mk_choice_parser(
     {
         mk_sequence_parser(
@@ -519,7 +514,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_catch_variable_parser("i", ip_identifier),
 
             mk_action_parser(
-                mk_call_action("mk_arg_identifier",
+                mk_call_action("mk_expr_identifier",
                 {
                     mk_identifier_argument("i"),
                 })
@@ -530,7 +525,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_catch_variable_parser("n", ip_integer),
 
             mk_action_parser(
-                mk_call_action("mk_arg_integer",
+                mk_call_action("mk_expr_integer",
                 {
                     mk_identifier_argument("n"),
                 })
@@ -541,7 +536,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_catch_variable_parser("s", ip_string),
 
             mk_action_parser(
-                mk_call_action("mk_arg_string",
+                mk_call_action("mk_expr_string",
                 {
                     mk_identifier_argument("s"),
                 })
@@ -552,7 +547,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_catch_variable_parser("c", ip_char),
 
             mk_action_parser(
-                mk_call_action("mk_arg_char",
+                mk_call_action("mk_expr_char",
                 {
                     mk_identifier_argument("c"),
                 })

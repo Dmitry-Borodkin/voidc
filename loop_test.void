@@ -24,32 +24,22 @@
 
     loop
     {
-        c = v_icmp(LLVMIntEQ, i, 5);
-
-        if (c)  v_break();
-
+        if (v_icmp(LLVMIntEQ, i, 5))  v_break();
 
         v_assign(j, 0);
 
         loop
         {
-            c = v_icmp(LLVMIntEQ, j, 7);
-
-            if (c)  v_break();
+            if (v_icmp(LLVMIntEQ, j, 7))  v_break();
 
 
             printf("i,j: %d, %d\n", i, j);
 
 
-            j1 = v_binop(LLVMAdd, j, 1);
-
-            v_assign(j, j1);
+            v_assign(j, v_binop(LLVMAdd, j, 1));
         }
 
-
-        i1 = v_binop(LLVMAdd, i, 1);
-
-        v_assign(i, i1);
+        v_assign(i, v_binop(LLVMAdd, i, 1));
     }
 
     printf("\n");
@@ -85,29 +75,23 @@
 
     loop
     {
-        c = v_icmp(LLVMIntEQ, i, n);
-
-        if (c)  v_break();
+        if (v_icmp(LLVMIntEQ, i, n))  v_break();
 
         v2 = v_binop(LLVMAdd, v0, v1);
 
         v_assign(v0, v1);
         v_assign(v1, v2);
 
-        i1 = v_binop(LLVMAdd, i, 1);
-
-        v_assign(i, i1);
+        v_assign(i, v_binop(LLVMAdd, i, 1));
     }
 
     v_return(v1);
 }
 
 //---------------------------------------------------------------------
-{   n = v_cast(93, int);
+{   n = 93;
 
-    v = fib(n);
-
-    printf("fib(%d): %llu\n", n, v);
+    printf("fib(%d): %llu\n", n, fib(n));
 }
 
 

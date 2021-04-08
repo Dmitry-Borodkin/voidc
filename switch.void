@@ -702,7 +702,7 @@
 
     parsers:
 
-        stmt_switch = "switch" _ '(' _ a:arg _ ')' _ '{' _ l:case_list _ '}'    { mk_stmt_switch(a, l) };
+        stmt_switch = "switch" _ '(' _ e:expr _ ')' _ '{' _ l:case_list _ '}'    { mk_stmt_switch(e, l) };
 
 
         case_list = l:case_list _ b:case_block      { mk_case_list(l, b) }
@@ -714,13 +714,13 @@
         case_block = c:case_item_list _ s:stmt_list     { mk_case_block(c, s) };
 
 
-        case_item_list = l:case_item_list _ i:case_item     { mk_arg_list(l, i) }
-                       / i:case_item                        { mk_arg_list(0, i) };
+        case_item_list = l:case_item_list _ i:case_item     { mk_expr_list(l, i) }
+                       / i:case_item                        { mk_expr_list(0, i) };
 
         case_item_list is left-recursive;
 
 
-        case_item = "case" _ a:arg _ ':'    { mk_case_item(a) }
+        case_item = "case" _ e:expr _ ':'   { mk_case_item(e) }
                   / "default" _ ':'         { mk_case_item(0) };
 
 

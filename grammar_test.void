@@ -144,7 +144,7 @@
         mk_test = mk_test_grammar_action;
 
     parsers:
-        stmt =+ "test" _ ';'    { mk_test(str_test) };
+        stmt += "test" _ ';'    { mk_test(str_test) };
     }
 
     v_peg_set_grammar(gr0);
