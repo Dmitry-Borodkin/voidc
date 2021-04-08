@@ -76,7 +76,7 @@ public:
     virtual void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) = 0;
 
 public:
-    typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_arg_list_sptr_t *args);
+    typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
 
     std::map<std::string, intrinsic_t> intrinsics;
 
@@ -110,12 +110,10 @@ public:
 
     virtual v_type_t *find_symbol_type(const char *raw_name) = 0;       //- No alias check!
 
-    v_type_t *lookup_type(const ast_argument_sptr_t &arg);
+    v_type_t *lookup_type(const ast_expr_sptr_t &expr);
 
 public:
     LLVMModuleRef module = nullptr;
-
-    bool obtain_function(const std::string &fun_name, v_type_t * &fun_type, LLVMValueRef &fun_value);
 
     bool obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value);
 
@@ -127,20 +125,10 @@ public:
     std::forward_list<variables_t> vars_stack;
 
 public:
-    struct arguments_t
-    {
-        std::vector<v_type_t *>   types;
-        std::vector<LLVMValueRef> values;
+    v_type_t    *result_type  = nullptr;
+    LLVMValueRef result_value = nullptr;
 
-        v_type_t    *ret_type  = nullptr;
-        LLVMValueRef ret_value = nullptr;
-    };
-
-    typedef std::unique_ptr<arguments_t> args_uptr_t;
-
-    args_uptr_t args = std::make_unique<arguments_t>();
-
-    std::forward_list<args_uptr_t> args_stack;
+    void adopt_result(v_type_t *type, LLVMValueRef value);
 
 public:
     LLVMValueRef make_temporary(v_type_t *type, LLVMValueRef value);

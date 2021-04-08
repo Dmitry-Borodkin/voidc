@@ -34,32 +34,70 @@
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_arg_list_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
     builder = v_target_get_builder();
 
-    arg_base = v_cast(arg_list, v_ast_base_ptr);
+    tt = v_get_result_type();
+
+
+    minus1 = v_cast(-1, intptr_t);
+
+    UNREFERENCE_TAG = v_cast(minus1, v_type_ptr);
+
+
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    v_list_get_items(arg_list, 0, arg0, 3);
+
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg0, v_ast_base_ptr);
 
     v_ast_accept_visitor(arg_base, visitor, aux);
 
-    arg0 = v_get_argument_value(0);
+    arg = v_get_result_value();
 
-    opv = LLVMConstIntGetZExtValue(arg0);
+    opv = LLVMConstIntGetZExtValue(arg);
 
     opc = v_cast(opv, LLVMOpcode);
 
-    lhs = v_get_argument_value(1);
-    rhs = v_get_argument_value(2);
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg1, v_ast_base_ptr);
+
+    v_ast_accept_visitor(arg_base, visitor, aux);
+
+    lhs = v_get_result_value();
+
+    t = v_get_result_type();
+
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg2, v_ast_base_ptr);
+
+    v_ast_accept_visitor(arg_base, visitor, aux);
+
+    rhs = v_get_result_value();
+
 
     ret = LLVMBuildBinOp(builder, opc, lhs, rhs, "");
 
-    v_set_return_value(ret);
 
-    t = v_get_argument_type(1);
-    v_set_return_type(t);
+    v_set_result_type(tt);
 
-    v_clear_arguments();
+    v_adopt_result(t, ret);
+
+
+    v_terminate(arg0, 3);
 }
 
 
@@ -110,35 +148,73 @@
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_arg_list_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
     builder = v_target_get_builder();
 
-    arg_base = v_cast(arg_list, v_ast_base_ptr);
+    tt = v_get_result_type();
+
+
+    minus1 = v_cast(-1, intptr_t);
+
+    UNREFERENCE_TAG = v_cast(minus1, v_type_ptr);
+
+
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    v_list_get_items(arg_list, 0, arg0, 3);
+
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg0, v_ast_base_ptr);
 
     v_ast_accept_visitor(arg_base, visitor, aux);
 
-    arg0 = v_get_argument_value(0);
+    arg = v_get_result_value();
 
-    opv = LLVMConstIntGetZExtValue(arg0);
+    opv = LLVMConstIntGetZExtValue(arg);
 
     opc = v_cast(opv, LLVMIntPredicate);
 
-    lhs = v_get_argument_value(1);
-    rhs = v_get_argument_value(2);
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg1, v_ast_base_ptr);
+
+    v_ast_accept_visitor(arg_base, visitor, aux);
+
+    lhs = v_get_result_value();
+
+    t = v_get_result_type();
+
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg2, v_ast_base_ptr);
+
+    v_ast_accept_visitor(arg_base, visitor, aux);
+
+    rhs = v_get_result_value();
+
 
     ret = LLVMBuildICmp(builder, opc, lhs, rhs, "");
 
-    v_set_return_value(ret);
-
-    t = v_get_argument_type(1);
 
     t = make_return_type(t);
 
-    v_set_return_type(t);
 
-    v_clear_arguments();
+    v_set_result_type(tt);
+
+    v_adopt_result(t, ret);
+
+
+    v_terminate(arg0, 3);
 }
 
 
@@ -151,35 +227,73 @@
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_arg_list_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
     builder = v_target_get_builder();
 
-    arg_base = v_cast(arg_list, v_ast_base_ptr);
+    tt = v_get_result_type();
+
+
+    minus1 = v_cast(-1, intptr_t);
+
+    UNREFERENCE_TAG = v_cast(minus1, v_type_ptr);
+
+
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    v_initialize(arg0, 3);
+
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+
+    v_list_get_items(arg_list, 0, arg0, 3);
+
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg0, v_ast_base_ptr);
 
     v_ast_accept_visitor(arg_base, visitor, aux);
 
-    arg0 = v_get_argument_value(0);
+    arg = v_get_result_value();
 
-    opv = LLVMConstIntGetZExtValue(arg0);
+    opv = LLVMConstIntGetZExtValue(arg);
 
     opc = v_cast(opv, LLVMRealPredicate);
 
-    lhs = v_get_argument_value(1);
-    rhs = v_get_argument_value(2);
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg1, v_ast_base_ptr);
+
+    v_ast_accept_visitor(arg_base, visitor, aux);
+
+    lhs = v_get_result_value();
+
+    t = v_get_result_type();
+
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg_base = v_cast(arg2, v_ast_base_ptr);
+
+    v_ast_accept_visitor(arg_base, visitor, aux);
+
+    rhs = v_get_result_value();
+
 
     ret = LLVMBuildFCmp(builder, opc, lhs, rhs, "");
 
-    v_set_return_value(ret);
-
-    t = v_get_argument_type(1);
 
     t = make_return_type(t);
 
-    v_set_return_type(t);
 
-    v_clear_arguments();
+    v_set_result_type(tt);
+
+    v_adopt_result(t, ret);
+
+
+    v_terminate(arg0, 3);
 }
 
 

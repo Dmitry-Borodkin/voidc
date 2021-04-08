@@ -14,10 +14,8 @@
     v_util_register_itcmep_impl(v_ast_opaque_unit_sptr,         "v_ast", "unit");
     v_util_register_itcmep_impl(v_ast_opaque_stmt_list_sptr,    "v_ast", "stmt_list");
     v_util_register_itcmep_impl(v_ast_opaque_stmt_sptr,         "v_ast", "stmt");
-    v_util_register_itcmep_impl(v_ast_opaque_call_sptr,         "v_ast", "call");
-    v_util_register_itcmep_impl(v_ast_opaque_arg_list_sptr,     "v_ast", "arg_list");
-    v_util_register_itcmep_impl(v_ast_opaque_argument_sptr,     "v_ast", "argument");
-
+    v_util_register_itcmep_impl(v_ast_opaque_expr_list_sptr,    "v_ast", "expr_list");
+    v_util_register_itcmep_impl(v_ast_opaque_expr_sptr,         "v_ast", "expr");
     v_util_register_itcmep_impl(v_ast_opaque_generic_sptr,      "v_ast", "generic");
     v_util_register_itcmep_impl(v_ast_opaque_generic_list_sptr, "v_ast", "generic_list");
 }
@@ -35,14 +33,11 @@
     stmt_ptr = v_pointer_type(v_ast_opaque_stmt_sptr, 0);
     v_add_symbol("v_ast_stmt_ptr", voidc_opaque_type, stmt_ptr);
 
-    call_ptr = v_pointer_type(v_ast_opaque_call_sptr, 0);
-    v_add_symbol("v_ast_call_ptr", voidc_opaque_type, call_ptr);
+    expr_list_ptr = v_pointer_type(v_ast_opaque_expr_list_sptr, 0);
+    v_add_symbol("v_ast_expr_list_ptr", voidc_opaque_type, expr_list_ptr);
 
-    arg_list_ptr = v_pointer_type(v_ast_opaque_arg_list_sptr, 0);
-    v_add_symbol("v_ast_arg_list_ptr", voidc_opaque_type, arg_list_ptr);
-
-    argument_ptr = v_pointer_type(v_ast_opaque_argument_sptr, 0);
-    v_add_symbol("v_ast_argument_ptr", voidc_opaque_type, argument_ptr);
+    expr_ptr = v_pointer_type(v_ast_opaque_expr_sptr, 0);
+    v_add_symbol("v_ast_expr_ptr", voidc_opaque_type, expr_ptr);
 
     generic_ptr = v_pointer_type(v_ast_opaque_generic_sptr, 0);
     v_add_symbol("v_ast_generic_ptr", voidc_opaque_type, generic_ptr);
@@ -77,21 +72,21 @@
 
 
     //-----------------------------------------------------------------
-    v_store(v_ast_arg_list_ptr, typ0);
+    v_store(v_ast_expr_list_ptr, typ0);
 
     ft = v_function_type(void, typ0, 1, false);
 
-    v_util_register_make_list_nil_impl(v_ast_opaque_arg_list_sptr, "v_ast_make_list_nil_arg_list_impl", ft);
+    v_util_register_make_list_nil_impl(v_ast_opaque_expr_list_sptr, "v_ast_make_list_nil_expr_list_impl", ft);
 
-//  v_store(v_ast_arg_list_ptr, typ0);
-    v_store(v_ast_argument_ptr, typ1);
-//  v_store(int,                typ2);
+//  v_store(v_ast_expr_list_ptr, typ0);
+    v_store(v_ast_expr_ptr,      typ1);
+//  v_store(int,                 typ2);
 
     ft = v_function_type(void, typ0, 3, false);
 
-    v_util_register_make_list_impl(v_ast_opaque_arg_list_sptr, "v_ast_make_list_arg_list_impl", ft);
+    v_util_register_make_list_impl(v_ast_opaque_expr_list_sptr, "v_ast_make_list_expr_list_impl", ft);
 
-    v_util_register_list_agsgi_impl(v_ast_opaque_arg_list_sptr, v_ast_opaque_argument_sptr, "v_ast", "arg_list");
+    v_util_register_list_agsgi_impl(v_ast_opaque_expr_list_sptr, v_ast_opaque_expr_sptr, "v_ast", "expr_list");
 
 
     //-----------------------------------------------------------------
@@ -116,128 +111,128 @@
 
 
 //---------------------------------------------------------------------
-{   arg0 = v_alloca(v_type_ptr, 5);
-    arg1 = v_getelementptr(arg0, 1);
-    arg2 = v_getelementptr(arg0, 2);
-    arg3 = v_getelementptr(arg0, 3);
-    arg4 = v_getelementptr(arg0, 4);
+{   typ0 = v_alloca(v_type_ptr, 5);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
 
     char_ptr = v_pointer_type(char, 0);
 
 
     //-------------------------------------------------------------
-    v_store(v_ast_argument_ptr, arg0);
+    v_store(v_ast_expr_ptr, typ0);
 
-    ft = v_function_type(v_type_ptr, arg0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_add_symbol_type("v_lookup_type", ft);         //- Sic! ...
 
 
     //-------------------------------------------------------------
-    v_store(v_ast_unit_ptr,      arg0);             //- (out)
-    v_store(v_ast_stmt_list_ptr, arg1);             //-
-    v_store(int,                 arg2);             //- line
-    v_store(int,                 arg3);             //- column
+    v_store(v_ast_unit_ptr,      typ0);             //- (out)
+    v_store(v_ast_stmt_list_ptr, typ1);             //-
+    v_store(int,                 typ2);             //- line
+    v_store(int,                 typ3);             //- column
 
-    ft = v_function_type(void, arg0, 4, false);
+    ft = v_function_type(void, typ0, 4, false);
     v_add_symbol_type("v_ast_make_unit", ft);
 
-//  v_store(v_ast_unit_ptr,      arg0);             //-
-//  v_store(v_ast_stmt_list_ptr, arg1);             //- (out)
+//  v_store(v_ast_unit_ptr,      typ0);             //-
+//  v_store(v_ast_stmt_list_ptr, typ1);             //- (out)
 
-    ft = v_function_type(void, arg0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_add_symbol_type("v_ast_unit_get_stmt_list", ft);
 
-//  v_store(v_ast_unit_ptr, arg0);                  //-
+//  v_store(v_ast_unit_ptr, typ0);                  //-
 
-    ft = v_function_type(int, arg0, 1, false);
+    ft = v_function_type(int, typ0, 1, false);
     v_add_symbol_type("v_ast_unit_get_line",   ft);
     v_add_symbol_type("v_ast_unit_get_column", ft);
 
     //-------------------------------------------------------------
-    v_store(v_ast_stmt_ptr, arg0);                  //- (out)
-    v_store(char_ptr,       arg1);                  //- return name or ""
-    v_store(v_ast_call_ptr, arg2);                  //-
+    v_store(v_ast_stmt_ptr, typ0);                  //- (out)
+    v_store(char_ptr,       typ1);                  //- return name or ""
+    v_store(v_ast_expr_ptr, typ2);                  //-
 
-    ft = v_function_type(void, arg0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_ast_make_stmt", ft);
 
-//  v_store(v_ast_stmt_ptr, arg0);                  //-
+//  v_store(v_ast_stmt_ptr, typ0);                  //-
 
-    ft = v_function_type(char_ptr, arg0, 1, false);
+    ft = v_function_type(char_ptr, typ0, 1, false);
     v_add_symbol_type("v_ast_stmt_get_var_name", ft);
 
-//  v_store(v_ast_stmt_ptr, arg0);                  //-
-    v_store(v_ast_call_ptr, arg1);                  //- (out)
+//  v_store(v_ast_stmt_ptr, typ0);                  //-
+    v_store(v_ast_expr_ptr, typ1);                  //- (out)
 
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_stmt_get_call", ft);
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol_type("v_ast_stmt_get_expr", ft);
 
     //-------------------------------------------------------------
-    v_store(v_ast_call_ptr,     arg0);              //- (out)
-    v_store(char_ptr,           arg1);              //- function name
-    v_store(v_ast_arg_list_ptr, arg2);              //-
+    v_store(v_ast_expr_ptr,      typ0);             //- (out)
+    v_store(v_ast_expr_ptr,      typ1);             //- function expr
+    v_store(v_ast_expr_list_ptr, typ2);             //-
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_ast_make_call", ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_ast_make_expr_call", ft);
                                                     //-
-//  v_store(v_ast_call_ptr, arg0);
+//  v_store(v_ast_expr_ptr, typ0);
 
-    ft = v_function_type(char_ptr, arg0, 1, false);
-    v_add_symbol_type("v_ast_call_get_fun_name", ft);
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_add_symbol_type("v_ast_expr_call_get_fun_expr", ft);
 
-//  v_store(v_ast_call_ptr,     arg0);              //-
-    v_store(v_ast_arg_list_ptr, arg1);              //- (out)
+//  v_store(v_ast_expr_ptr,      typ0);             //-
+    v_store(v_ast_expr_list_ptr, typ1);             //- (out)
 
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_call_get_arg_list", ft);
-
-    //-------------------------------------------------------------
-    v_store(v_ast_argument_ptr, arg0);              //- (out)
-    v_store(char_ptr,           arg1);              //-
-
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_make_arg_identifier", ft);
-
-//  v_store(v_ast_argument_ptr, arg0);              //-
-
-    ft = v_function_type(char_ptr, arg0, 1, false);
-    v_add_symbol_type("v_ast_arg_identifier_get_name", ft);
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol_type("v_ast_expr_call_get_expr_list", ft);
 
     //-------------------------------------------------------------
-//  v_store(v_ast_argument_ptr, arg0);              //- (out)
-    v_store(intptr_t,           arg1);              //-
+    v_store(v_ast_expr_ptr, typ0);                  //- (out)
+    v_store(char_ptr,       typ1);                  //-
 
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_make_arg_integer", ft);
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol_type("v_ast_make_expr_identifier", ft);
 
-//  v_store(v_ast_argument_ptr, arg0);              //-
+//  v_store(v_ast_expr_ptr, typ0);                  //-
 
-    ft = v_function_type(intptr_t, arg0, 1, false);
-    v_add_symbol_type("v_ast_arg_integer_get_number", ft);
-
-    //-------------------------------------------------------------
-//  v_store(v_ast_argument_ptr, arg0);              //- (out)
-    v_store(char_ptr,           arg1);              //-
-
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_make_arg_string", ft);
-
-//  v_store(v_ast_argument_ptr, arg0);              //-
-
-    ft = v_function_type(char_ptr, arg0, 1, false);
-    v_add_symbol_type("v_ast_arg_string_get_string", ft);
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_add_symbol_type("v_ast_expr_identifier_get_name", ft);
 
     //-------------------------------------------------------------
-//  v_store(v_ast_argument_ptr, arg0);              //- (out)
-    v_store(char32_t,           arg1);              //-
+//  v_store(v_ast_expr_ptr, typ0);                  //- (out)
+    v_store(intptr_t,       typ1);                  //-
 
-    ft = v_function_type(void, arg0, 2, false);
-    v_add_symbol_type("v_ast_make_arg_char", ft);
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol_type("v_ast_make_expr_integer", ft);
 
-//  v_store(v_ast_argument_ptr, arg0);              //-
+//  v_store(v_ast_expr_ptr, typ0);                  //-
 
-    ft = v_function_type(char32_t, arg0, 1, false);
-    v_add_symbol_type("v_ast_arg_char_get_char", ft);
+    ft = v_function_type(intptr_t, typ0, 1, false);
+    v_add_symbol_type("v_ast_expr_integer_get_number", ft);
+
+    //-------------------------------------------------------------
+//  v_store(v_ast_expr_ptr, typ0);                  //- (out)
+    v_store(char_ptr,       typ1);                  //-
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol_type("v_ast_make_expr_string", ft);
+
+//  v_store(v_ast_expr_ptr, typ0);                  //-
+
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_add_symbol_type("v_ast_expr_string_get_string", ft);
+
+    //-------------------------------------------------------------
+//  v_store(v_ast_expr_ptr, typ0);                  //- (out)
+    v_store(char32_t,       typ1);                  //-
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol_type("v_ast_make_expr_char", ft);
+
+//  v_store(v_ast_expr_ptr, typ0);                  //-
+
+    ft = v_function_type(char32_t, typ0, 1, false);
+    v_add_symbol_type("v_ast_expr_char_get_char", ft);
 
 
     //-------------------------------------------------------------
@@ -247,23 +242,23 @@
 
     void_ptr = v_pointer_type(void, 0);
 
-    v_store(void_ptr, arg0);                        //- object
+    v_store(void_ptr, typ0);                        //- object
 
-    destroy_ft = v_function_type(void, arg0, 1, false);
+    destroy_ft = v_function_type(void, typ0, 1, false);
     destroy_p  = v_pointer_type(destroy_ft, 0);
 
-//  v_store(void_ptr,          arg0);               //- object
-    v_store(voidc_visitor_ptr, arg1);               //-
-    v_store(void_ptr,          arg2);               //-
+//  v_store(void_ptr,          typ0);               //- object
+    v_store(voidc_visitor_ptr, typ1);               //-
+    v_store(void_ptr,          typ2);               //-
 
-    accept_ft = v_function_type(void, arg0, 3, false);
+    accept_ft = v_function_type(void, typ0, 3, false);
     accept_p  = v_pointer_type(accept_ft, 0);
 
-    v_store(destroy_p, arg0);                       //-
-    v_store(accept_p,  arg1);                       //-
-    v_store(v_quark_t, arg2);                       //-
+    v_store(destroy_p, typ0);                       //-
+    v_store(accept_p,  typ1);                       //-
+    v_store(v_quark_t, typ2);                       //-
 
-    v_type_struct_set_body(generic_vtable, arg0, 3, 0);
+    v_type_struct_set_body(generic_vtable, typ0, 3, 0);
     v_add_symbol("v_ast_generic_vtable", voidc_opaque_type, generic_vtable);
 
     v_add_symbol("v_ast_generic_destroy_fun_t", voidc_opaque_type, destroy_ft);
@@ -272,60 +267,53 @@
     generic_vtable_ptr = v_pointer_type(generic_vtable, 0);
 
     //-------------------------------------------------------------
-    v_store(v_ast_generic_ptr,  arg0);              //- (out)
-    v_store(generic_vtable_ptr, arg1);              //-
-    v_store(void_ptr,           arg2);              //- object
+    v_store(v_ast_generic_ptr,  typ0);              //- (out)
+    v_store(generic_vtable_ptr, typ1);              //-
+    v_store(void_ptr,           typ2);              //- object
 
-    ft = v_function_type(void, arg0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_ast_make_generic", ft);
 
     //-------------------------------------------------------------
-    v_store(v_ast_unit_ptr,     arg0);              //- (out)
-//  v_store(generic_vtable_ptr, arg1);              //-
-//  v_store(void_ptr,           arg2);              //- object
+    v_store(v_ast_unit_ptr,     typ0);              //- (out)
+//  v_store(generic_vtable_ptr, typ1);              //-
+//  v_store(void_ptr,           typ2);              //- object
 
-    ft = v_function_type(void, arg0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_ast_make_unit_generic", ft);
 
-    v_store(v_ast_stmt_ptr,     arg0);              //- (out)
-//  v_store(generic_vtable_ptr, arg1);              //-
-//  v_store(void_ptr,           arg2);              //- object
+    v_store(v_ast_stmt_ptr,     typ0);              //- (out)
+//  v_store(generic_vtable_ptr, typ1);              //-
+//  v_store(void_ptr,           typ2);              //- object
 
-    ft = v_function_type(void, arg0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_ast_make_stmt_generic", ft);
 
-    v_store(v_ast_call_ptr,     arg0);              //- (out)
-//  v_store(generic_vtable_ptr, arg1);              //-
-//  v_store(void_ptr,           arg2);              //- object
+    v_store(v_ast_expr_ptr,     typ0);              //- (out)
+//  v_store(generic_vtable_ptr, typ1);              //-
+//  v_store(void_ptr,           typ2);              //- object
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_ast_make_call_generic", ft);
-
-    v_store(v_ast_argument_ptr, arg0);              //- (out)
-//  v_store(generic_vtable_ptr, arg1);              //-
-//  v_store(void_ptr,           arg2);              //- object
-
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_ast_make_argument_generic", ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_ast_make_expr_generic", ft);
 
     //-------------------------------------------------------------
-    v_store(v_ast_generic_ptr, arg0);               //-
+    v_store(v_ast_generic_ptr, typ0);               //-
 
-    ft = v_function_type(generic_vtable_ptr, arg0, 1, false);
+    ft = v_function_type(generic_vtable_ptr, typ0, 1, false);
     v_add_symbol_type("v_ast_generic_get_vtable", ft);
 
-//  v_store(v_ast_generic_ptr, arg0);               //-
+//  v_store(v_ast_generic_ptr, typ0);               //-
 
-    ft = v_function_type(void_ptr, arg0, 1, false);
+    ft = v_function_type(void_ptr, typ0, 1, false);
     v_add_symbol_type("v_ast_generic_get_object", ft);
 
 
     //-------------------------------------------------------------
     //- Visitors ...
     //-------------------------------------------------------------
-    v_store(v_ast_base_ptr, arg0);                  //-
+    v_store(v_ast_base_ptr, typ0);                  //-
 
-    ft = v_function_type(v_quark_t, arg0, 1, false);
+    ft = v_function_type(v_quark_t, typ0, 1, false);
     v_add_symbol_type("v_ast_base_get_visitor_method_tag", ft);
 
 
@@ -334,171 +322,171 @@
 
 
     //-------------------------------------------------------------
-    v_store(voidc_visitor_ptr, arg0);               //- visitor
-    v_store(void_ptr,          arg1);               //- aux
-    v_store(size_t,            arg2);               //- size of list
-    v_store(bool,              arg3);               //- start/stop (i.e. true/false)
+    v_store(voidc_visitor_ptr, typ0);               //- visitor
+    v_store(void_ptr,          typ1);               //- aux
+    v_store(size_t,            typ2);               //- size of list
+    v_store(bool,              typ3);               //- start/stop (i.e. true/false)
 
-    ft = v_function_type(void, arg0, 4, false);
+    ft = v_function_type(void, typ0, 4, false);
     v_add_symbol("v_ast_list_visitor_method_t", voidc_opaque_type, ft);
 
     fun_ptr = v_pointer_type(ft, 0);
 
-//  v_store(voidc_visitor_ptr, arg0);               //- (out)
-    v_store(voidc_visitor_ptr, arg1);               //- (in)
-    v_store(fun_ptr,           arg2);               //-
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+    v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(fun_ptr,           typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_stmt_list_t", ft);
-    v_add_symbol_type("v_visitor_set_method_ast_arg_list_t",  ft);
+    v_add_symbol_type("v_visitor_set_method_ast_expr_list_t", ft);
 
     v_add_symbol_type("v_ast_stmt_list_t_visitor_method_tag", quark_ref);
-    v_add_symbol_type("v_ast_arg_list_t_visitor_method_tag",  quark_ref);
+    v_add_symbol_type("v_ast_expr_list_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
-//  v_store(voidc_visitor_ptr,   arg0);             //-
-    v_store(void_ptr,            arg1);             //-
-    v_store(v_ast_stmt_list_ptr, arg2);             //-
-    v_store(int,                 arg3);             //- line
-    v_store(int,                 arg4);             //- column
+//  v_store(voidc_visitor_ptr,   typ0);             //-
+    v_store(void_ptr,            typ1);             //-
+    v_store(v_ast_stmt_list_ptr, typ2);             //-
+    v_store(int,                 typ3);             //- line
+    v_store(int,                 typ4);             //- column
 
-    ft = v_function_type(void, arg0, 5, false);
+    ft = v_function_type(void, typ0, 5, false);
     v_add_symbol("v_ast_unit_visitor_method_t", voidc_opaque_type, ft);
 
     fun_ptr = v_pointer_type(ft, 0);
 
-//  v_store(voidc_visitor_ptr, arg0);               //- (out)
-    v_store(voidc_visitor_ptr, arg1);               //- (in)
-    v_store(fun_ptr,           arg2);               //-
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+    v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(fun_ptr,           typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_unit_t", ft);
 
     v_add_symbol_type("v_ast_unit_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
-//  v_store(voidc_visitor_ptr,     arg0);           //-
-    v_store(void_ptr,              arg1);           //-
-    v_store(v_util_std_string_ptr, arg2);           //-
-    v_store(v_ast_call_ptr,        arg3);           //-
+//  v_store(voidc_visitor_ptr,     typ0);           //-
+    v_store(void_ptr,              typ1);           //-
+    v_store(v_util_std_string_ptr, typ2);           //-
+    v_store(v_ast_expr_ptr,        typ3);           //-
 
-    ft = v_function_type(void, arg0, 4, false);
+    ft = v_function_type(void, typ0, 4, false);
     v_add_symbol("v_ast_stmt_visitor_method_t", voidc_opaque_type, ft);
 
     fun_ptr = v_pointer_type(ft, 0);
 
-//  v_store(voidc_visitor_ptr, arg0);               //- (out)
-    v_store(voidc_visitor_ptr, arg1);               //- (in)
-    v_store(fun_ptr,           arg2);               //-
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+    v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(fun_ptr,           typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_stmt_t", ft);
 
     v_add_symbol_type("v_ast_stmt_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
-//  v_store(voidc_visitor_ptr,     arg0);           //-
-    v_store(void_ptr,              arg1);           //-
-    v_store(v_util_std_string_ptr, arg2);           //-
-    v_store(v_ast_arg_list_ptr,    arg3);           //-
+//  v_store(voidc_visitor_ptr,   typ0);             //-
+    v_store(void_ptr,            typ1);             //-
+    v_store(v_ast_expr_ptr,      typ2);             //-
+    v_store(v_ast_expr_list_ptr, typ3);             //-
 
-    ft = v_function_type(void, arg0, 4, false);
-    v_add_symbol("v_ast_call_visitor_method_t", voidc_opaque_type, ft);
-
-    fun_ptr = v_pointer_type(ft, 0);
-
-//  v_store(voidc_visitor_ptr, arg0);               //- (out)
-    v_store(voidc_visitor_ptr, arg1);               //- (in)
-    v_store(fun_ptr,           arg2);               //-
-
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_visitor_set_method_ast_call_t", ft);
-
-    v_add_symbol_type("v_ast_call_t_visitor_method_tag", quark_ref);
-
-    //-------------------------------------------------------------
-//  v_store(voidc_visitor_ptr,     arg0);           //-
-    v_store(void_ptr,              arg1);           //-
-    v_store(v_util_std_string_ptr, arg2);           //-
-
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol("v_ast_arg_identifier_visitor_method_t", voidc_opaque_type, ft);
+    ft = v_function_type(void, typ0, 4, false);
+    v_add_symbol("v_ast_expr_call_visitor_method_t", voidc_opaque_type, ft);
 
     fun_ptr = v_pointer_type(ft, 0);
 
-//  v_store(voidc_visitor_ptr, arg0);               //- (out)
-    v_store(voidc_visitor_ptr, arg1);               //- (in)
-    v_store(fun_ptr,           arg2);               //-
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+    v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(fun_ptr,           typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_visitor_set_method_ast_arg_identifier_t", ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_visitor_set_method_ast_expr_call_t", ft);
 
-    v_add_symbol_type("v_ast_arg_identifier_t_visitor_method_tag", quark_ref);
+    v_add_symbol_type("v_ast_expr_call_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
-//  v_store(voidc_visitor_ptr, arg0);               //-
-    v_store(void_ptr,          arg1);               //-
-    v_store(intptr_t,          arg2);               //-
+//  v_store(voidc_visitor_ptr,     typ0);           //-
+    v_store(void_ptr,              typ1);           //-
+    v_store(v_util_std_string_ptr, typ2);           //-
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol("v_ast_arg_integer_visitor_method_t", voidc_opaque_type, ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol("v_ast_expr_identifier_visitor_method_t", voidc_opaque_type, ft);
 
     fun_ptr = v_pointer_type(ft, 0);
 
-//  v_store(voidc_visitor_ptr, arg0);               //- (out)
-    v_store(voidc_visitor_ptr, arg1);               //- (in)
-    v_store(fun_ptr,           arg2);               //-
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+    v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(fun_ptr,           typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_visitor_set_method_ast_arg_integer_t", ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_visitor_set_method_ast_expr_identifier_t", ft);
 
-    v_add_symbol_type("v_ast_arg_integer_t_visitor_method_tag", quark_ref);
+    v_add_symbol_type("v_ast_expr_identifier_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
-//  v_store(voidc_visitor_ptr,     arg0);           //-
-    v_store(void_ptr,              arg1);           //-
-    v_store(v_util_std_string_ptr, arg1);           //-
+//  v_store(voidc_visitor_ptr, typ0);               //-
+    v_store(void_ptr,          typ1);               //-
+    v_store(intptr_t,          typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol("v_ast_arg_string_visitor_method_t", voidc_opaque_type, ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol("v_ast_expr_integer_visitor_method_t", voidc_opaque_type, ft);
 
     fun_ptr = v_pointer_type(ft, 0);
 
-//  v_store(voidc_visitor_ptr, arg0);               //- (out)
-    v_store(voidc_visitor_ptr, arg1);               //- (in)
-    v_store(fun_ptr,           arg2);               //-
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+    v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(fun_ptr,           typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_visitor_set_method_ast_arg_string_t", ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_visitor_set_method_ast_expr_integer_t", ft);
 
-    v_add_symbol_type("v_ast_arg_string_t_visitor_method_tag", quark_ref);
+    v_add_symbol_type("v_ast_expr_integer_t_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
-//  v_store(voidc_visitor_ptr, arg0);               //-
-    v_store(void_ptr,          arg1);               //-
-    v_store(char32_t,          arg2);               //-
+//  v_store(voidc_visitor_ptr,     typ0);           //-
+    v_store(void_ptr,              typ1);           //-
+    v_store(v_util_std_string_ptr, typ1);           //-
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol("v_ast_arg_char_visitor_method_t", voidc_opaque_type, ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol("v_ast_expr_string_visitor_method_t", voidc_opaque_type, ft);
 
     fun_ptr = v_pointer_type(ft, 0);
 
-//  v_store(voidc_visitor_ptr, arg0);               //- (out)
-    v_store(voidc_visitor_ptr, arg1);               //- (in)
-    v_store(fun_ptr,           arg2);               //-
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+    v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(fun_ptr,           typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
-    v_add_symbol_type("v_visitor_set_method_ast_arg_char_t", ft);
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_visitor_set_method_ast_expr_string_t", ft);
 
-    v_add_symbol_type("v_ast_arg_char_t_visitor_method_tag", quark_ref);
+    v_add_symbol_type("v_ast_expr_string_t_visitor_method_tag", quark_ref);
+
+    //-------------------------------------------------------------
+//  v_store(voidc_visitor_ptr, typ0);               //-
+    v_store(void_ptr,          typ1);               //-
+    v_store(char32_t,          typ2);               //-
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol("v_ast_expr_char_visitor_method_t", voidc_opaque_type, ft);
+
+    fun_ptr = v_pointer_type(ft, 0);
+
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+    v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(fun_ptr,           typ2);               //-
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_visitor_set_method_ast_expr_char_t", ft);
+
+    v_add_symbol_type("v_ast_expr_char_t_visitor_method_tag", quark_ref);
 
 
     //-------------------------------------------------------------
-    v_store(v_ast_base_ptr,    arg0);               //-
-    v_store(voidc_visitor_ptr, arg1);               //-
-    v_store(void_ptr,          arg2);               //-
+    v_store(v_ast_base_ptr,    typ0);               //-
+    v_store(voidc_visitor_ptr, typ1);               //-
+    v_store(void_ptr,          typ2);               //-
 
-    ft = v_function_type(void, arg0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_ast_accept_visitor", ft);
 }
 

@@ -103,6 +103,13 @@ private:
 
 
 //---------------------------------------------------------------------
+//- Special tag-types ...
+//---------------------------------------------------------------------
+#define INVIOLABLE_TAG  (reinterpret_cast<v_type_t *>(intptr_t( 0)))
+#define UNREFERENCE_TAG (reinterpret_cast<v_type_t *>(intptr_t(-1)))
+
+
+//---------------------------------------------------------------------
 //- "Simple" types: "void" and floating points...
 //---------------------------------------------------------------------
 template<v_type_t::kind_t tag>

@@ -85,6 +85,7 @@
     v_add_alias("llvm_readcyclecounter", "llvm.readcyclecounter");
 }
 
+{ v_debug_print_module(1);}
 {   v0 = llvm_readcyclecounter();
     v1 = llvm_readcyclecounter();
 
@@ -278,7 +279,7 @@
 
 {   printf("\n");
 
-    q = v_cast(v_ast_arg_identifier_t_visitor_method_tag, v_quark_t);
+    q = v_cast(v_ast_expr_identifier_t_visitor_method_tag, v_quark_t);
 
     s = v_quark_to_string(q);
 

@@ -78,30 +78,30 @@
 //---------------------------------------------------------------------
 //- std::string utility
 //---------------------------------------------------------------------
-{   arg0 = v_alloca(v_type_ptr, 2);
-    arg1 = v_getelementptr(arg0, 1);
+{   typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
 
-    v_store(v_util_std_string_ptr, arg0);
+    v_store(v_util_std_string_ptr, typ0);
 
     char_ptr = v_pointer_type(char, 0);
 
-    ft = v_function_type(char_ptr, arg0, 1, false);
+    ft = v_function_type(char_ptr, typ0, 1, false);
     v_add_symbol_type("v_std_string_get", ft);
 
-    v_store(char_ptr, arg1);
+    v_store(char_ptr, typ1);
 
-    ft = v_function_type(void, arg0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_add_symbol_type("v_std_string_set",    ft);
     v_add_symbol_type("v_std_string_append", ft);
 
-    v_store(char32_t, arg1);
+    v_store(char32_t, typ1);
 
-    ft = v_function_type(void, arg0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_add_symbol_type("v_std_string_append_char", ft);
 
-    v_store(intptr_t, arg1);
+    v_store(intptr_t, typ1);
 
-    ft = v_function_type(void, arg0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_add_symbol_type("v_std_string_append_number", ft);
 }
 

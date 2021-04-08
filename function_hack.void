@@ -820,16 +820,38 @@
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_intrinsic(visitor: voidc_visitor_ptr, aux: void_ptr, arg_list: v_ast_arg_list_ptr)
+    //- fun voidc_function_hack_intrinsic(visitor: voidc_visitor_ptr, aux: void_ptr, arg_list: v_ast_expr_list_ptr)
     //- {
     //-     builder = v_target_get_builder();
     //-
-    //-     base_args = v_cast(arg_list, v_ast_base_ptr);
+    //-     tt = v_get_result_type();
     //-
-    //-     v_ast_accept_visitor(base_args, visitor, aux);
+    //-     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    //-     v_initialize(arg0, 2);
     //-
-    //-     fun_name = v_get_argument_value(0);     //- :char_ptr
-    //-     fun_type = v_get_argument_value(1);     //- :v_type_ptr
+    //-     arg1 = v_getelementptr(arg0, 1);
+    //-
+    //-     v_list_get_items(arg_list, 0, arg0, 2);
+    //-
+    //-     char_ptr = v_pointer_type(char, 0);
+    //-
+    //-     v_set_result_type(char_ptr);
+    //-
+    //-     base_arg = v_cast(arg0, v_ast_base_ptr);
+    //-
+    //-     v_ast_accept_visitor(base_arg, visitor, aux);
+    //-
+    //-     fun_name = v_get_result_value();        //- :char_ptr
+    //-
+    //-     v_set_result_type(v_type_ptr);
+    //-
+    //-     base_arg = v_cast(arg1, v_ast_base_ptr);
+    //-
+    //-     v_ast_accept_visitor(base_arg, visitor, aux);
+    //-
+    //-     fun_type = v_get_result_value();        //- :v_type_ptr
+    //-
+    //-     v_terminate(arg0, 2);
     //-
     //-     add_loc_sym_f = v_obtain_function("v_add_local_symbol");
     //-
@@ -865,10 +887,9 @@
     //-
     //-     ret = LLVMBuildCall(builder, helper_f, arg0, 2, "");
     //-
-    //-     v_set_return_type(LLVMValueRef);
-    //-     v_set_return_value(ret);
+    //-     v_set_result_type(tt);
     //-
-    //-     v_clear_arguments();
+    //-     v_adopt_result(LLVMValueRef, ret);
     //- }
     //-----------------------------------------------------------------
     voidc_intrinsic_t_ = v_type_get_llvm_type(voidc_intrinsic_t);
@@ -886,28 +907,99 @@
     builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
 
 
+    get_res_type_f = v_obtain_function("v_get_result_type");
+
+    tt_v = LLVMBuildCall(builder, get_res_type_f, 0, 0, "tt_v");
+
+
+    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_sptr);
+
+    arg0_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_expr_sptr_, n2, "arg0_v");
+
+
+    v_store(arg0_v, val0);
+    v_store(n2,     val1);
+
+    expr_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_sptr);
+
+    LLVMBuildCall(builder, expr_init_f, val0, 2, "");
+
+
+    v_store(n1, val0);
+
+    arg1_v = LLVMBuildGEP(builder, arg0_v, val0, 1, "arg1");
+
+
+    v_store(arg_list, val0);
+    v_store(n0,       val1);
+    v_store(arg0_v,   val2);
+    v_store(n2,       val3);
+
+    expr_list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_expr_list_sptr);
+
+    LLVMBuildCall(builder, expr_list_get_items_f, val0, 4, "");
+
+
+    char_v = v_obtain_global("char");
+
+    v_store(char_v, val0);
+    v_store(n0,     val1);
+
+    ptr_type_f = v_obtain_function("v_pointer_type");
+
+    char_ptr_v = LLVMBuildCall(builder, ptr_type_f, val0, 2, "char_ptr_v");
+
+
+    v_store(char_ptr_v, val0);
+
+    set_res_type_f = v_obtain_function("v_set_result_type");
+
+    LLVMBuildCall(builder, set_res_type_f, val0, 1, "");
+
+
     v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
 
-    base_args = LLVMBuildBitCast(builder, arg_list, v_ast_base_ptr_, "base_args");
+    base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
 
     accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
 
-    v_store(base_args, val0);
-    v_store(visitor,   val1);
-    v_store(aux,       val2);
+    v_store(base_arg, val0);
+    v_store(visitor,  val1);
+    v_store(aux,      val2);
 
     LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
-    get_arg_val_f = v_obtain_function("v_get_argument_value");
+    get_res_val_f = v_obtain_function("v_get_result_value");
 
-    v_store(n0, val0);
+    fun_name = LLVMBuildCall(builder, get_res_val_f, 0, 0, "fun_name");
 
-    fun_name = LLVMBuildCall(builder, get_arg_val_f, val0, 1, "fun_name");
 
-    v_store(n1, val0);
+    type_ptr_v = v_obtain_global("v_type_ptr");
 
-    fun_type = LLVMBuildCall(builder, get_arg_val_f, val0, 1, "fun_type");
+    v_store(type_ptr_v, val0);
+
+    LLVMBuildCall(builder, set_res_type_f, val0, 1, "");
+
+
+    base_arg = LLVMBuildBitCast(builder, arg1_v, v_ast_base_ptr_, "base_arg");
+
+    v_store(base_arg, val0);
+    v_store(visitor,  val1);
+    v_store(aux,      val2);
+
+    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
+
+
+    fun_type = LLVMBuildCall(builder, get_res_val_f, 0, 0, "fun_type");
+
+
+    v_store(arg0_v, val0);
+    v_store(n2,     val1);
+
+    expr_term_f = v_obtain_dict_function(v_util_terminate_dict, v_ast_opaque_expr_sptr);
+
+    LLVMBuildCall(builder, expr_term_f, val0, 2, "");
 
 
     add_loc_sym_fn = LLVMBuildGlobalStringPtr(builder, "v_add_local_symbol", "add_loc_sym_fn");
@@ -1033,27 +1125,21 @@
     ret_v = LLVMBuildCall(builder, llvm_build_call_f, val0, 5, "ret_v");
 
 
-    set_ret_type_f = v_obtain_function("v_set_return_type");
+    v_store(tt_v, val0);
 
-    llvm_value_ref_v = v_obtain_global("LLVMValueRef");
-
-    v_store(llvm_value_ref_v, val0);
-
-    LLVMBuildCall(builder, set_ret_type_f, val0, 1, "");
-
-
-    set_ret_value_f = v_obtain_function("v_set_return_value");
-
-    v_store(ret_v, val0);
-
-    LLVMBuildCall(builder, set_ret_value_f, val0, 1, "");
+    LLVMBuildCall(builder, set_res_type_f, val0, 1, "");
 
 
     //- That's it...
 
-    clear_args_f = v_obtain_function("v_clear_arguments");
+    llvm_value_ref_v = v_obtain_global("LLVMValueRef");
 
-    LLVMBuildCall(builder, clear_args_f, 0, 0, "");
+    v_store(llvm_value_ref_v, val0);
+    v_store(ret_v,            val1);
+
+    adopt_res_f = v_obtain_function("v_adopt_result");
+
+    LLVMBuildCall(builder, adopt_res_f, val0, 2, "");
 
 
     LLVMBuildRetVoid(builder);
@@ -1062,7 +1148,7 @@
     //-----------------------------------------------------------------
     //- "Return" intrinsic
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_return_intrinsic(visitor: voidc_visitor_ptr, aux: void_ptr, arg_list: v_ast_arg_list_ptr)
+    //- fun voidc_function_hack_return_intrinsic(visitor: voidc_visitor_ptr, aux: void_ptr, arg_list: v_ast_expr_list_ptr)
     //- {
     //-     builder = v_target_get_builder();
     //-
@@ -1070,26 +1156,24 @@
     //-
     //-     if (args_count)
     //-     {
-    //-         arg0 = v_alloca(v_ast_opaque_argument_sptr);
+    //-         arg0 = v_alloca(v_ast_opaque_expr_sptr);
     //-         v_initialize(arg0);
     //-
     //-         v_list_get_items(arg_list, 0, arg0, 1);
     //-
     //-         ret_type = v_get_variable_type("voidc.internal_return_type");
     //-
-    //-         v_add_argument_type(ret_type);
+    //-         v_set_result_type(ret_type);
     //-
     //-         base_arg0 = v_cast(arg0, v_ast_base_ptr);
     //-
     //-         v_ast_accept_visitor(base_arg0, visitor, aux);
     //-
-    //-         ret = v_get_argument_value(0);
+    //-         ret = v_get_result_value();
     //-
     //-         LLVMBuildRet(builder, ret);
     //-
     //-         v_terminate(arg0);
-    //-
-    //-         v_clear_arguments();
     //-     }
     //-     else
     //-     {
@@ -1112,7 +1196,7 @@
 
     v_store(arg_list, val0);
 
-    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, v_ast_opaque_arg_list_sptr);
+    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, v_ast_opaque_expr_list_sptr);
 
     args_count_v = LLVMBuildCall(builder, list_get_size_f, val0, 1, "args_count_v");
 
@@ -1129,15 +1213,13 @@
     LLVMPositionBuilderAtEnd(builder, then_b);
 
 
-    v_ast_opaque_argument_sptr_ = v_type_get_llvm_type(v_ast_opaque_argument_sptr);
-
-    arg0_v = LLVMBuildAlloca(builder, v_ast_opaque_argument_sptr_, "arg0_v");
+    arg0_v = LLVMBuildAlloca(builder, v_ast_opaque_expr_sptr_, "arg0_v");
 
 
     v_store(arg0_v, val0);
     v_store(n1,     val1);
 
-    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_argument_sptr);
+    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_sptr);
 
     LLVMBuildCall(builder, arg_init_f, val0, 2, "");
 
@@ -1147,7 +1229,7 @@
     v_store(arg0_v,   val2);
     v_store(n1,       val3);
 
-    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_arg_list_sptr);
+    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_expr_list_sptr);
 
     LLVMBuildCall(builder, list_get_items_f, val0, 4, "");
 
@@ -1161,9 +1243,7 @@
 
     v_store(ret_type_v, val0);
 
-    add_arg_type_f = v_obtain_function("v_add_argument_type");
-
-    LLVMBuildCall(builder, add_arg_type_f, val0, 1, "");
+    LLVMBuildCall(builder, set_res_type_f, val0, 1, "");
 
 
     base_arg0 = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg0");
@@ -1175,9 +1255,7 @@
     LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
-    v_store(n0, val0);
-
-    ret_v = LLVMBuildCall(builder, get_arg_val_f, val0, 1, "ret_v");
+    ret_v = LLVMBuildCall(builder, get_res_val_f, 0, 0, "ret_v");
 
 
     v_store(builder_v, val0);
@@ -1191,12 +1269,7 @@
     v_store(arg0_v, val0);
     v_store(n1,     val1);
 
-    arg_term_f = v_obtain_dict_function(v_util_terminate_dict, v_ast_opaque_argument_sptr);
-
-    LLVMBuildCall(builder, arg_term_f, val0, 2, "");
-
-
-    LLVMBuildCall(builder, clear_args_f, 0, 0, "");
+    LLVMBuildCall(builder, expr_term_f, val0, 2, "");
 
 
     LLVMBuildRetVoid(builder);

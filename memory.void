@@ -23,16 +23,18 @@
 //---------------------------------------------------------------------
 //- v_malloc
 //---------------------------------------------------------------------
-//- fun voidc_memory_malloc_intrinsic(visitor: voidc_visitor_t, aux: void_ptr, arg_list: v_ast_arg_list_ptr)
+//- fun voidc_memory_malloc_intrinsic(visitor: voidc_visitor_t, aux: void_ptr, arg_list: v_ast_expr_list_ptr)
 //- {
 //-     args_count = v_list_get_size(arg_list);
 //-
-//-     args = v_alloca(v_ast_opaque_argument_sptr, args_count);
+//-     args = v_alloca(v_ast_opaque_expr_sptr, args_count);
 //-     v_initialize(args, args_count);
 //-
 //-     v_list_get_items(arg_list, 0, arg0, args_count);
 //-
 //-     num_var = v_alloca(LLVMValueRef);
+//-
+//-     tt = v_get_result_type();
 //-
 //-     ok = v_icmp(LLVMIntEQ, args_count, 1);
 //-
@@ -46,13 +48,21 @@
 //-     }
 //-     else
 //-     {
+//-         intptr_t_ = v_type_get_llvm_type(intptr_t);
+//-
+//-         minus1_v = LLVMConstInt(intptr_t_, -1, 0);
+//-
+//-         UNREFERENCE_TAG = v_cast(minus1_v, v_type_ptr);
+//-
+//-         v_set_result_type(UNREFERENCE_TAG);
+//-
 //-         arg1 = v_getelementptr(args, 1);
 //-
 //-         base_arg1 = v_cast(arg1, v_ast_base_ptr);
 //-
 //-         v_ast_accept_visitor(base_arg1, visitor, aux);
 //-
-//-         num = v_get_argument_value(0);
+//-         num = v_get_result_value();
 //-
 //-         v_store(num, num_var);
 //-     }
@@ -66,7 +76,7 @@
 
     visitor  = v_add_parameter_name(malloc_f, 0, "visitor",  voidc_visitor_ptr);
     aux      = v_add_parameter_name(malloc_f, 1, "aux",      void_ptr);
-    arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", v_ast_arg_list_ptr);
+    arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", v_ast_expr_list_ptr);
 
 
     val0 = v_alloca(LLVMValueRef, 4);
@@ -76,8 +86,9 @@
 
     int_ = v_type_get_llvm_type(int);
 
-    n0 = LLVMConstInt(int_, 0, 0);
-    n1 = LLVMConstInt(int_, 1, 0);
+    n0 = LLVMConstInt(int_,  0, 0);
+    n1 = LLVMConstInt(int_,  1, 0);
+    m1 = LLVMConstInt(int_, -1, 0);
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
@@ -85,20 +96,20 @@
 
     v_store(arg_list, val0);
 
-    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, v_ast_opaque_arg_list_sptr);
+    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, v_ast_opaque_expr_list_sptr);
 
     args_count_v = LLVMBuildCall(builder, list_get_size_f, val0, 1, "args_count_v");
 
 
-    v_ast_opaque_argument_sptr_ = v_type_get_llvm_type(v_ast_opaque_argument_sptr);
+    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_sptr);
 
-    args_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_argument_sptr_, args_count_v, "args_v");
+    args_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_expr_sptr_, args_count_v, "args_v");
 
 
     v_store(args_v,       val0);
     v_store(args_count_v, val1);
 
-    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_argument_sptr);
+    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_sptr);
 
     LLVMBuildCall(builder, arg_init_f, val0, 2, "");
 
@@ -108,7 +119,7 @@
     v_store(args_v,       val2);
     v_store(args_count_v, val3);
 
-    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_arg_list_sptr);
+    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_expr_list_sptr);
 
     LLVMBuildCall(builder, list_get_items_f, val0, 4, "");
 
@@ -121,6 +132,11 @@
     LLVMValueRef_ = v_type_get_llvm_type(LLVMValueRef);
 
     num_v = LLVMBuildAlloca(builder, LLVMValueRef_, "num_v");
+
+
+    get_res_type_f = v_obtain_function("v_get_result_type");
+
+    tt_v = LLVMBuildCall(builder, get_res_type_f, 0, 0, "tt_v");
 
 
     ok_v = LLVMBuildICmp(builder, LLVMIntEQ, args_count_v, n1, "ok_v");
@@ -161,6 +177,26 @@
     LLVMPositionBuilderAtEnd(builder, else_b);
 
 
+
+    intptr_t_ = v_type_get_llvm_type(intptr_t);
+
+    m1ll = v_cast(-1, long_long);
+
+    minus1_v = LLVMConstInt(intptr_t_, m1ll, 0);
+
+
+    type_ptr_ = v_type_get_llvm_type(v_type_ptr);
+
+    UNREFERENCE_TAG_v = LLVMConstIntToPtr(minus1_v, type_ptr_);
+
+
+    v_store(UNREFERENCE_TAG_v, val0);
+
+    set_res_type_f = v_obtain_function("v_set_result_type");
+
+    LLVMBuildCall(builder, set_res_type_f, val0, 1, "");
+
+
     v_store(n1, val0);
 
     args_v_1 = LLVMBuildGEP(builder, args_v, val0, 1, "args_v_1");
@@ -180,11 +216,9 @@
     LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
-    get_arg_val_f = v_obtain_function("v_get_argument_value");
+    get_res_val_f = v_obtain_function("v_get_result_value");
 
-    v_store(n0, val0);
-
-    num = LLVMBuildCall(builder, get_arg_val_f, val0, 1, "num");
+    num = LLVMBuildCall(builder, get_res_val_f, 0, 0, "num");
 
 
     LLVMBuildStore(builder, num, num_v);
@@ -196,9 +230,10 @@
     LLVMPositionBuilderAtEnd(builder, cont_b);
 
 
-    v_add_variable("args",       v_ast_argument_ptr, args_v);
-    v_add_variable("args_count", int,                args_count_v);
-    v_add_variable("num_var",    LLVMValueRef,       num_v);
+    v_add_variable("args",       v_ast_expr_ptr, args_v);
+    v_add_variable("args_count", int,            args_count_v);
+    v_add_variable("num_var",    LLVMValueRef,   num_v);
+    v_add_variable("tt",         v_type_ptr,     tt_v);
 }
 {
     number = v_load(num_var);
@@ -210,12 +245,11 @@
 
     ret = LLVMBuildArrayMalloc(builder, type_, number, "ret");
 
-    v_set_return_value(ret);
-
     pt = v_pointer_type(type, 0);
-    v_set_return_type(pt);
 
-    v_clear_arguments();
+    v_set_result_type(tt);
+
+    v_adopt_result(pt, ret);
 
     v_terminate(args, args_count);
 }
@@ -230,20 +264,31 @@
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_arg_list_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
     builder = v_target_get_builder();
 
-    arg_base = v_cast(arg_list, v_ast_base_ptr);
+    minus1 = v_cast(-1, intptr_t);
+
+    UNREFERENCE_TAG = v_cast(minus1, v_type_ptr);
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(arg0);
+
+    v_list_get_items(arg_list, 0, arg0, 1);
+
+    arg_base = v_cast(arg0, v_ast_base_ptr);
 
     v_ast_accept_visitor(arg_base, visitor, aux);
 
-    arg = v_get_argument_value(0);
+    arg = v_get_result_value();
 
     LLVMBuildFree(builder, arg);
 
-    v_clear_arguments();
+    v_terminate(arg0);
 }
 
 

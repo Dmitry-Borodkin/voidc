@@ -85,7 +85,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -94,14 +94,14 @@
     v_initialize(stmt);
 
 
-    v_ast_make_arg_string(arg0, "Hello test: %s\n");
+    v_ast_make_expr_string(arg0, "Hello test: %s\n");
 
 
     arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
 
     arg_str = v_std_string_get(arg_sstr);
 
-    v_ast_make_arg_string(arg1, arg_str);
+    v_ast_make_expr_string(arg1, arg_str);
 
 
     v_ast_make_stmt_call(stmt, "", "printf", arg0, 2);

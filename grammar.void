@@ -38,11 +38,11 @@
 {
     module = v_get_module();
 
-    v_ast_opaque_argument_sptr_ = v_type_get_llvm_type(v_ast_opaque_argument_sptr);
+    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_sptr);
 
-    gr_arg = LLVMAddGlobal(module, v_ast_opaque_argument_sptr_, "voidc_ast_stmt_grammar_grammar_arg");
+    gr_arg = LLVMAddGlobal(module, v_ast_opaque_expr_sptr_, "voidc_ast_stmt_grammar_grammar_arg");
 
-    gr_arg_u = LLVMGetUndef(v_ast_opaque_argument_sptr_);
+    gr_arg_u = LLVMGetUndef(v_ast_opaque_expr_sptr_);
 
     LLVMSetInitializer(gr_arg, gr_arg_u);
 
@@ -76,7 +76,7 @@
     LLVMSetInitializer(rn_count, int_u);
     LLVMSetInitializer(rn_num,   int_u);
 
-    v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_argument_sptr,  0);    //- Sic!
+    v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_expr_sptr,      0);    //- Sic!
     v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
 
     int_ref = v_reference_type(int, 0);
@@ -100,11 +100,11 @@
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
 
-    v_store(v_ast_stmt_ptr,     typ0);
-    v_store(char_ptr,           typ1);
-    v_store(char_ptr,           typ2);
-    v_store(v_ast_argument_ptr, typ3);
-    v_store(int,                typ4);
+    v_store(v_ast_stmt_ptr, typ0);
+    v_store(char_ptr,       typ1);
+    v_store(char_ptr,       typ2);
+    v_store(v_ast_expr_ptr, typ3);
+    v_store(int,            typ4);
 
     ft = v_function_type(void, typ0, 5, false);
 
@@ -116,23 +116,25 @@
     v_add_parameter_name(f, 0, "stmt",  v_ast_stmt_ptr);
     v_add_parameter_name(f, 1, "var",   char_ptr);
     v_add_parameter_name(f, 2, "fun",   char_ptr);
-    v_add_parameter_name(f, 3, "args",  v_ast_argument_ptr);
+    v_add_parameter_name(f, 3, "args",  v_ast_expr_ptr);
     v_add_parameter_name(f, 4, "count", int);
 }
 {
-    ar_l = v_alloca(v_ast_opaque_arg_list_sptr);
+    ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(ar_l);
 
-    call = v_alloca(v_ast_opaque_call_sptr);
-    v_initialize(call);
+    expr = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(expr);
+
+    v_ast_make_expr_identifier(expr, fun);
 
     v_make_list(ar_l, args, count);
 
-    v_ast_make_call(call, fun, ar_l);
+    v_ast_make_expr_call(expr, expr, ar_l);
 
-    v_ast_make_stmt(stmt, var, call);
+    v_ast_make_stmt(stmt, var, expr);
 
-    v_terminate(call);
+    v_terminate(expr);
     v_terminate(ar_l);
 }
 
@@ -230,7 +232,7 @@
     v_add_parameter_name(f, 4, "do_init",   bool);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -238,11 +240,11 @@
     sstr = v_alloca(v_util_opaque_std_string);
     v_initialize(sstr);
 
-    v_ast_make_arg_identifier(arg0, type);
+    v_ast_make_expr_identifier(arg0, type);
 
     num = v_cast(size, intptr_t);
 
-    v_ast_make_arg_integer(arg1, num);
+    v_ast_make_expr_integer(arg1, num);
 
     stmt = v_alloca(v_ast_opaque_stmt_sptr);
     v_initialize(stmt);
@@ -260,7 +262,7 @@
     v_list_append(stmt_list, stmt_list, stmt);
 
 
-    v_ast_make_arg_identifier(arg0, str);
+    v_ast_make_expr_identifier(arg0, str);
 
     if (do_init)
     {
@@ -285,7 +287,7 @@
         if (f)  v_break();
 
 
-        v_ast_make_arg_integer(arg1, n);
+        v_ast_make_expr_integer(arg1, n);
 
 
         v_std_string_set(sstr, prefix);
@@ -330,7 +332,7 @@
 
     v_initialize(voidc_ast_stmt_grammar_grammar_arg);
 
-    v_ast_make_arg_identifier(voidc_ast_stmt_grammar_grammar_arg, gr_str);
+    v_ast_make_expr_identifier(voidc_ast_stmt_grammar_grammar_arg, gr_str);
 
 
     v_initialize(voidc_ast_stmt_grammar_stmt_list);
@@ -403,7 +405,7 @@
     //-----------------------------------------------------------------
     //- ...
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -415,14 +417,14 @@
     //-----------------------------------------------------------------
     //- ...
 
-    v_ast_make_arg_identifier(arg0, "v_peg_opaque_action_sptr");
+    v_ast_make_expr_identifier(arg0, "v_peg_opaque_action_sptr");
 
     v_ast_make_stmt_call(stmt, "v.act", "v_alloca", arg0, 1);
 
     v_list_append(gr_stmt_list, gr_stmt_list, stmt);
 
 
-    v_ast_make_arg_identifier(arg0, "v.act");
+    v_ast_make_expr_identifier(arg0, "v.act");
 
     v_ast_make_stmt_call(stmt, "", "v_initialize", arg0, 1);
 
@@ -432,7 +434,7 @@
     //-----------------------------------------------------------------
     //- ...
 
-    v_ast_make_arg_identifier(arg0, "int");
+    v_ast_make_expr_identifier(arg0, "int");
 
     v_ast_make_stmt_call(stmt, "v.int", "v_alloca", arg0, 1);
 
@@ -450,7 +452,7 @@
     //-----------------------------------------------------------------
     //- ...
 
-    v_ast_make_arg_identifier(arg0, "v.act");
+    v_ast_make_expr_identifier(arg0, "v.act");
 
     v_ast_make_stmt_call(stmt, "", "v_terminate", arg0, 1);
 
@@ -466,8 +468,8 @@
     //-----------------------------------------------------------------
     //- Arguments "stack" clear
 
-    v_ast_make_arg_identifier(arg0, "v.ar0");
-    v_ast_make_arg_integer(arg1, ar_num);
+    v_ast_make_expr_identifier(arg0, "v.ar0");
+    v_ast_make_expr_integer(arg1, ar_num);
 
     v_ast_make_stmt_call(stmt, "", "v_terminate", arg0, 2);
 
@@ -476,8 +478,8 @@
     //-----------------------------------------------------------------
     //- Parsers "stack" clear
 
-    v_ast_make_arg_identifier(arg0, "v.pr0");
-    v_ast_make_arg_integer(arg1, pr_num);
+    v_ast_make_expr_identifier(arg0, "v.pr0");
+    v_ast_make_expr_integer(arg1, pr_num);
 
     v_ast_make_stmt_call(stmt, "", "v_terminate", arg0, 2);
 
@@ -528,7 +530,7 @@
     as_1 = v_getelementptr(as_0, 1);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 5);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 5);
     v_initialize(arg0, 5);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -556,16 +558,16 @@
         v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
         v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
 
-        v_ast_make_arg_string(arg2, pr_str);
+        v_ast_make_expr_string(arg2, pr_str);
 
 
         if (voidc_ast_stmt_grammar_parser_number)   //- Assign parser from v.pr0
         {
             //- assert(pr_num == 1);
 
-            v_ast_make_arg_identifier(arg3, "v.pr0");       //- Sic!
+            v_ast_make_expr_identifier(arg3, "v.pr0");       //- Sic!
 
-            v_ast_make_arg_integer(arg4, 0);
+            v_ast_make_expr_integer(arg4, 0);
 
             v_ast_make_stmt_call(stmt, "", "v_peg_grammar_set_parser", arg0, 5);
         }
@@ -580,18 +582,18 @@
     {
         v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
 
-        v_ast_make_arg_string(arg1, pr_str);
+        v_ast_make_expr_string(arg1, pr_str);
 
-        v_ast_make_arg_identifier(arg2, "v.pr1");
+        v_ast_make_expr_identifier(arg2, "v.pr1");
 
-        v_ast_make_arg_identifier(arg3, "v.int");       //- "leftrec" !
+        v_ast_make_expr_identifier(arg3, "v.int");       //- "leftrec" !
 
         v_ast_make_stmt_call(stmt, "", "v_peg_grammar_get_parser", arg0, 4);
 
         v_list_append(stmt_list, stmt_list, stmt);
 
 
-        v_ast_make_arg_identifier(arg0, "v.pr0");       //- Target
+        v_ast_make_expr_identifier(arg0, "v.pr0");       //- Target
 
 
         c0 = v_load(as_0);
@@ -606,15 +608,15 @@
         {
             v_store(c1, c_k);
 
-            v_ast_make_arg_identifier(arg1, "v.pr1");       //- From grammar
-            v_ast_make_arg_identifier(arg2, "v.pr0");       //- Built
+            v_ast_make_expr_identifier(arg1, "v.pr1");       //- From grammar
+            v_ast_make_expr_identifier(arg2, "v.pr0");       //- Built
         }
         else            //- Append to front
         {
             v_store(c0, c_k);
 
-            v_ast_make_arg_identifier(arg1, "v.pr0");       //- Built
-            v_ast_make_arg_identifier(arg2, "v.pr1");       //- From grammar
+            v_ast_make_expr_identifier(arg1, "v.pr0");       //- Built
+            v_ast_make_expr_identifier(arg2, "v.pr1");       //- From grammar
         }
 
 
@@ -630,7 +632,7 @@
         v_list_append(stmt_list, stmt_list, stmt);
 
 
-        v_ast_make_arg_identifier(arg0, "v.int");
+        v_ast_make_expr_identifier(arg0, "v.int");
 
         v_ast_make_stmt_call(stmt, "leftrec", "v_load", arg0, 1);
 
@@ -640,11 +642,11 @@
         v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
         v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
 
-        v_ast_make_arg_string(arg2, pr_str);
+        v_ast_make_expr_string(arg2, pr_str);
 
-        v_ast_make_arg_identifier(arg3, "v.pr0");       //- Sic!
+        v_ast_make_expr_identifier(arg3, "v.pr0");       //- Sic!
 
-        v_ast_make_arg_identifier(arg4, "leftrec");     //- "leftrec" !
+        v_ast_make_expr_identifier(arg4, "leftrec");     //- "leftrec" !
 
         v_ast_make_stmt_call(stmt, "", "v_peg_grammar_set_parser", arg0, 5);
 
@@ -682,7 +684,7 @@
     pr_str = v_std_string_get(pr_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 5);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 5);
     v_initialize(arg0, 5);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -697,18 +699,18 @@
     v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
     v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
 
-    v_ast_make_arg_string(arg2, pr_str);
+    v_ast_make_expr_string(arg2, pr_str);
 
-    v_ast_make_arg_identifier(arg3, "v.pr0");
+    v_ast_make_expr_identifier(arg3, "v.pr0");
 
-    v_ast_make_arg_integer(arg4, 0);        //- "leftrec" ?
+    v_ast_make_expr_integer(arg4, 0);        //- "leftrec" ?
 
     v_ast_make_stmt_call(stmt, "", "v_peg_grammar_get_parser", arg1, 4);
 
     v_list_append(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
 
 
-    v_ast_make_arg_integer(arg4, 1);        //- "leftrec" !
+    v_ast_make_expr_integer(arg4, 1);        //- "leftrec" !
 
     v_ast_make_stmt_call(stmt, "", "v_peg_grammar_set_parser", arg0, 5);
 
@@ -734,7 +736,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 4);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 4);
     v_initialize(arg0, 4);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -752,7 +754,7 @@
 
     act_str = v_std_string_get(act_sstr);
 
-    v_ast_make_arg_string(arg2, act_str);
+    v_ast_make_expr_string(arg2, act_str);
 
 
     any1 = v_getelementptr(any0, 1);
@@ -763,7 +765,7 @@
     {
         fun_str = v_std_string_get(fun_sstr);
 
-        v_ast_make_arg_identifier(arg3, fun_str);
+        v_ast_make_expr_identifier(arg3, fun_str);
 
         v_ast_make_stmt_call(stmt, "", "v_peg_grammar_set_action", arg0, 4);
     }
@@ -795,7 +797,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 4);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 4);
     v_initialize(arg0, 4);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -813,7 +815,7 @@
 
     grv_str = v_std_string_get(grv_sstr);
 
-    v_ast_make_arg_string(arg2, grv_str);
+    v_ast_make_expr_string(arg2, grv_str);
 
 
     any1 = v_getelementptr(any0, 1);
@@ -824,7 +826,7 @@
     {
         exv_str = v_std_string_get(exv_sstr);
 
-        v_ast_make_arg_identifier(arg3, exv_str);
+        v_ast_make_expr_identifier(arg3, exv_str);
 
         v_ast_make_stmt_call(stmt, "", "v_peg_grammar_set_value", arg0, 4);
     }
@@ -868,7 +870,7 @@
 
     if (c1)     //- "(/)" or "()"
     {
-        arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
+        arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
         v_initialize(arg0, 3);
 
         arg1 = v_getelementptr(arg0, 1);
@@ -877,10 +879,10 @@
         stmt = v_alloca(v_ast_opaque_stmt_sptr);
         v_initialize(stmt);
 
-        v_ast_make_arg_identifier(arg0, "v.pr0");
+        v_ast_make_expr_identifier(arg0, "v.pr0");
 
-        v_ast_make_arg_integer(arg1, 0);
-        v_ast_make_arg_integer(arg2, 0);
+        v_ast_make_expr_integer(arg1, 0);
+        v_ast_make_expr_integer(arg2, 0);
 
 
         c_rpar = v_cast(')', char);
@@ -922,7 +924,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -948,7 +950,7 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg2, pr_str);
+    v_ast_make_expr_identifier(arg2, pr_str);
 
 
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 2
@@ -959,8 +961,8 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
-    v_ast_make_arg_identifier(arg1, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg1, pr_str);
 
 
     v_ast_make_stmt_call(stmt, "", "v_peg_choice_parser_concat", arg0, 3);
@@ -990,7 +992,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1016,7 +1018,7 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg2, pr_str);
+    v_ast_make_expr_identifier(arg2, pr_str);
 
 
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 2
@@ -1027,8 +1029,8 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
-    v_ast_make_arg_identifier(arg1, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg1, pr_str);
 
 
     v_ast_make_stmt_call(stmt, "", "v_peg_sequence_parser_concat", arg0, 3);
@@ -1063,7 +1065,7 @@
     arg_str = v_std_string_get(arg_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1089,9 +1091,9 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
-    v_ast_make_arg_string(arg1, arg_str);
-    v_ast_make_arg_identifier(arg2, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
+    v_ast_make_expr_string(arg1, arg_str);
+    v_ast_make_expr_identifier(arg2, pr_str);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_catch_variable_parser", arg0, 3);
 
@@ -1123,7 +1125,7 @@
     v_add_parameter_name(f, 0, "fun", char_ptr);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1148,8 +1150,8 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
-    v_ast_make_arg_identifier(arg1, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg1, pr_str);
 
     v_ast_make_stmt_call(stmt, "", fun, arg0, 2);
 
@@ -1263,7 +1265,7 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1283,9 +1285,9 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
 
-    v_ast_make_arg_string(arg1, id_str);
+    v_ast_make_expr_string(arg1, id_str);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_identifier_parser", arg0, 2);
 
@@ -1319,7 +1321,7 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1339,9 +1341,9 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
 
-    v_ast_make_arg_identifier(arg1, id_str);
+    v_ast_make_expr_identifier(arg1, id_str);
 
     v_ast_make_stmt_call(stmt, "", "v_copy", arg0, 2);
 
@@ -1373,7 +1375,7 @@
     br_num = v_std_any_get_value(intptr_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1393,9 +1395,9 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
 
-    v_ast_make_arg_integer(arg1, br_num);
+    v_ast_make_expr_integer(arg1, br_num);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_backref_parser", arg0, 2);
 
@@ -1441,7 +1443,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1461,9 +1463,9 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
 
-    v_ast_make_arg_identifier(arg1, "v.act");
+    v_ast_make_expr_identifier(arg1, "v.act");
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_action_parser", arg0, 2);
 
@@ -1496,7 +1498,7 @@
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1515,10 +1517,10 @@
 
     str = v_std_string_get(sstr);
 
-    v_ast_make_arg_identifier(arg0, str);
-    v_ast_make_arg_identifier(arg1, "v.rn0");
+    v_ast_make_expr_identifier(arg0, str);
+    v_ast_make_expr_identifier(arg1, "v.rn0");
 
-    v_ast_make_arg_integer(arg2, rn_num);
+    v_ast_make_expr_integer(arg2, rn_num);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_class_parser", arg0, 3);
 
@@ -1554,7 +1556,7 @@
     lit_str = v_std_string_get(lit_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1574,9 +1576,9 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
 
-    v_ast_make_arg_string(arg1, lit_str);
+    v_ast_make_expr_string(arg1, lit_str);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_literal_parser", arg0, 2);
 
@@ -1608,7 +1610,7 @@
     ch = v_std_any_get_value(char32_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1628,9 +1630,9 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
 
-    v_ast_make_arg_char(arg1, ch);
+    v_ast_make_expr_char(arg1, ch);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_character_parser", arg0, 2);
 
@@ -1659,7 +1661,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg0);
 
     stmt = v_alloca(v_ast_opaque_stmt_sptr);
@@ -1677,7 +1679,7 @@
 
     pr_str = v_std_string_get(pr_sstr);
 
-    v_ast_make_arg_identifier(arg0, pr_str);
+    v_ast_make_expr_identifier(arg0, pr_str);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_dot_parser", arg0, 1);
 
@@ -1706,7 +1708,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1727,17 +1729,17 @@
 
     str = v_std_string_get(sstr);
 
-    v_ast_make_arg_identifier(arg0, str);
+    v_ast_make_expr_identifier(arg0, str);
 
-    v_ast_make_arg_integer(arg1, 0);
-    v_ast_make_arg_integer(arg2, 0);
+    v_ast_make_expr_integer(arg1, 0);
+    v_ast_make_expr_integer(arg2, 0);
 
     v_ast_make_stmt_call(stmt, "v.rn_0_", "v_getelementptr", arg0, 3);
 
     v_list_append(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
 
 
-    v_ast_make_arg_integer(arg2, 1);
+    v_ast_make_expr_integer(arg2, 1);
 
     v_ast_make_stmt_call(stmt, "v.rn_1_", "v_getelementptr", arg0, 3);
 
@@ -1746,9 +1748,9 @@
 
     c0 = v_std_any_get_value(char32_t, any0);
 
-    v_ast_make_arg_char(arg0, c0);
+    v_ast_make_expr_char(arg0, c0);
 
-    v_ast_make_arg_identifier(arg1, "v.rn_0_");
+    v_ast_make_expr_identifier(arg1, "v.rn_0_");
 
     v_ast_make_stmt_call(stmt, "", "v_store", arg0, 2);
 
@@ -1759,9 +1761,9 @@
 
     c1 = v_std_any_get_value(char32_t, any1);
 
-    v_ast_make_arg_char(arg0, c1);
+    v_ast_make_expr_char(arg0, c1);
 
-    v_ast_make_arg_identifier(arg1, "v.rn_1_");
+    v_ast_make_expr_identifier(arg1, "v.rn_1_");
 
     v_ast_make_stmt_call(stmt, "", "v_store", arg0, 2);
 
@@ -1799,7 +1801,7 @@
     ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 4);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 4);
     v_initialize(arg0, 4);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1810,13 +1812,13 @@
     v_initialize(stmt);
 
 
-    v_ast_make_arg_identifier(arg0, "v.act");
+    v_ast_make_expr_identifier(arg0, "v.act");
 
-    v_ast_make_arg_string(arg1, fun_str);
+    v_ast_make_expr_string(arg1, fun_str);
 
-    v_ast_make_arg_identifier(arg2, "v.ar0");
+    v_ast_make_expr_identifier(arg2, "v.ar0");
 
-    v_ast_make_arg_integer(arg3, ar_num);
+    v_ast_make_expr_integer(arg3, ar_num);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_call_action", arg0, 4);
 
@@ -1844,7 +1846,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1853,8 +1855,8 @@
     v_initialize(stmt);
 
 
-    v_ast_make_arg_identifier(arg0, "v.act");
-    v_ast_make_arg_identifier(arg1, "v.ar0");
+    v_ast_make_expr_identifier(arg0, "v.act");
+    v_ast_make_expr_identifier(arg1, "v.ar0");
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_return_action", arg0, 2);
 
@@ -1888,7 +1890,7 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1908,9 +1910,9 @@
 
     str = v_std_string_get(sstr);
 
-    v_ast_make_arg_identifier(arg0, str);
+    v_ast_make_expr_identifier(arg0, str);
 
-    v_ast_make_arg_string(arg1, id_str);
+    v_ast_make_expr_string(arg1, id_str);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_identifier_argument", arg0, 2);
 
@@ -1967,7 +1969,7 @@
     bk_num = v_cast(bk_int, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 3);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -1988,10 +1990,10 @@
 
     str = v_std_string_get(sstr);
 
-    v_ast_make_arg_identifier(arg0, str);
+    v_ast_make_expr_identifier(arg0, str);
 
-    v_ast_make_arg_integer(arg1, br_num);
-    v_ast_make_arg_integer(arg2, bk_num);
+    v_ast_make_expr_integer(arg1, br_num);
+    v_ast_make_expr_integer(arg2, bk_num);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_backref_argument", arg0, 3);
 
@@ -2023,7 +2025,7 @@
     num = v_std_any_get_value(intptr_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -2043,9 +2045,9 @@
 
     str = v_std_string_get(sstr);
 
-    v_ast_make_arg_identifier(arg0, str);
+    v_ast_make_expr_identifier(arg0, str);
 
-    v_ast_make_arg_integer(arg1, num);
+    v_ast_make_expr_integer(arg1, num);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_integer_argument", arg0, 2);
 
@@ -2079,7 +2081,7 @@
     lit_str = v_std_string_get(lit_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -2099,9 +2101,9 @@
 
     str = v_std_string_get(sstr);
 
-    v_ast_make_arg_identifier(arg0, str);
+    v_ast_make_expr_identifier(arg0, str);
 
-    v_ast_make_arg_string(arg1, lit_str);
+    v_ast_make_expr_string(arg1, lit_str);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_literal_argument", arg0, 2);
 
@@ -2133,7 +2135,7 @@
     ch = v_std_any_get_value(char32_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_argument_sptr, 2);
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -2153,9 +2155,9 @@
 
     str = v_std_string_get(sstr);
 
-    v_ast_make_arg_identifier(arg0, str);
+    v_ast_make_expr_identifier(arg0, str);
 
-    v_ast_make_arg_char(arg1, ch);
+    v_ast_make_expr_char(arg1, ch);
 
     v_ast_make_stmt_call(stmt, "", "v_peg_make_character_argument", arg0, 2);
 
