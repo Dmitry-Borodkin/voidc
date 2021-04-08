@@ -2063,3 +2063,21 @@
 }
 
 
+//---------------------------------------------------------------------
+//-
+//---------------------------------------------------------------------
+{
+    intptr_t_ = v_type_get_llvm_type(intptr_t);
+    type_ptr_ = v_type_get_llvm_type(v_type_ptr);
+
+    zero_v   = LLVMConstInt(intptr_t_,  0, 0);
+    minus1_v = LLVMConstInt(intptr_t_, -1, 0);
+
+    INVIOLABLE_TAG_v  = LLVMConstIntToPtr(zero_v,   type_ptr_);
+    UNREFERENCE_TAG_v = LLVMConstIntToPtr(minus1_v, type_ptr_);
+
+    v_add_constant("INVIOLABLE_TAG",  v_type_ptr, INVIOLABLE_TAG_v);
+    v_add_constant("UNREFERENCE_TAG", v_type_ptr, UNREFERENCE_TAG_v);
+}
+
+

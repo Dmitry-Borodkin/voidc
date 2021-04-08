@@ -205,6 +205,12 @@ v_ast_make_stmt_generic(ast_stmt_sptr_t *ret, const ast_generic_vtable *vtab, vo
     *ret = std::make_shared<const ast_stmt_generic_t>(vtab, obj);
 }
 
+void
+v_ast_make_expr_generic(ast_expr_sptr_t *ret, const ast_generic_vtable *vtab, void *obj)
+{
+    *ret = std::make_shared<const ast_expr_generic_t>(vtab, obj);
+}
+
 //---------------------------------------------------------------------
 const ast_generic_vtable *
 v_ast_generic_get_vtable(const ast_generic_sptr_t *ptr)

@@ -50,9 +50,9 @@
 //-     {
 //-         intptr_t_ = v_type_get_llvm_type(intptr_t);
 //-
-//-         minus1_v = LLVMConstInt(intptr_t_, -1, 0);
+//-         minus1 = LLVMConstInt(intptr_t_, -1, 0);
 //-
-//-         UNREFERENCE_TAG = v_cast(minus1_v, v_type_ptr);
+//-         UNREFERENCE_TAG = v_cast(minus1, v_type_ptr);
 //-
 //-         v_set_result_type(UNREFERENCE_TAG);
 //-
@@ -268,10 +268,6 @@
 }
 {
     builder = v_target_get_builder();
-
-    minus1 = v_cast(-1, intptr_t);
-
-    UNREFERENCE_TAG = v_cast(minus1, v_type_ptr);
 
     v_set_result_type(UNREFERENCE_TAG);
 
