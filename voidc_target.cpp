@@ -1514,11 +1514,11 @@ v_add_symbol(const char *raw_name, v_type_t *type, void *value)
 }
 
 void
-v_add_constant(const char *name, v_type_t *type, LLVMValueRef value)
+v_add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.constants[name] = {type, value};
+    gctx.constants[raw_name] = {type, value};
 }
 
 //---------------------------------------------------------------------
@@ -1532,12 +1532,68 @@ v_add_local_symbol(const char *raw_name, v_type_t *type, void *value)
 }
 
 void
-v_add_local_constant(const char *name, v_type_t *type, LLVMValueRef value)
+v_add_local_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.constants[name] = {type, value};
+    lctx.constants[raw_name] = {type, value};
+}
+
+//---------------------------------------------------------------------
+bool
+v_find_constant(const char *raw_name, v_type_t **type, LLVMValueRef *value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    v_type_t    *t = nullptr;
+    LLVMValueRef v = nullptr;
+
+    {   auto it = lctx.constants.find(raw_name);
+
+        if (it != lctx.constants.end())
+        {
+            t = it->second.first;
+            v = it->second.second;
+        }
+    }
+
+    if (!t)
+    {
+        auto it = gctx.constants.find(raw_name);
+
+        if (it != gctx.constants.end())
+        {
+            t = it->second.first;
+            v = it->second.second;
+        }
+    }
+
+    if (type)   *type  = t;
+    if (value)  *value = v;
+
+    return bool(t);
+}
+
+v_type_t *
+v_find_constant_type(const char *raw_name)
+{
+    v_type_t *t = nullptr;
+
+    v_find_constant(raw_name, &t, nullptr);
+
+    return t;
+}
+
+LLVMValueRef
+v_find_constant_value(const char *raw_name)
+{
+    LLVMValueRef v = nullptr;
+
+    v_find_constant(raw_name, nullptr, &v);
+
+    return v;
 }
 
 //---------------------------------------------------------------------

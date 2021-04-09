@@ -82,25 +82,28 @@
     v_add_symbol_type("v_add_local_constant", ft);
     v_add_symbol_type("v_add_variable",       ft);
 
-//  v_store(char_ptr, typ0);            //- Variable name
+//  v_store(char_ptr, typ0);            //- Constant/variable name
 
     ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_add_symbol_type("v_get_variable_type", ft);
+    v_add_symbol_type("v_find_constant_type", ft);
 
-//  v_store(char_ptr, typ0);            //- Variable name
+//  v_store(char_ptr, typ0);            //- Constant/variable name
 
     ft = v_function_type(LLVMValueRef, typ0, 1, false);
     v_add_symbol_type("v_get_variable_value", ft);
+    v_add_symbol_type("v_find_constant_value", ft);
 
     t_ptr = v_pointer_type(v_type_ptr, 0);
     v_ptr = v_pointer_type(LLVMValueRef, 0);
 
-//  v_store(char_ptr, typ0);            //- Variable name
+//  v_store(char_ptr, typ0);            //- Constant/variable name
     v_store(t_ptr,    typ1);            //- For type
     v_store(v_ptr,    typ2);            //- For value
 
     ft = v_function_type(bool, typ0, 3, false);
     v_add_symbol_type("v_get_variable", ft);
+    v_add_symbol_type("v_find_constant", ft);
 
 //  v_store(char_ptr, typ0);            //- Symbol name
 
