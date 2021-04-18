@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+PATH := /usr/lib/llvm/11/bin:$(PATH)
+
 
 #MYFLAGS=-O3 -Oz -DNDEBUG
 MYFLAGS=-g -fsanitize=address -fno-omit-frame-pointer

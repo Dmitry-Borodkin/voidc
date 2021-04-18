@@ -161,7 +161,7 @@
 }
 
 
-{ v_debug_print_module(1); }
+//{ v_debug_print_module(1); }
 {
     vptr = v_alloca(int);
 
@@ -172,6 +172,16 @@
     val = v_cast(vref, long_long);
 
     printf("val: %lld\n", val);
+}
+
+
+{ v_debug_print_module(1); }
+{
+    r = v_reference(v_alloca(int));     //- Sic!
+
+    v_assign(r, 99);
+
+    printf("r: %d\n", r);
 }
 
 
