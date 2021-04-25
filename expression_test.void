@@ -1,204 +1,40 @@
-{   v_import("voidc_types.void"); }
+{   v_import("expression.void");
+}
 
-{   v_import("function_hack.void");
-    v_import("arithmetic.void");
+{// voidc_enable_statement_if_then_else();
+//  voidc_enable_statement_block();
+//  voidc_enable_statement_loop();
+//  voidc_enable_statement_switch();
+
+    voidc_enable_expression();
+
+    voidc_enable_statement_block();             //- WTF ?!?!?!?!?
+    voidc_enable_statement_loop();              //- WTF ?!?!?!?!?
+    voidc_enable_statement_if_then_else();      //- WTF ?!?!?!?!?
 }
 
 {   v_import("printf.void"); }
 
 
-{   typ = v_alloca(v_type_ptr);
-
-    double = v_f64_type();
-
-    v_store(double, typ);
-
-    ft = v_function_type(double, typ, 1, false);
-
-    v_add_symbol_type("sin", ft);
-    v_add_symbol_type("cos", ft);
-
-    v_add_symbol_type("sqrt", ft);
-
-    v_add_symbol("double", voidc_opaque_type, double);
-}
-
-
-//{v_debug_print_module(1);}
+//---------------------------------------------------------------------
 {
-    printf("sqrt(2): %g\n", sqrt(v_cast(2, double)));
+    N = 6;
 
-    x = v_cast(1, double);
+    v = *v_alloca(int(N));
 
-    printf("x: %g\n", x);
+    i = *v_alloca(int) := 0;
 
-    printf("sin(x): %g\n", sin(x));
-    printf("cos(x): %g\n", cos(x));
+    loop
+    {
+        if (i == 1<<N)  v_break();
 
-    printf("sqrt(sin(x)*sin(x) + cos(x)*cos(x)): %.99g\n",
-            sqrt(
-                v_binop(LLVMFAdd,
-                    v_binop(LLVMFMul, sin(x), sin(x)),
-                    v_binop(LLVMFMul, cos(x), cos(x))
-                )
-            )
-          );
+        v := v_cast(i, int(N));    v := v*v;
+
+        printf("i: %2d,  v: %3d\n", i, v_cast(v, int));
+
+        ++i;
+    }
 }
 
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(int, typ);
-
-    ft0 = v_function_type(void, typ, 1, false);
-
-    v_add_local_symbol("ft0", voidc_opaque_type, ft0);
-
-    f = v_function_hack("fun0", ft0);
-
-    v_add_parameter_name(f, 0, "n", int);
-}
-{
-    printf("fun0(%d)\n", n);
-}
-
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(int, typ);
-
-    ft1 = v_function_type(v_pointer_type(ft0, 0), typ, 1, false);
-
-    v_add_local_symbol("ft1", voidc_opaque_type, ft1);
-
-    f = v_function_hack("fun1", ft1);
-
-    v_add_parameter_name(f, 0, "n", int);
-}
-{
-    printf("fun1(%d)\n", n);
-
-    v_return(fun0);
-}
-
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(int, typ);
-
-    ft2 = v_function_type(v_pointer_type(ft1, 0), typ, 1, false);
-
-    v_add_local_symbol("ft2", voidc_opaque_type, ft2);
-
-    f = v_function_hack("fun2", ft2);
-
-    v_add_parameter_name(f, 0, "n", int);
-}
-{
-    printf("fun2(%d)\n", n);
-
-    v_return(fun1);
-}
-
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(int, typ);
-
-    ft3 = v_function_type(v_pointer_type(ft2, 0), typ, 1, false);
-
-    v_add_local_symbol("ft3", voidc_opaque_type, ft3);
-
-    f = v_function_hack("fun3", ft3);
-
-    v_add_parameter_name(f, 0, "n", int);
-}
-{
-    printf("fun3(%d)\n", n);
-
-    v_return(fun2);
-}
-
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(int, typ);
-
-    ft4 = v_function_type(v_pointer_type(ft3, 0), typ, 1, false);
-
-    v_add_local_symbol("ft4", voidc_opaque_type, ft4);
-
-    f = v_function_hack("fun4", ft4);
-
-    v_add_parameter_name(f, 0, "n", int);
-}
-{
-    printf("fun4(%d)\n", n);
-
-    v_return(fun3);
-}
-
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(int, typ);
-
-    ft5 = v_function_type(v_pointer_type(ft4, 0), typ, 1, false);
-
-    v_add_local_symbol("ft5", voidc_opaque_type, ft5);
-
-    f = v_function_hack("fun5", ft5);
-
-    v_add_parameter_name(f, 0, "n", int);
-}
-{
-    printf("fun5(%d)\n", n);
-
-    v_return(fun4);
-}
-
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(int, typ);
-
-    ft6 = v_function_type(v_pointer_type(ft5, 0), typ, 1, false);
-
-    v_add_local_symbol("ft6", voidc_opaque_type, ft6);
-
-    f = v_function_hack("fun6", ft6);
-
-    v_add_parameter_name(f, 0, "n", int);
-}
-{
-    printf("fun6(%d)\n", n);
-
-    v_return(fun5);
-}
-
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(int, typ);
-
-    ft7 = v_function_type(v_pointer_type(ft6, 0), typ, 1, false);
-
-    v_add_local_symbol("ft7", voidc_opaque_type, ft7);
-
-    f = v_function_hack("fun7", ft7);
-
-    v_add_parameter_name(f, 0, "n", int);
-}
-{
-    printf("fun7(%d)\n", n);
-
-    v_return(fun6);
-}
-
-
-{v_debug_print_module(1);}
-{
-    fun7(7)(6)(5)(4)(3)(2)(1)(0);
-}
 
 
