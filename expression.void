@@ -1,14 +1,14 @@
 {   v_import("switch.void");
 }
 
+{   v_import("expr_util.void");
+}
+
 {   voidc_enable_statement_if_then_else();
     voidc_enable_statement_block();
     voidc_enable_statement_loop();
     voidc_enable_statement_switch();
     voidc_enable_statement_grammar();
-}
-
-{   v_import("expr_util.void");
 }
 
 
@@ -25,22 +25,6 @@
 {   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
-
-
-    //-----------------------------------------------------------------
-    //- quark ...
-    //-----------------------------------------------------------------
-    quark = v_quark_from_string("v_ast_expr_node_t_visitor_method_tag");
-
-    quark_ll = v_cast(quark, long_long);
-
-    v_quark_t_ = v_type_get_llvm_type(v_quark_t);
-
-    quark_v = LLVMConstInt(v_quark_t_, quark_ll, 0);
-
-    v_add_local_constant("quark", v_quark_t, quark_v);
-
-    v_add_local_symbol("quark_v", LLVMOpaqueValue, quark_v);
 
 
     //-----------------------------------------------------------------
@@ -68,6 +52,32 @@
 {   module = LLVMModuleCreateWithName("voidc_expression_mod");
 
     v_set_module(module);
+}
+
+
+//---------------------------------------------------------------------
+//- quark ...
+//---------------------------------------------------------------------
+{
+    quark_name = "v_ast_expr_node_t_visitor_method_tag";
+
+    quark = v_quark_from_string(quark_name);
+
+    quark_ll = v_cast(quark, long_long);
+
+    v_quark_t_ = v_type_get_llvm_type(v_quark_t);
+
+    quark_v = LLVMConstInt(v_quark_t_, quark_ll, 0);
+
+    quark_g = LLVMAddGlobal(v_get_module(), v_quark_t_, quark_name);
+
+    LLVMSetInitializer(quark_g, quark_v);
+
+    v_add_symbol_type(quark_name, v_reference_type(v_quark_t, 0));
+
+    v_add_local_alias("quark", quark_name);
+
+    v_add_local_symbol("quark_v", LLVMOpaqueValue, quark_v);
 }
 
 

@@ -107,6 +107,7 @@ std::any grammar_t::parse(v_quark_t q_name, context_t &ctx) const
     ctx.variables = saved_vars;                 //- restore saved
 
 //  printf("parse! %s: %s\n", v_quark_to_string(q_name), (ret.has_value() ? "OK" : "Fail"));
+//  if (ret.has_value())  printf("parse! %s\n", v_quark_to_string(q_name));
 
     return ret;
 }
