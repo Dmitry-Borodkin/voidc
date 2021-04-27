@@ -31,7 +31,80 @@
 
         ++i;
     }
+
+    printf("\n");
 }
 
+
+//---------------------------------------------------------------------
+{   v_add_local_symbol("double", voidc_opaque_type, v_f64_type());
+}
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    N = 1000;
+
+    flags = v_malloc(bool, N);
+
+    i = *v_alloca(int) := 0;
+
+    loop
+    {
+        if (i == N) v_break();
+
+        flags[i] := true;
+
+        ++i;
+    }
+
+    i := 2;
+
+    k = *v_alloca(int);
+
+    loop
+    {
+        if (i >= N) v_break();
+
+        if (flags[i])
+        {
+            k := 2*i;
+
+            loop
+            {
+                if (k >= N) v_break();
+
+                flags[k] := false;
+
+                k += i;
+            }
+        }
+
+        ++i;
+    }
+
+
+    i := 2;
+
+    k := 0;
+
+    loop
+    {
+        if (i >= N) v_break();
+
+        if (flags[i])
+        {
+            ++k;
+
+            f = k / v_cast(i, double);
+
+            printf("%d, %g\n", i, f);
+        }
+
+        ++i;
+    }
+
+    v_mfree(flags);
+}
 
 
