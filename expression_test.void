@@ -62,12 +62,18 @@
 
     k = *v_alloca(int);
 
+    n = *v_alloca(double) := 0;
+
     loop
     {
         if (i >= N) v_break();
 
         if (flags[i])
         {
+            n += 1;     //- ?..
+
+            printf("%d, %g\n", i, n/i);
+
             k := 2*i;
 
             loop
@@ -83,28 +89,83 @@
         ++i;
     }
 
+    v_mfree(flags);
 
-    i := 2;
+    printf("\n");
+}
 
-    k := 0;
+
+//---------------------------------------------------------------------
+{   v_add_symbol_type("rand", v_function_type(int, 0, 0, false));
+}
+
+{
+    N = 20;
+
+    i = *v_alloca(int) := 0;
+
+    n = *v_alloca(int);
+    c = *v_alloca(int);
 
     loop
     {
-        if (i >= N) v_break();
+        if (i == N) v_break();
 
-        if (flags[i])
+        n := rand();
+
+        r = v_load(&n);
+
+        c := 0;
+
+        loop
         {
-            ++k;
+            if (n == 0) v_break();
 
-            f = k / v_cast(i, double);
+            ++c;
 
-            printf("%d, %g\n", i, f);
+            n &= n - 1;
         }
+
+        printf("%X: %d\n", r, c);
 
         ++i;
     }
 
-    v_mfree(flags);
+    printf("\n");
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    N = 100;
+
+    n = *v_alloca(int) := 1;
+
+    v = *v_alloca(int);
+
+    loop
+    {
+        if (n >= N) v_break();
+
+        v := n;
+
+        loop
+        {
+            printf("%d\n", v);
+
+//          if (v < n)  v_break();
+            if (v == 1) v_break();
+
+            if (v & 1)  v := 3*v + 1;
+            else        v := v/2;
+        }
+
+        printf("\n");
+
+        ++n;
+    }
+
 }
 
 
