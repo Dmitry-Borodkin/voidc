@@ -268,6 +268,11 @@
     //-
     //-     v_ast_accept_visitor(base_ast, visitor, aux);
     //-
+    //-
+    //-     leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    //-     leave_b  = LLVMValueAsBasicBlock(leave_bv);
+    //-
+    //-
     //-     builder = v_target_get_builder();
     //-
     //-     cur_b = LLVMGetInserBlock(builder);
@@ -277,8 +282,30 @@
     //-     if (trm) ;
     //-     else
     //-     {
+    //-         LLVMBuildBr(builder, leave_b);
+    //-     }
+    //-
+    //-
+    //-     LLVMMoveBasicBlockAfter(leave_b, cur_b);
+    //-
+    //-     LLVMPositionBuilderAtEnd(builder, leave_b);
+    //-
+    //-
+    //-     ret_type = v_get_variable_type("voidc.internal_return_type");
+    //-
+    //-     if (v_type_is_void(ret_type))
+    //-     {
     //-         LLVMBuildRetVoid(builder);
     //-     }
+    //-     else
+    //-     {
+    //-         ret_var_v = v_get_variable_value("voidc.internal_return_value");
+    //-
+    //-         ret_value = LLVMBuildLoad(builder, ret_var_v, "ret_value");
+    //-
+    //-         LLVMBuildRet(builder, ret_value);
+    //-     }
+    //-
     //-
     //-     fun_module = v_get_module();
     //-
@@ -381,6 +408,22 @@
     LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
 
 
+    leave_bv_v_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_branch_target_leave", "leave_bv_v_n");
+
+    v_store(leave_bv_v_n, val0);
+
+    get_var_value_f = v_obtain_function("v_get_variable_value");
+
+    leave_bv_v = LLVMBuildCall(builder, get_var_value_f, val0, 1, "leave_bv_v");
+
+
+    v_store(leave_bv_v, val0);
+
+    llvm_value_as_basic_block_f = v_obtain_function("LLVMValueAsBasicBlock");
+
+    leave_b_v = LLVMBuildCall(builder, llvm_value_as_basic_block_f, val0, 1, "leave_b_v");
+
+
     get_builder_f = v_obtain_function("v_target_get_builder");
 
     builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
@@ -413,16 +456,105 @@
 
 
     v_store(builder_v, val0);
+    v_store(leave_b_v, val1);
 
-    llvm_build_ret_void_f = v_obtain_function("LLVMBuildRetVoid");
+    llvm_build_br_f = v_obtain_function("LLVMBuildBr");
 
-    LLVMBuildCall(builder, llvm_build_ret_void_f, val0, 1, "");
+    LLVMBuildCall(builder, llvm_build_br_f, val0, 2, "");
 
 
     LLVMBuildBr(builder, else_b);
 
 
     LLVMPositionBuilderAtEnd(builder, else_b);
+
+
+    v_store(leave_b_v, val0);
+    v_store(cur_b,     val1);
+
+    llvm_move_basic_block_after_f = v_obtain_function("LLVMMoveBasicBlockAfter");
+
+    LLVMBuildCall(builder, llvm_move_basic_block_after_f, val0, 2, "");
+
+
+    v_store(builder_v, val0);
+    v_store(leave_b_v, val1);
+
+    llvm_position_builder_at_end_f = v_obtain_function("LLVMPositionBuilderAtEnd");
+
+    LLVMBuildCall(builder, llvm_position_builder_at_end_f, val0, 2, "");
+
+
+    ret_type_v_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_return_type", "ret_type_v_n");
+
+    v_store(ret_type_v_n, val0);
+
+    get_var_type_f = v_obtain_function("v_get_variable_type");
+
+    ret_type_v = LLVMBuildCall(builder, get_var_type_f, val0, 1, "ret_type_v");
+
+
+    v_store(ret_type_v, val0);
+
+    is_void_f = v_obtain_function("v_type_is_void");
+
+    ret_void_v = LLVMBuildCall(builder, is_void_f, val0, 1, "ret_void_v");
+
+
+    then_b = LLVMAppendBasicBlock(method_f, "then_b");
+    else_b = LLVMAppendBasicBlock(method_f, "else_b");
+    join_b = LLVMAppendBasicBlock(method_f, "join_b");
+
+
+    LLVMBuildCondBr(builder, ret_void_v, then_b, else_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, then_b);
+
+
+    v_store(builder_v, val0);
+
+    llvm_build_ret_void_f = v_obtain_function("LLVMBuildRetVoid");
+
+    LLVMBuildCall(builder, llvm_build_ret_void_f, val0, 1, "");
+
+
+    LLVMBuildBr(builder, join_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, else_b);
+
+
+    ret_var_v_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_return_value", "ret_var_v_n");
+
+    v_store(ret_var_v_n, val0);
+
+    ret_var_v = LLVMBuildCall(builder, get_var_value_f, val0, 1, "ret_var_v");
+
+
+    ret_value_n = LLVMBuildGlobalStringPtr(builder, "ret_value", "ret_value_n");
+
+    v_store(builder_v,   val0);
+    v_store(ret_var_v,   val1);
+    v_store(ret_value_n, val2);
+
+    llvm_build_load_f = v_obtain_function("LLVMBuildLoad");
+
+    ret_value_v = LLVMBuildCall(builder, llvm_build_load_f, val0, 3, "ret_value_v");
+
+
+//  v_store(builder_v,   val0);
+    v_store(ret_value_v, val1);
+
+    llvm_build_ret_f = v_obtain_function("LLVMBuildRet");
+
+    LLVMBuildCall(builder, llvm_build_ret_f, val0, 2, "");
+
+
+    LLVMBuildBr(builder, join_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, join_b);
 
 
     fun_module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "fun_module_v");
@@ -686,6 +818,21 @@
     //-
     //-     v_add_variable("voidc.internal_return_type", ret_type, 0);
     //-
+    //-
+    //-     if (v_type_is_void(ret_type)) ;
+    //-     else
+    //-     {
+    //-         ret_value = LLVMBuildAlloca(builder, v_type_get_llvm_type(ret_type), "ret_value");
+    //-
+    //-         v_add_variable("voidc.internal_return_value", 0, ret_value);    //- Sic!
+    //-     }
+    //-
+    //-     fun_leave_b  = LLVMAppendBasicBlock(fun_value, "fun_leave_b");
+    //-     fun_leave_bv = LLVMBasicBlockAsValue(fun_leave_b);
+    //-
+    //-     v_add_variable("voidc.internal_branch_target_leave", 0, fun_leave_bv);      //- Sic!
+    //-
+    //-
     //-     v_initialize(saved_compiler_g);
     //-
     //-     v_copy(saved_compiler_g, voidc_compiler);
@@ -762,8 +909,6 @@
     v_store(builder_v, val0);
     v_store(entry_v,   val1);
 
-    llvm_position_builder_at_end_f = v_obtain_function("LLVMPositionBuilderAtEnd");
-
     LLVMBuildCall(builder, llvm_position_builder_at_end_f, val0, 2, "");
 
 
@@ -784,6 +929,75 @@
     v_store(null_value_ref_v, val2);
 
     add_var_f = v_obtain_function("v_add_variable");
+
+    LLVMBuildCall(builder, add_var_f, val0, 3, "");
+
+
+    v_store(ret_type_v, val0);
+
+    ret_void_v = LLVMBuildCall(builder, is_void_f, val0, 1, "ret_void_v");
+
+
+    then_b = LLVMAppendBasicBlock(helper_f, "then_b");
+    else_b = LLVMAppendBasicBlock(helper_f, "else_b");
+
+    LLVMBuildCondBr(builder, ret_void_v, then_b, else_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, else_b);
+
+
+    v_store(ret_type_v, val0);
+
+    ret_type_v_ = LLVMBuildCall(builder, get_llvm_type_f, val0, 1, "ret_type_v_");
+
+    ret_val_n = LLVMBuildGlobalStringPtr(builder, "ret_value", "ret_val_n");
+
+    v_store(builder_v,   val0);
+    v_store(ret_type_v_, val1);
+    v_store(ret_val_n,   val2);
+
+    llvm_build_alloca_f = v_obtain_function("LLVMBuildAlloca");
+
+    ret_val_v = LLVMBuildCall(builder, llvm_build_alloca_f, val0, 3, "ret_val_v");
+
+
+    v_type_ptr_     = v_type_get_llvm_type(v_type_ptr);
+    null_type_ptr_v = LLVMConstNull(v_type_ptr_);
+
+    v_store(ret_var_v_n,     val0);
+    v_store(null_type_ptr_v, val1);
+    v_store(ret_val_v,       val2);
+
+    LLVMBuildCall(builder, add_var_f, val0, 3, "");
+
+
+    LLVMBuildBr(builder, then_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, then_b);
+
+
+    fun_leave_b_n = LLVMBuildGlobalStringPtr(builder, "fun_leave_b", "fun_leave_b_n");
+
+    v_store(fun_value,     val0);
+    v_store(fun_leave_b_n, val1);
+
+    fun_leave_b_v = LLVMBuildCall(builder, llvm_append_basic_block_f, val0, 2, "fun_leave_b_v");
+
+
+    v_store(fun_leave_b_v, val0);
+
+    llvm_basic_block_as_value_f = v_obtain_function("LLVMBasicBlockAsValue");
+
+    fun_leave_bv_v = LLVMBuildCall(builder, llvm_basic_block_as_value_f, val0, 1, "fun_leave_bv_v");
+
+
+    brt_leave_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_branch_target_leave", "brt_leave_n");
+
+    v_store(brt_leave_n,     val0);
+    v_store(null_type_ptr_v, val1);
+    v_store(fun_leave_bv_v,  val2);
 
     LLVMBuildCall(builder, add_var_f, val0, 3, "");
 
@@ -1171,14 +1385,20 @@
     //-
     //-         ret = v_get_result_value();
     //-
-    //-         LLVMBuildRet(builder, ret);
+    //-
+    //-         ret_var_v = v_get_variable_value("voidc.internal_return_value");
+    //-
+    //-         LLVMBuildStore(builder, ret, ret_var_v);
+    //-
     //-
     //-         v_terminate(arg0);
     //-     }
-    //-     else
-    //-     {
-    //-         LLVMBuildRetVoid(builder);
-    //-     }
+    //-
+    //-
+    //-     leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    //-     leave_b  = LLVMValueAsBasicBlock(leave_bv);
+    //-
+    //-     LLVMBuildBr(builder, leave_b);
     //- }
     //-----------------------------------------------------------------
     return_f = LLVMAddFunction(module, "voidc_function_hack_return_intrinsic", voidc_intrinsic_t_);
@@ -1258,12 +1478,19 @@
     ret_v = LLVMBuildCall(builder, get_res_val_f, 0, 0, "ret_v");
 
 
+    v_store(ret_var_v_n, val0);
+
+    ret_var_v = LLVMBuildCall(builder, get_var_value_f, val0, 1, "ret_var_v");
+
+
     v_store(builder_v, val0);
     v_store(ret_v,     val1);
+    v_store(ret_var_v, val2);
 
-    llvm_build_ret_f = v_obtain_function("LLVMBuildRet");
+    llvm_build_store_f = v_obtain_function("LLVMBuildStore");
 
-    LLVMBuildCall(builder, llvm_build_ret_f, val0, 2, "");
+    LLVMBuildCall(builder, llvm_build_store_f, val0, 3, "");
+
 
 
     v_store(arg0_v, val0);
@@ -1272,15 +1499,26 @@
     LLVMBuildCall(builder, expr_term_f, val0, 2, "");
 
 
-    LLVMBuildRetVoid(builder);
+    LLVMBuildBr(builder, else_b);
 
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 
 
-    v_store(builder_v, val0);
+    v_store(leave_bv_v_n, val0);
 
-    LLVMBuildCall(builder, llvm_build_ret_void_f, val0, 1, "");
+    leave_bv_v = LLVMBuildCall(builder, get_var_value_f, val0, 1, "leave_bv_v");
+
+
+    v_store(leave_bv_v, val0);
+
+    leave_b_v = LLVMBuildCall(builder, llvm_value_as_basic_block_f, val0, 1, "leave_b_v");
+
+
+    v_store(builder_v, val0);
+    v_store(leave_b_v, val1);
+
+    LLVMBuildCall(builder, llvm_build_br_f, val0, 2, "");
 
 
     LLVMBuildRetVoid(builder);

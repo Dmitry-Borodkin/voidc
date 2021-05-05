@@ -460,6 +460,14 @@ v_type_get_scalar_type(v_type_t *type)
 
 
 //---------------------------------------------------------------------
+bool
+v_type_is_void(v_type_t *type)
+{
+    return (type->kind() == v_type_t::k_void);
+}
+
+
+//---------------------------------------------------------------------
 v_type_t *
 v_f16_type(void)
 {

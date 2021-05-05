@@ -42,7 +42,28 @@ void compile_ast_unit_t(const visitor_sptr_t *vis, void *aux,
 
     lctx.prepare_unit_action(line, column);
 
+
+    auto entry = LLVMGetInsertBlock(gctx.builder);
+    auto cur_f = LLVMGetBasicBlockParent(entry);
+
+    auto unit_leave_b  = LLVMAppendBasicBlock(cur_f, "unit_leave_b");
+    auto unit_leave_bv = LLVMBasicBlockAsValue(unit_leave_b);
+
+    lctx.vars = lctx.vars.set("voidc.internal_branch_target_leave", {nullptr, unit_leave_bv});      //- Sic!
+
+
     (*stmt_list)->accept(*vis, aux);
+
+
+    auto cur_b = LLVMGetInsertBlock(gctx.builder);
+
+    if (!LLVMGetBasicBlockTerminator(cur_b))  LLVMBuildBr(gctx.builder, unit_leave_b);
+
+
+    LLVMMoveBasicBlockAfter(unit_leave_b, cur_b);
+
+    LLVMPositionBuilderAtEnd(gctx.builder, unit_leave_b);
+
 
     lctx.finish_unit_action();
 
