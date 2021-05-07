@@ -497,21 +497,47 @@
     }
 
 
-    //- Generate llvm's switch statement...
+    //- Start...
 
     builder = v_target_get_builder();
 
-    cur_b = LLVMGetInsertBlock(builder);
+    llvm_stacksave_f = v_obtain_function("llvm.stacksave");
 
-    cur_f = LLVMGetBasicBlockParent(cur_b);
+    switch = LLVMBuildCall(builder, llvm_stacksave_f, 0, 0, "switch");
+
+
+    i8_ptr = v_pointer_type(v_sint_type(8), 0);
+
+    switch_leave_var_v = LLVMBuildAlloca(builder, v_type_get_llvm_type(i8_ptr), "switch_leave_var_v");
+
+    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_b  = LLVMValueAsBasicBlock(leave_bv);
+
+    cur_f = LLVMGetBasicBlockParent(leave_b);
+
+    leave_b_addr = LLVMBlockAddress(cur_f, leave_b);
+
+    LLVMBuildStore(builder, leave_b_addr, switch_leave_var_v);
+
+
+    switch_leave_b  = LLVMAppendBasicBlock(cur_f, "switch_leave_b");
+    switch_leave_bv = LLVMBasicBlockAsValue(switch_leave_b);
+
+    v_add_variable("voidc.internal_branch_target_leave", 0, switch_leave_bv);       //- Sic!
+
+
+    switch_exit_b = LLVMAppendBasicBlock(cur_f, "switch_exit_b");
+
+    switch_exit_b_addr = LLVMBlockAddress(cur_f, switch_exit_b);
+
+
+    v_add_variable("voidc.internal_branch_target_variable", 0, switch_leave_var_v);
+    v_add_variable("voidc.internal_branch_target_break",    0, switch_exit_b_addr);
+
+
+    //- Generate llvm's switch statement...
 
     switch_default_b = LLVMAppendBasicBlock(cur_f, "switch_default_b");
-    switch_exit_b    = LLVMAppendBasicBlock(cur_f, "switch_exit_b");
-
-    switch_exit_bv = LLVMBasicBlockAsValue(switch_exit_b);
-
-    v_add_variable("voidc.internal_branch_target_break", LLVMValueRef, switch_exit_bv);
-
 
     switch_v = LLVMBuildSwitch(builder, arg0, switch_default_b, case_num);
 
@@ -633,25 +659,55 @@
         v_assign(case_idx, idx);
     }
 
+
+    //- Finish...
+
     cur_b = LLVMGetInsertBlock(builder);
 
-    LLVMMoveBasicBlockAfter(switch_exit_b, cur_b);
-
-    trm_v = LLVMGetBasicBlockTerminator(cur_b);
-    if (trm_v) ;
+    if (LLVMGetBasicBlockTerminator(cur_b)) ;
     else
     {
-        LLVMBuildBr(builder, switch_exit_b);
+        LLVMBuildStore(builder, switch_exit_b_addr, switch_leave_var_v);
+
+        LLVMBuildBr(builder, switch_leave_b);
     }
 
-    trm_v = LLVMGetBasicBlockTerminator(switch_default_b);
-    if (trm_v) ;
+    if (LLVMGetBasicBlockTerminator(switch_default_b)) ;
     else
     {
         LLVMPositionBuilderAtEnd(builder, switch_default_b);
 
-        LLVMBuildBr(builder, switch_exit_b);
+        LLVMBuildStore(builder, switch_exit_b_addr, switch_leave_var_v);
+
+        LLVMBuildBr(builder, switch_leave_b);
     }
+
+
+    LLVMMoveBasicBlockAfter(switch_leave_b, cur_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, switch_leave_b);
+
+
+    leave_addr = LLVMBuildLoad(builder, switch_leave_var_v, "leave_addr");
+
+
+    val0 = v_alloca(LLVMValueRef);
+
+    v_store(switch, val0);
+
+    llvm_stackrestore_f = v_obtain_function("llvm.stackrestore");
+
+    LLVMBuildCall(builder, llvm_stackrestore_f, val0, 1, "");
+
+
+    ibr_insn = LLVMBuildIndirectBr(builder, leave_addr, 2);
+
+    LLVMAddDestination(ibr_insn, leave_b);
+    LLVMAddDestination(ibr_insn, switch_exit_b);
+
+
+    LLVMMoveBasicBlockAfter(switch_exit_b, switch_leave_b);
 
 
     LLVMPositionBuilderAtEnd(builder, switch_exit_b);

@@ -240,17 +240,42 @@
     loop_start_b = LLVMAppendBasicBlock(cur_f, "loop_start_b");
     loop_stop_b  = LLVMAppendBasicBlock(cur_f, "loop_stop_b");
 
-    loop_start_bv = LLVMBasicBlockAsValue(loop_start_b);
-    loop_stop_bv  = LLVMBasicBlockAsValue(loop_stop_b);
-
-    v_add_variable("voidc.internal_branch_target_continue", LLVMValueRef, loop_start_bv);
-    v_add_variable("voidc.internal_branch_target_break",    LLVMValueRef, loop_stop_bv);
-
 
     LLVMBuildBr(builder, loop_start_b);
 
 
     LLVMPositionBuilderAtEnd(builder, loop_start_b);
+
+
+    llvm_stacksave_f = v_obtain_function("llvm.stacksave");
+
+    loop = LLVMBuildCall(builder, llvm_stacksave_f, 0, 0, "loop");
+
+
+    i8_ptr = v_pointer_type(v_sint_type(8), 0);
+
+    loop_leave_var_v = LLVMBuildAlloca(builder, v_type_get_llvm_type(i8_ptr), "loop_leave_var_v");
+
+    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_b  = LLVMValueAsBasicBlock(leave_bv);
+
+    leave_b_addr = LLVMBlockAddress(cur_f, leave_b);
+
+    LLVMBuildStore(builder, leave_b_addr, loop_leave_var_v);
+
+
+    loop_leave_b  = LLVMAppendBasicBlock(cur_f, "loop_leave_b");
+    loop_leave_bv = LLVMBasicBlockAsValue(loop_leave_b);
+
+    v_add_variable("voidc.internal_branch_target_leave", 0, loop_leave_bv);     //- Sic!
+
+
+    loop_start_b_addr = LLVMBlockAddress(cur_f, loop_start_b);
+    loop_stop_b_addr  = LLVMBlockAddress(cur_f, loop_stop_b);
+
+    v_add_variable("voidc.internal_branch_target_variable", 0, loop_leave_var_v);
+    v_add_variable("voidc.internal_branch_target_continue", 0, loop_start_b_addr);
+    v_add_variable("voidc.internal_branch_target_break",    0, loop_stop_b_addr);
 
 
     base_ast = v_cast(stmt, v_ast_base_ptr);
@@ -262,14 +287,40 @@
 
     trm_v = LLVMGetBasicBlockTerminator(cur_b);
 
-    if (trm_v) ;
-    else
-    {
-        LLVMBuildBr(builder, loop_start_b);
-    }
+    null_v = v_cast(0, LLVMValueRef);
+
+    ok = v_icmp(LLVMIntEQ, trm_v, null_v);
+
+    if (ok) LLVMBuildStore(builder, loop_start_b_addr, loop_leave_var_v);
+    if (ok) LLVMBuildBr(builder, loop_leave_b);
 
 
-    LLVMMoveBasicBlockAfter(loop_stop_b, cur_b);
+    LLVMMoveBasicBlockAfter(loop_leave_b, cur_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, loop_leave_b);
+
+
+    leave_addr = LLVMBuildLoad(builder, loop_leave_var_v, "leave_addr");
+
+
+    val0 = v_alloca(LLVMValueRef);
+
+    v_store(loop, val0);
+
+    llvm_stackrestore_f = v_obtain_function("llvm.stackrestore");
+
+    LLVMBuildCall(builder, llvm_stackrestore_f, val0, 1, "");
+
+
+    ibr_insn = LLVMBuildIndirectBr(builder, leave_addr, 3);
+
+    LLVMAddDestination(ibr_insn, leave_b);
+    LLVMAddDestination(ibr_insn, loop_start_b);
+    LLVMAddDestination(ibr_insn, loop_stop_b);
+
+
+    LLVMMoveBasicBlockAfter(loop_stop_b, loop_leave_b);
 
 
     LLVMPositionBuilderAtEnd(builder, loop_stop_b);
@@ -289,11 +340,15 @@
 {
     builder = v_target_get_builder();
 
-    continue_bv = v_get_variable_value("voidc.internal_branch_target_continue");
+    loop_var  = v_get_variable_value("voidc.internal_branch_target_variable");
+    cont_addr = v_get_variable_value("voidc.internal_branch_target_continue");
 
-    continue_b = LLVMValueAsBasicBlock(continue_bv);
+    LLVMBuildStore(builder, cont_addr, loop_var);
 
-    LLVMBuildBr(builder, continue_b);
+    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_b  = LLVMValueAsBasicBlock(leave_bv);
+
+    LLVMBuildBr(builder, leave_b);
 }
 
 
