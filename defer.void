@@ -1,0 +1,344 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2021 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_import("defer.void"); }
+
+{   v_import("expression.void");
+}
+
+{   voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_statement_loop();
+    voidc_enable_statement_switch();
+    voidc_enable_statement_grammar();
+    voidc_enable_expression();
+}
+
+
+//---------------------------------------------------------------------
+{   void_ptr = v_pointer_type(void, 0);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+}
+
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 3);
+
+    //-----------------------------------------------------------------
+    //- method ...
+    //-----------------------------------------------------------------
+    typ[0] := voidc_visitor_ptr;
+    typ[1] := void_ptr;
+    typ[2] := v_ast_stmt_ptr;
+
+    method_ft  = v_function_type(void, typ, 3, false);
+    method_ptr = v_pointer_type(method_ft, 0);
+
+    v_add_local_symbol("method_ft",  voidc_opaque_type, method_ft);
+    v_add_local_symbol("method_ptr", voidc_opaque_type, method_ptr);
+
+
+    //-----------------------------------------------------------------
+    //- ast_stmt_defer_t ...
+    //-----------------------------------------------------------------
+    ast_stmt_defer_t = v_struct_type_named("struct.ast_stmt_defer_t");
+
+    typ[0] := v_ast_opaque_stmt_sptr;
+
+    v_type_struct_set_body(ast_stmt_defer_t, typ, 1, false);
+
+    ast_stmt_defer_ptr = v_pointer_type(ast_stmt_defer_t, 0);
+
+    v_add_local_symbol("ast_stmt_defer_t",   voidc_opaque_type, ast_stmt_defer_t);
+    v_add_local_symbol("ast_stmt_defer_ptr", voidc_opaque_type, ast_stmt_defer_ptr);
+}
+
+
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("my_stmt_defer_mod");
+
+    v_set_module(module);
+}
+
+
+//---------------------------------------------------------------------
+//- quark ...
+//---------------------------------------------------------------------
+{
+    quark_name = "v_ast_stmt_defer_t_visitor_method_tag";
+
+    quark = v_quark_from_string(quark_name);
+
+    quark_ll = v_cast(quark, long_long);
+
+    v_quark_t_ = v_type_get_llvm_type(v_quark_t);
+
+    quark_v = LLVMConstInt(v_quark_t_, quark_ll, 0);
+
+    quark_g = LLVMAddGlobal(v_get_module(), v_quark_t_, quark_name);
+
+    LLVMSetInitializer(quark_g, quark_v);
+
+    v_add_symbol_type(quark_name, v_reference_type(v_quark_t, 0));
+
+    v_add_local_alias("quark", quark_name);
+
+    v_add_local_symbol("quark_v", LLVMOpaqueValue, quark_v);
+}
+
+
+//---------------------------------------------------------------------
+//- destroy ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_defer_destroy", v_ast_generic_destroy_fun_t);
+
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
+}
+{
+    obj = v_cast(void_obj, ast_stmt_defer_ptr);
+
+    stmt = v_getelementptr(obj, 0, 0);
+
+    v_terminate(stmt);
+
+    v_mfree(obj);
+}
+
+
+//---------------------------------------------------------------------
+//- accept ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_defer_accept", v_ast_generic_accept_fun_t);
+
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
+    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 2, "aux",      void_ptr);
+}
+{
+    obj = v_cast(void_obj, ast_stmt_defer_ptr);
+
+    stmt = v_getelementptr(obj, 0, 0);
+
+    void_method = voidc_visitor_get_void_method(visitor, quark);
+
+    method = v_cast(void_method, method_ptr);
+
+    method(visitor, aux, stmt);
+}
+
+
+//-----------------------------------------------------------------------
+//- vtable ...
+//-------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    val = v_alloca(LLVMValueRef, 3);
+
+    destroy_f = v_obtain_function("voidc_ast_stmt_defer_destroy");
+    accept_f  = v_obtain_function("voidc_ast_stmt_defer_accept");
+
+    val[0] := destroy_f;
+    val[1] := accept_f;
+    val[2] := quark_v;
+
+    v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
+
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val, 3);
+
+    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_stmt_defer_vtable");
+
+    LLVMSetInitializer(vtable_g, vtable_v);
+
+    v_add_local_symbol("voidc_ast_stmt_defer_vtable", v_ast_generic_vtable, 0);      //- Sic!
+}
+
+
+//---------------------------------------------------------------------
+//- v_ast_make_stmt_defer - ...
+//---------------------------------------------------------------------
+{
+    typ = v_alloca(v_type_ptr, 2);
+
+    typ[0] := v_ast_stmt_ptr;
+    typ[1] := v_ast_stmt_ptr;
+
+    ft = v_function_type(void, typ, 2, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_ast_make_stmt_defer", ft);
+
+    v_add_parameter_name(f, 0, "ret",  v_ast_stmt_ptr);
+    v_add_parameter_name(f, 1, "stmt", v_ast_stmt_ptr);
+}
+{
+    obj = v_malloc(ast_stmt_defer_t);
+
+    obj_stmt = v_getelementptr(obj, 0, 0);
+
+    v_initialize(obj_stmt);
+
+    v_copy(obj_stmt, stmt);
+
+    v_ast_make_stmt_generic(ret, voidc_ast_stmt_defer_vtable, obj);
+}
+
+
+//---------------------------------------------------------------------
+//- mk_stmt_defer - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_stmt_defer_grammar_action", v_peg_grammar_action_fun_t);
+
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", size_t);
+}
+{
+    stmt = v_std_any_get_pointer(v_ast_opaque_stmt_sptr, any0);
+
+    stmt_ret = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(stmt_ret);
+
+    v_ast_make_stmt_defer(stmt_ret, stmt);
+
+    v_std_any_set_pointer(ret, stmt_ret);
+
+    v_terminate(stmt_ret);
+}
+
+
+//---------------------------------------------------------------------
+//- compile_ast_stmt_defer_t - visitor method
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_ast_stmt_defer_t", method_ft);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "stmt",    v_ast_stmt_ptr);
+}
+{
+    builder = v_target_get_builder();
+
+    cur_b = LLVMGetInsertBlock(builder);
+
+    cur_f = LLVMGetBasicBlockParent(cur_b);
+
+    defer_b  = LLVMAppendBasicBlock(cur_f, "defer_b");
+    defer_bv = LLVMBasicBlockAsValue(defer_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, defer_b);
+
+
+    base_ast = v_cast(stmt, v_ast_base_ptr);
+
+    v_ast_accept_visitor(base_ast, visitor, aux);
+
+
+    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_b  = LLVMValueAsBasicBlock(leave_bv);
+
+    LLVMBuildBr(builder, leave_b);
+
+
+    v_add_variable("voidc.internal_branch_target_leave", 0, defer_bv);      //- Sic!
+
+
+    LLVMPositionBuilderAtEnd(builder, cur_b);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable statement defer
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(void, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    v_function_hack("voidc_enable_statement_defer", ft);
+}
+{
+    if (voidc_has_grammar()) ;  else v_return();
+
+    if (voidc_grammar_has_parser("stmt_defer")) v_return();
+
+
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    v_initialize(gr0);
+
+    v_peg_get_grammar(gr0);
+
+    grammar gr0
+    {
+    actions:
+        mk_stmt_defer = mk_stmt_defer_grammar_action;
+
+    parsers:
+        stmt_defer = "defer" !ident_cont _ s:stmt    { mk_stmt_defer(s) };
+
+        stmt += stmt_defer;
+    }
+
+
+    v_peg_set_grammar(gr0);
+
+
+    void_method = v_cast(compile_ast_stmt_defer_t, void_ptr);
+
+    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, void_method);
+
+
+    v_terminate(gr0);
+}
+
+
+//---------------------------------------------------------------------
+{
+    v_make_function_private("voidc_ast_stmt_defer_destroy");
+    v_make_function_private("voidc_ast_stmt_defer_accept");
+    v_make_global_private("voidc_ast_stmt_defer_vtable");
+    v_make_function_private("v_ast_make_stmt_defer");           //- ?
+
+    v_make_function_private("mk_stmt_defer_grammar_action");
+
+    v_make_function_private("compile_ast_stmt_defer_t");
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    //-----------------------------------------------------------------
+//  v_debug_print_module(1);
+
+    voidc_prepare_module_for_jit(module);
+
+    //-----------------------------------------------------------------
+    PH = v_alloca(LLVMOrcModuleHandle);
+
+    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
+                                voidc_resolver, 0
+                               );
+
+    //-----------------------------------------------------------------
+    v_set_module(0);
+}
+
+
+//---------------------------------------------------------------------
+{
+    v_make_symbol_global("voidc_enable_statement_defer");
+}
+
+

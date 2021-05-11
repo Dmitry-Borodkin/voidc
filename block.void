@@ -306,6 +306,35 @@
 
 
 //---------------------------------------------------------------------
+//- voidc_intrinsic_break_helper
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    v_store(LLVMValueRef, typ0);
+    v_store(LLVMValueRef, typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_intrinsic_break_helper", ft);
+
+    v_add_parameter_name(f, 0, "block_var",  LLVMValueRef);
+    v_add_parameter_name(f, 1, "break_addr", LLVMValueRef);
+}
+{
+    builder = v_target_get_builder();
+
+    LLVMBuildStore(builder, break_addr, block_var);
+
+    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_b  = LLVMValueAsBasicBlock(leave_bv);
+
+    LLVMBuildBr(builder, leave_b);
+}
+
+
+//---------------------------------------------------------------------
 //- compile_ast_stmt_block_t - visitor method
 //---------------------------------------------------------------------
 {
@@ -368,8 +397,7 @@
 
     ok = v_icmp(LLVMIntEQ, trm_v, null_v);
 
-    if (ok) LLVMBuildStore(builder, blk_exit_b_addr, blk_leave_var_v);
-    if (ok) LLVMBuildBr(builder, blk_leave_b);
+    if (ok) voidc_intrinsic_break_helper(blk_leave_var_v, blk_exit_b_addr);
 
 
     LLVMMoveBasicBlockAfter(blk_leave_b, cur_b);
@@ -414,17 +442,10 @@
     v_function_hack("voidc_intrinsic_break", voidc_intrinsic_t);
 }
 {
-    builder = v_target_get_builder();
-
     block_var  = v_get_variable_value("voidc.internal_branch_target_variable");
     break_addr = v_get_variable_value("voidc.internal_branch_target_break");
 
-    LLVMBuildStore(builder, break_addr, block_var);
-
-    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
-    leave_b  = LLVMValueAsBasicBlock(leave_bv);
-
-    LLVMBuildBr(builder, leave_b);
+    voidc_intrinsic_break_helper(block_var, break_addr);
 }
 
 
@@ -638,6 +659,7 @@
 //---------------------------------------------------------------------
 {
     v_make_symbol_global("v_ast_make_stmt_block");
+    v_make_symbol_global("voidc_intrinsic_break_helper");
     v_make_symbol_global("voidc_enable_statement_block");
 }
 

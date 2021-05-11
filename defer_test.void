@@ -1,0 +1,117 @@
+{   v_import("expression.void");
+    v_import("defer.void");
+}
+
+{   voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_statement_loop();
+    voidc_enable_statement_switch();
+    voidc_enable_statement_grammar();
+    voidc_enable_expression();
+    voidc_enable_statement_defer();
+}
+
+{   v_import("printf.void"); }
+
+
+//---------------------------------------------------------------------
+//{v_debug_print_module(1);}
+{
+    defer printf("bar\n");
+
+    printf("foo\n");
+
+    {   defer printf("qwe\n");
+
+        printf("asd\n");
+    }
+
+    i = *v_alloca(int) := 0;
+
+    loop
+    {
+        if (i >= 3) v_break();
+
+        defer printf("d i: %d\n", i);
+
+        printf("i: %d\n", i);
+
+        ++i;
+    }
+}
+
+{printf("\n");}
+
+
+//---------------------------------------------------------------------
+{
+    FILE = v_struct_type_named("FILE");
+
+    FILE_ptr = v_pointer_type(FILE, 0);
+    char_ptr = v_pointer_type(char, 0);
+
+
+    typ = v_alloca(v_type_ptr, 3);
+
+    typ[0] := char_ptr;
+    typ[1] := char_ptr;
+
+    ft = v_function_type(FILE_ptr, typ, 2, false);
+
+    v_add_symbol_type("fopen", ft);
+
+    typ[0] := FILE_ptr;
+
+    ft = v_function_type(int, typ, 1, false);
+
+    v_add_symbol_type("fclose", ft);
+
+    typ[0] := char_ptr;
+    typ[1] := int;
+    typ[2] := FILE_ptr;
+
+    ft = v_function_type(int, typ, 3, false);
+
+    v_add_symbol_type("fgets", ft);
+
+    ft = v_function_type(void, typ, 1, false);
+
+    v_add_symbol_type("perror", ft);
+
+}
+
+
+{   filename = "defer_test.void";
+
+    f = fopen(filename, "r");
+
+    if (f)  printf("%s opened\n", filename);
+    else
+    {
+        perror(filename);
+
+        v_return();
+    }
+
+    defer
+    {
+        fclose(f);
+
+        printf("%s closed\n", filename);
+    }
+
+    bufsize = 1024;
+
+    buf = v_malloc(char, bufsize);
+    defer v_mfree(buf);
+
+    loop
+    {
+        if (!fgets(buf, bufsize, f))  v_break();
+
+        printf("> %s", buf);
+    }
+}
+
+
+

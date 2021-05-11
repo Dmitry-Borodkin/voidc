@@ -57,7 +57,13 @@ void compile_ast_unit_t(const visitor_sptr_t *vis, void *aux,
 
     auto cur_b = LLVMGetInsertBlock(gctx.builder);
 
-    if (!LLVMGetBasicBlockTerminator(cur_b))  LLVMBuildBr(gctx.builder, unit_leave_b);
+    if (!LLVMGetBasicBlockTerminator(cur_b))
+    {
+        auto leave_bv = lctx.vars["voidc.internal_branch_target_leave"].second;
+        auto leave_b  = LLVMValueAsBasicBlock(leave_bv);
+
+        LLVMBuildBr(gctx.builder, leave_b);
+    }
 
 
     LLVMMoveBasicBlockAfter(unit_leave_b, cur_b);

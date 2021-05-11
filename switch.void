@@ -667,9 +667,7 @@
     if (LLVMGetBasicBlockTerminator(cur_b)) ;
     else
     {
-        LLVMBuildStore(builder, switch_exit_b_addr, switch_leave_var_v);
-
-        LLVMBuildBr(builder, switch_leave_b);
+        voidc_intrinsic_break_helper(switch_leave_var_v, switch_exit_b_addr);
     }
 
     if (LLVMGetBasicBlockTerminator(switch_default_b)) ;
@@ -677,9 +675,7 @@
     {
         LLVMPositionBuilderAtEnd(builder, switch_default_b);
 
-        LLVMBuildStore(builder, switch_exit_b_addr, switch_leave_var_v);
-
-        LLVMBuildBr(builder, switch_leave_b);
+        voidc_intrinsic_break_helper(switch_leave_var_v, switch_exit_b_addr);
     }
 
 
@@ -782,8 +778,8 @@
         case_item_list is left-recursive;
 
 
-        case_item = "case" _ e:expr _ ':'   { mk_case_item(e) }
-                  / "default" _ ':'         { mk_case_item(0) };
+        case_item = "case" !ident_cont _ e:expr _ ':'   { mk_case_item(e) }
+                  / "default" _ ':'                     { mk_case_item(0) };
 
 
         stmt += stmt_switch;

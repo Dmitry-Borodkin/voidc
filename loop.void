@@ -291,8 +291,7 @@
 
     ok = v_icmp(LLVMIntEQ, trm_v, null_v);
 
-    if (ok) LLVMBuildStore(builder, loop_start_b_addr, loop_leave_var_v);
-    if (ok) LLVMBuildBr(builder, loop_leave_b);
+    if (ok) voidc_intrinsic_break_helper(loop_leave_var_v, loop_start_b_addr);
 
 
     LLVMMoveBasicBlockAfter(loop_leave_b, cur_b);
