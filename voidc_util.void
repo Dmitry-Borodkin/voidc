@@ -8,7 +8,7 @@
     v_import("voidc_types.void");
 
     v_import("llvm-c/Core.void");
-    v_import("llvm-c/OrcBindings.void");
+//  v_import("llvm-c/OrcBindings.void");
 }
 
 
@@ -414,12 +414,7 @@
 
     voidc_prepare_module_for_jit(module);
 
-    //-----------------------------------------------------------------
-    PH = v_alloca(LLVMOrcModuleHandle);
-
-    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
-                                voidc_resolver, 0
-                               );
+    voidc_add_module_to_jit(module);
 
     //-----------------------------------------------------------------
     v_add_symbol_type("v_obtain_function",      obtain_fun_ft);
@@ -1992,12 +1987,8 @@
 
     voidc_prepare_module_for_jit(module);
 
-    //-----------------------------------------------------------------
-    PH = v_alloca(LLVMOrcModuleHandle);
+    voidc_add_module_to_jit(module);
 
-    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
-                                voidc_resolver, 0
-                               );
 
     //-----------------------------------------------------------------
     v_add_symbol_type("v_util_registering_helper", util_reg_helper_ft);

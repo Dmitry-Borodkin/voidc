@@ -199,13 +199,10 @@
 
     voidc_prepare_module_for_jit(module);
 
-    //-------------------------------------------------------------
-    PH = v_alloca(LLVMOrcModuleHandle);
+    voidc_add_module_to_jit(module);
 
-    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
-                                voidc_resolver,
-                                0
-                               );
+    LLVMDisposeModule(module);
+
 
     //-----------------------------------------------------------------
     v_add_symbol_type("vtable_g", v_ast_generic_vtable);

@@ -159,6 +159,8 @@
     v_add_symbol_type("v_set_module", ft);
     v_add_symbol_type("v_verify_module", ft);
     v_add_symbol_type("voidc_prepare_module_for_jit", ft);
+    v_add_symbol_type("voidc_add_module_to_jit", ft);
+    v_add_symbol_type("voidc_add_local_module_to_jit", ft);
 
     ft = v_function_type(v_type_ptr, 0, 0, false);
     v_add_symbol_type("v_get_result_type", ft);
@@ -264,6 +266,14 @@
     ft = v_function_type(LLVMBuilderRef, 0, 0, false);
     v_add_symbol_type("v_target_get_voidc_builder", ft);
     v_add_symbol_type("v_target_get_builder", ft);
+}
+
+{   typ = v_alloca(v_type_ptr);
+
+    v_store(v_pointer_type(v_function_type(void, 0, 0, false), 0), typ);
+
+    ft = v_function_type(int, typ, 1, false);
+    v_add_symbol_type("voidc_atexit", ft);
 }
 
 

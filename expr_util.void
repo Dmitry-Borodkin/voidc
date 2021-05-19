@@ -329,81 +329,6 @@
 }
 
 //---------------------------------------------------------------------
-//{ v_debug_print_module(1); }
-{
-    module = v_get_module();
-
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-
-    int32_t = v_sint_type(32);
-
-    ft = v_function_type(void, 0, 0, false);
-    fp = v_pointer_type(ft, 0);
-
-    v_store(int32_t,  typ0);
-    v_store(fp,       typ1);
-    v_store(char_ptr, typ2);
-
-    elt_t = v_struct_type(typ0, 3, false);
-
-    tab_t = v_array_type(elt_t, 1);
-
-
-    val0 = v_alloca(LLVMValueRef, 3);
-    val1 = v_getelementptr(val0, 1);
-    val2 = v_getelementptr(val0, 2);
-
-    int32_t_  = v_type_get_llvm_type(int32_t);
-    char_ptr_ = v_type_get_llvm_type(char_ptr);
-
-    n0 = LLVMConstNull(int32_t_);
-    p0 = LLVMConstNull(char_ptr_);
-
-    fv = v_obtain_function("expr_oplist_ctor");
-
-    v_store(n0, val0);
-    v_store(fv, val1);
-    v_store(p0, val2);
-
-    elt_v = LLVMConstStruct(val0, 3, 0);
-
-    v_store(elt_v, val1);
-
-    elt_t_ = v_type_get_llvm_type(elt_t);
-
-    tab_v = LLVMConstArray(elt_t_, val1, 1);
-
-
-    tab_t_ = v_type_get_llvm_type(tab_t);
-
-    ctors_g = LLVMAddGlobal(module, tab_t_, "llvm.global_ctors");
-
-    LLVMSetLinkage(ctors_g, LLVMAppendingLinkage);
-
-    LLVMSetInitializer(ctors_g, tab_v);
-
-
-    fv = v_obtain_function("expr_oplist_dtor");
-
-    v_store(fv, val1);
-
-    elt_v = LLVMConstStruct(val0, 3, 0);
-
-    v_store(elt_v, val1);
-
-    tab_v = LLVMConstArray(elt_t_, val1, 1);
-
-
-    dtors_g = LLVMAddGlobal(module, tab_t_, "llvm.global_dtors");
-
-    LLVMSetLinkage(dtors_g, LLVMAppendingLinkage);
-
-    LLVMSetInitializer(dtors_g, tab_v);
-}
-
-//---------------------------------------------------------------------
 {
     v_make_function_private("add_op_binary");
     v_make_function_private("add_op_unary");
@@ -421,15 +346,16 @@
 
     voidc_prepare_module_for_jit(module);
 
-    //-----------------------------------------------------------------
-    PH = v_alloca(LLVMOrcModuleHandle);
-
-    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
-                                voidc_resolver, 0
-                               );
+    voidc_add_module_to_jit(module);
 
     //-----------------------------------------------------------------
     v_set_module(0);
+}
+
+//---------------------------------------------------------------------
+{   expr_oplist_ctor();
+
+    voidc_atexit(expr_oplist_dtor);
 }
 
 
@@ -3737,12 +3663,7 @@
 
     voidc_prepare_module_for_jit(module);
 
-    //-----------------------------------------------------------------
-    PH = v_alloca(LLVMOrcModuleHandle);
-
-    LLVMOrcAddEagerlyCompiledIR(voidc_jit, PH, module,
-                                voidc_resolver, 0
-                               );
+    voidc_add_module_to_jit(module);
 
     //-----------------------------------------------------------------
     v_set_module(0);

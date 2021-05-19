@@ -18,7 +18,9 @@
 #include <immer/map.hpp>
 
 #include <llvm-c/Core.h>
-#include <llvm-c/OrcBindings.h>
+#include <llvm-c/LLJIT.h>
+
+#include <llvm/ExecutionEngine/Orc/Core.h>
 
 
 //---------------------------------------------------------------------
@@ -161,12 +163,16 @@ public:
     static base_global_ctx_t  *         target;
 
 public:
+    static LLVMOrcLLJITRef      jit;
+    static LLVMOrcJITDylibRef   main_jd;
+
     static LLVMTargetMachineRef target_machine;
-    static LLVMOrcJITStackRef   jit;
     static LLVMPassManagerRef   pass_manager;
 
 public:
     static void prepare_module_for_jit(LLVMModuleRef module);
+
+    static void add_module_to_jit(LLVMModuleRef module);
 
 public:
     v_type_t * const opaque_type_type;
@@ -180,10 +186,17 @@ public:
     void *    get_symbol_value(const char *raw_name) override;
     void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) override;
 
+public:
+    llvm::orc::SymbolMap unit_symbols;
+
+    void flush_unit_symbols(void);
+
 private:
     friend class voidc_local_ctx_t;
 
-    std::map<std::string, v_type_t *> symbol_types;         //- Mangled names!
+    std::map<std::string, v_type_t *> symbol_types;
+
+    int local_jd_hash = 0;
 };
 
 //---------------------------------------------------------------------
@@ -192,7 +205,7 @@ private:
 class voidc_local_ctx_t : public base_local_ctx_t
 {
 public:
-    voidc_local_ctx_t(const std::string filename, base_global_ctx_t &global);
+    voidc_local_ctx_t(const std::string filename, voidc_global_ctx_t &global);
     ~voidc_local_ctx_t() = default;
 
 public:
@@ -204,7 +217,10 @@ public:
     v_type_t *find_symbol_type(const char *raw_name) override;      //- No check alias!
 
 public:
-    static uint64_t resolver(const char *name, void *);
+    LLVMOrcJITDylibRef local_jd = nullptr;
+
+public:
+    void add_module_to_jit(LLVMModuleRef module);
 
 public:
     void prepare_unit_action(int line, int column);
@@ -213,8 +229,13 @@ public:
 
     LLVMMemoryBufferRef unit_buffer = nullptr;
 
+public:
+    llvm::orc::SymbolMap unit_symbols;
+
+    void flush_unit_symbols(void);
+
 private:
-    std::map<std::string, std::pair<v_type_t *, void *>> symbols;       //- Mangled names!
+    std::map<std::string, v_type_t *> symbol_types;
 };
 
 

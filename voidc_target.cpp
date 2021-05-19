@@ -10,12 +10,23 @@
 
 #include <llvm-c/Target.h>
 #include <llvm-c/TargetMachine.h>
-#include <llvm-c/Support.h>
 #include <llvm-c/Analysis.h>
+#include <llvm-c/Object.h>
 #include <llvm-c/Transforms/PassManagerBuilder.h>
 #include <llvm-c/Transforms/IPO.h>
 
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/Support/CBindingWrapping.h>
+
 #include "voidc_compiler.h"
+
+
+//---------------------------------------------------------------------
+using namespace llvm;
+using namespace llvm::orc;
+
+DEFINE_SIMPLE_CONVERSION_FUNCTIONS(JITDylib, LLVMOrcJITDylibRef)
+DEFINE_SIMPLE_CONVERSION_FUNCTIONS(LLJIT, LLVMOrcLLJITRef)
 
 
 //---------------------------------------------------------------------
@@ -755,8 +766,10 @@ voidc_global_ctx_t *voidc_global_ctx = nullptr;
 voidc_global_ctx_t * const & voidc_global_ctx_t::voidc = voidc_global_ctx;
 base_global_ctx_t  *         voidc_global_ctx_t::target;
 
+LLVMOrcLLJITRef      voidc_global_ctx_t::jit;
+LLVMOrcJITDylibRef   voidc_global_ctx_t::main_jd;
+
 LLVMTargetMachineRef voidc_global_ctx_t::target_machine;
-LLVMOrcJITStackRef   voidc_global_ctx_t::jit;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 
 //---------------------------------------------------------------------
@@ -813,6 +826,18 @@ voidc_global_ctx_t::static_initialize(void)
     LLVMInitializeAllAsmPrinters();
 
     //-------------------------------------------------------------
+    LLVMOrcCreateLLJIT(&jit, 0);            //- Sic!
+
+    main_jd = LLVMOrcLLJITGetMainJITDylib(jit);
+
+    {   LLVMOrcDefinitionGeneratorRef gen = nullptr;
+
+        LLVMOrcCreateDynamicLibrarySearchGeneratorForProcess(&gen, LLVMOrcLLJITGetGlobalPrefix(jit), nullptr, nullptr);
+
+        LLVMOrcJITDylibAddGenerator(main_jd, gen);
+    }
+
+    //-------------------------------------------------------------
     {   char *triple = LLVMGetDefaultTargetTriple();
 
         LLVMTargetRef tr;
@@ -847,8 +872,6 @@ voidc_global_ctx_t::static_initialize(void)
                 LLVMCodeModelJITDefault
             );
 
-        jit = LLVMOrcCreateInstance(target_machine);
-
         LLVMDisposeMessage(cpu_features);
         LLVMDisposeMessage(cpu_name);
         LLVMDisposeMessage(triple);
@@ -880,23 +903,21 @@ voidc_global_ctx_t::static_initialize(void)
     static_cast<voidc_global_ctx_t *>(target)->initialize();    //- Sic!
 
     //-------------------------------------------------------------
-    voidc->add_symbol_value("voidc_resolver", (void *)voidc_local_ctx_t::resolver);
-
 #define DEF(name) \
     voidc->add_symbol_value("voidc_" #name, (void *)name);
 
     DEF(target_machine)
-    DEF(jit)
     DEF(pass_manager)
 
 #undef DEF
 
     //-------------------------------------------------------------
-    LLVMLoadLibraryPermanently(nullptr);        //- Sic!!!
-
     voidc->add_symbol_value("stdin",  (void *)stdin);       //- WTF?
     voidc->add_symbol_value("stdout", (void *)stdout);      //- WTF?
     voidc->add_symbol_value("stderr", (void *)stderr);      //- WTF?
+
+    //-------------------------------------------------------------
+    voidc_global_ctx_t::voidc->flush_unit_symbols();
 
     //-------------------------------------------------------------
 #ifndef NDEBUG
@@ -907,9 +928,13 @@ voidc_global_ctx_t::static_initialize(void)
 }
 
 //---------------------------------------------------------------------
+static std::forward_list<void (*)(void)> voidc_atexit_list;
+
 void
 voidc_global_ctx_t::static_terminate(void)
 {
+    for (auto it: voidc_atexit_list)  it();
+
     voidc_types_static_terminate();
 
     LLVMDisposePassManager(pass_manager);
@@ -917,7 +942,7 @@ voidc_global_ctx_t::static_terminate(void)
     LLVMDisposeMessage(voidc_triple);
     LLVMDisposeTargetData(voidc_target_data_layout);
 
-    LLVMOrcDisposeInstance(jit);
+    LLVMOrcDisposeLLJIT(jit);
 
     delete voidc;
 
@@ -944,44 +969,133 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 
 
 //---------------------------------------------------------------------
+static LLVMOrcJITTargetAddress
+add_object_file_to_jit(LLVMMemoryBufferRef membuf,
+                       LLVMOrcJITDylibRef jd0,
+                       LLVMOrcJITDylibRef jd1,
+                       bool search_action = false)
+{
+    char *msg = nullptr;
+
+    auto &jit = voidc_global_ctx_t::jit;
+
+    //-------------------------------------------------------------
+    auto bref = LLVMCreateBinary(membuf, nullptr, &msg);
+    assert(bref);
+
+    auto mb_copy = LLVMBinaryCopyMemoryBuffer(bref);
+
+    unwrap(jd0)->addToLinkOrder(*unwrap(jd1));
+
+    //-------------------------------------------------------------
+    auto lerr = LLVMOrcLLJITAddObjectFile(jit, jd0, mb_copy);
+
+    if (lerr)
+    {
+        msg = LLVMGetErrorMessage(lerr);
+
+        printf("\n%s\n", msg);
+
+        LLVMDisposeErrorMessage(msg);
+    }
+
+    //-------------------------------------------------------------
+    LLVMOrcJITTargetAddress ret = 0;
+
+    auto it = LLVMObjectFileCopySymbolIterator(bref);
+
+    static std::regex act_regex("unit_[0-9]+_[0-9]+_action");
+
+    while(!LLVMObjectFileIsSymbolIteratorAtEnd(bref, it))
+    {
+        auto sname = LLVMGetSymbolName(it);
+
+        if (auto sym = unwrap(jit)->lookup(*unwrap(jd0), sname))
+        {
+            auto addr = sym->getAddress();
+
+            if (search_action  &&  std::regex_match(sname, act_regex))
+            {
+                ret = addr;
+            }
+        }
+
+        LLVMMoveToNextSymbol(it);
+    }
+
+    LLVMDisposeSymbolIterator(it);
+
+    //-------------------------------------------------------------
+    unwrap(jd0)->removeFromLinkOrder(*unwrap(jd1));
+
+    LLVMDisposeBinary(bref);
+
+    LLVMDisposeMemoryBuffer(membuf);
+
+    return ret;
+}
+
+//---------------------------------------------------------------------
+void
+voidc_global_ctx_t::add_module_to_jit(LLVMModuleRef module)
+{
+    assert(target == voidc);    //- Sic!
+
+//  verify_module(module);
+
+    //-------------------------------------------------------------
+    LLVMMemoryBufferRef mod_buffer = nullptr;
+
+    char *msg = nullptr;
+
+    auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
+                                                   module,
+                                                   LLVMObjectFile,
+                                                   &msg,
+                                                   &mod_buffer);
+
+    if (err)
+    {
+        printf("\n%s\n", msg);
+
+        LLVMDisposeMessage(msg);
+
+        exit(1);                //- Sic !!!
+    }
+
+    assert(mod_buffer);
+
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*voidc->local_ctx);
+
+    add_object_file_to_jit(mod_buffer, main_jd, lctx.local_jd);
+}
+
+
+//---------------------------------------------------------------------
 void
 voidc_global_ctx_t::add_symbol_type(const char *raw_name, v_type_t *type)
 {
-    char *m_name = nullptr;
-
-    LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
-
-    symbol_types[m_name] = type;
-
-    LLVMOrcDisposeMangledSymbol(m_name);
+    symbol_types[raw_name] = type;
 }
 
 //---------------------------------------------------------------------
 void
 voidc_global_ctx_t::add_symbol_value(const char *raw_name, void *value)
 {
-    char *m_name = nullptr;
+    if (unwrap(jit)->lookup(*unwrap(main_jd), raw_name)) return;
 
-    LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
-
-    LLVMAddSymbol(m_name, value);
-
-    LLVMOrcDisposeMangledSymbol(m_name);
+    unit_symbols[unwrap(jit)->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
 }
 
 //---------------------------------------------------------------------
 void
 voidc_global_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
-    char *m_name = nullptr;
+    symbol_types[raw_name] = type;
 
-    LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
+    if (unwrap(jit)->lookup(*unwrap(main_jd), raw_name)) return;
 
-    symbol_types[m_name] = type;
-
-    LLVMAddSymbol(m_name, value);
-
-    LLVMOrcDisposeMangledSymbol(m_name);
+    unit_symbols[unwrap(jit)->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
 }
 
 
@@ -989,37 +1103,22 @@ voidc_global_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value
 v_type_t *
 voidc_global_ctx_t::get_symbol_type(const char *raw_name)
 {
-    v_type_t *type = nullptr;
+    auto it = symbol_types.find(raw_name);
 
-    char *m_name = nullptr;
+    if (it != symbol_types.end())  return it->second;
 
-    LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
-
-    {   auto it = symbol_types.find(m_name);
-
-        if (it != symbol_types.end())  type = it->second;
-    }
-
-    LLVMOrcDisposeMangledSymbol(m_name);
-
-    return type;
+    return nullptr;
 }
 
 //---------------------------------------------------------------------
 void *
 voidc_global_ctx_t::get_symbol_value(const char *raw_name)
 {
-    void *value = nullptr;
+    auto sym = unwrap(jit)->lookup(*unwrap(main_jd), raw_name);
 
-    char *m_name = nullptr;
+    if (sym)  return (void *)sym->getAddress();
 
-    LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
-
-    value = LLVMSearchForAddressOfSymbol(m_name);
-
-    LLVMOrcDisposeMangledSymbol(m_name);
-
-    return value;
+    return nullptr;
 }
 
 //---------------------------------------------------------------------
@@ -1029,137 +1128,138 @@ voidc_global_ctx_t::get_symbol(const char *raw_name, v_type_t * &type, void * &v
     type  = nullptr;
     value = nullptr;
 
-    char *m_name = nullptr;
+    auto it = symbol_types.find(raw_name);
 
-    LLVMOrcGetMangledSymbol(jit, &m_name, raw_name);
+    if (it != symbol_types.end())  type = it->second;
 
-    {   auto it = symbol_types.find(m_name);
+    auto sym = unwrap(jit)->lookup(*unwrap(main_jd), raw_name);
 
-        if (it != symbol_types.end())  type = it->second;
-    }
+    if (sym)  value = (void *)sym->getAddress();
+}
 
-    value = LLVMSearchForAddressOfSymbol(m_name);
 
-    LLVMOrcDisposeMangledSymbol(m_name);
+//---------------------------------------------------------------------
+void
+voidc_global_ctx_t::flush_unit_symbols(void)
+{
+    if (unit_symbols.empty()) return;
+
+    auto err = unwrap(main_jd)->define(absoluteSymbols(unit_symbols));
+
+    unit_symbols.clear();
 }
 
 
 //---------------------------------------------------------------------
 //- Voidc Local Context
 //---------------------------------------------------------------------
-voidc_local_ctx_t::voidc_local_ctx_t(const std::string filename, base_global_ctx_t &global)
+voidc_local_ctx_t::voidc_local_ctx_t(const std::string filename, voidc_global_ctx_t &global)
   : base_local_ctx_t(filename, global)
-{}
+{
+    auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
+
+    std::string jd_name("local_jd_" + std::to_string(global.local_jd_hash));
+
+    global.local_jd_hash += 1;
+
+    LLVMOrcExecutionSessionCreateJITDylib(es, &local_jd, jd_name.c_str());
+
+    assert(local_jd);
+}
 
 //---------------------------------------------------------------------
 void
 voidc_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
-    char *m_name = nullptr;
+    symbol_types[raw_name] = type;
 
-    LLVMOrcGetMangledSymbol(voidc_global_ctx_t::jit, &m_name, raw_name);
+    if (!value) return;
 
-    symbols[m_name] = {type, value};
+    auto &jit = voidc_global_ctx_t::jit;
 
-    LLVMOrcDisposeMangledSymbol(m_name);
+    if (unwrap(jit)->lookup(*unwrap(local_jd), raw_name)) return;
+
+    unit_symbols[unwrap(jit)->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
 }
 
 //---------------------------------------------------------------------
 v_type_t *
 voidc_local_ctx_t::find_type(const char *type_name)
 {
-    v_type_t *tt = nullptr;
-
-    void *tv = nullptr;
-
-    char *m_name = nullptr;
-
     auto raw_name = check_alias(type_name);
 
-    LLVMOrcGetMangledSymbol(voidc_global_ctx_t::jit, &m_name, raw_name.c_str());
+    auto cname = raw_name.c_str();
 
-    {   auto it = symbols.find(m_name);
-
-        if (it != symbols.end())
-        {
-            auto &[t,v] = it->second;
-
-            tt = t;
-            tv = v;
-        }
-    }
-
-    if (!tv)
+    if (find_symbol_type(cname) == voidc_global_ctx_t::voidc->opaque_type_type)
     {
-        auto it = voidc_global_ctx_t::voidc->symbol_types.find(m_name);
+        auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(local_jd), cname);
 
-        if (it != voidc_global_ctx_t::voidc->symbol_types.end())
+        if (!sym)       //- WTF?
         {
-            tt = it->second;
+            sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(voidc_global_ctx_t::main_jd), cname);
         }
 
-        tv = LLVMSearchForAddressOfSymbol(m_name);
+        if (sym)  return (v_type_t *)sym->getAddress();
     }
 
-    LLVMOrcDisposeMangledSymbol(m_name);
-
-    if (tt != voidc_global_ctx_t::voidc->opaque_type_type)
-    {
-        tv = nullptr;
-    }
-
-    return (v_type_t *)tv;
+    return nullptr;
 }
 
 //---------------------------------------------------------------------
 v_type_t *
 voidc_local_ctx_t::find_symbol_type(const char *raw_name)
 {
-    v_type_t *type = nullptr;
+    {   auto it = symbol_types.find(raw_name);
 
-    char *m_name = nullptr;
-
-    LLVMOrcGetMangledSymbol(voidc_global_ctx_t::jit, &m_name, raw_name);
-
-    {   auto it = symbols.find(m_name);
-
-        if (it != symbols.end())
+        if (it != symbol_types.end())
         {
-            type = it->second.first;
+            return it->second;
         }
     }
 
-    if (!type)
-    {
-        auto it = voidc_global_ctx_t::voidc->symbol_types.find(m_name);
+    {   auto it = voidc_global_ctx_t::voidc->symbol_types.find(raw_name);
 
         if (it != voidc_global_ctx_t::voidc->symbol_types.end())
         {
-            type = it->second;
+            return it->second;
         }
     }
 
-    LLVMOrcDisposeMangledSymbol(m_name);
-
-    return type;
+    return nullptr;
 }
 
 
 //---------------------------------------------------------------------
-uint64_t
-voidc_local_ctx_t::resolver(const char *m_name, void *)
+void
+voidc_local_ctx_t::add_module_to_jit(LLVMModuleRef mod)
 {
-    auto &lctx = static_cast<voidc_local_ctx_t &>(*voidc_global_ctx->local_ctx);        //- voidc!
+    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
 
-    {   auto it = lctx.symbols.find(m_name);
+//  verify_module(mod);
 
-        if (it != lctx.symbols.end())
-        {
-            return  (uint64_t)it->second.second;
-        }
+    //-------------------------------------------------------------
+    LLVMMemoryBufferRef mod_buffer = nullptr;
+
+    char *msg = nullptr;
+
+    auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
+                                                   mod,
+                                                   LLVMObjectFile,
+                                                   &msg,
+                                                   &mod_buffer);
+
+    if (err)
+    {
+        printf("\n%s\n", msg);
+
+        LLVMDisposeMessage(msg);
+
+        exit(1);                //- Sic !!!
     }
 
-    return  (uint64_t)LLVMSearchForAddressOfSymbol(m_name);
+    assert(mod_buffer);
+
+    add_object_file_to_jit(mod_buffer, local_jd, voidc_global_ctx_t::main_jd);
 }
 
 
@@ -1235,83 +1335,35 @@ voidc_local_ctx_t::run_unit_action(void)
 {
     if (!unit_buffer) return;
 
-    auto &jit = voidc_global_ctx_t::jit;
-
-    char *msg;
-
-    std::string fun_name;
-
-    {   auto bref = LLVMCreateBinary(unit_buffer, nullptr, &msg);
-        assert(bref);
-
-        auto it = LLVMObjectFileCopySymbolIterator(bref);
-
-        static std::regex sym_regex("unit_[0-9]+_[0-9]+_action");
-
-        while(!LLVMObjectFileIsSymbolIteratorAtEnd(bref, it))
-        {
-            auto sym = LLVMGetSymbolName(it);
-
-            if (std::regex_match(sym, sym_regex))
-            {
-                fun_name = sym;
-            }
-
-            LLVMMoveToNextSymbol(it);
-        }
-
-        LLVMDisposeSymbolIterator(it);
-
-        LLVMDisposeBinary(bref);
-    }
-
-    LLVMOrcModuleHandle H;
-
-    auto lerr = LLVMOrcAddObjectFile(jit, &H, unit_buffer, resolver, nullptr);
-
-    if (lerr)
-    {
-        msg = LLVMGetErrorMessage(lerr);
-
-        printf("\n%s\n", msg);
-
-        LLVMDisposeErrorMessage(msg);
-
-        puts(LLVMOrcGetErrorMsg(jit));
-    }
-
-    unit_buffer = nullptr;
-
-    LLVMOrcTargetAddress addr = 0;
-
-    lerr = LLVMOrcGetSymbolAddressIn(jit, &addr, H, fun_name.c_str());
-
-    if (lerr)
-    {
-        msg = LLVMGetErrorMessage(lerr);
-
-        printf("\n%s\n", msg);
-
-        LLVMDisposeErrorMessage(msg);
-
-        puts(LLVMOrcGetErrorMsg(jit));
-    }
-
-    if (!addr)
-    {
-        fflush(stdout);
-
-        throw std::runtime_error("Symbol not found: " + fun_name);
-    }
+    auto addr = add_object_file_to_jit(unit_buffer, local_jd, voidc_global_ctx_t::main_jd, true);
 
     void (*unit_action)() = (void (*)())addr;
 
     unit_action();
 
-    LLVMOrcRemoveModule(jit, H);
+    flush_unit_symbols();
+
+    //--------------------------------
+    //- How to remove module ?!?!?!?!?
+    //--------------------------------
 
     fflush(stdout);     //- WTF?
     fflush(stderr);     //- WTF?
+}
+
+
+//---------------------------------------------------------------------
+void
+voidc_local_ctx_t::flush_unit_symbols(void)
+{
+    if (!unit_symbols.empty())
+    {
+        auto err = unwrap(local_jd)->define(absoluteSymbols(unit_symbols));
+
+        unit_symbols.clear();
+    }
+
+    voidc_global_ctx_t::voidc->flush_unit_symbols();
 }
 
 
@@ -1632,6 +1684,21 @@ void
 voidc_prepare_module_for_jit(LLVMModuleRef module)
 {
     voidc_global_ctx_t::prepare_module_for_jit(module);
+}
+
+void
+voidc_add_module_to_jit(LLVMModuleRef module)
+{
+    voidc_global_ctx_t::add_module_to_jit(module);
+}
+
+void
+voidc_add_local_module_to_jit(LLVMModuleRef module)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    lctx.add_module_to_jit(module);
 }
 
 //---------------------------------------------------------------------
@@ -1991,6 +2058,14 @@ void
 v_target_destroy_local_ctx(base_local_ctx_t *lctx)
 {
     delete lctx;
+}
+
+
+//---------------------------------------------------------------------
+void
+voidc_atexit(void (*func)(void))
+{
+    voidc_atexit_list.push_front(func);
 }
 
 
