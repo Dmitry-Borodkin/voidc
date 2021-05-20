@@ -2,7 +2,6 @@
     v_import("voidc_internals.void");
 
     v_import("llvm-c/Core.void");
-    v_import("llvm-c/OrcBindings.void");
 }
 
 {   module = LLVMModuleCreateWithName("hello_mod");
@@ -48,7 +47,7 @@
     //-----------------------------------------------------------------
     voidc_add_module_to_jit(module);
 
-    LLVMDisposeModule(module);
+//  LLVMDisposeModule(module);
 
 
     //-----------------------------------------------------------------
