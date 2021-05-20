@@ -985,7 +985,11 @@ add_object_file_to_jit(LLVMMemoryBufferRef membuf,
 
     auto mb_copy = LLVMBinaryCopyMemoryBuffer(bref);
 
+#ifdef _WIN32
+    unwrap(jd0)->addToLinkOrder(*unwrap(jd1), JITDylibLookupFlags::MatchAllSymbols);
+#else
     unwrap(jd0)->addToLinkOrder(*unwrap(jd1));
+#endif
 
     //-------------------------------------------------------------
     auto lerr = LLVMOrcLLJITAddObjectFile(jit, jd0, mb_copy);
@@ -1031,6 +1035,10 @@ add_object_file_to_jit(LLVMMemoryBufferRef membuf,
     LLVMDisposeBinary(bref);
 
     LLVMDisposeMemoryBuffer(membuf);
+
+
+//  unwrap(jd0)->dump(outs());
+
 
     return ret;
 }
@@ -2067,6 +2075,14 @@ voidc_atexit(void (*func)(void))
 {
     voidc_atexit_list.push_front(func);
 }
+
+
+//---------------------------------------------------------------------
+#ifdef _WIN32
+
+void ___chkstk_ms(void) {}       //- WTF !?!?!?!?!?!?!?!?!
+
+#endif
 
 
 VOIDC_DLLEXPORT_END

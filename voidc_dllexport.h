@@ -9,6 +9,8 @@
 //---------------------------------------------------------------------
 #ifdef _WIN32
 
+#pragma clang diagnostic ignored "-Wcompound-token-split-by-macro"
+
 #define VOIDC_DLLEXPORT_BEGIN_FUNCTION \
 _Pragma("clang attribute push ([[gnu::dllexport]], apply_to=function)")
 
