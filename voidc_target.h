@@ -56,7 +56,7 @@ class base_global_ctx_t : public base_compile_ctx_t, public voidc_types_ctx_t
 {
 public:
     base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size);
-    ~base_global_ctx_t();
+    ~base_global_ctx_t() override;
 
 public:
     const LLVMBuilderRef builder;
@@ -97,7 +97,7 @@ class base_local_ctx_t : public base_compile_ctx_t
 {
 public:
     base_local_ctx_t(const std::string filename, base_global_ctx_t &global);
-    ~base_local_ctx_t();
+    ~base_local_ctx_t() override;
 
 public:
     const std::string filename;
@@ -140,6 +140,8 @@ public:
 
 private:
     std::forward_list<LLVMValueRef> temporaries_stack;
+
+    friend class voidc_local_ctx_t;
 
     base_local_ctx_t * const parent_ctx = nullptr;
 };
@@ -206,7 +208,7 @@ class voidc_local_ctx_t : public base_local_ctx_t
 {
 public:
     voidc_local_ctx_t(const std::string filename, voidc_global_ctx_t &global);
-    ~voidc_local_ctx_t() = default;
+    ~voidc_local_ctx_t() override;
 
 public:
     void add_symbol(const char *name, v_type_t *type, void *value) override;

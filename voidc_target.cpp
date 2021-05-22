@@ -971,8 +971,7 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 //---------------------------------------------------------------------
 static LLVMOrcJITTargetAddress
 add_object_file_to_jit(LLVMMemoryBufferRef membuf,
-                       LLVMOrcJITDylibRef jd0,
-                       LLVMOrcJITDylibRef jd1,
+                       LLVMOrcJITDylibRef jd,
                        bool search_action = false)
 {
     char *msg = nullptr;
@@ -985,14 +984,8 @@ add_object_file_to_jit(LLVMMemoryBufferRef membuf,
 
     auto mb_copy = LLVMBinaryCopyMemoryBuffer(bref);
 
-#ifdef _WIN32
-    unwrap(jd0)->addToLinkOrder(*unwrap(jd1), JITDylibLookupFlags::MatchAllSymbols);
-#else
-    unwrap(jd0)->addToLinkOrder(*unwrap(jd1));
-#endif
-
     //-------------------------------------------------------------
-    auto lerr = LLVMOrcLLJITAddObjectFile(jit, jd0, mb_copy);
+    auto lerr = LLVMOrcLLJITAddObjectFile(jit, jd, mb_copy);
 
     if (lerr)
     {
@@ -1014,7 +1007,7 @@ add_object_file_to_jit(LLVMMemoryBufferRef membuf,
     {
         auto sname = LLVMGetSymbolName(it);
 
-        if (auto sym = unwrap(jit)->lookup(*unwrap(jd0), sname))
+        if (auto sym = unwrap(jit)->lookup(*unwrap(jd), sname))
         {
             auto addr = sym->getAddress();
 
@@ -1030,14 +1023,12 @@ add_object_file_to_jit(LLVMMemoryBufferRef membuf,
     LLVMDisposeSymbolIterator(it);
 
     //-------------------------------------------------------------
-    unwrap(jd0)->removeFromLinkOrder(*unwrap(jd1));
-
     LLVMDisposeBinary(bref);
 
     LLVMDisposeMemoryBuffer(membuf);
 
 
-//  unwrap(jd0)->dump(outs());
+//  unwrap(jd)->dump(outs());
 
 
     return ret;
@@ -1073,9 +1064,7 @@ voidc_global_ctx_t::add_module_to_jit(LLVMModuleRef module)
 
     assert(mod_buffer);
 
-    auto &lctx = static_cast<voidc_local_ctx_t &>(*voidc->local_ctx);
-
-    add_object_file_to_jit(mod_buffer, main_jd, lctx.local_jd);
+    add_object_file_to_jit(mod_buffer, main_jd);
 }
 
 
@@ -1173,7 +1162,60 @@ voidc_local_ctx_t::voidc_local_ctx_t(const std::string filename, voidc_global_ct
     LLVMOrcExecutionSessionCreateJITDylib(es, &local_jd, jd_name.c_str());
 
     assert(local_jd);
+
+    //-----------------------------------------------------------------
+    //- Setup link order
+
+#ifdef _WIN32
+    auto flags = JITDylibLookupFlags::MatchAllSymbols;
+#else
+    auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
+#endif
+
+    auto g_jd = unwrap(voidc_global_ctx_t::main_jd);
+    auto l_jd = unwrap(local_jd);
+
+    JITDylibSearchOrder so =
+    {
+        { l_jd, flags },    //- First  - the local
+        { g_jd, flags }     //- Second - the global
+    };
+
+    g_jd->setLinkOrder(so, false);      //- Set "as is"
+    l_jd->setLinkOrder(so, false);      //- Set "as is"
 }
+
+//---------------------------------------------------------------------
+voidc_local_ctx_t::~voidc_local_ctx_t()
+{
+    if (parent_ctx)
+    {
+        //- Restore link order
+
+#ifdef _WIN32
+        auto flags = JITDylibLookupFlags::MatchAllSymbols;
+#else
+        auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
+#endif
+
+        auto g_jd = unwrap(voidc_global_ctx_t::main_jd);
+        auto l_jd = unwrap(static_cast<voidc_local_ctx_t *>(parent_ctx)->local_jd);
+
+        JITDylibSearchOrder so =
+        {
+            { l_jd, flags },    //- First  - the local
+            { g_jd, flags }     //- Second - the global
+        };
+
+        g_jd->setLinkOrder(so, false);      //- Set "as is"
+        l_jd->setLinkOrder(so, false);      //- Set "as is"
+    }
+    else    //- ?
+    {
+        unwrap(voidc_global_ctx_t::main_jd)->removeFromLinkOrder(*unwrap(local_jd));
+    }
+}
+
 
 //---------------------------------------------------------------------
 void
@@ -1267,7 +1309,7 @@ voidc_local_ctx_t::add_module_to_jit(LLVMModuleRef mod)
 
     assert(mod_buffer);
 
-    add_object_file_to_jit(mod_buffer, local_jd, voidc_global_ctx_t::main_jd);
+    add_object_file_to_jit(mod_buffer, local_jd);
 }
 
 
@@ -1343,7 +1385,7 @@ voidc_local_ctx_t::run_unit_action(void)
 {
     if (!unit_buffer) return;
 
-    auto addr = add_object_file_to_jit(unit_buffer, local_jd, voidc_global_ctx_t::main_jd, true);
+    auto addr = add_object_file_to_jit(unit_buffer, local_jd, true);
 
     void (*unit_action)() = (void (*)())addr;
 
