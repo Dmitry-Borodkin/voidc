@@ -238,6 +238,8 @@ public:
 
 private:
     std::map<std::string, v_type_t *> symbol_types;
+
+    void setup_link_order(void);
 };
 
 

@@ -1163,26 +1163,7 @@ voidc_local_ctx_t::voidc_local_ctx_t(const std::string filename, voidc_global_ct
 
     assert(local_jd);
 
-    //-----------------------------------------------------------------
-    //- Setup link order
-
-#ifdef _WIN32
-    auto flags = JITDylibLookupFlags::MatchAllSymbols;
-#else
-    auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
-#endif
-
-    auto g_jd = unwrap(voidc_global_ctx_t::main_jd);
-    auto l_jd = unwrap(local_jd);
-
-    JITDylibSearchOrder so =
-    {
-        { l_jd, flags },    //- First  - the local
-        { g_jd, flags }     //- Second - the global
-    };
-
-    g_jd->setLinkOrder(so, false);      //- Set "as is"
-    l_jd->setLinkOrder(so, false);      //- Set "as is"
+    setup_link_order();
 }
 
 //---------------------------------------------------------------------
@@ -1192,23 +1173,7 @@ voidc_local_ctx_t::~voidc_local_ctx_t()
     {
         //- Restore link order
 
-#ifdef _WIN32
-        auto flags = JITDylibLookupFlags::MatchAllSymbols;
-#else
-        auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
-#endif
-
-        auto g_jd = unwrap(voidc_global_ctx_t::main_jd);
-        auto l_jd = unwrap(static_cast<voidc_local_ctx_t *>(parent_ctx)->local_jd);
-
-        JITDylibSearchOrder so =
-        {
-            { l_jd, flags },    //- First  - the local
-            { g_jd, flags }     //- Second - the global
-        };
-
-        g_jd->setLinkOrder(so, false);      //- Set "as is"
-        l_jd->setLinkOrder(so, false);      //- Set "as is"
+        static_cast<voidc_local_ctx_t *>(parent_ctx)->setup_link_order();
     }
     else    //- ?
     {
@@ -1414,6 +1379,30 @@ voidc_local_ctx_t::flush_unit_symbols(void)
     }
 
     voidc_global_ctx_t::voidc->flush_unit_symbols();
+}
+
+
+//---------------------------------------------------------------------
+void
+voidc_local_ctx_t::setup_link_order(void)
+{
+#ifdef _WIN32
+    auto flags = JITDylibLookupFlags::MatchAllSymbols;
+#else
+    auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
+#endif
+
+    auto g_jd = unwrap(voidc_global_ctx_t::main_jd);
+    auto l_jd = unwrap(local_jd);
+
+    JITDylibSearchOrder so =
+    {
+        { l_jd, flags },    //- First  - the local
+        { g_jd, flags }     //- Second - the global
+    };
+
+    g_jd->setLinkOrder(so, false);      //- Set "as is"
+    l_jd->setLinkOrder(so, false);      //- Set "as is"
 }
 
 
