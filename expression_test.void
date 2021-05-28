@@ -169,3 +169,23 @@
 }
 
 
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    N = 7;
+
+    v = *v_alloca(vec(double, N)) := N;
+
+    i = *v_alloca(int) := 0;
+
+    loop
+    {
+        if (i >= N) v_break();
+
+        printf("v[%d]/%d: %g\n", i, i+1, v[i]/(i+1));
+
+        ++i;
+    }
+}
+
+

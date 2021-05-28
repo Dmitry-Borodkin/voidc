@@ -400,56 +400,44 @@
     sz = v_type_vector_get_size(ret_type);
     sf = v_type_vector_is_scalable(ret_type);
 
+    tmp_type  = v_reference(v_alloca(v_type_ptr));
+    mask_type = v_reference(v_alloca(v_type_ptr));
+
+    i32 = v_sint_type(32);
+
     //- Result type...
 
     if (sf)         //- Scalable
     {
-        v_assign(ret_type, v_svector_type(type, sz));
+        v_assign(ret_type,  v_svector_type(type, sz));
+        v_assign(tmp_type,  v_svector_type(type,  1));
+        v_assign(mask_type, v_svector_type(i32,  sz));
     }
     else            //- Fixed
     {
-        v_assign(ret_type, v_fvector_type(type, sz));
+        v_assign(ret_type,  v_fvector_type(type, sz));
+        v_assign(tmp_type,  v_fvector_type(type,  1));
+        v_assign(mask_type, v_fvector_type(i32,  sz));
     }
 
     //- Result value...
 
-    ret_type_ = v_type_get_llvm_type(ret_type);
+    tmp_type_  = v_type_get_llvm_type(tmp_type);
+    mask_type_ = v_type_get_llvm_type(mask_type);
 
-    if (sf)         //- Scalable
-    {
-        //---------------------------------------------
-        //- I DON'T KNOW HOW TO IMPLEMENT THIS CASE !!!
-        //---------------------------------------------
+    v = v_reference(v_alloca(LLVMValueRef));
 
-        v_assign(ret_value, LLVMGetPoison(ret_type_));
-    }
-    else            //- Fixed
-    {
-        v = v_reference(v_alloca(LLVMValueRef));
+    v_assign(v, LLVMGetUndef(tmp_type_));
 
-        v_assign(v, LLVMGetUndef(ret_type_));
+    builder = v_target_get_builder();
 
-        builder = v_target_get_builder();
+    int_ = v_type_get_llvm_type(int);
 
-        int_ = v_type_get_llvm_type(int);
+    v_assign(v, LLVMBuildInsertElement(builder, v, value, LLVMConstNull(int_), ""));
 
-        i = v_reference(v_alloca(int));
+    r = LLVMBuildShuffleVector(builder, v, v, LLVMConstNull(mask_type_), "");
 
-        v_assign(i, 0);
-
-        loop
-        {
-            if (v_icmp(LLVMIntEQ, i, sz))   v_break();
-
-            i_v = LLVMConstInt(int_, v_cast(i, long_long), 0);
-
-            v_assign(v, LLVMBuildInsertElement(builder, v, value, i_v, ""));
-
-            v_assign(i, v_binop(LLVMAdd, i, 1));
-        }
-
-        v_assign(ret_value, v);
-    }
+    v_assign(ret_value, r);
 }
 
 
