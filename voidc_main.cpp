@@ -555,6 +555,8 @@ main(int argc, char *argv[])
     vpeg::grammar_t::static_initialize();
     vpeg::context_t::static_initialize();
 
+    voidc_global_ctx_t::voidc->flush_unit_symbols();
+
     voidc_grammar = make_voidc_grammar();
 
     vpeg::grammar_t current_grammar = voidc_grammar;

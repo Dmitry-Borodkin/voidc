@@ -108,7 +108,7 @@ public:
     const std::string check_alias(const std::string &name);
 
 public:
-    virtual v_type_t *find_type(const char *type_name) = 0;             //- Alias checked
+    virtual v_type_t *find_type(const char *type_name);                 //- Alias checked
 
     virtual v_type_t *find_symbol_type(const char *raw_name) = 0;       //- No alias check!
 

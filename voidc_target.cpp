@@ -565,6 +565,18 @@ base_local_ctx_t::check_alias(const std::string &name)
 
 //---------------------------------------------------------------------
 v_type_t *
+base_local_ctx_t::find_type(const char *type_name)
+{
+    if (auto *p = vars.find(type_name))
+    {
+        if (p->second == nullptr)   return p->first;    //- Sic!
+    }
+
+    return nullptr;
+}
+
+//---------------------------------------------------------------------
+v_type_t *
 base_local_ctx_t::lookup_type(const ast_expr_sptr_t &expr)
 {
     v_type_t *ret;
@@ -1201,6 +1213,8 @@ voidc_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 v_type_t *
 voidc_local_ctx_t::find_type(const char *type_name)
 {
+    if (auto r = base_local_ctx_t::find_type(type_name))  return r;
+
     auto raw_name = check_alias(type_name);
 
     auto cname = raw_name.c_str();
@@ -1527,6 +1541,8 @@ target_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value
 v_type_t *
 target_local_ctx_t::find_type(const char *type_name)
 {
+    if (auto r = base_local_ctx_t::find_type(type_name))  return r;
+
     v_type_t *tt = nullptr;
 
     void *tv = nullptr;
