@@ -329,6 +329,8 @@ struct out_binary_t
             if (fd != -1  ||  errno != EEXIST) break;
         }
 
+        assert(fd != -1);       //- ?..
+
 #else
 
         int fd = mkstemp(tmp_name.data());
