@@ -18,6 +18,13 @@
 
 #include <unistd.h>
 
+#ifdef _WIN32
+#include <io.h>
+#include <share.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#endif
+
 #include <llvm-c/Core.h>
 
 
@@ -313,10 +320,11 @@ struct out_binary_t
                 template_name[j] = letters[rand() % 62];
             }
 
-            fd = _sopen(template_name,
-                        _O_RDWR|_O_CREAT|_O_EXCL|_O_BINARY,
-                        _SH_DENYRW, _S_IREAD|_S_IWRITE
-                       );
+            fd = _wsopen(template_name,
+                         _O_RDWR|_O_CREAT|_O_EXCL|_O_BINARY,
+                         _SH_DENYRW,
+                         _S_IREAD|_S_IWRITE
+                        );
 
             if (fd != -1  ||  errno != EEXIST) break;
         }
