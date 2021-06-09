@@ -20,11 +20,8 @@ _Pragma("clang attribute push ([[gnu::dllexport]], apply_to=variable)")
 #define VOIDC_DLLEXPORT_END \
 _Pragma("clang attribute pop")
 
-#endif
-
-
 //---------------------------------------------------------------------
-#ifdef __unix
+#else
 
 #define VOIDC_DLLEXPORT_BEGIN_FUNCTION
 

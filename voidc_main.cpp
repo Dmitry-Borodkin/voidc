@@ -19,7 +19,6 @@
 #include <unistd.h>
 
 #include <llvm-c/Core.h>
-#include <llvm-c/Support.h>
 
 
 //---------------------------------------------------------------------
@@ -285,6 +284,72 @@ check_import_state(const fs::path &src_filename)
 
 
 //--------------------------------------------------------------------
+//- ...
+//--------------------------------------------------------------------
+struct out_binary_t
+{
+    explicit out_binary_t(const fs::path &filename)
+      : out_path(filename),
+        tmp_path(filename)
+    {
+        tmp_path += "_XXXXXX";
+
+        fs::path::string_type tmp_name = tmp_path.native();
+
+#ifdef _WIN32
+
+        int fd;
+
+        static const char letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        int len = int(tmp_name.size());
+
+        auto *template_name = tmp_name.data();
+
+        for (int i=0; i >= 0; i++)
+        {
+            for (int j=len-6; j < len; j++)
+            {
+                template_name[j] = letters[rand() % 62];
+            }
+
+            fd = _sopen(template_name,
+                        _O_RDWR|_O_CREAT|_O_EXCL|_O_BINARY,
+                        _SH_DENYRW, _S_IREAD|_S_IWRITE
+                       );
+
+            if (fd != -1  ||  errno != EEXIST) break;
+        }
+
+#else
+
+        int fd = mkstemp(tmp_name.data());
+
+#endif
+
+        tmp_path = tmp_name.c_str();
+
+        f = ::fdopen(fd, "wb");
+    }
+
+    ~out_binary_t()
+    {
+        std::fclose(f);
+
+        fs::rename(tmp_path, out_path);
+    }
+
+public:
+    FILE *f = nullptr;
+
+private:
+    const fs::path out_path;
+
+    fs::path tmp_path;
+};
+
+
+//--------------------------------------------------------------------
 //- Intrinsics (functions)
 //--------------------------------------------------------------------
 extern "C"
@@ -381,7 +446,11 @@ v_import(const char *name)
     {
         infs = my_fopen(src_filename);
 
-        std::FILE *outfs = my_fopen(bin_filename, true);
+        out_binary_t out_binary(bin_filename);
+
+        std::FILE *outfs = out_binary.f;
+
+//      std::FILE *outfs = my_fopen(bin_filename, true);
 
         {   char buf[sizeof(magic)];
 
@@ -446,7 +515,7 @@ v_import(const char *name)
 
         std::fwrite((char *)&imports_pos, sizeof(imports_pos), 1, outfs);
 
-        std::fclose(outfs);
+//      std::fclose(outfs);
     }
 
     std::fclose(infs);
