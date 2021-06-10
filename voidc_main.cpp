@@ -305,7 +305,7 @@ struct out_binary_t
 
 #ifdef _WIN32
 
-        int fd;
+        int fd = -1;
 
         static const char letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -317,7 +317,7 @@ struct out_binary_t
         {
             for (int j=len-6; j < len; j++)
             {
-                template_name[j] = letters[rand() % 62];
+                template_name[j] = letters[std::rand()/((RAND_MAX + 1u)/62)];
             }
 
             fd = _wsopen(template_name,
@@ -458,9 +458,7 @@ v_import(const char *name)
 
         out_binary_t out_binary(bin_filename);
 
-        std::FILE *outfs = out_binary.f;
-
-//      std::FILE *outfs = my_fopen(bin_filename, true);
+        const auto &outfs = out_binary.f;
 
         {   char buf[sizeof(magic)];
 
@@ -524,8 +522,6 @@ v_import(const char *name)
         std::fwrite(magic, sizeof(magic), 1, outfs);
 
         std::fwrite((char *)&imports_pos, sizeof(imports_pos), 1, outfs);
-
-//      std::fclose(outfs);
     }
 
     std::fclose(infs);
@@ -575,6 +571,10 @@ VOIDC_DLLEXPORT_END
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+    std::srand(std::time(nullptr));
+#endif
+
     {   const char *exe_name = nullptr;
 
         if (argc > 0) exe_name = argv[0];

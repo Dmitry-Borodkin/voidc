@@ -2,9 +2,9 @@
 //- Copyright (C) 2020-2021 Dmitry Borodkin <borodkin-dn@yandex.ru>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
-{   voidc_guard_import("vpeg_grammar.void"); }
+{   voidc_guard_import("vpeg_grammar.void  must be imported into the voidc target only!");
 
-{   v_import("vpeg_parser.void");
+    v_import("vpeg_parser.void");
 }
 
 {   v_util_register_itcmep_impl(v_peg_opaque_grammar_sptr, "v_peg", "grammar");
