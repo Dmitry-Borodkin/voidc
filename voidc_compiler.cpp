@@ -252,9 +252,13 @@ void compile_ast_expr_integer_t(const visitor_sptr_t *vis, void *aux,
     {
         v = LLVMConstPointerNull(t->llvm_type());
     }
+    else if (v_type_is_floating_point(t))
+    {
+        v = LLVMConstReal(t->llvm_type(), num);
+    }
     else
     {
-        v = LLVMConstInt(t->llvm_type(), num, false);       //- ?
+        v = LLVMConstInt(t->llvm_type(), (long long)num, true);
     }
 
     if (is_reference) v = lctx.make_temporary(t, v);
