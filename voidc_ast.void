@@ -322,22 +322,43 @@
 
 
     //-------------------------------------------------------------
-    v_store(voidc_visitor_ptr, typ0);               //- visitor
-    v_store(void_ptr,          typ1);               //- aux
-    v_store(size_t,            typ2);               //- size of list
-    v_store(bool,              typ3);               //- start/stop (i.e. true/false)
+    v_store(voidc_visitor_ptr,   typ0);             //- visitor
+    v_store(void_ptr,            typ1);             //- aux
+    v_store(v_ast_stmt_list_ptr, typ2);             //- list itself(!)
 
-    ft = v_function_type(void, typ0, 4, false);
-    v_add_symbol("v_ast_list_visitor_method_t", voidc_opaque_type, ft);
+    stmt_ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol("v_ast_stmt_list_visitor_method_t", voidc_opaque_type, stmt_ft);
 
-    fun_ptr = v_pointer_type(ft, 0);
+//  v_store(voidc_visitor_ptr,   typ0);             //- visitor
+//  v_store(void_ptr,            typ1);             //- aux
+    v_store(v_ast_expr_list_ptr, typ2);             //- list itself(!)
+
+    expr_ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol("v_ast_expr_list_visitor_method_t", voidc_opaque_type, expr_ft);
+
+//  v_store(voidc_visitor_ptr,      typ0);          //- visitor
+//  v_store(void_ptr,               typ1);          //- aux
+    v_store(v_ast_generic_list_ptr, typ2);          //- list itself(!)
+
+    generic_ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol("v_ast_generic_list_visitor_method_t", voidc_opaque_type, generic_ft);
+
+    stmt_fun_ptr = v_pointer_type(stmt_ft, 0);
 
 //  v_store(voidc_visitor_ptr, typ0);               //- (out)
     v_store(voidc_visitor_ptr, typ1);               //- (in)
-    v_store(fun_ptr,           typ2);               //-
+    v_store(stmt_fun_ptr,      typ2);               //-
 
     ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_stmt_list_t", ft);
+
+    expr_fun_ptr = v_pointer_type(expr_ft, 0);
+
+//  v_store(voidc_visitor_ptr, typ0);               //- (out)
+//  v_store(voidc_visitor_ptr, typ1);               //- (in)
+    v_store(expr_fun_ptr,      typ2);               //-
+
+    ft = v_function_type(void, typ0, 3, false);
     v_add_symbol_type("v_visitor_set_method_ast_expr_list_t", ft);
 
     v_add_symbol_type("v_ast_stmt_list_t_visitor_method_tag", quark_ref);
