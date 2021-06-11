@@ -18,8 +18,25 @@ visitor_sptr_t voidc_type_calc;
 //=====================================================================
 //- AST Visitor - Compiler (level 0) ...
 //=====================================================================
-static void compile_ast_stmt_list_t(const visitor_sptr_t *vis, void *aux, size_t count, bool start) {}
-static void compile_ast_expr_list_t(const visitor_sptr_t *vis, void *aux, size_t count, bool start) {}
+static
+void compile_ast_stmt_list_t(const visitor_sptr_t *vis, void *aux,
+                             const ast_stmt_list_sptr_t *list)
+{
+    for (auto &it : (*list)->data)
+    {
+        it->accept(*vis, aux);
+    }
+}
+
+static
+void compile_ast_expr_list_t(const visitor_sptr_t *vis, void *aux,
+                             const ast_expr_list_sptr_t *list)
+{
+    for (auto &it : (*list)->data)
+    {
+        it->accept(*vis, aux);
+    }
+}
 
 
 //---------------------------------------------------------------------
