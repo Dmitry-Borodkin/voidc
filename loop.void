@@ -131,7 +131,7 @@
 
     destroy_f = v_obtain_function("voidc_ast_stmt_loop_destroy");
     accept_f  = v_obtain_function("voidc_ast_stmt_loop_accept");
-    quark_v   = v_obtain_global("v_ast_stmt_loop_t_visitor_method_tag");
+    quark_v   = LLVMConstInt(v_type_get_llvm_type(v_quark_t), v_cast(quark, long_long), 0);
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);

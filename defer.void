@@ -129,7 +129,7 @@
 
     destroy_f = v_obtain_function("voidc_ast_stmt_defer_destroy");
     accept_f  = v_obtain_function("voidc_ast_stmt_defer_accept");
-    quark_v   = v_obtain_global("v_ast_stmt_defer_t_visitor_method_tag");
+    quark_v   = LLVMConstInt(v_type_get_llvm_type(v_quark_t), v_cast(quark, long_long), 0);
 
     val[0] := destroy_f;
     val[1] := accept_f;
