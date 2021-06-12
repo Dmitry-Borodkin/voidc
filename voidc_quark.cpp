@@ -23,28 +23,32 @@ static immer::vector_transient<const char *> voidc_quark_to_string;
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
+const v_quark_t *
+v_quark_ptr_from_string(const char *str)
+{
+    if (str == nullptr)
+    {
+        static const v_quark_t zero = 0;
+
+        return &zero;
+    }
+
+    assert(voidc_quark_to_string.size() == voidc_quark_from_string.size());
+
+    auto q = v_quark_t(voidc_quark_from_string.size() + 1);     //- Sic!
+
+    auto [it, ok] = voidc_quark_from_string.insert({str, q});
+
+    if (ok) voidc_quark_to_string.push_back( it->first.c_str() );
+
+    return &it->second;
+}
+
+//---------------------------------------------------------------------
 v_quark_t
 v_quark_from_string(const char *str)
 {
-    if (str == nullptr) return 0;
-
-    {   auto it = voidc_quark_from_string.find(str);
-
-        if (it != voidc_quark_from_string.end())
-        {
-            return  it->second + 1;
-        }
-    }
-
-    assert(voidc_quark_from_string.size() == voidc_quark_to_string.size());
-
-    auto ret = v_quark_t(voidc_quark_from_string.size());
-
-    voidc_quark_from_string[str] = ret;
-
-    voidc_quark_to_string.push_back( voidc_quark_from_string.find(str)->first.c_str() );
-
-    return ret+1;       //- Sic!
+    return *v_quark_ptr_from_string(str);
 }
 
 

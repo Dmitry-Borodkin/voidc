@@ -19,6 +19,8 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 using v_quark_t = uint32_t;
 
 
+const v_quark_t *v_quark_ptr_from_string(const char *str);
+
 v_quark_t v_quark_from_string(const char *str);
 
 const char *v_quark_to_string(v_quark_t vq);

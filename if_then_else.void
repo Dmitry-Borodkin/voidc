@@ -72,23 +72,11 @@
 {
     quark_name = "v_ast_stmt_if_then_else_t_visitor_method_tag";
 
-    quark = v_quark_from_string(quark_name);
+    quark_p = v_quark_ptr_from_string(quark_name);
 
-    quark_ll = v_cast(quark, long_long);
-
-    v_quark_t_ = v_type_get_llvm_type(v_quark_t);
-
-    quark_v = LLVMConstInt(v_quark_t_, quark_ll, 0);
-
-    quark_g = LLVMAddGlobal(v_get_module(), v_quark_t_, quark_name);
-
-    LLVMSetInitializer(quark_g, quark_v);
-
-    v_add_symbol_type(quark_name, v_reference_type(v_quark_t, 0));
+    v_add_symbol(quark_name, v_reference_type(v_quark_t, 0), quark_p);
 
     v_add_local_alias("quark", quark_name);
-
-    v_add_local_symbol("quark_v", LLVMOpaqueValue, quark_v);
 }
 
 
@@ -154,6 +142,7 @@
 
     destroy_f = v_obtain_function("voidc_ast_stmt_if_then_else_destroy");
     accept_f  = v_obtain_function("voidc_ast_stmt_if_then_else_accept");
+    quark_v   = v_obtain_global("v_ast_stmt_if_then_else_t_visitor_method_tag");
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);

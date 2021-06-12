@@ -169,17 +169,17 @@
 
 
     //-------------------------------------------------------------
-    quark_v = v_quark_from_string("Just test");
+    quark = v_quark_from_string("Just test");
 
-    quark_ll = v_cast(quark_v, long_long);      //- unsigned long long !
+    quark_ll = v_cast(quark, long_long);        //- unsigned long long !
 
     v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 
-    quark = LLVMConstInt(v_quark_t_, quark_ll, 0);
+    quark_v = LLVMConstInt(v_quark_t_, quark_ll, 0);
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
-    v_store(quark,     val2);
+    v_store(quark_v,   val2);
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 

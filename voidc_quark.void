@@ -22,6 +22,9 @@
 
     v_store(char_ptr, typ);
 
+    ft = v_function_type(v_pointer_type(v_quark_t, 0), typ, 1, false);
+    v_add_symbol_type("v_quark_ptr_from_string", ft);
+
     ft = v_function_type(v_quark_t, typ, 1, false);
     v_add_symbol_type("v_quark_from_string", ft);
 

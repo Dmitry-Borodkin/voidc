@@ -3362,6 +3362,19 @@
 
 
 //---------------------------------------------------------------------
+//- op_postfix_call - type calculator utility ...
+//---------------------------------------------------------------------
+{
+    quark_ref = v_reference_type(v_quark_t, 0);
+
+    v_add_local_symbol("int_q",  quark_ref, v_quark_ptr_from_string("int"));
+    v_add_local_symbol("uint_q", quark_ref, v_quark_ptr_from_string("uint"));
+
+    v_add_local_symbol("vec_q",  quark_ref, v_quark_ptr_from_string("vec"));
+    v_add_local_symbol("svec_q", quark_ref, v_quark_ptr_from_string("svec"));
+}
+
+//---------------------------------------------------------------------
 //- op_postfix_call - type calculator method
 //---------------------------------------------------------------------
 {
@@ -3408,7 +3421,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    if (v_icmp(LLVMIntEQ, fun_q, v_quark_from_string("int")))           //- (((
+    if (v_icmp(LLVMIntEQ, fun_q, int_q))
     {
         v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), voidc_compiler, 0);      //- Compiler!
 
@@ -3420,7 +3433,7 @@
 
         v_store(typ, v_cast(aux, type_ptr_ptr));
     }
-    else if (v_icmp(LLVMIntEQ, fun_q, v_quark_from_string("uint")))     //- (((
+    else if (v_icmp(LLVMIntEQ, fun_q, uint_q))
     {
         v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), voidc_compiler, 0);      //- Compiler!
 
@@ -3432,7 +3445,7 @@
 
         v_store(typ, v_cast(aux, type_ptr_ptr));
     }
-    else if (v_icmp(LLVMIntEQ, fun_q, v_quark_from_string("vec")))      //- (((
+    else if (v_icmp(LLVMIntEQ, fun_q, vec_q))
     {
         elt = v_alloca(v_type_ptr);
 
@@ -3450,7 +3463,7 @@
 
         v_store(typ, v_cast(aux, type_ptr_ptr));
     }
-    else if (v_icmp(LLVMIntEQ, fun_q, v_quark_from_string("svec")))     //- (((
+    else if (v_icmp(LLVMIntEQ, fun_q, svec_q))
     {
         elt = v_alloca(v_type_ptr);
 
