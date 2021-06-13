@@ -3643,6 +3643,13 @@
     voidc_visitor_set_void_method(vis, vis, q, typecalc_op_postfix_index);
 
 
+    q = v_quark_from_string("op_parentheses");
+
+    m = voidc_visitor_get_void_method(voidc_compiler, q);
+
+    voidc_visitor_set_void_method(vis, vis, q, m);
+
+
     v_copy(voidc_type_calc, vis);
 
 
