@@ -696,6 +696,12 @@ v_type_struct_is_opaque(v_type_t *type)
     return static_cast<v_type_struct_t *>(type)->is_opaque();
 }
 
+bool
+v_type_struct_is_packed(v_type_t *type)
+{
+    return static_cast<v_type_struct_t *>(type)->is_packed();
+}
+
 void
 v_type_struct_set_body(v_type_t *type, v_type_t **elts, unsigned count, bool packed)
 {

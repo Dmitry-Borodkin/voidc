@@ -12,6 +12,7 @@
 
     ft = v_function_type(v_type_ptr, typ0, 2, false);
     v_add_symbol_type("v_pointer_type", ft);
+    v_add_symbol_type("v_reference_type", ft);
 }
 
 {   char_ptr = v_pointer_type(char, 0);
@@ -72,6 +73,13 @@
 {   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
+
+    v_store(v_type_ptr,   typ0);        //- Source type
+    v_store(LLVMValueRef, typ1);        //- Source value
+    v_store(v_type_ptr,   typ2);        //- Destination type
+
+    ft = v_function_type(LLVMValueRef, typ0, 3, false);
+    v_add_symbol_type("v_convert_to_type", v_reference_type(v_pointer_type(ft, 0), 0));
 
     v_store(char_ptr,     typ0);        //- Constant/variable name
     v_store(v_type_ptr,   typ1);        //- Constant/variable type

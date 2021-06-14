@@ -648,7 +648,7 @@
         {
             //- Convert val0 to typ1
 
-            v_assign(val0, convert_to_type(typ0, val0, typ1));
+            v_assign(val0, v_convert_to_type(typ0, val0, typ1));
 
             v_assign(typ0, typ1);
         }
@@ -656,7 +656,7 @@
         {
             //- Convert val1 to typ0
 
-            v_assign(val1, convert_to_type(typ1, val1, typ0));
+            v_assign(val1, v_convert_to_type(typ1, val1, typ0));
 
             v_assign(typ1, typ0);
         }
@@ -670,7 +670,7 @@
         {
             //- Convert val1 to st_com
 
-            v_assign(val1, convert_to_type(typ1, val1, st_com));
+            v_assign(val1, v_convert_to_type(typ1, val1, st_com));
         }
 
         v_assign(typ1, typ0);       //- Sic!
@@ -681,7 +681,7 @@
         {
             //- Convert val0 to typ1
 
-            v_assign(val0, convert_to_type(typ0, val0, typ1));
+            v_assign(val0, v_convert_to_type(typ0, val0, typ1));
         }
 
         v_return();
@@ -693,7 +693,7 @@
         {
             //- Convert val0 to st_com
 
-            v_assign(val0, convert_to_type(typ0, val0, st_com));
+            v_assign(val0, v_convert_to_type(typ0, val0, st_com));
         }
 
         v_assign(typ0, typ1);       //- Sic!
@@ -704,7 +704,7 @@
         {
             //- Convert val1 to typ0
 
-            v_assign(val1, convert_to_type(typ1, val1, typ0));
+            v_assign(val1, v_convert_to_type(typ1, val1, typ0));
         }
 
         v_return();
@@ -837,7 +837,7 @@
     if (v_type_is_pointer(v_type_get_scalar_type(e0)))  v_return();
 
 
-    v_assign(val1, convert_to_type(typ1, val1, e0));
+    v_assign(val1, v_convert_to_type(typ1, val1, e0));
 
     v_assign(typ1, e0);
 }
@@ -1154,7 +1154,7 @@
 
     if (v_type_is_pointer(v_type_get_scalar_type(e0)))
     {
-        v_assign(v1, convert_to_type(t1, v1, e0));
+        v_assign(v1, v_convert_to_type(t1, v1, e0));
     }
 
 
@@ -3620,6 +3620,10 @@
 
     v_terminate(arg);
     v_terminate(op);
+
+
+    //-------------------------------------------------------------
+    v_assign(v_convert_to_type, convert_to_type);
 
 
     //-------------------------------------------------------------

@@ -688,34 +688,37 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 
     default:        //- Adopt...
 
+        if (result_type == type)  break;
+
         bool dst_ref = (result_type->kind() == v_type_t::k_reference);
+
+        auto dst_typ = result_type;
+
+        if (dst_ref)  dst_typ = static_cast<v_type_reference_t *>(dst_typ)->element_type();
+
+        auto src_typ = type;
 
         if (src_ref)
         {
-            if (dst_ref)
+            src_typ = static_cast<v_type_reference_t *>(src_typ)->element_type();
+
+            value = LLVMBuildLoad(global_ctx.builder, value, "tmp");
+        }
+
+        if (src_typ != dst_typ)
+        {
+            if (dst_typ == global_ctx.void_ptr_type  &&
+                src_typ->kind() == v_type_t::k_pointer)
             {
-                //- ?!?!?!?
+                value = LLVMBuildPointerCast(global_ctx.builder, value, dst_typ->llvm_type(), "");
             }
             else
             {
-                value = LLVMBuildLoad(global_ctx.builder, value, "tmp");
+                value = v_convert_to_type(src_typ, value, dst_typ);     //- "generic" ...
             }
         }
-        else
-        {
-            auto et = result_type;
 
-            if (dst_ref)  et = static_cast<v_type_reference_t *>(et)->element_type();
-
-            if (et != type  &&
-                et == global_ctx.void_ptr_type  &&
-                type->kind() == v_type_t::k_pointer)
-            {
-                value = LLVMBuildPointerCast(global_ctx.builder, value, et->llvm_type(), "");
-            }
-
-            if (dst_ref)  value = make_temporary(et, value);
-        }
+        if (dst_ref)  value = make_temporary(dst_typ, value);
     }
 
     result_value = value;
@@ -766,6 +769,26 @@ base_local_ctx_t::pop_temporaries(void)
     obtain_identifier("llvm.stackrestore", llvm_stackrestore_ft, llvm_stackrestore_f);
 
     LLVMBuildCall(global_ctx.builder, llvm_stackrestore_f, &stack_ptr, 1, "");
+}
+
+//---------------------------------------------------------------------
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
+static LLVMValueRef
+v_convert_to_type_default(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
+{
+    return v0;      //- NOP...
+}
+
+VOIDC_DLLEXPORT_END
+
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
+    LLVMValueRef (*v_convert_to_type)(v_type_t *t0, LLVMValueRef v0, v_type_t *t1) = v_convert_to_type_default;
+
+VOIDC_DLLEXPORT_END
 }
 
 

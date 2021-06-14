@@ -146,6 +146,16 @@ private:
     base_local_ctx_t * const parent_ctx = nullptr;
 };
 
+//---------------------------------------------------------------------
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
+    extern LLVMValueRef (*v_convert_to_type)(v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
+
+VOIDC_DLLEXPORT_END
+}
+
 
 //---------------------------------------------------------------------
 //- Voidc Global Context
