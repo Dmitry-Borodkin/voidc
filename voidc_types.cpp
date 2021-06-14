@@ -193,7 +193,7 @@ v_type_array_t::obtain_llvm_type(void) const
 //---------------------------------------------------------------------
 template<>
 LLVMTypeRef
-v_type_fvector_t::obtain_llvm_type(void) const
+v_type_vector_t::obtain_llvm_type(void) const
 {
     auto et = key.first->llvm_type();
 
@@ -229,13 +229,13 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     f128_type(new v_type_f128_t(*this)),
 
     bool_type     (make_uint_type(1)),
-    char_type     (make_sint_type(8)),
-    short_type    (make_sint_type(16)),
-    int_type      (make_sint_type(8*int_size)),
+    char_type     (make_int_type(8)),
+    short_type    (make_int_type(16)),
+    int_type      (make_int_type(8*int_size)),
     unsigned_type (make_uint_type(8*int_size)),
-    long_type     (make_sint_type(8*long_size)),
-    long_long_type(make_sint_type(64)),
-    intptr_t_type (make_sint_type(8*ptr_size)),
+    long_type     (make_int_type(8*long_size)),
+    long_long_type(make_int_type(64)),
+    intptr_t_type (make_int_type(8*ptr_size)),
     size_t_type   (make_uint_type(8*ptr_size)),
     char32_t_type (make_uint_type(32)),
     uint64_t_type (make_uint_type(64))
@@ -247,18 +247,18 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
 
 voidc_types_ctx_t::~voidc_types_ctx_t()
 {
-//  for (auto &it : sint_types)  printf("s: %d, %d\n", it.second->is_signed(), it.second->width());
+//  for (auto &it : int_types)   printf("s: %d, %d\n", it.second->is_signed(), it.second->width());
 //  for (auto &it : uint_types)  printf("u: %d, %d\n", it.second->is_signed(), it.second->width());
 }
 
 
 //---------------------------------------------------------------------
-v_type_sint_t *
-voidc_types_ctx_t::make_sint_type(unsigned bits)
+v_type_int_t *
+voidc_types_ctx_t::make_int_type(unsigned bits)
 {
-    auto [it, nx] = sint_types.try_emplace(bits, nullptr);
+    auto [it, nx] = int_types.try_emplace(bits, nullptr);
 
-    if (nx) it->second.reset(new v_type_sint_t(*this, it->first));
+    if (nx) it->second.reset(new v_type_int_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -362,14 +362,14 @@ voidc_types_ctx_t::make_array_type(v_type_t *et, uint64_t count)
 
 
 //---------------------------------------------------------------------
-v_type_fvector_t *
-voidc_types_ctx_t::make_fvector_type(v_type_t *et, unsigned count)
+v_type_vector_t *
+voidc_types_ctx_t::make_vector_type(v_type_t *et, unsigned count)
 {
-    v_type_fvector_t::key_t key = { et, count };
+    v_type_vector_t::key_t key = { et, count };
 
-    auto [it, nx] = fvector_types.try_emplace(key, nullptr);
+    auto [it, nx] = vector_types.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new v_type_fvector_t(*this, it->first));
+    if (nx) it->second.reset(new v_type_vector_t(*this, it->first));
 
     return  it->second.get();
 }
@@ -406,14 +406,14 @@ void voidc_types_static_initialize(void)
     DEF(f32)
     DEF(f64)
     DEF(f128)
-    DEF(sint)
+    DEF(int)
     DEF(uint)
     DEF(function)
     DEF(pointer)
     DEF(reference)
     DEF(struct)
     DEF(array)
-    DEF(fvector)
+    DEF(vector)
     DEF(svector)
 
 #undef DEF
@@ -460,6 +460,14 @@ v_type_get_scalar_type(v_type_t *type)
 
 
 //---------------------------------------------------------------------
+v_type_t *
+v_void_type(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_void_type();
+}
+
 bool
 v_type_is_void(v_type_t *type)
 {
@@ -535,11 +543,11 @@ v_type_floating_point_get_width(v_type_t *type)
 
 //---------------------------------------------------------------------
 v_type_t *
-v_sint_type(unsigned bits)
+v_int_type(unsigned bits)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    return gctx.make_sint_type(bits);
+    return gctx.make_int_type(bits);
 }
 
 v_type_t *
@@ -745,11 +753,11 @@ v_type_array_get_length(v_type_t *type)
 
 //---------------------------------------------------------------------
 v_type_t *
-v_fvector_type(v_type_t *elt, unsigned count)
+v_vector_type(v_type_t *elt, unsigned count)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    return gctx.make_fvector_type(elt, count);
+    return gctx.make_vector_type(elt, count);
 }
 
 v_type_t *

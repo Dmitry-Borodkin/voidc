@@ -409,7 +409,7 @@
     tmp_type  = v_reference(v_alloca(v_type_ptr));
     mask_type = v_reference(v_alloca(v_type_ptr));
 
-    i32 = v_sint_type(32);
+    i32 = v_int_type(32);
 
     //- Result type...
 
@@ -421,9 +421,9 @@
     }
     else            //- Fixed
     {
-        v_assign(ret_type,  v_fvector_type(type, sz));
-        v_assign(tmp_type,  v_fvector_type(type,  1));
-        v_assign(mask_type, v_fvector_type(i32,  sz));
+        v_assign(ret_type,  v_vector_type(type, sz));
+        v_assign(tmp_type,  v_vector_type(type,  1));
+        v_assign(mask_type, v_vector_type(i32,  sz));
     }
 
     //- Result value...
@@ -2015,7 +2015,7 @@
         }
         else
         {
-            v_assign(t0, v_fvector_type(bool_type, sz));
+            v_assign(t0, v_vector_type(bool_type, sz));
         }
     }
     else
@@ -2428,19 +2428,19 @@
 
                 w = LLVMGetIntTypeWidth(et_);
 
-                et = v_sint_type(w);
+                et = v_int_type(w);
 
                 sz = v_type_vector_get_size(t0);
                 sf = v_type_vector_is_scalable(t0);
 
                 if (sf) v_assign(t0, v_svector_type(et, sz));
-                else    v_assign(t0, v_fvector_type(et, sz));
+                else    v_assign(t0, v_vector_type(et, sz));
             }
             else
             {
                 w = LLVMGetIntTypeWidth(tv_);
 
-                v_assign(t0, v_sint_type(w));
+                v_assign(t0, v_int_type(w));
             }
         }
         else    //- Pointer minus "offset"...
@@ -3429,7 +3429,7 @@
 
         width = v_cast(LLVMConstIntGetZExtValue(width_v), unsigned);
 
-        typ = v_sint_type(width);
+        typ = v_int_type(width);
 
         v_store(typ, v_cast(aux, type_ptr_ptr));
     }
@@ -3459,7 +3459,7 @@
 
         size = v_cast(LLVMConstIntGetZExtValue(size_v), unsigned);
 
-        typ = v_fvector_type(elt, size);
+        typ = v_vector_type(elt, size);
 
         v_store(typ, v_cast(aux, type_ptr_ptr));
     }

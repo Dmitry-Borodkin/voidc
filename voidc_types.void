@@ -39,6 +39,9 @@
     v_add_symbol_type("v_type_get_scalar_type", ft);
 
     //-----------------------------------------------------------------
+    ft = v_function_type(v_type_ptr, 0, 0, false);
+    v_add_symbol_type("v_void_type", ft);
+
 //  v_store(v_type_ptr, typ0);          //-
 
     ft = v_function_type(bool, typ0, 1, false);
@@ -60,7 +63,7 @@
     v_store(unsigned, typ0);            //- Width
 
     ft = v_function_type(v_type_ptr, typ0, 1, false);
-    v_add_symbol_type("v_sint_type", ft);
+    v_add_symbol_type("v_int_type", ft);
     v_add_symbol_type("v_uint_type", ft);
 
     v_store(v_type_ptr, typ0);          //-
@@ -207,7 +210,7 @@
     v_store(unsigned,   typ1);          //- Vector size
 
     ft = v_function_type(v_type_ptr, typ0, 2, false);
-    v_add_symbol_type("v_fvector_type", ft);
+    v_add_symbol_type("v_vector_type", ft);
     v_add_symbol_type("v_svector_type", ft);
 
 //  v_store(v_type_ptr, typ0);          //-

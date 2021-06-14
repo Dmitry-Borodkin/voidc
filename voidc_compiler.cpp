@@ -120,13 +120,16 @@ void compile_ast_stmt_t(const visitor_sptr_t *vis, void *aux,
 
     if (ret_name[0])
     {
-        size_t len = 0;
-
-        LLVMGetValueName2(lctx.result_value, &len);
-
-        if (len == 0)
+        if (lctx.result_value)
         {
-            LLVMSetValueName2(lctx.result_value, ret_name, vname->size());
+            size_t len = 0;
+
+            LLVMGetValueName2(lctx.result_value, &len);
+
+            if (len == 0)
+            {
+                LLVMSetValueName2(lctx.result_value, ret_name, vname->size());
+            }
         }
 
         lctx.vars = lctx.vars.set(*vname, {lctx.result_type, lctx.result_value});

@@ -495,7 +495,7 @@
     switch = LLVMBuildCall(builder, llvm_stacksave_f, 0, 0, "switch");
 
 
-    i8_ptr = v_pointer_type(v_sint_type(8), 0);
+    i8_ptr = v_pointer_type(v_int_type(8), 0);
 
     switch_leave_var_v = LLVMBuildAlloca(builder, v_type_get_llvm_type(i8_ptr), "switch_leave_var_v");
 

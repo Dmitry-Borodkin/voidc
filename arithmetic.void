@@ -123,14 +123,8 @@
     sz = v_type_vector_get_size(type);
     sc = v_type_vector_is_scalable(type);
 
-    fv_type = v_fvector_type(bool_type, sz);
-
-    if (sc) ;
-    else    v_return(fv_type);
-
-    sv_type = v_svector_type(bool_type, sz);
-
-    v_return(sv_type);
+    if (sc) v_return(v_svector_type(bool_type, sz));
+    else    v_return(v_vector_type(bool_type, sz));
 }
 
 

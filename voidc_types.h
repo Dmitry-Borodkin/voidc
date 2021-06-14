@@ -36,7 +36,7 @@ struct v_type_t
         k_f64,          //- "double"
         k_f128,         //- "fp128"
 
-        k_sint,         //- Signed integer
+        k_int,          //- Signed integer
         k_uint,         //- Unsigned integer
 
         k_function,     //- ...
@@ -45,7 +45,7 @@ struct v_type_t
         k_struct,       //- (Un-)named structs ("tuples" in fact)
         k_array,        //- ...
 
-        k_fvector,      //- Fixed vector
+        k_vector,       //- Fixed vector
         k_svector       //- Scalable vector
     };
 
@@ -163,7 +163,7 @@ private:
     v_type_integer_t &operator=(const v_type_integer_t &) = delete;
 
 public:
-    bool is_signed(void) const { return (kind() == k_sint); }
+    bool is_signed(void) const { return (kind() == k_int); }
 
     unsigned width(void) const { return bits; }
 };
@@ -183,7 +183,7 @@ class v_type_integer_tag_t : public v_type_tag_t<v_type_integer_t, tag>
 };
 
 //---------------------------------------------------------------------
-using v_type_sint_t = v_type_integer_tag_t<v_type_t::k_sint>;
+using v_type_int_t  = v_type_integer_tag_t<v_type_t::k_int>;
 using v_type_uint_t = v_type_integer_tag_t<v_type_t::k_uint>;
 
 
@@ -343,7 +343,7 @@ public:
 //---------------------------------------------------------------------
 //- Vector types: fixed/scalable
 //---------------------------------------------------------------------
-class v_type_vector_t : public v_type_t
+class v_type_vector_base_t : public v_type_t
 {
     friend class voidc_types_ctx_t;
 
@@ -352,14 +352,14 @@ protected:
 
     const key_t &key;
 
-    explicit v_type_vector_t(voidc_types_ctx_t &ctx, const key_t &_key)
+    explicit v_type_vector_base_t(voidc_types_ctx_t &ctx, const key_t &_key)
       : v_type_t(ctx),
         key(_key)
     {}
 
 private:
-    v_type_vector_t(const v_type_vector_t &) = delete;
-    v_type_vector_t &operator=(const v_type_vector_t &) = delete;
+    v_type_vector_base_t(const v_type_vector_base_t &) = delete;
+    v_type_vector_base_t &operator=(const v_type_vector_base_t &) = delete;
 
 public:
     v_type_t *element_type(void) const { return key.first; }
@@ -371,12 +371,12 @@ public:
 
 //---------------------------------------------------------------------
 template<v_type_t::kind_t tag>
-class v_type_vector_tag_t : public v_type_tag_t<v_type_vector_t, tag>
+class v_type_vector_tag_t : public v_type_tag_t<v_type_vector_base_t, tag>
 {
     friend class voidc_types_ctx_t;
 
-    explicit v_type_vector_tag_t(voidc_types_ctx_t &ctx, const v_type_vector_t::key_t &_key)
-      : v_type_tag_t<v_type_vector_t, tag>(ctx, _key)
+    explicit v_type_vector_tag_t(voidc_types_ctx_t &ctx, const v_type_vector_base_t::key_t &_key)
+      : v_type_tag_t<v_type_vector_base_t, tag>(ctx, _key)
     {}
 
     LLVMTypeRef obtain_llvm_type(void) const override;
@@ -386,10 +386,10 @@ class v_type_vector_tag_t : public v_type_tag_t<v_type_vector_t, tag>
 };
 
 //---------------------------------------------------------------------
-using v_type_fvector_t = v_type_vector_tag_t<v_type_t::k_fvector>;
+using v_type_vector_t  = v_type_vector_tag_t<v_type_t::k_vector>;
 using v_type_svector_t = v_type_vector_tag_t<v_type_t::k_svector>;
 
-template<> extern LLVMTypeRef v_type_fvector_t::obtain_llvm_type(void) const;
+template<> extern LLVMTypeRef v_type_vector_t::obtain_llvm_type(void) const;
 template<> extern LLVMTypeRef v_type_svector_t::obtain_llvm_type(void) const;
 
 
@@ -439,7 +439,7 @@ public:
     v_type_f64_t       *make_f64_type(void)  { return f64_type.get(); }
     v_type_f128_t      *make_f128_type(void) { return f128_type.get(); }
 
-    v_type_sint_t      *make_sint_type(unsigned bits);
+    v_type_int_t       *make_int_type(unsigned bits);
     v_type_uint_t      *make_uint_type(unsigned bits);
 
     v_type_function_t  *make_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_args=false);
@@ -452,7 +452,7 @@ public:
 
     v_type_array_t     *make_array_type(v_type_t *et, uint64_t count);
 
-    v_type_fvector_t   *make_fvector_type(v_type_t *et, unsigned count);
+    v_type_vector_t    *make_vector_type(v_type_t *et, unsigned count);
     v_type_svector_t   *make_svector_type(v_type_t *et, unsigned count);
 
 private:
@@ -463,7 +463,7 @@ private:
     std::unique_ptr<v_type_f64_t>  f64_type;
     std::unique_ptr<v_type_f128_t> f128_type;
 
-    std::map<unsigned, std::unique_ptr<v_type_sint_t>> sint_types;
+    std::map<unsigned, std::unique_ptr<v_type_int_t>>  int_types;
     std::map<unsigned, std::unique_ptr<v_type_uint_t>> uint_types;
 
     std::map<v_type_function_t::key_t, std::unique_ptr<v_type_function_t>> function_types;
@@ -476,18 +476,18 @@ private:
 
     std::map<v_type_array_t::key_t, std::unique_ptr<v_type_array_t>> array_types;
 
-    std::map<v_type_fvector_t::key_t, std::unique_ptr<v_type_fvector_t>> fvector_types;
+    std::map<v_type_vector_t::key_t, std::unique_ptr<v_type_vector_t>> vector_types;
     std::map<v_type_svector_t::key_t, std::unique_ptr<v_type_svector_t>> svector_types;
 
 public:
     v_type_uint_t * const bool_type;
-    v_type_sint_t * const char_type;
-    v_type_sint_t * const short_type;
-    v_type_sint_t * const int_type;
+    v_type_int_t  * const char_type;
+    v_type_int_t  * const short_type;
+    v_type_int_t  * const int_type;
     v_type_uint_t * const unsigned_type;
-    v_type_sint_t * const long_type;
-    v_type_sint_t * const long_long_type;
-    v_type_sint_t * const intptr_t_type;
+    v_type_int_t  * const long_type;
+    v_type_int_t  * const long_long_type;
+    v_type_int_t  * const intptr_t_type;
     v_type_uint_t * const size_t_type;
     v_type_uint_t * const char32_t_type;
     v_type_uint_t * const uint64_t_type;

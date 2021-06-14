@@ -146,7 +146,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t
             auto count = vt->size();
 
             if (vt->is_scalable())  t = gctx.make_svector_type(t, count);
-            else                    t = gctx.make_fvector_type(t, count);
+            else                    t = gctx.make_vector_type(t, count);
 
             break;
         }
@@ -520,7 +520,7 @@ base_global_ctx_t::initialize(void)
     constants["true"]  = { bool_type, LLVMConstInt(bool_type->llvm_type(), 1, false) };
 
     //-----------------------------------------------------------------
-    v_type_t *i8_ptr_type = make_pointer_type(make_sint_type(8), 0);
+    v_type_t *i8_ptr_type = make_pointer_type(make_int_type(8), 0);
 
     auto stacksave_ft    = make_function_type(i8_ptr_type, nullptr, 0, false);
     auto stackrestore_ft = make_function_type(make_void_type(), &i8_ptr_type, 1, false);
