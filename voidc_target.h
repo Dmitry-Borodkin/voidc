@@ -112,7 +112,7 @@ public:
 
     virtual v_type_t *find_symbol_type(const char *raw_name) = 0;       //- No alias check!
 
-    v_type_t *lookup_type(const ast_expr_sptr_t &expr);
+    v_type_t *obtain_type(const ast_expr_sptr_t &expr);
 
 public:
     LLVMModuleRef module = nullptr;

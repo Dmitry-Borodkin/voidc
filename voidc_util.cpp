@@ -287,7 +287,7 @@ void v_std_any_get_helper(const visitor_sptr_t *vis, void *aux,
         throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
     }
 
-    auto type = lctx.lookup_type(args->data[0]);
+    auto type = lctx.obtain_type(args->data[0]);
     assert(type);
 
     const char *fun = dict.at(type).c_str();

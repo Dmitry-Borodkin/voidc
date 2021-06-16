@@ -46,7 +46,7 @@ v_alloca(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
     auto tt = lctx.result_type;
 
-    auto type = lctx.lookup_type((*args)->data[0]);
+    auto type = lctx.obtain_type((*args)->data[0]);
     auto llvm_type = type->llvm_type();
 
     LLVMValueRef v;
@@ -233,7 +233,7 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
     auto src_value = lctx.result_value;
 
     auto src_type = lctx.result_type;
-    auto dst_type = lctx.lookup_type((*args)->data[1]);
+    auto dst_type = lctx.obtain_type((*args)->data[1]);
 
     auto opcode = LLVMOpcode(0);
 
@@ -588,7 +588,7 @@ base_local_ctx_t::find_type(const char *type_name)
 
 //---------------------------------------------------------------------
 v_type_t *
-base_local_ctx_t::lookup_type(const ast_expr_sptr_t &expr)
+base_local_ctx_t::obtain_type(const ast_expr_sptr_t &expr)
 {
     v_type_t *ret;
 
@@ -2026,12 +2026,12 @@ v_find_type(const char *name)
 
 //---------------------------------------------------------------------
 v_type_t *
-v_lookup_type(const ast_expr_sptr_t *expr)
+v_obtain_type(const ast_expr_sptr_t *expr)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    return  lctx.lookup_type(*expr);
+    return  lctx.obtain_type(*expr);
 }
 
 

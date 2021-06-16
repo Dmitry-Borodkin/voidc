@@ -226,7 +226,7 @@
 
     builder = v_target_get_builder();
 
-    type  = v_lookup_type(args);
+    type  = v_obtain_type(args);
     type_ = v_type_get_llvm_type(type);
 
     ret = LLVMBuildArrayMalloc(builder, type_, number, "ret");
