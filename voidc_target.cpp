@@ -357,10 +357,21 @@ v_pointer(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args
 
     (*args)->data[0]->accept(*vis, aux);
 
-    auto rt = static_cast<v_type_reference_t *>(lctx.result_type);
-
+    auto t = lctx.result_type;
     auto v = lctx.result_value;
-    auto t = gctx.make_pointer_type(rt->element_type(), rt->address_space());
+
+    if (t->kind() == v_type_t::k_reference)
+    {
+        auto rt = static_cast<v_type_reference_t *>(lctx.result_type);
+
+        t = gctx.make_pointer_type(rt->element_type(), rt->address_space());
+    }
+    else
+    {
+        v = lctx.make_temporary(t, v);
+
+        t = gctx.make_pointer_type(t, 0);
+    }
 
     lctx.result_type = tt;
 

@@ -1392,9 +1392,13 @@
     //-
     //-         v_set_result_type(ret_type);
     //-
+    //-         v_push_temporaries();
+    //-
     //-         base_arg0 = v_cast(arg0, v_ast_base_ptr);
     //-
     //-         v_ast_accept_visitor(base_arg0, visitor, aux);
+    //-
+    //-         v_pop_temporaries();
     //-
     //-         ret = v_get_result_value();
     //-
@@ -1479,6 +1483,11 @@
     LLVMBuildCall(builder, set_res_type_f, val0, 1, "");
 
 
+    push_temps_f = v_obtain_function("v_push_temporaries");
+
+    LLVMBuildCall(builder, push_temps_f, 0, 0, "");
+
+
     base_arg0 = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg0");
 
     v_store(base_arg0, val0);
@@ -1486,6 +1495,11 @@
     v_store(aux,       val2);
 
     LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
+
+
+    pop_temps_f = v_obtain_function("v_pop_temporaries");
+
+    LLVMBuildCall(builder, pop_temps_f, 0, 0, "");
 
 
     ret_v = LLVMBuildCall(builder, get_res_val_f, 0, 0, "ret_v");
