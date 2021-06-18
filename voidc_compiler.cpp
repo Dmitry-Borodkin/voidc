@@ -236,37 +236,44 @@ void compile_ast_expr_integer_t(const visitor_sptr_t *vis, void *aux,
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    v_type_t *t = gctx.int_type;
-
-    auto tt = lctx.result_type;
-
-    if (tt  &&  tt != UNREFERENCE_TAG)   t = tt;
-
-    lctx.result_type = t;
-
-
-    bool is_reference = (t->kind() == v_type_t::k_reference);
-
-    if (is_reference) t = static_cast<v_type_reference_t *>(t)->element_type();
+    auto t = lctx.result_type;
 
     LLVMValueRef v;
 
-    if (t->kind() == v_type_t::k_pointer  &&  num == 0)
+    if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
     {
-        v = LLVMConstPointerNull(t->llvm_type());
-    }
-    else if (v_type_is_floating_point(t))
-    {
-        v = LLVMConstReal(t->llvm_type(), num);
+        t = gctx.int_type;
+
+        v = LLVMConstInt(t->llvm_type(), (long long)num, true);
+
+        lctx.result_type = t;
+        lctx.result_value = v;
     }
     else
     {
-        v = LLVMConstInt(t->llvm_type(), (long long)num, true);
+        bool is_reference = (t->kind() == v_type_t::k_reference);
+
+        if (is_reference) t = static_cast<v_type_reference_t *>(t)->element_type();
+
+        if (t->kind() == v_type_t::k_pointer  &&  num == 0)
+        {
+            v = LLVMConstPointerNull(t->llvm_type());
+        }
+        else
+        {
+            static const unsigned tot_bits = 8*sizeof(long long);
+
+            unsigned w = tot_bits - __builtin_clrsbll(num);
+
+            if (w == 0) w = 1;
+
+            t = gctx.make_int_type(w);
+
+            v = LLVMConstInt(t->llvm_type(), (long long)num, true);
+        }
+
+        lctx.adopt_result(t, v);
     }
-
-    if (is_reference) v = lctx.make_temporary(t, v);
-
-    lctx.result_value = v;
 }
 
 

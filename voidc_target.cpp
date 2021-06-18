@@ -790,7 +790,42 @@ VOIDC_DLLEXPORT_BEGIN_VARIABLE
 static LLVMValueRef
 v_convert_to_type_default(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 {
-    return v0;      //- NOP...
+    if (t0 == t1)   return v0;      //- No conversion...
+
+    //- Only simple scalar "promotions" ...
+    //- t1 must be "bigger or equal" than t0 ...
+
+    LLVMOpcode opcode = LLVMOpcode(0);      //- ?
+
+    if (v_type_is_floating_point(t1))
+    {
+        if (v_type_is_floating_point(t0))
+        {
+            opcode = LLVMFPExt;
+        }
+        else
+        {
+            assert(dynamic_cast<v_type_integer_t *>(t0));
+
+            auto t = static_cast<v_type_integer_t *>(t0);
+
+            if (t->is_signed()) opcode = LLVMSIToFP;
+            else                opcode = LLVMUIToFP;
+        }
+    }
+    else
+    {
+        assert(dynamic_cast<v_type_integer_t *>(t0));
+
+        auto t = static_cast<v_type_integer_t *>(t0);
+
+        if (t->is_signed()) opcode = LLVMSExt;
+        else                opcode = LLVMZExt;
+    }
+
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return  LLVMBuildCast(gctx.builder, opcode, v0, t1->llvm_type(), "");
 }
 
 VOIDC_DLLEXPORT_END

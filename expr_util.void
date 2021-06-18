@@ -824,22 +824,14 @@
     v_assign(val0, v_get_result_value());
 
 
-    v_set_result_type(UNREFERENCE_TAG);
+    e0 = v_type_refptr_get_element_type(typ0);
+
+    v_set_result_type(e0);
 
     v_ast_accept_visitor(ast1, visitor, aux);
 
     v_assign(typ1, v_get_result_type());
     v_assign(val1, v_get_result_value());
-
-
-    e0 = v_type_refptr_get_element_type(typ0);
-
-    if (v_type_is_pointer(v_type_get_scalar_type(e0)))  v_return();
-
-
-    v_assign(val1, v_convert_to_type(typ1, val1, e0));
-
-    v_assign(typ1, e0);
 }
 
 

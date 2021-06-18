@@ -216,9 +216,11 @@
     LLVMPositionBuilderAtEnd(builder, cont_b);
 
 
+    num_var_t = v_pointer_type(LLVMValueRef, 0);
+
     v_add_variable("args",       v_ast_expr_ptr, args_v);
     v_add_variable("args_count", int,            args_count_v);
-    v_add_variable("num_var",    LLVMValueRef,   num_v);
+    v_add_variable("num_var",    num_var_t,      num_v);
     v_add_variable("tt",         v_type_ptr,     tt_v);
 }
 {
