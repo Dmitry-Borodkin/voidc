@@ -552,11 +552,11 @@ voidc_import(const char *name)
 
 //--------------------------------------------------------------------
 void
-voidc_guard_import(const char *errmsg)
+voidc_guard_target(const char *errmsg)
 {
     if (voidc_global_ctx_t::target == voidc_global_ctx_t::voidc)  return;
 
-    throw  std::runtime_error(std::string("voidc_guard_import: ") + errmsg);
+    throw  std::runtime_error(std::string("voidc_guard_target: ") + errmsg);
 }
 
 
@@ -626,7 +626,7 @@ main(int argc, char *argv[])
 
         gctx.add_symbol_type("v_import",           import_f_type);
         gctx.add_symbol_type("voidc_import",       import_f_type);
-        gctx.add_symbol_type("voidc_guard_import", import_f_type);      //- Kind of...
+        gctx.add_symbol_type("voidc_guard_target", import_f_type);      //- Kind of...
     }
 
     v_ast_static_initialize();
