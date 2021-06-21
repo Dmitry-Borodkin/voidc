@@ -1827,6 +1827,24 @@ voidc_add_local_module_to_jit(LLVMModuleRef module)
 
 //---------------------------------------------------------------------
 void
+voidc_add_object_file_to_jit(LLVMMemoryBufferRef membuf)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+
+    add_object_file_to_jit(membuf, gctx.main_jd);
+}
+
+void
+voidc_add_local_object_file_to_jit(LLVMMemoryBufferRef membuf)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    add_object_file_to_jit(membuf, lctx.local_jd);
+}
+
+//---------------------------------------------------------------------
+void
 voidc_prepare_unit_action(int line, int column)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
@@ -2182,6 +2200,16 @@ void
 v_target_destroy_local_ctx(base_local_ctx_t *lctx)
 {
     delete lctx;
+}
+
+//---------------------------------------------------------------------
+bool
+v_target_local_ctx_has_parent(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return  lctx.has_parent();
 }
 
 

@@ -68,6 +68,12 @@
 
     builder_ref = v_pointer_type(opaque_builder_t, 0);
     v_add_symbol("LLVMBuilderRef", voidc_opaque_type, builder_ref);
+
+    opaque_membuf_t = v_struct_type_named("struct.LLVMOpaqueMemoryBuffer");
+    v_add_symbol("LLVMOpaqueMemoryBuffer", voidc_opaque_type, opaque_membuf_t);
+
+    membuf_ref = v_pointer_type(opaque_membuf_t, 0);
+    v_add_symbol("LLVMMemoryBufferRef", voidc_opaque_type, membuf_ref);
 }
 
 {   typ0 = v_alloca(v_type_ptr, 3);
@@ -169,6 +175,12 @@
     v_add_symbol_type("voidc_prepare_module_for_jit", ft);
     v_add_symbol_type("voidc_add_module_to_jit", ft);
     v_add_symbol_type("voidc_add_local_module_to_jit", ft);
+
+    v_store(LLVMMemoryBufferRef, typ0); //-
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_add_symbol_type("voidc_add_object_file_to_jit", ft);
+    v_add_symbol_type("voidc_add_local_object_file_to_jit", ft);
 
     ft = v_function_type(v_type_ptr, 0, 0, false);
     v_add_symbol_type("v_get_result_type", ft);
@@ -274,6 +286,9 @@
     ft = v_function_type(LLVMBuilderRef, 0, 0, false);
     v_add_symbol_type("v_target_get_voidc_builder", ft);
     v_add_symbol_type("v_target_get_builder", ft);
+
+    ft = v_function_type(bool, 0, 0, false);
+    v_add_symbol_type("v_target_local_ctx_has_parent", ft);
 }
 
 {   typ = v_alloca(v_type_ptr);

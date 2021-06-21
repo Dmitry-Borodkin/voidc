@@ -138,6 +138,9 @@ public:
     void push_temporaries(void);
     void pop_temporaries(void);
 
+public:
+    bool has_parent(void) const { return bool(parent_ctx); }
+
 private:
     std::forward_list<LLVMValueRef> temporaries_stack;
 
