@@ -725,9 +725,8 @@
     v_function_hack("voidc_enable_expression", ft);
 }
 {
-    if (voidc_has_grammar()) ;  else v_return();
-
-    if (voidc_grammar_has_parser("expr_lr"))  v_return();
+    v_return_if_not(voidc_has_grammar());
+    v_return_if(voidc_grammar_has_parser("expr_lr"));
 
 
     gr0 = v_alloca(v_peg_opaque_grammar_sptr);

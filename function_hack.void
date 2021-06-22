@@ -1585,8 +1585,106 @@
 
 
     char_ptr = v_pointer_type(char, 0);
-
     v_add_local_symbol("char_ptr", voidc_opaque_type, char_ptr);
+
+    void_ptr = v_pointer_type(void, 0);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+}
+
+
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_return_if_intrinsic", voidc_intrinsic_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(arg0);
+
+    v_list_get_items(arg_list, 0, arg0);
+
+    v_terminate(arg0);
+
+    v_set_result_type(v_find_type("bool"));
+
+    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor, aux);
+
+    cond = v_get_result_value();
+
+    builder = v_target_get_builder();
+
+    cur_b = LLVMGetInsertBlock(builder);
+    cur_f = LLVMGetBasicBlockParent(cur_b);
+
+    then_b = LLVMAppendBasicBlock(cur_f, "then_b");
+    else_b = LLVMAppendBasicBlock(cur_f, "else_b");
+
+    LLVMBuildCondBr(builder, cond, then_b, else_b);
+
+    LLVMPositionBuilderAtEnd(builder, then_b);
+
+    ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(ar_l);
+
+    v_make_list_nil(ar_l);
+
+    voidc_function_hack_return_intrinsic(visitor, aux, ar_l);
+
+    v_terminate(ar_l);
+
+    LLVMPositionBuilderAtEnd(builder, else_b);
+}
+
+
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_return_if_not_intrinsic", voidc_intrinsic_t);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
+}
+{
+    arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(arg0);
+
+    v_list_get_items(arg_list, 0, arg0);
+
+    v_terminate(arg0);
+
+    v_set_result_type(v_find_type("bool"));
+
+    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor, aux);
+
+    cond = v_get_result_value();
+
+    builder = v_target_get_builder();
+
+    cur_b = LLVMGetInsertBlock(builder);
+    cur_f = LLVMGetBasicBlockParent(cur_b);
+
+    else_b = LLVMAppendBasicBlock(cur_f, "else_b");
+    then_b = LLVMAppendBasicBlock(cur_f, "then_b");
+
+    LLVMBuildCondBr(builder, cond, then_b, else_b);
+
+    LLVMPositionBuilderAtEnd(builder, else_b);
+
+    ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(ar_l);
+
+    v_make_list_nil(ar_l);
+
+    voidc_function_hack_return_intrinsic(visitor, aux, ar_l);
+
+    v_terminate(ar_l);
+
+    LLVMPositionBuilderAtEnd(builder, then_b);
 }
 
 
@@ -1706,6 +1804,9 @@
 
 //---------------------------------------------------------------------
 {
+    v_add_intrinsic("v_return_if",      v_return_if_intrinsic);
+    v_add_intrinsic("v_return_if_not",  v_return_if_not_intrinsic);
+
     v_make_symbol_global("v_add_parameter_name");
     v_make_symbol_global("v_make_symbol_global");
     v_make_symbol_global("v_make_function_private");

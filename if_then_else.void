@@ -627,70 +627,17 @@
 //---------------------------------------------------------------------
 //- Enable statement if_then_else
 //---------------------------------------------------------------------
-//- fun voidc_enable_statement_if_then_else()
-//- {
-//-     vhg = voidc_has_grammar();
-//-
-//-     if (vhg)
-//-     {
-//-         ghp = voidc_grammar_has_parser("stmt_if_then_else");
-//-
-//-         if (ghp)  v_return();
-//-     }
-//-     else
-//-     {
-//-         v_return();
-//-     }
-//-
-//-     ...
-//-
-//---------------------------------------------------------------------
 {
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_enable_statement_if_then_else", ft);
-
-
-    builder = v_target_get_voidc_builder();
-
-
-    has_grammar_f = v_obtain_function("voidc_has_grammar");
-
-    vhg_v = LLVMBuildCall(builder, has_grammar_f, 0, 0, "vhg_v");
-
-    return_b = LLVMAppendBasicBlock(f, "return_b");
-    vhg_ok_b = LLVMAppendBasicBlock(f, "vhg_ok_b");
-
-    LLVMBuildCondBr(builder, vhg_v, vhg_ok_b, return_b);
-
-
-    LLVMPositionBuilderAtEnd(builder, return_b);
-
-    LLVMBuildRetVoid(builder);
-
-
-    LLVMPositionBuilderAtEnd(builder, vhg_ok_b);
-
-
-    has_parser_f = v_obtain_function("voidc_grammar_has_parser");
-
-    val0 = v_alloca(LLVMValueRef);
-
-    name = LLVMBuildGlobalStringPtr(builder, "stmt_if_then_else", "name");
-
-    v_store(name, val0);
-
-    ghp_v = LLVMBuildCall(builder, has_parser_f, val0, 1, "ghp_v");
-
-    work_b = LLVMAppendBasicBlock(f, "work_b");
-
-    LLVMBuildCondBr(builder, ghp_v, return_b, work_b);
-
-
-    LLVMPositionBuilderAtEnd(builder, work_b);
 }
 {
+    v_return_if_not(voidc_has_grammar());
+    v_return_if(voidc_grammar_has_parser("stmt_if_then_else"));
+
+
     pp0 = v_alloca(v_peg_opaque_parser_sptr, 16);
     v_initialize(pp0, 16);
 

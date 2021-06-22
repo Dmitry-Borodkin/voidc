@@ -2184,19 +2184,8 @@
     v_function_hack("voidc_enable_statement_grammar", ft);
 }
 {
-    vhg = voidc_has_grammar();
-
-    if (vhg)
-    {
-        ghp = voidc_grammar_has_parser("stmt_grammar");
-
-        if (ghp)  v_return();
-    }
-    else
-    {
-        v_return();
-    }
-
+    v_return_if_not(voidc_has_grammar());
+    v_return_if(voidc_grammar_has_parser("stmt_grammar"));
 
     voidc_enable_statement_block();         //- Sic!
 

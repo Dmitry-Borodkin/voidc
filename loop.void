@@ -350,18 +350,8 @@
     v_function_hack("voidc_enable_statement_loop", ft);
 }
 {
-    vhg = voidc_has_grammar();
-
-    if (vhg)
-    {
-        ghp = voidc_grammar_has_parser("stmt_loop");
-
-        if (ghp)  v_return();
-    }
-    else
-    {
-        v_return();
-    }
+    v_return_if_not(voidc_has_grammar());
+    v_return_if(voidc_grammar_has_parser("stmt_loop"));
 
 
     pp0 = v_alloca(v_peg_opaque_parser_sptr, 5);

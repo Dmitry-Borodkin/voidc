@@ -717,18 +717,8 @@
     f = v_function_hack("voidc_enable_statement_switch", ft);
 }
 {
-    vhg = voidc_has_grammar();
-
-    if (vhg)
-    {
-        ghp = voidc_grammar_has_parser("stmt_switch");
-
-        if (ghp)  v_return();
-    }
-    else
-    {
-        v_return();
-    }
+    v_return_if_not(voidc_has_grammar());
+    v_return_if(voidc_grammar_has_parser("stmt_switch"));
 
 
     gr0 = v_alloca(v_peg_opaque_grammar_sptr);
