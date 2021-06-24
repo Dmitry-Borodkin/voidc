@@ -998,6 +998,18 @@ voidc_global_ctx_t::static_initialize(void)
     voidc->add_symbol_value("stderr", (void *)stderr);      //- WTF?
 
     //-------------------------------------------------------------
+    {   v_type_t *typ[3];
+
+        typ[0] = voidc->make_pointer_type(voidc->char_type, 0);
+        typ[1] = voidc->size_t_type;
+        typ[2] = voidc->bool_type;
+
+        auto ft = voidc->make_function_type(voidc->make_void_type(), typ, 3, false);
+
+        voidc->add_symbol_type("voidc_unit_load_internal_helper", ft);
+    }
+
+    //-------------------------------------------------------------
     voidc_global_ctx_t::voidc->flush_unit_symbols();
 
     //-------------------------------------------------------------
@@ -1106,8 +1118,6 @@ add_object_file_to_jit(LLVMMemoryBufferRef membuf,
     //-------------------------------------------------------------
     LLVMDisposeBinary(bref);
 
-    LLVMDisposeMemoryBuffer(membuf);
-
 
 //  unwrap(jd)->dump(outs());
 
@@ -1146,6 +1156,8 @@ voidc_global_ctx_t::add_module_to_jit(LLVMModuleRef module)
     assert(mod_buffer);
 
     add_object_file_to_jit(mod_buffer, main_jd);
+
+    LLVMDisposeMemoryBuffer(mod_buffer);
 }
 
 
@@ -1358,6 +1370,8 @@ voidc_local_ctx_t::add_module_to_jit(LLVMModuleRef mod)
     assert(mod_buffer);
 
     add_object_file_to_jit(mod_buffer, local_jd);
+
+    LLVMDisposeMemoryBuffer(mod_buffer);
 }
 
 
@@ -1861,6 +1875,148 @@ voidc_finish_unit_action(void)
 
     lctx.finish_unit_action();
 }
+
+//---------------------------------------------------------------------
+void
+voidc_set_unit_buffer(LLVMMemoryBufferRef membuf)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    lctx.unit_buffer = membuf;
+}
+
+LLVMMemoryBufferRef
+voidc_get_unit_buffer(void)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    return  lctx.unit_buffer;
+}
+
+
+//---------------------------------------------------------------------
+void
+voidc_unit_load_internal_helper(const char *buf, size_t len, bool is_local)
+{
+    auto modbuf = LLVMCreateMemoryBufferWithMemoryRange(buf, len, "modbuf", 0);
+
+    if (is_local) voidc_add_local_object_file_to_jit(modbuf);
+    else          voidc_add_object_file_to_jit(modbuf);
+
+    LLVMDisposeMemoryBuffer(modbuf);
+}
+
+
+static void
+load_module_helper(LLVMModuleRef module, bool is_local)
+{
+    auto saved_target = voidc_global_ctx_t::target;
+
+    voidc_global_ctx_t::target = voidc_global_ctx_t::voidc;
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    gctx.prepare_module_for_jit(module);
+
+    if (is_local) lctx.add_module_to_jit(module);
+    else          gctx.add_module_to_jit(module);
+
+    if (lctx.has_parent())      //- Importing
+    {
+        //- Emit module -> membuf
+
+        LLVMMemoryBufferRef membuf = nullptr;
+
+        char *msg = nullptr;
+
+        auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
+                                                       module,
+                                                       LLVMObjectFile,
+                                                       &msg,
+                                                       &membuf);
+
+        if (err)
+        {
+            printf("\n%s\n", msg);
+
+            LLVMDisposeMessage(msg);
+
+            exit(1);                //- Sic !!!
+        }
+
+        assert(membuf);
+
+        auto membuf_ptr  = LLVMGetBufferStart(membuf);
+        auto membuf_size = LLVMGetBufferSize(membuf);
+
+        auto membuf_const = LLVMConstString(membuf_ptr, membuf_size, 1);
+        auto membuf_const_type = LLVMTypeOf(membuf_const);
+
+        auto saved_module = lctx.module;
+
+        //- Do replace/make unit...
+
+        if (lctx.unit_buffer)   LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+        static int column = 0;
+
+        lctx.prepare_unit_action(0, column++);      //- line, column ?..
+
+        auto membuf_glob = LLVMAddGlobal(lctx.module, membuf_const_type, "membuf_g");
+
+        LLVMSetLinkage(membuf_glob, LLVMPrivateLinkage);
+
+        LLVMSetInitializer(membuf_glob, membuf_const);
+
+
+        LLVMValueRef val[3];
+
+        val[0] = LLVMConstInt(gctx.int_type->llvm_type(), 0, 0);
+        val[1] = val[0];
+
+        auto membuf_const_ptr = LLVMBuildGEP(gctx.builder, membuf_glob, val, 2, "membuf_const_ptr");
+
+        v_type_t    *t;
+        LLVMValueRef f;
+
+        lctx.obtain_identifier("voidc_unit_load_internal_helper", t, f);
+        assert(f);
+
+        val[0] = membuf_const_ptr;
+        val[1] = LLVMConstInt(gctx.size_t_type->llvm_type(), membuf_size, 0);
+        val[2] = LLVMConstInt(gctx.bool_type->llvm_type(), is_local, 0);
+
+        LLVMBuildCall(gctx.builder, f, val, 3, "");
+
+//      base_global_ctx_t::debug_print_module = 1;
+
+        lctx.finish_unit_action();
+
+        LLVMDisposeMemoryBuffer(membuf);
+
+        lctx.module = saved_module;
+    }
+
+    voidc_global_ctx_t::target = saved_target;
+}
+
+//---------------------------------------------------------------------
+void
+voidc_unit_load_local_module_to_jit(LLVMModuleRef module)
+{
+    load_module_helper(module, true);
+}
+
+//---------------------------------------------------------------------
+void
+voidc_unit_load_module_to_jit(LLVMModuleRef module)
+{
+    load_module_helper(module, false);
+}
+
 
 //---------------------------------------------------------------------
 void

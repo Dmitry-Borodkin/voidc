@@ -175,12 +175,18 @@
     v_add_symbol_type("voidc_prepare_module_for_jit", ft);
     v_add_symbol_type("voidc_add_module_to_jit", ft);
     v_add_symbol_type("voidc_add_local_module_to_jit", ft);
+    v_add_symbol_type("voidc_unit_load_module_to_jit", ft);
+    v_add_symbol_type("voidc_unit_load_local_module_to_jit", ft);
 
     v_store(LLVMMemoryBufferRef, typ0); //-
 
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("voidc_add_object_file_to_jit", ft);
     v_add_symbol_type("voidc_add_local_object_file_to_jit", ft);
+    v_add_symbol_type("voidc_set_unit_buffer", ft);
+
+    ft = v_function_type(LLVMMemoryBufferRef, 0, 0, false);
+    v_add_symbol_type("voidc_get_unit_buffer", ft);
 
     ft = v_function_type(v_type_ptr, 0, 0, false);
     v_add_symbol_type("v_get_result_type", ft);

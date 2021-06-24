@@ -105,7 +105,15 @@
 
 
 //---------------------------------------------------------------------
-//- AST ...
+//- AST generic...
+//---------------------------------------------------------------------
+{
+    v_add_local_symbol("destroy_f", v_ast_generic_destroy_fun_t, 0);
+    v_add_local_symbol("accept_f",  v_ast_generic_accept_fun_t,  0);
+
+    v_add_local_symbol("vtable_g",  v_ast_generic_vtable,        0);
+}
+
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("ast_tests_mod");
 
@@ -113,17 +121,7 @@
 
     builder = v_target_get_voidc_builder();
 
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-
-    void_ptr = v_pointer_type(void, 0);
-
-    v_store(void_ptr, typ0);
-
-    destroy_ft  = v_function_type(void, typ0, 1, 0);
-    destroy_ft_ = v_type_get_llvm_type(destroy_ft);
-    destroy_f   = LLVMAddFunction(module, "destroy_f", destroy_ft_);
+    destroy_f = v_obtain_function("destroy_f");
     LLVMSetLinkage(destroy_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(destroy_f, "entry");
@@ -144,12 +142,7 @@
     LLVMBuildRetVoid(builder);
 
 
-    v_store(voidc_visitor_ptr, typ1);
-    v_store(void_ptr,          typ2);
-
-    accept_ft  = v_function_type(void, typ0, 3, 0);
-    accept_ft_ = v_type_get_llvm_type(accept_ft);
-    accept_f   = LLVMAddFunction(module, "accept_f", accept_ft_);
+    accept_f = v_obtain_function("accept_f");
     LLVMSetLinkage(accept_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(accept_f, "entry");
@@ -171,11 +164,7 @@
     //-------------------------------------------------------------
     quark = v_quark_from_string("Just test");
 
-    quark_ll = v_cast(quark, long_long);        //- unsigned long long !
-
-    v_quark_t_ = v_type_get_llvm_type(v_quark_t);
-
-    quark_v = LLVMConstInt(v_quark_t_, quark_ll, 0);
+    quark_v = LLVMConstInt(v_type_get_llvm_type(v_quark_t), v_cast(quark, long_long), 0);
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
@@ -185,7 +174,7 @@
 
     vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
-    vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "vtable_g");
+    vtable_g = v_obtain_global("vtable_g");
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
@@ -197,15 +186,10 @@
 
     LLVMDisposeMessage(msg);
 
-    voidc_prepare_module_for_jit(module);
-
-    voidc_add_module_to_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
     LLVMDisposeModule(module);
-
-
-    //-----------------------------------------------------------------
-    v_add_symbol_type("vtable_g", v_ast_generic_vtable);
+    v_set_module(0);
 }
 
 {   printf("\n");

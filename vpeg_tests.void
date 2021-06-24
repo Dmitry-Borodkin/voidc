@@ -4,25 +4,30 @@
 
 {   v_import("printf.void"); }
 
-{   module = LLVMModuleCreateWithName("my_echo_mod");
 
-    v_set_module(module);
-
-    typ0 = v_alloca(v_type_ptr, 3);
+{   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
-
-    bool_ = v_type_get_llvm_type(bool);
 
     v_store(v_util_std_any_ptr, typ0);
     v_store(v_util_std_any_ptr, typ1);
     v_store(size_t,             typ2);
 
+    my_echo_ft = v_function_type(void, typ0, 3, false);
+
+    v_add_symbol_type("my_echo_grammar_action", my_echo_ft);
+}
+
+
+{   module = LLVMModuleCreateWithName("my_echo_mod");
+
+    v_set_module(module);
+
+    bool_ = v_type_get_llvm_type(bool);
+
     builder = v_target_get_voidc_builder();
 
-    my_echo_ft  = v_function_type(void, typ0, 3, false);
-    my_echo_ft_ = v_type_get_llvm_type(my_echo_ft);
-    my_echo_f   = LLVMAddFunction(module, "my_echo_grammar_action", my_echo_ft_);
+    my_echo_f = v_obtain_function("my_echo_grammar_action");
 
     entry = LLVMAppendBasicBlock(my_echo_f, "entry");
 
@@ -82,15 +87,10 @@
 //
 //    LLVMDisposeMessage(msg);
 
-    voidc_prepare_module_for_jit(module);
-
-    voidc_add_module_to_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
     LLVMDisposeModule(module);
-
-
-    //-----------------------------------------------------------------
-    v_add_symbol_type("my_echo_grammar_action", my_echo_ft);
+    v_set_module(0);
 }
 
 {   gr0 = v_alloca(v_peg_opaque_grammar_sptr);

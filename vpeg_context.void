@@ -16,6 +16,21 @@
     v_add_symbol_type("v_peg_set_grammar", ft);
 }
 
+//---------------------------------------------------------------------
+{   has_grammar_ft = v_function_type(bool, 0, 0, false);
+
+    typ = v_alloca(v_type_ptr);
+
+    char_ptr = v_pointer_type(char, 0);
+
+    v_store(char_ptr, typ);
+
+    has_parser_ft = v_function_type(bool, typ, 1, false);
+
+    v_add_symbol_type("voidc_has_grammar",        has_grammar_ft);
+    v_add_symbol_type("voidc_grammar_has_parser", has_parser_ft);
+}
+
 
 //---------------------------------------------------------------------
 //- vpeg_context.void support module
@@ -23,8 +38,6 @@
 {   module = LLVMModuleCreateWithName("vpeg_context_void_module");
 
     v_set_module(module);
-
-    typ0 = v_alloca(v_type_ptr);
 
     val0 = v_alloca(LLVMValueRef, 4);
     val1 = v_getelementptr(val0, 1);
@@ -50,9 +63,7 @@
     //-----------------------------------------------------------------
     //- bool voidc_has_grammar(void)
     //-----------------------------------------------------------------
-    has_grammar_ft  = v_function_type(bool, 0, 0, false);
-    has_grammar_ft_ = v_type_get_llvm_type(has_grammar_ft);
-    has_grammar_f   = LLVMAddFunction(module, "voidc_has_grammar", has_grammar_ft_);
+    has_grammar_f = v_obtain_function("voidc_has_grammar");
 
     entry = LLVMAppendBasicBlock(has_grammar_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -89,11 +100,7 @@
     //-----------------------------------------------------------------
     //- bool voidc_grammar_has_parser(const char *name)
     //-----------------------------------------------------------------
-    v_store(char_ptr, typ0);
-
-    has_parser_ft  = v_function_type(bool, typ0, 1, false);
-    has_parser_ft_ = v_type_get_llvm_type(has_parser_ft);
-    has_parser_f   = LLVMAddFunction(module, "voidc_grammar_has_parser", has_parser_ft_);
+    has_parser_f = v_obtain_function("voidc_grammar_has_parser");
 
     name = LLVMGetParam(has_parser_f, 0);
 
@@ -162,16 +169,10 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
-
-    voidc_add_module_to_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
     LLVMDisposeModule(module);
-
-
-    //-----------------------------------------------------------------
-    v_add_symbol_type("voidc_has_grammar",        has_grammar_ft);
-    v_add_symbol_type("voidc_grammar_has_parser", has_parser_ft);
+    v_set_module(0);
 }
 
 

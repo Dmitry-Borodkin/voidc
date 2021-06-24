@@ -448,6 +448,10 @@ v_import(const char *name)
             lctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
 
             lctx.run_unit_action();
+
+            LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+            lctx.unit_buffer = nullptr;
         }
 
         vpeg::context_t::current_ctx = parent_vpeg_ctx;
@@ -481,7 +485,9 @@ v_import(const char *name)
 
                 unit.reset();
 
-                if (lctx.unit_buffer)
+                if (lctx.unit_buffer)   lctx.run_unit_action();
+
+                if (lctx.unit_buffer)   //- Sic!
                 {
                     size_t len = LLVMGetBufferSize(lctx.unit_buffer);
 
@@ -489,7 +495,9 @@ v_import(const char *name)
 
                     std::fwrite(LLVMGetBufferStart(lctx.unit_buffer), len, 1, outfs);
 
-                    lctx.run_unit_action();
+                    LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+                    lctx.unit_buffer = nullptr;
                 }
             }
 
@@ -677,6 +685,10 @@ main(int argc, char *argv[])
             unit.reset();
 
             lctx.run_unit_action();
+
+            LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+            lctx.unit_buffer = nullptr;
         }
 
         vpeg::context_t::current_ctx = nullptr;     //- ?

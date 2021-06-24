@@ -411,9 +411,30 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    voidc_add_module_to_jit(module);
+    LLVMDisposeModule(module);
+}
+
+{
+    char_ptr = v_pointer_type(char, 0);
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
+
+    typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    v_store(char_ptr, typ0);
+
+    obtain_fun_ft = v_function_type(LLVMValueRef, typ0, 1, false);
+
+    v_store(dict_ptr,   typ0);
+    v_store(v_type_ptr, typ1);
+
+    obtain_dfun_ft = v_function_type(LLVMValueRef, typ0, 2, false);
+
+    v_store(char_ptr, typ0);
+
+    obtain_var_ft  = v_function_type(LLVMValueRef, typ0, 1, false);
 
     //-----------------------------------------------------------------
     v_add_symbol_type("v_obtain_function",      obtain_fun_ft);
@@ -425,14 +446,98 @@
 //---------------------------------------------------------------------
 //- voidc_util support module #2
 //---------------------------------------------------------------------
-{   module = LLVMModuleCreateWithName("voidc_util_void_module_N2");
-
-    v_set_module(module);
-
+{
     typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
+
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
+    char_ptr = v_pointer_type(char, 0);
+
+    v_store(dict_ptr,   typ0);
+    v_store(v_type_ptr, typ1);
+    v_store(char_ptr,   typ2);
+    v_store(v_type_ptr, typ3);
+
+    util_reg_helper_ft = v_function_type(void, typ0, 4, false);
+
+    v_store(v_type_ptr, typ0);
+    v_store(char_ptr,   typ1);
+    v_store(dict_ptr,   typ2);
+
+    register_helper_ft = v_function_type(void, typ0, 3, false);
+
+//  v_store(v_type_ptr, typ0);
+//  v_store(char_ptr,   typ1);
+    v_store(v_type_ptr, typ2);
+
+    register_wtyp_ft = v_function_type(void, typ0, 3, false);
+
+//  v_store(v_type_ptr, typ0);
+//  v_store(char_ptr,   typ1);
+
+    register_ft = v_function_type(void, typ0, 2, false);
+
+    v_store(char_ptr,   typ2);
+
+    register_batch_ft = v_function_type(void, typ0, 3, false);
+
+//  v_store(v_type_ptr, typ0);
+    v_store(v_type_ptr, typ1);
+//  v_store(char_ptr,   typ2);
+    v_store(char_ptr,   typ3);
+
+    register_batch_wtyp_ft = v_function_type(void, typ0, 4, false);
+
+    v_store(v_util_std_string_ptr, typ0);
+    v_store(int,                   typ1);
+
+    sstr_i_d_ft  = v_function_type(void, typ0, 2, false);
+
+    //-----------------------------------------------------------------
+    v_add_local_symbol("init_term_helper", register_helper_ft, 0);
+    v_add_local_symbol("copy_move_helper", register_helper_ft, 0);
+
+    v_add_local_symbol("v_util_initialize_std_string_impl", sstr_i_d_ft, 0);
+    v_add_local_symbol("v_util_terminate_std_string_impl",  sstr_i_d_ft, 0);
+
+    //-----------------------------------------------------------------
+    v_add_symbol_type("v_util_registering_helper", util_reg_helper_ft);
+
+    v_add_symbol_type("v_util_register_initialize_impl", register_ft);
+    v_add_symbol_type("v_util_register_terminate_impl",  register_ft);
+    v_add_symbol_type("v_util_register_copy_impl",       register_ft);
+    v_add_symbol_type("v_util_register_move_impl",       register_ft);
+    v_add_symbol_type("v_util_register_empty_impl",      register_ft);
+
+    v_add_symbol_type("v_util_register_itcme_impl", register_batch_ft);
+
+    v_add_symbol_type("v_util_register_std_any_get_value_impl",   register_ft);
+    v_add_symbol_type("v_util_register_std_any_get_pointer_impl", register_ft);
+    v_add_symbol_type("v_util_register_std_any_set_value_impl",   register_ft);
+    v_add_symbol_type("v_util_register_std_any_set_pointer_impl", register_ft);
+
+    v_add_symbol_type("v_util_register_gs_value_impl",   register_batch_ft);
+    v_add_symbol_type("v_util_register_gs_pointer_impl", register_batch_ft);
+    v_add_symbol_type("v_util_register_gs_vp_impl",      register_batch_ft);
+
+    v_add_symbol_type("v_util_register_itcmep_impl", register_batch_ft);
+
+    v_add_symbol_type("v_util_register_make_list_nil_impl",  register_wtyp_ft);
+    v_add_symbol_type("v_util_register_make_list_impl",      register_wtyp_ft);
+    v_add_symbol_type("v_util_register_list_append_impl",    register_wtyp_ft);
+    v_add_symbol_type("v_util_register_list_get_size_impl",  register_ft);
+    v_add_symbol_type("v_util_register_list_get_items_impl", register_wtyp_ft);
+
+    v_add_symbol_type("v_util_register_list_agsgi_impl", register_batch_wtyp_ft);
+}
+
+
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("voidc_util_void_module_N2");
+
+    v_set_module(module);
 
     val0 = v_alloca(LLVMValueRef, 4);
     val1 = v_getelementptr(val0, 1);
@@ -455,50 +560,6 @@
 
     false_v = LLVMConstInt(bool_, 0, 0);
 
-    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
-    char_ptr = v_pointer_type(char, 0);
-
-    v_store(dict_ptr,   typ0);
-    v_store(v_type_ptr, typ1);
-    v_store(char_ptr,   typ2);
-    v_store(v_type_ptr, typ3);
-
-    util_reg_helper_ft  = v_function_type(void, typ0, 4, false);
-    util_reg_helper_ft_ = v_type_get_llvm_type(util_reg_helper_ft);
-
-    v_store(v_type_ptr, typ0);
-    v_store(char_ptr,   typ1);
-    v_store(dict_ptr,   typ2);
-
-    register_helper_ft  = v_function_type(void, typ0, 3, false);
-    register_helper_ft_ = v_type_get_llvm_type(register_helper_ft);
-
-//  v_store(v_type_ptr, typ0);
-//  v_store(char_ptr,   typ1);
-    v_store(v_type_ptr, typ2);
-
-    register_wtyp_ft  = v_function_type(void, typ0, 3, false);
-    register_wtyp_ft_ = v_type_get_llvm_type(register_wtyp_ft);
-
-//  v_store(v_type_ptr, typ0);
-//  v_store(char_ptr,   typ1);
-
-    register_ft  = v_function_type(void, typ0, 2, false);
-    register_ft_ = v_type_get_llvm_type(register_ft);
-
-    v_store(char_ptr,   typ2);
-
-    register_batch_ft  = v_function_type(void, typ0, 3, false);
-    register_batch_ft_ = v_type_get_llvm_type(register_batch_ft);
-
-//  v_store(v_type_ptr, typ0);
-    v_store(v_type_ptr, typ1);
-//  v_store(char_ptr,   typ2);
-    v_store(char_ptr,   typ3);
-
-    register_batch_wtyp_ft  = v_function_type(void, typ0, 4, false);
-    register_batch_wtyp_ft_ = v_type_get_llvm_type(register_batch_wtyp_ft);
-
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
 
@@ -514,7 +575,7 @@
     //-     v_util_function_dict_set(p_dict, val_t_type, fun_name);
     //- }
     //-------------------------------------------------------------
-    util_reg_helper_f = LLVMAddFunction(module, "v_util_registering__helper", util_reg_helper_ft_);
+    util_reg_helper_f = v_obtain_function("v_util_registering_helper");
 
     p_dict     = LLVMGetParam(util_reg_helper_f, 0);
     val_t_type = LLVMGetParam(util_reg_helper_f, 1);
@@ -563,7 +624,7 @@
     //-     v_util_registering_helper(p_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    init_term_helper_f = LLVMAddFunction(module, "init_term_helper", register_helper_ft_);
+    init_term_helper_f = v_obtain_function("init_term_helper");
     LLVMSetLinkage(init_term_helper_f, LLVMPrivateLinkage);
 
     val_t_type = LLVMGetParam(init_term_helper_f, 0);
@@ -627,7 +688,7 @@
     //-     init_term_helper(val_t_type, fun_name, v_util_initialize_dict);
     //- }
     //-------------------------------------------------------------
-    init_f = LLVMAddFunction(module, "v_util_register_initialize_impl", register_ft_);
+    init_f = v_obtain_function("v_util_register_initialize_impl");
 
     val_t_type = LLVMGetParam(init_f, 0);
     fun_name   = LLVMGetParam(init_f, 1);
@@ -655,7 +716,7 @@
     //-     init_term_helper(val_t_type, fun_name, v_util_terminate_dict);
     //- }
     //-------------------------------------------------------------
-    terminate_f = LLVMAddFunction(module, "v_util_register_terminate_impl", register_ft_);
+    terminate_f = v_obtain_function("v_util_register_terminate_impl");
 
     val_t_type = LLVMGetParam(terminate_f, 0);
     fun_name   = LLVMGetParam(terminate_f, 1);
@@ -696,7 +757,7 @@
     //-     v_util_registering_helper(p_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    copy_move_helper_f = LLVMAddFunction(module, "copy_move_helper", register_helper_ft_);
+    copy_move_helper_f = v_obtain_function("copy_move_helper");
     LLVMSetLinkage(copy_move_helper_f, LLVMPrivateLinkage);
 
     val_t_type = LLVMGetParam(copy_move_helper_f, 0);
@@ -757,7 +818,7 @@
     //-     copy_move_helper(val_t_type, fun_name, v_util_copy_dict);
     //- }
     //-------------------------------------------------------------
-    copy_f = LLVMAddFunction(module, "v_util_register_copy_impl", register_ft_);
+    copy_f = v_obtain_function("v_util_register_copy_impl");
 
     val_t_type = LLVMGetParam(copy_f, 0);
     fun_name   = LLVMGetParam(copy_f, 1);
@@ -785,7 +846,7 @@
     //-     copy_move_helper(val_t_type, fun_name, v_util_move_dict);
     //- }
     //-------------------------------------------------------------
-    move_f = LLVMAddFunction(module, "v_util_register_move_impl", register_ft_);
+    move_f = v_obtain_function("v_util_register_move_impl");
 
     val_t_type = LLVMGetParam(move_f, 0);
     fun_name   = LLVMGetParam(move_f, 1);
@@ -821,7 +882,7 @@
     //-     v_util_registering_helper(v_util_empty_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    empty_f = LLVMAddFunction(module, "v_util_register_empty_impl", register_ft_);
+    empty_f = v_obtain_function("v_util_register_empty_impl");
 
     val_t_type = LLVMGetParam(empty_f, 0);
     fun_name   = LLVMGetParam(empty_f, 1);
@@ -924,7 +985,7 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    idcme_f = LLVMAddFunction(module, "v_util_register_itcme_impl", register_batch_ft_);
+    idcme_f = v_obtain_function("v_util_register_itcme_impl");
 
     val_t_type = LLVMGetParam(idcme_f, 0);
     prefix     = LLVMGetParam(idcme_f, 1);
@@ -937,13 +998,8 @@
     sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
 
 
-    v_store(v_util_std_string_ptr, typ0);
-    v_store(int,                   typ1);
-
-    sstr_i_d_ft  = v_function_type(void, typ0, 2, false);
-    sstr_i_d_ft_ = v_type_get_llvm_type(sstr_i_d_ft);
-    sstr_init_f  = LLVMAddFunction(module, "v_util_initialize_std_string_impl", sstr_i_d_ft_);
-    sstr_term_f  = LLVMAddFunction(module, "v_util_terminate_std_string_impl",  sstr_i_d_ft_);
+    sstr_init_f  = v_obtain_function("v_util_initialize_std_string_impl");
+    sstr_term_f  = v_obtain_function("v_util_terminate_std_string_impl");
 
     v_store(sstr, val0);
     v_store(n1,   val1);
@@ -1089,7 +1145,7 @@
     //-     v_util_registering_helper(v_util_std_any_get_value_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    get_value_f = LLVMAddFunction(module, "v_util_register_std_any_get_value_impl", register_ft_);
+    get_value_f = v_obtain_function("v_util_register_std_any_get_value_impl");
 
     val_t_type = LLVMGetParam(get_value_f, 0);
     fun_name   = LLVMGetParam(get_value_f, 1);
@@ -1142,7 +1198,7 @@
     //-     v_util_registering_helper(v_util_std_any_get_pointer_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    get_pointer_f = LLVMAddFunction(module, "v_util_register_std_any_get_pointer_impl", register_ft_);
+    get_pointer_f = v_obtain_function("v_util_register_std_any_get_pointer_impl");
 
     val_t_type = LLVMGetParam(get_pointer_f, 0);
     fun_name   = LLVMGetParam(get_pointer_f, 1);
@@ -1199,7 +1255,7 @@
     //-     v_util_registering_helper(v_util_std_any_set_value_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    set_value_f = LLVMAddFunction(module, "v_util_register_std_any_set_value_impl", register_ft_);
+    set_value_f = v_obtain_function("v_util_register_std_any_set_value_impl");
 
     val_t_type = LLVMGetParam(set_value_f, 0);
     fun_name   = LLVMGetParam(set_value_f, 1);
@@ -1258,7 +1314,7 @@
     //-     v_util_registering_helper(v_util_std_any_set_pointer_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    set_pointer_f = LLVMAddFunction(module, "v_util_register_std_any_set_pointer_impl", register_ft_);
+    set_pointer_f = v_obtain_function("v_util_register_std_any_set_pointer_impl");
 
     val_t_type = LLVMGetParam(set_pointer_f, 0);
     fun_name   = LLVMGetParam(set_pointer_f, 1);
@@ -1335,7 +1391,7 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    gs_value_f = LLVMAddFunction(module, "v_util_register_gs_value_impl", register_batch_ft_);
+    gs_value_f = v_obtain_function("v_util_register_gs_value_impl");
 
     val_t_type = LLVMGetParam(gs_value_f, 0);
     prefix     = LLVMGetParam(gs_value_f, 1);
@@ -1431,7 +1487,7 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    gs_pointer_f = LLVMAddFunction(module, "v_util_register_gs_pointer_impl", register_batch_ft_);
+    gs_pointer_f = v_obtain_function("v_util_register_gs_pointer_impl");
 
     val_t_type = LLVMGetParam(gs_pointer_f, 0);
     prefix     = LLVMGetParam(gs_pointer_f, 1);
@@ -1506,7 +1562,7 @@
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);
     //- }
     //-------------------------------------------------------------
-    gs_vp_f = LLVMAddFunction(module, "v_util_register_gs_vp_impl", register_batch_ft_);
+    gs_vp_f = v_obtain_function("v_util_register_gs_vp_impl");
 
     val_t_type = LLVMGetParam(gs_vp_f, 0);
     prefix     = LLVMGetParam(gs_vp_f, 1);
@@ -1535,7 +1591,7 @@
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);
     //- }
     //-------------------------------------------------------------
-    idcmep_f = LLVMAddFunction(module, "v_util_register_itcmep_impl", register_batch_ft_);
+    idcmep_f = v_obtain_function("v_util_register_itcmep_impl");
 
     val_t_type = LLVMGetParam(idcmep_f, 0);
     prefix     = LLVMGetParam(idcmep_f, 1);
@@ -1563,7 +1619,7 @@
     //-     v_util_registering_helper(v_util_make_list_nil_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    make_list_nil_f = LLVMAddFunction(module, "v_util_register_make_list_nil_impl", register_wtyp_ft_);
+    make_list_nil_f = v_obtain_function("v_util_register_make_list_nil_impl");
 
     val_t_type = LLVMGetParam(make_list_nil_f, 0);
     fun_name   = LLVMGetParam(make_list_nil_f, 1);
@@ -1593,7 +1649,7 @@
     //-     v_util_registering_helper(v_util_make_list_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    make_list_f = LLVMAddFunction(module, "v_util_register_make_list_impl", register_wtyp_ft_);
+    make_list_f = v_obtain_function("v_util_register_make_list_impl");
 
     val_t_type = LLVMGetParam(make_list_f, 0);
     fun_name   = LLVMGetParam(make_list_f, 1);
@@ -1638,7 +1694,7 @@
     //-     v_util_registering_helper(v_util_list_append_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    list_append_f = LLVMAddFunction(module, "v_util_register_list_append_impl", register_wtyp_ft_);
+    list_append_f = v_obtain_function("v_util_register_list_append_impl");
 
     val_t_type = LLVMGetParam(list_append_f, 0);
     fun_name   = LLVMGetParam(list_append_f, 1);
@@ -1718,7 +1774,7 @@
     //-     v_util_registering_helper(v_util_list_get_size_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    list_get_size_f = LLVMAddFunction(module, "v_util_register_list_get_size_impl", register_ft_);
+    list_get_size_f = v_obtain_function("v_util_register_list_get_size_impl");
 
     val_t_type = LLVMGetParam(list_get_size_f, 0);
     fun_name   = LLVMGetParam(list_get_size_f, 1);
@@ -1782,7 +1838,7 @@
     //-     v_util_registering_helper(v_util_list_get_items_dict, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    list_get_items_f = LLVMAddFunction(module, "v_util_register_list_get_items_impl", register_wtyp_ft_);
+    list_get_items_f = v_obtain_function("v_util_register_list_get_items_impl");
 
     val_t_type = LLVMGetParam(list_get_items_f, 0);
     fun_name   = LLVMGetParam(list_get_items_f, 1);
@@ -1888,7 +1944,7 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    list_agsgi_f = LLVMAddFunction(module, "v_util_register_list_agsgi_impl", register_batch_wtyp_ft_);
+    list_agsgi_f = v_obtain_function("v_util_register_list_agsgi_impl");
 
     val_t_type = LLVMGetParam(list_agsgi_f, 0);
     item_type  = LLVMGetParam(list_agsgi_f, 1);
@@ -1984,40 +2040,10 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    voidc_add_module_to_jit(module);
-
-
-    //-----------------------------------------------------------------
-    v_add_symbol_type("v_util_registering_helper", util_reg_helper_ft);
-
-    v_add_symbol_type("v_util_register_initialize_impl", register_ft);
-    v_add_symbol_type("v_util_register_terminate_impl",  register_ft);
-    v_add_symbol_type("v_util_register_copy_impl",       register_ft);
-    v_add_symbol_type("v_util_register_move_impl",       register_ft);
-    v_add_symbol_type("v_util_register_empty_impl",      register_ft);
-
-    v_add_symbol_type("v_util_register_itcme_impl", register_batch_ft);
-
-    v_add_symbol_type("v_util_register_std_any_get_value_impl",   register_ft);
-    v_add_symbol_type("v_util_register_std_any_get_pointer_impl", register_ft);
-    v_add_symbol_type("v_util_register_std_any_set_value_impl",   register_ft);
-    v_add_symbol_type("v_util_register_std_any_set_pointer_impl", register_ft);
-
-    v_add_symbol_type("v_util_register_gs_value_impl",   register_batch_ft);
-    v_add_symbol_type("v_util_register_gs_pointer_impl", register_batch_ft);
-    v_add_symbol_type("v_util_register_gs_vp_impl",      register_batch_ft);
-
-    v_add_symbol_type("v_util_register_itcmep_impl", register_batch_ft);
-
-    v_add_symbol_type("v_util_register_make_list_nil_impl",  register_wtyp_ft);
-    v_add_symbol_type("v_util_register_make_list_impl",      register_wtyp_ft);
-    v_add_symbol_type("v_util_register_list_append_impl",    register_wtyp_ft);
-    v_add_symbol_type("v_util_register_list_get_size_impl",  register_ft);
-    v_add_symbol_type("v_util_register_list_get_items_impl", register_wtyp_ft);
-
-    v_add_symbol_type("v_util_register_list_agsgi_impl", register_batch_wtyp_ft);
+    LLVMDisposeModule(module);
+    v_set_module(0);
 }
 
 
