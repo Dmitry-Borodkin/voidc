@@ -21,7 +21,12 @@
 //---------------------------------------------------------------------
 //- Some utility...
 //---------------------------------------------------------------------
-{   void_ptr  = v_pointer_type(void, 0);
+{   char_ptr = v_pointer_type(char, 0);
+    v_add_local_symbol("char_ptr", voidc_opaque_type, char_ptr);
+
+    void_ptr = v_pointer_type(void, 0);
+    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+
     void_ptr_ = v_type_get_llvm_type(void_ptr);
 
     v_add_local_symbol("void_ptr_llvm_type", LLVMOpaqueType, void_ptr_);
@@ -31,26 +36,32 @@
 //---------------------------------------------------------------------
 //- Function Hack module #1
 //---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    v_store(char_ptr,   typ0);
+    v_store(v_type_ptr, typ1);
+
+    helper_ft = v_function_type(LLVMValueRef, typ0, 2, 0);
+
+    v_add_symbol_type("voidc_function_hack_intrinsic_helper",  helper_ft);
+
+    v_add_local_symbol("voidc_function_hack_visitor_method",   v_ast_unit_visitor_method_t, 0);
+    v_add_local_symbol("voidc_function_hack_intrinsic",        voidc_intrinsic_t,           0);
+    v_add_local_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t,           0);
+}
+
+//---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("function_hack_module_N1");
 
     v_set_module(module);
-
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
 
     val0 = v_alloca(LLVMValueRef, 5);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
     val3 = v_getelementptr(val0, 3);
     val4 = v_getelementptr(val0, 4);
-
-    char_ptr = v_pointer_type(char, 0);
-    void_ptr = v_pointer_type(void, 0);
-
-    void_ptr_ = v_type_get_llvm_type(void_ptr);
-
-    size_t_ = v_type_get_llvm_type(size_t);
 
     int_ = v_type_get_llvm_type(int);
 
@@ -98,151 +109,6 @@
     saved_fun_leave_u = LLVMGetUndef(LLVMBasicBlockRef_);
 
     LLVMSetInitializer(saved_fun_leave_g, saved_fun_leave_u);
-
-
-    //-----------------------------------------------------------------
-    //- "Function hack" unit action helper
-    //-----------------------------------------------------------------
-    //- fun voidc_function_hack_unit_action_helper(buf: char_ptr, len: size_t)
-    //- {
-    //-     mod_buf = LLVMCreateMemoryBufferWithMemoryRange(buf, len, "mod_buf", 0);
-    //-
-    //-     mod_ptr = v_alloca(LLVMModuleRef);
-    //-
-    //-     llvm_ctx = v_target_get_llvm_ctx();
-    //-
-    //-     LLVMParseBitcodeInContext2(llvm_ctx, mod_buf, mod_ptr);
-    //-
-    //-     LLVMDisposeMemoryBuffer(mod_buf);
-    //-
-    //-     module = v_load(mod_ptr);
-    //-
-    //- //  LLVMDumpModule(module);
-    //-
-    //-     cur_module = v_get_module();
-    //-
-    //-     if (cur_module)
-    //-     {
-    //-         LLVMLinkModules2(cur_module, module);
-    //-     }
-    //-     else
-    //-     {
-    //-         voidc_prepare_module_for_jit(module);
-    //-
-    //-         voidc_add_module_to_jit(module);
-    //-
-    //-         LLVMDisposeModule(module);
-    //-     }
-    //- }
-    //-----------------------------------------------------------------
-    v_store(char_ptr, typ0);
-    v_store(size_t,   typ1);
-
-    unit_action_helper_ft  = v_function_type(void, typ0, 2, false);
-    unit_action_helper_ft_ = v_type_get_llvm_type(unit_action_helper_ft);
-    unit_action_helper_f   = LLVMAddFunction(module, "voidc_function_hack_unit_action_helper", unit_action_helper_ft_);
-
-    buffer = LLVMGetParam(unit_action_helper_f, 0);
-    length = LLVMGetParam(unit_action_helper_f, 1);
-
-    entry = LLVMAppendBasicBlock(unit_action_helper_f, "entry");
-    LLVMPositionBuilderAtEnd(builder, entry);
-
-
-    mod_buf_n = LLVMBuildGlobalStringPtr(builder, "mod_buf", "mod_buf_n");
-
-    v_store(buffer,    val0);
-    v_store(length,    val1);
-    v_store(mod_buf_n, val2);
-    v_store(n0,        val3);
-
-    llvm_create_memory_buffer_with_memory_range_f = v_obtain_function("LLVMCreateMemoryBufferWithMemoryRange");
-
-    mod_buf_v = LLVMBuildCall(builder, llvm_create_memory_buffer_with_memory_range_f, val0, 4, "mod_buf_v");
-
-
-    mod_ptr_v = LLVMBuildAlloca(builder, LLVMModuleRef_, "mod_ptr_v");
-
-
-    get_llvm_ctx_f = v_obtain_function("v_target_get_llvm_ctx");
-
-    llvm_ctx_v = LLVMBuildCall(builder, get_llvm_ctx_f, 0, 0, "llvm_ctx_v");
-
-
-    v_store(llvm_ctx_v, val0);
-    v_store(mod_buf_v,  val1);
-    v_store(mod_ptr_v,  val2);
-
-    llvm_parse_bitcode_in_context_2_f = v_obtain_function("LLVMParseBitcodeInContext2");
-
-    ok_v = LLVMBuildCall(builder, llvm_parse_bitcode_in_context_2_f, val0, 3, "ok_v");
-
-
-    v_store(mod_buf_v, val0);
-
-    llvm_dispose_memory_buffer_f = v_obtain_function("LLVMDisposeMemoryBuffer");
-
-    LLVMBuildCall(builder, llvm_dispose_memory_buffer_f, val0, 1, "");
-
-
-    module_v = LLVMBuildLoad(builder, mod_ptr_v, "module_v");
-
-
-//    v_store(module_v, val0);
-//
-//    llvm_dump_module_f = v_obtain_function("LLVMDumpModule");
-//
-//    LLVMBuildCall(builder, llvm_dump_module_f, val0, 1, "");
-
-
-    get_module_f = v_obtain_function("v_get_module");
-
-    cur_module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "cur_module_v");
-
-
-    then_b = LLVMAppendBasicBlock(unit_action_helper_f, "then_b");
-    else_b = LLVMAppendBasicBlock(unit_action_helper_f, "else_b");
-
-
-    ok_v = LLVMBuildIsNotNull(builder, cur_module_v, "ok_v");
-
-    LLVMBuildCondBr(builder, ok_v, then_b, else_b);
-
-
-    LLVMPositionBuilderAtEnd(builder, then_b);
-
-
-    v_store(cur_module_v, val0);
-    v_store(module_v,     val1);
-
-    llvm_link_modules_2_f = v_obtain_function("LLVMLinkModules2");
-
-    ok_v = LLVMBuildCall(builder, llvm_link_modules_2_f, val0, 2, "ok_v");
-
-
-    LLVMBuildRetVoid(builder);
-
-
-    LLVMPositionBuilderAtEnd(builder, else_b);
-
-
-    //-----------------------------------------------------------------
-    v_store(module_v, val0);
-
-    prepare_for_jit_f = v_obtain_function("voidc_prepare_module_for_jit");
-
-    LLVMBuildCall(builder, prepare_for_jit_f, val0, 1, "");
-
-    add_module_to_jit_f = v_obtain_function("voidc_add_module_to_jit");
-
-    LLVMBuildCall(builder, add_module_to_jit_f, val0, 1, "");
-
-    llvm_dispose_module_f = v_obtain_function("LLVMDisposeModule");
-
-    LLVMBuildCall(builder, llvm_dispose_module_f, val0, 1, "");
-
-
-    LLVMBuildRetVoid(builder);
 
 
     //-----------------------------------------------------------------
@@ -310,74 +176,12 @@
     //-
     //-     v_move(voidc_compiler, saved_compiler_g);
     //-
-    //-     saved_target = v_target_get_global_ctx();
+    //-     if (old_module) v_return();
     //-
-    //-     voidc_target = v_target_get_voidc_global_ctx();
-    //-
-    //-     v_target_set_global_ctx(voidc_target);
-    //-
-    //-     saved_module = v_get_module();                  //- WTF?
-    //-
-    //-     voidc_prepare_unit_action(line, column);
-    //-
-    //-     builder = v_target_get_builder();
-    //-
-    //-     fun_buffer = LLVMWriteBitcodeToMemoryBuffer(fun_module);
-    //-
-    //-     LLVMDisposeModule(fun_module);
-    //-
-    //-     fun_buffer_ptr  = LLVMGetBufferStart(fun_buffer);
-    //-     fun_buffer_size = LLVMGetBufferSize(fun_buffer);
-    //-
-    //-     fun_buffer_len = v_cast(fun_buffer_size, int);
-    //-
-    //-     fun_buf_const = LLVMConstString(fun_buffer_ptr, fun_buffer_len, 1);
-    //-
-    //-     fun_buf_const_type = LLVMTypeOf(fun_buf_const);
-    //-
-    //-     unit_module = v_get_module();
-    //-
-    //-     fun_buf_glob = LLVMAddGlobal(unit_module, fun_buf_const_type, "fun_buffer_g");
-    //-
-    //-     LLVMSetLinkage(fun_buf_glob, LLVMPrivateLinkage);
-    //-
-    //-     LLVMSetInitializer(fun_buf_glob, fun_buf_const);
-    //-
-    //-     val0 = v_alloca(LLVMValueRef, 2);
-    //-     val1 = v_getelementptr(val0, 1);
-    //-
-    //-     int_ = v_type_get_llvm_type(int);
-    //-
-    //-     n0 = LLVMConstInt(int_, 0, 0);
-    //-
-    //-     v_store(n0, val0);
-    //-     v_store(n0, val1);
-    //-
-    //-     fun_buf_const_ptr = LLVMBuildGEP(builder, fun_buf_glob, val0, 2, "fun_buf_const_ptr");
-    //-
-    //-     unit_action_helper_f = v_obtain_function("voidc_function_hack_unit_action_helper");
-    //-
-    //-     size_t_ = v_type_get_llvm_type(size_t);
-    //-
-    //-     fun_buf_size_const = LLVMConstInt(size_t_, fun_buffer_size, 0);
-    //-
-    //-     v_store(fun_buf_const_ptr,  val0);
-    //-     v_store(fun_buf_size_const, val1);
-    //-
-    //-     LLVMBuildCall(builder, unit_action_helper_f, val0, 2, "");
-    //-
-    //-     voidc_finish_unit_action();
-    //-
-    //-     LLVMDisposeMemoryBuffer(fun_buffer);
-    //-
-    //-     v_set_module(saved_module);
-    //-
-    //-     v_target_set_global_ctx(saved_target);
+    //-     voidc_unit_load_local_module_to_jit(fun_module);
     //- }
     //-----------------------------------------------------------------
-    v_ast_unit_visitor_method_t_ = v_type_get_llvm_type(v_ast_unit_visitor_method_t);
-
-    method_f = LLVMAddFunction(module, "voidc_function_hack_visitor_method", v_ast_unit_visitor_method_t_);
+    method_f = v_obtain_function("voidc_function_hack_visitor_method");
     LLVMSetLinkage(method_f, LLVMPrivateLinkage);
 
     visitor   = LLVMGetParam(method_f, 0);
@@ -555,6 +359,8 @@
     LLVMPositionBuilderAtEnd(builder, join_b);
 
 
+    get_module_f = v_obtain_function("v_get_module");
+
     fun_module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "fun_module_v");
 
 
@@ -585,213 +391,28 @@
     LLVMBuildCall(builder, vis_move_f, val0, 3, "");
 
 
-    get_global_ctx_f = v_obtain_function("v_target_get_global_ctx");
+    old_mod_not_null_v = LLVMBuildIsNotNull(builder, old_module_v, "old_mod_not_null_v");
 
-    saved_target_v = LLVMBuildCall(builder, get_global_ctx_f, val0, 0, "saved_target_v");
+    then_b = LLVMAppendBasicBlock(method_f, "then_b");
+    else_b = LLVMAppendBasicBlock(method_f, "else_b");
 
-
-    get_voidc_global_ctx_f = v_obtain_function("v_target_get_voidc_global_ctx");
-
-    voidc_target_v = LLVMBuildCall(builder, get_voidc_global_ctx_f, val0, 0, "voidc_target_v");
+    LLVMBuildCondBr(builder, old_mod_not_null_v, then_b, else_b);
 
 
-    v_store(voidc_target_v, val0);
-
-    set_global_ctx_f = v_obtain_function("v_target_set_global_ctx");
-
-    LLVMBuildCall(builder, set_global_ctx_f, val0, 1, "");
+    LLVMPositionBuilderAtEnd(builder, then_b);
 
 
-    saved_module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "saved_module_v");
+    LLVMBuildRetVoid(builder);
 
 
-    v_store(line,   val0);
-    v_store(column, val1);
-
-    prepare_unit_act_f = v_obtain_function("voidc_prepare_unit_action");
-
-    LLVMBuildCall(builder, prepare_unit_act_f, val0, 2, "");
+    LLVMPositionBuilderAtEnd(builder, else_b);
 
 
-    builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
-
+    load_to_jit_f = v_obtain_function("voidc_unit_load_local_module_to_jit");
 
     v_store(fun_module_v, val0);
 
-    llvm_write_bitcode_to_memory_buffer_f = v_obtain_function("LLVMWriteBitcodeToMemoryBuffer");
-
-    fun_buffer_v = LLVMBuildCall(builder, llvm_write_bitcode_to_memory_buffer_f, val0, 1, "fun_buffer_v");
-
-
-    llvm_dispose_module_f = v_obtain_function("LLVMDisposeModule");
-
-    LLVMBuildCall(builder, llvm_dispose_module_f, val0, 1, "");
-
-
-    v_store(fun_buffer_v, val0);
-
-    llvm_get_buffer_start_f = v_obtain_function("LLVMGetBufferStart");
-
-    fun_buffer_ptr_v = LLVMBuildCall(builder, llvm_get_buffer_start_f, val0, 1, "fun_buffer_ptr_v");
-
-    llvm_get_buffer_size_f = v_obtain_function("LLVMGetBufferSize");
-
-    fun_buffer_size_v = LLVMBuildCall(builder, llvm_get_buffer_size_f, val0, 1, "fun_buffer_size_v");
-
-
-    fun_buffer_len_v = LLVMBuildTrunc(builder, fun_buffer_size_v, int_, "fun_buffer_len_v");
-
-    v_store(fun_buffer_ptr_v, val0);
-    v_store(fun_buffer_len_v, val1);
-    v_store(n1,               val2);
-
-    llvm_const_string_f = v_obtain_function("LLVMConstString");
-
-    fun_buf_const_v = LLVMBuildCall(builder, llvm_const_string_f, val0, 3, "fun_buf_const_v");
-
-
-    v_store(fun_buf_const_v, val0);
-
-    llvm_type_of_f = v_obtain_function("LLVMTypeOf");
-
-    fun_buf_const_type_v = LLVMBuildCall(builder, llvm_type_of_f, val0, 1, "fun_buf_const_type_v");
-
-
-    unit_module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "unit_module_v");
-
-    fun_buf_const_n = LLVMBuildGlobalStringPtr(builder, "fun_buffer_g", "fun_buf_const_n");
-
-    v_store(unit_module_v,        val0);
-    v_store(fun_buf_const_type_v, val1);
-    v_store(fun_buf_const_n,      val2);
-
-    llvm_add_global_f = v_obtain_function("LLVMAddGlobal");
-
-    fun_buf_glob_v = LLVMBuildCall(builder, llvm_add_global_f, val0, 3, "fun_buf_glob_v");
-
-
-    llvm_private_linkage_v = v_find_constant_value("LLVMPrivateLinkage");
-
-    v_store(fun_buf_glob_v,         val0);
-    v_store(llvm_private_linkage_v, val1);
-
-    llvm_set_linkage_f = v_obtain_function("LLVMSetLinkage");
-
-    LLVMBuildCall(builder, llvm_set_linkage_f, val0, 2, "");
-
-
-    v_store(fun_buf_glob_v,  val0);
-    v_store(fun_buf_const_v, val1);
-
-    llvm_set_initializer_f = v_obtain_function("LLVMSetInitializer");
-
-    LLVMBuildCall(builder, llvm_set_initializer_f, val0, 2, "");
-
-
-    LLVMValueRef_ = v_type_get_llvm_type(LLVMValueRef);
-
-    val0_v = LLVMBuildArrayAlloca(builder, LLVMValueRef_, n2, "val0_v");
-
-    v_store(n1, val0);
-
-    val1_v = LLVMBuildGEP(builder, val0_v, val0, 1, "val1_v");
-
-
-    int_v = v_obtain_global("int");
-
-    v_store(int_v, val0);
-
-    get_llvm_type_f = v_obtain_function("v_type_get_llvm_type");
-
-    int__v = LLVMBuildCall(builder, get_llvm_type_f, val0, 1, "int__v");
-
-    long_long_ = v_type_get_llvm_type(long_long);
-
-    n0ll = LLVMBuildZExtOrBitCast(builder, n0, long_long_, "n0ll");
-
-    v_store(int__v, val0);
-    v_store(n0ll,   val1);
-    v_store(n0,     val2);
-
-    llvm_const_int_f = v_obtain_function("LLVMConstInt");
-
-    n0_v = LLVMBuildCall(builder, llvm_const_int_f, val0, 3, "n0_v");
-
-
-    LLVMBuildStore(builder, n0_v, val0_v);
-    LLVMBuildStore(builder, n0_v, val1_v);
-
-
-    fun_buf_const_ptr_n = LLVMBuildGlobalStringPtr(builder, "fun_buf_const_ptr_vv", "fun_buf_const_ptr_n");
-
-    v_store(builder_v,           val0);
-    v_store(fun_buf_glob_v,      val1);
-    v_store(val0_v,              val2);
-    v_store(n2,                  val3);
-    v_store(fun_buf_const_ptr_n, val4);
-
-    llvm_build_gep_f = v_obtain_function("LLVMBuildGEP");
-
-    fun_buf_const_ptr_v = LLVMBuildCall(builder, llvm_build_gep_f, val0, 5, "fun_buf_const_ptr_v");
-
-
-    unit_action_helper_n = LLVMBuildGlobalStringPtr(builder, "voidc_function_hack_unit_action_helper", "unit_action_helper_n");
-
-    v_store(unit_action_helper_n, val0);
-
-    obtain_fun_f = v_obtain_function("v_obtain_function");
-
-    unit_action_helper_fv = LLVMBuildCall(builder, obtain_fun_f, val0, 1, "unit_action_helper_fv");
-
-
-    size_t_v = v_obtain_global("size_t");
-
-    v_store(size_t_v, val0);
-
-    size_t__v = LLVMBuildCall(builder, get_llvm_type_f, val0, 1, "size_t__v");
-
-    v_store(size_t__v,         val0);
-    v_store(fun_buffer_size_v, val1);
-    v_store(n0,                val2);
-
-    fun_buf_size_const_v = LLVMBuildCall(builder, llvm_const_int_f, val0, 3, "fun_buf_size_const_v");
-
-
-    LLVMBuildStore(builder, fun_buf_const_ptr_v,  val0_v);
-    LLVMBuildStore(builder, fun_buf_size_const_v, val1_v);
-
-
-    empty_str = LLVMBuildGlobalStringPtr(builder, "", "empty_str");
-
-    v_store(builder_v,             val0);
-    v_store(unit_action_helper_fv, val1);
-    v_store(val0_v,                val2);
-    v_store(n2,                    val3);
-    v_store(empty_str,             val4);
-
-    llvm_build_call_f = v_obtain_function("LLVMBuildCall");
-
-    LLVMBuildCall(builder, llvm_build_call_f, val0, 5, "");
-
-
-    finish_unit_act_f = v_obtain_function("voidc_finish_unit_action");
-
-    LLVMBuildCall(builder, finish_unit_act_f, 0, 0, "");
-
-
-    v_store(fun_buffer_v, val0);
-
-    LLVMBuildCall(builder, llvm_dispose_memory_buffer_f, val0, 1, "");
-
-
-    v_store(saved_module_v, val0);
-
-    LLVMBuildCall(builder, set_module_f, val0, 1, "");
-
-
-    v_store(saved_target_v, val0);
-
-    LLVMBuildCall(builder, set_global_ctx_f, val0, 1, "");
+    LLVMBuildCall(builder, load_to_jit_f, val0, 1, "");
 
 
     LLVMBuildRetVoid(builder);
@@ -806,11 +427,17 @@
     //-
     //-     v_store(old_module, saved_module_g);
     //-
-    //-     llvm_ctx = v_target_get_llvm_ctx();
+    //-     if (old_module) ;
+    //-     else
+    //-     {
+    //-         llvm_ctx = v_target_get_llvm_ctx();
     //-
-    //-     fun_module = LLVMModuleCreateWithNameInContext("voidc_function_hack_function_module", llvm_ctx);
+    //-         fun_mod = LLVMModuleCreateWithNameInContext("voidc_function_hack_function_module", llvm_ctx);
     //-
-    //-     v_set_module(fun_module);
+    //-         v_set_module(fun_mod);
+    //-     }
+    //-
+    //-     fun_module = v_get_module();
     //-
     //-     fun_type_ = v_type_get_llvm_type(fun_type);
     //-
@@ -852,12 +479,7 @@
     //-     v_return(fun_value);
     //- }
     //-----------------------------------------------------------------
-    v_store(char_ptr,   typ0);
-    v_store(v_type_ptr, typ1);
-
-    helper_ft  = v_function_type(LLVMValueRef, typ0, 2, 0);
-    helper_ft_ = v_type_get_llvm_type(helper_ft);
-    helper_f   = LLVMAddFunction(module, "voidc_function_hack_intrinsic_helper", helper_ft_);
+    helper_f = v_obtain_function("voidc_function_hack_intrinsic_helper");
 
     fun_name = LLVMGetParam(helper_f, 0);       //- :char_ptr
     fun_type = LLVMGetParam(helper_f, 1);       //- :v_type_ptr
@@ -871,6 +493,19 @@
     LLVMBuildStore(builder, old_module_v, saved_module_g);
 
 
+    old_mod_null_v = LLVMBuildIsNull(builder, old_module_v, "old_mod_null_v");
+
+    then_b = LLVMAppendBasicBlock(helper_f, "then_b");
+    else_b = LLVMAppendBasicBlock(helper_f, "else_b");
+
+    LLVMBuildCondBr(builder, old_mod_null_v, then_b, else_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, then_b);
+
+
+    get_llvm_ctx_f = v_obtain_function("v_target_get_llvm_ctx");
+
     llvm_ctx_v = LLVMBuildCall(builder, get_llvm_ctx_f, 0, 0, "llvm_ctx_v");
 
 
@@ -881,15 +516,26 @@
 
     llvm_module_create_with_name_in_context_f = v_obtain_function("LLVMModuleCreateWithNameInContext");
 
-    fun_module_v = LLVMBuildCall(builder, llvm_module_create_with_name_in_context_f, val0, 2, "fun_module_v");
+    fun_mod_v = LLVMBuildCall(builder, llvm_module_create_with_name_in_context_f, val0, 2, "fun_mod_v");
 
 
-    v_store(fun_module_v, val0);
+    v_store(fun_mod_v, val0);
 
     LLVMBuildCall(builder, set_module_f, val0, 1, "");
 
 
+    LLVMBuildBr(builder, else_b);
+
+
+    LLVMPositionBuilderAtEnd(builder, else_b);
+
+
+    fun_module_v = LLVMBuildCall(builder, get_module_f, 0, 0, "fun_module_v");
+
+
     v_store(fun_type, val0);
+
+    get_llvm_type_f = v_obtain_function("v_type_get_llvm_type");
 
     fun_type_ = LLVMBuildCall(builder, get_llvm_type_f, val0, 1, "fun_type_");
 
@@ -1119,9 +765,7 @@
     //-     v_adopt_result(LLVMValueRef, ret);
     //- }
     //-----------------------------------------------------------------
-    voidc_intrinsic_t_ = v_type_get_llvm_type(voidc_intrinsic_t);
-
-    intrinsic_f = LLVMAddFunction(module, "voidc_function_hack_intrinsic", voidc_intrinsic_t_);
+    intrinsic_f = v_obtain_function("voidc_function_hack_intrinsic");
 
     visitor  = LLVMGetParam(intrinsic_f, 0);
     aux      = LLVMGetParam(intrinsic_f, 1);
@@ -1233,6 +877,8 @@
 
     v_store(add_loc_sym_fn, val0);
 
+    obtain_fun_f = v_obtain_function("v_obtain_function");
+
     add_loc_sym_fv = LLVMBuildCall(builder, obtain_fun_f, val0, 1, "add_loc_sym_fv");
 
 
@@ -1261,11 +907,15 @@
     LLVMBuildStore(builder, vnull_v, arg2);
 
 
+    empty_str = LLVMBuildGlobalStringPtr(builder, "", "empty_str");
+
     v_store(builder_v,      val0);
     v_store(add_loc_sym_fv, val1);
     v_store(arg0,           val2);
     v_store(n3,             val3);
     v_store(empty_str,      val4);
+
+    llvm_build_call_f = v_obtain_function("LLVMBuildCall");
 
     LLVMBuildCall(builder, llvm_build_call_f, val0, 5, "");
 
@@ -1411,14 +1061,13 @@
     //-         v_terminate(arg0);
     //-     }
     //-
-    //-
     //-     leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
     //-     leave_b  = LLVMValueAsBasicBlock(leave_bv);
     //-
     //-     LLVMBuildBr(builder, leave_b);
     //- }
     //-----------------------------------------------------------------
-    return_f = LLVMAddFunction(module, "voidc_function_hack_return_intrinsic", voidc_intrinsic_t_);
+    return_f = v_obtain_function("voidc_function_hack_return_intrinsic");
 
     visitor  = LLVMGetParam(return_f, 0);
     aux      = LLVMGetParam(return_f, 1);
@@ -1519,7 +1168,6 @@
     LLVMBuildCall(builder, llvm_build_store_f, val0, 3, "");
 
 
-
     v_store(arg0_v, val0);
     v_store(n1,     val1);
 
@@ -1558,17 +1206,10 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    voidc_add_module_to_jit(module);
-
-
-    //-----------------------------------------------------------------
-    v_add_symbol_type("voidc_function_hack_unit_action_helper", unit_action_helper_ft);
-    v_add_symbol_type("voidc_function_hack_intrinsic_helper",   helper_ft);
-
-    v_add_local_symbol("voidc_function_hack_intrinsic",        voidc_intrinsic_t, 0);   //- Sic!
-    v_add_local_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t, 0);   //- Sic!
+    LLVMDisposeModule(module);
+    v_set_module(0);
 }
 
 {   v_add_intrinsic("v_function_hack", voidc_function_hack_intrinsic);
@@ -1583,12 +1224,9 @@
 
     v_set_module(module);
 
-
-    char_ptr = v_pointer_type(char, 0);
-    v_add_local_symbol("char_ptr", voidc_opaque_type, char_ptr);
-
-    void_ptr = v_pointer_type(void, 0);
-    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -1793,11 +1431,9 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    voidc_add_module_to_jit(module);
-
-    //-----------------------------------------------------------------
+    LLVMDisposeModule(module);
     v_set_module(0);
 }
 

@@ -19,15 +19,22 @@
 
 
 //---------------------------------------------------------------------
-{   module = LLVMModuleCreateWithName("my_stmt_grammar_mod");
-
-    v_set_module(module);
-
-    char_ptr = v_pointer_type(char, 0);
+{   char_ptr = v_pointer_type(char, 0);
     void_ptr = v_pointer_type(void, 0);
 
     v_add_local_symbol("char_ptr", voidc_opaque_type, char_ptr);
     v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+}
+
+
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("my_stmt_grammar_mod");
+
+    v_set_module(module);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -86,6 +93,10 @@
     v_add_local_symbol("voidc_ast_stmt_grammar_argument_number", int_ref, 0);   //- Sic!
     v_add_local_symbol("voidc_ast_stmt_grammar_ranges_count",    int_ref, 0);   //- Sic!
     v_add_local_symbol("voidc_ast_stmt_grammar_range_number",    int_ref, 0);   //- Sic!
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -3182,6 +3193,10 @@
     v_make_function_private("mk_pr_arg_integer_grammar_action");
     v_make_function_private("mk_pr_arg_string_grammar_action");
     v_make_function_private("mk_pr_arg_char_grammar_action");
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -3194,11 +3209,9 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    voidc_add_module_to_jit(module);
-
-    //-----------------------------------------------------------------
+    LLVMDisposeModule(module);
     v_set_module(0);
 }
 

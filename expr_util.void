@@ -48,13 +48,15 @@
 {   module = LLVMModuleCreateWithName("voidc_expr_op_list_module");
 
     v_set_module(module);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
 //---------------------------------------------------------------------
-{
-    module = v_get_module();
-
+{   module = v_get_module();
 
     v_ast_opaque_generic_list_sptr_ = v_type_get_llvm_type(v_ast_opaque_generic_list_sptr);
 
@@ -63,8 +65,6 @@
     oplist_u = LLVMGetUndef(v_ast_opaque_generic_list_sptr_);
 
     LLVMSetInitializer(oplist_g, oplist_u);
-
-    v_add_symbol_type("voidc_ast_expression_operator_list", v_ast_opaque_generic_list_sptr);
 
     v_add_local_alias("expr_oplist", "voidc_ast_expression_operator_list");
 
@@ -78,6 +78,13 @@
     LLVMSetInitializer(expr_cat_g, expr_cat_u);
 
     v_add_local_symbol("expr_category_visitor", voidc_opaque_visitor_sptr, 0);    //- Sic!
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+{   v_add_symbol_type("voidc_ast_expression_operator_list", v_ast_opaque_generic_list_sptr);
 }
 
 
@@ -338,6 +345,10 @@
 {
     v_make_function_private("add_op_binary");
     v_make_function_private("add_op_unary");
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -350,11 +361,9 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    voidc_add_module_to_jit(module);
-
-    //-----------------------------------------------------------------
+    LLVMDisposeModule(module);
     v_set_module(0);
 }
 
@@ -369,6 +378,10 @@
 {   module = LLVMModuleCreateWithName("voidc_expr_op_methods_module");
 
     v_set_module(module);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -1816,6 +1829,10 @@
     v_add_local_constant("rk_le", int, LLVMConstInt(int_, 3, 0));
     v_add_local_constant("rk_gt", int, LLVMConstInt(int_, 4, 0));
     v_add_local_constant("rk_ge", int, LLVMConstInt(int_, 5, 0));
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 //---------------------------------------------------------------------
@@ -3290,6 +3307,10 @@
     v_terminate(op);
 
     v_mfree(val0);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -3682,11 +3703,9 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    voidc_add_module_to_jit(module);
-
-    //-----------------------------------------------------------------
+    LLVMDisposeModule(module);
     v_set_module(0);
 }
 

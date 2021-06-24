@@ -58,6 +58,10 @@
 {   module = LLVMModuleCreateWithName("my_stmt_loop_mod");
 
     v_set_module(module);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -131,11 +135,11 @@
 
     destroy_f = v_obtain_function("voidc_ast_stmt_loop_destroy");
     accept_f  = v_obtain_function("voidc_ast_stmt_loop_accept");
-    quark_v   = LLVMConstInt(v_type_get_llvm_type(v_quark_t), v_cast(quark, long_long), 0);
+    quark_u   = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
-    v_store(quark_v,   val2);
+    v_store(quark_u,   val2);
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
@@ -145,7 +149,12 @@
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
-    v_add_local_symbol("voidc_ast_stmt_loop_vtable", v_ast_generic_vtable, 0);      //- Sic!
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+{   v_add_local_symbol("voidc_ast_stmt_loop_vtable", v_ast_generic_vtable, 0);
 }
 
 
@@ -354,6 +363,9 @@
     v_return_if(voidc_grammar_has_parser("stmt_loop"));
 
 
+    v_store(quark, v_getelementptr(voidc_ast_stmt_loop_vtable, 0, 2));
+
+
     pp0 = v_alloca(v_peg_opaque_parser_sptr, 5);
     v_initialize(pp0, 5);
 
@@ -440,6 +452,10 @@
     v_make_global_private("voidc_ast_stmt_loop_vtable");
     v_make_function_private("mk_stmt_loop_grammar_action");
     v_make_function_private("compile_ast_stmt_loop_t");
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -452,11 +468,9 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    voidc_add_module_to_jit(module);
-
-    //-----------------------------------------------------------------
+    LLVMDisposeModule(module);
     v_set_module(0);
 }
 
