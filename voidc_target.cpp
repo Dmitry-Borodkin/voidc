@@ -785,7 +785,6 @@ base_local_ctx_t::pop_temporaries(void)
 //---------------------------------------------------------------------
 extern "C"
 {
-VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
 static LLVMValueRef
 v_convert_to_type_default(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
@@ -827,8 +826,6 @@ v_convert_to_type_default(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 
     return  LLVMBuildCast(gctx.builder, opcode, v0, t1->llvm_type(), "");
 }
-
-VOIDC_DLLEXPORT_END
 
 VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
@@ -1909,6 +1906,9 @@ voidc_unit_load_internal_helper(const char *buf, size_t len, bool is_local)
 }
 
 
+VOIDC_DLLEXPORT_END
+
+
 static void
 load_module_helper(LLVMModuleRef module, bool is_local)
 {
@@ -2002,6 +2002,9 @@ load_module_helper(LLVMModuleRef module, bool is_local)
 
     voidc_global_ctx_t::target = saved_target;
 }
+
+
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //---------------------------------------------------------------------
 void
