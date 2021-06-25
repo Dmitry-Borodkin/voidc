@@ -110,6 +110,8 @@
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("voidc_util_void_module_N1");
 
+    v_set_module(module);       //- Sic!!!
+
     typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
@@ -414,6 +416,7 @@
     voidc_unit_load_module_to_jit(module);
 
     LLVMDisposeModule(module);
+    v_set_module(0);
 }
 
 {

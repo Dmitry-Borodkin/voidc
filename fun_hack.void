@@ -50,6 +50,10 @@
     module = LLVMModuleCreateWithName("hello_mod");
 
     v_set_module(module);       //- Sic!
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -83,16 +87,13 @@
 {
     module = v_get_module();
 
-    v_set_module(0);
-
     //-----------------------------------------------------------------
-    v_debug_print_module(2);
+    v_debug_print_module(1);
 
-    voidc_prepare_module_for_jit(module);
+    voidc_unit_load_module_to_jit(module);
 
-    v_verify_module(module);
-
-    voidc_add_module_to_jit(module);
+    LLVMDisposeModule(module);
+    v_set_module(0);
 }
 
 

@@ -106,6 +106,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_switch_destroy", v_ast_generic_destroy_fun_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
 }
 {
@@ -127,6 +129,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_switch_accept", v_ast_generic_accept_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
     v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
@@ -169,6 +173,8 @@
     vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_stmt_switch_vtable");
+
+    LLVMSetLinkage(vtable_g, LLVMPrivateLinkage);
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
@@ -225,6 +231,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_case_block_destroy", v_ast_generic_destroy_fun_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
 }
 {
@@ -269,6 +277,8 @@
     vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_case_block_vtable");
+
+    LLVMSetLinkage(vtable_g, LLVMPrivateLinkage);
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
@@ -323,6 +333,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_item_grammar_action", v_peg_grammar_action_fun_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
     v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
@@ -351,6 +363,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_block_grammar_action", v_peg_grammar_action_fun_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
     v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
@@ -377,6 +391,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("mk_case_list_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
     v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
@@ -405,6 +421,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_switch_grammar_action", v_peg_grammar_action_fun_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
     v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
@@ -432,6 +450,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_switch_t", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -790,30 +810,6 @@
 
 
 //---------------------------------------------------------------------
-{
-    v_make_function_private("voidc_ast_stmt_switch_destroy");
-    v_make_function_private("voidc_ast_stmt_switch_accept");
-    v_make_global_private("voidc_ast_stmt_switch_vtable");
-    v_make_function_private("v_ast_make_stmt_switch");
-
-    v_make_function_private("voidc_ast_case_block_destroy");
-    v_make_global_private("voidc_ast_case_block_vtable");
-    v_make_function_private("v_ast_make_case_block");
-
-    v_make_function_private("mk_case_item_grammar_action");
-    v_make_function_private("mk_case_block_grammar_action");
-    v_make_function_private("mk_case_list_grammar_action");
-    v_make_function_private("mk_stmt_switch_grammar_action");
-
-    v_make_function_private("compile_ast_stmt_switch_t");
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
-}
-
-
-//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
@@ -831,6 +827,9 @@
 
 //---------------------------------------------------------------------
 {
+    v_make_symbol_global("v_ast_make_stmt_switch");
+    v_make_symbol_global("v_ast_make_case_block");
+
     v_make_symbol_global("voidc_enable_statement_switch");
 }
 

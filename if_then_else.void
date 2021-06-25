@@ -91,6 +91,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_if_then_else_destroy", v_ast_generic_destroy_fun_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
 }
 {
@@ -114,6 +116,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_if_then_else_accept", v_ast_generic_accept_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
     v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
@@ -157,6 +161,8 @@
     vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_stmt_if_then_else_vtable");
+
+    LLVMSetLinkage(vtable_g, LLVMPrivateLinkage);
 
     LLVMSetInitializer(vtable_g, vtable_v);
 
@@ -245,6 +251,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("mk_stmt_if_then_else_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     ret       = v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
     any0      = v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
@@ -401,6 +409,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_if_then_else_branch_helper", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     visitor  = LLVMGetParam(f, 0);
     aux      = LLVMGetParam(f, 1);
     stmt     = LLVMGetParam(f, 2);
@@ -553,6 +563,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_if_then_else_join_helper", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     bblock = v_add_parameter_name(f, 0, "bblock", LLVMBasicBlockRef);
 
 
@@ -588,6 +600,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_if_then_else_t", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",       void_ptr);
@@ -773,29 +787,13 @@
 
 
 //---------------------------------------------------------------------
-{
-    v_make_function_private("voidc_ast_stmt_if_then_else_destroy");
-    v_make_function_private("voidc_ast_stmt_if_then_else_accept");
-    v_make_global_private("voidc_ast_stmt_if_then_else_vtable");
-    v_make_function_private("mk_stmt_if_then_else_grammar_action");
-    v_make_function_private("compile_ast_stmt_if_then_else_branch_helper");
-    v_make_function_private("compile_ast_stmt_if_then_else_join_helper");
-    v_make_function_private("compile_ast_stmt_if_then_else_t");
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
-}
-
-
-//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
     module = v_get_module();
 
     //-----------------------------------------------------------------
-//  v_debug_print_module();
+//  v_debug_print_module(1);
 
     voidc_unit_load_module_to_jit(module);
 

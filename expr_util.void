@@ -77,7 +77,7 @@
 
     LLVMSetInitializer(expr_cat_g, expr_cat_u);
 
-    v_add_local_symbol("expr_category_visitor", voidc_opaque_visitor_sptr, 0);    //- Sic!
+    v_add_local_symbol("expr_category_visitor", voidc_opaque_visitor_sptr, 0);
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
@@ -103,6 +103,8 @@
 
     //-----------------------------------------------------------------
     f = v_function_hack("add_op_binary", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "name", char_ptr);
     v_add_parameter_name(f, 1, "prec", int);
@@ -148,6 +150,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("add_op_unary", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "name", char_ptr);
     v_add_parameter_name(f, 1, "prec", int);
 }
@@ -182,6 +186,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("method_cat_one", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -195,6 +201,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("method_cat_two", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -207,6 +215,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("method_cat_three", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -227,6 +237,8 @@
 
     //-----------------------------------------------------------------
     f = v_function_hack("method_cat_zero", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -341,16 +353,6 @@
 //  printf("expr_oplist_dtor()\n");
 }
 
-//---------------------------------------------------------------------
-{
-    v_make_function_private("add_op_binary");
-    v_make_function_private("add_op_unary");
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
-}
-
 
 //---------------------------------------------------------------------
 //- ...
@@ -406,6 +408,8 @@
 
     //-----------------------------------------------------------------
     f = v_function_hack("vectorize_scalar", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "type",      v_type_ptr);
     v_add_parameter_name(f, 1, "value",     LLVMValueRef);
@@ -476,6 +480,8 @@
 
     //-----------------------------------------------------------------
     f = v_function_hack("convert_to_type", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "type",    v_type_ptr);
     v_add_parameter_name(f, 1, "value",   LLVMValueRef);
@@ -578,6 +584,8 @@
 
     //-----------------------------------------------------------------
     f = v_function_hack("convert_to_common_type", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "typ0", type_ref);
     v_add_parameter_name(f, 1, "val0", value_ref);
@@ -755,6 +763,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("prepare_arguments", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "ast0",    v_ast_base_ptr);
     v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "aux0",    void_ptr);
@@ -817,6 +827,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("prepare_assign_arguments", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "ast0",    v_ast_base_ptr);
     v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "aux",     void_ptr);
@@ -873,6 +885,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_add", compile_op_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
     v_add_parameter_name(f, 2, "v1", LLVMValueRef);
@@ -911,6 +925,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("compile_sub", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
@@ -951,6 +967,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_mul", compile_op_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
     v_add_parameter_name(f, 2, "v1", LLVMValueRef);
@@ -974,6 +992,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("compile_div", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
@@ -1006,6 +1026,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_rem", compile_op_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
     v_add_parameter_name(f, 2, "v1", LLVMValueRef);
@@ -1037,6 +1059,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_shl", compile_op_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
     v_add_parameter_name(f, 2, "v1", LLVMValueRef);
@@ -1053,6 +1077,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("compile_shr", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
@@ -1078,6 +1104,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_and", compile_op_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
     v_add_parameter_name(f, 2, "v1", LLVMValueRef);
@@ -1094,6 +1122,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("compile_xor", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
@@ -1112,6 +1142,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("compile_or", compile_op_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "t0", v_type_ptr);
     v_add_parameter_name(f, 1, "v0", LLVMValueRef);
     v_add_parameter_name(f, 2, "v1", LLVMValueRef);
@@ -1129,6 +1161,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_assign", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1195,6 +1229,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_assign_helper", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -1244,6 +1280,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_add_assign", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -1258,6 +1296,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_sub_assign", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1274,6 +1314,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_mul_assign", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -1288,6 +1330,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_div_assign", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1304,6 +1348,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_rem_assign", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -1318,6 +1364,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_shl_assign", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1334,6 +1382,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_shr_assign", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -1348,6 +1398,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_and_assign", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1364,6 +1416,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_xor_assign", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -1378,6 +1432,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_or_assign", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1401,6 +1457,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("is_logical_and", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
 }
 {
@@ -1417,6 +1475,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_logical_and", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1545,6 +1605,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("is_logical_or", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
 }
 {
@@ -1561,6 +1623,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_logical_or", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1683,6 +1747,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_and", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -1722,6 +1788,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_xor", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -1760,6 +1828,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_or", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -1807,6 +1877,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("is_relation", ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
 }
 {
@@ -1853,6 +1925,8 @@
 
     //-----------------------------------------------------------------
     f = v_function_hack("relation_helper", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2046,6 +2120,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_le", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2061,6 +2137,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_lt", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2074,6 +2152,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_ge", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2090,6 +2170,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_gt", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2104,6 +2186,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_eq", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2120,6 +2204,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_ne", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2135,6 +2221,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_shl", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2175,6 +2263,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_shr", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2214,6 +2304,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_add", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2347,6 +2439,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_sub", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2485,6 +2579,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_mul", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2524,6 +2620,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_div", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2562,6 +2660,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_infix_rem", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2616,6 +2716,8 @@
 
     //-----------------------------------------------------------------
     f = v_function_hack("inc_dec_helper", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2718,6 +2820,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_prefix_inc", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2733,6 +2837,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_prefix_dec", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2747,6 +2853,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_prefix_plus", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2769,6 +2877,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_prefix_minus", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2820,6 +2930,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_prefix_star", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2861,6 +2973,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_prefix_amp", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -2915,6 +3029,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_prefix_bang", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -2956,6 +3072,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_prefix_tilda", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -3000,6 +3118,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_postfix_inc", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -3014,6 +3134,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_postfix_dec", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -3030,6 +3152,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_postfix_call", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -3077,6 +3201,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("op_postfix_index", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -3220,6 +3346,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("op_parentheses", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -3321,6 +3449,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("typecalc_op_prefix_star", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -3355,6 +3485,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("typecalc_op_prefix_amp", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -3404,6 +3536,8 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("typecalc_op_postfix_call", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
@@ -3524,6 +3658,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("typecalc_op_postfix_index", method_ft);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
@@ -3590,7 +3726,7 @@
 {   ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_add_expr_op_methods", ft);
+    v_function_hack("voidc_ast_add_expr_op_methods", ft);
 }
 {
     vis = v_alloca(voidc_opaque_visitor_sptr);

@@ -1380,49 +1380,6 @@
 
 
 //---------------------------------------------------------------------
-{
-    typ = v_alloca(v_type_ptr);
-
-    v_store(char_ptr, typ);
-
-    ft = v_function_type(void, typ, 1, false);
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("v_make_function_private", ft);
-
-    p0 = LLVMGetParam(f, 0);    v_add_variable("fun_name", char_ptr, p0);
-}
-{
-    module = v_get_module();
-
-    f = LLVMGetNamedFunction(module, fun_name);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-}
-
-//---------------------------------------------------------------------
-{
-    typ = v_alloca(v_type_ptr);
-
-    v_store(char_ptr, typ);
-
-    ft = v_function_type(void, typ, 1, false);
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("v_make_global_private", ft);
-
-    p0 = LLVMGetParam(f, 0);    v_add_variable("var_name", char_ptr, p0);
-}
-{
-    module = v_get_module();
-
-    g = LLVMGetNamedGlobal(module, var_name);
-
-    LLVMSetLinkage(g, LLVMPrivateLinkage);
-}
-
-
-//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
@@ -1445,8 +1402,6 @@
 
     v_make_symbol_global("v_add_parameter_name");
     v_make_symbol_global("v_make_symbol_global");
-    v_make_symbol_global("v_make_function_private");
-    v_make_symbol_global("v_make_global_private");
 }
 
 
