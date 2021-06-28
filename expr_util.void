@@ -44,6 +44,17 @@
 }
 
 
+//=====================================================================
+{   module = LLVMModuleCreateWithName("voidc_expr_op_list_module");
+
+    v_set_module(module);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+
 //---------------------------------------------------------------------
 //- Some utility ...
 //---------------------------------------------------------------------
@@ -124,17 +135,6 @@
     v_make_list(ret, 0, v_cast(arg0, v_ast_base_ptr), 2);
 
     v_terminate(arg0, 2);
-}
-
-
-//=====================================================================
-{   module = LLVMModuleCreateWithName("voidc_expr_op_list_module");
-
-    v_set_module(module);
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
 }
 
 
