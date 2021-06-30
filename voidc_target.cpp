@@ -447,8 +447,8 @@ v_assign(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
   : voidc_types_ctx_t(ctx, int_size, long_size, ptr_size),
     builder(LLVMCreateBuilderInContext(ctx)),
-    char_ptr_type(make_pointer_type(char_type, 0)),             //- address space 0 !?
-    void_ptr_type(make_pointer_type(make_void_type(), 0))       //- address space 0 !?
+    char_ptr_type(make_pointer_type(char_type, 0)),         //- address space 0 !?
+    void_ptr_type(make_pointer_type(void_type, 0))          //- address space 0 !?
 {
 #define DEF(name) \
     intrinsics[#name] = name;
@@ -508,10 +508,10 @@ base_global_ctx_t::initialize(void)
 
     auto opaque_type = voidc_global_ctx_t::voidc->opaque_type_type;
 
-    add_symbol("void", opaque_type, (void *)make_void_type());
-
 #define DEF(name) \
     add_symbol(#name, opaque_type, (void *)name##_type);
+
+    DEF(void)
 
     DEF(bool)
     DEF(char)
@@ -534,7 +534,7 @@ base_global_ctx_t::initialize(void)
     v_type_t *i8_ptr_type = make_pointer_type(make_int_type(8), 0);
 
     auto stacksave_ft    = make_function_type(i8_ptr_type, nullptr, 0, false);
-    auto stackrestore_ft = make_function_type(make_void_type(), &i8_ptr_type, 1, false);
+    auto stackrestore_ft = make_function_type(void_type, &i8_ptr_type, 1, false);
 
     add_symbol_type("llvm.stacksave",    stacksave_ft);
     add_symbol_type("llvm.stackrestore", stackrestore_ft);
@@ -881,7 +881,7 @@ voidc_global_ctx_t::voidc_global_ctx_t()
         types[0] = char_ptr_type;
         types[1] = type_ptr_type;
 
-        DEF(v_add_symbol_type, make_void_type(), 2)
+        DEF(v_add_symbol_type, void_type, 2)
 
         DEF(v_struct_type_named, type_ptr_type, 1)
 
@@ -997,11 +997,11 @@ voidc_global_ctx_t::static_initialize(void)
     //-------------------------------------------------------------
     {   v_type_t *typ[3];
 
-        typ[0] = voidc->make_pointer_type(voidc->char_type, 0);
+        typ[0] = voidc->char_ptr_type;
         typ[1] = voidc->size_t_type;
         typ[2] = voidc->bool_type;
 
-        auto ft = voidc->make_function_type(voidc->make_void_type(), typ, 3, false);
+        auto ft = voidc->make_function_type(voidc->void_type, typ, 3, false);
 
         voidc->add_symbol_type("voidc_unit_load_internal_helper", ft);
     }

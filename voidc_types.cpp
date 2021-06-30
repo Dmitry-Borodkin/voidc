@@ -144,7 +144,7 @@ v_type_struct_t::obtain_llvm_type(void) const
 }
 
 void
-v_type_struct_t::set_body(v_type_t **elts, unsigned count, bool packed)
+v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
 {
     if (!is_opaque())       //- Check!
     {
@@ -222,11 +222,14 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     llvm_mod(LLVMModuleCreateWithNameInContext("empty_mod", ctx)),
     opaque_void_type(LLVMStructCreateNamed(ctx, "struct.v_target_opaque_void")),
 
-    void_type(new v_type_void_t(*this)),
-    f16_type (new v_type_f16_t (*this)),
-    f32_type (new v_type_f32_t (*this)),
-    f64_type (new v_type_f64_t (*this)),
-    f128_type(new v_type_f128_t(*this)),
+    _void_type(new v_type_void_t(*this)),
+
+    _f16_type (new v_type_f16_t (*this)),
+    _f32_type (new v_type_f32_t (*this)),
+    _f64_type (new v_type_f64_t (*this)),
+    _f128_type(new v_type_f128_t(*this)),
+
+    void_type(_void_type.get()),
 
     bool_type     (make_uint_type(1)),
     char_type     (make_int_type(8)),
@@ -276,7 +279,7 @@ voidc_types_ctx_t::make_uint_type(unsigned bits)
 
 //---------------------------------------------------------------------
 v_type_function_t *
-voidc_types_ctx_t::make_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_arg)
+voidc_types_ctx_t::make_function_type(v_type_t *ret, v_type_t * const *args, unsigned count, bool var_arg)
 {
     const unsigned N = count + 1;
 
@@ -335,7 +338,7 @@ voidc_types_ctx_t::make_struct_type(const std::string &name)
 }
 
 v_type_struct_t *
-voidc_types_ctx_t::make_struct_type(v_type_t **elts, unsigned count, bool packed)
+voidc_types_ctx_t::make_struct_type(v_type_t * const *elts, unsigned count, bool packed)
 {
     v_type_struct_t::body_key_t key = { {elts, elts+count}, packed };
 
@@ -579,7 +582,7 @@ v_type_integer_get_width(v_type_t *type)
 
 //---------------------------------------------------------------------
 v_type_t *
-v_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_arg)
+v_function_type(v_type_t *ret, v_type_t * const *args, unsigned count, bool var_arg)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
@@ -671,7 +674,7 @@ v_struct_type_named(const char *name)
 }
 
 v_type_t *
-v_struct_type(v_type_t **elts, unsigned count, bool packed)
+v_struct_type(v_type_t * const *elts, unsigned count, bool packed)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
@@ -703,7 +706,7 @@ v_type_struct_is_packed(v_type_t *type)
 }
 
 void
-v_type_struct_set_body(v_type_t *type, v_type_t **elts, unsigned count, bool packed)
+v_type_struct_set_body(v_type_t *type, v_type_t * const *elts, unsigned count, bool packed)
 {
     static_cast<v_type_struct_t *>(type)->set_body(elts, count, packed);
 }

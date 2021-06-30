@@ -3575,11 +3575,13 @@
 {
     quark_ref = v_reference_type(v_quark_t, 0);
 
-    v_add_local_symbol("int_q",  quark_ref, v_quark_ptr_from_string("int"));
-    v_add_local_symbol("uint_q", quark_ref, v_quark_ptr_from_string("uint"));
+    v_add_local_symbol("int_q",   quark_ref, v_quark_ptr_from_string("int"));
+    v_add_local_symbol("uint_q",  quark_ref, v_quark_ptr_from_string("uint"));
 
-    v_add_local_symbol("vec_q",  quark_ref, v_quark_ptr_from_string("vec"));
-    v_add_local_symbol("svec_q", quark_ref, v_quark_ptr_from_string("svec"));
+    v_add_local_symbol("float_q", quark_ref, v_quark_ptr_from_string("float"));
+
+    v_add_local_symbol("vec_q",   quark_ref, v_quark_ptr_from_string("vec"));
+    v_add_local_symbol("svec_q",  quark_ref, v_quark_ptr_from_string("svec"));
 }
 
 //---------------------------------------------------------------------
@@ -3654,6 +3656,24 @@
         typ = v_uint_type(width);
 
         v_store(typ, v_cast(aux, type_ptr_ptr));
+    }
+    else if (v_icmp(LLVMIntEQ, fun_q, float_q))
+    {
+        v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), voidc_compiler, 0);      //- Compiler!
+
+        width_v = v_get_result_value();
+
+        width = v_cast(LLVMConstIntGetZExtValue(width_v), int);
+
+        aux = v_cast(aux, type_ptr_ptr);
+
+        switch(width)
+        {
+        case  16:   v_store(v_f16_type(),  aux);    v_break();
+        case  32:   v_store(v_f32_type(),  aux);    v_break();
+        case  64:   v_store(v_f64_type(),  aux);    v_break();
+        case 128:   v_store(v_f128_type(), aux);    v_break();
+        }
     }
     else if (v_icmp(LLVMIntEQ, fun_q, vec_q))
     {

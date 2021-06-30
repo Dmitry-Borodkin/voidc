@@ -227,6 +227,15 @@ void v_peg_set_grammar(const grammar_sptr_t *ptr)
     }
 }
 
+void v_peg_get_line_column(size_t pos, size_t *line, size_t *column)
+{
+    if (context_t::current_ctx)
+    {
+        context_t::current_ctx->get_line_column(pos, *line, *column);
+    }
+}
+
+
 //---------------------------------------------------------------------
 VOIDC_DLLEXPORT_END
 

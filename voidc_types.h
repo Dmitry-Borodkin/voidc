@@ -302,7 +302,7 @@ public:
 
     bool is_opaque(void) const { return !body_key; }
 
-    void set_body(v_type_t **elts, unsigned count, bool packed=false);
+    void set_body(v_type_t * const *elts, unsigned count, bool packed=false);
 
     unsigned element_count(void) const { return unsigned(body_key->first.size()); }
 
@@ -432,23 +432,23 @@ public:
     const LLVMTypeRef opaque_void_type;     //- For (void *) ...
 
 public:
-    v_type_void_t      *make_void_type(void) { return void_type.get(); }
+    v_type_void_t      *make_void_type(void) { return void_type; }
 
-    v_type_f16_t       *make_f16_type(void)  { return f16_type.get(); }
-    v_type_f32_t       *make_f32_type(void)  { return f32_type.get(); }
-    v_type_f64_t       *make_f64_type(void)  { return f64_type.get(); }
-    v_type_f128_t      *make_f128_type(void) { return f128_type.get(); }
+    v_type_f16_t       *make_f16_type(void)  { return _f16_type.get(); }
+    v_type_f32_t       *make_f32_type(void)  { return _f32_type.get(); }
+    v_type_f64_t       *make_f64_type(void)  { return _f64_type.get(); }
+    v_type_f128_t      *make_f128_type(void) { return _f128_type.get(); }
 
     v_type_int_t       *make_int_type(unsigned bits);
     v_type_uint_t      *make_uint_type(unsigned bits);
 
-    v_type_function_t  *make_function_type(v_type_t *ret, v_type_t **args, unsigned count, bool var_args=false);
+    v_type_function_t  *make_function_type(v_type_t *ret, v_type_t * const *args, unsigned count, bool var_args=false);
 
     v_type_pointer_t   *make_pointer_type  (v_type_t *et, unsigned addr_space=0);
     v_type_reference_t *make_reference_type(v_type_t *et, unsigned addr_space=0);
 
     v_type_struct_t    *make_struct_type(const std::string &name);
-    v_type_struct_t    *make_struct_type(v_type_t **elts, unsigned count, bool packed=false);
+    v_type_struct_t    *make_struct_type(v_type_t * const *elts, unsigned count, bool packed=false);
 
     v_type_array_t     *make_array_type(v_type_t *et, uint64_t count);
 
@@ -456,12 +456,12 @@ public:
     v_type_svector_t   *make_svector_type(v_type_t *et, unsigned count);
 
 private:
-    std::unique_ptr<v_type_void_t> void_type;
+    std::unique_ptr<v_type_void_t> _void_type;
 
-    std::unique_ptr<v_type_f16_t>  f16_type;
-    std::unique_ptr<v_type_f32_t>  f32_type;
-    std::unique_ptr<v_type_f64_t>  f64_type;
-    std::unique_ptr<v_type_f128_t> f128_type;
+    std::unique_ptr<v_type_f16_t>  _f16_type;
+    std::unique_ptr<v_type_f32_t>  _f32_type;
+    std::unique_ptr<v_type_f64_t>  _f64_type;
+    std::unique_ptr<v_type_f128_t> _f128_type;
 
     std::map<unsigned, std::unique_ptr<v_type_int_t>>  int_types;
     std::map<unsigned, std::unique_ptr<v_type_uint_t>> uint_types;
@@ -480,6 +480,8 @@ private:
     std::map<v_type_svector_t::key_t, std::unique_ptr<v_type_svector_t>> svector_types;
 
 public:
+    v_type_void_t * const void_type;
+
     v_type_uint_t * const bool_type;
     v_type_int_t  * const char_type;
     v_type_int_t  * const short_type;

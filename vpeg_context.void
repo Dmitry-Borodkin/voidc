@@ -7,13 +7,24 @@
     v_import("vpeg_grammar.void");
 }
 
-{   typ = v_alloca(v_type_ptr);
+{   typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_peg_grammar_ptr, typ);
+    v_store(v_peg_grammar_ptr, typ0);
 
-    ft = v_function_type(void, typ, 1, false);
+    ft = v_function_type(void, typ0, 1, false);
     v_add_symbol_type("v_peg_get_grammar", ft);
     v_add_symbol_type("v_peg_set_grammar", ft);
+
+    size_t_ref = v_reference_type(size_t, 0);
+
+    v_store(size_t,     typ0);
+    v_store(size_t_ref, typ1);
+    v_store(size_t_ref, typ2);
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_add_symbol_type("v_peg_get_line_column", ft);
 }
 
 //---------------------------------------------------------------------
