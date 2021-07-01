@@ -78,7 +78,7 @@ typedef std::shared_ptr<const ast_expr_base_t> ast_expr_sptr_t;
 
 //---------------------------------------------------------------------
 template<typename Self, typename T>
-struct ast_list_t : public ast_base_t, public std::enable_shared_from_this<Self>
+struct ast_list_t : public virtual ast_base_t, public std::enable_shared_from_this<Self>
 {
     const immer::vector<std::shared_ptr<const T>> data;
 
