@@ -696,36 +696,6 @@ main(int argc, char *argv[])
         if (src != "-")   std::fclose(istr);
     }
 
-#if 0
-
-    for (auto &it : compile_ctx_t::symbol_types)
-    {
-        printf("%s : ", it.first.c_str());
-
-        fflush(stdout);     //- WTF ?
-
-        if (it.second == compile_ctx_t::LLVMOpaqueType_type)
-        {
-            auto tv = (LLVMTypeRef)LLVMSearchForAddressOfSymbol(it.first.c_str());
-
-            auto s = LLVMPrintTypeToString(tv);
-
-            printf("TYPE = %s\n", s);
-
-            LLVMDisposeMessage(s);
-        }
-        else
-        {
-            auto s = LLVMPrintTypeToString(it.second);
-
-            printf("%s\n", s);
-
-            LLVMDisposeMessage(s);
-        }
-    }
-
-#endif
-
     vpeg::context_t::static_terminate();
     vpeg::grammar_t::static_terminate();
     voidc_visitor_t::static_terminate();

@@ -46,32 +46,22 @@
 }
 
 {   opaque_value_t = v_struct_type_named("struct.LLVMOpaqueValue");
-    v_add_symbol("LLVMOpaqueValue", voidc_opaque_type, opaque_value_t);
-
     value_ref = v_pointer_type(opaque_value_t, 0);
     v_add_symbol("LLVMValueRef", voidc_opaque_type, value_ref);
 
     opaque_context_t = v_struct_type_named("struct.LLVMOpaqueContext");
-    v_add_symbol("LLVMOpaqueContext", voidc_opaque_type, opaque_context_t);
-
     context_ref = v_pointer_type(opaque_context_t, 0);
     v_add_symbol("LLVMContextRef", voidc_opaque_type, context_ref);
 
     opaque_module_t = v_struct_type_named("struct.LLVMOpaqueModule");
-    v_add_symbol("LLVMOpaqueModule", voidc_opaque_type, opaque_module_t);
-
     module_ref = v_pointer_type(opaque_module_t, 0);
     v_add_symbol("LLVMModuleRef", voidc_opaque_type, module_ref);
 
     opaque_builder_t = v_struct_type_named("struct.LLVMOpaqueBuilder");
-    v_add_symbol("LLVMOpaqueBuilder", voidc_opaque_type, opaque_builder_t);
-
     builder_ref = v_pointer_type(opaque_builder_t, 0);
     v_add_symbol("LLVMBuilderRef", voidc_opaque_type, builder_ref);
 
     opaque_membuf_t = v_struct_type_named("struct.LLVMOpaqueMemoryBuffer");
-    v_add_symbol("LLVMOpaqueMemoryBuffer", voidc_opaque_type, opaque_membuf_t);
-
     membuf_ref = v_pointer_type(opaque_membuf_t, 0);
     v_add_symbol("LLVMMemoryBufferRef", voidc_opaque_type, membuf_ref);
 }

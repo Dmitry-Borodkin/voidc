@@ -7,11 +7,9 @@
     v_import("voidc_target.void");
 }
 
-{   type = v_struct_type_named("struct.LLVMOpaqueType");
-    v_add_symbol("LLVMOpaqueType", voidc_opaque_type, type);
-
-    type = v_pointer_type(type, 0);
-    v_add_symbol("LLVMTypeRef", voidc_opaque_type, type);
+{   opaque_type_t = v_struct_type_named("struct.LLVMOpaqueType");
+    type_ref = v_pointer_type(opaque_type_t, 0);
+    v_add_symbol("LLVMTypeRef", voidc_opaque_type, type_ref);
 }
 
 {   typ0 = v_alloca(v_type_ptr, 4);
