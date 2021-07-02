@@ -164,8 +164,6 @@ std::any star_parser_t::parse(context_t &ctx) const
 //-------------------------------------------------------------
 std::any plus_parser_t::parse(context_t &ctx) const
 {
-    struct {} const dummy;
-
     std::any ret;
 
     for(;;)
