@@ -37,7 +37,6 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     DEF(expr)
     DEF(expr_list)
 
-    DEF(generic)
     DEF(generic_list)
 
 #undef DEF
@@ -187,7 +186,7 @@ v_ast_expr_char_get_char(const ast_expr_sptr_t *ptr)
 //- Generics ...
 //---------------------------------------------------------------------
 void
-v_ast_make_generic(ast_generic_sptr_t *ret, const ast_generic_vtable *vtab, void *obj)
+v_ast_make_generic(ast_base_sptr_t *ret, const ast_generic_vtable *vtab, void *obj)
 {
     *ret = std::make_shared<const ast_generic_t>(vtab, obj);
 }
@@ -213,15 +212,21 @@ v_ast_make_expr_generic(ast_expr_sptr_t *ret, const ast_generic_vtable *vtab, vo
 
 //---------------------------------------------------------------------
 const ast_generic_vtable *
-v_ast_generic_get_vtable(const ast_generic_sptr_t *ptr)
+v_ast_generic_get_vtable(const ast_base_sptr_t *base_ptr)
 {
-    return (*ptr)->vtable;
+    auto ptr = std::dynamic_pointer_cast<const ast_generic_t>(*base_ptr);
+    assert(ptr);
+
+    return ptr->vtable;
 }
 
 const void *
-v_ast_generic_get_object(const ast_generic_sptr_t *ptr)
+v_ast_generic_get_object(const ast_base_sptr_t *base_ptr)
 {
-    return (*ptr)->object;
+    auto ptr = std::dynamic_pointer_cast<const ast_generic_t>(*base_ptr);
+    assert(ptr);
+
+    return ptr->object;
 }
 
 
@@ -381,7 +386,6 @@ v_ast_static_initialize(void)
     DEF(expr)
     DEF(expr_list)
 
-    DEF(generic)
     DEF(generic_list)
 
 #undef DEF

@@ -168,6 +168,12 @@
     v_add_symbol_type("voidc_unit_load_module_to_jit", ft);
     v_add_symbol_type("voidc_unit_load_local_module_to_jit", ft);
 
+//  v_store(LLVMModuleRef, typ0);       //-
+    v_store(bool,          typ1);       //-
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol_type("voidc_compile_load_module_to_jit", ft);
+
     v_store(LLVMMemoryBufferRef, typ0); //-
 
     ft = v_function_type(void, typ0, 1, false);

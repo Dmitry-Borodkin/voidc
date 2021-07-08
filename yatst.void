@@ -194,7 +194,7 @@
 
 {   printf("\n");
 
-    gen = v_alloca(v_ast_opaque_generic_sptr);
+    gen = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(gen);
 
     v_ast_make_generic(gen, vtable_g, 0);
@@ -204,9 +204,7 @@
     v_initialize(vis);
 
 
-    obj = v_cast(gen, v_ast_base_ptr);     //- ?..
-
-    v_ast_accept_visitor(obj, vis, 0);
+    v_ast_accept_visitor(gen, vis, 0);
 
 
 

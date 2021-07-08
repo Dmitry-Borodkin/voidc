@@ -16,7 +16,6 @@
     v_util_register_itcmep_impl(v_ast_opaque_stmt_sptr,         "v_ast", "stmt");
     v_util_register_itcmep_impl(v_ast_opaque_expr_list_sptr,    "v_ast", "expr_list");
     v_util_register_itcmep_impl(v_ast_opaque_expr_sptr,         "v_ast", "expr");
-    v_util_register_itcmep_impl(v_ast_opaque_generic_sptr,      "v_ast", "generic");
     v_util_register_itcmep_impl(v_ast_opaque_generic_list_sptr, "v_ast", "generic_list");
 }
 
@@ -38,9 +37,6 @@
 
     expr_ptr = v_pointer_type(v_ast_opaque_expr_sptr, 0);
     v_add_symbol("v_ast_expr_ptr", voidc_opaque_type, expr_ptr);
-
-    generic_ptr = v_pointer_type(v_ast_opaque_generic_sptr, 0);
-    v_add_symbol("v_ast_generic_ptr", voidc_opaque_type, generic_ptr);
 
     generic_list_ptr = v_pointer_type(v_ast_opaque_generic_list_sptr, 0);
     v_add_symbol("v_ast_generic_list_ptr", voidc_opaque_type, generic_list_ptr);
@@ -267,7 +263,7 @@
     generic_vtable_ptr = v_pointer_type(generic_vtable, 0);
 
     //-------------------------------------------------------------
-    v_store(v_ast_generic_ptr,  typ0);              //- (out)
+    v_store(v_ast_base_ptr,     typ0);              //- (out)
     v_store(generic_vtable_ptr, typ1);              //-
     v_store(void_ptr,           typ2);              //- object
 
@@ -297,12 +293,12 @@
     v_add_symbol_type("v_ast_make_expr_generic", ft);
 
     //-------------------------------------------------------------
-    v_store(v_ast_generic_ptr, typ0);               //-
+    v_store(v_ast_base_ptr, typ0);                  //-
 
     ft = v_function_type(generic_vtable_ptr, typ0, 1, false);
     v_add_symbol_type("v_ast_generic_get_vtable", ft);
 
-//  v_store(v_ast_generic_ptr, typ0);               //-
+//  v_store(v_ast_base_ptr, typ0);                  //-
 
     ft = v_function_type(void_ptr, typ0, 1, false);
     v_add_symbol_type("v_ast_generic_get_object", ft);
