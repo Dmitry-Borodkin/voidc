@@ -671,6 +671,76 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
 
 
 //---------------------------------------------------------------------
+LLVMValueRef
+base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
+{
+    LLVMValueRef f = LLVMAddFunction(module, name, type->llvm_type());
+
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(f, "entry");
+
+    LLVMPositionBuilderAtEnd(global_ctx.builder, entry);
+
+    vars = variables_t();       //- Sic!
+
+    auto ret_type = static_cast<v_type_function_t *>(type)->return_type();
+
+    vars = vars.set("voidc.internal_return_type", {ret_type, nullptr});
+
+    if (ret_type->kind() != v_type_t::k_void)
+    {
+        auto ret_value = LLVMBuildAlloca(global_ctx.builder, ret_type->llvm_type(), "ret_value");
+
+        vars = vars.set("voidc.internal_return_value", {nullptr, ret_value});   //- Sic!
+    }
+
+    function_leave_b = LLVMAppendBasicBlock(f, "f_leave_b");
+    auto f_leave_bv  = LLVMBasicBlockAsValue(function_leave_b);
+
+    vars = vars.set("voidc.internal_branch_target_leave", {nullptr, f_leave_bv});   //- Sic!
+
+    return f;
+}
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::finish_function(void)
+{
+    auto cur_b = LLVMGetInsertBlock(global_ctx.builder);
+
+    if (!LLVMGetBasicBlockTerminator(cur_b))
+    {
+        auto leave_bv = vars["voidc.internal_branch_target_leave"].second;
+        auto leave_b  = LLVMValueAsBasicBlock(leave_bv);
+
+        LLVMBuildBr(global_ctx.builder, leave_b);
+    }
+
+
+    LLVMMoveBasicBlockAfter(function_leave_b, cur_b);
+
+    LLVMPositionBuilderAtEnd(global_ctx.builder, function_leave_b);
+
+
+    auto ret_type = vars["voidc.internal_return_type"].first;
+
+    if (ret_type->kind() == v_type_t::k_void)
+    {
+        LLVMBuildRetVoid(global_ctx.builder);
+    }
+    else
+    {
+        auto ret_var_v = vars["voidc.internal_return_value"].second;
+        auto ret_value = LLVMBuildLoad(global_ctx.builder, ret_var_v, "ret_value");
+
+        LLVMBuildRet(global_ctx.builder, ret_value);
+    }
+
+
+    LLVMClearInsertionPosition(global_ctx.builder);
+}
+
+
+//---------------------------------------------------------------------
 void
 base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 {
@@ -1389,12 +1459,7 @@ voidc_local_ctx_t::prepare_unit_action(int line, int column)
 
     LLVMSetSourceFileName(module, filename.c_str(), filename.size());
 
-    LLVMTypeRef  unit_ft = LLVMFunctionType(LLVMVoidType(), nullptr, 0, false);
-    LLVMValueRef unit_f  = LLVMAddFunction(module, fun_name.c_str(), unit_ft);
-
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(unit_f, "entry");
-
-    LLVMPositionBuilderAtEnd(builder, entry);
+    prepare_function(fun_name.c_str(), global_ctx.make_function_type(global_ctx.void_type, nullptr, 0, false));
 }
 
 //---------------------------------------------------------------------
@@ -1403,11 +1468,7 @@ voidc_local_ctx_t::finish_unit_action(void)
 {
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
 
-    auto &builder = global_ctx.builder;
-
-    LLVMBuildRetVoid(builder);
-
-    LLVMClearInsertionPosition(builder);
+    finish_function();
 
     //-------------------------------------------------------------
     voidc_global_ctx_t::prepare_module_for_jit(module);
@@ -2014,6 +2075,7 @@ load_module_helper(LLVMModuleRef module, bool is_local)
 
 VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
+
 //---------------------------------------------------------------------
 void
 voidc_unit_load_local_module_to_jit(LLVMModuleRef module)
@@ -2026,6 +2088,27 @@ void
 voidc_unit_load_module_to_jit(LLVMModuleRef module)
 {
     load_module_helper(module, false);
+}
+
+
+//---------------------------------------------------------------------
+LLVMValueRef
+v_prepare_function(const char *name, v_type_t *type)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return  lctx.prepare_function(name, type);
+}
+
+//---------------------------------------------------------------------
+void
+v_finish_function(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.finish_function();
 }
 
 

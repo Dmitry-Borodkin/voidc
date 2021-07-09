@@ -120,6 +120,12 @@ public:
     bool obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value);
 
 public:
+    LLVMValueRef prepare_function(const char *name, v_type_t *type);
+    void finish_function(void);
+
+    LLVMBasicBlockRef function_leave_b = nullptr;
+
+public:
     typedef immer::map<std::string, std::pair<v_type_t *, LLVMValueRef>> variables_t;
 
     variables_t vars;
