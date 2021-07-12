@@ -377,15 +377,17 @@
 
     voidc_make_visitor(vis);
 
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("op_infix_lt"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("op_infix_le"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("op_infix_gt"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("op_infix_ge"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("op_infix_eq"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("op_infix_ne"), method_cat_one);
+    q = v_quark_from_string;
 
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("op_infix_logical_and"), method_cat_two);
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("op_infix_logical_or"),  method_cat_three);
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_lt"), method_cat_one);
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_le"), method_cat_one);
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_gt"), method_cat_one);
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_ge"), method_cat_one);
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_eq"), method_cat_one);
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_ne"), method_cat_one);
+
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_logical_and"), method_cat_two);
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_logical_or"),  method_cat_three);
 
     voidc_visitor_set_void_method(vis, vis, 0, method_cat_zero);
 }
@@ -3589,13 +3591,15 @@
 {
     quark_ref = v_reference_type(v_quark_t, 0);
 
-    v_add_local_symbol("int_q",   quark_ref, v_quark_ptr_from_string("int"));
-    v_add_local_symbol("uint_q",  quark_ref, v_quark_ptr_from_string("uint"));
+    q = v_quark_ptr_from_string;
 
-    v_add_local_symbol("float_q", quark_ref, v_quark_ptr_from_string("float"));
+    v_add_local_symbol("int_q",   quark_ref, q("int"));
+    v_add_local_symbol("uint_q",  quark_ref, q("uint"));
 
-    v_add_local_symbol("vec_q",   quark_ref, v_quark_ptr_from_string("vec"));
-    v_add_local_symbol("svec_q",  quark_ref, v_quark_ptr_from_string("svec"));
+    v_add_local_symbol("float_q", quark_ref, q("float"));
+
+    v_add_local_symbol("vec_q",   quark_ref, q("vec"));
+    v_add_local_symbol("svec_q",  quark_ref, q("svec"));
 }
 
 //---------------------------------------------------------------------
@@ -3815,10 +3819,7 @@
     v_function_hack("voidc_ast_add_expr_op_methods", ft);
 }
 {
-    vis = v_alloca(voidc_opaque_visitor_sptr);
-    v_initialize(vis);
-
-    v_copy(vis, voidc_compiler);
+    vis = voidc_compiler;
 
 
     count = v_list_get_size(expr_oplist);
@@ -3862,8 +3863,6 @@
         v_assign(i, v_binop(LLVMAdd, i, 1));
     }
 
-    v_copy(voidc_compiler, vis);
-
     v_terminate(arg);
     v_terminate(op);
 
@@ -3873,24 +3872,14 @@
 
 
     //-------------------------------------------------------------
-    v_copy(vis, voidc_type_calc);
+    vis = voidc_type_calc;
 
+    q = v_quark_from_string;
 
-    q = v_quark_from_string("op_prefix_star");
-
-    voidc_visitor_set_void_method(vis, vis, q, typecalc_op_prefix_star);
-
-    q = v_quark_from_string("op_prefix_amp");
-
-    voidc_visitor_set_void_method(vis, vis, q, typecalc_op_prefix_amp);
-
-    q = v_quark_from_string("op_postfix_call");
-
-    voidc_visitor_set_void_method(vis, vis, q, typecalc_op_postfix_call);
-
-    q = v_quark_from_string("op_postfix_index");
-
-    voidc_visitor_set_void_method(vis, vis, q, typecalc_op_postfix_index);
+    voidc_visitor_set_void_method(vis, vis, q("op_prefix_star"),   typecalc_op_prefix_star);
+    voidc_visitor_set_void_method(vis, vis, q("op_prefix_amp"),    typecalc_op_prefix_amp);
+    voidc_visitor_set_void_method(vis, vis, q("op_postfix_call"),  typecalc_op_postfix_call);
+    voidc_visitor_set_void_method(vis, vis, q("op_postfix_index"), typecalc_op_postfix_index);
 
 
     q = v_quark_from_string("op_parentheses");
@@ -3900,19 +3889,12 @@
     voidc_visitor_set_void_method(vis, vis, q, m);
 
 
-    v_copy(voidc_type_calc, vis);
-
-
     //-------------------------------------------------------------
-    v_terminate(vis);
+    q = v_quark_from_string("v_ast_expr_node_t_visitor_method_tag");
 
+    m = voidc_visitor_get_void_method(voidc_compiler, q);
 
-    //-------------------------------------------------------------
-    quark = v_quark_from_string("v_ast_expr_node_t_visitor_method_tag");
-
-    node_method = voidc_visitor_get_void_method(voidc_compiler, quark);
-
-    voidc_visitor_set_void_method(expr_category_visitor, expr_category_visitor, quark, node_method);
+    voidc_visitor_set_void_method(expr_category_visitor, expr_category_visitor, q, m);
 }
 
 

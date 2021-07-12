@@ -920,14 +920,13 @@
                   ;
     }
 
-
     v_peg_set_grammar(gr0);
 
+    vc = voidc_compiler;
+    vt = voidc_type_calc;
 
-    void_method = v_cast(compile_ast_expr_node_t, void_ptr);
-
-    voidc_visitor_set_void_method(voidc_compiler,  voidc_compiler,  quark, void_method);
-    voidc_visitor_set_void_method(voidc_type_calc, voidc_type_calc, quark, void_method);    //- Sic!
+    voidc_visitor_set_void_method(vc, vc, quark, compile_ast_expr_node_t);
+    voidc_visitor_set_void_method(vt, vt, quark, compile_ast_expr_node_t);  //- Sic!
 
     voidc_ast_add_expr_op_methods();
 

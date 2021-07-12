@@ -567,9 +567,7 @@
     v_peg_set_grammar(gr0);
 
 
-    void_method = v_cast(compile_ast_stmt_block_t, void_ptr);
-
-    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, void_method);
+    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_block_t);
 
 
     v_add_intrinsic("v_break", voidc_intrinsic_break);
