@@ -1146,7 +1146,6 @@ add_object_file_to_jit_with_rt(LLVMMemoryBufferRef membuf,
     auto mb_copy = LLVMBinaryCopyMemoryBuffer(bref);
 
     //-------------------------------------------------------------
-//  auto lerr = LLVMOrcLLJITAddObjectFile(jit, jd, mb_copy);
     auto lerr = LLVMOrcLLJITAddObjectFileWithRT(jit, rt, mb_copy);
 
     if (lerr)
