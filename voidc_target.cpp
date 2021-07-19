@@ -1130,9 +1130,10 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 
 //---------------------------------------------------------------------
 static LLVMOrcJITTargetAddress
-add_object_file_to_jit(LLVMMemoryBufferRef membuf,
-                       LLVMOrcJITDylibRef jd,
-                       bool search_action = false)
+add_object_file_to_jit_with_rt(LLVMMemoryBufferRef membuf,
+                               LLVMOrcJITDylibRef jd,
+                               LLVMOrcResourceTrackerRef rt,
+                               bool search_action = false)
 {
     char *msg = nullptr;
 
@@ -1145,7 +1146,8 @@ add_object_file_to_jit(LLVMMemoryBufferRef membuf,
     auto mb_copy = LLVMBinaryCopyMemoryBuffer(bref);
 
     //-------------------------------------------------------------
-    auto lerr = LLVMOrcLLJITAddObjectFile(jit, jd, mb_copy);
+//  auto lerr = LLVMOrcLLJITAddObjectFile(jit, jd, mb_copy);
+    auto lerr = LLVMOrcLLJITAddObjectFileWithRT(jit, rt, mb_copy);
 
     if (lerr)
     {
@@ -1190,6 +1192,15 @@ add_object_file_to_jit(LLVMMemoryBufferRef membuf,
 
 
     return ret;
+}
+
+//---------------------------------------------------------------------
+static LLVMOrcJITTargetAddress
+add_object_file_to_jit(LLVMMemoryBufferRef membuf,
+                       LLVMOrcJITDylibRef jd,
+                       bool search_action = false)
+{
+    return add_object_file_to_jit_with_rt(membuf, jd, LLVMOrcJITDylibGetDefaultResourceTracker(jd), search_action);
 }
 
 //---------------------------------------------------------------------
@@ -1339,6 +1350,8 @@ voidc_local_ctx_t::~voidc_local_ctx_t()
     {
         unwrap(voidc_global_ctx_t::main_jd)->removeFromLinkOrder(*unwrap(local_jd));
     }
+
+    LLVMOrcJITDylibClear(local_jd);         //- So, how to "delete" local_jd ?
 }
 
 
@@ -1505,7 +1518,9 @@ voidc_local_ctx_t::run_unit_action(void)
 {
     if (!unit_buffer) return;
 
-    auto addr = add_object_file_to_jit(unit_buffer, local_jd, true);
+    auto rt = LLVMOrcJITDylibCreateResourceTracker(local_jd);
+
+    auto addr = add_object_file_to_jit_with_rt(unit_buffer, local_jd, rt, true);
 
     void (*unit_action)() = (void (*)())addr;
 
@@ -1513,9 +1528,8 @@ voidc_local_ctx_t::run_unit_action(void)
 
     flush_unit_symbols();
 
-    //--------------------------------
-    //- How to remove module ?!?!?!?!?
-    //--------------------------------
+    LLVMOrcResourceTrackerRemove(rt);
+    LLVMOrcReleaseResourceTracker(rt);      //- ?
 
     fflush(stdout);     //- WTF?
     fflush(stderr);     //- WTF?
