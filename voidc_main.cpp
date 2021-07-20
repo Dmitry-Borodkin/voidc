@@ -574,11 +574,22 @@ VOIDC_DLLEXPORT_END
 
 
 //--------------------------------------------------------------------
+static void
+voidc_flush_output(void)
+{
+    fflush(stdout);     //- WTF?
+    fflush(stderr);     //- WTF?
+}
+
+
+//--------------------------------------------------------------------
 //- As is...
 //--------------------------------------------------------------------
 int
 main(int argc, char *argv[])
 {
+    std::atexit(voidc_flush_output);
+
 #ifdef _WIN32
     std::srand(std::time(nullptr));
 #endif
