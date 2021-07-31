@@ -28,7 +28,15 @@ voidc_visitor_t::static_initialize(void)
     auto visitor_sptr_type = gctx.make_struct_type("struct.voidc_opaque_visitor_sptr");
 
     visitor_sptr_type->set_body(&content_type, 1, false);
-    gctx.add_symbol("voidc_opaque_visitor_sptr", gctx.opaque_type_type, (void *)visitor_sptr_type);
+
+    auto add_type = [&gctx](const char *raw_name, v_type_t *type)
+    {
+        gctx.decls.symbols.insert({raw_name, gctx.opaque_type_type});
+
+        gctx.add_symbol_value(raw_name, (void *)type);
+    };
+
+    add_type("voidc_opaque_visitor_sptr", visitor_sptr_type);
 
 
     voidc_compiler  = make_voidc_compiler();

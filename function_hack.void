@@ -7,15 +7,10 @@
     v_import("vpeg_context.void");
     v_import("voidc_ast.void");
     v_import("voidc_compiler.void");
-
-    v_import("llvm-c/Analysis.void");
-    v_import("llvm-c/BitReader.void");
-    v_import("llvm-c/BitWriter.void");
-    v_import("llvm-c/Linker.void");
 }
 
-{   v_import("printf.void");
-}
+//{   v_import("printf.void");
+//}
 
 
 //---------------------------------------------------------------------
@@ -921,13 +916,15 @@
 
     v_terminate(arg0);
 
-    v_set_result_type(v_find_type("bool"));
+    v_set_result_type(UNREFERENCE_TAG);
 
     v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor, aux);
 
-    cond = v_get_result_value();
+    cond_a = v_get_result_value();
 
     builder = v_target_get_builder();
+
+    cond = LLVMBuildIsNotNull(builder, cond_a, "cond");
 
     cur_b = LLVMGetInsertBlock(builder);
     cur_f = LLVMGetBasicBlockParent(cur_b);
@@ -969,23 +966,25 @@
 
     v_terminate(arg0);
 
-    v_set_result_type(v_find_type("bool"));
+    v_set_result_type(UNREFERENCE_TAG);
 
     v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor, aux);
 
-    cond = v_get_result_value();
+    cond_a = v_get_result_value();
 
     builder = v_target_get_builder();
+
+    cond = LLVMBuildIsNull(builder, cond_a, "cond");
 
     cur_b = LLVMGetInsertBlock(builder);
     cur_f = LLVMGetBasicBlockParent(cur_b);
 
-    else_b = LLVMAppendBasicBlock(cur_f, "else_b");
     then_b = LLVMAppendBasicBlock(cur_f, "then_b");
+    else_b = LLVMAppendBasicBlock(cur_f, "else_b");
 
     LLVMBuildCondBr(builder, cond, then_b, else_b);
 
-    LLVMPositionBuilderAtEnd(builder, else_b);
+    LLVMPositionBuilderAtEnd(builder, then_b);
 
     ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(ar_l);
@@ -996,7 +995,7 @@
 
     v_terminate(ar_l);
 
-    LLVMPositionBuilderAtEnd(builder, then_b);
+    LLVMPositionBuilderAtEnd(builder, else_b);
 }
 
 

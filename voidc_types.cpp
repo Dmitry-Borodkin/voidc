@@ -401,8 +401,9 @@ void voidc_types_static_initialize(void)
     auto int_llvm_type = int_type->llvm_type();
 
 #define DEF(kind) \
-    gctx.constants["v_type_kind_" #kind] = \
-        { int_type, LLVMConstInt(int_llvm_type, v_type_t::k_##kind, 0) };
+    gctx.decls.constants.insert({"v_type_kind_" #kind, int_type}); \
+    gctx.constant_values.insert({"v_type_kind_" #kind, \
+        LLVMConstInt(int_llvm_type, v_type_t::k_##kind, 0)});
 
     DEF(void)
     DEF(f16)

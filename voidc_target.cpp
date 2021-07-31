@@ -451,7 +451,7 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     void_ptr_type(make_pointer_type(void_type, 0))          //- address space 0 !?
 {
 #define DEF(name) \
-    intrinsics[#name] = name;
+    decls.intrinsics.insert({#name, name});
 
     DEF(v_alloca)
     DEF(v_getelementptr)
@@ -506,10 +506,18 @@ base_global_ctx_t::initialize(void)
 {
     assert(voidc_global_ctx_t::voidc);
 
+    //-----------------------------------------------------------------
     auto opaque_type = voidc_global_ctx_t::voidc->opaque_type_type;
 
+    auto add_type = [this, opaque_type](const char *raw_name, v_type_t *type)
+    {
+        decls.symbols.insert({raw_name, opaque_type});
+
+        add_symbol_value(raw_name, (void *)type);
+    };
+
 #define DEF(name) \
-    add_symbol(#name, opaque_type, (void *)name##_type);
+    add_type(#name, name##_type);
 
     DEF(void)
 
@@ -527,8 +535,16 @@ base_global_ctx_t::initialize(void)
 
 #undef DEF
 
-    constants["false"] = { bool_type, LLVMConstInt(bool_type->llvm_type(), 0, false) };
-    constants["true"]  = { bool_type, LLVMConstInt(bool_type->llvm_type(), 1, false) };
+    //-----------------------------------------------------------------
+    auto add_bool_const = [this](const char *raw_name, bool value)
+    {
+        decls.constants.insert({raw_name, bool_type});
+
+        constant_values.insert({raw_name, LLVMConstInt(bool_type->llvm_type(), value, false)});
+    };
+
+    add_bool_const("false", false);
+    add_bool_const("true",  true);
 
     //-----------------------------------------------------------------
     v_type_t *i8_ptr_type = make_pointer_type(make_int_type(8), 0);
@@ -536,20 +552,21 @@ base_global_ctx_t::initialize(void)
     auto stacksave_ft    = make_function_type(i8_ptr_type, nullptr, 0, false);
     auto stackrestore_ft = make_function_type(void_type, &i8_ptr_type, 1, false);
 
-    add_symbol_type("llvm.stacksave",    stacksave_ft);
-    add_symbol_type("llvm.stackrestore", stackrestore_ft);
+    decls.symbols.insert({"llvm.stacksave",    stacksave_ft});
+    decls.symbols.insert({"llvm.stackrestore", stackrestore_ft});
 }
 
 
 //---------------------------------------------------------------------
 //- Base Local Context
 //---------------------------------------------------------------------
-base_local_ctx_t::base_local_ctx_t(const std::string _filename, base_global_ctx_t &_global)
-  : filename(_filename),
-    global_ctx(_global),
+base_local_ctx_t::base_local_ctx_t(base_global_ctx_t &_global)
+  : global_ctx(_global),
     parent_ctx(_global.local_ctx)
 {
     global_ctx.local_ctx = this;
+
+    decls.insert(global_ctx.decls);
 }
 
 base_local_ctx_t::~base_local_ctx_t()
@@ -557,19 +574,85 @@ base_local_ctx_t::~base_local_ctx_t()
     global_ctx.local_ctx = parent_ctx;
 }
 
+
+//---------------------------------------------------------------------
+void base_local_ctx_t::add_alias(const char *name, const char *raw_name)
+{
+    if (export_decls)   export_decls->aliases.insert({name, raw_name});
+
+    decls.aliases.insert({name, raw_name});
+}
+
+//---------------------------------------------------------------------
+void base_local_ctx_t::add_local_alias(const char *name, const char *raw_name)
+{
+    decls.aliases.insert({name, raw_name});
+}
+
+
+//---------------------------------------------------------------------
+void base_local_ctx_t::add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
+{
+    if (export_decls)   export_decls->constants.insert({raw_name, type});
+
+    decls.constants.insert({raw_name, type});
+
+    global_ctx.constant_values.insert({raw_name, value});
+}
+
+//---------------------------------------------------------------------
+void base_local_ctx_t::add_local_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
+{
+    decls.constants.insert({raw_name, type});
+
+    constant_values.insert({raw_name, value});
+}
+
+
+//---------------------------------------------------------------------
+void base_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
+{
+    if (type)
+    {
+        if (export_decls)   export_decls->symbols.insert({raw_name, type});
+
+        decls.symbols.insert({raw_name, type});
+    }
+
+    if (value)  global_ctx.add_symbol_value(raw_name, value);
+}
+
+//---------------------------------------------------------------------
+void base_local_ctx_t::add_local_symbol(const char *raw_name, v_type_t *type, void *value)
+{
+    if (type)   decls.symbols.insert({raw_name, type});
+
+    if (value)  add_symbol_value(raw_name, value);
+}
+
+
+//---------------------------------------------------------------------
+void base_local_ctx_t::add_intrinsic(const char *fun_name, intrinsic_t fun)
+{
+    if (export_decls)   export_decls->intrinsics.insert({fun_name, fun});
+
+    decls.intrinsics.insert({fun_name, fun});
+}
+
+//---------------------------------------------------------------------
+void base_local_ctx_t::add_local_intrinsic(const char *fun_name, intrinsic_t fun)
+{
+    decls.intrinsics.insert({fun_name, fun});
+}
+
+
 //---------------------------------------------------------------------
 const std::string
 base_local_ctx_t::check_alias(const std::string &name)
 {
-    {   auto it = aliases.find(name);
+    auto it = decls.aliases.find(name);
 
-        if (it != aliases.end())  return it->second;
-    }
-
-    {   auto it = global_ctx.aliases.find(name);
-
-        if (it != global_ctx.aliases.end())  return it->second;
-    }
+    if (it != decls.aliases.end())  return it->second;
 
     return  name;
 }
@@ -581,6 +664,15 @@ base_local_ctx_t::find_type(const char *type_name)
     if (auto *p = vars.find(type_name))
     {
         if (p->second == nullptr)   return p->first;    //- Sic!
+    }
+
+    auto raw_name = check_alias(type_name);
+
+    auto cname = raw_name.c_str();
+
+    if (get_symbol_type(cname) == voidc_global_ctx_t::voidc->opaque_type_type)
+    {
+        return  reinterpret_cast<v_type_t *>(find_symbol_value(cname));
     }
 
     return nullptr;
@@ -596,6 +688,7 @@ base_local_ctx_t::obtain_type(const ast_expr_sptr_t &expr)
 
     return ret;
 }
+
 
 //---------------------------------------------------------------------
 bool
@@ -613,23 +706,31 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
     {
         auto raw_name = check_alias(name);
 
-        {   auto it = constants.find(raw_name);
+        {   auto itt = decls.constants.find(raw_name);
 
-            if (it != constants.end())
+            if (itt != decls.constants.end())
             {
-                type  = it->second.first;
-                value = it->second.second;
-            }
-        }
+                type = itt->second;
 
-        if (!value)
-        {
-            auto it = global_ctx.constants.find(raw_name);
+                {   auto itv = constant_values.find(raw_name);
 
-            if (it != global_ctx.constants.end())
-            {
-                type  = it->second.first;
-                value = it->second.second;
+                    if (itv != constant_values.end())
+                    {
+                        value = itv->second;
+                    }
+                }
+
+                if (!value)
+                {
+                    auto itv = global_ctx.constant_values.find(raw_name);
+
+                    if (itv != global_ctx.constant_values.end())
+                    {
+                        value = itv->second;
+                    }
+                }
+
+                assert(value);
             }
         }
 
@@ -637,7 +738,7 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
         {
             auto cname = raw_name.c_str();
 
-            type = find_symbol_type(cname);
+            type = get_symbol_type(cname);
 
             if (!type)  return false;
 
@@ -929,11 +1030,18 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     voidc_global_ctx = this;
 
-    add_symbol("voidc_opaque_type", opaque_type_type, opaque_type_type);        //- Sic!
+    auto add_type = [this](const char *raw_name, v_type_t *type)
+    {
+        decls.symbols.insert({raw_name, opaque_type_type});
+
+        add_symbol_value(raw_name, (void *)type);
+    };
+
+    add_type("voidc_opaque_type", opaque_type_type);        //- Sic!
 
     {   auto type_ptr_type = make_pointer_type(opaque_type_type, 0);
 
-        add_symbol("v_type_ptr", opaque_type_type, type_ptr_type);
+        add_type("v_type_ptr", type_ptr_type);
 
         v_type_t *types[] =
         {
@@ -944,7 +1052,7 @@ voidc_global_ctx_t::voidc_global_ctx_t()
         };
 
 #define DEF(name, ret, num) \
-        add_symbol_type(#name, make_function_type(ret, types, num, false));
+        decls.symbols.insert({#name, make_function_type(ret, types, num, false)});
 
         DEF(v_function_type, type_ptr_type, 4)
 
@@ -1073,11 +1181,11 @@ voidc_global_ctx_t::static_initialize(void)
 
         auto ft = voidc->make_function_type(voidc->void_type, typ, 3, false);
 
-        voidc->add_symbol_type("voidc_object_file_load_to_jit_internal_helper", ft);
+        voidc->decls.symbols.insert({"voidc_object_file_load_to_jit_internal_helper", ft});
     }
 
     //-------------------------------------------------------------
-    voidc_global_ctx_t::voidc->flush_unit_symbols();
+    voidc->flush_unit_symbols();
 
     //-------------------------------------------------------------
 #ifndef NDEBUG
@@ -1240,68 +1348,11 @@ voidc_global_ctx_t::add_module_to_jit(LLVMModuleRef module)
 
 //---------------------------------------------------------------------
 void
-voidc_global_ctx_t::add_symbol_type(const char *raw_name, v_type_t *type)
-{
-    symbol_types[raw_name] = type;
-}
-
-//---------------------------------------------------------------------
-void
 voidc_global_ctx_t::add_symbol_value(const char *raw_name, void *value)
 {
     if (unwrap(jit)->lookup(*unwrap(main_jd), raw_name)) return;
 
     unit_symbols[unwrap(jit)->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
-}
-
-//---------------------------------------------------------------------
-void
-voidc_global_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
-{
-    symbol_types[raw_name] = type;
-
-    if (unwrap(jit)->lookup(*unwrap(main_jd), raw_name)) return;
-
-    unit_symbols[unwrap(jit)->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
-}
-
-
-//---------------------------------------------------------------------
-v_type_t *
-voidc_global_ctx_t::get_symbol_type(const char *raw_name)
-{
-    auto it = symbol_types.find(raw_name);
-
-    if (it != symbol_types.end())  return it->second;
-
-    return nullptr;
-}
-
-//---------------------------------------------------------------------
-void *
-voidc_global_ctx_t::get_symbol_value(const char *raw_name)
-{
-    auto sym = unwrap(jit)->lookup(*unwrap(main_jd), raw_name);
-
-    if (sym)  return (void *)sym->getAddress();
-
-    return nullptr;
-}
-
-//---------------------------------------------------------------------
-void
-voidc_global_ctx_t::get_symbol(const char *raw_name, v_type_t * &type, void * &value)
-{
-    type  = nullptr;
-    value = nullptr;
-
-    auto it = symbol_types.find(raw_name);
-
-    if (it != symbol_types.end())  type = it->second;
-
-    auto sym = unwrap(jit)->lookup(*unwrap(main_jd), raw_name);
-
-    if (sym)  value = (void *)sym->getAddress();
 }
 
 
@@ -1320,8 +1371,8 @@ voidc_global_ctx_t::flush_unit_symbols(void)
 //---------------------------------------------------------------------
 //- Voidc Local Context
 //---------------------------------------------------------------------
-voidc_local_ctx_t::voidc_local_ctx_t(const std::string filename, voidc_global_ctx_t &global)
-  : base_local_ctx_t(filename, global)
+voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
+  : base_local_ctx_t(global)
 {
     auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
 
@@ -1356,12 +1407,8 @@ voidc_local_ctx_t::~voidc_local_ctx_t()
 
 //---------------------------------------------------------------------
 void
-voidc_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
+voidc_local_ctx_t::add_symbol_value(const char *raw_name, void *value)
 {
-    symbol_types[raw_name] = type;
-
-    if (!value) return;
-
     auto &jit = voidc_global_ctx_t::jit;
 
     if (unwrap(jit)->lookup(*unwrap(local_jd), raw_name)) return;
@@ -1369,50 +1416,19 @@ voidc_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
     unit_symbols[unwrap(jit)->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
 }
 
+
 //---------------------------------------------------------------------
-v_type_t *
-voidc_local_ctx_t::find_type(const char *type_name)
+void *
+voidc_local_ctx_t::find_symbol_value(const char *raw_name)
 {
-    if (auto r = base_local_ctx_t::find_type(type_name))  return r;
+    auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(local_jd), raw_name);
 
-    auto raw_name = check_alias(type_name);
-
-    auto cname = raw_name.c_str();
-
-    if (find_symbol_type(cname) == voidc_global_ctx_t::voidc->opaque_type_type)
+    if (!sym)
     {
-        auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(local_jd), cname);
-
-        if (!sym)       //- WTF?
-        {
-            sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(voidc_global_ctx_t::main_jd), cname);
-        }
-
-        if (sym)  return (v_type_t *)sym->getAddress();
+        sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(voidc_global_ctx_t::main_jd), raw_name);
     }
 
-    return nullptr;
-}
-
-//---------------------------------------------------------------------
-v_type_t *
-voidc_local_ctx_t::find_symbol_type(const char *raw_name)
-{
-    {   auto it = symbol_types.find(raw_name);
-
-        if (it != symbol_types.end())
-        {
-            return it->second;
-        }
-    }
-
-    {   auto it = voidc_global_ctx_t::voidc->symbol_types.find(raw_name);
-
-        if (it != voidc_global_ctx_t::voidc->symbol_types.end())
-        {
-            return it->second;
-        }
-    }
+    if (sym)  return (v_type_t *)sym->getAddress();
 
     return nullptr;
 }
@@ -1591,152 +1607,44 @@ target_global_ctx_t::~target_global_ctx_t()
 
 //---------------------------------------------------------------------
 void
-target_global_ctx_t::add_symbol_type(const char *raw_name, v_type_t *type)
-{
-    auto it = symbols.find(raw_name);
-
-    if (it != symbols.end())
-    {
-        it->second.first = type;
-    }
-    else
-    {
-        symbols[raw_name] = {type, nullptr};
-    }
-}
-
-//---------------------------------------------------------------------
-void
 target_global_ctx_t::add_symbol_value(const char *raw_name, void *value)
 {
-    auto it = symbols.find(raw_name);
-
-    if (it != symbols.end())
-    {
-        it->second.second = value;
-    }
-    else
-    {
-        symbols[raw_name] = {nullptr, value};
-    }
-}
-
-//---------------------------------------------------------------------
-void
-target_global_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
-{
-    symbols[raw_name] = {type, value};
-}
-
-
-//---------------------------------------------------------------------
-v_type_t *
-target_global_ctx_t::get_symbol_type(const char *raw_name)
-{
-    auto it = symbols.find(raw_name);
-
-    if (it != symbols.end())
-    {
-        return it->second.first;
-    }
-
-    return nullptr;
-}
-
-//---------------------------------------------------------------------
-void *
-target_global_ctx_t::get_symbol_value(const char *raw_name)
-{
-    auto it = symbols.find(raw_name);
-
-    if (it != symbols.end())
-    {
-        return it->second.second;
-    }
-
-    return nullptr;
-}
-
-//---------------------------------------------------------------------
-void
-target_global_ctx_t::get_symbol(const char *raw_name, v_type_t * &type, void * &value)
-{
-    type  = nullptr;
-    value = nullptr;
-
-    auto it = symbols.find(raw_name);
-
-    if (it != symbols.end())
-    {
-        auto &[t,v] = it->second;
-
-        type  = t;
-        value = v;
-    }
+    symbol_values.insert({raw_name, value});
 }
 
 
 //---------------------------------------------------------------------
 //- Target Local Context
 //---------------------------------------------------------------------
-target_local_ctx_t::target_local_ctx_t(const std::string filename, base_global_ctx_t &global)
-  : base_local_ctx_t(filename, global)
+target_local_ctx_t::target_local_ctx_t(base_global_ctx_t &global)
+  : base_local_ctx_t(global)
 {
 }
+
 
 //---------------------------------------------------------------------
 void
-target_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
+target_local_ctx_t::add_symbol_value(const char *raw_name, void *value)
 {
-    symbols[raw_name] = {type, value};
+    symbol_values.insert({raw_name, value});
 }
 
-//---------------------------------------------------------------------
-v_type_t *
-target_local_ctx_t::find_type(const char *type_name)
-{
-    if (auto r = base_local_ctx_t::find_type(type_name))  return r;
-
-    v_type_t *tt = nullptr;
-
-    void *tv = nullptr;
-
-    auto raw_name = check_alias(type_name);
-
-    auto it = symbols.find(raw_name);
-
-    if (it != symbols.end())
-    {
-        auto &[t,v] = it->second;
-
-        tt = t;
-        tv = v;
-    }
-    else
-    {
-        global_ctx.get_symbol(raw_name.c_str(), tt, tv);
-    }
-
-    if (tt != voidc_global_ctx_t::voidc->opaque_type_type)
-    {
-        tv = nullptr;
-    }
-
-    return (v_type_t *)tv;
-}
 
 //---------------------------------------------------------------------
-v_type_t *
-target_local_ctx_t::find_symbol_type(const char *raw_name)
+void *
+target_local_ctx_t::find_symbol_value(const char *raw_name)
 {
-    auto it = symbols.find(raw_name);
-
-    if (it != symbols.end())
+    for (auto &sv : {symbol_values, static_cast<target_global_ctx_t &>(global_ctx).symbol_values})
     {
-        return  it->second.first;
+        auto it = sv.find(raw_name);
+
+        if (it != sv.end())
+        {
+            return  it->second;
+        }
     }
 
-    return global_ctx.get_symbol_type(raw_name);
+    return  nullptr;
 }
 
 
@@ -1754,32 +1662,36 @@ void
 v_add_symbol_type(const char *raw_name, v_type_t *type)
 {
     auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
-    gctx.add_symbol_type(raw_name, type);
+    lctx.add_symbol(raw_name, type, nullptr);
 }
 
 void
 v_add_symbol_value(const char *raw_name, void *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
-    gctx.add_symbol_value(raw_name, value);
+    lctx.add_symbol(raw_name, nullptr, value);
 }
 
 void
 v_add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
-    gctx.add_symbol(raw_name, type, value);
+    lctx.add_symbol(raw_name, type, value);
 }
 
 void
 v_add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
 {
     auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
-    gctx.constants[raw_name] = {type, value};
+    lctx.add_constant(raw_name, type, value);
 }
 
 //---------------------------------------------------------------------
@@ -1789,7 +1701,7 @@ v_add_local_symbol(const char *raw_name, v_type_t *type, void *value)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.add_symbol(raw_name, type, value);
+    lctx.add_local_symbol(raw_name, type, value);
 }
 
 void
@@ -1798,7 +1710,7 @@ v_add_local_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.constants[raw_name] = {type, value};
+    lctx.add_local_constant(raw_name, type, value);
 }
 
 //---------------------------------------------------------------------
@@ -1811,23 +1723,31 @@ v_find_constant(const char *raw_name, v_type_t **type, LLVMValueRef *value)
     v_type_t    *t = nullptr;
     LLVMValueRef v = nullptr;
 
-    {   auto it = lctx.constants.find(raw_name);
+    {   auto itt = lctx.decls.constants.find(raw_name);
 
-        if (it != lctx.constants.end())
+        if (itt != lctx.decls.constants.end())
         {
-            t = it->second.first;
-            v = it->second.second;
-        }
-    }
+            t = itt->second;
 
-    if (!t)
-    {
-        auto it = gctx.constants.find(raw_name);
+            {   auto itv = lctx.constant_values.find(raw_name);
 
-        if (it != gctx.constants.end())
-        {
-            t = it->second.first;
-            v = it->second.second;
+                if (itv != lctx.constant_values.end())
+                {
+                    v = itv->second;
+                }
+            }
+
+            if (!v)
+            {
+                auto itv = gctx.constant_values.find(raw_name);
+
+                if (itv != gctx.constant_values.end())
+                {
+                    v = itv->second;
+                }
+            }
+
+            assert(v);
         }
     }
 
@@ -2290,33 +2210,12 @@ v_pop_temporaries(void)
 
 //---------------------------------------------------------------------
 v_type_t *
-v_find_symbol_type(const char *name)
+v_find_symbol_type(const char *raw_name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    v_type_t *type = nullptr;
-
-    auto raw_name = lctx.check_alias(name);
-
-    {   auto it = lctx.constants.find(raw_name);
-
-        if (it != lctx.constants.end())  type = it->second.first;
-    }
-
-    if (!type)
-    {
-        auto it = gctx.constants.find(raw_name);
-
-        if (it != gctx.constants.end())  type = it->second.first;
-    }
-
-    if (!type)
-    {
-        type = lctx.find_symbol_type(raw_name.c_str());
-    }
-
-    return type;
+    return lctx.get_symbol_type(raw_name);
 }
 
 //---------------------------------------------------------------------
@@ -2356,8 +2255,9 @@ void
 v_add_alias(const char *name, const char *raw_name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
-    gctx.aliases[name] = raw_name;
+    lctx.add_alias(name, raw_name);
 }
 
 void
@@ -2366,7 +2266,7 @@ v_add_local_alias(const char *name, const char *raw_name)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.aliases[name] = raw_name;
+    lctx.add_local_alias(name, raw_name);
 }
 
 
@@ -2375,20 +2275,32 @@ void
 v_add_intrinsic(const char *name, base_global_ctx_t::intrinsic_t fun)
 {
     auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
-    if (fun)  gctx.intrinsics[name] = fun;
-    else      gctx.intrinsics.erase(name);
+    lctx.add_intrinsic(name, fun);
+}
+
+void
+v_add_local_intrinsic(const char *name, base_global_ctx_t::intrinsic_t fun)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.add_local_intrinsic(name, fun);
 }
 
 base_global_ctx_t::intrinsic_t
 v_get_intrinsic(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
 
-    auto it = gctx.intrinsics.find(name);
+    auto &intrinsics = lctx.decls.intrinsics;
 
-    if (it != gctx.intrinsics.end())  return it->second;
-    else                              return nullptr;
+    auto it = intrinsics.find(name);
+
+    if (it != intrinsics.end())  return it->second;
+    else                         return nullptr;
 }
 
 
@@ -2456,7 +2368,11 @@ v_target_destroy_global_ctx(base_global_ctx_t *gctx)
 base_local_ctx_t *
 v_target_create_local_ctx(const char *filename, base_global_ctx_t *gctx)
 {
-    return  new target_local_ctx_t(filename, *gctx);
+    auto ret = new target_local_ctx_t(*gctx);
+
+    ret->filename = filename;
+
+    return ret;
 }
 
 void

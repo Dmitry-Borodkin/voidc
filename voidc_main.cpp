@@ -362,14 +362,8 @@ private:
 //--------------------------------------------------------------------
 //- Intrinsics (functions)
 //--------------------------------------------------------------------
-extern "C"
-{
-
-VOIDC_DLLEXPORT_BEGIN_FUNCTION
-
-//--------------------------------------------------------------------
-void
-v_import(const char *name)
+static void
+v_import_helper(const char *name, bool _export)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
@@ -390,11 +384,22 @@ v_import(const char *name)
         throw std::runtime_error("Import file not found: " + src_filename_str);
     }
 
+    base_compile_ctx_t::declarations_t *export_decls = nullptr;
+
     {   auto &tctx = *voidc_global_ctx_t::target;
 
-        if (tctx.imports.count(src_filename_str)) return;
+        auto [it, ok] = tctx.imported.try_emplace(src_filename_str);
 
-        tctx.imports.insert(src_filename_str);
+        if (!ok)    //- Already imported
+        {
+            parent_lctx->decls.insert(it->second);
+
+            if (_export  &&  parent_lctx->export_decls) parent_lctx->export_decls->insert(it->second);
+
+            return;     //- Sic!
+        }
+
+        export_decls = &it->second;
     }
 
     fs::path bin_filename = src_filename;
@@ -405,7 +410,11 @@ v_import(const char *name)
 
     std::FILE *infs;
 
-    voidc_local_ctx_t lctx(src_filename_str, vctx);
+    voidc_local_ctx_t lctx(vctx);
+
+    lctx.filename = src_filename_str;
+
+    lctx.export_decls = export_decls;
 
     if (use_binary)
     {
@@ -533,18 +542,22 @@ v_import(const char *name)
     }
 
     std::fclose(infs);
+
+    parent_lctx->decls.insert(*export_decls);
+
+    if (_export  &&  parent_lctx->export_decls) parent_lctx->export_decls->insert(*export_decls);
 }
 
 //--------------------------------------------------------------------
-void
-voidc_import(const char *name)
+static void
+voidc_import_helper(const char *name, bool _export)
 {
     auto voidc  = voidc_global_ctx_t::voidc;
     auto target = voidc_global_ctx_t::target;
 
     if (target == voidc)
     {
-        v_import(name);
+        v_import_helper(name, _export);
 
         return;
     }
@@ -553,10 +566,46 @@ voidc_import(const char *name)
 
     voidc_global_ctx_t::target = voidc;
 
-    v_import(name);
+    v_import_helper(name, _export);
 
     voidc_global_ctx_t::target = target;
 }
+
+
+//--------------------------------------------------------------------
+extern "C"
+{
+
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+//--------------------------------------------------------------------
+void
+v_import(const char *name)
+{
+    v_import_helper(name, true);
+}
+
+//--------------------------------------------------------------------
+void
+voidc_import(const char *name)
+{
+    voidc_import_helper(name, true);
+}
+
+//--------------------------------------------------------------------
+void
+v_local_import(const char *name)
+{
+    v_import_helper(name, false);
+}
+
+//--------------------------------------------------------------------
+void
+voidc_local_import(const char *name)
+{
+    voidc_import_helper(name, false);
+}
+
 
 //--------------------------------------------------------------------
 void
@@ -641,9 +690,11 @@ main(int argc, char *argv[])
 
     {   v_type_t *import_f_type = gctx.make_function_type(gctx.void_type, &gctx.char_ptr_type, 1, false);
 
-        gctx.add_symbol_type("v_import",           import_f_type);
-        gctx.add_symbol_type("voidc_import",       import_f_type);
-        gctx.add_symbol_type("voidc_guard_target", import_f_type);      //- Kind of...
+        gctx.decls.symbols.insert({"v_import",           import_f_type});
+        gctx.decls.symbols.insert({"voidc_import",       import_f_type});
+        gctx.decls.symbols.insert({"v_local_import",     import_f_type});
+        gctx.decls.symbols.insert({"voidc_local_import", import_f_type});
+        gctx.decls.symbols.insert({"voidc_guard_target", import_f_type});       //- Kind of...
     }
 
     v_ast_static_initialize();
@@ -657,55 +708,70 @@ main(int argc, char *argv[])
 
     vpeg::grammar_t current_grammar = voidc_grammar;
 
-    for (auto &src : sources)
-    {
-        std::string src_name = src;
+    {   voidc_local_ctx_t lctx(gctx);
 
-        std::FILE *istr;
-
-        if (src == "-")
+        for (auto &src : sources)
         {
-            src_name = "<stdin>";
+            std::string src_name = src;
 
-            istr = stdin;
-        }
-        else
-        {
-            fs::path src_path = fs::u8path(src_name);
+            std::FILE *istr;
 
-            if (!fs::exists(src_path))
+            if (src == "-")
             {
-                throw std::runtime_error("Source file not found: " + src_name);
+                src_name = "<stdin>";
+
+                istr = stdin;
+            }
+            else
+            {
+                fs::path src_path = fs::u8path(src_name);
+
+                if (!fs::exists(src_path))
+                {
+                    throw std::runtime_error("Source file not found: " + src_name);
+                }
+
+                istr = my_fopen(src_path);
             }
 
-            istr = my_fopen(src_path);
+            lctx.filename = src_name;
+
+            vpeg::context_t pctx(istr, current_grammar);
+
+            vpeg::context_t::current_ctx = &pctx;
+
+            while(auto unit = parse_unit(pctx))
+            {
+                unit->accept(voidc_compiler, nullptr);      //- aux ?
+
+                unit.reset();
+
+                lctx.run_unit_action();
+
+                LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+                lctx.unit_buffer = nullptr;
+            }
+
+            vpeg::context_t::current_ctx = nullptr;     //- ?
+
+            current_grammar = pctx.grammar;
+
+            if (src != "-")   std::fclose(istr);
         }
-
-        voidc_local_ctx_t lctx(src_name, gctx);
-
-        vpeg::context_t pctx(istr, current_grammar);
-
-        vpeg::context_t::current_ctx = &pctx;
-
-        while(auto unit = parse_unit(pctx))
-        {
-            unit->accept(voidc_compiler, nullptr);      //- aux ?
-
-            unit.reset();
-
-            lctx.run_unit_action();
-
-            LLVMDisposeMemoryBuffer(lctx.unit_buffer);
-
-            lctx.unit_buffer = nullptr;
-        }
-
-        vpeg::context_t::current_ctx = nullptr;     //- ?
-
-        current_grammar = pctx.grammar;
-
-        if (src != "-")   std::fclose(istr);
     }
+
+#if 0
+    for (auto [f,d] : gctx.imported)
+    {
+        printf("\n%s\n", f.c_str());
+
+        for (auto [s,t] : d.symbols)
+        {
+            printf("%s\n", s.c_str());
+        }
+    }
+#endif
 
     vpeg::context_t::static_terminate();
     vpeg::grammar_t::static_terminate();

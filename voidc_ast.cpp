@@ -370,11 +370,18 @@ v_ast_static_initialize(void)
 
     v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(ast_base_sptr_t)/sizeof(intptr_t));
 
+    auto add_type = [&gctx](const char *raw_name, v_type_t *type)
+    {
+        gctx.decls.symbols.insert({raw_name, gctx.opaque_type_type});
+
+        gctx.add_symbol_value(raw_name, (void *)type);
+    };
+
 #define DEF(name) \
     static_assert(sizeof(ast_base_sptr_t) == sizeof(ast_##name##_sptr_t)); \
     auto opaque_##name##_sptr_type = gctx.make_struct_type("struct.v_ast_opaque_" #name "_sptr"); \
     opaque_##name##_sptr_type->set_body(&content_type, 1, false); \
-    gctx.add_symbol("v_ast_opaque_" #name "_sptr", gctx.opaque_type_type, (void *)opaque_##name##_sptr_type);
+    add_type("v_ast_opaque_" #name "_sptr", opaque_##name##_sptr_type);
 
     DEF(base)
 

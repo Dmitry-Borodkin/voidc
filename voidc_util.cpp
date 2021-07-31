@@ -642,7 +642,7 @@ void static_initialize(void)
     auto &gctx = *voidc_global_ctx_t::voidc;
 
 #define DEF(name) \
-    gctx.intrinsics[#name] = name;
+    gctx.decls.intrinsics.insert({#name, name});
 
     DEF(v_initialize)
     DEF(v_terminate)
@@ -668,12 +668,19 @@ void static_initialize(void)
 #undef DEF
 
     //-----------------------------------------------------------------
+    auto add_type = [&gctx](const char *raw_name, v_type_t *type)
+    {
+        gctx.decls.symbols.insert({raw_name, gctx.opaque_type_type});
+
+        gctx.add_symbol_value(raw_name, (void *)type);
+    };
+
 #define DEF(ctype, name) \
     static_assert((sizeof(ctype) % sizeof(intptr_t)) == 0); \
     v_type_t *name##_content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
     auto opaque_##name##_type = gctx.make_struct_type("struct.v_util_opaque_" #name); \
     opaque_##name##_type->set_body(&name##_content_type, 1, false); \
-    gctx.add_symbol("v_util_opaque_" #name, gctx.opaque_type_type, (void *)opaque_##name##_type);
+    add_type("v_util_opaque_" #name, opaque_##name##_type);
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)

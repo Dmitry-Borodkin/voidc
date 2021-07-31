@@ -125,9 +125,11 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *aux,
     {
         auto &fun_name = fname->name;
 
-        if (gctx.intrinsics.count(fun_name))
+        auto &intrinsics = lctx.decls.intrinsics;
+
+        if (intrinsics.count(fun_name))
         {
-            gctx.intrinsics[fun_name](vis, aux, args);
+            intrinsics[fun_name](vis, aux, args);
 
             return;
         }

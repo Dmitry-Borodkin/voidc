@@ -398,11 +398,18 @@ void parsers_static_initialize(void)
 
     v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(parser_sptr_t)/sizeof(intptr_t));
 
+    auto add_type = [&gctx](const char *raw_name, v_type_t *type)
+    {
+        gctx.decls.symbols.insert({raw_name, gctx.opaque_type_type});
+
+        gctx.add_symbol_value(raw_name, (void *)type);
+    };
+
 #define DEF(name) \
     static_assert(sizeof(parser_sptr_t) == sizeof(name##_sptr_t)); \
     auto name##_sptr_type = gctx.make_struct_type("struct.v_peg_opaque_" #name "_sptr"); \
     name##_sptr_type->set_body(&content_type, 1, false); \
-    gctx.add_symbol("v_peg_opaque_" #name "_sptr", gctx.opaque_type_type, (void *)name##_sptr_type);
+    add_type("v_peg_opaque_" #name "_sptr", name##_sptr_type);
 
     DEF(parser)
     DEF(action)
@@ -414,8 +421,9 @@ void parsers_static_initialize(void)
     auto int_llvm_type = int_type->llvm_type();
 
 #define DEF(name, kind) \
-    gctx.constants["v_peg_" #name "_kind_" #kind] = \
-        { int_type, LLVMConstInt(int_llvm_type, name##_t::k_##kind, 0) };
+    gctx.decls.constants.insert({"v_peg_" #name "_kind_" #kind, int_type}); \
+    gctx.constant_values.insert({"v_peg_" #name "_kind_" #kind, \
+        LLVMConstInt(int_llvm_type, name##_t::k_##kind, 0)});
 
     DEF(parser, choice)
     DEF(parser, sequence)
@@ -446,8 +454,9 @@ void parsers_static_initialize(void)
 #undef DEF
 
 #define DEF(kind) \
-    gctx.constants["v_peg_backref_argument_kind_" #kind] = \
-        { int_type, LLVMConstInt(int_llvm_type, backref_argument_t::bk_##kind, 0) };
+    gctx.decls.constants.insert({"v_peg_backref_argument_kind_" #kind, int_type}); \
+    gctx.constant_values.insert({"v_peg_backref_argument_kind_" #kind, \
+        LLVMConstInt(int_llvm_type, backref_argument_t::bk_##kind, 0)});
 
     DEF(string)
     DEF(start)

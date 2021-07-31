@@ -37,15 +37,40 @@ public:
     virtual ~base_compile_ctx_t() = default;
 
 public:
-    std::set<std::string> imports;
+    typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
+
+    struct declarations_t
+    {
+        std::map<std::string, std::string> aliases;
+        std::map<std::string, v_type_t *>  constants;
+        std::map<std::string, v_type_t *>  symbols;
+        std::map<std::string, intrinsic_t> intrinsics;
+
+        void insert(const declarations_t &other)
+        {
+            aliases.insert(other.aliases.begin(), other.aliases.end());
+            constants.insert(other.constants.begin(), other.constants.end());
+            symbols.insert(other.symbols.begin(), other.symbols.end());
+            intrinsics.insert(other.intrinsics.begin(), other.intrinsics.end());
+        }
+    };
+
+    declarations_t decls;
 
 public:
-    std::map<std::string, std::pair<v_type_t *, LLVMValueRef>> constants;
-
-    std::map<std::string, std::string> aliases;
+    std::map<std::string, LLVMValueRef> constant_values;
 
 public:
-    virtual void add_symbol(const char *raw_name, v_type_t *type, void *value) = 0;
+    virtual void add_symbol_value(const char *raw_name, void *value) = 0;
+
+public:
+    v_type_t *get_symbol_type(const char *raw_name) const
+    {
+        auto it = decls.symbols.find(raw_name);
+
+        if (it != decls.symbols.end())  return it->second;
+        else                            return nullptr;
+    }
 };
 
 
@@ -59,6 +84,9 @@ public:
     ~base_global_ctx_t() override;
 
 public:
+    std::map<std::string, declarations_t> imported;
+
+public:
     const LLVMBuilderRef builder;
 
     v_type_t * const char_ptr_type;
@@ -68,19 +96,6 @@ public:
     static int debug_print_module;
 
     static void verify_module(LLVMModuleRef module);
-
-public:
-    virtual void add_symbol_type(const char *raw_name, v_type_t *type) = 0;
-    virtual void add_symbol_value(const char *raw_name, void *value) = 0;
-
-    virtual v_type_t *get_symbol_type(const char *raw_name) = 0;
-    virtual void *    get_symbol_value(const char *raw_name) = 0;
-    virtual void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) = 0;
-
-public:
-    typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
-
-    std::map<std::string, intrinsic_t> intrinsics;
 
 public:
     base_local_ctx_t *local_ctx = nullptr;
@@ -96,23 +111,41 @@ protected:
 class base_local_ctx_t : public base_compile_ctx_t
 {
 public:
-    base_local_ctx_t(const std::string filename, base_global_ctx_t &global);
+    explicit base_local_ctx_t(base_global_ctx_t &global);
     ~base_local_ctx_t() override;
 
 public:
-    const std::string filename;
+    std::string filename;
 
     base_global_ctx_t &global_ctx;
+
+public:
+    std::set<std::string> imports;
+
+public:
+    declarations_t *export_decls = nullptr;
+
+    void add_alias(const char *name, const char *raw_name);
+    void add_local_alias(const char *name, const char *raw_name);
+
+    void add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value);
+    void add_local_constant(const char *raw_name, v_type_t *type, LLVMValueRef value);
+
+    void add_symbol(const char *raw_name, v_type_t *type, void *value);
+    void add_local_symbol(const char *raw_name, v_type_t *type, void *value);
+
+    void add_intrinsic(const char *fun_name, intrinsic_t fun);
+    void add_local_intrinsic(const char *fun_name, intrinsic_t fun);
 
 public:
     const std::string check_alias(const std::string &name);
 
 public:
-    virtual v_type_t *find_type(const char *type_name);                 //- Alias checked
-
-    virtual v_type_t *find_symbol_type(const char *raw_name) = 0;       //- No alias check!
+    v_type_t *find_type(const char *type_name);                     //- Alias checked
 
     v_type_t *obtain_type(const ast_expr_sptr_t &expr);
+
+    virtual void *find_symbol_value(const char *raw_name) = 0;      //- No alias check!
 
 public:
     LLVMModuleRef module = nullptr;
@@ -199,13 +232,7 @@ public:
     v_type_t * const opaque_type_type;
 
 public:
-    void add_symbol_type(const char *raw_name, v_type_t *type) override;
     void add_symbol_value(const char *raw_name, void *value) override;
-    void add_symbol(const char *raw_name, v_type_t *type, void *value) override;
-
-    v_type_t *get_symbol_type(const char *raw_name) override;
-    void *    get_symbol_value(const char *raw_name) override;
-    void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) override;
 
 public:
     llvm::orc::SymbolMap unit_symbols;
@@ -214,8 +241,6 @@ public:
 
 private:
     friend class voidc_local_ctx_t;
-
-    std::map<std::string, v_type_t *> symbol_types;
 
     int local_jd_hash = 0;
 };
@@ -226,16 +251,14 @@ private:
 class voidc_local_ctx_t : public base_local_ctx_t
 {
 public:
-    voidc_local_ctx_t(const std::string filename, voidc_global_ctx_t &global);
+    explicit voidc_local_ctx_t(voidc_global_ctx_t &global);
     ~voidc_local_ctx_t() override;
 
 public:
-    void add_symbol(const char *name, v_type_t *type, void *value) override;
+    void add_symbol_value(const char *raw_name, void *value) override;
 
 public:
-    v_type_t *find_type(const char *type_name) override;            //- Alias checked
-
-    v_type_t *find_symbol_type(const char *raw_name) override;      //- No check alias!
+    void *find_symbol_value(const char *raw_name) override;         //- No check alias!
 
 public:
     LLVMOrcJITDylibRef local_jd = nullptr;
@@ -256,8 +279,6 @@ public:
     void flush_unit_symbols(void);
 
 private:
-    std::map<std::string, v_type_t *> symbol_types;
-
     void setup_link_order(void);
 };
 
@@ -272,16 +293,12 @@ public:
     ~target_global_ctx_t();
 
 public:
-    void add_symbol_type(const char *raw_name, v_type_t *type) override;
     void add_symbol_value(const char *raw_name, void *value) override;
-    void add_symbol(const char *raw_name, v_type_t *type, void *value) override;
-
-    v_type_t *get_symbol_type(const char *raw_name) override;
-    void *    get_symbol_value(const char *raw_name) override;
-    void      get_symbol(const char *raw_name, v_type_t * &type, void * &value) override;
 
 private:
-    std::map<std::string, std::pair<v_type_t *, void *>> symbols;
+    friend class target_local_ctx_t;
+
+    std::map<std::string, void *> symbol_values;
 };
 
 //---------------------------------------------------------------------
@@ -290,19 +307,17 @@ private:
 class target_local_ctx_t : public base_local_ctx_t
 {
 public:
-    target_local_ctx_t(const std::string filename, base_global_ctx_t &global);
+    explicit target_local_ctx_t(base_global_ctx_t &global);
     ~target_local_ctx_t() = default;
 
 public:
-    void add_symbol(const char *raw_name, v_type_t *type, void *value) override;
+    void add_symbol_value(const char *raw_name, void *value) override;
 
 public:
-    v_type_t *find_type(const char *type_name) override;            //- Alias checked
-
-    v_type_t *find_symbol_type(const char *raw_name) override;      //- No check alias!
+    void *find_symbol_value(const char *raw_name) override;         //- No check alias!
 
 private:
-    std::map<std::string, std::pair<v_type_t *, void *>> symbols;
+    std::map<std::string, void *> symbol_values;
 };
 
 
