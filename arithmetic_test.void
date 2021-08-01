@@ -1,14 +1,19 @@
-{   v_import("arithmetic.void");
+{   v_import("voidc_target.void");
+    v_import("voidc_types.void");
 
-    v_import("block.void");
+    v_import("llvm-c/Core.void");
+
+    v_import("function_hack.void");
     v_import("if_then_else.void");
+    v_import("arithmetic.void");
+    v_import("block.void");
 }
 
 {   v_import("printf.void");
 }
 
-{   voidc_enable_statement_block();
-    voidc_enable_statement_if_then_else();
+{   voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
 }
 
 

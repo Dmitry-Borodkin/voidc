@@ -4,13 +4,23 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("block.void  must be imported into the voidc target only!");
 
-    v_import("vpeg_context.void");
-    v_import("voidc_ast.void");
+    v_local_import("voidc_target.void");
+    v_local_import("voidc_types.void");
+    v_local_import("voidc_util.void");
+    v_local_import("voidc_ast.void");
+    v_local_import("voidc_quark.void");
+    v_local_import("voidc_visitor.void");
+    v_local_import("voidc_compiler.void");
+    v_local_import("vpeg_parser.void");
+    v_local_import("vpeg_grammar.void");
+    v_local_import("vpeg_context.void");
 
-    v_import("function_hack.void");
-    v_import("arithmetic.void");
-    v_import("memory.void");
-    v_import("if_then_else.void");
+    v_local_import("llvm-c/Core.void");
+
+    v_local_import("function_hack.void");
+    v_local_import("memory.void");
+    v_local_import("if_then_else.void");
+    v_local_import("arithmetic.void");
 }
 
 {   voidc_enable_statement_if_then_else();

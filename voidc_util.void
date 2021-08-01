@@ -4,10 +4,11 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("voidc_util.void  must be imported into the voidc target only!");
 
-    v_import("voidc_internals.void");
-    v_import("voidc_types.void");
+    v_local_import("voidc_internals.void");
+    v_local_import("voidc_target.void");
+    v_local_import("voidc_types.void");
 
-    v_import("llvm-c/Core.void");
+    v_local_import("llvm-c/Core.void");
 }
 
 

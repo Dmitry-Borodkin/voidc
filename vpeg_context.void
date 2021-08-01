@@ -4,9 +4,18 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("voidc_context.void  must be imported into the voidc target only!");
 
-    v_import("vpeg_grammar.void");
+    v_local_import("voidc_target.void");
+    v_local_import("voidc_types.void");
+    v_local_import("voidc_util.void");
+
+    v_local_import("vpeg_parser.void");
+    v_local_import("vpeg_grammar.void");
+
+    v_local_import("llvm-c/Core.void");
 }
 
+
+//---------------------------------------------------------------------
 {   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
@@ -46,7 +55,8 @@
 //---------------------------------------------------------------------
 //- vpeg_context.void support module
 //---------------------------------------------------------------------
-{   module = LLVMModuleCreateWithName("vpeg_context_void_module");
+{
+    module = LLVMModuleCreateWithName("vpeg_context_void_module");
 
     v_set_module(module);
 
