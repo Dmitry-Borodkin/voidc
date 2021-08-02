@@ -4,15 +4,15 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("voidc_quark.void  must be imported into the voidc target only!");
 
-    v_local_import("voidc_target.void");
-    v_local_import("voidc_types.void");
+    v_import("voidc_target.void");
+    v_import("voidc_types.void");
 }
 
 
 //---------------------------------------------------------------------
 {   quark_t = v_uint_type(32);      //- Sic!
 
-    v_add_symbol("v_quark_t", voidc_opaque_type, quark_t);
+    v_export_symbol("v_quark_t", voidc_opaque_type, quark_t);
 }
 
 
@@ -24,15 +24,15 @@
     v_store(char_ptr, typ);
 
     ft = v_function_type(v_pointer_type(v_quark_t, 0), typ, 1, false);
-    v_add_symbol_type("v_quark_ptr_from_string", ft);
+    v_export_symbol_type("v_quark_ptr_from_string", ft);
 
     ft = v_function_type(v_quark_t, typ, 1, false);
-    v_add_symbol_type("v_quark_from_string", ft);
+    v_export_symbol_type("v_quark_from_string", ft);
 
     v_store(v_quark_t, typ);
 
     ft = v_function_type(char_ptr, typ, 1, 0);
-    v_add_symbol_type("v_quark_to_string", ft);
+    v_export_symbol_type("v_quark_to_string", ft);
 }
 
 

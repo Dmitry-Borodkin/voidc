@@ -29,9 +29,9 @@
     long_sz_v = LLVMSizeOf(long_);
     ptr_sz_v  = LLVMSizeOf(intptr_t_);
 
-    v_add_local_constant("int_sz",  size_t, int_sz_v);
-    v_add_local_constant("long_sz", size_t, long_sz_v);
-    v_add_local_constant("ptr_sz",  size_t, ptr_sz_v);
+    v_add_constant("int_sz",  size_t, int_sz_v);
+    v_add_constant("long_sz", size_t, long_sz_v);
+    v_add_constant("ptr_sz",  size_t, ptr_sz_v);
 }
 
 {
@@ -44,12 +44,12 @@
 {
     gctx = v_target_create_global_ctx(int_sz, long_sz, ptr_sz);
 
-    v_add_local_symbol("my_gctx", v_target_opaque_global_ctx, gctx);
+    v_add_symbol("my_gctx", v_target_opaque_global_ctx, gctx);
 
 
     lctx = v_target_create_local_ctx("<target test>", gctx);
 
-    v_add_local_symbol("my_lctx", v_target_opaque_local_ctx, lctx);
+    v_add_symbol("my_lctx", v_target_opaque_local_ctx, lctx);
 
 
     v_target_set_global_ctx(gctx);
@@ -80,7 +80,7 @@
 
     printf_ft = v_function_type(_int, arg, 1, true);
 
-    v_add_symbol_type("printf", printf_ft);
+    v_export_symbol_type("printf", printf_ft);
 }
 
 {   t = v_find_symbol_type("printf");

@@ -580,28 +580,28 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //--------------------------------------------------------------------
 void
-v_import(const char *name)
+v_export_import(const char *name)
 {
     v_import_helper(name, true);
 }
 
 //--------------------------------------------------------------------
 void
-voidc_import(const char *name)
+voidc_export_import(const char *name)
 {
     voidc_import_helper(name, true);
 }
 
 //--------------------------------------------------------------------
 void
-v_local_import(const char *name)
+v_import(const char *name)
 {
     v_import_helper(name, false);
 }
 
 //--------------------------------------------------------------------
 void
-voidc_local_import(const char *name)
+voidc_import(const char *name)
 {
     voidc_import_helper(name, false);
 }
@@ -690,11 +690,11 @@ main(int argc, char *argv[])
 
     {   v_type_t *import_f_type = gctx.make_function_type(gctx.void_type, &gctx.char_ptr_type, 1, false);
 
-        gctx.decls.symbols.insert({"v_import",           import_f_type});
-        gctx.decls.symbols.insert({"voidc_import",       import_f_type});
-        gctx.decls.symbols.insert({"v_local_import",     import_f_type});
-        gctx.decls.symbols.insert({"voidc_local_import", import_f_type});
-        gctx.decls.symbols.insert({"voidc_guard_target", import_f_type});       //- Kind of...
+        gctx.decls.symbols.insert({"v_export_import",     import_f_type});
+        gctx.decls.symbols.insert({"voidc_export_import", import_f_type});
+        gctx.decls.symbols.insert({"v_import",            import_f_type});
+        gctx.decls.symbols.insert({"voidc_import",        import_f_type});
+        gctx.decls.symbols.insert({"voidc_guard_target",  import_f_type});      //- Kind of...
     }
 
     v_ast_static_initialize();

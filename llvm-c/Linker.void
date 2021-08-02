@@ -5,7 +5,9 @@
 
 //- Imports ------------------------------------------------
 {
-    v_import("Types.void");
+    voidc_import("prelude.void");
+
+    v_export_import("Types.void");
 }
 
 //- Functions ----------------------------------------------
@@ -18,7 +20,7 @@
     v_store(v0_LLVMModuleRef, arg1);
     v1_LLVMBool = v_find_type("LLVMBool");
     v2 = v_function_type(v1_LLVMBool, arg0, 2, false);
-    v_add_symbol_type("LLVMLinkModules2", v2);
+    v_export_symbol_type("LLVMLinkModules2", v2);
 
 }
 

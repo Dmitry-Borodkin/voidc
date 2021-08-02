@@ -4,24 +4,24 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("grammar.void  must be imported into the voidc target only!");
 
-    v_local_import("voidc_target.void");
-    v_local_import("voidc_types.void");
-    v_local_import("voidc_util.void");
-    v_local_import("voidc_ast.void");
-    v_local_import("voidc_quark.void");
-    v_local_import("voidc_visitor.void");
-    v_local_import("voidc_compiler.void");
-    v_local_import("vpeg_parser.void");
-    v_local_import("vpeg_grammar.void");
-    v_local_import("vpeg_context.void");
+    v_import("voidc_target.void");
+    v_import("voidc_types.void");
+    v_import("voidc_util.void");
+    v_import("voidc_ast.void");
+    v_import("voidc_quark.void");
+    v_import("voidc_visitor.void");
+    v_import("voidc_compiler.void");
+    v_import("vpeg_parser.void");
+    v_import("vpeg_grammar.void");
+    v_import("vpeg_context.void");
 
-    v_local_import("llvm-c/Core.void");
+    v_import("llvm-c/Core.void");
 
-    v_local_import("function_hack.void");
-    v_local_import("if_then_else.void");
-    v_local_import("arithmetic.void");
-    v_local_import("block.void");
-    v_local_import("loop.void");
+    v_import("function_hack.void");
+    v_import("if_then_else.void");
+    v_import("arithmetic.void");
+    v_import("block.void");
+    v_import("loop.void");
 }
 
 {   voidc_enable_statement_if_then_else();
@@ -34,8 +34,8 @@
 {   char_ptr = v_pointer_type(char, 0);
     void_ptr = v_pointer_type(void, 0);
 
-    v_add_local_symbol("char_ptr", voidc_opaque_type, char_ptr);
-    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+    v_add_symbol("char_ptr", voidc_opaque_type, char_ptr);
+    v_add_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 
@@ -107,17 +107,17 @@
     LLVMSetInitializer(rn_count, int_u);
     LLVMSetInitializer(rn_num,   int_u);
 
-    v_add_local_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_expr_sptr,      0);    //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_expr_sptr,      0);    //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
 
     int_ref = v_reference_type(int, 0);
 
-    v_add_local_symbol("voidc_ast_stmt_grammar_parsers_count",   int_ref, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_parser_number",   int_ref, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_arguments_count", int_ref, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_argument_number", int_ref, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_ranges_count",    int_ref, 0);   //- Sic!
-    v_add_local_symbol("voidc_ast_stmt_grammar_range_number",    int_ref, 0);   //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_parsers_count",   int_ref, 0);   //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_parser_number",   int_ref, 0);   //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_arguments_count", int_ref, 0);   //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_argument_number", int_ref, 0);   //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_ranges_count",    int_ref, 0);   //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_range_number",    int_ref, 0);   //- Sic!
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
@@ -143,7 +143,7 @@
 
     ft = v_function_type(void, typ0, 5, false);
 
-    v_add_symbol_type("v_ast_make_stmt_call", ft);
+    v_export_symbol_type("v_ast_make_stmt_call", ft);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_call", ft);

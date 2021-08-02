@@ -125,17 +125,17 @@ public:
 public:
     declarations_t *export_decls = nullptr;
 
+    void export_alias(const char *name, const char *raw_name);
     void add_alias(const char *name, const char *raw_name);
-    void add_local_alias(const char *name, const char *raw_name);
 
+    void export_constant(const char *raw_name, v_type_t *type, LLVMValueRef value);
     void add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value);
-    void add_local_constant(const char *raw_name, v_type_t *type, LLVMValueRef value);
 
+    void export_symbol(const char *raw_name, v_type_t *type, void *value);
     void add_symbol(const char *raw_name, v_type_t *type, void *value);
-    void add_local_symbol(const char *raw_name, v_type_t *type, void *value);
 
+    void export_intrinsic(const char *fun_name, intrinsic_t fun);
     void add_intrinsic(const char *fun_name, intrinsic_t fun);
-    void add_local_intrinsic(const char *fun_name, intrinsic_t fun);
 
 public:
     const std::string check_alias(const std::string &name);

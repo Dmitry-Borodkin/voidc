@@ -18,12 +18,12 @@
 
     ft = v_function_type(double, typ, 1, false);
 
-    v_add_symbol_type("sin", ft);
-    v_add_symbol_type("cos", ft);
+    v_export_symbol_type("sin", ft);
+    v_export_symbol_type("cos", ft);
 
-    v_add_symbol_type("sqrt", ft);
+    v_export_symbol_type("sqrt", ft);
 
-    v_add_symbol("double", voidc_opaque_type, double);
+    v_export_symbol("double", voidc_opaque_type, double);
 }
 
 
@@ -55,7 +55,7 @@
 
     ft0 = v_function_type(void, typ, 1, false);
 
-    v_add_local_symbol("ft0", voidc_opaque_type, ft0);
+    v_add_symbol("ft0", voidc_opaque_type, ft0);
 
     f = v_function_hack("fun0", ft0);
 
@@ -72,7 +72,7 @@
 
     ft1 = v_function_type(v_pointer_type(ft0, 0), typ, 1, false);
 
-    v_add_local_symbol("ft1", voidc_opaque_type, ft1);
+    v_add_symbol("ft1", voidc_opaque_type, ft1);
 
     f = v_function_hack("fun1", ft1);
 
@@ -91,7 +91,7 @@
 
     ft2 = v_function_type(v_pointer_type(ft1, 0), typ, 1, false);
 
-    v_add_local_symbol("ft2", voidc_opaque_type, ft2);
+    v_add_symbol("ft2", voidc_opaque_type, ft2);
 
     f = v_function_hack("fun2", ft2);
 
@@ -110,7 +110,7 @@
 
     ft3 = v_function_type(v_pointer_type(ft2, 0), typ, 1, false);
 
-    v_add_local_symbol("ft3", voidc_opaque_type, ft3);
+    v_add_symbol("ft3", voidc_opaque_type, ft3);
 
     f = v_function_hack("fun3", ft3);
 
@@ -129,7 +129,7 @@
 
     ft4 = v_function_type(v_pointer_type(ft3, 0), typ, 1, false);
 
-    v_add_local_symbol("ft4", voidc_opaque_type, ft4);
+    v_add_symbol("ft4", voidc_opaque_type, ft4);
 
     f = v_function_hack("fun4", ft4);
 
@@ -148,7 +148,7 @@
 
     ft5 = v_function_type(v_pointer_type(ft4, 0), typ, 1, false);
 
-    v_add_local_symbol("ft5", voidc_opaque_type, ft5);
+    v_add_symbol("ft5", voidc_opaque_type, ft5);
 
     f = v_function_hack("fun5", ft5);
 
@@ -167,7 +167,7 @@
 
     ft6 = v_function_type(v_pointer_type(ft5, 0), typ, 1, false);
 
-    v_add_local_symbol("ft6", voidc_opaque_type, ft6);
+    v_add_symbol("ft6", voidc_opaque_type, ft6);
 
     f = v_function_hack("fun6", ft6);
 
@@ -186,7 +186,7 @@
 
     ft7 = v_function_type(v_pointer_type(ft6, 0), typ, 1, false);
 
-    v_add_local_symbol("ft7", voidc_opaque_type, ft7);
+    v_add_symbol("ft7", voidc_opaque_type, ft7);
 
     f = v_function_hack("fun7", ft7);
 

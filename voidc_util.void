@@ -4,31 +4,31 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("voidc_util.void  must be imported into the voidc target only!");
 
-    v_local_import("voidc_target.void");
-    v_local_import("voidc_types.void");
+    v_import("voidc_target.void");
+    v_import("voidc_types.void");
 
-    v_local_import("llvm-c/Core.void");
+    v_import("llvm-c/Core.void");
 }
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_add_symbol_type("v_util_initialize_dict",          v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_terminate_dict",           v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_copy_dict",                v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_move_dict",                v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_empty_dict",               v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_kind_dict",                v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_std_any_get_value_dict",   v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_std_any_get_pointer_dict", v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_std_any_set_value_dict",   v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_std_any_set_pointer_dict", v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_make_list_nil_dict",       v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_make_list_dict",           v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_list_append_dict",         v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_list_get_size_dict",       v_util_opaque_function_dict_t);
-    v_add_symbol_type("v_util_list_get_items_dict",      v_util_opaque_function_dict_t);
+{   v_export_symbol_type("v_util_initialize_dict",          v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_terminate_dict",           v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_copy_dict",                v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_move_dict",                v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_empty_dict",               v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_kind_dict",                v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_std_any_get_value_dict",   v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_std_any_get_pointer_dict", v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_std_any_set_value_dict",   v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_std_any_set_pointer_dict", v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_make_list_nil_dict",       v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_make_list_dict",           v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_list_append_dict",         v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_list_get_size_dict",       v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_list_get_items_dict",      v_util_opaque_function_dict_t);
 }
 
 
@@ -47,12 +47,12 @@
     v_store(v_type_ptr, typ1);
 
     ft = v_function_type(char_ptr, typ0, 2, false);
-    v_add_symbol_type("v_util_function_dict_get", ft);
+    v_export_symbol_type("v_util_function_dict_get", ft);
 
     v_store(char_ptr, typ2);
 
     ft = v_function_type(void, typ0, 3, false);
-    v_add_symbol_type("v_util_function_dict_set", ft);
+    v_export_symbol_type("v_util_function_dict_set", ft);
 }
 
 
@@ -67,10 +67,10 @@
 //- ...
 //---------------------------------------------------------------------
 {   std_any_ptr = v_pointer_type(v_util_opaque_std_any, 0);
-    v_add_symbol("v_util_std_any_ptr", voidc_opaque_type, std_any_ptr);
+    v_export_symbol("v_util_std_any_ptr", voidc_opaque_type, std_any_ptr);
 
     std_string_ptr = v_pointer_type(v_util_opaque_std_string, 0);
-    v_add_symbol("v_util_std_string_ptr", voidc_opaque_type, std_string_ptr);
+    v_export_symbol("v_util_std_string_ptr", voidc_opaque_type, std_string_ptr);
 }
 
 
@@ -85,23 +85,23 @@
     char_ptr = v_pointer_type(char, 0);
 
     ft = v_function_type(char_ptr, typ0, 1, false);
-    v_add_symbol_type("v_std_string_get", ft);
+    v_export_symbol_type("v_std_string_get", ft);
 
     v_store(char_ptr, typ1);
 
     ft = v_function_type(void, typ0, 2, false);
-    v_add_symbol_type("v_std_string_set",    ft);
-    v_add_symbol_type("v_std_string_append", ft);
+    v_export_symbol_type("v_std_string_set",    ft);
+    v_export_symbol_type("v_std_string_append", ft);
 
     v_store(char32_t, typ1);
 
     ft = v_function_type(void, typ0, 2, false);
-    v_add_symbol_type("v_std_string_append_char", ft);
+    v_export_symbol_type("v_std_string_append_char", ft);
 
     v_store(intptr_t, typ1);
 
     ft = v_function_type(void, typ0, 2, false);
-    v_add_symbol_type("v_std_string_append_number", ft);
+    v_export_symbol_type("v_std_string_append_number", ft);
 }
 
 
@@ -440,9 +440,9 @@
     obtain_var_ft  = v_function_type(LLVMValueRef, typ0, 1, false);
 
     //-----------------------------------------------------------------
-    v_add_symbol_type("v_obtain_function",      obtain_fun_ft);
-    v_add_symbol_type("v_obtain_dict_function", obtain_dfun_ft);
-    v_add_symbol_type("v_obtain_global",        obtain_var_ft);
+    v_export_symbol_type("v_obtain_function",      obtain_fun_ft);
+    v_export_symbol_type("v_obtain_dict_function", obtain_dfun_ft);
+    v_export_symbol_type("v_obtain_global",        obtain_var_ft);
 }
 
 
@@ -499,41 +499,41 @@
     sstr_i_d_ft  = v_function_type(void, typ0, 2, false);
 
     //-----------------------------------------------------------------
-    v_add_local_symbol("init_term_helper", register_helper_ft, 0);
-    v_add_local_symbol("copy_move_helper", register_helper_ft, 0);
+    v_add_symbol("init_term_helper", register_helper_ft, 0);
+    v_add_symbol("copy_move_helper", register_helper_ft, 0);
 
-    v_add_local_symbol("v_util_initialize_std_string_impl", sstr_i_d_ft, 0);
-    v_add_local_symbol("v_util_terminate_std_string_impl",  sstr_i_d_ft, 0);
+    v_add_symbol("v_util_initialize_std_string_impl", sstr_i_d_ft, 0);
+    v_add_symbol("v_util_terminate_std_string_impl",  sstr_i_d_ft, 0);
 
     //-----------------------------------------------------------------
-    v_add_symbol_type("v_util_registering_helper", util_reg_helper_ft);
+    v_export_symbol_type("v_util_registering_helper", util_reg_helper_ft);
 
-    v_add_symbol_type("v_util_register_initialize_impl", register_ft);
-    v_add_symbol_type("v_util_register_terminate_impl",  register_ft);
-    v_add_symbol_type("v_util_register_copy_impl",       register_ft);
-    v_add_symbol_type("v_util_register_move_impl",       register_ft);
-    v_add_symbol_type("v_util_register_empty_impl",      register_ft);
+    v_export_symbol_type("v_util_register_initialize_impl", register_ft);
+    v_export_symbol_type("v_util_register_terminate_impl",  register_ft);
+    v_export_symbol_type("v_util_register_copy_impl",       register_ft);
+    v_export_symbol_type("v_util_register_move_impl",       register_ft);
+    v_export_symbol_type("v_util_register_empty_impl",      register_ft);
 
-    v_add_symbol_type("v_util_register_itcme_impl", register_batch_ft);
+    v_export_symbol_type("v_util_register_itcme_impl", register_batch_ft);
 
-    v_add_symbol_type("v_util_register_std_any_get_value_impl",   register_ft);
-    v_add_symbol_type("v_util_register_std_any_get_pointer_impl", register_ft);
-    v_add_symbol_type("v_util_register_std_any_set_value_impl",   register_ft);
-    v_add_symbol_type("v_util_register_std_any_set_pointer_impl", register_ft);
+    v_export_symbol_type("v_util_register_std_any_get_value_impl",   register_ft);
+    v_export_symbol_type("v_util_register_std_any_get_pointer_impl", register_ft);
+    v_export_symbol_type("v_util_register_std_any_set_value_impl",   register_ft);
+    v_export_symbol_type("v_util_register_std_any_set_pointer_impl", register_ft);
 
-    v_add_symbol_type("v_util_register_gs_value_impl",   register_batch_ft);
-    v_add_symbol_type("v_util_register_gs_pointer_impl", register_batch_ft);
-    v_add_symbol_type("v_util_register_gs_vp_impl",      register_batch_ft);
+    v_export_symbol_type("v_util_register_gs_value_impl",   register_batch_ft);
+    v_export_symbol_type("v_util_register_gs_pointer_impl", register_batch_ft);
+    v_export_symbol_type("v_util_register_gs_vp_impl",      register_batch_ft);
 
-    v_add_symbol_type("v_util_register_itcmep_impl", register_batch_ft);
+    v_export_symbol_type("v_util_register_itcmep_impl", register_batch_ft);
 
-    v_add_symbol_type("v_util_register_make_list_nil_impl",  register_wtyp_ft);
-    v_add_symbol_type("v_util_register_make_list_impl",      register_wtyp_ft);
-    v_add_symbol_type("v_util_register_list_append_impl",    register_wtyp_ft);
-    v_add_symbol_type("v_util_register_list_get_size_impl",  register_ft);
-    v_add_symbol_type("v_util_register_list_get_items_impl", register_wtyp_ft);
+    v_export_symbol_type("v_util_register_make_list_nil_impl",  register_wtyp_ft);
+    v_export_symbol_type("v_util_register_make_list_impl",      register_wtyp_ft);
+    v_export_symbol_type("v_util_register_list_append_impl",    register_wtyp_ft);
+    v_export_symbol_type("v_util_register_list_get_size_impl",  register_ft);
+    v_export_symbol_type("v_util_register_list_get_items_impl", register_wtyp_ft);
 
-    v_add_symbol_type("v_util_register_list_agsgi_impl", register_batch_wtyp_ft);
+    v_export_symbol_type("v_util_register_list_agsgi_impl", register_batch_wtyp_ft);
 }
 
 
@@ -573,7 +573,7 @@
     //- fun v_util_registering_helper(p_dict: dict_ptr, val_t_type: v_type_ptr,
     //-                               fun_name: char_ptr, fun_type: v_type_ptr)
     //- {
-    //-     v_add_symbol_type(fun_name, fun_type);
+    //-     v_export_symbol_type(fun_name, fun_type);
     //-
     //-     v_util_function_dict_set(p_dict, val_t_type, fun_name);
     //- }
@@ -592,9 +592,9 @@
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    add_symbol_type_f = v_obtain_function("v_add_symbol_type");
+    export_symbol_type_f = v_obtain_function("v_export_symbol_type");
 
-    LLVMBuildCall(builder, add_symbol_type_f, val0, 2, "");
+    LLVMBuildCall(builder, export_symbol_type_f, val0, 2, "");
 
 
     v_store(p_dict,     val0);
@@ -2095,8 +2095,8 @@
     INVIOLABLE_TAG_v  = LLVMConstIntToPtr(zero_v,   type_ptr_);
     UNREFERENCE_TAG_v = LLVMConstIntToPtr(minus1_v, type_ptr_);
 
-    v_add_constant("INVIOLABLE_TAG",  v_type_ptr, INVIOLABLE_TAG_v);
-    v_add_constant("UNREFERENCE_TAG", v_type_ptr, UNREFERENCE_TAG_v);
+    v_export_constant("INVIOLABLE_TAG",  v_type_ptr, INVIOLABLE_TAG_v);
+    v_export_constant("UNREFERENCE_TAG", v_type_ptr, UNREFERENCE_TAG_v);
 }
 
 

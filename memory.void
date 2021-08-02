@@ -4,15 +4,15 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("memory.void  must be imported into the voidc target only!");
 
-    v_local_import("voidc_target.void");
-    v_local_import("voidc_types.void");
-    v_local_import("voidc_util.void");
-    v_local_import("voidc_ast.void");
-    v_local_import("voidc_visitor.void");
+    v_import("voidc_target.void");
+    v_import("voidc_types.void");
+    v_import("voidc_util.void");
+    v_import("voidc_ast.void");
+    v_import("voidc_visitor.void");
 
-    v_local_import("llvm-c/Core.void");
+    v_import("llvm-c/Core.void");
 
-    v_local_import("function_hack.void");
+    v_import("function_hack.void");
 }
 
 
@@ -20,7 +20,7 @@
 //- ...
 //---------------------------------------------------------------------
 {   void_ptr = v_pointer_type(void, 0);
-    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+    v_add_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 //---------------------------------------------------------------------
@@ -304,8 +304,8 @@
     v_set_module(0);
 }
 
-{   v_add_intrinsic("v_malloc", voidc_memory_malloc_intrinsic);
-    v_add_intrinsic("v_mfree",  voidc_memory_mfree_intrinsic);
+{   v_export_intrinsic("v_malloc", voidc_memory_malloc_intrinsic);
+    v_export_intrinsic("v_mfree",  voidc_memory_mfree_intrinsic);
 }
 
 

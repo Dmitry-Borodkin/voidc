@@ -5,7 +5,9 @@
 
 //- Imports ------------------------------------------------
 {
-    v_import("Types.void");
+    voidc_import("prelude.void");
+
+    v_export_import("Types.void");
 }
 
 //- Functions ----------------------------------------------
@@ -22,7 +24,7 @@
     v_store(v2, arg1);
     v3_LLVMBool = v_find_type("LLVMBool");
     v4 = v_function_type(v3_LLVMBool, arg0, 2, false);
-    v_add_symbol_type("LLVMParseBitcode2", v4);
+    v_export_symbol_type("LLVMParseBitcode2", v4);
 
     v5_LLVMContextRef = v_find_type("LLVMContextRef");
     v_store(v5_LLVMContextRef, arg0);
@@ -30,7 +32,7 @@
     v6 = v_pointer_type(v1_LLVMModuleRef, 0);
     v_store(v6, arg2);
     v7 = v_function_type(v3_LLVMBool, arg0, 3, false);
-    v_add_symbol_type("LLVMParseBitcodeInContext2", v7);
+    v_export_symbol_type("LLVMParseBitcodeInContext2", v7);
 
     v_store(v0_LLVMMemoryBufferRef, arg0);
     v8 = v_pointer_type(v1_LLVMModuleRef, 0);
@@ -40,7 +42,7 @@
     v11 = v_pointer_type(v10, 0);
     v_store(v11, arg2);
     v12 = v_function_type(v3_LLVMBool, arg0, 3, false);
-    v_add_symbol_type("LLVMParseBitcode", v12);
+    v_export_symbol_type("LLVMParseBitcode", v12);
 
     v_store(v5_LLVMContextRef, arg0);
     v_store(v0_LLVMMemoryBufferRef, arg1);
@@ -50,14 +52,14 @@
     v15 = v_pointer_type(v14, 0);
     v_store(v15, arg3);
     v16 = v_function_type(v3_LLVMBool, arg0, 4, false);
-    v_add_symbol_type("LLVMGetBitcodeModuleInContext", v16);
+    v_export_symbol_type("LLVMGetBitcodeModuleInContext", v16);
 
     v_store(v5_LLVMContextRef, arg0);
     v_store(v0_LLVMMemoryBufferRef, arg1);
     v17 = v_pointer_type(v1_LLVMModuleRef, 0);
     v_store(v17, arg2);
     v18 = v_function_type(v3_LLVMBool, arg0, 3, false);
-    v_add_symbol_type("LLVMGetBitcodeModuleInContext2", v18);
+    v_export_symbol_type("LLVMGetBitcodeModuleInContext2", v18);
 
     v_store(v5_LLVMContextRef, arg0);
     v_store(v0_LLVMMemoryBufferRef, arg1);
@@ -67,13 +69,13 @@
     v21 = v_pointer_type(v20, 0);
     v_store(v21, arg3);
     v22 = v_function_type(v3_LLVMBool, arg0, 4, false);
-    v_add_symbol_type("LLVMParseBitcodeInContext", v22);
+    v_export_symbol_type("LLVMParseBitcodeInContext", v22);
 
     v_store(v0_LLVMMemoryBufferRef, arg0);
     v23 = v_pointer_type(v1_LLVMModuleRef, 0);
     v_store(v23, arg1);
     v24 = v_function_type(v3_LLVMBool, arg0, 2, false);
-    v_add_symbol_type("LLVMGetBitcodeModule2", v24);
+    v_export_symbol_type("LLVMGetBitcodeModule2", v24);
 
     v_store(v0_LLVMMemoryBufferRef, arg0);
     v25 = v_pointer_type(v1_LLVMModuleRef, 0);
@@ -82,7 +84,7 @@
     v27 = v_pointer_type(v26, 0);
     v_store(v27, arg2);
     v28 = v_function_type(v3_LLVMBool, arg0, 3, false);
-    v_add_symbol_type("LLVMGetBitcodeModule", v28);
+    v_export_symbol_type("LLVMGetBitcodeModule", v28);
 
 }
 

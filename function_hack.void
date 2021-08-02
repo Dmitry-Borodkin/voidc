@@ -4,15 +4,15 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("function_hack.void  must be imported into the voidc target only!");
 
-    v_local_import("voidc_target.void");
-    v_local_import("voidc_types.void");
-    v_local_import("voidc_util.void");
-    v_local_import("voidc_ast.void");
-    v_local_import("voidc_compiler.void");
-    v_local_import("voidc_visitor.void");
-    v_local_import("vpeg_context.void");
+    v_import("voidc_target.void");
+    v_import("voidc_types.void");
+    v_import("voidc_util.void");
+    v_import("voidc_ast.void");
+    v_import("voidc_compiler.void");
+    v_import("voidc_visitor.void");
+    v_import("vpeg_context.void");
 
-    v_local_import("llvm-c/Core.void");
+    v_import("llvm-c/Core.void");
 }
 
 
@@ -20,16 +20,16 @@
 //- Some utility...
 //---------------------------------------------------------------------
 {   char_ptr = v_pointer_type(char, 0);
-    v_add_local_symbol("char_ptr", voidc_opaque_type, char_ptr);
+    v_add_symbol("char_ptr", voidc_opaque_type, char_ptr);
 
     void_ptr = v_pointer_type(void, 0);
-    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+    v_add_symbol("void_ptr", voidc_opaque_type, void_ptr);
 
     void_ptr_ = v_type_get_llvm_type(void_ptr);
 
     llvm_opaque_type = v_type_refptr_get_element_type(LLVMTypeRef);
 
-    v_add_local_symbol("void_ptr_llvm_type", llvm_opaque_type, void_ptr_);
+    v_add_symbol("void_ptr_llvm_type", llvm_opaque_type, void_ptr_);
 }
 
 
@@ -45,11 +45,11 @@
 
     helper_ft = v_function_type(LLVMValueRef, typ0, 2, 0);
 
-    v_add_symbol_type("voidc_function_hack_intrinsic_helper",  helper_ft);
+    v_export_symbol_type("voidc_function_hack_intrinsic_helper",  helper_ft);
 
-    v_add_local_symbol("voidc_function_hack_visitor_method",   v_ast_unit_visitor_method_t, 0);
-    v_add_local_symbol("voidc_function_hack_intrinsic",        voidc_intrinsic_t,           0);
-    v_add_local_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t,           0);
+    v_add_symbol("voidc_function_hack_visitor_method",   v_ast_unit_visitor_method_t, 0);
+    v_add_symbol("voidc_function_hack_intrinsic",        voidc_intrinsic_t,           0);
+    v_add_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t,           0);
 }
 
 //---------------------------------------------------------------------
@@ -227,7 +227,7 @@
     //-----------------------------------------------------------------
     //- voidc_function_hack_intrinsic_helper: (fun_name: char_ptr, fun_type: v_type_ptr) -> LLVMValueRef
     //- {
-    //-     v_add_local_symbol(fun_name, fun_type, 0);
+    //-     v_add_symbol(fun_name, fun_type, 0);
     //-
     //-     if (voidc_has_grammar()) ;
     //-     else
@@ -275,9 +275,9 @@
     v_store(fun_type, val1);
     v_store(v0,       val2);
 
-    add_loc_sym_f = v_obtain_function("v_add_local_symbol");
+    add_sym_f = v_obtain_function("v_add_symbol");
 
-    LLVMBuildCall(builder, add_loc_sym_f, val0, 3, "");
+    LLVMBuildCall(builder, add_sym_f, val0, 3, "");
 
     has_grammar_f = v_obtain_function("voidc_has_grammar");
 
@@ -876,8 +876,8 @@
     v_set_module(0);
 }
 
-{   v_add_intrinsic("v_function_hack", voidc_function_hack_intrinsic);
-    v_add_intrinsic("v_return",        voidc_function_hack_return_intrinsic);
+{   v_export_intrinsic("v_function_hack", voidc_function_hack_intrinsic);
+    v_export_intrinsic("v_return",        voidc_function_hack_return_intrinsic);
 }
 
 
@@ -1043,7 +1043,7 @@
 {
     sym_type = v_find_symbol_type(sym_name);
 
-    v_add_symbol_type(sym_name, sym_type);
+    v_export_symbol_type(sym_name, sym_type);
 }
 
 
@@ -1065,8 +1065,8 @@
 
 //---------------------------------------------------------------------
 {
-    v_add_intrinsic("v_return_if",      v_return_if_intrinsic);
-    v_add_intrinsic("v_return_if_not",  v_return_if_not_intrinsic);
+    v_export_intrinsic("v_return_if",      v_return_if_intrinsic);
+    v_export_intrinsic("v_return_if_not",  v_return_if_not_intrinsic);
 
     v_make_symbol_global("v_add_parameter_name");
     v_make_symbol_global("v_make_symbol_global");

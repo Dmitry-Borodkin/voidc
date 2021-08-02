@@ -4,14 +4,14 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("voidc_context.void  must be imported into the voidc target only!");
 
-    v_local_import("voidc_target.void");
-    v_local_import("voidc_types.void");
-    v_local_import("voidc_util.void");
+    v_import("voidc_target.void");
+    v_import("voidc_types.void");
+    v_import("voidc_util.void");
 
-    v_local_import("vpeg_parser.void");
-    v_local_import("vpeg_grammar.void");
+    v_import("vpeg_parser.void");
+    v_import("vpeg_grammar.void");
 
-    v_local_import("llvm-c/Core.void");
+    v_import("llvm-c/Core.void");
 }
 
 
@@ -23,8 +23,8 @@
     v_store(v_peg_grammar_ptr, typ0);
 
     ft = v_function_type(void, typ0, 1, false);
-    v_add_symbol_type("v_peg_get_grammar", ft);
-    v_add_symbol_type("v_peg_set_grammar", ft);
+    v_export_symbol_type("v_peg_get_grammar", ft);
+    v_export_symbol_type("v_peg_set_grammar", ft);
 
     size_t_ref = v_reference_type(size_t, 0);
 
@@ -33,7 +33,7 @@
     v_store(size_t_ref, typ2);
 
     ft = v_function_type(void, typ0, 3, false);
-    v_add_symbol_type("v_peg_get_line_column", ft);
+    v_export_symbol_type("v_peg_get_line_column", ft);
 }
 
 //---------------------------------------------------------------------
@@ -47,8 +47,8 @@
 
     has_parser_ft = v_function_type(bool, typ, 1, false);
 
-    v_add_symbol_type("voidc_has_grammar",        has_grammar_ft);
-    v_add_symbol_type("voidc_grammar_has_parser", has_parser_ft);
+    v_export_symbol_type("voidc_has_grammar",        has_grammar_ft);
+    v_export_symbol_type("voidc_grammar_has_parser", has_parser_ft);
 }
 
 

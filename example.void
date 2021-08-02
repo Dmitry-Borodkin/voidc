@@ -14,7 +14,7 @@
 
     puts_ft = v_function_type(int, arg, 1, 0);
 
-    v_add_symbol_type("puts", puts_ft);
+    v_export_symbol_type("puts", puts_ft);
 }
 
 {
@@ -63,10 +63,10 @@
 
     puts_ft_ptr = v_pointer_type(puts_ft, 0);
 
-    v_add_local_symbol("puts_ft_ptr", voidc_opaque_type, puts_ft_ptr);
+    v_add_symbol("puts_ft_ptr", voidc_opaque_type, puts_ft_ptr);
 }
 
-{   v_add_local_alias("puts_ft_p", "puts_ft_ptr");
+{   v_add_alias("puts_ft_p", "puts_ft_ptr");
 }
 
 

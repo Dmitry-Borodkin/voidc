@@ -86,9 +86,9 @@
 }
 
 {   ft = v_function_type(uint64_t, 0, 0, false);
-    v_add_symbol_type("llvm.readcyclecounter", ft);
+    v_export_symbol_type("llvm.readcyclecounter", ft);
 
-    v_add_alias("llvm_readcyclecounter", "llvm.readcyclecounter");
+    v_export_alias("llvm_readcyclecounter", "llvm.readcyclecounter");
 }
 
 { v_debug_print_module(1);}
@@ -114,10 +114,10 @@
 //- AST generic...
 //---------------------------------------------------------------------
 {
-    v_add_local_symbol("destroy_f", v_ast_generic_destroy_fun_t, 0);
-    v_add_local_symbol("accept_f",  v_ast_generic_accept_fun_t,  0);
+    v_add_symbol("destroy_f", v_ast_generic_destroy_fun_t, 0);
+    v_add_symbol("accept_f",  v_ast_generic_accept_fun_t,  0);
 
-    v_add_local_symbol("vtable_g",  v_ast_generic_vtable,        0);
+    v_add_symbol("vtable_g",  v_ast_generic_vtable,        0);
 }
 
 //---------------------------------------------------------------------

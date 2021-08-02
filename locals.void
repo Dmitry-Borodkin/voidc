@@ -12,7 +12,7 @@
     v_store(int,         arg2);
 
     ft = v_function_type(LLVMValueRef, args, 3, 0);
-    v_add_symbol_type("LLVMConstInt", ft);
+    v_export_symbol_type("LLVMConstInt", ft);
 }
 
 {
@@ -20,9 +20,9 @@
 
     c5 = LLVMConstInt(llvm_int, 5, 0);
 
-    v_add_constant("QWERTY", int, c5);
+    v_export_constant("QWERTY", int, c5);
 
-    v_add_local_constant("qwerty", int, c5);
+    v_add_constant("qwerty", int, c5);
 }
 
 {

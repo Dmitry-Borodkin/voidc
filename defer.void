@@ -4,23 +4,23 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("defer.void  must be imported into the voidc target only!");
 
-    v_local_import("voidc_target.void");
-    v_local_import("voidc_types.void");
-    v_local_import("voidc_util.void");
-    v_local_import("voidc_ast.void");
-    v_local_import("voidc_quark.void");
-    v_local_import("voidc_visitor.void");
-    v_local_import("voidc_compiler.void");
-    v_local_import("vpeg_parser.void");
-    v_local_import("vpeg_grammar.void");
-    v_local_import("vpeg_context.void");
+    v_import("voidc_target.void");
+    v_import("voidc_types.void");
+    v_import("voidc_util.void");
+    v_import("voidc_ast.void");
+    v_import("voidc_quark.void");
+    v_import("voidc_visitor.void");
+    v_import("voidc_compiler.void");
+    v_import("vpeg_parser.void");
+    v_import("vpeg_grammar.void");
+    v_import("vpeg_context.void");
 
-    v_local_import("llvm-c/Core.void");
+    v_import("llvm-c/Core.void");
 
-    v_local_import("function_hack.void");
-    v_local_import("memory.void");
-    v_local_import("grammar.void");
-    v_local_import("expression.void");
+    v_import("function_hack.void");
+    v_import("memory.void");
+    v_import("grammar.void");
+    v_import("expression.void");
 }
 
 {   voidc_enable_statement_grammar();
@@ -30,7 +30,7 @@
 
 //---------------------------------------------------------------------
 {   void_ptr = v_pointer_type(void, 0);
-    v_add_local_symbol("void_ptr", voidc_opaque_type, void_ptr);
+    v_add_symbol("void_ptr", voidc_opaque_type, void_ptr);
 }
 
 //---------------------------------------------------------------------
@@ -46,8 +46,8 @@
     method_ft  = v_function_type(void, typ, 3, false);
     method_ptr = v_pointer_type(method_ft, 0);
 
-    v_add_local_symbol("method_ft",  voidc_opaque_type, method_ft);
-    v_add_local_symbol("method_ptr", voidc_opaque_type, method_ptr);
+    v_add_symbol("method_ft",  voidc_opaque_type, method_ft);
+    v_add_symbol("method_ptr", voidc_opaque_type, method_ptr);
 
 
     //-----------------------------------------------------------------
@@ -61,8 +61,8 @@
 
     ast_stmt_defer_ptr = v_pointer_type(ast_stmt_defer_t, 0);
 
-    v_add_local_symbol("ast_stmt_defer_t",   voidc_opaque_type, ast_stmt_defer_t);
-    v_add_local_symbol("ast_stmt_defer_ptr", voidc_opaque_type, ast_stmt_defer_ptr);
+    v_add_symbol("ast_stmt_defer_t",   voidc_opaque_type, ast_stmt_defer_t);
+    v_add_symbol("ast_stmt_defer_ptr", voidc_opaque_type, ast_stmt_defer_ptr);
 }
 
 
@@ -85,9 +85,9 @@
 
     quark_p = v_quark_ptr_from_string(quark_name);
 
-    v_add_symbol(quark_name, v_reference_type(v_quark_t, 0), quark_p);
+    v_export_symbol(quark_name, v_reference_type(v_quark_t, 0), quark_p);
 
-    v_add_local_alias("quark", quark_name);
+    v_add_alias("quark", quark_name);
 }
 
 
@@ -170,7 +170,7 @@
     voidc_set_unit_buffer(0);
 }
 
-{   v_add_local_symbol("voidc_ast_stmt_defer_vtable", v_ast_generic_vtable, 0);
+{   v_add_symbol("voidc_ast_stmt_defer_vtable", v_ast_generic_vtable, 0);
 }
 
 

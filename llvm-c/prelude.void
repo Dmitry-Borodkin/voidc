@@ -4,8 +4,8 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("llvm-c/prelude.void  must be imported into the voidc target only!"); }
 
-{   v_import("voidc_target.void");
-    v_import("voidc_types.void");
+{   v_export_import("voidc_target.void");
+    v_export_import("voidc_types.void");
 }
 
 {
@@ -21,6 +21,6 @@
     v_store(int,         arg2);
 
     ft = v_function_type(LLVMValueRef, arg0, 3, false);
-    v_add_symbol_type("LLVMConstInt", ft);
+    v_export_symbol_type("LLVMConstInt", ft);
 }
 

@@ -5,7 +5,7 @@
 
 //- Imports ------------------------------------------------
 {
-    voidc_local_import("prelude.void");
+    voidc_import("prelude.void");
 }
 
 //- Types --------------------------------------------------
@@ -18,7 +18,7 @@
     v2_void = v_find_type("void");
     v3 = v_function_type(v2_void, arg0, 1, false);
     v4 = v_pointer_type(v3, 0);
-    v_add_symbol("LLVMFatalErrorHandler", voidc_opaque_type, v4);
+    v_export_symbol("LLVMFatalErrorHandler", voidc_opaque_type, v4);
 
 }
 
@@ -28,15 +28,15 @@
 
     v0_void = v_find_type("void");
     v1 = v_function_type(v0_void, arg0, 0, false);
-    v_add_symbol_type("LLVMResetFatalErrorHandler", v1);
+    v_export_symbol_type("LLVMResetFatalErrorHandler", v1);
 
     v2_LLVMFatalErrorHandler = v_find_type("LLVMFatalErrorHandler");
     v_store(v2_LLVMFatalErrorHandler, arg0);
     v3 = v_function_type(v0_void, arg0, 1, false);
-    v_add_symbol_type("LLVMInstallFatalErrorHandler", v3);
+    v_export_symbol_type("LLVMInstallFatalErrorHandler", v3);
 
     v4 = v_function_type(v0_void, arg0, 0, false);
-    v_add_symbol_type("LLVMEnablePrettyStackTrace", v4);
+    v_export_symbol_type("LLVMEnablePrettyStackTrace", v4);
 
 }
 

@@ -5,7 +5,9 @@
 
 //- Imports ------------------------------------------------
 {
-    v_import("Types.void");
+    voidc_import("prelude.void");
+
+    v_export_import("Types.void");
 }
 
 //- Functions ----------------------------------------------
@@ -19,7 +21,7 @@
     v_store(v1, arg0);
     v2_LLVMBool = v_find_type("LLVMBool");
     v3 = v_function_type(v2_LLVMBool, arg0, 1, false);
-    v_add_symbol_type("LLVMLoadLibraryPermanently", v3);
+    v_export_symbol_type("LLVMLoadLibraryPermanently", v3);
 
     v4_int = v_find_type("int");
     v_store(v4_int, arg0);
@@ -30,20 +32,20 @@
     v_store(v7, arg2);
     v8_void = v_find_type("void");
     v9 = v_function_type(v8_void, arg0, 3, false);
-    v_add_symbol_type("LLVMParseCommandLineOptions", v9);
+    v_export_symbol_type("LLVMParseCommandLineOptions", v9);
 
     v10 = v_pointer_type(v0_char, 0);
     v_store(v10, arg0);
     v11 = v_pointer_type(v8_void, 0);
     v_store(v11, arg1);
     v12 = v_function_type(v8_void, arg0, 2, false);
-    v_add_symbol_type("LLVMAddSymbol", v12);
+    v_export_symbol_type("LLVMAddSymbol", v12);
 
     v13 = v_pointer_type(v8_void, 0);
     v14 = v_pointer_type(v0_char, 0);
     v_store(v14, arg0);
     v15 = v_function_type(v13, arg0, 1, false);
-    v_add_symbol_type("LLVMSearchForAddressOfSymbol", v15);
+    v_export_symbol_type("LLVMSearchForAddressOfSymbol", v15);
 
 }
 
