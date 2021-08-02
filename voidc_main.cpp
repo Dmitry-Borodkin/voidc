@@ -276,7 +276,7 @@ check_import_state(const fs::path &src_filename)
 
         if (!fs::exists(imp_filename))
         {
-            throw std::runtime_error("Import file not found: " + imp_filename.string());
+            throw std::runtime_error("Import file not found: " + name);
         }
 
         use_binary = check_import_state(imp_filename);
@@ -381,7 +381,7 @@ v_import_helper(const char *name, bool _export)
 
     if (!fs::exists(src_filename))
     {
-        throw std::runtime_error("Import file not found: " + src_filename_str);
+        throw std::runtime_error(std::string("Import file not found: ") + name);
     }
 
     base_compile_ctx_t::declarations_t *export_decls = nullptr;
