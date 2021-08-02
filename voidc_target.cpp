@@ -1061,8 +1061,6 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
         DEF(v_export_symbol_type, void_type, 2)
 
-        DEF(v_struct_type_named, type_ptr_type, 1)
-
 #undef DEF
     }
 }

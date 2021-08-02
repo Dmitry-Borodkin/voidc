@@ -659,20 +659,39 @@
 
 
 //---------------------------------------------------------------------
+//- Enable statement if_then_else compilation
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(void, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    v_function_hack("voidc_enable_statement_if_then_else_compiler", ft);
+}
+{
+    v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark));
+
+
+    v_store(quark, v_getelementptr(voidc_ast_stmt_if_then_else_vtable, 0, 2));
+
+    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_if_then_else_t);
+}
+
+
+//---------------------------------------------------------------------
 //- Enable statement if_then_else
 //---------------------------------------------------------------------
 {
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_enable_statement_if_then_else", ft);
+    v_function_hack("voidc_enable_statement_if_then_else", ft);
 }
 {
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("stmt_if_then_else"));
 
 
-    v_store(quark, v_getelementptr(voidc_ast_stmt_if_then_else_vtable, 0, 2));
+    voidc_enable_statement_if_then_else_compiler();
 
 
     pp0 = v_alloca(v_peg_opaque_parser_sptr, 16);
@@ -786,10 +805,6 @@
     v_peg_set_grammar(gr0);
 
 
-    void_method = v_cast(compile_ast_stmt_if_then_else_t, void_ptr);
-
-    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, void_method);
-
     v_terminate(gr0);
     v_terminate(act);
     v_terminate(ar0, 3);
@@ -816,6 +831,8 @@
 //---------------------------------------------------------------------
 {
     v_make_symbol_global("v_ast_make_stmt_if_then_else");
+
+    v_make_symbol_global("voidc_enable_statement_if_then_else_compiler");
     v_make_symbol_global("voidc_enable_statement_if_then_else");
 }
 

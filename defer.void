@@ -277,6 +277,25 @@
 
 
 //---------------------------------------------------------------------
+//- Enable statement defer compiler
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(void, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    v_function_hack("voidc_enable_statement_defer_compiler", ft);
+}
+{
+    v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark));
+
+
+    v_store(quark, v_getelementptr(voidc_ast_stmt_defer_vtable, 0, 2));
+
+    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_defer_t);
+}
+
+
+//---------------------------------------------------------------------
 //- Enable statement defer
 //---------------------------------------------------------------------
 {
@@ -290,7 +309,7 @@
     v_return_if(voidc_grammar_has_parser("stmt_defer"));
 
 
-    v_store(quark, v_getelementptr(voidc_ast_stmt_defer_vtable, 0, 2));
+    voidc_enable_statement_defer_compiler();
 
 
     gr0 = v_alloca(v_peg_opaque_grammar_sptr);
@@ -311,9 +330,6 @@
 
 
     v_peg_set_grammar(gr0);
-
-
-    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_defer_t);
 
 
     v_terminate(gr0);
@@ -340,6 +356,7 @@
 {
     v_make_symbol_global("v_ast_make_stmt_defer");
 
+    v_make_symbol_global("voidc_enable_statement_defer_compiler");
     v_make_symbol_global("voidc_enable_statement_defer");
 }
 

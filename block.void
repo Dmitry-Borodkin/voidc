@@ -470,20 +470,41 @@
 
 
 //---------------------------------------------------------------------
+//- Enable statement block compilation
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(void, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    v_function_hack("voidc_enable_statement_block_compiler", ft);
+}
+{
+    v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark));
+
+
+    v_store(quark, v_getelementptr(voidc_ast_stmt_block_vtable, 0, 2));
+
+    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_block_t);
+
+    v_export_intrinsic("v_break", voidc_intrinsic_break);
+}
+
+
+//---------------------------------------------------------------------
 //- Enable statement block
 //---------------------------------------------------------------------
 {
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_enable_statement_block", ft);
+    v_function_hack("voidc_enable_statement_block", ft);
 }
 {
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("stmt_block"));
 
 
-    v_store(quark, v_getelementptr(voidc_ast_stmt_block_vtable, 0, 2));
+    voidc_enable_statement_block_compiler();
 
 
     pp0 = v_alloca(v_peg_opaque_parser_sptr, 8);
@@ -577,12 +598,6 @@
     v_peg_set_grammar(gr0);
 
 
-    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_block_t);
-
-
-    v_export_intrinsic("v_break", voidc_intrinsic_break);
-
-
     v_terminate(gr0);
     v_terminate(act);
     v_terminate(ar0, 2);
@@ -611,6 +626,7 @@
     v_make_symbol_global("v_ast_make_stmt_block");
     v_make_symbol_global("voidc_intrinsic_break_helper");
 
+    v_make_symbol_global("voidc_enable_statement_block_compiler");
     v_make_symbol_global("voidc_enable_statement_block");
 }
 

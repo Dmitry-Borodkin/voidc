@@ -36,8 +36,15 @@
 
     v_export_symbol_type("v_export_symbol",    ft);
     v_export_symbol_type("v_add_symbol", ft);
+
+//  v_store(char_ptr,   typ0);          //- Struct name
+
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
+
+    v_export_symbol_type("v_struct_type_named", ft);
 }
 
+//---------------------------------------------------------------------
 {   char_ptr = v_pointer_type(char, 0);
     void_ptr = v_pointer_type(void, 0);
 
