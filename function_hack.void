@@ -1028,26 +1028,6 @@
 
 
 //---------------------------------------------------------------------
-{
-    typ = v_alloca(v_type_ptr);
-
-    v_store(char_ptr, typ);
-
-    ft = v_function_type(void, typ, 1, false);
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("v_make_symbol_global", ft);
-
-    p0 = LLVMGetParam(f, 0);    v_add_variable("sym_name", char_ptr, p0);
-}
-{
-    sym_type = v_find_symbol_type(sym_name);
-
-    v_export_symbol_type(sym_name, sym_type);
-}
-
-
-//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
@@ -1068,8 +1048,7 @@
     v_export_intrinsic("v_return_if",      v_return_if_intrinsic);
     v_export_intrinsic("v_return_if_not",  v_return_if_not_intrinsic);
 
-    v_make_symbol_global("v_add_parameter_name");
-    v_make_symbol_global("v_make_symbol_global");
+    v_make_export_symbol("v_add_parameter_name");
 }
 
 

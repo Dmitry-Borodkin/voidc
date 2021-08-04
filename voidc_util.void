@@ -127,6 +127,48 @@
 
 
     //-----------------------------------------------------------------
+    //- void v_make_export_symbol(const char *sym_name);
+    //-----------------------------------------------------------------
+    //- v_make_export_symbol: (sym_name: *const char) -> void
+    //- {
+    //-     sym_type = v_find_symbol_type(sym_name);
+    //-
+    //-     v_export_symbol_type(sym_name, sym_type);
+    //- }
+    //-----------------------------------------------------------------
+    v_store(char_ptr, typ0);
+
+    mk_export_sym_ft  = v_function_type(void, typ0, 1, false);
+    mk_export_sym_ft_ = v_type_get_llvm_type(mk_export_sym_ft);
+    mk_export_sym_f   = LLVMAddFunction(module, "v_make_export_symbol", mk_export_sym_ft_);
+
+    sym_name_v = LLVMGetParam(mk_export_sym_f, 0);
+
+    entry = LLVMAppendBasicBlock(mk_export_sym_f, "entry");
+    LLVMPositionBuilderAtEnd(builder, entry);
+
+
+    find_sym_type_ft  = v_find_symbol_type("v_find_symbol_type");
+    find_sym_type_ft_ = v_type_get_llvm_type(find_sym_type_ft);
+    find_sym_type_f   = LLVMAddFunction(module, "v_find_symbol_type", find_sym_type_ft_);
+
+    v_store(sym_name_v, val0);
+
+    sym_type_v = LLVMBuildCall(builder, find_sym_type_f, val0, 1, "sym_type_v");
+
+
+    export_sym_type_ft  = v_find_symbol_type("v_export_symbol_type");
+    export_sym_type_ft_ = v_type_get_llvm_type(export_sym_type_ft);
+    export_sym_type_f   = LLVMAddFunction(module, "v_export_symbol_type", export_sym_type_ft_);
+
+    v_store(sym_type_v, val1);
+
+    LLVMBuildCall(builder, export_sym_type_f, val0, 2, "");
+
+    LLVMBuildRetVoid(builder);
+
+
+    //-----------------------------------------------------------------
     //- LLVMValueRef v_obtain_function(const char *fun_name);
     //-----------------------------------------------------------------
     //- fun v_obtain_function(fun_name: char_ptr) -> LLVMValueRef
@@ -186,10 +228,6 @@
 
 
     LLVMPositionBuilderAtEnd(builder, else_b);
-
-    find_sym_type_ft = v_find_symbol_type("v_find_symbol_type");
-    find_sym_type_ft = v_type_get_llvm_type(find_sym_type_ft);
-    find_sym_type_f  = LLVMAddFunction(module, "v_find_symbol_type", find_sym_type_ft);
 
     v_store(fun_name, val0);
 
@@ -410,6 +448,7 @@
     //-----------------------------------------------------------------
     LLVMClearInsertionPosition(builder);
 
+
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
@@ -419,6 +458,7 @@
     v_set_module(0);
 }
 
+//---------------------------------------------------------------------
 {
     char_ptr = v_pointer_type(char, 0);
     dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
@@ -427,6 +467,8 @@
     typ1 = v_getelementptr(typ0, 1);
 
     v_store(char_ptr, typ0);
+
+    mk_export_sym_ft = v_function_type(void, typ0, 1, false);
 
     obtain_fun_ft = v_function_type(LLVMValueRef, typ0, 1, false);
 
@@ -440,9 +482,10 @@
     obtain_var_ft  = v_function_type(LLVMValueRef, typ0, 1, false);
 
     //-----------------------------------------------------------------
-    v_export_symbol_type("v_obtain_function",      obtain_fun_ft);
-    v_export_symbol_type("v_obtain_dict_function", obtain_dfun_ft);
-    v_export_symbol_type("v_obtain_global",        obtain_var_ft);
+    v_export_symbol_type("v_make_export_symbol",   mk_export_sym_ft);       //- Sic!!!
+    v_export_symbol_type("v_obtain_function",      obtain_fun_ft);          //- Sic!!!
+    v_export_symbol_type("v_obtain_dict_function", obtain_dfun_ft);         //- Sic!!!
+    v_export_symbol_type("v_obtain_global",        obtain_var_ft);          //- Sic!!!
 }
 
 
