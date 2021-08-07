@@ -108,19 +108,47 @@
 //---------------------------------------------------------------------
 //- voidc_util support module #1
 //---------------------------------------------------------------------
-{   module = LLVMModuleCreateWithName("voidc_util_void_module_N1");
-
-    v_set_module(module);       //- Sic!!!
+{
+    char_ptr = v_pointer_type(char, 0);
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
 
     typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
+
+    v_store(char_ptr, typ0);
+
+    mk_export_sym_ft = v_function_type(void, typ0, 1, false);
+
+    obtain_fun_ft = v_function_type(LLVMValueRef, typ0, 1, false);
+
+    v_store(dict_ptr,   typ0);
+    v_store(v_type_ptr, typ1);
+
+    obtain_dfun_ft = v_function_type(LLVMValueRef, typ0, 2, false);
+
+    v_store(char_ptr, typ0);
+
+    obtain_var_ft = v_function_type(LLVMValueRef, typ0, 1, false);
+
+    //-----------------------------------------------------------------
+    v_export_symbol_type("v_make_export_symbol",   mk_export_sym_ft);
+    v_export_symbol_type("v_obtain_function",      obtain_fun_ft);
+    v_export_symbol_type("v_obtain_dict_function", obtain_dfun_ft);
+    v_export_symbol_type("v_obtain_global",        obtain_var_ft);
+}
+
+
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("voidc_util_void_module_N1");
+
+    v_set_module(module);       //- Sic!!!
 
     val0 = v_alloca(LLVMValueRef, 3);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    char_ptr = v_pointer_type(char, 0);
-    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
+//    char_ptr = v_pointer_type(char, 0);
+//    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
@@ -136,9 +164,7 @@
     //-     v_export_symbol_type(sym_name, sym_type);
     //- }
     //-----------------------------------------------------------------
-    v_store(char_ptr, typ0);
-
-    mk_export_sym_ft  = v_function_type(void, typ0, 1, false);
+    mk_export_sym_ft  = v_find_symbol_type("v_make_export_symbol");
     mk_export_sym_ft_ = v_type_get_llvm_type(mk_export_sym_ft);
     mk_export_sym_f   = LLVMAddFunction(module, "v_make_export_symbol", mk_export_sym_ft_);
 
@@ -187,9 +213,7 @@
     //-     v_return(fun_value);
     //- }
     //-----------------------------------------------------------------
-    v_store(char_ptr, typ0);
-
-    obtain_fun_ft  = v_function_type(LLVMValueRef, typ0, 1, false);
+    obtain_fun_ft  = v_find_symbol_type("v_obtain_function");
     obtain_fun_ft_ = v_type_get_llvm_type(obtain_fun_ft);
     obtain_fun_f   = LLVMAddFunction(module, "v_obtain_function", obtain_fun_ft_);
 
@@ -268,10 +292,7 @@
     //-     v_return(fun_value);
     //- }
     //-----------------------------------------------------------------
-    v_store(dict_ptr,   typ0);
-    v_store(v_type_ptr, typ1);
-
-    obtain_dfun_ft  = v_function_type(LLVMValueRef, typ0, 2, false);
+    obtain_dfun_ft  = v_find_symbol_type("v_obtain_dict_function");
     obtain_dfun_ft_ = v_type_get_llvm_type(obtain_dfun_ft);
     obtain_dfun_f   = LLVMAddFunction(module, "v_obtain_dict_function", obtain_dfun_ft_);
 
@@ -335,9 +356,7 @@
     //-     v_return(var_value);
     //- }
     //-----------------------------------------------------------------
-    v_store(char_ptr, typ0);
-
-    obtain_var_ft  = v_function_type(LLVMValueRef, typ0, 1, false);
+    obtain_var_ft  = v_find_symbol_type("v_obtain_global");
     obtain_var_ft_ = v_type_get_llvm_type(obtain_var_ft);
     obtain_var_f   = LLVMAddFunction(module, "v_obtain_global", obtain_var_ft_);
 
@@ -456,36 +475,6 @@
 
     LLVMDisposeModule(module);
     v_set_module(0);
-}
-
-//---------------------------------------------------------------------
-{
-    char_ptr = v_pointer_type(char, 0);
-    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
-
-    typ0 = v_alloca(v_type_ptr, 2);
-    typ1 = v_getelementptr(typ0, 1);
-
-    v_store(char_ptr, typ0);
-
-    mk_export_sym_ft = v_function_type(void, typ0, 1, false);
-
-    obtain_fun_ft = v_function_type(LLVMValueRef, typ0, 1, false);
-
-    v_store(dict_ptr,   typ0);
-    v_store(v_type_ptr, typ1);
-
-    obtain_dfun_ft = v_function_type(LLVMValueRef, typ0, 2, false);
-
-    v_store(char_ptr, typ0);
-
-    obtain_var_ft  = v_function_type(LLVMValueRef, typ0, 1, false);
-
-    //-----------------------------------------------------------------
-    v_export_symbol_type("v_make_export_symbol",   mk_export_sym_ft);       //- Sic!!!
-    v_export_symbol_type("v_obtain_function",      obtain_fun_ft);          //- Sic!!!
-    v_export_symbol_type("v_obtain_dict_function", obtain_dfun_ft);         //- Sic!!!
-    v_export_symbol_type("v_obtain_global",        obtain_var_ft);          //- Sic!!!
 }
 
 
