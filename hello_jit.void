@@ -10,7 +10,7 @@
 
     builder = v_target_get_voidc_builder();
 
-    hello_ft  = v_function_type(void, 0, 0, 0);
+    hello_ft  = v_function_type(v_find_type("void"), 0, 0, 0);
     hello_ft_ = v_type_get_llvm_type(hello_ft);
     hello_f   = LLVMAddFunction(module, "hello", hello_ft_);
 

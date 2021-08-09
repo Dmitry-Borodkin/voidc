@@ -12,21 +12,24 @@
 //- int QWERTY(int, char *);
 //---------------------------------------------------------------------
 {
+    _char = v_find_type("char");
+    _int  = v_find_type("int");
+
     arg0 = v_alloca(v_type_ptr, 2);
     arg1 = v_getelementptr(arg0, 1);
 
-    char_ptr = v_pointer_type(char, 0);
+    char_ptr = v_pointer_type(_char, 0);
 
-    v_store(int,      arg0);
+    v_store(_int,     arg0);
     v_store(char_ptr, arg1);
 
-    ft = v_function_type(int, arg0, 2, false);
+    ft = v_function_type(_int, arg0, 2, false);
 
     //-------------------------------------------------------------
     f = v_function_hack("QWERTY", ft);
     //-------------------------------------------------------------
 
-    v_add_parameter_name(f, 0, "num", int);
+    v_add_parameter_name(f, 0, "num", _int);
     v_add_parameter_name(f, 1, "str", char_ptr);
 }
 {
@@ -64,7 +67,9 @@
 
 //---------------------------------------------------------------------
 {
-    hello_ft = v_function_type(void, 0, 0, false);
+    _void = v_find_type("void");
+
+    hello_ft = v_function_type(_void, 0, 0, false);
 
     //-------------------------------------------------------------
     f = v_function_hack("hello", hello_ft);
@@ -77,7 +82,9 @@
 
 //---------------------------------------------------------------------
 {
-    hello2_ft = v_function_type(void, 0, 0, false);
+    _void = v_find_type("void");
+
+    hello2_ft = v_function_type(_void, 0, 0, false);
 
     //-------------------------------------------------------------
     f = v_function_hack("hello2", hello2_ft);

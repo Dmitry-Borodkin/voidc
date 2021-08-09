@@ -23,8 +23,35 @@
 
 
 //---------------------------------------------------------------------
-{   void_ptr = v_pointer_type(void, 0);
-    v_add_symbol("void_ptr", voidc_opaque_type, void_ptr);
+{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
+
+    v_add_symbol("_voidc_opaque_type", _voidc_opaque_type, _voidc_opaque_type);
+
+    _void = v_find_type("void");
+
+    v_add_symbol("_void", _voidc_opaque_type, _void);
+
+    void_ptr = v_pointer_type(_void, 0);
+    v_add_symbol("void_ptr", _voidc_opaque_type, void_ptr);
+
+    v_add_symbol("_voidc_visitor_ptr", _voidc_opaque_type, v_find_type("voidc_visitor_ptr"));
+
+    v_add_symbol("_v_ast_base_ptr",    _voidc_opaque_type, v_find_type("v_ast_base_ptr"));
+    v_add_symbol("_v_ast_expr_ptr",    _voidc_opaque_type, v_find_type("v_ast_expr_ptr"));
+    v_add_symbol("_v_ast_stmt_ptr",    _voidc_opaque_type, v_find_type("v_ast_stmt_ptr"));
+
+    v_add_symbol("_v_ast_opaque_expr_sptr", _voidc_opaque_type, v_find_type("v_ast_opaque_expr_sptr"));
+    v_add_symbol("_v_ast_opaque_stmt_sptr", _voidc_opaque_type, v_find_type("v_ast_opaque_stmt_sptr"));
+
+    v_add_symbol("_v_quark_t", _voidc_opaque_type, v_find_type("v_quark_t"));
+
+    v_add_symbol("_voidc_visitor_ptr", _voidc_opaque_type, v_find_type("voidc_visitor_ptr"));
+
+    v_add_symbol("_v_ast_generic_vtable", _voidc_opaque_type, v_find_type("v_ast_generic_vtable"));
+
+    v_add_symbol("_v_peg_grammar_action_fun_t", _voidc_opaque_type, v_find_type("v_peg_grammar_action_fun_t"));
+    v_add_symbol("_v_util_std_any_ptr",         _voidc_opaque_type, v_find_type("v_util_std_any_ptr"));
+    v_add_symbol("_size_t",                     _voidc_opaque_type, v_find_type("size_t"));
 }
 
 
@@ -39,17 +66,17 @@
     //-----------------------------------------------------------------
     //- method ...
     //-----------------------------------------------------------------
-    v_store(voidc_visitor_ptr, typ0);
-    v_store(void_ptr,          typ1);
-    v_store(v_ast_expr_ptr,    typ2);
-    v_store(v_ast_stmt_ptr,    typ3);
-    v_store(v_ast_stmt_ptr,    typ4);
+    v_store(_voidc_visitor_ptr, typ0);
+    v_store(void_ptr,           typ1);
+    v_store(_v_ast_expr_ptr,    typ2);
+    v_store(_v_ast_stmt_ptr,    typ3);
+    v_store(_v_ast_stmt_ptr,    typ4);
 
-    method_ft  = v_function_type(void, typ0, 5, false);
+    method_ft  = v_function_type(_void, typ0, 5, false);
     method_ptr = v_pointer_type(method_ft, 0);
 
-    v_add_symbol("method_ft",  voidc_opaque_type, method_ft);
-    v_add_symbol("method_ptr", voidc_opaque_type, method_ptr);
+    v_add_symbol("method_ft",  _voidc_opaque_type, method_ft);
+    v_add_symbol("method_ptr", _voidc_opaque_type, method_ptr);
 
 
     //-----------------------------------------------------------------
@@ -57,16 +84,16 @@
     //-----------------------------------------------------------------
     ast_stmt_if_then_else_t = v_struct_type_named("struct.ast_stmt_if_then_else_t");
 
-    v_store(v_ast_opaque_expr_sptr, typ0);
-    v_store(v_ast_opaque_stmt_sptr, typ1);
-    v_store(v_ast_opaque_stmt_sptr, typ2);
+    v_store(_v_ast_opaque_expr_sptr, typ0);
+    v_store(_v_ast_opaque_stmt_sptr, typ1);
+    v_store(_v_ast_opaque_stmt_sptr, typ2);
 
     v_type_struct_set_body(ast_stmt_if_then_else_t, typ0, 3, false);
 
     ast_stmt_if_then_else_ptr = v_pointer_type(ast_stmt_if_then_else_t, 0);
 
-    v_add_symbol("ast_stmt_if_then_else_t",   voidc_opaque_type, ast_stmt_if_then_else_t);
-    v_add_symbol("ast_stmt_if_then_else_ptr", voidc_opaque_type, ast_stmt_if_then_else_ptr);
+    v_add_symbol("ast_stmt_if_then_else_t",   _voidc_opaque_type, ast_stmt_if_then_else_t);
+    v_add_symbol("ast_stmt_if_then_else_ptr", _voidc_opaque_type, ast_stmt_if_then_else_ptr);
 }
 
 
@@ -89,7 +116,7 @@
 
     quark_p = v_quark_ptr_from_string(quark_name);
 
-    v_export_symbol(quark_name, v_reference_type(v_quark_t, 0), quark_p);
+    v_export_symbol(quark_name, v_reference_type(_v_quark_t, 0), quark_p);
 
     v_add_alias("quark", quark_name);
 }
@@ -99,8 +126,10 @@
 //- destroy ...
 //---------------------------------------------------------------------
 {
+    _v_ast_generic_destroy_fun_t = v_find_type("v_ast_generic_destroy_fun_t");
+
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_stmt_if_then_else_destroy", v_ast_generic_destroy_fun_t);
+    f = v_function_hack("voidc_ast_stmt_if_then_else_destroy", _v_ast_generic_destroy_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -125,13 +154,15 @@
 //- accept ...
 //---------------------------------------------------------------------
 {
+    _v_ast_generic_accept_fun_t = v_find_type("v_ast_generic_accept_fun_t");
+
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_stmt_if_then_else_accept", v_ast_generic_accept_fun_t);
+    f = v_function_hack("voidc_ast_stmt_if_then_else_accept", _v_ast_generic_accept_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
-    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "visitor",  _voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
@@ -161,13 +192,13 @@
 
     destroy_f = v_obtain_function("voidc_ast_stmt_if_then_else_destroy");
     accept_f  = v_obtain_function("voidc_ast_stmt_if_then_else_accept");
-    quark_u   = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
+    quark_u   = LLVMGetUndef(v_type_get_llvm_type(_v_quark_t));
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
     v_store(quark_u,   val2);
 
-    v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
+    v_ast_generic_vtable_ = v_type_get_llvm_type(_v_ast_generic_vtable);
 
     vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
@@ -182,7 +213,7 @@
     voidc_set_unit_buffer(0);
 }
 
-{   v_add_symbol("voidc_ast_stmt_if_then_else_vtable", v_ast_generic_vtable, 0);
+{   v_add_symbol("voidc_ast_stmt_if_then_else_vtable", _v_ast_generic_vtable, 0);
 }
 
 
@@ -195,20 +226,20 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
-    v_store(v_ast_stmt_ptr, typ0);
-    v_store(v_ast_expr_ptr, typ1);
-    v_store(v_ast_stmt_ptr, typ2);
-    v_store(v_ast_stmt_ptr, typ3);
+    v_store(_v_ast_stmt_ptr, typ0);
+    v_store(_v_ast_expr_ptr, typ1);
+    v_store(_v_ast_stmt_ptr, typ2);
+    v_store(_v_ast_stmt_ptr, typ3);
 
-    ft = v_function_type(void, typ0, 4, false);
+    ft = v_function_type(_void, typ0, 4, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_if_then_else", ft);
 
-    v_add_parameter_name(f, 0, "ret",       v_ast_stmt_ptr);
-    v_add_parameter_name(f, 1, "condition", v_ast_expr_ptr);
-    v_add_parameter_name(f, 2, "stmt_then", v_ast_stmt_ptr);
-    v_add_parameter_name(f, 3, "stmt_else", v_ast_stmt_ptr);
+    v_add_parameter_name(f, 0, "ret",       _v_ast_stmt_ptr);
+    v_add_parameter_name(f, 1, "condition", _v_ast_expr_ptr);
+    v_add_parameter_name(f, 2, "stmt_then", _v_ast_stmt_ptr);
+    v_add_parameter_name(f, 3, "stmt_else", _v_ast_stmt_ptr);
 }
 {
     obj = v_malloc(ast_stmt_if_then_else_t);
@@ -261,20 +292,20 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_stmt_if_then_else_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_stmt_if_then_else_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    ret       = v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    any0      = v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    any_count = v_add_parameter_name(f, 2, "any_count", size_t);
+    ret       = v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    any0      = v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    any_count = v_add_parameter_name(f, 2, "any_count", _size_t);
 
 
     val0 = v_alloca(LLVMValueRef, 3);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    int_ = v_type_get_llvm_type(int);
+    int_ = v_type_get_llvm_type(v_find_type("int"));
 
     n1 = LLVMConstInt(int_, 1, 0);
     n2 = LLVMConstInt(int_, 2, 0);
@@ -287,23 +318,23 @@
     par_else = LLVMBuildGEP(builder, any0, val0, 1, "par_else");
 
 
-    get_arg_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, v_ast_opaque_stmt_sptr);
+    get_arg_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, _v_ast_opaque_stmt_sptr);
 
     v_store(par_else, val0);
 
     stmt_else_ptr = LLVMBuildCall(builder, get_arg_f, val0, 1, "stmt_else_ptr");
 
 
-    v_ast_stmt_ptr_ = v_type_get_llvm_type(v_ast_stmt_ptr);
+    v_ast_stmt_ptr_ = v_type_get_llvm_type(_v_ast_stmt_ptr);
 
     stmt_else_v = LLVMBuildAlloca(builder, v_ast_stmt_ptr_, "stmt_else_v");
 
 
-    v_ast_opaque_stmt_sptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_sptr);
+    v_ast_opaque_stmt_sptr_ = v_type_get_llvm_type(_v_ast_opaque_stmt_sptr);
 
     stmt = LLVMBuildAlloca(builder, v_ast_opaque_stmt_sptr_, "stmt");
 
-    stmt_sptr_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_stmt_sptr);
+    stmt_sptr_init_f = v_obtain_dict_function(v_util_initialize_dict, _v_ast_opaque_stmt_sptr);
 
     v_store(stmt, val0);
     v_store(n1,   val1);
@@ -338,10 +369,10 @@
     LLVMPositionBuilderAtEnd(builder, cont_b);
 
 
-    stmt_ptr_ptr = v_pointer_type(v_ast_stmt_ptr, 0);
+    stmt_ptr_ptr = v_pointer_type(_v_ast_stmt_ptr, 0);
 
-    v_add_variable("stmt",        v_ast_stmt_ptr, stmt);
-    v_add_variable("stmt_else_v", stmt_ptr_ptr,   stmt_else_v);
+    v_add_variable("stmt",        _v_ast_stmt_ptr, stmt);
+    v_add_variable("stmt_else_v", stmt_ptr_ptr,    stmt_else_v);
 }
 {
     par_then = v_getelementptr(any0, 1);
@@ -408,14 +439,14 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
-    bblock_ptr = v_pointer_type(LLVMBasicBlockRef, 0);
+    bblock_ptr = v_pointer_type(v_find_type("LLVMBasicBlockRef"), 0);
 
-    v_store(voidc_visitor_ptr,  typ0);
-    v_store(void_ptr,           typ1);
-    v_store(v_ast_stmt_ptr,     typ2);
-    v_store(bblock_ptr,         typ3);
+    v_store(_voidc_visitor_ptr,  typ0);
+    v_store(void_ptr,            typ1);
+    v_store(_v_ast_stmt_ptr,     typ2);
+    v_store(bblock_ptr,          typ3);
 
-    ft = v_function_type(void, typ0, 4, false);
+    ft = v_function_type(_void, typ0, 4, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_if_then_else_branch_helper", ft);
@@ -440,7 +471,7 @@
     builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
 
 
-    stmt_empty_f = v_obtain_dict_function(v_util_empty_dict, v_ast_opaque_stmt_sptr);
+    stmt_empty_f = v_obtain_dict_function(v_util_empty_dict, _v_ast_opaque_stmt_sptr);
 
     v_store(stmt, val0);
 
@@ -456,7 +487,7 @@
 
     LLVMPositionBuilderAtEnd(builder, stmt_b);
 
-    v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
+    v_ast_base_ptr_ = v_type_get_llvm_type(_v_ast_base_ptr);
 
     base_ast = LLVMBuildBitCast(builder, stmt, v_ast_base_ptr_, "base_ast");
 
@@ -540,8 +571,10 @@
 
     LLVMPositionBuilderAtEnd(builder, fin_b);
 
-    v_add_variable("builder",  LLVMBuilderRef, builder_v);
-    v_add_variable("bblock_v", bblock_ptr,     bblock_v);
+    _LLVMBuilderRef = v_find_type("LLVMBuilderRef");
+
+    v_add_variable("builder",  _LLVMBuilderRef, builder_v);
+    v_add_variable("bblock_v", bblock_ptr,      bblock_v);
 }
 {
     bblock = v_load(bblock_v);
@@ -567,16 +600,18 @@
 {
     typ = v_alloca(v_type_ptr);
 
-    v_store(LLVMBasicBlockRef, typ);
+    _LLVMBasicBlockRef = v_find_type("LLVMBasicBlockRef");
 
-    ft = v_function_type(void, typ, 1, false);
+    v_store(_LLVMBasicBlockRef, typ);
+
+    ft = v_function_type(_void, typ, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("compile_ast_stmt_if_then_else_join_helper", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    bblock = v_add_parameter_name(f, 0, "bblock", LLVMBasicBlockRef);
+    bblock = v_add_parameter_name(f, 0, "bblock", _LLVMBasicBlockRef);
 
 
     builder = v_target_get_voidc_builder();
@@ -614,11 +649,11 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor",   voidc_visitor_ptr);
+    v_add_parameter_name(f, 0, "visitor",   _voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",       void_ptr);
-    v_add_parameter_name(f, 2, "condition", v_ast_expr_ptr);
-    v_add_parameter_name(f, 3, "stmt_then", v_ast_stmt_ptr);
-    v_add_parameter_name(f, 4, "stmt_else", v_ast_stmt_ptr);
+    v_add_parameter_name(f, 2, "condition", _v_ast_expr_ptr);
+    v_add_parameter_name(f, 3, "stmt_then", _v_ast_stmt_ptr);
+    v_add_parameter_name(f, 4, "stmt_else", _v_ast_stmt_ptr);
 }
 {
     builder = v_target_get_builder();
@@ -662,7 +697,7 @@
 //- Enable statement if_then_else compilation
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     v_function_hack("voidc_enable_statement_if_then_else_compiler", ft);
@@ -681,7 +716,7 @@
 //- Enable statement if_then_else
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     v_function_hack("voidc_enable_statement_if_then_else", ft);

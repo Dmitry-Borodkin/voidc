@@ -9,12 +9,34 @@
     v_import("voidc_quark.void");
 }
 
-{   v_util_register_itcmep_impl(voidc_opaque_visitor_sptr, "voidc", "visitor");
+
+//---------------------------------------------------------------------
+{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
+
+    _void      = v_find_type("void");
+    _v_quark_t = v_find_type("v_quark_t");
+
+    _voidc_opaque_visitor_sptr = v_find_type("voidc_opaque_visitor_sptr");
+
+    //-------------------------------------------------------------
+    v_add_symbol("_voidc_opaque_type", _voidc_opaque_type, _voidc_opaque_type);
+
+    v_add_symbol("_void",      _voidc_opaque_type, _void);
+    v_add_symbol("_v_quark_t", _voidc_opaque_type, _v_quark_t);
+
+    v_add_symbol("_voidc_opaque_visitor_sptr", _voidc_opaque_type, _voidc_opaque_visitor_sptr);
 }
 
-{   visitor_ptr = v_pointer_type(voidc_opaque_visitor_sptr, 0);
 
-    v_export_symbol("voidc_visitor_ptr", voidc_opaque_type, visitor_ptr);
+//---------------------------------------------------------------------
+{   v_util_register_itcmep_impl(_voidc_opaque_visitor_sptr, "voidc", "visitor");
+}
+
+{   visitor_ptr = v_pointer_type(_voidc_opaque_visitor_sptr, 0);
+
+    v_export_constant("voidc_visitor_ptr", visitor_ptr, 0);
+
+    v_add_symbol("_voidc_visitor_ptr", _voidc_opaque_type, visitor_ptr);
 }
 
 
@@ -24,25 +46,25 @@
     typ3 = v_getelementptr(typ0, 3);
 
 
-    v_store(voidc_visitor_ptr, typ0);
+    v_store(_voidc_visitor_ptr, typ0);
 
-    ft = v_function_type(void, typ0, 1, false);
+    ft = v_function_type(_void, typ0, 1, false);
     v_export_symbol_type("voidc_make_visitor", ft);
 
 
-    v_store(v_quark_t, typ1);
+    v_store(_v_quark_t, typ1);
 
-    void_ptr = v_pointer_type(void, 0);
+    void_ptr = v_pointer_type(_void, 0);
 
     ft = v_function_type(void_ptr, typ0, 2, false);
     v_export_symbol_type("voidc_visitor_get_void_method", ft);
 
 
-    v_store(voidc_visitor_ptr, typ1);
-    v_store(v_quark_t,         typ2);
-    v_store(void_ptr,          typ3);
+    v_store(_voidc_visitor_ptr, typ1);
+    v_store(_v_quark_t,         typ2);
+    v_store(void_ptr,           typ3);
 
-    ft = v_function_type(void, typ0, 4, false);
+    ft = v_function_type(_void, typ0, 4, false);
     v_export_symbol_type("voidc_visitor_set_void_method", ft);
 }
 

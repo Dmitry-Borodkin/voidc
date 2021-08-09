@@ -21,11 +21,11 @@
 {
     v0_void = v_find_type("void");
     v1 = v_pointer_type(v0_void, 0);
-    v_export_symbol("LLVMErrorTypeId", voidc_opaque_type, v1);
+    v_export_constant("LLVMErrorTypeId", v1, 0);
 
     v2 = v_struct_type_named("struct.LLVMOpaqueError");
     v3 = v_pointer_type(v2, 0);
-    v_export_symbol("LLVMErrorRef", voidc_opaque_type, v3);
+    v_export_constant("LLVMErrorRef", v3, 0);
 
 }
 

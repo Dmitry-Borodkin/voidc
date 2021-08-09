@@ -31,11 +31,34 @@
 
 
 //---------------------------------------------------------------------
-{   char_ptr = v_pointer_type(char, 0);
-    void_ptr = v_pointer_type(void, 0);
+{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
 
-    v_add_symbol("char_ptr", voidc_opaque_type, char_ptr);
-    v_add_symbol("void_ptr", voidc_opaque_type, void_ptr);
+    _void = v_find_type("void");
+
+    v_add_symbol("_void", _voidc_opaque_type, _void);
+
+    void_ptr = v_pointer_type(_void, 0);
+    v_add_symbol("void_ptr", _voidc_opaque_type, void_ptr);
+
+    char_ptr = v_pointer_type(v_find_type("char"), 0);
+    v_add_symbol("char_ptr", _voidc_opaque_type, char_ptr);
+
+    v_add_symbol("_v_ast_opaque_expr_sptr",      _voidc_opaque_type, v_find_type("v_ast_opaque_expr_sptr"));
+    v_add_symbol("_v_ast_opaque_stmt_sptr",      _voidc_opaque_type, v_find_type("v_ast_opaque_stmt_sptr"));
+    v_add_symbol("_v_ast_opaque_stmt_list_sptr", _voidc_opaque_type, v_find_type("v_ast_opaque_stmt_list_sptr"));
+
+    v_add_symbol("_int", _voidc_opaque_type, v_find_type("int"));
+
+    v_add_symbol("_v_ast_stmt_ptr", _voidc_opaque_type, v_find_type("v_ast_stmt_ptr"));
+    v_add_symbol("_v_ast_expr_ptr", _voidc_opaque_type, v_find_type("v_ast_expr_ptr"));
+
+    v_add_symbol("_v_ast_stmt_list_ptr", _voidc_opaque_type, v_find_type("v_ast_stmt_list_ptr"));
+
+    v_add_symbol("_bool", _voidc_opaque_type, v_find_type("bool"));
+
+    v_add_symbol("_v_peg_grammar_action_fun_t", _voidc_opaque_type, v_find_type("v_peg_grammar_action_fun_t"));
+    v_add_symbol("_v_util_std_any_ptr",         _voidc_opaque_type, v_find_type("v_util_std_any_ptr"));
+    v_add_symbol("_size_t",                     _voidc_opaque_type, v_find_type("size_t"));
 }
 
 
@@ -56,7 +79,7 @@
 {
     module = v_get_module();
 
-    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_sptr);
+    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(_v_ast_opaque_expr_sptr);
 
     gr_arg = LLVMAddGlobal(module, v_ast_opaque_expr_sptr_, "voidc_ast_stmt_grammar_grammar_arg");
 
@@ -66,7 +89,7 @@
 
     LLVMSetInitializer(gr_arg, gr_arg_u);
 
-    v_ast_opaque_stmt_list_sptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_list_sptr);
+    v_ast_opaque_stmt_list_sptr_ = v_type_get_llvm_type(_v_ast_opaque_stmt_list_sptr);
 
     stmt_list = LLVMAddGlobal(module, v_ast_opaque_stmt_list_sptr_, "voidc_ast_stmt_grammar_stmt_list");
 
@@ -76,7 +99,7 @@
 
     LLVMSetInitializer(stmt_list, stmt_list_u);
 
-    int_ = v_type_get_llvm_type(int);
+    int_ = v_type_get_llvm_type(_int);
 
     pr_count = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_parsers_count");
     pr_num   = LLVMAddGlobal(module, int_, "voidc_ast_stmt_grammar_parser_number");
@@ -107,10 +130,10 @@
     LLVMSetInitializer(rn_count, int_u);
     LLVMSetInitializer(rn_num,   int_u);
 
-    v_add_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_expr_sptr,      0);    //- Sic!
-    v_add_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_grammar_arg", _v_ast_opaque_expr_sptr,      0);    //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_stmt_list",   _v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
 
-    int_ref = v_reference_type(int, 0);
+    int_ref = v_reference_type(_int, 0);
 
     v_add_symbol("voidc_ast_stmt_grammar_parsers_count",   int_ref, 0);   //- Sic!
     v_add_symbol("voidc_ast_stmt_grammar_parser_number",   int_ref, 0);   //- Sic!
@@ -135,24 +158,24 @@
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
 
-    v_store(v_ast_stmt_ptr, typ0);
-    v_store(char_ptr,       typ1);
-    v_store(char_ptr,       typ2);
-    v_store(v_ast_expr_ptr, typ3);
-    v_store(int,            typ4);
+    v_store(_v_ast_stmt_ptr, typ0);
+    v_store(char_ptr,        typ1);
+    v_store(char_ptr,        typ2);
+    v_store(_v_ast_expr_ptr, typ3);
+    v_store(_int,            typ4);
 
-    ft = v_function_type(void, typ0, 5, false);
+    ft = v_function_type(_void, typ0, 5, false);
 
     v_export_symbol_type("v_ast_make_stmt_call", ft);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_call", ft);
 
-    v_add_parameter_name(f, 0, "stmt",  v_ast_stmt_ptr);
+    v_add_parameter_name(f, 0, "stmt",  _v_ast_stmt_ptr);
     v_add_parameter_name(f, 1, "var",   char_ptr);
     v_add_parameter_name(f, 2, "fun",   char_ptr);
-    v_add_parameter_name(f, 3, "args",  v_ast_expr_ptr);
-    v_add_parameter_name(f, 4, "count", int);
+    v_add_parameter_name(f, 3, "args",  _v_ast_expr_ptr);
+    v_add_parameter_name(f, 4, "count", _int);
 }
 {
     ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
@@ -176,7 +199,7 @@
 
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_parsers_inc", ft);
@@ -195,7 +218,7 @@
 
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_parsers_dec", ft);
@@ -211,7 +234,7 @@
 
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_arguments_inc", ft);
@@ -231,7 +254,7 @@
 
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_ranges_inc", ft);
@@ -257,24 +280,24 @@
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
 
-    v_store(v_ast_stmt_list_ptr, typ0);
-    v_store(char_ptr,            typ1);
-    v_store(char_ptr,            typ2);
-    v_store(int,                 typ3);
-    v_store(bool,                typ4);
+    v_store(_v_ast_stmt_list_ptr, typ0);
+    v_store(char_ptr,             typ1);
+    v_store(char_ptr,             typ2);
+    v_store(_int,                 typ3);
+    v_store(_bool,                typ4);
 
-    ft = v_function_type(void, typ0, 5, false);
+    ft = v_function_type(_void, typ0, 5, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_ast_stmt_grammar_stack_init", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "stmt_list", v_ast_stmt_list_ptr);
+    v_add_parameter_name(f, 0, "stmt_list", _v_ast_stmt_list_ptr);
     v_add_parameter_name(f, 1, "type",      char_ptr);
     v_add_parameter_name(f, 2, "prefix",    char_ptr);
-    v_add_parameter_name(f, 3, "size",      int);
-    v_add_parameter_name(f, 4, "do_init",   bool);
+    v_add_parameter_name(f, 3, "size",      _int);
+    v_add_parameter_name(f, 4, "do_init",   _bool);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
@@ -363,13 +386,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_stmt_grammar_init_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_stmt_grammar_init_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     gr_name = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -403,13 +426,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_stmt_grammar_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_stmt_grammar_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     gr_stmt_list = v_alloca(v_ast_opaque_stmt_list_sptr);
@@ -560,13 +583,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_gr_stmt_parser_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_gr_stmt_parser_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -723,13 +746,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_gr_stmt_parser_leftrec_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_gr_stmt_parser_leftrec_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -782,13 +805,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_gr_stmt_action_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_gr_stmt_action_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 4);
@@ -845,13 +868,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_gr_stmt_value_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_gr_stmt_value_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 4);
@@ -908,13 +931,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_special_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_special_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     //- assert(voidc_ast_stmt_grammar_parser_number == 0);
@@ -976,13 +999,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_choice_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_choice_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
@@ -1046,13 +1069,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_sequence_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_sequence_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
@@ -1116,13 +1139,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_catch_var_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_catch_var_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -1182,7 +1205,7 @@
 
     v_store(char_ptr, typ0);
 
-    ft = v_function_type(void, typ0, 1, false);
+    ft = v_function_type(_void, typ0, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_make_parser_unary", ft);
@@ -1235,13 +1258,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_and_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_and_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_and_parser");
@@ -1254,13 +1277,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_not_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_not_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_not_parser");
@@ -1273,13 +1296,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_star_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_star_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_star_parser");
@@ -1292,13 +1315,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_plus_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_plus_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_plus_parser");
@@ -1311,13 +1334,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_question_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_question_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_question_parser");
@@ -1330,13 +1353,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_identifier_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_identifier_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -1388,13 +1411,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_external_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_external_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -1446,13 +1469,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_backref_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_backref_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     br_num = v_std_any_get_value(intptr_t, any0);
@@ -1502,13 +1525,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_catch_str_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_catch_str_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_catch_string_parser");
@@ -1521,13 +1544,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_action_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_action_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
@@ -1574,13 +1597,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_class_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_class_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     rn_num = v_cast(voidc_ast_stmt_grammar_range_number,  intptr_t);
@@ -1633,13 +1656,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_literal_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_literal_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -1691,13 +1714,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_char_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_char_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     ch = v_std_any_get_value(char32_t, any0);
@@ -1747,13 +1770,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_dot_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_dot_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr);
@@ -1796,13 +1819,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_range_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_range_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
@@ -1883,13 +1906,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_action_call_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_action_call_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -1938,13 +1961,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_action_return_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_action_return_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
@@ -1979,13 +2002,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_arg_identifier_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_arg_identifier_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -2037,13 +2060,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_arg_backref_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_arg_backref_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     br_num = v_std_any_get_value(intptr_t, any0);
@@ -2120,13 +2143,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_arg_integer_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_arg_integer_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     num = v_std_any_get_value(intptr_t, any0);
@@ -2176,13 +2199,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_arg_string_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_arg_string_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
@@ -2234,13 +2257,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_arg_char_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_pr_arg_char_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     ch = v_std_any_get_value(char32_t, any0);
@@ -2290,7 +2313,7 @@
 //- Enable statement grammar
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     v_function_hack("voidc_enable_statement_grammar", ft);

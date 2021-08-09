@@ -764,26 +764,28 @@
 
 //- Known types --------------------------------------------
 {
+    _voidc_opaque_type = v_find_type("voidc_opaque_type");
+
     v = v_uint_type(8);
-    v_add_symbol("uint8_t", voidc_opaque_type, v);
+    v_add_symbol("uint8_t", _voidc_opaque_type, v);
 
     v = v_f64_type();
-    v_add_symbol("double", voidc_opaque_type, v);
+    v_add_symbol("double", _voidc_opaque_type, v);
 
     _long_long = v_find_type("long_long");
     w = v_type_integer_get_width(_long_long);
     v = v_uint_type(w);
-    v_add_symbol("unsigned_long_long", voidc_opaque_type, v);
+    v_add_symbol("unsigned_long_long", _voidc_opaque_type, v);
 }
 
 //- Types --------------------------------------------------
 {
     v0_int = v_find_type("int");
-    v_export_symbol("LLVMLinkage", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMLinkage", v0_int, 0);
 
-    v_export_symbol("LLVMLandingPadClauseTy", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMLandingPadClauseTy", v0_int, 0);
 
-    v_export_symbol("LLVMAtomicRMWBinOp", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMAtomicRMWBinOp", v0_int, 0);
 
     arg0 = v_alloca(v_type_ptr, 2);
     arg1 = v_getelementptr(arg0, 1);
@@ -795,19 +797,19 @@
     v_store(v3, arg1);
     v4 = v_function_type(v2_void, arg0, 2, false);
     v5 = v_pointer_type(v4, 0);
-    v_export_symbol("LLVMDiagnosticHandler", voidc_opaque_type, v5);
+    v_export_constant("LLVMDiagnosticHandler", v5, 0);
 
-    v_export_symbol("LLVMAtomicOrdering", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMAtomicOrdering", v0_int, 0);
 
-    v_export_symbol("LLVMDiagnosticSeverity", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMDiagnosticSeverity", v0_int, 0);
 
-    v_export_symbol("LLVMUnnamedAddr", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMUnnamedAddr", v0_int, 0);
 
-    v_export_symbol("LLVMCallConv", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMCallConv", v0_int, 0);
 
-    v_export_symbol("LLVMOpcode", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMOpcode", v0_int, 0);
 
-    v_export_symbol("LLVMTypeKind", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMTypeKind", v0_int, 0);
 
     v6_LLVMContextRef = v_find_type("LLVMContextRef");
     v_store(v6_LLVMContextRef, arg0);
@@ -815,26 +817,26 @@
     v_store(v7, arg1);
     v8 = v_function_type(v2_void, arg0, 2, false);
     v9 = v_pointer_type(v8, 0);
-    v_export_symbol("LLVMYieldCallback", voidc_opaque_type, v9);
+    v_export_constant("LLVMYieldCallback", v9, 0);
 
-    v_export_symbol("LLVMDLLStorageClass", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMDLLStorageClass", v0_int, 0);
 
-    v_export_symbol("LLVMThreadLocalMode", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMThreadLocalMode", v0_int, 0);
 
-    v_export_symbol("LLVMModuleFlagBehavior", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMModuleFlagBehavior", v0_int, 0);
 
-    v_export_symbol("LLVMIntPredicate", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMIntPredicate", v0_int, 0);
 
-    v_export_symbol("LLVMValueKind", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMValueKind", v0_int, 0);
 
-    v_export_symbol("LLVMInlineAsmDialect", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMInlineAsmDialect", v0_int, 0);
 
-    v_export_symbol("LLVMRealPredicate", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMRealPredicate", v0_int, 0);
 
     v10_unsigned = v_find_type("unsigned");
-    v_export_symbol("LLVMAttributeIndex", voidc_opaque_type, v10_unsigned);
+    v_export_constant("LLVMAttributeIndex", v10_unsigned, 0);
 
-    v_export_symbol("LLVMVisibility", voidc_opaque_type, v0_int);
+    v_export_constant("LLVMVisibility", v0_int, 0);
 
 }
 

@@ -10,26 +10,40 @@
 
 
 //---------------------------------------------------------------------
-{   quark_t = v_uint_type(32);      //- Sic!
+{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
 
-    v_export_symbol("v_quark_t", voidc_opaque_type, quark_t);
+    _char = v_find_type("char");
+
+    //-------------------------------------------------------------
+    v_add_symbol("_voidc_opaque_type", _voidc_opaque_type, _voidc_opaque_type);
+
+    v_add_symbol("_char", _voidc_opaque_type, _char);
 }
 
 
 //---------------------------------------------------------------------
-{   char_ptr = v_pointer_type(char, 0);
+{   quark_t = v_uint_type(32);      //- Sic!
+
+    v_export_constant("v_quark_t", quark_t, 0);
+
+    v_add_symbol("_v_quark_t", _voidc_opaque_type, quark_t);
+}
+
+
+//---------------------------------------------------------------------
+{   char_ptr = v_pointer_type(_char, 0);
 
     typ = v_alloca(v_type_ptr);
 
     v_store(char_ptr, typ);
 
-    ft = v_function_type(v_pointer_type(v_quark_t, 0), typ, 1, false);
+    ft = v_function_type(v_pointer_type(_v_quark_t, 0), typ, 1, false);
     v_export_symbol_type("v_quark_ptr_from_string", ft);
 
-    ft = v_function_type(v_quark_t, typ, 1, false);
+    ft = v_function_type(_v_quark_t, typ, 1, false);
     v_export_symbol_type("v_quark_from_string", ft);
 
-    v_store(v_quark_t, typ);
+    v_store(_v_quark_t, typ);
 
     ft = v_function_type(char_ptr, typ, 1, 0);
     v_export_symbol_type("v_quark_to_string", ft);

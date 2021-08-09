@@ -59,7 +59,10 @@
     FILE = v_struct_type_named("FILE");
 
     FILE_ptr = v_pointer_type(FILE, 0);
-    char_ptr = v_pointer_type(char, 0);
+    char_ptr = v_pointer_type(v_find_type("char"), 0);
+
+    _int  = v_find_type("int");
+    _void = v_find_type("void");
 
 
     typ = v_alloca(v_type_ptr, 3);
@@ -73,19 +76,19 @@
 
     typ[0] := FILE_ptr;
 
-    ft = v_function_type(int, typ, 1, false);
+    ft = v_function_type(_int, typ, 1, false);
 
     v_export_symbol_type("fclose", ft);
 
     typ[0] := char_ptr;
-    typ[1] := int;
+    typ[1] := _int;
     typ[2] := FILE_ptr;
 
-    ft = v_function_type(int, typ, 3, false);
+    ft = v_function_type(_int, typ, 3, false);
 
     v_export_symbol_type("fgets", ft);
 
-    ft = v_function_type(void, typ, 1, false);
+    ft = v_function_type(_void, typ, 1, false);
 
     v_export_symbol_type("perror", ft);
 

@@ -85,7 +85,7 @@
     v_terminate(str0, 2);
 }
 
-{   ft = v_function_type(uint64_t, 0, 0, false);
+{   ft = v_function_type(v_find_type("uint64_t"), 0, 0, false);
     v_export_symbol_type("llvm.readcyclecounter", ft);
 
     v_export_alias("llvm_readcyclecounter", "llvm.readcyclecounter");
@@ -103,7 +103,7 @@
     v_initialize(dict);
 
 
-    v_util_function_dict_set(dict, int, "XYZZY");
+    v_util_function_dict_set(dict, v_find_type("int"), "XYZZY");
 
 
     v_terminate(dict);
@@ -113,11 +113,9 @@
 //---------------------------------------------------------------------
 //- AST generic...
 //---------------------------------------------------------------------
-{
-    v_add_symbol("destroy_f", v_ast_generic_destroy_fun_t, 0);
-    v_add_symbol("accept_f",  v_ast_generic_accept_fun_t,  0);
-
-    v_add_symbol("vtable_g",  v_ast_generic_vtable,        0);
+{   v_add_symbol("destroy_f", v_find_type("v_ast_generic_destroy_fun_t"), 0);
+    v_add_symbol("accept_f",  v_find_type("v_ast_generic_accept_fun_t"),  0);
+    v_add_symbol("vtable_g",  v_find_type("v_ast_generic_vtable"),        0);
 }
 
 //---------------------------------------------------------------------
@@ -170,13 +168,13 @@
     //-------------------------------------------------------------
     quark = v_quark_from_string("Just test");
 
-    quark_v = LLVMConstInt(v_type_get_llvm_type(v_quark_t), v_cast(quark, long_long), 0);
+    quark_v = LLVMConstInt(v_type_get_llvm_type(v_find_type("v_quark_t")), quark, 0);
 
     v_store(destroy_f, val0);
     v_store(accept_f,  val1);
     v_store(quark_v,   val2);
 
-    v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
+    v_ast_generic_vtable_ = v_type_get_llvm_type(v_find_type("v_ast_generic_vtable"));
 
     vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 

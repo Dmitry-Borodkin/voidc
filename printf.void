@@ -3,20 +3,26 @@
 {   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
-    v_store(v_type_ptr, typ0);          //- Element type
-    v_store(unsigned,   typ1);          //- Address space
+    _v_type_ptr = v_find_type("v_type_ptr");
+    _unsigned   = v_find_type("unsigned");
 
-    ft = v_function_type(v_type_ptr, typ0, 2, false);
+    v_store(_v_type_ptr, typ0);         //- Element type
+    v_store(_unsigned,   typ1);         //- Address space
+
+    ft = v_function_type(_v_type_ptr, typ0, 2, false);
     v_export_symbol_type("v_pointer_type", ft);
 }
 
-{   char_ptr = v_pointer_type(char, 0);
+{   _char = v_find_type("char");
+    _int  = v_find_type("int");
+
+    char_ptr = v_pointer_type(_char, 0);
 
     typ = v_alloca(v_type_ptr);
 
     v_store(char_ptr, typ);
 
-    ft = v_function_type(int, typ, 1, true);
+    ft = v_function_type(_int, typ, 1, true);
     v_export_symbol_type("printf", ft);
 }
 

@@ -25,21 +25,23 @@
 
 //- Known types --------------------------------------------
 {
+    _voidc_opaque_type = v_find_type("voidc_opaque_type");
+
     _long_long = v_find_type("long_long");
     w = v_type_integer_get_width(_long_long);
     v = v_uint_type(w);
-    v_add_symbol("unsigned_long_long", voidc_opaque_type, v);
+    v_add_symbol("unsigned_long_long", _voidc_opaque_type, v);
 }
 
 //- Types --------------------------------------------------
 {
     v0 = v_struct_type_named("struct.LLVMOpaqueTargetLibraryInfotData");
     v1 = v_pointer_type(v0, 0);
-    v_export_symbol("LLVMTargetLibraryInfoRef", voidc_opaque_type, v1);
+    v_export_constant("LLVMTargetLibraryInfoRef", v1, 0);
 
     v2 = v_struct_type_named("struct.LLVMOpaqueTargetData");
     v3 = v_pointer_type(v2, 0);
-    v_export_symbol("LLVMTargetDataRef", voidc_opaque_type, v3);
+    v_export_constant("LLVMTargetDataRef", v3, 0);
 
 }
 

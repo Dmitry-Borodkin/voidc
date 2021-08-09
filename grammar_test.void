@@ -85,12 +85,16 @@
 
 //---------------------------------------------------------------------
 {
-    //-----------------------------------------------------------------
-    f = v_function_hack("mk_test_grammar_action", v_peg_grammar_action_fun_t);
+    _v_peg_grammar_action_fun_t = v_find_type("v_peg_grammar_action_fun_t");
+    _v_util_std_any_ptr         = v_find_type("v_util_std_any_ptr");
+    _size_t                     = v_find_type("size_t");
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_test_grammar_action", _v_peg_grammar_action_fun_t);
+
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);

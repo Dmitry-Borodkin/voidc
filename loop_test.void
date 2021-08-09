@@ -55,14 +55,16 @@
 //{v_debug_print_module(9);}
 {   typ = v_alloca(v_type_ptr);
 
-    v_store(int, typ);
+    _int = v_find_type("int");
 
-    ft = v_function_type(long_long, typ, 1, false);
+    v_store(_int, typ);
+
+    ft = v_function_type(v_find_type("long_long"), typ, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("fib", ft);
 
-    v_add_parameter_name(f, 0, "n", int);
+    v_add_parameter_name(f, 0, "n", _int);
 }
 {
     v0 = v_alloca(long_long, 2);

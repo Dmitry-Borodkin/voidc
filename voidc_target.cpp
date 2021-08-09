@@ -511,9 +511,7 @@ base_global_ctx_t::initialize(void)
 
     auto add_type = [this, opaque_type](const char *raw_name, v_type_t *type)
     {
-        decls.symbols.insert({raw_name, opaque_type});
-
-        add_symbol_value(raw_name, (void *)type);
+        decls.constants.insert({raw_name, type});
     };
 
 #define DEF(name) \
@@ -670,6 +668,15 @@ base_local_ctx_t::find_type(const char *type_name)
 
     auto cname = raw_name.c_str();
 
+    {   v_type_t    *t = nullptr;
+        LLVMValueRef v = nullptr;
+
+        if (find_constant(cname, t, v)  &&  v == nullptr)
+        {
+            return t;
+        }
+    }
+
     if (get_symbol_type(cname) == voidc_global_ctx_t::voidc->opaque_type_type)
     {
         return  reinterpret_cast<v_type_t *>(find_symbol_value(cname));
@@ -677,6 +684,70 @@ base_local_ctx_t::find_type(const char *type_name)
 
     return nullptr;
 }
+
+
+
+//---------------------------------------------------------------------
+bool
+base_local_ctx_t::find_constant(const char *raw_name, v_type_t * &type, LLVMValueRef &value)
+{
+    v_type_t    *t = nullptr;
+    LLVMValueRef v = nullptr;
+
+    auto itt = decls.constants.find(raw_name);
+
+    if (itt != decls.constants.end())
+    {
+        t = itt->second;
+
+        {   auto itv = constant_values.find(raw_name);
+
+            if (itv != constant_values.end())
+            {
+                v = itv->second;
+            }
+        }
+
+        if (!v)
+        {
+            auto itv = global_ctx.constant_values.find(raw_name);
+
+            if (itv != global_ctx.constant_values.end())
+            {
+                v = itv->second;
+            }
+        }
+    }
+
+    if (!t) return false;
+
+    type  = t;
+    value = v;
+
+    return true;
+}
+
+//---------------------------------------------------------------------
+bool
+base_local_ctx_t::find_symbol(const char *raw_name, v_type_t * &type, void * &value)
+{
+    v_type_t *t = nullptr;
+    void     *v = nullptr;
+
+    t = get_symbol_type(raw_name);
+
+    if (!t) return false;
+
+    v = find_symbol_value(raw_name);
+
+    type  = t;
+    value = v;
+
+    return true;
+}
+
+
+
 
 //---------------------------------------------------------------------
 v_type_t *
@@ -694,80 +765,57 @@ base_local_ctx_t::obtain_type(const ast_expr_sptr_t &expr)
 bool
 base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value)
 {
-    type  = nullptr;
-    value = nullptr;
+    v_type_t    *t = nullptr;
+    LLVMValueRef v = nullptr;
 
     if (auto *p = vars.find(name))
     {
-        type  = p->first;
-        value = p->second;
+        t = p->first;
+        v = p->second;
     }
     else
     {
         auto raw_name = check_alias(name);
 
-        {   auto itt = decls.constants.find(raw_name);
+        auto cname = raw_name.c_str();
 
-            if (itt != decls.constants.end())
-            {
-                type = itt->second;
-
-                {   auto itv = constant_values.find(raw_name);
-
-                    if (itv != constant_values.end())
-                    {
-                        value = itv->second;
-                    }
-                }
-
-                if (!value)
-                {
-                    auto itv = global_ctx.constant_values.find(raw_name);
-
-                    if (itv != global_ctx.constant_values.end())
-                    {
-                        value = itv->second;
-                    }
-                }
-
-                assert(value);
-            }
-        }
-
-        if (!value)
+        if (!find_constant(cname, t, v))
         {
-            auto cname = raw_name.c_str();
+            t = get_symbol_type(cname);
 
-            type = get_symbol_type(cname);
+            if (!t)  return false;
 
-            if (!type)  return false;
-
-            if (auto *ft = dynamic_cast<v_type_function_t *>(type))
+            if (auto *ft = dynamic_cast<v_type_function_t *>(t))
             {
-                value = LLVMGetNamedFunction(module, cname);
+                v = LLVMGetNamedFunction(module, cname);
 
-                if (!value) value = LLVMAddFunction(module, cname, ft->llvm_type());
+                if (!v) v = LLVMAddFunction(module, cname, ft->llvm_type());
 
-                type = global_ctx.make_pointer_type(type, 0);       //- Sic!
+                t = global_ctx.make_pointer_type(t, 0);         //- Sic!
             }
             else
             {
-                value = LLVMGetNamedGlobal(module, cname);
+                v = LLVMGetNamedGlobal(module, cname);
 
-                v_type_t *t = type;
+                v_type_t *st = t;
 
-                bool is_reference = (type->kind() == v_type_t::k_reference);
+                bool is_reference = (t->kind() == v_type_t::k_reference);
 
-                if (is_reference) t = static_cast<v_type_reference_t *>(t)->element_type();
+                if (is_reference) st = static_cast<v_type_reference_t *>(st)->element_type();
 
-                if (!value) value = LLVMAddGlobal(module, t->llvm_type(), cname);
+                if (!v) v = LLVMAddGlobal(module, st->llvm_type(), cname);
 
-                if (!is_reference)  type = global_ctx.make_pointer_type(type, 0);       //- Sic!
+                if (!is_reference)  t = global_ctx.make_pointer_type(t, 0);         //- Sic!
             }
         }
     }
 
-    return bool(value);
+    assert(t);
+
+    type  = t;
+    value = v;
+
+    return true;
 }
 
 
@@ -1032,9 +1080,7 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     auto add_type = [this](const char *raw_name, v_type_t *type)
     {
-        decls.symbols.insert({raw_name, opaque_type_type});
-
-        add_symbol_value(raw_name, (void *)type);
+        decls.constants.insert({raw_name, type});
     };
 
     add_type("voidc_opaque_type", opaque_type_type);        //- Sic!
@@ -1060,6 +1106,8 @@ voidc_global_ctx_t::voidc_global_ctx_t()
         types[1] = type_ptr_type;
 
         DEF(v_export_symbol_type, void_type, 2)
+
+        DEF(v_find_type, type_ptr_type, 1)
 
 #undef DEF
     }

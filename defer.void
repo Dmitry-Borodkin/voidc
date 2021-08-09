@@ -29,8 +29,32 @@
 
 
 //---------------------------------------------------------------------
-{   void_ptr = v_pointer_type(void, 0);
-    v_add_symbol("void_ptr", voidc_opaque_type, void_ptr);
+{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
+
+    v_add_symbol("_voidc_opaque_type", _voidc_opaque_type, _voidc_opaque_type);
+
+    _void = v_find_type("void");
+
+    v_add_symbol("_void", _voidc_opaque_type, _void);
+
+    void_ptr = v_pointer_type(_void, 0);
+    v_add_symbol("void_ptr", _voidc_opaque_type, void_ptr);
+
+    v_add_symbol("_voidc_visitor_ptr", _voidc_opaque_type, v_find_type("voidc_visitor_ptr"));
+
+    v_add_symbol("_v_ast_stmt_ptr", _voidc_opaque_type, v_find_type("v_ast_stmt_ptr"));
+
+    v_add_symbol("_v_ast_opaque_stmt_sptr", _voidc_opaque_type, v_find_type("v_ast_opaque_stmt_sptr"));
+
+    v_add_symbol("_v_quark_t", _voidc_opaque_type, v_find_type("v_quark_t"));
+
+    v_add_symbol("_v_ast_generic_vtable", _voidc_opaque_type, v_find_type("v_ast_generic_vtable"));
+
+    v_add_symbol("_v_peg_grammar_action_fun_t", _voidc_opaque_type, v_find_type("v_peg_grammar_action_fun_t"));
+    v_add_symbol("_v_util_std_any_ptr",         _voidc_opaque_type, v_find_type("v_util_std_any_ptr"));
+    v_add_symbol("_size_t",                     _voidc_opaque_type, v_find_type("size_t"));
+
+    v_add_symbol("_voidc_intrinsic_t", _voidc_opaque_type, v_find_type("voidc_intrinsic_t"));
 }
 
 //---------------------------------------------------------------------
@@ -39,15 +63,15 @@
     //-----------------------------------------------------------------
     //- method ...
     //-----------------------------------------------------------------
-    typ[0] := voidc_visitor_ptr;
+    typ[0] := _voidc_visitor_ptr;
     typ[1] := void_ptr;
-    typ[2] := v_ast_stmt_ptr;
+    typ[2] := _v_ast_stmt_ptr;
 
-    method_ft  = v_function_type(void, typ, 3, false);
+    method_ft  = v_function_type(_void, typ, 3, false);
     method_ptr = v_pointer_type(method_ft, 0);
 
-    v_add_symbol("method_ft",  voidc_opaque_type, method_ft);
-    v_add_symbol("method_ptr", voidc_opaque_type, method_ptr);
+    v_add_symbol("method_ft",  _voidc_opaque_type, method_ft);
+    v_add_symbol("method_ptr", _voidc_opaque_type, method_ptr);
 
 
     //-----------------------------------------------------------------
@@ -55,14 +79,14 @@
     //-----------------------------------------------------------------
     ast_stmt_defer_t = v_struct_type_named("struct.ast_stmt_defer_t");
 
-    typ[0] := v_ast_opaque_stmt_sptr;
+    typ[0] := _v_ast_opaque_stmt_sptr;
 
     v_type_struct_set_body(ast_stmt_defer_t, typ, 1, false);
 
     ast_stmt_defer_ptr = v_pointer_type(ast_stmt_defer_t, 0);
 
-    v_add_symbol("ast_stmt_defer_t",   voidc_opaque_type, ast_stmt_defer_t);
-    v_add_symbol("ast_stmt_defer_ptr", voidc_opaque_type, ast_stmt_defer_ptr);
+    v_add_symbol("ast_stmt_defer_t",   _voidc_opaque_type, ast_stmt_defer_t);
+    v_add_symbol("ast_stmt_defer_ptr", _voidc_opaque_type, ast_stmt_defer_ptr);
 }
 
 
@@ -85,7 +109,7 @@
 
     quark_p = v_quark_ptr_from_string(quark_name);
 
-    v_export_symbol(quark_name, v_reference_type(v_quark_t, 0), quark_p);
+    v_export_symbol(quark_name, v_reference_type(_v_quark_t, 0), quark_p);
 
     v_add_alias("quark", quark_name);
 }
@@ -95,8 +119,10 @@
 //- destroy ...
 //---------------------------------------------------------------------
 {
+    _v_ast_generic_destroy_fun_t = v_find_type("v_ast_generic_destroy_fun_t");
+
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_stmt_defer_destroy", v_ast_generic_destroy_fun_t);
+    f = v_function_hack("voidc_ast_stmt_defer_destroy", _v_ast_generic_destroy_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -117,13 +143,15 @@
 //- accept ...
 //---------------------------------------------------------------------
 {
+    _v_ast_generic_accept_fun_t = v_find_type("v_ast_generic_accept_fun_t");
+
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_stmt_defer_accept", v_ast_generic_accept_fun_t);
+    f = v_function_hack("voidc_ast_stmt_defer_accept", _v_ast_generic_accept_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
-    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "visitor",  _voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
@@ -149,13 +177,13 @@
 
     destroy_f = v_obtain_function("voidc_ast_stmt_defer_destroy");
     accept_f  = v_obtain_function("voidc_ast_stmt_defer_accept");
-    quark_u   = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
+    quark_u   = LLVMGetUndef(v_type_get_llvm_type(_v_quark_t));
 
     val[0] := destroy_f;
     val[1] := accept_f;
     val[2] := quark_u;
 
-    v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
+    v_ast_generic_vtable_ = v_type_get_llvm_type(_v_ast_generic_vtable);
 
     vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val, 3);
 
@@ -170,7 +198,7 @@
     voidc_set_unit_buffer(0);
 }
 
-{   v_add_symbol("voidc_ast_stmt_defer_vtable", v_ast_generic_vtable, 0);
+{   v_add_symbol("voidc_ast_stmt_defer_vtable", _v_ast_generic_vtable, 0);
 }
 
 
@@ -180,16 +208,16 @@
 {
     typ = v_alloca(v_type_ptr, 2);
 
-    typ[0] := v_ast_stmt_ptr;
-    typ[1] := v_ast_stmt_ptr;
+    typ[0] := _v_ast_stmt_ptr;
+    typ[1] := _v_ast_stmt_ptr;
 
-    ft = v_function_type(void, typ, 2, false);
+    ft = v_function_type(_void, typ, 2, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_ast_make_stmt_defer", ft);
 
-    v_add_parameter_name(f, 0, "ret",  v_ast_stmt_ptr);
-    v_add_parameter_name(f, 1, "stmt", v_ast_stmt_ptr);
+    v_add_parameter_name(f, 0, "ret",  _v_ast_stmt_ptr);
+    v_add_parameter_name(f, 1, "stmt", _v_ast_stmt_ptr);
 }
 {
     obj = v_malloc(ast_stmt_defer_t);
@@ -209,13 +237,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("mk_stmt_defer_grammar_action", v_peg_grammar_action_fun_t);
+    f = v_function_hack("mk_stmt_defer_grammar_action", _v_peg_grammar_action_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 0, "ret",       _v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      _v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", _size_t);
 }
 {
     stmt = v_std_any_get_pointer(v_ast_opaque_stmt_sptr, any0);
@@ -240,9 +268,9 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 0, "visitor", _voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "stmt",    v_ast_stmt_ptr);
+    v_add_parameter_name(f, 2, "stmt",    _v_ast_stmt_ptr);
 }
 {
     builder = v_target_get_builder();
@@ -280,7 +308,7 @@
 //- Enable statement defer compiler
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     v_function_hack("voidc_enable_statement_defer_compiler", ft);
@@ -299,7 +327,7 @@
 //- Enable statement defer
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(void, 0, 0, false);
+    ft = v_function_type(_void, 0, 0, false);
 
     //-----------------------------------------------------------------
     v_function_hack("voidc_enable_statement_defer", ft);
