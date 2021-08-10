@@ -4,13 +4,12 @@
 //---------------------------------------------------------------------
 {   voidc_guard_target("voidc_compiler.void  must be imported into the voidc target only!"); }
 
+{   v_import("voidc_target.void");
+}
 
 //---------------------------------------------------------------------
-{
-    _voidc_opaque_visitor_sptr = v_find_type("voidc_opaque_visitor_sptr");
-
-    v_export_symbol_type("voidc_compiler",  _voidc_opaque_visitor_sptr);
-    v_export_symbol_type("voidc_type_calc", _voidc_opaque_visitor_sptr);
+{   v_export_symbol_type("voidc_compiler",  voidc_opaque_visitor_sptr);
+    v_export_symbol_type("voidc_type_calc", voidc_opaque_visitor_sptr);
 }
 
 

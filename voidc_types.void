@@ -7,40 +7,33 @@
     v_import("voidc_target.void");
 }
 
+
 //---------------------------------------------------------------------
-{   _v_type_ptr = v_find_type("v_type_ptr");
+{   typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
 
-    _void     = v_find_type("void");
-    _bool     = v_find_type("bool");
-    _char     = v_find_type("char");
-    _int      = v_find_type("int");
-    _unsigned = v_find_type("unsigned");
-    _size_t   = v_find_type("size_t");
-    _uint64_t = v_find_type("uint64_t");
+    v_store(v_type_ptr, typ0);          //- Element type
+    v_store(unsigned,   typ1);          //- Address space
 
-    _voidc_opaque_type = v_find_type("voidc_opaque_type");
+    ft = v_function_type(v_type_ptr, typ0, 2, false);
+    v_export_symbol_type("v_pointer_type", ft);
+}
 
-    //-------------------------------------------------------------
-    v_add_symbol("_v_type_ptr", _voidc_opaque_type, _v_type_ptr);
+{   typ = v_alloca(v_type_ptr);
 
-    v_add_symbol("_void",     _voidc_opaque_type, _void);
-    v_add_symbol("_bool",     _voidc_opaque_type, _bool);
-    v_add_symbol("_char",     _voidc_opaque_type, _char);
-    v_add_symbol("_int",      _voidc_opaque_type, _int);
-    v_add_symbol("_unsigned", _voidc_opaque_type, _unsigned);
-    v_add_symbol("_size_t",   _voidc_opaque_type, _size_t);
-    v_add_symbol("_uint64_t", _voidc_opaque_type, _uint64_t);
+    char_ptr = v_pointer_type(char, 0);
 
-    v_add_symbol("_voidc_opaque_type", _voidc_opaque_type, _voidc_opaque_type);
+    v_store(char_ptr, typ);             //- Struct name
+
+    ft = v_function_type(v_type_ptr, typ, 1, false);
+    v_export_symbol_type("v_struct_type_named", ft);
 }
 
 
 //---------------------------------------------------------------------
 {   opaque_type_t = v_struct_type_named("struct.LLVMOpaqueType");
     type_ref = v_pointer_type(opaque_type_t, 0);
-    v_export_constant("LLVMTypeRef", type_ref, 0);
-
-    v_add_symbol("_LLVMTypeRef", _voidc_opaque_type, type_ref);
+    v_export_type("LLVMTypeRef", type_ref);
 }
 
 {   typ0 = v_alloca(v_type_ptr, 4);
@@ -48,219 +41,219 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
-    type_ptr = v_pointer_type(_v_type_ptr, 0);
-    char_ptr = v_pointer_type(_char, 0);
+    type_ptr = v_pointer_type(v_type_ptr, 0);
+    char_ptr = v_pointer_type(char, 0);
 
     //-----------------------------------------------------------------
-    v_store(_v_type_ptr, typ0);         //-
+    v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_int, typ0, 1, false);
+    ft = v_function_type(int, typ0, 1, false);
     v_export_symbol_type("v_type_get_kind", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_LLVMTypeRef, typ0, 1, false);
+    ft = v_function_type(LLVMTypeRef, typ0, 1, false);
     v_export_symbol_type("v_type_get_llvm_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_v_type_ptr, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_get_scalar_type", ft);
 
     //-----------------------------------------------------------------
-    ft = v_function_type(_v_type_ptr, 0, 0, false);
+    ft = v_function_type(v_type_ptr, 0, 0, false);
     v_export_symbol_type("v_void_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_void", ft);
 
     //-----------------------------------------------------------------
-    ft = v_function_type(_v_type_ptr, 0, 0, false);
+    ft = v_function_type(v_type_ptr, 0, 0, false);
     v_export_symbol_type("v_f16_type",  ft);
     v_export_symbol_type("v_f32_type",  ft);
     v_export_symbol_type("v_f64_type",  ft);
     v_export_symbol_type("v_f128_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_floating_point", ft);
 
     //-----------------------------------------------------------------
-    v_store(_unsigned, typ0);           //- Width
+    v_store(unsigned, typ0);            //- Width
 
-    ft = v_function_type(_v_type_ptr, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_int_type", ft);
     v_export_symbol_type("v_uint_type", ft);
 
-    v_store(_v_type_ptr, typ0);         //-
+    v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_integer", ft);
     v_export_symbol_type("v_type_integer_is_signed", ft);
 
-    ft = v_function_type(_unsigned, typ0, 1, false);
+    ft = v_function_type(unsigned, typ0, 1, false);
     v_export_symbol_type("v_type_integer_get_width", ft);
 
     //-----------------------------------------------------------------
-//  v_store(_v_type_ptr, typ0);         //- Return type
-//  v_store(type_ptr,    typ1);         //- Parameter types
-//  v_store(_unsigned,   typ2);         //- Parameter count
-//  v_store(_bool,       typ3);         //- Is var arg
+//  v_store(v_type_ptr, typ0);          //- Return type
+//  v_store(type_ptr,   typ1);          //- Parameter types
+//  v_store(unsigned,   typ2);          //- Parameter count
+//  v_store(bool,       typ3);          //- Is var arg
 //
-//  ft = v_function_type(_v_type_ptr, typ0, 4, false);
+//  ft = v_function_type(v_type_ptr, typ0, 4, false);
 //  v_export_symbol_type("v_function_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_function", ft);
     v_export_symbol_type("v_type_function_is_var_arg", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_v_type_ptr, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_function_get_return_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_unsigned, typ0, 1, false);
+    ft = v_function_type(unsigned, typ0, 1, false);
     v_export_symbol_type("v_type_function_get_param_count", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
-    v_store(type_ptr,    typ1);         //- Parameter types (out)
+//  v_store(v_type_ptr, typ0);          //-
+    v_store(type_ptr,   typ1);          //- Parameter types (out)
 
-    ft = v_function_type(_void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_type_function_get_param_types", ft);
 
     //-----------------------------------------------------------------
-//  v_store(_v_type_ptr, typ0);         //- Element type
-    v_store(_unsigned,   typ1);         //- Address space
+//  v_store(v_type_ptr, typ0);          //- Element type
+    v_store(unsigned,   typ1);          //- Address space
 
-    ft = v_function_type(_v_type_ptr, typ0, 2, false);
-    v_export_symbol_type("v_pointer_type",   ft);
+    ft = v_function_type(v_type_ptr, typ0, 2, false);
+//  v_export_symbol_type("v_pointer_type",   ft);
     v_export_symbol_type("v_reference_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_pointer",   ft);
     v_export_symbol_type("v_type_is_reference", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_v_type_ptr, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_refptr_get_element_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_unsigned, typ0, 1, false);
+    ft = v_function_type(unsigned, typ0, 1, false);
     v_export_symbol_type("v_type_refptr_get_address_space", ft);
 
     //-----------------------------------------------------------------
 //  v_store(char_ptr, typ0);            //- Struct name
+//
+//  ft = v_function_type(v_type_ptr, typ0, 1, false);
+//  v_export_symbol_type("v_struct_type_named", ft);
 
-    ft = v_function_type(_v_type_ptr, typ0, 1, false);
-    v_export_symbol_type("v_struct_type_named", ft);
+    v_store(type_ptr, typ0);            //- Element types
+//  v_store(unsigned, typ1);            //- Element count
+    v_store(bool,     typ2);            //- Is packed
 
-    v_store(type_ptr,  typ0);           //- Element types
-//  v_store(_unsigned, typ1);           //- Element count
-    v_store(_bool,     typ2);           //- Is packed
-
-    ft = v_function_type(_v_type_ptr, typ0, 3, false);
+    ft = v_function_type(v_type_ptr, typ0, 3, false);
     v_export_symbol_type("v_struct_type", ft);
 
-    v_store(_v_type_ptr, typ0);         //-
+    v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_struct", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
     ft = v_function_type(char_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_struct_get_name", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_struct_is_opaque", ft);
     v_export_symbol_type("v_type_struct_is_packed", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
-    v_store(type_ptr,    typ1);         //- Element types
-    v_store(_unsigned,   typ2);         //- Element count
-    v_store(_bool,       typ3);         //- Is packed
+//  v_store(v_type_ptr, typ0);          //-
+    v_store(type_ptr,   typ1);          //- Element types
+    v_store(unsigned,   typ2);          //- Element count
+    v_store(bool,       typ3);          //- Is packed
 
-    ft = v_function_type(_void, typ0, 4, false);
+    ft = v_function_type(void, typ0, 4, false);
     v_export_symbol_type("v_type_struct_set_body", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_unsigned, typ0, 1, false);
+    ft = v_function_type(unsigned, typ0, 1, false);
     v_export_symbol_type("v_type_struct_get_element_count", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
-//  v_store(type_ptr,    typ1);         //- Element types (out)
+//  v_store(v_type_ptr, typ0);          //-
+//  v_store(type_ptr,   typ1);          //- Element types (out)
 
-    ft = v_function_type(_void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_type_struct_get_element_types", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
-    v_store(_unsigned,   typ1);         //- Index
+//  v_store(v_type_ptr, typ0);          //-
+    v_store(unsigned,   typ1);          //- Index
 
-    ft = v_function_type(_v_type_ptr, typ0, 2, false);
+    ft = v_function_type(v_type_ptr, typ0, 2, false);
     v_export_symbol_type("v_type_struct_get_type_at_index", ft);
 
     //-----------------------------------------------------------------
-//  v_store(_v_type_ptr, typ0);         //- Element type
-    v_store(_uint64_t,   typ1);         //- Array length
+//  v_store(v_type_ptr, typ0);          //- Element type
+    v_store(uint64_t,   typ1);          //- Array length
 
-    ft = v_function_type(_v_type_ptr, typ0, 2, false);
+    ft = v_function_type(v_type_ptr, typ0, 2, false);
     v_export_symbol_type("v_array_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_array", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_v_type_ptr, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_array_get_element_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_uint64_t, typ0, 1, false);
+    ft = v_function_type(uint64_t, typ0, 1, false);
     v_export_symbol_type("v_type_array_get_length", ft);
 
     //-----------------------------------------------------------------
-//  v_store(_v_type_ptr, typ0);         //- Element type
-    v_store(_unsigned,   typ1);         //- Vector size
+//  v_store(v_type_ptr, typ0);          //- Element type
+    v_store(unsigned,   typ1);          //- Vector size
 
-    ft = v_function_type(_v_type_ptr, typ0, 2, false);
+    ft = v_function_type(v_type_ptr, typ0, 2, false);
     v_export_symbol_type("v_vector_type", ft);
     v_export_symbol_type("v_svector_type", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_vector", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_v_type_ptr, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_vector_get_element_type", ft);
 
 //  v_store(_v_type_ptr, typ0);         //-
 
-    ft = v_function_type(_unsigned, typ0, 1, false);
+    ft = v_function_type(unsigned, typ0, 1, false);
     v_export_symbol_type("v_type_vector_get_size", ft);
 
-//  v_store(_v_type_ptr, typ0);         //-
+//  v_store(v_type_ptr, typ0);          //-
 
-    ft = v_function_type(_bool, typ0, 1, false);
+    ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_vector_is_scalable", ft);
 }
 

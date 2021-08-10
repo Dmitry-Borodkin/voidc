@@ -197,6 +197,23 @@ void compile_ast_expr_identifier_t(const visitor_sptr_t *vis, void *aux,
         throw std::runtime_error("Identifier not found: " + *name);
     }
 
+    if (!v  &&  lctx.result_type == voidc_global_ctx_t::voidc->type_ptr_type)
+    {
+        auto raw_name = lctx.check_alias(*name);
+
+        auto cname = raw_name.c_str();
+
+        t = lctx.get_symbol_type(cname);
+
+        assert(t == voidc_global_ctx_t::voidc->opaque_type_type);
+
+        v = LLVMGetNamedGlobal(lctx.module, cname);
+
+        if (!v) v = LLVMAddGlobal(lctx.module, t->llvm_type(), cname);
+
+        t = voidc_global_ctx_t::voidc->type_ptr_type;
+    }
+
     lctx.adopt_result(t, v);
 }
 

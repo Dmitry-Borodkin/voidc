@@ -16,11 +16,9 @@
 
     v_initialize(str0, 3);
 
-    _v_util_opaque_std_string = v_find_type("v_util_opaque_std_string");
-
-    v_add_symbol("str0", _v_util_opaque_std_string, str0);
-    v_add_symbol("str1", _v_util_opaque_std_string, str1);
-    v_add_symbol("str2", _v_util_opaque_std_string, str2);
+    v_add_symbol("str0", v_util_opaque_std_string, str0);
+    v_add_symbol("str1", v_util_opaque_std_string, str1);
+    v_add_symbol("str2", v_util_opaque_std_string, str2);
 }
 
 {
@@ -48,10 +46,8 @@
 {   buf000 = v_malloc(int, 1000);
     buf999 = v_getelementptr(buf000, 999);
 
-    _int = v_find_type("int");
-
-    v_add_symbol("buf000", _int, buf000);
-    v_add_symbol("buf999", _int, buf999);
+    v_add_symbol("buf000", int, buf000);
+    v_add_symbol("buf999", int, buf999);
 }
 
 {

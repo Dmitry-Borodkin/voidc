@@ -1,31 +1,20 @@
 {   v_import("voidc_target.void");
+    v_import("voidc_types.void");
     v_import("voidc_util.void");
 
     v_import("printf.void");
 }
 
-//---------------------------------------------------------------------
-{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
-
-    _char = v_find_type("char");
-    _int  = v_find_type("int");
-
-    //-------------------------------------------------------------
-    v_add_symbol("_voidc_opaque_type", _voidc_opaque_type, _voidc_opaque_type);
-
-    v_add_symbol("_char", _voidc_opaque_type, _char);
-    v_add_symbol("_int",  _voidc_opaque_type, _int);
-}
 
 //---------------------------------------------------------------------
 {
-    char_ptr = v_pointer_type(_char, 0);
+    char_ptr = v_pointer_type(char, 0);
 
     arg = v_alloca(v_type_ptr);
 
     v_store(char_ptr, arg);
 
-    puts_ft = v_function_type(_int, arg, 1, 0);
+    puts_ft = v_function_type(int, arg, 1, 0);
 
     v_export_symbol_type("puts", puts_ft);
 }
@@ -76,7 +65,7 @@
 
     puts_ft_ptr = v_pointer_type(puts_ft, 0);
 
-    v_add_symbol("puts_ft_ptr", _voidc_opaque_type, puts_ft_ptr);
+    v_add_type("puts_ft_ptr", puts_ft_ptr);
 }
 
 {   v_add_alias("puts_ft_p", "puts_ft_ptr");

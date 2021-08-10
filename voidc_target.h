@@ -137,6 +137,9 @@ public:
     void export_intrinsic(const char *fun_name, intrinsic_t fun);
     void add_intrinsic(const char *fun_name, intrinsic_t fun);
 
+    void export_type(const char *raw_name, v_type_t *type);
+    void add_type(const char *raw_name, v_type_t *type);
+
 public:
     const std::string check_alias(const std::string &name);
 
@@ -237,6 +240,7 @@ public:
 
 public:
     v_type_t * const opaque_type_type;
+    v_type_t * const type_ptr_type;
 
 public:
     void add_symbol_value(const char *raw_name, void *value) override;

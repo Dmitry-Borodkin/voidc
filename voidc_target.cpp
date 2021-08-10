@@ -512,6 +512,10 @@ base_global_ctx_t::initialize(void)
     auto add_type = [this, opaque_type](const char *raw_name, v_type_t *type)
     {
         decls.constants.insert({raw_name, type});
+
+        decls.symbols.insert({raw_name, opaque_type});
+
+        add_symbol_value(raw_name, type);
     };
 
 #define DEF(name) \
@@ -574,7 +578,8 @@ base_local_ctx_t::~base_local_ctx_t()
 
 
 //---------------------------------------------------------------------
-void base_local_ctx_t::export_alias(const char *name, const char *raw_name)
+void
+base_local_ctx_t::export_alias(const char *name, const char *raw_name)
 {
     if (export_decls)   export_decls->aliases.insert({name, raw_name});
 
@@ -582,33 +587,37 @@ void base_local_ctx_t::export_alias(const char *name, const char *raw_name)
 }
 
 //---------------------------------------------------------------------
-void base_local_ctx_t::add_alias(const char *name, const char *raw_name)
+void
+base_local_ctx_t::add_alias(const char *name, const char *raw_name)
 {
     decls.aliases.insert({name, raw_name});
 }
 
 
 //---------------------------------------------------------------------
-void base_local_ctx_t::export_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
+void
+base_local_ctx_t::export_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
 {
     if (export_decls)   export_decls->constants.insert({raw_name, type});
 
     decls.constants.insert({raw_name, type});
 
-    global_ctx.constant_values.insert({raw_name, value});
+    if (value)  global_ctx.constant_values.insert({raw_name, value});
 }
 
 //---------------------------------------------------------------------
-void base_local_ctx_t::add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
+void
+base_local_ctx_t::add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
 {
     decls.constants.insert({raw_name, type});
 
-    constant_values.insert({raw_name, value});
+    if (value)  constant_values.insert({raw_name, value});
 }
 
 
 //---------------------------------------------------------------------
-void base_local_ctx_t::export_symbol(const char *raw_name, v_type_t *type, void *value)
+void
+base_local_ctx_t::export_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     if (type)
     {
@@ -621,7 +630,8 @@ void base_local_ctx_t::export_symbol(const char *raw_name, v_type_t *type, void 
 }
 
 //---------------------------------------------------------------------
-void base_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
+void
+base_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     if (type)   decls.symbols.insert({raw_name, type});
 
@@ -630,7 +640,8 @@ void base_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *va
 
 
 //---------------------------------------------------------------------
-void base_local_ctx_t::export_intrinsic(const char *fun_name, intrinsic_t fun)
+void
+base_local_ctx_t::export_intrinsic(const char *fun_name, intrinsic_t fun)
 {
     if (export_decls)   export_decls->intrinsics.insert({fun_name, fun});
 
@@ -638,9 +649,29 @@ void base_local_ctx_t::export_intrinsic(const char *fun_name, intrinsic_t fun)
 }
 
 //---------------------------------------------------------------------
-void base_local_ctx_t::add_intrinsic(const char *fun_name, intrinsic_t fun)
+void
+base_local_ctx_t::add_intrinsic(const char *fun_name, intrinsic_t fun)
 {
     decls.intrinsics.insert({fun_name, fun});
+}
+
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::export_type(const char *raw_name, v_type_t *type)
+{
+    export_constant(raw_name, type, nullptr);
+
+    export_symbol(raw_name, voidc_global_ctx_t::voidc->opaque_type_type, type);
+}
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::add_type(const char *raw_name, v_type_t *type)
+{
+    add_constant(raw_name, type, nullptr);
+
+    add_symbol(raw_name, voidc_global_ctx_t::voidc->opaque_type_type, type);
 }
 
 
@@ -1072,7 +1103,8 @@ LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
   : base_global_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
-    opaque_type_type(make_struct_type("struct.voidc_opaque_type"))
+    opaque_type_type(make_struct_type("struct.voidc_opaque_type")),
+    type_ptr_type(make_pointer_type(opaque_type_type, 0))
 {
     assert(voidc_global_ctx == nullptr);
 
@@ -1081,13 +1113,15 @@ voidc_global_ctx_t::voidc_global_ctx_t()
     auto add_type = [this](const char *raw_name, v_type_t *type)
     {
         decls.constants.insert({raw_name, type});
+
+        decls.symbols.insert({raw_name, opaque_type_type});
+
+        add_symbol_value(raw_name, type);
     };
 
     add_type("voidc_opaque_type", opaque_type_type);        //- Sic!
 
-    {   auto type_ptr_type = make_pointer_type(opaque_type_type, 0);
-
-        add_type("v_type_ptr", type_ptr_type);
+    {   add_type("v_type_ptr", type_ptr_type);
 
         v_type_t *types[] =
         {
@@ -1104,10 +1138,9 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
         types[0] = char_ptr_type;
         types[1] = type_ptr_type;
+        types[2] = make_pointer_type(void_type, 0);
 
-        DEF(v_export_symbol_type, void_type, 2)
-
-        DEF(v_find_type, type_ptr_type, 1)
+        DEF(v_add_symbol, void_type, 3)
 
 #undef DEF
     }
@@ -1740,6 +1773,15 @@ v_export_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
     lctx.export_constant(raw_name, type, value);
 }
 
+void
+v_export_type(const char *raw_name, v_type_t *type)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.export_type(raw_name, type);
+}
+
 //---------------------------------------------------------------------
 void
 v_add_symbol(const char *raw_name, v_type_t *type, void *value)
@@ -1757,6 +1799,15 @@ v_add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
     auto &lctx = *gctx.local_ctx;
 
     lctx.add_constant(raw_name, type, value);
+}
+
+void
+v_add_type(const char *raw_name, v_type_t *type)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.add_type(raw_name, type);
 }
 
 //---------------------------------------------------------------------

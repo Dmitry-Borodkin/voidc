@@ -21,22 +21,17 @@
 }
 
 {
-    _int      = v_find_type("int");
-    _long     = v_find_type("long");
-    _intptr_t = v_find_type("intptr_t");
-    _size_t   = v_find_type("size_t");
-
-    int_      = v_type_get_llvm_type(_int);
-    long_     = v_type_get_llvm_type(_long);
-    intptr_t_ = v_type_get_llvm_type(_intptr_t);
+    int_      = v_type_get_llvm_type(int);
+    long_     = v_type_get_llvm_type(long);
+    intptr_t_ = v_type_get_llvm_type(intptr_t);
 
     int_sz_v  = LLVMSizeOf(int_);
     long_sz_v = LLVMSizeOf(long_);
     ptr_sz_v  = LLVMSizeOf(intptr_t_);
 
-    v_add_constant("int_sz",  _size_t, int_sz_v);
-    v_add_constant("long_sz", _size_t, long_sz_v);
-    v_add_constant("ptr_sz",  _size_t, ptr_sz_v);
+    v_add_constant("int_sz",  size_t, int_sz_v);
+    v_add_constant("long_sz", size_t, long_sz_v);
+    v_add_constant("ptr_sz",  size_t, ptr_sz_v);
 }
 
 {
@@ -49,12 +44,12 @@
 {
     gctx = v_target_create_global_ctx(int_sz, long_sz, ptr_sz);
 
-    v_add_symbol("my_gctx", v_find_type("v_target_opaque_global_ctx"), gctx);
+    v_add_symbol("my_gctx", v_target_opaque_global_ctx, gctx);
 
 
     lctx = v_target_create_local_ctx("<target test>", gctx);
 
-    v_add_symbol("my_lctx", v_find_type("v_target_opaque_local_ctx"), lctx);
+    v_add_symbol("my_lctx", v_target_opaque_local_ctx, lctx);
 
 
     v_target_set_global_ctx(gctx);
@@ -74,16 +69,13 @@
     printf("printf type: %p\n", t);
 }
 
-{   _char = v_find_type("char");
-    _int  = v_find_type("int");
-
-    char_ptr = v_pointer_type(_char, 0);
+{   char_ptr = v_pointer_type(char, 0);
 
     arg = v_alloca(v_type_ptr);
 
     v_store(char_ptr, arg);
 
-    printf_ft = v_function_type(_int, arg, 1, true);
+    printf_ft = v_function_type(int, arg, 1, true);
 
     v_export_symbol_type("printf", printf_ft);
 }

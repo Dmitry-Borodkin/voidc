@@ -1,4 +1,5 @@
 {   v_import("voidc_target.void");
+    v_import("voidc_types.void");
 
     v_import("llvm-c/Core.void");
 
@@ -17,13 +18,13 @@
 
 //---------------------------------------------------------------------
 {
-    char_ptr = v_pointer_type(v_find_type("char"), 0);
+    char_ptr = v_pointer_type(char, 0);
 
     typ = v_alloca(v_type_ptr);
 
     v_store(char_ptr, typ);
 
-    ft = v_function_type(v_find_type("void"), typ, 1, false);
+    ft = v_function_type(void, typ, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("test_print", ft);

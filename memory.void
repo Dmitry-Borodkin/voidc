@@ -19,24 +19,11 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
+{   llvm_opaque_type = v_type_refptr_get_element_type(LLVMTypeRef);
 
-    v_add_symbol("_voidc_intrinsic_t",   _voidc_opaque_type, v_find_type("voidc_intrinsic_t"));
-    v_add_symbol("_voidc_visitor_ptr",   _voidc_opaque_type, v_find_type("voidc_visitor_ptr"));
-    v_add_symbol("_v_ast_expr_list_ptr", _voidc_opaque_type, v_find_type("v_ast_expr_list_ptr"));
+    v_add_symbol("int_", llvm_opaque_type, v_type_get_llvm_type(int));
 
-    v_add_symbol("_LLVMValueRef", _voidc_opaque_type, v_find_type("LLVMValueRef"));
-
-    _int = v_find_type("int");
-
-    v_add_symbol("_int", _voidc_opaque_type, _int);
-
-    llvm_opaque_type = v_type_refptr_get_element_type(v_find_type("LLVMTypeRef"));
-
-    v_add_symbol("int_", llvm_opaque_type, v_type_get_llvm_type(_int));
-
-    void_ptr = v_pointer_type(v_find_type("void"), 0);
-    v_add_symbol("void_ptr", _voidc_opaque_type, void_ptr);
+    v_add_type("void_ptr", v_pointer_type(void, 0));
 }
 
 //---------------------------------------------------------------------
@@ -94,11 +81,11 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    malloc_f = v_function_hack("voidc_memory_malloc_intrinsic", _voidc_intrinsic_t);
+    malloc_f = v_function_hack("voidc_memory_malloc_intrinsic", voidc_intrinsic_t);
 
-    visitor  = v_add_parameter_name(malloc_f, 0, "visitor",  _voidc_visitor_ptr);
+    visitor  = v_add_parameter_name(malloc_f, 0, "visitor",  voidc_visitor_ptr);
     aux      = v_add_parameter_name(malloc_f, 1, "aux",      void_ptr);
-    arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", _v_ast_expr_list_ptr);
+    arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", v_ast_expr_list_ptr);
 
 
     val0 = v_alloca(LLVMValueRef, 4);
@@ -116,16 +103,12 @@
 
     v_store(arg_list, val0);
 
-    _v_ast_opaque_expr_list_sptr = v_find_type("v_ast_opaque_expr_list_sptr");
-
-    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, _v_ast_opaque_expr_list_sptr);
+    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, v_ast_opaque_expr_list_sptr);
 
     args_count_v = LLVMBuildCall(builder, list_get_size_f, val0, 1, "args_count_v");
 
 
-    _v_ast_opaque_expr_sptr = v_find_type("v_ast_opaque_expr_sptr");
-
-    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(_v_ast_opaque_expr_sptr);
+    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_sptr);
 
     args_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_expr_sptr_, args_count_v, "args_v");
 
@@ -133,7 +116,7 @@
     v_store(args_v,       val0);
     v_store(args_count_v, val1);
 
-    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, _v_ast_opaque_expr_sptr);
+    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_sptr);
 
     LLVMBuildCall(builder, arg_init_f, val0, 2, "");
 
@@ -143,7 +126,7 @@
     v_store(args_v,       val2);
     v_store(args_count_v, val3);
 
-    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, _v_ast_opaque_expr_list_sptr);
+    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_expr_list_sptr);
 
     LLVMBuildCall(builder, list_get_items_f, val0, 4, "");
 
@@ -153,7 +136,7 @@
     cont_b = LLVMAppendBasicBlock(malloc_f, "cont_b");
 
 
-    LLVMValueRef_ = v_type_get_llvm_type(_LLVMValueRef);
+    LLVMValueRef_ = v_type_get_llvm_type(LLVMValueRef);
 
     num_v = LLVMBuildAlloca(builder, LLVMValueRef_, "num_v");
 
@@ -173,7 +156,7 @@
 
     int__v = v_obtain_global("int_");
 
-    long_long_ = v_type_get_llvm_type(v_find_type("long_long"));
+    long_long_ = v_type_get_llvm_type(long_long);
 
     n1ll = LLVMBuildZExtOrBitCast(builder, n1, long_long_, "n1ll");
 
@@ -209,7 +192,7 @@
     args_v_1 = LLVMBuildGEP(builder, args_v, val0, 1, "args_v_1");
 
 
-    v_ast_base_ptr_ = v_type_get_llvm_type(v_find_type("v_ast_base_ptr"));
+    v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
 
     base_arg1 = LLVMBuildBitCast(builder, args_v_1, v_ast_base_ptr_, "base_arg1");
 
@@ -237,15 +220,12 @@
     LLVMPositionBuilderAtEnd(builder, cont_b);
 
 
-    _v_ast_expr_ptr = v_find_type("v_ast_expr_ptr");
-    _v_type_ptr     = v_find_type("v_type_ptr");
+    num_var_t = v_pointer_type(LLVMValueRef, 0);
 
-    num_var_t = v_pointer_type(_LLVMValueRef, 0);
-
-    v_add_variable("args",       _v_ast_expr_ptr, args_v);
-    v_add_variable("args_count", _int,            args_count_v);
-    v_add_variable("num_var",    num_var_t,       num_v);
-    v_add_variable("tt",         _v_type_ptr,     tt_v);
+    v_add_variable("args",       v_ast_expr_ptr, args_v);
+    v_add_variable("args_count", int,            args_count_v);
+    v_add_variable("num_var",    num_var_t,      num_v);
+    v_add_variable("tt",         v_type_ptr,     tt_v);
 }
 {
     number = v_load(num_var);
@@ -272,11 +252,11 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_memory_mfree_intrinsic", _voidc_intrinsic_t);
+    f = v_function_hack("voidc_memory_mfree_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  _voidc_visitor_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", _v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
     builder = v_target_get_builder();

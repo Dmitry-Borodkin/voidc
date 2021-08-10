@@ -66,22 +66,22 @@
 {
     v0 = v_struct_type_named("struct.LLVMOpaqueSectionIterator");
     v1 = v_pointer_type(v0, 0);
-    v_export_constant("LLVMSectionIteratorRef", v1, 0);
+    v_export_type("LLVMSectionIteratorRef", v1);
 
     v2_int = v_find_type("int");
-    v_export_constant("LLVMBinaryType", v2_int, 0);
+    v_export_type("LLVMBinaryType", v2_int);
 
     v3 = v_struct_type_named("struct.LLVMOpaqueRelocationIterator");
     v4 = v_pointer_type(v3, 0);
-    v_export_constant("LLVMRelocationIteratorRef", v4, 0);
+    v_export_type("LLVMRelocationIteratorRef", v4);
 
     v5 = v_struct_type_named("struct.LLVMOpaqueSymbolIterator");
     v6 = v_pointer_type(v5, 0);
-    v_export_constant("LLVMSymbolIteratorRef", v6, 0);
+    v_export_type("LLVMSymbolIteratorRef", v6);
 
     v7 = v_struct_type_named("struct.LLVMOpaqueObjectFile");
     v8 = v_pointer_type(v7, 0);
-    v_export_constant("LLVMObjectFileRef", v8, 0);
+    v_export_type("LLVMObjectFileRef", v8);
 
 }
 

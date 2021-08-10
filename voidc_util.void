@@ -12,69 +12,23 @@
 
 
 //---------------------------------------------------------------------
-{   _v_type_ptr = v_find_type("v_type_ptr");
-
-    _void     = v_find_type("void");
-    _bool     = v_find_type("bool");
-    _char     = v_find_type("char");
-    _int      = v_find_type("int");
-    _unsigned = v_find_type("unsigned");
-    _size_t   = v_find_type("size_t");
-    _intptr_t = v_find_type("intptr_t");
-    _char32_t = v_find_type("char32_t");
-
-    _LLVMValueRef = v_find_type("LLVMValueRef");
-
-    _v_util_opaque_function_dict_t = v_find_type("v_util_opaque_function_dict_t");
-
-    _v_util_opaque_std_any    = v_find_type("v_util_opaque_std_any");
-    _v_util_opaque_std_string = v_find_type("v_util_opaque_std_string");
-
-
-    _voidc_opaque_type = v_find_type("voidc_opaque_type");
-
-    //-------------------------------------------------------------
-    v_add_symbol("_v_type_ptr", _voidc_opaque_type, _v_type_ptr);
-
-    v_add_symbol("_void",     _voidc_opaque_type, _void);
-    v_add_symbol("_bool",     _voidc_opaque_type, _bool);
-    v_add_symbol("_char",     _voidc_opaque_type, _char);
-    v_add_symbol("_int",      _voidc_opaque_type, _int);
-    v_add_symbol("_unsigned", _voidc_opaque_type, _unsigned);
-    v_add_symbol("_size_t",   _voidc_opaque_type, _size_t);
-    v_add_symbol("_intptr_t", _voidc_opaque_type, _intptr_t);
-    v_add_symbol("_char32_t", _voidc_opaque_type, _char32_t);
-
-    v_add_symbol("_LLVMValueRef", _voidc_opaque_type, _LLVMValueRef);
-
-    v_add_symbol("_v_util_opaque_function_dict_t", _voidc_opaque_type, _v_util_opaque_function_dict_t);
-
-    v_add_symbol("_v_util_opaque_std_any",    _voidc_opaque_type, _v_util_opaque_std_any);
-    v_add_symbol("_v_util_opaque_std_string", _voidc_opaque_type, _v_util_opaque_std_string);
-
-
-    v_add_symbol("_voidc_opaque_type", _voidc_opaque_type, _voidc_opaque_type);
-}
-
-
-//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_export_symbol_type("v_util_initialize_dict",          _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_terminate_dict",           _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_copy_dict",                _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_move_dict",                _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_empty_dict",               _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_kind_dict",                _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_std_any_get_value_dict",   _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_std_any_get_pointer_dict", _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_std_any_set_value_dict",   _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_std_any_set_pointer_dict", _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_make_list_nil_dict",       _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_make_list_dict",           _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_list_append_dict",         _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_list_get_size_dict",       _v_util_opaque_function_dict_t);
-    v_export_symbol_type("v_util_list_get_items_dict",      _v_util_opaque_function_dict_t);
+{   v_export_symbol_type("v_util_initialize_dict",          v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_terminate_dict",           v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_copy_dict",                v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_move_dict",                v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_empty_dict",               v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_kind_dict",                v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_std_any_get_value_dict",   v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_std_any_get_pointer_dict", v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_std_any_set_value_dict",   v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_std_any_set_pointer_dict", v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_make_list_nil_dict",       v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_make_list_dict",           v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_list_append_dict",         v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_list_get_size_dict",       v_util_opaque_function_dict_t);
+    v_export_symbol_type("v_util_list_get_items_dict",      v_util_opaque_function_dict_t);
 }
 
 
@@ -86,18 +40,18 @@
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    dict_ptr = v_pointer_type(_v_util_opaque_function_dict_t, 0);
-    char_ptr = v_pointer_type(_char, 0);
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
+    char_ptr = v_pointer_type(char, 0);
 
-    v_store(dict_ptr,    typ0);
-    v_store(_v_type_ptr, typ1);
+    v_store(dict_ptr,   typ0);
+    v_store(v_type_ptr, typ1);
 
     ft = v_function_type(char_ptr, typ0, 2, false);
     v_export_symbol_type("v_util_function_dict_get", ft);
 
     v_store(char_ptr, typ2);
 
-    ft = v_function_type(_void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_util_function_dict_set", ft);
 }
 
@@ -105,21 +59,15 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_util_function_dict_set(v_util_kind_dict, _voidc_opaque_type, "v_type_get_kind");
+{   v_util_function_dict_set(v_util_kind_dict, voidc_opaque_type, "v_type_get_kind");
 }
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   std_any_ptr = v_pointer_type(_v_util_opaque_std_any, 0);
-    v_export_constant("v_util_std_any_ptr", std_any_ptr, 0);
-
-    std_string_ptr = v_pointer_type(_v_util_opaque_std_string, 0);
-    v_export_constant("v_util_std_string_ptr", std_string_ptr, 0);
-
-    v_add_symbol("_v_util_std_any_ptr",    _voidc_opaque_type, std_any_ptr);
-    v_add_symbol("_v_util_std_string_ptr", _voidc_opaque_type, std_string_ptr);
+{   v_export_type("v_util_std_any_ptr",    v_pointer_type(v_util_opaque_std_any, 0));
+    v_export_type("v_util_std_string_ptr", v_pointer_type(v_util_opaque_std_string, 0));
 }
 
 
@@ -129,27 +77,27 @@
 {   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
-    v_store(_v_util_std_string_ptr, typ0);
+    v_store(v_util_std_string_ptr, typ0);
 
-    char_ptr = v_pointer_type(_char, 0);
+    char_ptr = v_pointer_type(char, 0);
 
     ft = v_function_type(char_ptr, typ0, 1, false);
     v_export_symbol_type("v_std_string_get", ft);
 
     v_store(char_ptr, typ1);
 
-    ft = v_function_type(_void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_std_string_set",    ft);
     v_export_symbol_type("v_std_string_append", ft);
 
-    v_store(_char32_t, typ1);
+    v_store(char32_t, typ1);
 
-    ft = v_function_type(_void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_std_string_append_char", ft);
 
-    v_store(_intptr_t, typ1);
+    v_store(intptr_t, typ1);
 
-    ft = v_function_type(_void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_std_string_append_number", ft);
 }
 
@@ -158,26 +106,26 @@
 //- voidc_util support module #1
 //---------------------------------------------------------------------
 {
-    char_ptr = v_pointer_type(_char, 0);
-    dict_ptr = v_pointer_type(_v_util_opaque_function_dict_t, 0);
+    char_ptr = v_pointer_type(char, 0);
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
 
     typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
     v_store(char_ptr, typ0);
 
-    mk_export_sym_ft = v_function_type(_void, typ0, 1, false);
+    mk_export_sym_ft = v_function_type(void, typ0, 1, false);
 
-    obtain_fun_ft = v_function_type(_LLVMValueRef, typ0, 1, false);
+    obtain_fun_ft = v_function_type(LLVMValueRef, typ0, 1, false);
 
-    v_store(dict_ptr,    typ0);
-    v_store(_v_type_ptr, typ1);
+    v_store(dict_ptr,   typ0);
+    v_store(v_type_ptr, typ1);
 
-    obtain_dfun_ft = v_function_type(_LLVMValueRef, typ0, 2, false);
+    obtain_dfun_ft = v_function_type(LLVMValueRef, typ0, 2, false);
 
     v_store(char_ptr, typ0);
 
-    obtain_var_ft = v_function_type(_LLVMValueRef, typ0, 1, false);
+    obtain_var_ft = v_function_type(LLVMValueRef, typ0, 1, false);
 
     //-----------------------------------------------------------------
     v_export_symbol_type("v_make_export_symbol",   mk_export_sym_ft);
@@ -443,7 +391,7 @@
     var_type = LLVMBuildCall(builder, find_sym_type_f, val0, 1, "var_type");
 
 
-    v_type_ptr_ = v_type_get_llvm_type(_v_type_ptr);
+    v_type_ptr_ = v_type_get_llvm_type(v_type_ptr);
 
     var_type_p = LLVMBuildAlloca(builder, v_type_ptr_, "var_type_p");
 
@@ -533,48 +481,48 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
-    dict_ptr = v_pointer_type(_v_util_opaque_function_dict_t, 0);
-    char_ptr = v_pointer_type(_char, 0);
+    dict_ptr = v_pointer_type(v_util_opaque_function_dict_t, 0);
+    char_ptr = v_pointer_type(char, 0);
 
-    v_store(dict_ptr,    typ0);
-    v_store(_v_type_ptr, typ1);
-    v_store(char_ptr,    typ2);
-    v_store(_v_type_ptr, typ3);
+    v_store(dict_ptr,   typ0);
+    v_store(v_type_ptr, typ1);
+    v_store(char_ptr,   typ2);
+    v_store(v_type_ptr, typ3);
 
-    util_reg_helper_ft = v_function_type(_void, typ0, 4, false);
+    util_reg_helper_ft = v_function_type(void, typ0, 4, false);
 
-    v_store(_v_type_ptr, typ0);
+    v_store(v_type_ptr, typ0);
     v_store(char_ptr,   typ1);
     v_store(dict_ptr,   typ2);
 
-    register_helper_ft = v_function_type(_void, typ0, 3, false);
+    register_helper_ft = v_function_type(void, typ0, 3, false);
 
-//  v_store(_v_type_ptr, typ0);
-//  v_store(char_ptr,    typ1);
-    v_store(_v_type_ptr, typ2);
+//  v_store(v_type_ptr, typ0);
+//  v_store(char_ptr,   typ1);
+    v_store(v_type_ptr, typ2);
 
-    register_wtyp_ft = v_function_type(_void, typ0, 3, false);
+    register_wtyp_ft = v_function_type(void, typ0, 3, false);
 
-//  v_store(_v_type_ptr, typ0);
-//  v_store(char_ptr,    typ1);
+//  v_store(v_type_ptr, typ0);
+//  v_store(char_ptr,   typ1);
 
-    register_ft = v_function_type(_void, typ0, 2, false);
+    register_ft = v_function_type(void, typ0, 2, false);
 
     v_store(char_ptr,   typ2);
 
-    register_batch_ft = v_function_type(_void, typ0, 3, false);
+    register_batch_ft = v_function_type(void, typ0, 3, false);
 
-//  v_store(_v_type_ptr, typ0);
-    v_store(_v_type_ptr, typ1);
-//  v_store(char_ptr,    typ2);
-    v_store(char_ptr,    typ3);
+//  v_store(v_type_ptr, typ0);
+    v_store(v_type_ptr, typ1);
+//  v_store(char_ptr,   typ2);
+    v_store(char_ptr,   typ3);
 
-    register_batch_wtyp_ft = v_function_type(_void, typ0, 4, false);
+    register_batch_wtyp_ft = v_function_type(void, typ0, 4, false);
 
-    v_store(_v_util_std_string_ptr, typ0);
-    v_store(_int,                   typ1);
+    v_store(v_util_std_string_ptr, typ0);
+    v_store(int,                   typ1);
 
-    sstr_i_d_ft  = v_function_type(_void, typ0, 2, false);
+    sstr_i_d_ft  = v_function_type(void, typ0, 2, false);
 
     //-----------------------------------------------------------------
     v_add_symbol("init_term_helper", register_helper_ft, 0);
@@ -625,7 +573,7 @@
     val2 = v_getelementptr(val0, 2);
     val3 = v_getelementptr(val0, 3);
 
-    int_ = v_type_get_llvm_type(_int);
+    int_ = v_type_get_llvm_type(int);
 
     n0 = LLVMConstInt(int_, 0, 0);
     n1 = LLVMConstInt(int_, 1, 0);
@@ -633,11 +581,11 @@
     n3 = LLVMConstInt(int_, 3, 0);
     n4 = LLVMConstInt(int_, 4, 0);
 
-    v_type_ptr_ = v_type_get_llvm_type(_v_type_ptr);
+    v_type_ptr_ = v_type_get_llvm_type(v_type_ptr);
 
-    v_util_opaque_std_string_ = v_type_get_llvm_type(_v_util_opaque_std_string);
+    v_util_opaque_std_string_ = v_type_get_llvm_type(v_util_opaque_std_string);
 
-    bool_ = v_type_get_llvm_type(_bool);
+    bool_ = v_type_get_llvm_type(bool);
 
     false_v = LLVMConstInt(bool_, 0, 0);
 
@@ -698,9 +646,9 @@
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(val_t_ptr, arg0);
-    //-     v_store(_int,      arg1);
+    //-     v_store(int,       arg1);
     //-
-    //-     fun_type = v_function_type(_void, arg0, 2, false);
+    //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
     //-     v_util_registering_helper(p_dict, val_t_type, fun_name, fun_type);
     //- }
@@ -734,12 +682,12 @@
     LLVMBuildStore(builder, val_t_ptr, arg0);
 
 
-    int_type = v_obtain_global("_int");
+    int_type = v_obtain_global("int");
 
     LLVMBuildStore(builder, int_type, arg1);
 
 
-    void_type = v_obtain_global("_void");
+    void_type = v_obtain_global("void");
 
     v_store(void_type, val0);
     v_store(arg0,      val1);
@@ -831,9 +779,9 @@
     //-
     //-     v_store(val_t_ptr, arg0);
     //-     v_store(val_t_ptr, arg1);
-    //-     v_store(_int,      arg2);
+    //-     v_store(int,       arg2);
     //-
-    //-     fun_type = v_function_type(_void, arg0, 3, false);
+    //-     fun_type = v_function_type(void, arg0, 3, false);
     //-
     //-     v_util_registering_helper(p_dict, val_t_type, fun_name, fun_type);
     //- }
@@ -958,7 +906,7 @@
     //-
     //-     v_store(val_t_ptr, arg0);
     //-
-    //-     fun_type = v_function_type(_bool, arg0, 1, false);
+    //-     fun_type = v_function_type(bool, arg0, 1, false);
     //-
     //-     v_util_registering_helper(v_util_empty_dict, val_t_type, fun_name, fun_type);
     //- }
@@ -984,7 +932,7 @@
     LLVMBuildStore(builder, val_t_ptr, arg0);
 
 
-    bool_type = v_obtain_global("_bool");
+    bool_type = v_obtain_global("bool");
 
     v_store(bool_type, val0);
     v_store(arg0,      val1);
@@ -1219,7 +1167,7 @@
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
-    //-     v_store(_v_util_std_any_ptr, arg0);
+    //-     v_store(v_util_std_any_ptr, arg0);
     //-
     //-     fun_type = v_function_type(val_t_type, arg0, 1, false);
     //-
@@ -1235,7 +1183,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    std_any_ptr_type = v_obtain_global("_v_util_std_any_ptr");
+    std_any_ptr_type = v_obtain_global("v_util_std_any_ptr");
 
 
     arg0 = LLVMBuildAlloca(builder, v_type_ptr_, "arg0");
@@ -1272,7 +1220,7 @@
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
-    //-     v_store(_v_util_std_any_ptr, arg0);
+    //-     v_store(v_util_std_any_ptr, arg0);
     //-
     //-     fun_type = v_function_type(val_t_ptr, arg0, 1, false);
     //-
@@ -1328,8 +1276,8 @@
     //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
-    //-     v_store(_v_util_std_any_ptr, arg0);
-    //-     v_store(val_t_type,          arg1);
+    //-     v_store(v_util_std_any_ptr, arg0);
+    //-     v_store(val_t_type,         arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
@@ -1387,8 +1335,8 @@
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
-    //-     v_store(_v_util_std_any_ptr, arg0);
-    //-     v_store(val_t_ptr,           arg1);
+    //-     v_store(v_util_std_any_ptr, arg0);
+    //-     v_store(val_t_ptr,          arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
@@ -1768,7 +1716,7 @@
     //-     v_store(val_t_ptr, arg0);
     //-     v_store(val_t_ptr, arg1);
     //-     v_store(item_ptr,  arg2);
-    //-     v_store(_int,      arg3);
+    //-     v_store(int,       arg3);
     //-
     //-     fun_type = v_function_type(_void, arg0, 4, false);
     //-
@@ -1850,7 +1798,7 @@
     //-
     //-     v_store(val_t_ptr, arg0);
     //-
-    //-     fun_type = v_function_type(_int, arg0, 1, false);
+    //-     fun_type = v_function_type(int, arg0, 1, false);
     //-
     //-     v_util_registering_helper(v_util_list_get_size_dict, val_t_type, fun_name, fun_type);
     //- }
@@ -1914,7 +1862,7 @@
     //-     v_store(item_ptr,  arg2);
     //-     v_store(int,       arg3);
     //-
-    //-     fun_type = v_function_type(_void, arg0, 4, false);
+    //-     fun_type = v_function_type(void, arg0, 4, false);
     //-
     //-     v_util_registering_helper(v_util_list_get_items_dict, val_t_type, fun_name, fun_type);
     //- }
@@ -2131,9 +2079,9 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_util_register_itcme_impl(_v_util_opaque_function_dict_t, "v_util", "function_dict");
-    v_util_register_itcme_impl(_v_util_opaque_std_any,         "v_util", "std_any");
-    v_util_register_itcme_impl(_v_util_opaque_std_string,      "v_util", "std_string");
+{   v_util_register_itcme_impl(v_util_opaque_function_dict_t, "v_util", "function_dict");
+    v_util_register_itcme_impl(v_util_opaque_std_any,         "v_util", "std_any");
+    v_util_register_itcme_impl(v_util_opaque_std_string,      "v_util", "std_string");
 }
 
 
@@ -2156,7 +2104,7 @@
     type = v_uint_type(64);     v_util_register_gs_vp_impl(type, "v_util", "uint64_t");
 
     //-----------------------------------------------------------------
-    v_util_register_gs_pointer_impl(_v_util_opaque_std_string, "v_util", "std_string");
+    v_util_register_gs_pointer_impl(v_util_opaque_std_string, "v_util", "std_string");
 }
 
 
@@ -2164,8 +2112,8 @@
 //-
 //---------------------------------------------------------------------
 {
-    intptr_t_ = v_type_get_llvm_type(_intptr_t);
-    type_ptr_ = v_type_get_llvm_type(_v_type_ptr);
+    intptr_t_ = v_type_get_llvm_type(intptr_t);
+    type_ptr_ = v_type_get_llvm_type(v_type_ptr);
 
     zero_v   = LLVMConstInt(intptr_t_,  0, 0);
     minus1_v = LLVMConstInt(intptr_t_, -1, 0);
@@ -2173,8 +2121,8 @@
     INVIOLABLE_TAG_v  = LLVMConstIntToPtr(zero_v,   type_ptr_);
     UNREFERENCE_TAG_v = LLVMConstIntToPtr(minus1_v, type_ptr_);
 
-    v_export_constant("INVIOLABLE_TAG",  _v_type_ptr, INVIOLABLE_TAG_v);
-    v_export_constant("UNREFERENCE_TAG", _v_type_ptr, UNREFERENCE_TAG_v);
+    v_export_constant("INVIOLABLE_TAG",  v_type_ptr, INVIOLABLE_TAG_v);
+    v_export_constant("UNREFERENCE_TAG", v_type_ptr, UNREFERENCE_TAG_v);
 }
 
 

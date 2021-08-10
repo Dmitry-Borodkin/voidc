@@ -8,24 +8,18 @@
     v_export_import("voidc_types.void");
 }
 
-{   _int       = v_find_type("int");
-    _long_long = v_find_type("long_long");
-
-    _LLVMTypeRef  = v_find_type("LLVMTypeRef");
-    _LLVMValueRef = v_find_type("LLVMValueRef");
-
-    w = v_type_integer_get_width(_long_long);
+{   w = v_type_integer_get_width(long_long);
     ull = v_uint_type(w);
 
     arg0 = v_alloca(v_type_ptr, 3);
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    v_store(_LLVMTypeRef, arg0);
-    v_store(ull,          arg1);
-    v_store(_int,         arg2);
+    v_store(LLVMTypeRef, arg0);
+    v_store(ull,         arg1);
+    v_store(int,         arg2);
 
-    ft = v_function_type(_LLVMValueRef, arg0, 3, false);
+    ft = v_function_type(LLVMValueRef, arg0, 3, false);
     v_export_symbol_type("LLVMConstInt", ft);
 }
 

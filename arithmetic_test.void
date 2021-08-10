@@ -33,7 +33,7 @@
 
 {   double = v_f64_type();
 
-    v_add_constant("double", double, 0);
+    v_add_type("double", double);
 
     double_ = v_type_get_llvm_type(double);
 
@@ -59,7 +59,7 @@
 
 {   quad = v_f128_type();
 
-    v_add_constant("quad", quad, 0);
+    v_add_type("quad", quad);
 
     quad_ = v_type_get_llvm_type(quad);
 
@@ -92,20 +92,18 @@
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    _int = v_find_type("int");
+    v_store(int, typ0);
+    v_store(int, typ1);
+    v_store(int, typ2);
 
-    v_store(_int, typ0);
-    v_store(_int, typ1);
-    v_store(_int, typ2);
-
-    ft = v_function_type(_int, typ0, 3, false);
+    ft = v_function_type(int, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("fib_helper", ft);
 
-    v_add_parameter_name(f, 0, "v0", _int);
-    v_add_parameter_name(f, 1, "v1", _int);
-    v_add_parameter_name(f, 2, "n",  _int);
+    v_add_parameter_name(f, 0, "v0", int);
+    v_add_parameter_name(f, 1, "v1", int);
+    v_add_parameter_name(f, 2, "n",  int);
 }
 {
     if (n)
@@ -129,16 +127,14 @@
 //---------------------------------------------------------------------
 {   typ0 = v_alloca(v_type_ptr);
 
-    _int = v_find_type("int");
+    v_store(int, typ0);
 
-    v_store(_int, typ0);
-
-    ft = v_function_type(_int, typ0, 1, false);
+    ft = v_function_type(int, typ0, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("fib", ft);
 
-    v_add_parameter_name(f, 0, "n", _int);
+    v_add_parameter_name(f, 0, "n", int);
 }
 {
     v_return(fib_helper(1, 0, n));      //- Sic!

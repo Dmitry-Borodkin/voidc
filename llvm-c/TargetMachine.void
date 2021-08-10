@@ -81,21 +81,21 @@
 //- Types --------------------------------------------------
 {
     v0_int = v_find_type("int");
-    v_export_constant("LLVMCodeGenFileType", v0_int, 0);
+    v_export_type("LLVMCodeGenFileType", v0_int);
 
-    v_export_constant("LLVMCodeModel", v0_int, 0);
+    v_export_type("LLVMCodeModel", v0_int);
 
-    v_export_constant("LLVMCodeGenOptLevel", v0_int, 0);
+    v_export_type("LLVMCodeGenOptLevel", v0_int);
 
-    v_export_constant("LLVMRelocMode", v0_int, 0);
+    v_export_type("LLVMRelocMode", v0_int);
 
     v1 = v_struct_type_named("struct.LLVMOpaqueTargetMachine");
     v2 = v_pointer_type(v1, 0);
-    v_export_constant("LLVMTargetMachineRef", v2, 0);
+    v_export_type("LLVMTargetMachineRef", v2);
 
     v3 = v_struct_type_named("struct.LLVMTarget");
     v4 = v_pointer_type(v3, 0);
-    v_export_constant("LLVMTargetRef", v4, 0);
+    v_export_type("LLVMTargetRef", v4);
 
 }
 

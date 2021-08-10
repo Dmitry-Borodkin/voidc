@@ -3,26 +3,32 @@
 {   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
-    _v_type_ptr = v_find_type("v_type_ptr");
-    _unsigned   = v_find_type("unsigned");
+    v_store(v_type_ptr, typ0);          //- Element type
+    v_store(unsigned,   typ1);          //- Address space
 
-    v_store(_v_type_ptr, typ0);         //- Element type
-    v_store(_unsigned,   typ1);         //- Address space
-
-    ft = v_function_type(_v_type_ptr, typ0, 2, false);
-    v_export_symbol_type("v_pointer_type", ft);
+    ft = v_function_type(v_type_ptr, typ0, 2, false);
+    v_add_symbol("v_pointer_type", ft, 0);
 }
 
-{   _char = v_find_type("char");
-    _int  = v_find_type("int");
+{   typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
 
-    char_ptr = v_pointer_type(_char, 0);
+    char_ptr = v_pointer_type(char, 0);
 
-    typ = v_alloca(v_type_ptr);
+    v_store(char_ptr,   typ0);          //- Symbol name
+    v_store(v_type_ptr, typ1);          //- Symbol type
 
-    v_store(char_ptr, typ);
+    ft = v_function_type(void, typ0, 2, false);
+    v_add_symbol("v_export_symbol_type", ft, 0);
+}
 
-    ft = v_function_type(_int, typ, 1, true);
+{   typ = v_alloca(v_type_ptr);
+
+    char_ptr = v_pointer_type(char, 0);
+
+    v_store(char_ptr, typ);             //- ...
+
+    ft = v_function_type(int, typ, 1, true);
     v_export_symbol_type("printf", ft);
 }
 

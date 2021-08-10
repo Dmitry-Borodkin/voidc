@@ -12,19 +12,15 @@
 {   v_import("printf.void"); }
 
 
-{   _v_util_std_any_ptr = v_find_type("v_util_std_any_ptr");
-    _size_t             = v_find_type("size_t");
-    _void               = v_find_type("void");
-
-    typ0 = v_alloca(v_type_ptr, 3);
+{   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(_v_util_std_any_ptr, typ0);
-    v_store(_v_util_std_any_ptr, typ1);
-    v_store(_size_t,             typ2);
+    v_store(v_util_std_any_ptr, typ0);
+    v_store(v_util_std_any_ptr, typ1);
+    v_store(size_t,             typ2);
 
-    my_echo_ft = v_function_type(_void, typ0, 3, false);
+    my_echo_ft = v_function_type(void, typ0, 3, false);
 
     v_export_symbol_type("my_echo_grammar_action", my_echo_ft);
 }
@@ -34,9 +30,7 @@
 
     v_set_module(module);
 
-    _bool = v_find_type("bool");
-
-    bool_ = v_type_get_llvm_type(_bool);
+    bool_ = v_type_get_llvm_type(bool);
 
     builder = v_target_get_voidc_builder();
 
@@ -47,9 +41,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    _v_util_opaque_std_string = v_find_type("v_util_opaque_std_string");
-
-    get_string_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, _v_util_opaque_std_string);
+    get_string_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, v_util_opaque_std_string);
 
     par1 = LLVMGetParam(my_echo_f, 1);
 
@@ -78,7 +70,7 @@
     LLVMBuildCall(builder, printf_f, val0, 2, "");
 
 
-    set_value_f = v_obtain_dict_function(v_util_std_any_set_value_dict, _bool);
+    set_value_f = v_obtain_dict_function(v_util_std_any_set_value_dict, bool);
 
     par0 = LLVMGetParam(my_echo_f, 0);
 

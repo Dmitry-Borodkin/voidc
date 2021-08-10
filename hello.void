@@ -38,7 +38,7 @@
     //-----------------------------------------------------------------
     module = LLVMModuleCreateWithName("hello_mod");
 
-    main_ft  = v_function_type(v_find_type("void"), 0, 0, false);
+    main_ft  = v_function_type(void, 0, 0, false);
     main_ft_ = v_type_get_llvm_type(main_ft);
     main_f   = LLVMAddFunction(module, "main", main_ft_);
 
@@ -116,11 +116,11 @@
 
 {   typ = v_alloca(v_type_ptr);
 
-    char_ptr = v_pointer_type(v_find_type("char"), 0);
+    char_ptr = v_pointer_type(char, 0);
 
     v_store(char_ptr, typ);
 
-    system_ft = v_function_type(v_find_type("int"), typ, 1, false);
+    system_ft = v_function_type(int, typ, 1, false);
 
     v_export_symbol_type("system", system_ft);
 }

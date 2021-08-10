@@ -32,11 +32,11 @@
 
 {   typ0 = v_alloca(v_type_ptr);
 
-    int_ref = v_reference_type(v_find_type("int"), 0);
+    int_ref = v_reference_type(int, 0);
 
     v_store(int_ref, typ0);
 
-    ft = v_function_type(v_find_type("void"), typ0, 1, false);
+    ft = v_function_type(void, typ0, 1, false);
 
     f = v_function_hack("tryref", ft);
 
@@ -63,7 +63,7 @@
 
 {   typ0 = v_alloca(v_type_ptr);
 
-    int_ref = v_reference_type(v_find_type("int"), 0);
+    int_ref = v_reference_type(int, 0);
 
     v_store(int_ref, typ0);
 
@@ -95,11 +95,11 @@
 //{ v_debug_print_module(2); }
 {   typ0 = v_alloca(v_type_ptr);
 
-    int_ref = v_reference_type(v_find_type("int"), 0);
+    int_ref = v_reference_type(int, 0);
 
     v_store(int_ref, typ0);
 
-    ft = v_function_type(v_find_type("int"), typ0, 1, false);
+    ft = v_function_type(int, typ0, 1, false);
 
     f = v_function_hack("retint", ft);
 
@@ -140,7 +140,7 @@
 {
     vptr = v_malloc(long_long);
 
-    vtyp = v_reference_type(v_find_type("long_long"), 0);
+    vtyp = v_reference_type(long_long, 0);
 
     v_add_symbol("vref", vtyp, vptr);
 }

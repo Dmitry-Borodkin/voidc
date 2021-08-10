@@ -23,17 +23,9 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
-
-    v_add_symbol("_voidc_intrinsic_t",   _voidc_opaque_type, v_find_type("voidc_intrinsic_t"));
-    v_add_symbol("_voidc_visitor_ptr",   _voidc_opaque_type, v_find_type("voidc_visitor_ptr"));
-    v_add_symbol("_v_ast_expr_list_ptr", _voidc_opaque_type, v_find_type("v_ast_expr_list_ptr"));
-
-    void_ptr = v_pointer_type(v_find_type("void"), 0);
-    v_add_symbol("void_ptr", _voidc_opaque_type, void_ptr);
-
-    v_add_symbol("_v_type_ptr", _voidc_opaque_type, v_find_type("v_type_ptr"));
+{   v_add_type("void_ptr", v_pointer_type(void, 0));
 }
+
 
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("voidc_arithmetic_intrinsic_module");
@@ -51,11 +43,11 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_binop_intrinsic", _voidc_intrinsic_t);
+    f = v_function_hack("voidc_binop_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  _voidc_visitor_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", _v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
     builder = v_target_get_builder();
@@ -123,31 +115,28 @@
 {
     typ0 = v_alloca(v_type_ptr);
 
-    v_store(_v_type_ptr, typ0);
+    v_store(v_type_ptr, typ0);
 
-    ft = v_function_type(_v_type_ptr, typ0, 1, false);
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("make_return_type", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "type", _v_type_ptr);
+    v_add_parameter_name(f, 0, "type", v_type_ptr);
 }
 {
-    _bool = v_find_type("bool");
-
-
     f = v_type_is_vector(type);
 
     if (f)  ;
-    else    v_return(_bool);
+    else    v_return(bool);
 
     sz = v_type_vector_get_size(type);
     sc = v_type_vector_is_scalable(type);
 
-    if (sc) v_return(v_svector_type(_bool, sz));
-    else    v_return(v_vector_type(_bool, sz));
+    if (sc) v_return(v_svector_type(bool, sz));
+    else    v_return(v_vector_type(bool, sz));
 }
 
 
@@ -156,11 +145,11 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_icmp_intrinsic", _voidc_intrinsic_t);
+    f = v_function_hack("voidc_icmp_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  _voidc_visitor_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", _v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
     builder = v_target_get_builder();
@@ -230,11 +219,11 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_fcmp_intrinsic", _voidc_intrinsic_t);
+    f = v_function_hack("voidc_fcmp_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  _voidc_visitor_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", _v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
     builder = v_target_get_builder();

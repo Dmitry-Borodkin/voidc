@@ -5,50 +5,19 @@
 {   voidc_guard_target("vpeg_grammar.void  must be imported into the voidc target only!");
 
     v_import("voidc_target.void");
+    v_import("voidc_types.void");
     v_import("voidc_util.void");
     v_import("vpeg_parser.void");
 }
 
 
 //---------------------------------------------------------------------
-{   _voidc_opaque_type = v_find_type("voidc_opaque_type");
-
-    _void   = v_find_type("void");
-    _char   = v_find_type("char");
-    _int    = v_find_type("int");
-    _size_t = v_find_type("size_t");
-
-    _v_util_opaque_std_any = v_find_type("v_util_opaque_std_any");
-
-    _v_peg_parser_ptr = v_find_type("v_peg_parser_ptr");
-
-    _v_peg_opaque_grammar_sptr = v_find_type("v_peg_opaque_grammar_sptr");
-
-    //-------------------------------------------------------------
-    v_add_symbol("_voidc_opaque_type", _voidc_opaque_type, _voidc_opaque_type);
-
-    v_add_symbol("_void",   _voidc_opaque_type, _void);
-    v_add_symbol("_char",   _voidc_opaque_type, _char);
-    v_add_symbol("_int",    _voidc_opaque_type, _int);
-    v_add_symbol("_size_t", _voidc_opaque_type, _size_t);
-
-    v_add_symbol("_v_util_opaque_std_any", _voidc_opaque_type, _v_util_opaque_std_any);
-
-    v_add_symbol("_v_peg_parser_ptr", _voidc_opaque_type, _v_peg_parser_ptr);
-
-    v_add_symbol("_v_peg_opaque_grammar_sptr", _voidc_opaque_type, _v_peg_opaque_grammar_sptr);
+{   v_util_register_itcmep_impl(v_peg_opaque_grammar_sptr, "v_peg", "grammar");
 }
 
 //---------------------------------------------------------------------
-{   v_util_register_itcmep_impl(_v_peg_opaque_grammar_sptr, "v_peg", "grammar");
-}
-
-//---------------------------------------------------------------------
-{   grammar_ptr = v_pointer_type(_v_peg_opaque_grammar_sptr, 0);
-    v_export_symbol("v_peg_grammar_ptr", _voidc_opaque_type, grammar_ptr);
-
-    //-------------------------------------------------------------
-    v_add_symbol("_v_peg_grammar_ptr", _voidc_opaque_type, grammar_ptr);
+{   grammar_ptr = v_pointer_type(v_peg_opaque_grammar_sptr, 0);
+    v_export_type("v_peg_grammar_ptr", grammar_ptr);
 }
 
 //---------------------------------------------------------------------
@@ -58,73 +27,73 @@
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
 
-    char_ptr = v_pointer_type(_char, 0);
-    int_ptr  = v_pointer_type(_int, 0);
+    char_ptr = v_pointer_type(char, 0);
+    int_ptr  = v_pointer_type(int, 0);
 
-    v_store(_v_peg_grammar_ptr, typ0);
+    v_store(v_peg_grammar_ptr, typ0);
 
-    ft = v_function_type(_void, typ0, 1, false);
+    ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("v_peg_make_grammar", ft);
 
-    v_store(char_ptr,          typ1);
-    v_store(_v_peg_parser_ptr, typ2);
-    v_store(int_ptr,           typ3);
+    v_store(char_ptr,         typ1);
+    v_store(v_peg_parser_ptr, typ2);
+    v_store(int_ptr,          typ3);
 
-    ft = v_function_type(_void, typ0, 4, false);
+    ft = v_function_type(void, typ0, 4, false);
     v_export_symbol_type("v_peg_grammar_get_parser", ft);
 
-    v_store(_v_peg_grammar_ptr, typ1);
-    v_store(char_ptr,           typ2);
-    v_store(_v_peg_parser_ptr,  typ3);
-    v_store(_int,               typ4);
+    v_store(v_peg_grammar_ptr, typ1);
+    v_store(char_ptr,          typ2);
+    v_store(v_peg_parser_ptr,  typ3);
+    v_store(int,               typ4);
 
-    ft = v_function_type(_void, typ0, 5, false);
+    ft = v_function_type(void, typ0, 5, false);
     v_export_symbol_type("v_peg_grammar_set_parser", ft);
 
-    ft = v_function_type(_void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_peg_grammar_erase_parser", ft);
 
-    std_any_ptr = v_pointer_type(_v_util_opaque_std_any, 0);
+    std_any_ptr = v_pointer_type(v_util_opaque_std_any, 0);
 
     v_store(std_any_ptr, typ0);
     v_store(std_any_ptr, typ1);
-    v_store(_size_t,     typ2);
+    v_store(size_t,      typ2);
 
-    grammar_action_ft        = v_function_type(_void, typ0, 3, false);
+    grammar_action_ft        = v_function_type(void, typ0, 3, false);
     grammar_action_fun_ptr_t = v_pointer_type(grammar_action_ft, 0);
 
-    v_export_constant("v_peg_grammar_action_fun_t", grammar_action_ft, 0);
+    v_export_type("v_peg_grammar_action_fun_t", grammar_action_ft);
 
-    v_store(_v_peg_grammar_ptr, typ0);
-    v_store(char_ptr,           typ1);
+    v_store(v_peg_grammar_ptr, typ0);
+    v_store(char_ptr,          typ1);
 
     ft = v_function_type(grammar_action_fun_ptr_t, typ0, 2, false);
     v_export_symbol_type("v_peg_grammar_get_action", ft);
 
-    v_store(_v_peg_grammar_ptr,       typ1);
+    v_store(v_peg_grammar_ptr,        typ1);
     v_store(char_ptr,                 typ2);
     v_store(grammar_action_fun_ptr_t, typ3);
 
-    ft = v_function_type(_void, typ0, 4, false);
+    ft = v_function_type(void, typ0, 4, false);
     v_export_symbol_type("v_peg_grammar_set_action", ft);
 
-    ft = v_function_type(_void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_peg_grammar_erase_action", ft);
 
     v_store(char_ptr,    typ1);
     v_store(std_any_ptr, typ2);
 
-    ft = v_function_type(_void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_peg_grammar_get_value", ft);
 
-    v_store(_v_peg_grammar_ptr, typ1);
-    v_store(char_ptr,           typ2);
-    v_store(std_any_ptr,        typ3);
+    v_store(v_peg_grammar_ptr, typ1);
+    v_store(char_ptr,          typ2);
+    v_store(std_any_ptr,       typ3);
 
-    ft = v_function_type(_void, typ0, 4, false);
+    ft = v_function_type(void, typ0, 4, false);
     v_export_symbol_type("v_peg_grammar_set_value", ft);
 
-    ft = v_function_type(_void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_peg_grammar_erase_value", ft);
 }
 
