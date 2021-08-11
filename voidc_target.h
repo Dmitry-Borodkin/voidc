@@ -152,9 +152,6 @@ public:
     bool find_symbol(const char *raw_name, v_type_t * &type, void * &value);
 
 
-
-    v_type_t *obtain_type(const ast_expr_sptr_t &expr);
-
     virtual void *find_symbol_value(const char *raw_name) = 0;      //- No alias check!
 
 public:

@@ -46,7 +46,15 @@ v_alloca(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
     auto tt = lctx.result_type;
 
-    auto type = lctx.obtain_type((*args)->data[0]);
+
+    lctx.result_type = INVIOLABLE_TAG;
+
+    (*args)->data[0]->accept(*vis, aux);        //- Element type
+
+    assert(lctx.result_value == nullptr);
+
+
+    auto type = lctx.result_type;
     auto llvm_type = type->llvm_type();
 
     LLVMValueRef v;
@@ -233,7 +241,16 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
     auto src_value = lctx.result_value;
 
     auto src_type = lctx.result_type;
-    auto dst_type = lctx.obtain_type((*args)->data[1]);
+
+
+    lctx.result_type = INVIOLABLE_TAG;
+
+    (*args)->data[1]->accept(*vis, aux);        //- Type
+
+    assert(lctx.result_value == nullptr);
+
+
+    auto dst_type = lctx.result_type;
 
     auto opcode = LLVMOpcode(0);
 
@@ -775,20 +792,6 @@ base_local_ctx_t::find_symbol(const char *raw_name, v_type_t * &type, void * &va
     value = v;
 
     return true;
-}
-
-
-
-
-//---------------------------------------------------------------------
-v_type_t *
-base_local_ctx_t::obtain_type(const ast_expr_sptr_t &expr)
-{
-    v_type_t *ret;
-
-    expr->accept(voidc_type_calc, &ret);
-
-    return ret;
 }
 
 
@@ -2337,14 +2340,14 @@ v_find_type(const char *name)
 }
 
 //---------------------------------------------------------------------
-v_type_t *
-v_obtain_type(const ast_expr_sptr_t *expr)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    return  lctx.obtain_type(*expr);
-}
+//v_type_t *
+//v_obtain_type(const ast_expr_sptr_t *expr)
+//{
+//    auto &gctx = *voidc_global_ctx_t::target;
+//    auto &lctx = *gctx.local_ctx;
+//
+//    return  lctx.obtain_type(*expr);
+//}
 
 
 //---------------------------------------------------------------------
