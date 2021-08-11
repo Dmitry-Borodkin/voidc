@@ -12,7 +12,6 @@
 //- ...
 //---------------------------------------------------------------------
 visitor_sptr_t voidc_compiler;
-visitor_sptr_t voidc_type_calc;
 
 
 //=====================================================================
@@ -304,32 +303,7 @@ void compile_ast_expr_char_t(const visitor_sptr_t *vis, void *aux,
 
 
 //=====================================================================
-//- Type calculator - just expr_identifier...
-//=====================================================================
-static
-void typecalc_ast_expr_identifier_t(const visitor_sptr_t *vis, void *aux,
-                                    const std::string *name)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    if (auto type = lctx.find_type(name->c_str()))
-    {
-        assert(aux);
-
-        auto ret = reinterpret_cast<v_type_t **>(aux);
-
-        *ret = type;
-    }
-    else
-    {
-        throw std::runtime_error("Type not found: " + *name);
-    }
-}
-
-
-//=====================================================================
-//- Compiler visitor(s)
+//- Compiler visitor
 //=====================================================================
 static
 visitor_sptr_t compile_visitor_level_zero;
@@ -355,33 +329,5 @@ make_voidc_compiler(void)
 
     return  compile_visitor_level_zero;
 }
-
-
-//---------------------------------------------------------------------
-static
-visitor_sptr_t typecalc_visitor_level_zero;
-
-visitor_sptr_t
-make_voidc_type_calc(void)
-{
-    if (!typecalc_visitor_level_zero)
-    {
-        voidc_visitor_t vis;
-
-#define DEF(type) \
-        vis = vis.set_void_method(v_##type##_visitor_method_tag, (void *)typecalc_##type);
-
-        DEF(ast_expr_identifier_t)
-
-#undef DEF
-
-        typecalc_visitor_level_zero = std::make_shared<const voidc_visitor_t>(vis);
-    }
-
-    assert(typecalc_visitor_level_zero);
-
-    return  typecalc_visitor_level_zero;
-}
-
 
 

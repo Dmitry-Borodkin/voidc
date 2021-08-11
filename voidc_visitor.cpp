@@ -42,14 +42,12 @@ voidc_visitor_t::static_initialize(void)
 
 
     voidc_compiler  = make_voidc_compiler();
-    voidc_type_calc = make_voidc_type_calc();
 }
 
 //-----------------------------------------------------------------
 void
 voidc_visitor_t::static_terminate(void)
 {
-    voidc_type_calc.reset();
     voidc_compiler.reset();
 }
 

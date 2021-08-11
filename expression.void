@@ -794,12 +794,17 @@
     v_store(quark, v_getelementptr(voidc_ast_expr_node_vtable, 0, 2));
 
     vc = voidc_compiler;
-    vt = voidc_type_calc;
 
     voidc_visitor_set_void_method(vc, vc, quark, compile_ast_expr_node_t);
-    voidc_visitor_set_void_method(vt, vt, quark, compile_ast_expr_node_t);  //- Sic!
 
     voidc_ast_add_expr_op_methods();
+
+    //-------------------------------------------------------------
+    v_export_intrinsic("int",   v_get_intrinsic("int"));
+    v_export_intrinsic("uint",  v_get_intrinsic("uint"));
+    v_export_intrinsic("float", v_get_intrinsic("float"));
+    v_export_intrinsic("vec",   v_get_intrinsic("vec"));
+    v_export_intrinsic("svec",  v_get_intrinsic("svec"));
 }
 
 
