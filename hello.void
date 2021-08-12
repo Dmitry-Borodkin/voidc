@@ -55,11 +55,11 @@
 
     str = LLVMBuildGlobalStringPtr(builder, "Hello world!\n", "str");
 
-    typ = v_alloca(LLVMValueRef);
+    val = v_alloca(LLVMValueRef);
 
-    v_store(str, typ);
+    v_store(str, val);
 
-    LLVMBuildCall(builder, printf_f, typ, 1, "");
+    LLVMBuildCall(builder, printf_f, val, 1, "");
 
 
     LLVMBuildRetVoid(builder);

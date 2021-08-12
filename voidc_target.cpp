@@ -725,14 +725,8 @@ base_local_ctx_t::find_type(const char *type_name)
         }
     }
 
-    if (get_symbol_type(cname) == voidc_global_ctx_t::voidc->opaque_type_type)
-    {
-        return  reinterpret_cast<v_type_t *>(find_symbol_value(cname));
-    }
-
     return nullptr;
 }
-
 
 
 //---------------------------------------------------------------------
@@ -2319,6 +2313,16 @@ v_find_symbol_type(const char *raw_name)
 }
 
 //---------------------------------------------------------------------
+void *
+v_find_symbol_value(const char *raw_name)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return lctx.find_symbol_value(raw_name);
+}
+
+//---------------------------------------------------------------------
 v_type_t *
 v_find_type(const char *name)
 {
@@ -2338,16 +2342,6 @@ v_find_type(const char *name)
 
     return  ret;
 }
-
-//---------------------------------------------------------------------
-//v_type_t *
-//v_obtain_type(const ast_expr_sptr_t *expr)
-//{
-//    auto &gctx = *voidc_global_ctx_t::target;
-//    auto &lctx = *gctx.local_ctx;
-//
-//    return  lctx.obtain_type(*expr);
-//}
 
 
 //---------------------------------------------------------------------
