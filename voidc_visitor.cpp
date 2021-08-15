@@ -41,7 +41,7 @@ voidc_visitor_t::static_initialize(void)
     add_type("voidc_opaque_visitor_sptr", visitor_sptr_type);
 
 
-    voidc_compiler  = make_voidc_compiler();
+    voidc_compiler = make_voidc_compiler();
 }
 
 //-----------------------------------------------------------------

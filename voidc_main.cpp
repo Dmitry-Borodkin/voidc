@@ -416,6 +416,10 @@ v_import_helper(const char *name, bool _export)
 
     lctx.export_decls = export_decls;
 
+    voidc_visitor_t saved_compiler = *voidc_compiler.get();
+
+    voidc_compiler = make_voidc_compiler();
+
     if (use_binary)
     {
         infs = my_fopen(bin_filename);
@@ -546,6 +550,8 @@ v_import_helper(const char *name, bool _export)
     parent_lctx->decls.insert(*export_decls);
 
     if (_export  &&  parent_lctx->export_decls) parent_lctx->export_decls->insert(*export_decls);
+
+    voidc_compiler = std::make_shared<voidc_visitor_t>(saved_compiler);
 }
 
 //--------------------------------------------------------------------
