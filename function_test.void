@@ -1,0 +1,90 @@
+{   v_import("voidc_target.void");
+    v_import("voidc_types.void");
+
+    v_import("if_then_else.void");
+    v_import("block.void");
+    v_import("loop.void");
+    v_import("expression.void");
+
+    v_import("function.void");
+}
+
+{   voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_statement_loop();
+    voidc_enable_expression();
+
+    voidc_enable_function();
+}
+
+{   v_import("printf.void"); }
+
+
+{   v_import("fun_import_test.void"); }
+
+
+
+//---------------------------------------------------------------------
+{   buf = v_alloca(char, 100);
+
+    N = 20;
+
+    i = *v_alloca(int) := 0;
+
+    loop
+    {
+        if (i >= N) v_break();
+
+        sprintf(buf, "sin(%d): %g", i, sin(i));
+
+        printf("buf: \"%s\"\n", buf);
+
+        ++i;
+    }
+
+
+    j = *v_alloca(int) := 0;
+
+    i := 0;
+
+    loop
+    {
+        if (i >= N) v_break();
+
+        foo(qwerty, i, j);
+
+        printf("qwerty - i: %d, j: %d\n", i, j);
+
+        ++i;
+    }
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    double = float(64);         //- Sic!
+
+    v = *v_alloca(int) := 1;
+
+    d = (2*v : double);
+
+    q = d/7 + v;
+
+    printf("\nq: %.99g\n", q);
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n%d\n", (2+2));
+
+    v = v_alloca(* char);
+
+    v_store("a", v);
+
+    printf("v: %s\n", *v);
+}
+
+

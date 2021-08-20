@@ -3324,8 +3324,14 @@
     idx = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(idx);
 
-    v_list_get_items(idx_list, 0, idx);     //- Just one!
-
+    if (v_list_get_size(idx_list))
+    {
+        v_list_get_items(idx_list, 0, idx);     //- Just one!
+    }
+    else
+    {
+        v_ast_make_expr_integer(idx, 0);        //- Sic!
+    }
 
     tt = v_get_result_type();
 

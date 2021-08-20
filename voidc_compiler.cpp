@@ -278,6 +278,24 @@ void compile_ast_expr_string_t(const visitor_sptr_t *vis, void *aux,
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
+
+//    auto typ_ = gctx.make_array_type(gctx.char_type, str->size()+1)->llvm_type();
+//
+//    auto str_ga = LLVMAddGlobal(lctx.module, typ_, "str");
+//
+//    LLVMSetLinkage(str_ga, LLVMPrivateLinkage);
+//
+//    auto str_va = LLVMConstStringInContext(gctx.llvm_ctx, str->c_str(), unsigned(str->size()), 0);
+//
+//    LLVMSetInitializer(str_ga, str_va);
+//
+//    auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
+//
+//    LLVMValueRef val[2] = { n0, n0 };
+//
+//    auto v = LLVMConstGEP(str_ga, val, 2);
+
+
     auto v = LLVMBuildGlobalStringPtr(gctx.builder, str->c_str(), "str");
 
     lctx.adopt_result(gctx.char_ptr_type, v);

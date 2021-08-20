@@ -1,0 +1,1097 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2021 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("function.void  must be imported into the voidc target only!");
+
+    v_import("voidc_target.void");
+    v_import("voidc_types.void");
+    v_import("voidc_util.void");
+    v_import("voidc_ast.void");
+    v_import("voidc_quark.void");
+    v_import("voidc_visitor.void");
+    v_import("voidc_compiler.void");
+    v_import("vpeg_parser.void");
+    v_import("vpeg_grammar.void");
+    v_import("vpeg_context.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("function_hack.void");
+    v_import("memory.void");
+    v_import("if_then_else.void");
+    v_import("block.void");
+    v_import("loop.void");
+    v_import("grammar.void");
+    v_import("expression.void");
+    v_import("defer.void");
+}
+
+{   voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_statement_loop();
+    voidc_enable_statement_grammar();
+    voidc_enable_expression();
+    voidc_enable_statement_defer();
+}
+
+{   v_import("compile_type.void");
+}
+
+
+//---------------------------------------------------------------------
+{   v_add_type("void_ptr", v_pointer_type(void, 0));
+    v_add_type("char_ptr", v_pointer_type(char, 0));
+}
+
+
+//---------------------------------------------------------------------
+//- Some utility...
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 2);
+
+    typ[0] := char_ptr;
+    typ[1] := v_type_ptr;
+
+    ft = v_function_type(LLVMValueRef, typ, 2, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_make_global", ft);
+
+    v_add_parameter_name(f, 0, "name", char_ptr);
+    v_add_parameter_name(f, 1, "type", v_type_ptr);
+}
+{
+    v_add_symbol(name, type, 0);
+
+    if (!voidc_has_grammar())   v_return(0);
+
+    t = *v_alloca(v_type_ptr);
+
+    if (v_type_is_reference(type))  t := v_type_refptr_get_element_type(type);
+    else                            t := type;
+
+    t_ = v_type_get_llvm_type(t);
+
+    value = LLVMAddGlobal(v_get_module(), t_, name);
+
+    LLVMSetInitializer(value, LLVMGetUndef(t_));
+
+    v_return(value);
+}
+
+
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 3);
+
+    //-----------------------------------------------------------------
+    //- method ...
+    //-----------------------------------------------------------------
+    typ[0] := voidc_visitor_ptr;
+    typ[1] := void_ptr;
+    typ[2] := v_ast_generic_list_ptr;
+
+    method_ft = v_function_type(void, typ, 3, false);
+
+    v_add_type("method_ft", method_ft);
+}
+
+
+//---------------------------------------------------------------------
+//- Module ...
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("voidc_function_internal_module");
+
+    v_set_module(module);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    mod_ref = v_reference_type(LLVMModuleRef, 0);
+    lst_ref = v_reference_type(v_ast_generic_list_ptr, 0);
+
+    v_make_global("saved_module", mod_ref);
+    v_make_global("defn_module",  mod_ref);
+    v_make_global("decl_list",    lst_ref);
+
+    v_make_global("op_infix_to",        v_ast_opaque_generic_list_sptr);
+    v_make_global("op_prefix_const",    v_ast_opaque_generic_list_sptr);
+    v_make_global("op_prefix_volatile", v_ast_opaque_generic_list_sptr);
+
+
+    ft = v_function_type(void, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_function_internal_terminate_gloabls", ft);
+}
+{
+//  printf("voidc_function_internal_terminate_gloabls\n");
+
+    v_terminate(op_infix_to);
+    v_terminate(op_prefix_const);
+    v_terminate(op_prefix_volatile);
+}
+
+//---------------------------------------------------------------------
+{
+    quark_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("br_item_list_q",   quark_ref, q("br_item_list"));
+    v_add_symbol("fun_defn_q",       quark_ref, q("fun_defn"));
+    v_add_symbol("defn_list_unit_q", quark_ref, q("defn_list_unit"));
+}
+
+
+//---------------------------------------------------------------------
+//- mk_br_item - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_br_item_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", size_t);
+}
+{
+//  printf("mk_br_item_grammar_action\n");
+
+    key  = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+0);
+    type = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+1);
+
+    expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(expr, 2);
+    defer v_terminate(expr, 2);
+
+    if (key)    v_copy(expr+0, key);
+    if (type)   v_copy(expr+1, type);
+
+    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_make_list(lst, expr, 2);
+
+    v_std_any_set_pointer(ret, lst);
+}
+
+//---------------------------------------------------------------------
+//- mk_br_item_list - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_br_item_list_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", size_t);
+}
+{
+//  printf("mk_br_item_list_grammar_action\n");
+
+    list = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+0);
+    list = v_cast(list, v_ast_generic_list_ptr);                    //- Sic!!!
+
+    item = v_std_any_get_pointer(v_ast_opaque_expr_list_sptr, any+1);
+
+    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    if (list)   v_list_append(lst, list, v_cast(item, v_ast_base_ptr));
+    else
+    {
+        if (item)   v_make_list(lst, br_item_list_q, v_cast(item, v_ast_base_ptr), 1);
+        else        v_make_list_nil(lst, br_item_list_q);
+    }
+
+    v_std_any_set_pointer(ret, v_cast(lst, v_ast_expr_ptr));        //- Sic!!!
+}
+
+
+//---------------------------------------------------------------------
+//- mk_fun_defn_hdr - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_fun_defn_hdr_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", size_t);
+}
+{
+//  printf("mk_fun_defn_hdr_grammar_action\n");
+
+    export = v_std_any_get_value(intptr_t, any+0);
+
+    name = v_std_any_get_pointer(v_util_opaque_std_string,    any+1);
+    args = v_std_any_get_pointer(v_ast_opaque_expr_sptr,      any+2);
+    type = v_std_any_get_pointer(v_ast_opaque_expr_sptr,      any+3);
+
+    ast = v_alloca(v_ast_opaque_base_sptr, 4);
+    v_initialize(ast, 4);
+    defer v_terminate(ast, 4);
+
+    v_ast_make_expr_integer(v_cast(&ast[0], v_ast_expr_ptr), export);
+
+    v_ast_make_expr_identifier(v_cast(&ast[1], v_ast_expr_ptr), v_std_string_get(name));
+
+    v_copy(&ast[2], v_cast(args, v_ast_base_ptr));
+    v_copy(&ast[3], v_cast(type, v_ast_base_ptr));
+
+    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_make_list(lst, fun_defn_q, ast, 4);
+
+    v_std_any_set_pointer(ret, lst);
+}
+
+//---------------------------------------------------------------------
+//- mk_fun_defn - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_fun_defn_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", size_t);
+}
+{
+//  printf("mk_fun_defn_grammar_action\n");
+
+    head = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
+    body = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr,    any+1);
+
+    ast = v_alloca(v_ast_opaque_base_sptr);
+    v_initialize(ast);
+    defer v_terminate(ast);
+
+    if (body)   v_copy(ast, v_cast(body, v_ast_base_ptr));
+
+    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_list_append(lst, head, ast, 1);
+
+    v_std_any_set_pointer(ret, lst);
+}
+
+
+
+//---------------------------------------------------------------------
+//- mk_unit_defn_list - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_unit_defn_list_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", size_t);
+}
+{
+//  printf("mk_unit_defn_list_grammar_action\n");
+
+    list = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
+    item = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+1);
+
+    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    if (list)   v_list_append(lst, list, v_cast(item, v_ast_base_ptr));
+    else
+    {
+        v_make_list(lst, 0, v_cast(item, v_ast_base_ptr), 1);
+    }
+
+    v_std_any_set_pointer(ret, lst);
+}
+
+//---------------------------------------------------------------------
+//- mk_defn_list_unit - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_defn_list_unit_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 1, "any",       v_util_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", size_t);
+}
+{
+//  printf("mk_defn_list_unit_grammar_action\n");
+
+    list = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
+
+    pos = v_std_any_get_value(size_t, any+1);
+
+    line   = *v_alloca(size_t) := 0;
+    column = *v_alloca(size_t) := 0;
+
+    v_peg_get_line_column(pos, line, column);
+
+    ast = v_alloca(v_ast_opaque_base_sptr, 3);
+    v_initialize(ast, 3);
+    defer v_terminate(ast, 3);
+
+    v_copy(&ast[0], v_cast(list, v_ast_base_ptr));
+
+    v_ast_make_expr_integer(v_cast(&ast[1], v_ast_expr_ptr), v_cast(line,   intptr_t));
+    v_ast_make_expr_integer(v_cast(&ast[2], v_ast_expr_ptr), v_cast(column, intptr_t));
+
+    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_make_list(lst, defn_list_unit_q, ast, 3);
+
+    v_std_any_set_pointer(ret, v_cast(lst, v_ast_unit_ptr));        //- Sic!!!
+}
+
+
+//---------------------------------------------------------------------
+//- compile_br_item_list - visitor method - special cases for '(' _ (expr _ ':')? _ expr _ ')'
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_br_item_list", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+}
+{
+//  printf("compile_br_item_list\n");
+
+    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_list_get_items(list, 0, v_cast(lst, v_ast_base_ptr));     //- Just first one
+
+    expr = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    v_list_get_items(lst, 0, expr);
+
+    if (!v_empty(expr))
+    {
+        v_ast_make_expr_identifier(expr, "v_cast");
+
+        v_ast_make_expr_call(expr, expr, lst);
+    }
+    else
+    {
+        v_list_get_items(lst, 1, expr);
+    }
+
+    v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor, aux);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(LLVMModuleRef, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("check_defn_module", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+}
+{
+    if (!defn_module)
+    {
+        //- voidc_guard_target(...);
+
+        defn_module := LLVMModuleCreateWithName("voidc_function_internal_defn_module");
+    }
+
+    v_return(defn_module);
+}
+
+//---------------------------------------------------------------------
+//- compile_fun_defn - visitor method
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_fun_defn", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+}
+{
+//  printf("compile_fun_defn\n");
+
+    ast = v_alloca(v_ast_opaque_base_sptr, 9);
+    v_initialize(ast, 9);
+    defer v_terminate(ast, 9);
+
+    v_list_get_items(list, 0, ast, 5);
+
+    //-------------------------------------------------------------
+    export = v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
+
+    name = v_ast_expr_identifier_get_name(v_cast(ast+1, v_ast_expr_ptr));
+
+    params   = ast + 2;
+    ret_type = ast + 3;
+    body     = ast + 4;
+
+    //-------------------------------------------------------------
+    args = v_cast(v_ast_generic_get_object(params), v_ast_generic_list_ptr);
+
+    v_list_get_items(args, 1, ast+5);
+
+    args = v_cast(ast+5, v_ast_generic_list_ptr);
+
+    //-------------------------------------------------------------
+    v_copy(ast+6, v_cast(op_infix_to, v_ast_base_ptr));
+    v_copy(ast+7, params);
+    v_copy(ast+8, ret_type);
+
+    expr = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    v_ast_make_expr_node(expr, ast+6, 3);
+
+
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor, aux);
+
+    fun_type = v_get_result_type();
+
+    if (export) v_export_symbol_type(name, fun_type);
+    else        v_add_symbol(name, fun_type, 0);
+
+    //-------------------------------------------------------------
+    if (decl_list)      //- Importing
+    {
+        item = v_alloca(v_ast_opaque_expr_list_sptr);
+        v_initialize(item);
+        defer v_terminate(item);
+
+        v_ast_make_expr_identifier(expr, name);
+
+        v_make_list(item, expr, 1);
+
+        v_ast_make_expr_integer(expr, export);
+
+        v_list_append(item, item, expr, 1);
+
+        v_list_append(decl_list, decl_list, v_cast(item, v_ast_base_ptr));
+    }
+
+    if (!v_empty(body))
+    {
+        argtypes = *v_alloca(* v_type_ptr) := 0;
+        defer if (argtypes) v_mfree(argtypes);
+
+        count = v_type_function_get_param_count(fun_type);
+
+        if (count)
+        {
+            argtypes := v_malloc(v_type_ptr, count);
+
+            v_type_function_get_param_types(fun_type, argtypes);
+        }
+
+        //- assert(v_get_module() == 0);
+
+        v_set_module(check_defn_module());
+
+        f = v_prepare_function(name, fun_type);
+
+        if (count)
+        {
+            item = v_alloca(v_ast_opaque_generic_list_sptr);
+            v_initialize(item);
+            defer v_terminate(item);
+
+            i = *v_alloca(int) := 0;
+
+            loop
+            {
+                if (i >= count) v_break();
+
+                v_list_get_items(args, i, v_cast(item, v_ast_base_ptr));
+
+                v_list_get_items(item, 0, v_cast(expr, v_ast_base_ptr));
+
+                if (!v_empty(expr))
+                {
+                    pname = v_ast_expr_identifier_get_name(expr);
+
+                    v_add_parameter_name(f, i, pname, argtypes[i]);
+                }
+
+                ++i;
+            }
+        }
+
+        v_ast_accept_visitor(body, visitor, aux);
+
+        v_finish_function();
+
+        v_set_module(0);
+    }
+}
+
+
+//---------------------------------------------------------------------
+//- compile_defn_list_unit - visitor method
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_defn_list_unit", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+}
+{
+//  printf("compile_defn_list_unit\n");
+
+    //- Definitions (i.e. "values of things") ---------------------
+
+    saved_module := v_get_module();
+
+    defn_module := saved_module;
+
+    //- Declarations (i.e. "types of things") ---------------------
+
+    symbol_list = v_alloca(v_ast_opaque_generic_list_sptr);
+
+    if (v_target_local_ctx_has_parent())
+    {
+        //- We're importing - need to build a unit
+
+        v_initialize(symbol_list);
+
+        v_make_list_nil(symbol_list, 0);
+
+        decl_list := symbol_list;
+    }
+    else
+    {
+        //- We'll do "direct declaration" ...
+
+        decl_list := 0;
+    }
+
+    defer if (decl_list)  v_terminate(decl_list);
+
+    v_set_module(0);
+
+
+    //-------------------------------------------------------------
+    lst = v_alloca(v_ast_opaque_generic_list_sptr, 2);
+    v_initialize(lst, 2);
+    defer v_terminate(lst, 2);
+
+    v_list_get_items(list, 0, v_cast(lst+0, v_ast_base_ptr));
+
+    n = v_list_get_size(lst+0);
+
+    i = *v_alloca(int) := 0;
+
+    loop
+    {
+        if (i == n) v_break();
+
+        v_list_get_items(lst+0, i, v_cast(lst+1, v_ast_base_ptr));
+
+        v_ast_accept_visitor(v_cast(lst+1, v_ast_base_ptr), visitor, aux);
+
+        ++i;
+    }
+
+
+    //-------------------------------------------------------------
+    if (decl_list)      //- Importing
+    {
+        saved_target = v_target_get_global_ctx();
+
+        v_target_set_global_ctx(v_target_get_voidc_global_ctx());
+
+        saved_voidc_module = v_get_module();
+
+        expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+        v_initialize(expr, 2);
+        defer v_terminate(expr, 2);
+
+        v_list_get_items(list, 1, v_cast(expr, v_ast_base_ptr), 2);
+
+        line   = v_cast(v_ast_expr_integer_get_number(expr+0), int);
+        column = v_cast(v_ast_expr_integer_get_number(expr+1), int);
+
+        voidc_prepare_unit_action(line, column);
+
+        //---------------------------------------------------------
+        item = v_alloca(v_ast_opaque_expr_list_sptr);
+        v_initialize(item);
+        defer v_terminate(item);
+
+        ctx = *v_alloca(voidc_compile_type_ctx_t);
+
+        voidc_compile_type_ctx_initialize(ctx);
+
+        n = v_list_get_size(decl_list);
+
+        i = *v_alloca(int) := 0;
+
+        loop
+        {
+            if (i == n) v_break();
+
+            v_list_get_items(decl_list, i, v_cast(item, v_ast_base_ptr));
+
+            v_list_get_items(item, 0, expr+0);
+
+            name = v_ast_expr_identifier_get_name(expr+0);
+
+            type = v_find_symbol_type(name);
+
+            voidc_compile_type_compute_stack_length(type, ctx);
+
+            ++i;
+        }
+
+        len = voidc_compile_type_ctx_get_stack_length(ctx);
+
+        builder = v_target_get_builder();
+
+        stksv = *v_alloca(LLVMValueRef) := 0;
+
+        ctx_stack = *v_alloca(LLVMValueRef) := 0;
+
+        if (len)
+        {
+            int_        = v_type_get_llvm_type(int);
+            v_type_ptr_ = v_type_get_llvm_type(v_type_ptr);
+
+            len_v = LLVMConstInt(int_, len, 0);
+
+            if (len < 32)       //- ?
+            {
+                stksv := LLVMBuildCall(builder, v_obtain_function("llvm.stacksave"), 0, 0, "stksv");
+
+                ctx_stack := LLVMBuildArrayAlloca(builder, v_type_ptr_, len_v, "stk");
+            }
+            else
+            {
+                ctx_stack := LLVMBuildArrayMalloc(builder, v_type_ptr_, len_v, "stk");
+            }
+
+            voidc_compile_type_ctx_set_stack(ctx, ctx_stack);
+        }
+
+        val = v_alloca(LLVMValueRef, 3);
+
+        export_sym_f = v_obtain_function("v_export_symbol");
+        add_sym_f    = v_obtain_function("v_add_symbol");
+
+        val[2] := LLVMConstNull(v_type_get_llvm_type(void_ptr));
+
+        i := 0;
+
+        loop
+        {
+            if (i == n) v_break();
+
+            v_list_get_items(decl_list, i, v_cast(item, v_ast_base_ptr));
+
+            v_list_get_items(item, 0, expr, 2);
+
+            name = v_ast_expr_identifier_get_name(expr+0);
+
+            val[0] := LLVMBuildGlobalStringPtr(builder, name, "name");
+
+            type = v_find_symbol_type(name);
+
+            val[1] := voidc_compile_type(type, ctx);
+
+            export = v_ast_expr_integer_get_number(expr+1);
+
+            if (export) LLVMBuildCall(builder, export_sym_f, val, 3, "");
+            else        LLVMBuildCall(builder, add_sym_f, val, 3, "");
+
+            ++i;
+        }
+
+        if (stksv)
+        {
+            LLVMBuildCall(builder, v_obtain_function("llvm.stackrestore"), &stksv, 1, "");
+        }
+        else if (ctx_stack)
+        {
+            LLVMBuildFree(builder, ctx_stack);
+        }
+
+
+        //---------------------------------------------------------
+        if (defn_module  &&  !saved_module)
+        {
+            voidc_prepare_module_for_jit(defn_module);
+
+            voidc_compile_load_module_to_jit(defn_module, true);    //- local?  (TODO)
+
+            LLVMDisposeModule(defn_module);
+        }
+
+        voidc_finish_unit_action();
+
+        v_set_module(saved_voidc_module);
+
+        v_target_set_global_ctx(saved_target);
+    }
+    else    //- "direct declarations"
+    {
+        if (defn_module  &&  !saved_module)
+        {
+            //- voidc_guard_target(...);
+
+            voidc_prepare_module_for_jit(defn_module);
+
+            voidc_add_local_module_to_jit(defn_module);             //- local?  (TODO)
+
+            LLVMDisposeModule(defn_module);
+        }
+    }
+
+
+    //-------------------------------------------------------------
+    v_set_module(saved_module);
+}
+
+
+//---------------------------------------------------------------------
+//- op_prefix_const/volatile - compiler method
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_op_prefix_cv", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+}
+{
+//  printf("compile_op_prefix_cv\n");
+
+    ast = v_alloca(v_ast_opaque_base_sptr);
+    v_initialize(ast);
+    defer v_terminate(ast);
+
+    v_list_get_items(list, 1, ast);
+
+    //-----------------------------------------------------------------
+    //- Just "ignore" it...
+    //-----------------------------------------------------------------
+
+    v_ast_accept_visitor(ast, visitor, aux);
+}
+
+
+//---------------------------------------------------------------------
+//- op_infix_to - compiler method (types only(!))
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_op_infix_to", method_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+}
+{
+//  printf("compile_op_infix_to\n");
+
+    ast = v_alloca(v_ast_opaque_base_sptr, 2);
+    v_initialize(ast, 2);
+    defer v_terminate(ast, 2);
+
+    v_list_get_items(list, 1, ast, 2);
+
+
+    args = v_cast(v_ast_generic_get_object(ast+0), v_ast_generic_list_ptr);
+
+    v_list_get_items(args, 1, ast+0);
+
+    args = v_cast(ast+0, v_ast_generic_list_ptr);
+
+    argtypes = *v_alloca(* v_type_ptr) := 0;
+    defer if (argtypes) v_mfree(argtypes);
+
+    is_vararg = *v_alloca(bool) := false;
+
+    count = *v_alloca(int) := v_list_get_size(args);
+
+    if (count)
+    {
+        argtypes := v_malloc(v_type_ptr, count);
+
+        item = v_alloca(v_ast_opaque_base_sptr);
+        v_initialize(item);
+        defer v_terminate(item);
+
+        i = *v_alloca(int) := 0;
+
+        loop
+        {
+            if (i >= count) v_break();
+
+            v_list_get_items(args, i, item);
+
+            v_list_get_items(v_cast(item, v_ast_generic_list_ptr), 1, item);
+
+            if (v_empty(item))
+            {
+                is_vararg := true;
+
+                count := i;     //- ?
+
+                v_break();
+            }
+
+            v_set_result_type(INVIOLABLE_TAG);
+
+            v_ast_accept_visitor(item, visitor, aux);
+
+            argtypes[i] := v_get_result_type();
+
+            ++i;
+        }
+    }
+
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor(ast+1, visitor, aux);
+
+    ft = v_function_type(v_get_result_type(), argtypes, count, is_vararg);
+
+    v_set_result_type(ft);
+//  v_set_result_value(0);      //- ?
+}
+
+
+//---------------------------------------------------------------------
+//- Enable function compiler
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(void, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    v_function_hack("voidc_enable_function_compiler", ft);
+}
+{
+    v_return_if(voidc_visitor_get_void_method(voidc_compiler, fun_defn_q));
+
+    voidc_enable_expression_compiler();         //- Sic!
+
+
+    vis = voidc_compiler;
+
+    voidc_visitor_set_void_method(vis, vis, br_item_list_q,   compile_br_item_list);
+    voidc_visitor_set_void_method(vis, vis, fun_defn_q,       compile_fun_defn);
+    voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit);
+
+    q = v_quark_from_string;
+
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_to"),        compile_op_infix_to);
+    voidc_visitor_set_void_method(vis, vis, q("op_prefix_const"),    compile_op_prefix_cv);
+    voidc_visitor_set_void_method(vis, vis, q("op_prefix_volatile"), compile_op_prefix_cv);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable function
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(void, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    v_function_hack("voidc_enable_function", ft);
+}
+{
+    v_return_if_not(voidc_has_grammar());
+    v_return_if(voidc_grammar_has_parser("fun_defn"));
+
+//  printf("voidc_enable_function\n");
+
+    voidc_enable_function_compiler();
+
+
+    any = v_alloca(v_util_opaque_std_any, 3);
+    v_initialize(any, 3);
+    defer v_terminate(any, 3);
+
+    any_to       = any + 0;
+    any_const    = any + 1;
+    any_volatile = any + 2;
+
+    v_std_any_set_pointer(any_to,       op_infix_to);
+    v_std_any_set_pointer(any_const,    op_prefix_const);
+    v_std_any_set_pointer(any_volatile, op_prefix_volatile);
+
+
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    v_initialize(gr0);
+    defer v_terminate(gr0);
+
+    v_peg_get_grammar(gr0);
+
+    grammar gr0
+    {
+    values:
+        op_infix_to        = any_to;
+        op_prefix_const    = any_const;
+        op_prefix_volatile = any_volatile;
+
+    actions:
+        mk_br_item_list   = mk_br_item_list_grammar_action;
+        mk_br_item        = mk_br_item_grammar_action;
+        mk_fun_defn_hdr   = mk_fun_defn_hdr_grammar_action;
+        mk_fun_defn       = mk_fun_defn_grammar_action;
+        mk_unit_defn_list = mk_unit_defn_list_grammar_action;
+        mk_defn_list_unit = mk_defn_list_unit_grammar_action;
+
+    parsers:
+
+        prefix += "const"    !ident_start  { op_prefix_const }
+                / "volatile" !ident_start  { op_prefix_volatile }
+                ;
+
+
+        infix += "->"   { op_infix_to };
+
+
+        bracketed = '('_ l:br_item_list _')'    { mk_bracketed(op_parentheses, l) }
+                  / '['_ l:br_item_list _']'    { mk_bracketed(op_brackets,    l) }
+                  / '{'_ l:br_item_list _'}'    { mk_bracketed(op_braces,      l) }
+                  ;
+
+        br_item_list = br_item_list_lr
+                     /                          { mk_br_item_list(0, 0) }
+                     ;
+
+        br_item_list_lr = l:br_item_list_lr _','_ i:br_item     { mk_br_item_list(l, i) }
+                        / i:br_item                             { mk_br_item_list(0, i) }
+                        ;
+
+        br_item_list_lr is left-recursive;
+
+
+        br_item = k:expr _':'_ e:expr           { mk_br_item(k, e) }
+                / e:expr                        { mk_br_item(0, e) }
+                / "..."                         { mk_br_item(0, 0) }
+                ;
+
+
+        export_flag = "export" !ident_start _ {1} / {0};
+
+        fun_defn_hdr = e:export_flag f:identifier _':'_ a:bracketed _"->"_ r:expr   { mk_fun_defn_hdr(e, f, a, r) };
+
+        fun_defn = h:fun_defn_hdr _';'                    { mk_fun_defn(h, 0) }
+                 / h:fun_defn_hdr _'{'_ l:stmt_list _'}'  { mk_fun_defn(h, l) }
+                 ;
+
+
+        unit_defn_list_lr = l:unit_defn_list_lr _ d:unit_defn   { mk_unit_defn_list(l, d) }
+                          / d:unit_defn                         { mk_unit_defn_list(0, d) }
+                          ;
+
+        unit_defn_list_lr is left-recursive;
+
+
+        unit_defn = fun_defn;
+
+
+        unit += _ <l:unit_defn_list_lr>     { mk_defn_list_unit(l, $1s) };
+    }
+
+    v_peg_set_grammar(gr0);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    //-----------------------------------------------------------------
+//  v_debug_print_module(1);
+
+    voidc_unit_load_module_to_jit(module);
+
+    LLVMDisposeModule(module);
+    v_set_module(0);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    v_initialize(op_infix_to);
+    v_initialize(op_prefix_const);
+    v_initialize(op_prefix_volatile);
+
+    v_ast_make_expr_op_binary(op_infix_to,        "op_infix_to",        30000, 1);      //- "Postfix" priority, left-assoc
+    v_ast_make_expr_op_unary( op_prefix_const,    "op_prefix_const",    20000);         //- "Prefix" priority
+    v_ast_make_expr_op_unary( op_prefix_volatile, "op_prefix_volatile", 20000);         //- "Prefix" priority
+
+    voidc_atexit(voidc_function_internal_terminate_gloabls);
+}
+
+
+//---------------------------------------------------------------------
+{
+    v_make_export_symbol("voidc_enable_function_compiler");
+    v_make_export_symbol("voidc_enable_function");
+}
+
+
