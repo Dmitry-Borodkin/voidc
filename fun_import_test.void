@@ -39,17 +39,25 @@ sprintf: (str: *char, format: *const char, ...) -> int;
 
 round: (double) -> double;
 
-export
+
+//---------------------------------------------------------------------
+{   v_set_export_flag(true); }
+
+
 qwerty: (i:int, j:&int) -> void
 {
     j := (round(1000000*sin(i)) : int);
 }
 
-export
+
 foo: (bar: *((int, &int) -> void), i: int, j: &int) -> void
 {
     bar(i, j);
 }
+
+
+//---------------------------------------------------------------------
+{   v_set_export_flag(false); }
 
 
 //=====================================================================

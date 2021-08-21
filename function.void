@@ -114,8 +114,11 @@
 //- ...
 //---------------------------------------------------------------------
 {
-    mod_ref = v_reference_type(LLVMModuleRef, 0);
-    lst_ref = v_reference_type(v_ast_generic_list_ptr, 0);
+    bool_ref = v_reference_type(bool, 0);
+    mod_ref  = v_reference_type(LLVMModuleRef, 0);
+    lst_ref  = v_reference_type(v_ast_generic_list_ptr, 0);
+
+    v_make_global("export_flag", bool_ref);
 
     v_make_global("saved_module", mod_ref);
     v_make_global("defn_module",  mod_ref);
@@ -464,7 +467,7 @@
     v_list_get_items(list, 0, ast, 5);
 
     //-------------------------------------------------------------
-    export = v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
+    export = export_flag || v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
 
     name = v_ast_expr_identifier_get_name(v_cast(ast+1, v_ast_expr_ptr));
 
@@ -918,6 +921,24 @@
 
 
 //---------------------------------------------------------------------
+//- Set "export_flag"
+//---------------------------------------------------------------------
+{
+    typ = *v_alloca(v_type_ptr) := bool;
+
+    ft = v_function_type(void, &typ, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_set_export_flag", ft);
+
+    v_add_parameter_name(f, 0, "flag", bool);
+}
+{
+    export_flag := flag;
+}
+
+
+//---------------------------------------------------------------------
 //- Enable function compiler
 //---------------------------------------------------------------------
 {
@@ -943,6 +964,13 @@
     voidc_visitor_set_void_method(vis, vis, q("op_infix_to"),        compile_op_infix_to);
     voidc_visitor_set_void_method(vis, vis, q("op_prefix_const"),    compile_op_prefix_cv);
     voidc_visitor_set_void_method(vis, vis, q("op_prefix_volatile"), compile_op_prefix_cv);
+
+    //-----------------------------------------------------------------
+    typ = *v_alloca(v_type_ptr) := bool;
+
+    ft = v_function_type(void, &typ, 1, false);
+
+    v_export_symbol_type("v_set_export_flag", ft);
 }
 
 
@@ -1009,8 +1037,6 @@
 
 
         bracketed = '('_ l:br_item_list _')'    { mk_bracketed(op_parentheses, l) }
-                  / '['_ l:br_item_list _']'    { mk_bracketed(op_brackets,    l) }
-                  / '{'_ l:br_item_list _'}'    { mk_bracketed(op_braces,      l) }
                   ;
 
         br_item_list = br_item_list_lr
@@ -1076,6 +1102,8 @@
 //- ...
 //---------------------------------------------------------------------
 {
+    export_flag := false;
+
     v_initialize(op_infix_to);
     v_initialize(op_prefix_const);
     v_initialize(op_prefix_volatile);
