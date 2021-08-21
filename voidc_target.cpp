@@ -1841,7 +1841,7 @@ v_find_constant(const char *raw_name, v_type_t **type, LLVMValueRef *value)
                 }
             }
 
-            assert(v);
+//          assert(v);
         }
     }
 
