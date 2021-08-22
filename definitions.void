@@ -2,7 +2,7 @@
 //- Copyright (C) 2020-2021 Dmitry Borodkin <borodkin-dn@yandex.ru>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
-{   voidc_guard_target("function.void  must be imported into the voidc target only!");
+{   voidc_guard_target("definitions.void  must be imported into the voidc target only!");
 
     v_import("voidc_target.void");
     v_import("voidc_types.void");
@@ -104,7 +104,7 @@
 //---------------------------------------------------------------------
 //- Module ...
 //---------------------------------------------------------------------
-{   module = LLVMModuleCreateWithName("voidc_function_internal_module");
+{   module = LLVMModuleCreateWithName("voidc_definitions_internal_module");
 
     v_set_module(module);
 
@@ -137,10 +137,10 @@
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_function_internal_terminate_gloabls", ft);
+    f = v_function_hack("voidc_definitions_internal_terminate_gloabls", ft);
 }
 {
-//  printf("voidc_function_internal_terminate_gloabls\n");
+//  printf("voidc_definitions_internal_terminate_gloabls\n");
 
     v_terminate(op_infix_to);
     v_terminate(op_prefix_const);
@@ -597,7 +597,7 @@
     {
         //- voidc_guard_target(...);
 
-        defn_module := LLVMModuleCreateWithName("voidc_function_internal_defn_module");
+        defn_module := LLVMModuleCreateWithName("voidc_definitions_internal_defn_module");
     }
 
     v_return(defn_module);
@@ -1368,13 +1368,13 @@
 
 
 //---------------------------------------------------------------------
-//- Enable function compiler
+//- Enable definitions compiler
 //---------------------------------------------------------------------
 {
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
-    v_function_hack("voidc_enable_function_compiler", ft);
+    v_function_hack("voidc_enable_definitions_compiler", ft);
 }
 {
     v_return_if(voidc_visitor_get_void_method(voidc_compiler, fun_defn_q));
@@ -1406,21 +1406,21 @@
 
 
 //---------------------------------------------------------------------
-//- Enable function
+//- Enable definitions
 //---------------------------------------------------------------------
 {
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
-    v_function_hack("voidc_enable_function", ft);
+    v_function_hack("voidc_enable_definitions", ft);
 }
 {
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("fun_defn"));
 
-//  printf("voidc_enable_function\n");
+//  printf("voidc_enable_definitions\n");
 
-    voidc_enable_function_compiler();
+    voidc_enable_definitions_compiler();
 
 
     any = v_alloca(v_util_opaque_std_any, 3);
@@ -1561,14 +1561,14 @@
     v_ast_make_expr_op_unary( op_prefix_const,    "op_prefix_const",    20000);         //- "Prefix" priority
     v_ast_make_expr_op_unary( op_prefix_volatile, "op_prefix_volatile", 20000);         //- "Prefix" priority
 
-    voidc_atexit(voidc_function_internal_terminate_gloabls);
+    voidc_atexit(voidc_definitions_internal_terminate_gloabls);
 }
 
 
 //---------------------------------------------------------------------
 {
-    v_make_export_symbol("voidc_enable_function_compiler");
-    v_make_export_symbol("voidc_enable_function");
+    v_make_export_symbol("voidc_enable_definitions_compiler");
+    v_make_export_symbol("voidc_enable_definitions");
 }
 
 
