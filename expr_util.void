@@ -562,6 +562,8 @@
 
     opcode = v_reference(v_alloca(LLVMOpcode));
 
+    v_assign(opcode, 0);
+
     if (v_icmp(LLVMIntEQ, st0, st1))    //- No conversion...
     {
         v_assign(opcode, LLVMBitCast);
@@ -574,22 +576,21 @@
             {
                 v_assign(opcode, LLVMFPExt);
             }
-            else
+            else if (v_type_is_integer(st0))
             {
-                //- assert(v_type_is_integer(st0));
-
                 if (v_type_integer_is_signed(st0))  v_assign(opcode, LLVMSIToFP);
                 else                                v_assign(opcode, LLVMUIToFP);
             }
         }
-        else
+        else if (v_type_is_integer(st0))
         {
-            //- assert(v_type_is_integer(st0));
-
             if (v_type_integer_is_signed(st0))  v_assign(opcode, LLVMSExt);
             else                                v_assign(opcode, LLVMZExt);
         }
     }
+
+    if (opcode) ;
+    else        v_return(value);        //- Sic!!!
 
     is_vec0 = v_type_is_vector(type);
     is_vec1 = v_type_is_vector(to_type);
@@ -3365,6 +3366,7 @@
         typ = v_array_type(agg_t, n);
 
         v_set_result_type(typ);
+        v_set_result_value(0);
 
         v_return();
     }
