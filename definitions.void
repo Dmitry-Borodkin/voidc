@@ -1368,6 +1368,40 @@
 
 
 //---------------------------------------------------------------------
+//- v_undef intrinsic
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_undef_intrinsic", voidc_intrinsic_t);
+
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      v_pointer_type(void, 0));
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+}
+{
+    if (v_list_get_size(arg_list))
+    {
+        arg = v_alloca(v_ast_opaque_expr_sptr);
+        v_initialize(arg);
+        defer v_terminate(arg);
+
+        v_list_get_items(arg_list, 0, arg);
+
+        v_set_result_type(INVIOLABLE_TAG);
+
+        v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor, aux);
+    }
+
+    t = v_get_result_type();
+
+    v = LLVMGetUndef(v_type_get_llvm_type(t));
+
+//  v_set_result_type(t);
+    v_set_result_value(v);
+}
+
+
+//---------------------------------------------------------------------
 //- Enable definitions compiler
 //---------------------------------------------------------------------
 {
@@ -1401,7 +1435,10 @@
 
     ft = v_function_type(void, &typ, 1, false);
 
-    v_export_symbol_type("v_set_export_flag", ft);
+    v_add_symbol("v_set_export_flag", ft, 0);
+
+    //-----------------------------------------------------------------
+    v_add_intrinsic("v_undef", v_undef_intrinsic);
 }
 
 
