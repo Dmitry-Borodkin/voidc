@@ -246,9 +246,9 @@ void compile_ast_expr_integer_t(const visitor_sptr_t *vis, void *aux,
 
         if (is_reference) t = static_cast<v_type_reference_t *>(t)->element_type();
 
-        if (t->kind() == v_type_t::k_pointer  &&  num == 0)
+        if (num == 0)
         {
-            v = LLVMConstPointerNull(t->llvm_type());
+            v = LLVMConstNull(t->llvm_type());      //- Sic!!!
         }
         else
         {
