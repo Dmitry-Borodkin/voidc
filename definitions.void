@@ -133,6 +133,12 @@
     v_make_global("op_prefix_const",    v_ast_opaque_generic_list_sptr);
     v_make_global("op_prefix_volatile", v_ast_opaque_generic_list_sptr);
 
+    intptr_t_ = v_type_get_llvm_type(intptr_t);
+
+    v_add_constant("qf_none",    intptr_t, LLVMConstInt(intptr_t_, 0, 0));
+    v_add_constant("qf_export",  intptr_t, LLVMConstInt(intptr_t_, 1, 0));
+    v_add_constant("qf_private", intptr_t, LLVMConstInt(intptr_t_, 2, 0));
+
 
     ft = v_function_type(void, 0, 0, false);
 
@@ -248,7 +254,7 @@
 {
 //  printf("mk_qlf_ident_grammar_action\n");
 
-    export = v_std_any_get_value(intptr_t, any+0);
+    qualif = v_std_any_get_value(intptr_t, any+0);
 
     name = v_std_any_get_pointer(v_util_opaque_std_string,    any+1);
 
@@ -256,7 +262,7 @@
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
-    v_ast_make_expr_integer(v_cast(&ast[0], v_ast_expr_ptr), export);
+    v_ast_make_expr_integer(v_cast(&ast[0], v_ast_expr_ptr), qualif);
 
     v_ast_make_expr_identifier(v_cast(&ast[1], v_ast_expr_ptr), v_std_string_get(name));
 
@@ -828,7 +834,10 @@
     v_list_get_items(list, 0, ast, 5);
 
     //-------------------------------------------------------------
-    export = export_flag || v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
+    qualif = v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
+
+    private = (qualif == qf_private);
+    export  = (export_flag  ||  qualif == qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast+1, v_ast_expr_ptr));
 
@@ -902,6 +911,8 @@
 
         f = v_prepare_function(name, fun_type);
 
+        if (private)  LLVMSetLinkage(f, LLVMPrivateLinkage);
+
         if (count)
         {
             item = v_alloca(v_ast_opaque_generic_list_sptr);
@@ -961,7 +972,10 @@
     v_list_get_items(list, 0, ast, 4);
 
     //-------------------------------------------------------------
-    export = export_flag || v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
+    qualif = v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
+
+    private = (qualif == qf_private);
+    export  = (export_flag  ||  qualif == qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast+1, v_ast_expr_ptr));
 
@@ -1011,6 +1025,8 @@
 
         value_g = LLVMAddGlobal(module, t_, name);
 
+        if (private)  LLVMSetLinkage(value_g, LLVMPrivateLinkage);
+
         v_set_result_type(t);
 
         v_ast_accept_visitor(value, visitor, aux);
@@ -1045,7 +1061,10 @@
     v_list_get_items(list, 0, ast, 4);
 
     //-------------------------------------------------------------
-    export = export_flag || v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
+    qualif = v_ast_expr_integer_get_number(v_cast(ast+0, v_ast_expr_ptr));
+
+    private = (qualif == qf_private);
+    export  = (export_flag  ||  qualif == qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast+1, v_ast_expr_ptr));
 
@@ -1665,9 +1684,9 @@
     voidc_enable_definitions_compiler();
 
 
-    any = v_alloca(v_util_opaque_std_any, 3);
-    v_initialize(any, 3);
-    defer v_terminate(any, 3);
+    any = v_alloca(v_util_opaque_std_any, 6);
+    v_initialize(any, 6);
+    defer v_terminate(any, 6);
 
     any_to       = any + 0;
     any_const    = any + 1;
@@ -1676,6 +1695,14 @@
     v_std_any_set_pointer(any_to,       op_infix_to);
     v_std_any_set_pointer(any_const,    op_prefix_const);
     v_std_any_set_pointer(any_volatile, op_prefix_volatile);
+
+    any_qf_none    = any + 3;
+    any_qf_export  = any + 4;
+    any_qf_private = any + 5;
+
+    v_std_any_set_value(any_qf_none,    qf_none);
+    v_std_any_set_value(any_qf_export,  qf_export);
+    v_std_any_set_value(any_qf_private, qf_private);
 
 
     gr0 = v_alloca(v_peg_opaque_grammar_sptr);
@@ -1690,6 +1717,10 @@
         op_infix_to        = any_to;
         op_prefix_const    = any_const;
         op_prefix_volatile = any_volatile;
+
+        qf_none    = any_qf_none;
+        qf_export  = any_qf_export;
+        qf_private = any_qf_private;
 
     actions:
         mk_br_item_list      = mk_br_item_list_grammar_action;
@@ -1735,9 +1766,11 @@
                 ;
 
 
-        export_flag = "export" !ident_start _ {1} / {0};
+        qualif_flag = "export"  !ident_start _ {qf_export}
+                    / "private" !ident_start _ {qf_private}
+                    / {qf_none};
 
-        qlf_ident = e:export_flag i:identifier  { mk_qlf_ident(e, i) };
+        qlf_ident = q:qualif_flag i:identifier  { mk_qlf_ident(q, i) };
 
 
         unit_fun_defn_hdr = qf:qlf_ident _':'_ a:bracketed _"->"_ r:expr    { mk_unit_fun_defn_hdr(qf, a, r) };
