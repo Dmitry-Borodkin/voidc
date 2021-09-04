@@ -163,16 +163,6 @@
     v_add_alias("expr_oplist", "voidc_ast_expression_operator_list");
 
 
-    voidc_opaque_visitor_sptr_ = v_type_get_llvm_type(voidc_opaque_visitor_sptr);
-
-    expr_cat_g = LLVMAddGlobal(module, voidc_opaque_visitor_sptr_, "expr_category_visitor");
-
-    expr_cat_u = LLVMGetUndef(voidc_opaque_visitor_sptr_);
-
-    LLVMSetInitializer(expr_cat_g, expr_cat_u);
-
-    v_add_symbol("expr_category_visitor", voidc_opaque_visitor_sptr, 0);
-
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
     voidc_set_unit_buffer(0);
@@ -241,73 +231,6 @@
     v_list_append(expr_oplist, expr_oplist, v_cast(op, v_ast_base_ptr));
 
     v_terminate(op);
-}
-
-
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("method_cat_one", method_ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
-}
-{
-    v_store(1, v_cast(aux, int_ptr));
-}
-
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("method_cat_two", method_ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
-}
-{
-    v_store(2, v_cast(aux, int_ptr));
-}
-
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("method_cat_three", method_ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
-}
-{
-    v_store(3, v_cast(aux, int_ptr));
-}
-
-//---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ptr, 2);
-    typ1 = v_getelementptr(typ0, 1);
-
-    v_store(voidc_visitor_ptr, typ0);
-    v_store(void_ptr,          typ1);
-
-    ft = v_function_type(void, typ0, 2, false);
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("method_cat_zero", ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-}
-{
-    v_store(0, v_cast(aux, int_ptr));
 }
 
 
@@ -381,26 +304,23 @@
     //-------------------------------------------------------------
     add_op_unary("op_parentheses",           0);        //- Sic!
 
+
     //-------------------------------------------------------------
-    vis = expr_category_visitor;
+    q_ref = v_reference_type(v_quark_t, 0);
 
-    v_initialize(vis);
+    q = v_quark_ptr_from_string;
 
-    voidc_make_visitor(vis);
+    v_add_symbol("expr_node_tag",   q_ref, q("v_ast_expr_node_t_visitor_method_tag"));
 
-    q = v_quark_from_string;
+    v_add_symbol("opc_logical_and", q_ref, q("op_infix_logical_and"));
+    v_add_symbol("opc_logical_or",  q_ref, q("op_infix_logical_or"));
 
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_lt"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_le"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_gt"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_ge"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_eq"), method_cat_one);
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_ne"), method_cat_one);
-
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_logical_and"), method_cat_two);
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_logical_or"),  method_cat_three);
-
-    voidc_visitor_set_void_method(vis, vis, 0, method_cat_zero);
+    v_add_symbol("opc_relation_lt", q_ref, q("op_infix_lt"));
+    v_add_symbol("opc_relation_le", q_ref, q("op_infix_le"));
+    v_add_symbol("opc_relation_gt", q_ref, q("op_infix_gt"));
+    v_add_symbol("opc_relation_ge", q_ref, q("op_infix_ge"));
+    v_add_symbol("opc_relation_eq", q_ref, q("op_infix_eq"));
+    v_add_symbol("opc_relation_ne", q_ref, q("op_infix_ne"));
 }
 
 //---------------------------------------------------------------------
@@ -411,8 +331,6 @@
     v_function_hack("expr_oplist_dtor", ft);
 }
 {
-    v_terminate(expr_category_visitor);
-
     v_terminate(expr_oplist);
 
 //  printf("expr_oplist_dtor()\n");
@@ -1514,11 +1432,15 @@
 //- is_logical_and - utility
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ptr);
+    typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_ast_base_ptr, typ);
+    v_store(v_ast_base_ptr, typ0);
+    v_store(v_ast_expr_ptr, typ1);
+    v_store(v_ast_expr_ptr, typ2);
 
-    ft = v_function_type(bool, typ, 1, false);
+    ft = v_function_type(bool, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("is_logical_and", ft);
@@ -1526,13 +1448,43 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
+    v_add_parameter_name(f, 1, "lhs", v_ast_expr_ptr);
+    v_add_parameter_name(f, 2, "rhs", v_ast_expr_ptr);
 }
 {
-    aux = v_alloca(int);
+    tag = v_ast_base_get_visitor_method_tag(arg);
 
-    v_ast_accept_visitor(arg, expr_category_visitor, aux);
+    if (v_icmp(LLVMIntNE, tag, expr_node_tag))  v_return(false);
 
-    v_return(v_icmp(LLVMIntEQ, v_load(aux), 2));
+    obj = v_ast_generic_get_object(arg);
+
+    lst = v_cast(obj, v_ast_generic_list_ptr);
+
+    op = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(op);
+
+    v_list_get_items(lst, 0, v_cast(op, v_ast_base_ptr));
+
+    opc = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(opc);
+
+    v_list_get_items(op, 0, v_cast(opc, v_ast_base_ptr));
+
+    tag = v_ast_expr_integer_get_number(opc);
+
+    v_terminate(opc);
+    v_terminate(op);
+
+    tag = v_cast(tag, v_quark_t);
+
+    if (v_icmp(LLVMIntNE, tag, opc_logical_and))  v_return(false);
+
+    ze = v_cast(0, v_ast_expr_ptr);
+
+    if (v_icmp(LLVMIntNE, lhs, ze)) v_list_get_items(lst, 1, v_cast(lhs, v_ast_base_ptr));
+    if (v_icmp(LLVMIntNE, rhs, ze)) v_list_get_items(lst, 2, v_cast(rhs, v_ast_base_ptr));
+
+    v_return(true);
 }
 
 //---------------------------------------------------------------------
@@ -1596,8 +1548,8 @@
     branch_if_false_v = v_cast(aux_l, LLVMValueRef);
 
 
-    if (is_logical_and(ast0))   ;
-    else                        v_assign(aux_l, 0);
+    if (is_logical_and(ast0, 0, 0)) ;
+    else                            v_assign(aux_l, 0);
 
 
     v_set_result_type(UNREFERENCE_TAG);
@@ -1661,11 +1613,15 @@
 //- is_logical_or - utility
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ptr);
+    typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_ast_base_ptr, typ);
+    v_store(v_ast_base_ptr, typ0);
+    v_store(v_ast_expr_ptr, typ1);
+    v_store(v_ast_expr_ptr, typ2);
 
-    ft = v_function_type(bool, typ, 1, false);
+    ft = v_function_type(bool, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("is_logical_or", ft);
@@ -1673,13 +1629,43 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
+    v_add_parameter_name(f, 1, "lhs", v_ast_expr_ptr);
+    v_add_parameter_name(f, 2, "rhs", v_ast_expr_ptr);
 }
 {
-    aux = v_alloca(int);
+    tag = v_ast_base_get_visitor_method_tag(arg);
 
-    v_ast_accept_visitor(arg, expr_category_visitor, aux);
+    if (v_icmp(LLVMIntNE, tag, expr_node_tag))  v_return(false);
 
-    v_return(v_icmp(LLVMIntEQ, v_load(aux), 3));
+    obj = v_ast_generic_get_object(arg);
+
+    lst = v_cast(obj, v_ast_generic_list_ptr);
+
+    op = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(op);
+
+    v_list_get_items(lst, 0, v_cast(op, v_ast_base_ptr));
+
+    opc = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(opc);
+
+    v_list_get_items(op, 0, v_cast(opc, v_ast_base_ptr));
+
+    tag = v_ast_expr_integer_get_number(opc);
+
+    v_terminate(opc);
+    v_terminate(op);
+
+    tag = v_cast(tag, v_quark_t);
+
+    if (v_icmp(LLVMIntNE, tag, opc_logical_or))   v_return(false);
+
+    ze = v_cast(0, v_ast_expr_ptr);
+
+    if (v_icmp(LLVMIntNE, lhs, ze)) v_list_get_items(lst, 1, v_cast(lhs, v_ast_base_ptr));
+    if (v_icmp(LLVMIntNE, rhs, ze)) v_list_get_items(lst, 2, v_cast(rhs, v_ast_base_ptr));
+
+    v_return(true);
 }
 
 //---------------------------------------------------------------------
@@ -1743,8 +1729,8 @@
     branch_if_true_v = v_cast(aux_l, LLVMValueRef);
 
 
-    if (is_logical_or(ast0))  ;
-    else                      v_assign(aux_l, 0);
+    if (is_logical_or(ast0, 0, 0))  ;
+    else                            v_assign(aux_l, 0);
 
 
     v_set_result_type(UNREFERENCE_TAG);
@@ -1929,14 +1915,36 @@
 
 
 //---------------------------------------------------------------------
+//- "relation_kind" - utility
+//---------------------------------------------------------------------
+{
+    int_ = v_type_get_llvm_type(int);
+
+    v_add_constant("rk_eq", int, LLVMConstInt(int_, 1, 0));
+    v_add_constant("rk_ne", int, LLVMConstInt(int_, 2, 0));
+    v_add_constant("rk_lt", int, LLVMConstInt(int_, 3, 0));
+    v_add_constant("rk_le", int, LLVMConstInt(int_, 4, 0));
+    v_add_constant("rk_gt", int, LLVMConstInt(int_, 5, 0));
+    v_add_constant("rk_ge", int, LLVMConstInt(int_, 6, 0));
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+//---------------------------------------------------------------------
 //- is_relation - utility
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ptr);
+    typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_ast_base_ptr, typ);
+    v_store(v_ast_base_ptr, typ0);
+    v_store(v_ast_expr_ptr, typ1);
+    v_store(v_ast_expr_ptr, typ2);
 
-    ft = v_function_type(bool, typ, 1, false);
+    ft = v_function_type(int, typ0, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("is_relation", ft);
@@ -1944,31 +1952,55 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
+    v_add_parameter_name(f, 1, "lhs", v_ast_expr_ptr);
+    v_add_parameter_name(f, 2, "rhs", v_ast_expr_ptr);
 }
 {
-    aux = v_alloca(int);
+    tag = v_ast_base_get_visitor_method_tag(arg);
 
-    v_ast_accept_visitor(arg, expr_category_visitor, aux);
+    if (v_icmp(LLVMIntNE, tag, expr_node_tag))  v_return(false);
 
-    v_return(v_icmp(LLVMIntEQ, v_load(aux), 1));
-}
+    obj = v_ast_generic_get_object(arg);
 
-//---------------------------------------------------------------------
-//- "relation_kind" - utility
-//---------------------------------------------------------------------
-{
-    int_ = v_type_get_llvm_type(int);
+    lst = v_cast(obj, v_ast_generic_list_ptr);
 
-    v_add_constant("rk_eq", int, LLVMConstInt(int_, 0, 0));
-    v_add_constant("rk_ne", int, LLVMConstInt(int_, 1, 0));
-    v_add_constant("rk_lt", int, LLVMConstInt(int_, 2, 0));
-    v_add_constant("rk_le", int, LLVMConstInt(int_, 3, 0));
-    v_add_constant("rk_gt", int, LLVMConstInt(int_, 4, 0));
-    v_add_constant("rk_ge", int, LLVMConstInt(int_, 5, 0));
+    op = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(op);
 
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    v_list_get_items(lst, 0, v_cast(op, v_ast_base_ptr));
+
+    opc = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(opc);
+
+    v_list_get_items(op, 0, v_cast(opc, v_ast_base_ptr));
+
+    tag = v_ast_expr_integer_get_number(opc);
+
+    v_terminate(opc);
+    v_terminate(op);
+
+    tag = v_cast(tag, v_quark_t);
+
+    rk = v_reference(v_alloca(int));
+
+    block
+    {
+        if (v_icmp(LLVMIntEQ, tag, opc_relation_lt))  { v_assign(rk, rk_lt); v_break(); }
+        if (v_icmp(LLVMIntEQ, tag, opc_relation_le))  { v_assign(rk, rk_le); v_break(); }
+        if (v_icmp(LLVMIntEQ, tag, opc_relation_gt))  { v_assign(rk, rk_gt); v_break(); }
+        if (v_icmp(LLVMIntEQ, tag, opc_relation_ge))  { v_assign(rk, rk_ge); v_break(); }
+        if (v_icmp(LLVMIntEQ, tag, opc_relation_eq))  { v_assign(rk, rk_eq); v_break(); }
+        if (v_icmp(LLVMIntEQ, tag, opc_relation_ne))  { v_assign(rk, rk_ne); v_break(); }
+
+        v_return(0);
+    }
+
+    ze = v_cast(0, v_ast_expr_ptr);
+
+    if (v_icmp(LLVMIntNE, lhs, ze)) v_list_get_items(lst, 1, v_cast(lhs, v_ast_base_ptr));
+    if (v_icmp(LLVMIntNE, rhs, ze)) v_list_get_items(lst, 2, v_cast(rhs, v_ast_base_ptr));
+
+    v_return(rk);
 }
 
 //---------------------------------------------------------------------
@@ -2019,7 +2051,7 @@
 
     builder = v_target_get_builder();
 
-    if (is_relation(ast1))
+    if (is_relation(ast1, 0, 0))
     {
         if (aux)    //- "Middle" case
         {
@@ -3834,14 +3866,6 @@
 
     v_export_intrinsic("vec",   voidc_vec_type_intrinsic);
     v_export_intrinsic("svec",  voidc_svec_type_intrinsic);
-
-
-    //-------------------------------------------------------------
-    q = v_quark_from_string("v_ast_expr_node_t_visitor_method_tag");
-
-    m = voidc_visitor_get_void_method(voidc_compiler, q);
-
-    voidc_visitor_set_void_method(expr_category_visitor, expr_category_visitor, q, m);
 }
 
 
