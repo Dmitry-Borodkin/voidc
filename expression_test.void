@@ -1,6 +1,7 @@
 {   v_import("voidc_target.void");
     v_import("voidc_types.void");
 
+    v_import("function_hack.void");
     v_import("memory.void");
     v_import("if_then_else.void");
     v_import("block.void");
@@ -195,6 +196,40 @@
 
         ++i;
     }
+}
+
+
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr);
+
+    typ[0] := bool;
+
+    ft = v_function_type(bool, typ, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("F", ft);
+
+    v_add_parameter_name(f, 0, "flag", bool);
+}
+{
+    printf("flag: %d\n", v_cast(flag, int));
+
+    v_return(flag);
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    r = (F(true) && F(true) && F(false) && F(false) && F(true));
+
+    printf("&&: %d\n", v_cast(r, int));
+
+    r = (F(false) || F(false) || F(true) || F(false) || F(true));
+
+    printf("||: %d\n", v_cast(r, int));
 }
 
 

@@ -1429,7 +1429,7 @@
 
 
 //---------------------------------------------------------------------
-//- is_logical_and - utility
+//- check_logical_and - utility
 //---------------------------------------------------------------------
 {
     typ0 = v_alloca(v_type_ptr, 3);
@@ -1437,19 +1437,19 @@
     typ2 = v_getelementptr(typ0, 2);
 
     v_store(v_ast_base_ptr, typ0);
-    v_store(v_ast_expr_ptr, typ1);
-    v_store(v_ast_expr_ptr, typ2);
+    v_store(v_ast_base_ptr, typ1);
+    v_store(v_ast_base_ptr, typ2);
 
     ft = v_function_type(bool, typ0, 3, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("is_logical_and", ft);
+    f = v_function_hack("check_logical_and", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
-    v_add_parameter_name(f, 1, "lhs", v_ast_expr_ptr);
-    v_add_parameter_name(f, 2, "rhs", v_ast_expr_ptr);
+    v_add_parameter_name(f, 1, "lhs", v_ast_base_ptr);
+    v_add_parameter_name(f, 2, "rhs", v_ast_base_ptr);
 }
 {
     tag = v_ast_base_get_visitor_method_tag(arg);
@@ -1479,10 +1479,8 @@
 
     if (v_icmp(LLVMIntNE, tag, opc_logical_and))  v_return(false);
 
-    ze = v_cast(0, v_ast_expr_ptr);
-
-    if (v_icmp(LLVMIntNE, lhs, ze)) v_list_get_items(lst, 1, v_cast(lhs, v_ast_base_ptr));
-    if (v_icmp(LLVMIntNE, rhs, ze)) v_list_get_items(lst, 2, v_cast(rhs, v_ast_base_ptr));
+    if (lhs)  v_list_get_items(lst, 1, lhs);
+    if (rhs)  v_list_get_items(lst, 2, rhs);
 
     v_return(true);
 }
@@ -1501,116 +1499,121 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
-    v_initialize(ast0, 2);
+    N = v_reference(v_alloca(int));
+    v_assign(N, 2);
 
-    ast1 = v_getelementptr(ast0, 1);
+    {   ast = v_alloca(v_ast_opaque_base_sptr);
+        v_initialize(ast);
 
-    v_list_get_items(list, 1, ast0, 2);
+        v_list_get_items(list, 1, ast);
+
+        loop
+        {
+            if (check_logical_and(ast, ast, 0)) ;
+            else  v_break();
+
+            v_assign(N, v_binop(LLVMAdd, N, 1));
+        }
+
+        v_terminate(ast);
+    }
+
+    ast = v_malloc(v_ast_opaque_base_sptr, N);
+    v_initialize(ast, N);
+
+    {   ast_i = v_reference(v_alloca(v_ast_base_ptr));
+
+        v_assign(ast_i, v_getelementptr(ast, v_binop(LLVMSub, N, 2)));
+
+        v_list_get_items(list, 1, ast_i, 2);
+
+        loop
+        {
+            ast_i1 = v_getelementptr(ast_i, -1);
+
+            if (check_logical_and(ast_i, ast_i1, ast_i)) ;
+            else  v_break();
+
+            v_assign(ast_i, ast_i1);
+        }
+    }
 
 
     tt = v_get_result_type();
 
-
-    aux_l = v_reference(v_alloca(void_ptr));
-
-    v_assign(aux_l, 0);
-
-    and_result_v = v_reference(v_alloca(LLVMValueRef));
-
-    v_assign(and_result_v, 0);
-
     builder = v_target_get_builder();
 
-    if (aux)    //- "Middle" case
-    {
-        v_assign(aux_l, aux);
-    }
-    else        //- "Outer" (starter) case
-    {
-        bool_ = v_type_get_llvm_type(v_find_type("bool"));
+    _bool = v_find_type("bool");
 
-        v_assign(and_result_v, LLVMBuildAlloca(builder, bool_, ""));
+    bool_ = v_type_get_llvm_type(_bool);
 
-        LLVMBuildStore(builder, LLVMConstInt(bool_, 0, 0), and_result_v);
+    and_result_v = LLVMBuildAlloca(builder, bool_, "");
 
-        cur_b = LLVMGetInsertBlock(builder);
-
-        cur_f = LLVMGetBasicBlockParent(cur_b);
-
-        branch_if_false_b = LLVMAppendBasicBlock(cur_f, "branch_if_false_b");
-
-        branch_if_false_v = LLVMBasicBlockAsValue(branch_if_false_b);
-
-        v_assign(aux_l, branch_if_false_v);
-    }
-
-    branch_if_false_v = v_cast(aux_l, LLVMValueRef);
-
-
-    if (is_logical_and(ast0, 0, 0)) ;
-    else                            v_assign(aux_l, 0);
-
-
-    v_set_result_type(UNREFERENCE_TAG);
-
-    v_ast_accept_visitor(ast0, visitor, aux_l);
-
-    v = v_get_result_value();
-
-    v = LLVMBuildIsNotNull(builder, v, "");
-
-
-    branch_if_false_b = LLVMValueAsBasicBlock(branch_if_false_v);
+    LLVMBuildStore(builder, LLVMConstNull(bool_), and_result_v);
 
     cur_b = LLVMGetInsertBlock(builder);
 
     cur_f = LLVMGetBasicBlockParent(cur_b);
 
-    branch_if_true_b = LLVMAppendBasicBlock(cur_f, "branch_if_true_b");
-
-    LLVMBuildCondBr(builder, v, branch_if_true_b, branch_if_false_b);
-
-    LLVMPositionBuilderAtEnd(builder, branch_if_true_b);
+    branch_if_false_b = LLVMAppendBasicBlock(cur_f, "branch_if_false_b");
 
 
-    v_set_result_type(UNREFERENCE_TAG);
+    Nm1 = v_binop(LLVMSub, N, 1);
 
-    v_ast_accept_visitor(ast1, visitor, 0);
+    i = v_reference(v_alloca(int));
+    v_assign(i, 0);
 
+    loop
+    {
+        if (v_icmp(LLVMIntEQ, i, N))  v_break();
 
-    v_terminate(ast0, 2);
+        v_set_result_type(UNREFERENCE_TAG);
 
+        v_ast_accept_visitor(v_getelementptr(ast, i), visitor, aux);
 
-    if (aux)  v_return();       //- "Middle" case...
+        v = v_get_result_value();
 
+        v = LLVMBuildIsNotNull(builder, v, "");
 
-    v = v_get_result_value();
+        if (v_icmp(LLVMIntNE, i, Nm1))
+        {
+            branch_if_true_b = LLVMAppendBasicBlock(cur_f, "branch_if_true_b");
 
-    v = LLVMBuildIsNotNull(builder, v, "");
+            LLVMBuildCondBr(builder, v, branch_if_true_b, branch_if_false_b);
 
+            LLVMPositionBuilderAtEnd(builder, branch_if_true_b);
+        }
+        else        //- Last ...
+        {
+            LLVMBuildStore(builder, v, and_result_v);
 
-    LLVMBuildStore(builder, v, and_result_v);
+            LLVMBuildBr(builder, branch_if_false_b);
 
-    LLVMBuildBr(builder, branch_if_false_b);
+            cur_b = LLVMGetInsertBlock(builder);
 
-    cur_b = LLVMGetInsertBlock(builder);
+            LLVMMoveBasicBlockAfter(branch_if_false_b, cur_b);
 
-    LLVMMoveBasicBlockAfter(branch_if_false_b, cur_b);
+            LLVMPositionBuilderAtEnd(builder, branch_if_false_b);
+        }
 
-    LLVMPositionBuilderAtEnd(builder, branch_if_false_b);
+        v_assign(i, v_binop(LLVMAdd, i, 1));
+    }
+
+    v_terminate(ast, N);
+    v_mfree(ast);
+
 
     v = LLVMBuildLoad(builder, and_result_v, "");
 
 
     v_set_result_type(tt);
 
-    v_adopt_result(v_find_type("bool"), v);         //- ?!?!?
+    v_adopt_result(_bool, v);       //- ?!?!?
 }
 
 
 //---------------------------------------------------------------------
-//- is_logical_or - utility
+//- check_logical_or - utility
 //---------------------------------------------------------------------
 {
     typ0 = v_alloca(v_type_ptr, 3);
@@ -1618,19 +1621,19 @@
     typ2 = v_getelementptr(typ0, 2);
 
     v_store(v_ast_base_ptr, typ0);
-    v_store(v_ast_expr_ptr, typ1);
-    v_store(v_ast_expr_ptr, typ2);
+    v_store(v_ast_base_ptr, typ1);
+    v_store(v_ast_base_ptr, typ2);
 
     ft = v_function_type(bool, typ0, 3, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("is_logical_or", ft);
+    f = v_function_hack("check_logical_or", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
-    v_add_parameter_name(f, 1, "lhs", v_ast_expr_ptr);
-    v_add_parameter_name(f, 2, "rhs", v_ast_expr_ptr);
+    v_add_parameter_name(f, 1, "lhs", v_ast_base_ptr);
+    v_add_parameter_name(f, 2, "rhs", v_ast_base_ptr);
 }
 {
     tag = v_ast_base_get_visitor_method_tag(arg);
@@ -1660,10 +1663,8 @@
 
     if (v_icmp(LLVMIntNE, tag, opc_logical_or))   v_return(false);
 
-    ze = v_cast(0, v_ast_expr_ptr);
-
-    if (v_icmp(LLVMIntNE, lhs, ze)) v_list_get_items(lst, 1, v_cast(lhs, v_ast_base_ptr));
-    if (v_icmp(LLVMIntNE, rhs, ze)) v_list_get_items(lst, 2, v_cast(rhs, v_ast_base_ptr));
+    if (lhs)  v_list_get_items(lst, 1, lhs);
+    if (rhs)  v_list_get_items(lst, 2, rhs);
 
     v_return(true);
 }
@@ -1682,111 +1683,116 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
-    v_initialize(ast0, 2);
+    N = v_reference(v_alloca(int));
+    v_assign(N, 2);
 
-    ast1 = v_getelementptr(ast0, 1);
+    {   ast = v_alloca(v_ast_opaque_base_sptr);
+        v_initialize(ast);
 
-    v_list_get_items(list, 1, ast0, 2);
+        v_list_get_items(list, 1, ast);
+
+        loop
+        {
+            if (check_logical_or(ast, ast, 0)) ;
+            else  v_break();
+
+            v_assign(N, v_binop(LLVMAdd, N, 1));
+        }
+
+        v_terminate(ast);
+    }
+
+    ast = v_malloc(v_ast_opaque_base_sptr, N);
+    v_initialize(ast, N);
+
+    {   ast_i = v_reference(v_alloca(v_ast_base_ptr));
+
+        v_assign(ast_i, v_getelementptr(ast, v_binop(LLVMSub, N, 2)));
+
+        v_list_get_items(list, 1, ast_i, 2);
+
+        loop
+        {
+            ast_i1 = v_getelementptr(ast_i, -1);
+
+            if (check_logical_or(ast_i, ast_i1, ast_i)) ;
+            else  v_break();
+
+            v_assign(ast_i, ast_i1);
+        }
+    }
 
 
     tt = v_get_result_type();
 
-
-    aux_l = v_reference(v_alloca(void_ptr));
-
-    v_assign(aux_l, 0);
-
-    or_result_v = v_reference(v_alloca(LLVMValueRef));
-
-    v_assign(or_result_v, 0);
-
     builder = v_target_get_builder();
 
-    if (aux)    //- "Middle" case
-    {
-        v_assign(aux_l, aux);
-    }
-    else        //- "Outer" (starter) case
-    {
-        bool_ = v_type_get_llvm_type(v_find_type("bool"));
+    _bool = v_find_type("bool");
 
-        v_assign(or_result_v, LLVMBuildAlloca(builder, bool_, ""));
+    bool_ = v_type_get_llvm_type(_bool);
 
-        LLVMBuildStore(builder, LLVMConstInt(bool_, 1, 0), or_result_v);
+    or_result_v = LLVMBuildAlloca(builder, bool_, "");
 
-        cur_b = LLVMGetInsertBlock(builder);
-
-        cur_f = LLVMGetBasicBlockParent(cur_b);
-
-        branch_if_true_b = LLVMAppendBasicBlock(cur_f, "branch_if_true_b");
-
-        branch_if_true_v = LLVMBasicBlockAsValue(branch_if_true_b);
-
-        v_assign(aux_l, branch_if_true_v);
-    }
-
-    branch_if_true_v = v_cast(aux_l, LLVMValueRef);
-
-
-    if (is_logical_or(ast0, 0, 0))  ;
-    else                            v_assign(aux_l, 0);
-
-
-    v_set_result_type(UNREFERENCE_TAG);
-
-    v_ast_accept_visitor(ast0, visitor, aux_l);
-
-    v = v_get_result_value();
-
-    v = LLVMBuildIsNotNull(builder, v, "");
-
-
-    branch_if_true_b = LLVMValueAsBasicBlock(branch_if_true_v);
+    LLVMBuildStore(builder, LLVMConstAllOnes(bool_), or_result_v);
 
     cur_b = LLVMGetInsertBlock(builder);
 
     cur_f = LLVMGetBasicBlockParent(cur_b);
 
-    branch_if_false_b = LLVMAppendBasicBlock(cur_f, "branch_if_false_b");
-
-    LLVMBuildCondBr(builder, v, branch_if_true_b, branch_if_false_b);
-
-    LLVMPositionBuilderAtEnd(builder, branch_if_false_b);
+    branch_if_true_b = LLVMAppendBasicBlock(cur_f, "branch_if_true_b");
 
 
-    v_set_result_type(UNREFERENCE_TAG);
+    Nm1 = v_binop(LLVMSub, N, 1);
 
-    v_ast_accept_visitor(ast1, visitor, 0);
+    i = v_reference(v_alloca(int));
+    v_assign(i, 0);
 
+    loop
+    {
+        if (v_icmp(LLVMIntEQ, i, N))  v_break();
 
-    v_terminate(ast0, 2);
+        v_set_result_type(UNREFERENCE_TAG);
 
+        v_ast_accept_visitor(v_getelementptr(ast, i), visitor, aux);
 
-    if (aux)  v_return();       //- "Middle" case...
+        v = v_get_result_value();
 
+        v = LLVMBuildIsNotNull(builder, v, "");
 
-    v = v_get_result_value();
+        if (v_icmp(LLVMIntNE, i, Nm1))
+        {
+            branch_if_false_b = LLVMAppendBasicBlock(cur_f, "branch_if_false_b");
 
-    v = LLVMBuildIsNotNull(builder, v, "");
+            LLVMBuildCondBr(builder, v, branch_if_true_b, branch_if_false_b);
 
+            LLVMPositionBuilderAtEnd(builder, branch_if_false_b);
+        }
+        else        //- Last ...
+        {
+            LLVMBuildStore(builder, v, or_result_v);
 
-    LLVMBuildStore(builder, v, or_result_v);
+            LLVMBuildBr(builder, branch_if_true_b);
 
-    LLVMBuildBr(builder, branch_if_true_b);
+            cur_b = LLVMGetInsertBlock(builder);
 
-    cur_b = LLVMGetInsertBlock(builder);
+            LLVMMoveBasicBlockAfter(branch_if_true_b, cur_b);
 
-    LLVMMoveBasicBlockAfter(branch_if_true_b, cur_b);
+            LLVMPositionBuilderAtEnd(builder, branch_if_true_b);
+        }
 
-    LLVMPositionBuilderAtEnd(builder, branch_if_true_b);
+        v_assign(i, v_binop(LLVMAdd, i, 1));
+    }
+
+    v_terminate(ast, N);
+    v_mfree(ast);
+
 
     v = LLVMBuildLoad(builder, or_result_v, "");
 
 
     v_set_result_type(tt);
 
-    v_adopt_result(v_find_type("bool"), v);         //- ?!?!?
+    v_adopt_result(_bool, v);       //- ?!?!?
 }
 
 
@@ -1933,7 +1939,7 @@
 }
 
 //---------------------------------------------------------------------
-//- is_relation - utility
+//- check_relation - utility
 //---------------------------------------------------------------------
 {
     typ0 = v_alloca(v_type_ptr, 3);
@@ -1941,19 +1947,19 @@
     typ2 = v_getelementptr(typ0, 2);
 
     v_store(v_ast_base_ptr, typ0);
-    v_store(v_ast_expr_ptr, typ1);
-    v_store(v_ast_expr_ptr, typ2);
+    v_store(v_ast_base_ptr, typ1);
+    v_store(v_ast_base_ptr, typ2);
 
     ft = v_function_type(int, typ0, 3, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("is_relation", ft);
+    f = v_function_hack("check_relation", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "arg", v_ast_base_ptr);
-    v_add_parameter_name(f, 1, "lhs", v_ast_expr_ptr);
-    v_add_parameter_name(f, 2, "rhs", v_ast_expr_ptr);
+    v_add_parameter_name(f, 1, "lhs", v_ast_base_ptr);
+    v_add_parameter_name(f, 2, "rhs", v_ast_base_ptr);
 }
 {
     tag = v_ast_base_get_visitor_method_tag(arg);
@@ -1995,10 +2001,8 @@
         v_return(0);
     }
 
-    ze = v_cast(0, v_ast_expr_ptr);
-
-    if (v_icmp(LLVMIntNE, lhs, ze)) v_list_get_items(lst, 1, v_cast(lhs, v_ast_base_ptr));
-    if (v_icmp(LLVMIntNE, rhs, ze)) v_list_get_items(lst, 2, v_cast(rhs, v_ast_base_ptr));
+    if (lhs)  v_list_get_items(lst, 1, lhs);
+    if (rhs)  v_list_get_items(lst, 2, rhs);
 
     v_return(rk);
 }
@@ -2051,7 +2055,7 @@
 
     builder = v_target_get_builder();
 
-    if (is_relation(ast1, 0, 0))
+    if (check_relation(ast1, 0, 0))
     {
         if (aux)    //- "Middle" case
         {
