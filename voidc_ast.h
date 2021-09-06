@@ -53,7 +53,7 @@ struct ast_base_t
     virtual ~ast_base_t() = default;
 
 public:
-    virtual void accept(const visitor_sptr_t &visitor, void *aux) const = 0;
+    virtual void accept(const visitor_sptr_t &visitor) const = 0;
 
 public:
     virtual v_quark_t method_tag(void) const = 0;
@@ -101,11 +101,11 @@ struct ast_list_t : public virtual ast_base_t, public std::enable_shared_from_th
 public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux, const std::shared_ptr<const Self> *self);
 
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
         auto self = this->shared_from_this();
 
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &self);
+        visitor->visit<visitor_method_t>(method_tag(), &self);
     }
 
 private:
@@ -192,9 +192,9 @@ public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      const ast_stmt_list_sptr_t *stmts, int l, int col);
 
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &stmt_list, line, column);
+        visitor->visit<visitor_method_t>(method_tag(), &stmt_list, line, column);
     }
 
     AST_VISITOR_TAG(ast_unit_t)
@@ -217,9 +217,9 @@ public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      const std::string *name, const ast_expr_sptr_t *expr);
 
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &name, &expr);
+        visitor->visit<visitor_method_t>(method_tag(), &name, &expr);
     }
 
     AST_VISITOR_TAG(ast_stmt_t)
@@ -243,9 +243,9 @@ public:
                                      const ast_expr_sptr_t      *fexpr,
                                      const ast_expr_list_sptr_t *args);
 
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &fun_expr, &arg_list);
+        visitor->visit<visitor_method_t>(method_tag(), &fun_expr, &arg_list);
     }
 
     AST_VISITOR_TAG(ast_expr_call_t)
@@ -265,9 +265,9 @@ public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      const std::string *name);
 
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &name);
+        visitor->visit<visitor_method_t>(method_tag(), &name);
     }
 
     AST_VISITOR_TAG(ast_expr_identifier_t)
@@ -286,9 +286,9 @@ public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      intptr_t num);
 
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, number);
+        visitor->visit<visitor_method_t>(method_tag(), number);
     }
 
     AST_VISITOR_TAG(ast_expr_integer_t)
@@ -307,9 +307,9 @@ public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      const std::string *str);
 
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, &string);
+        visitor->visit<visitor_method_t>(method_tag(), &string);
     }
 
     AST_VISITOR_TAG(ast_expr_string_t)
@@ -328,9 +328,9 @@ public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
                                      char32_t char_);
 
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
-        visitor->visit<visitor_method_t>(method_tag(), visitor, aux, char_);
+        visitor->visit<visitor_method_t>(method_tag(), char_);
     }
 
     AST_VISITOR_TAG(ast_expr_char_t)
@@ -347,7 +347,7 @@ struct ast_generic_vtable
 {
     void (*destroy)(void *object);
 
-    void (*accept)(const void *object, const visitor_sptr_t *visitor, void *aux);
+    void (*accept)(const void *object, const visitor_sptr_t *visitor);
 
     v_quark_t visitor_method_tag;
 };
@@ -370,9 +370,9 @@ struct ast_generic_t : public virtual ast_base_t
     }
 
 public:
-    void accept(const visitor_sptr_t &visitor, void *aux) const override
+    void accept(const visitor_sptr_t &visitor) const override
     {
-        vtable->accept(object, &visitor, aux);
+        vtable->accept(object, &visitor);
     }
 
     const ast_generic_vtable * const vtable;

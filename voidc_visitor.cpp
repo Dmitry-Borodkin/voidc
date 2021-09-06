@@ -80,11 +80,15 @@ voidc_make_visitor(visitor_sptr_t *ret)
 
 //---------------------------------------------------------------------
 void *
-voidc_visitor_get_void_method(const visitor_sptr_t *ptr, v_quark_t quark)
+voidc_visitor_get_void_method(const visitor_sptr_t *ptr, v_quark_t quark, void **aux_ptr)
 {
     if (auto *vm = (*ptr)->void_methods.find(quark))
     {
-        return *vm;
+        auto [void_fun, aux] = *vm;
+
+        if (aux_ptr)  *aux_ptr = aux;
+
+        return void_fun;
     }
     else
     {
@@ -93,9 +97,9 @@ voidc_visitor_get_void_method(const visitor_sptr_t *ptr, v_quark_t quark)
 }
 
 void
-voidc_visitor_set_void_method(visitor_sptr_t *dst, const visitor_sptr_t *src, v_quark_t quark, void *void_method)
+voidc_visitor_set_void_method(visitor_sptr_t *dst, const visitor_sptr_t *src, v_quark_t quark, void *void_method, void *aux)
 {
-    auto visitor = (*src)->set_void_method(quark, void_method);
+    auto visitor = (*src)->set_void_method(quark, void_method, aux);
 
     *dst = std::make_shared<const voidc_visitor_t>(visitor);
 }

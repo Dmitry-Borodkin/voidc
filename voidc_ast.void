@@ -241,9 +241,8 @@
 
 //  v_store(void_ptr,          typ0);               //- object
     v_store(voidc_visitor_ptr, typ1);               //-
-    v_store(void_ptr,          typ2);               //-
 
-    accept_ft = v_function_type(void, typ0, 3, false);
+    accept_ft = v_function_type(void, typ0, 2, false);
     accept_p  = v_pointer_type(accept_ft, 0);
 
     v_store(destroy_p, typ0);                       //-
@@ -497,9 +496,8 @@
     //-------------------------------------------------------------
     v_store(v_ast_base_ptr,    typ0);               //-
     v_store(voidc_visitor_ptr, typ1);               //-
-    v_store(void_ptr,          typ2);               //-
 
-    ft = v_function_type(void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_ast_accept_visitor", ft);
 }
 

@@ -127,14 +127,15 @@
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
     v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
     obj = v_cast(void_obj, ast_stmt_loop_ptr);
 
     stmt = v_getelementptr(obj, 0, 0);
 
-    void_method = voidc_visitor_get_void_method(visitor, quark);
+    aux = v_reference(v_alloca(void_ptr));
+
+    void_method = voidc_visitor_get_void_method(visitor, quark, v_pointer(aux));
 
     method = v_cast(void_method, method_ptr);
 
@@ -301,7 +302,7 @@
 
     base_ast = v_cast(stmt, v_ast_base_ptr);
 
-    v_ast_accept_visitor(base_ast, visitor, aux);
+    v_ast_accept_visitor(base_ast, visitor);
 
 
     cur_b = LLVMGetInsertBlock(builder);
@@ -384,12 +385,12 @@
     v_function_hack("voidc_enable_statement_loop_compiler", ft);
 }
 {
-    v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark));
+    v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark, 0));
 
 
     v_store(quark, v_getelementptr(voidc_ast_stmt_loop_vtable, 0, 2));
 
-    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_loop_t);
+    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_loop_t, 0);
 
     v_export_intrinsic("v_continue", voidc_intrinsic_continue);
 

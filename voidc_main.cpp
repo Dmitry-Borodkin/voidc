@@ -494,7 +494,7 @@ v_import_helper(const char *name, bool _export)
 
             while(auto unit = parse_unit(pctx))
             {
-                unit->accept(voidc_compiler, nullptr);          //- aux ?
+                unit->accept(voidc_compiler);
 
                 unit.reset();
 
@@ -748,7 +748,7 @@ main(int argc, char *argv[])
 
             while(auto unit = parse_unit(pctx))
             {
-                unit->accept(voidc_compiler, nullptr);      //- aux ?
+                unit->accept(voidc_compiler);
 
                 unit.reset();
 

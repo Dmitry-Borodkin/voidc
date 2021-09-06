@@ -7,6 +7,8 @@
 
 #include "voidc_quark.h"
 
+#include <utility>
+
 #include <immer/map.hpp>
 
 
@@ -19,10 +21,10 @@ typedef std::shared_ptr<const voidc_visitor_t> visitor_sptr_t;
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-class voidc_visitor_t
+class voidc_visitor_t : public std::enable_shared_from_this<voidc_visitor_t>
 {
 public:
-    using void_methods_map_t = immer::map<v_quark_t, void *>;
+    using void_methods_map_t = immer::map<v_quark_t, std::pair<void *, void *>>;
 
 public:
     voidc_visitor_t()  = default;
@@ -45,9 +47,9 @@ public:
     static void static_terminate(void);
 
 public:
-    voidc_visitor_t set_void_method(v_quark_t q, void *void_method) const
+    voidc_visitor_t set_void_method(v_quark_t q, void *void_fun, void *aux=nullptr) const
     {
-        return  voidc_visitor_t(void_methods.set(q, void_method));
+        return  voidc_visitor_t(void_methods.set(q, {void_fun, aux}));
     }
 
 public:
@@ -55,13 +57,17 @@ public:
 
 public:
     template<typename FunT, typename... Targs>
-    void visit(v_quark_t q, const visitor_sptr_t &self, void *aux, Targs... args) const
+    void visit(v_quark_t q, Targs... args) const
     {
 //      printf("visit: %s\n", v_quark_to_string(q));
 
-        if (auto *void_f = void_methods.find(q))    //- First, try given quark
+        auto self = this->shared_from_this();
+
+        if (auto *void_m = void_methods.find(q))    //- First, try given quark
         {
-            reinterpret_cast<FunT>(*void_f)(&self, aux, args...);
+            auto [void_fun, aux] = *void_m;
+
+            reinterpret_cast<FunT>(void_fun)(&self, aux, args...);
         }
         else    //- Otherwise, try special case at quark 0
         {
@@ -69,7 +75,9 @@ public:
 
 //          printf("visit: ZERO !!!\n");
 
-            reinterpret_cast<zf_t>(void_methods.at(0))(&self, aux);
+            auto [void_zf, aux] = void_methods.at(0);
+
+            reinterpret_cast<zf_t>(void_zf)(&self, aux);
         }
     }
 

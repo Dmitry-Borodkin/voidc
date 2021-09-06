@@ -33,7 +33,7 @@ DEFINE_SIMPLE_CONVERSION_FUNCTIONS(LLJIT, LLVMOrcLLJITRef)
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static void
-v_alloca(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
+v_alloca(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -49,7 +49,7 @@ v_alloca(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[0]->accept(*vis, aux);        //- Element type
+    (*args)->data[0]->accept(*vis);             //- Element type
 
     assert(lctx.result_value == nullptr);
 
@@ -67,7 +67,7 @@ v_alloca(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
     {
         lctx.result_type = UNREFERENCE_TAG;
 
-        (*args)->data[1]->accept(*vis, aux);        //- Array size
+        (*args)->data[1]->accept(*vis);             //- Array size
 
         v = LLVMBuildArrayAlloca(gctx.builder, llvm_type, lctx.result_value, "");
     }
@@ -81,7 +81,7 @@ v_alloca(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
+v_getelementptr(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -103,7 +103,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t
     {
         lctx.result_type = UNREFERENCE_TAG;
 
-        (*args)->data[i]->accept(*vis, aux);
+        (*args)->data[i]->accept(*vis);
 
         types[i]  = lctx.result_type;
         values[i] = lctx.result_value;
@@ -167,7 +167,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t
 
 //---------------------------------------------------------------------
 static void
-v_store(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
+v_store(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -180,20 +180,20 @@ v_store(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*args)->data[1]->accept(*vis, aux);        //- "Place"
+    (*args)->data[1]->accept(*vis);             //- "Place"
 
     auto place = lctx.result_value;
 
     lctx.result_type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    (*args)->data[0]->accept(*vis, aux);        //- "Value"
+    (*args)->data[0]->accept(*vis);             //- "Value"
 
     LLVMBuildStore(gctx.builder, lctx.result_value, place);
 }
 
 //---------------------------------------------------------------------
 static void
-v_load(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
+v_load(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -208,7 +208,7 @@ v_load(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*args)->data[0]->accept(*vis, aux);
+    (*args)->data[0]->accept(*vis);
 
     auto v = LLVMBuildLoad(gctx.builder, lctx.result_value, "");
 
@@ -221,7 +221,7 @@ v_load(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_cast(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
+v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -236,7 +236,7 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[0]->accept(*vis, aux);        //- Value
+    (*args)->data[0]->accept(*vis);             //- Value
 
     auto src_value = lctx.result_value;
 
@@ -245,7 +245,7 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[1]->accept(*vis, aux);        //- Type
+    (*args)->data[1]->accept(*vis);             //- Type
 
     assert(lctx.result_value == nullptr);
 
@@ -357,7 +357,7 @@ v_cast(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_pointer(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
+v_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -372,7 +372,7 @@ v_pointer(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[0]->accept(*vis, aux);
+    (*args)->data[0]->accept(*vis);
 
     auto t = lctx.result_type;
     auto v = lctx.result_value;
@@ -397,7 +397,7 @@ v_pointer(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args
 
 //---------------------------------------------------------------------
 static void
-v_reference(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
+v_reference(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -412,7 +412,7 @@ v_reference(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *ar
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*args)->data[0]->accept(*vis, aux);
+    (*args)->data[0]->accept(*vis);
 
     auto pt = static_cast<v_type_pointer_t *>(lctx.result_type);
 
@@ -426,7 +426,7 @@ v_reference(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *ar
 
 //---------------------------------------------------------------------
 static void
-v_assign(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
+v_assign(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -441,14 +441,14 @@ v_assign(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[0]->accept(*vis, aux);        //- "Place"
+    (*args)->data[0]->accept(*vis);             //- "Place"
 
     auto type  = lctx.result_type;
     auto place = lctx.result_value;
 
     lctx.result_type = static_cast<v_type_reference_t *>(lctx.result_type)->element_type();
 
-    (*args)->data[1]->accept(*vis, aux);        //- "Value"
+    (*args)->data[1]->accept(*vis);             //- "Value"
 
     LLVMBuildStore(gctx.builder, lctx.result_value, place);
 

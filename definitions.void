@@ -696,7 +696,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg+0, v_ast_base_ptr), visitor, aux);      //- Type
+    v_ast_accept_visitor(v_cast(arg+0, v_ast_base_ptr), visitor);           //- Type
 
     var_type = v_get_result_type();
 
@@ -704,7 +704,7 @@
 
     v_set_result_type(t);
 
-    v_ast_accept_visitor(v_cast(arg+1, v_ast_base_ptr), visitor, aux);      //- Value
+    v_ast_accept_visitor(v_cast(arg+1, v_ast_base_ptr), visitor);           //- Value
 
     v = v_get_result_value();
 
@@ -740,9 +740,9 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg+1, v_ast_base_ptr), visitor, aux);      //- Type
+    v_ast_accept_visitor(v_cast(arg+1, v_ast_base_ptr), visitor);           //- Type
 
-    v_ast_accept_visitor(v_cast(arg+0, v_ast_base_ptr), visitor, aux);      //- Value
+    v_ast_accept_visitor(v_cast(arg+0, v_ast_base_ptr), visitor);           //- Value
 }
 
 
@@ -785,7 +785,7 @@
         v_list_get_items(lst, 1, expr);
     }
 
-    v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor);
 }
 
 
@@ -866,7 +866,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor);
 
     fun_type = v_get_result_type();
 
@@ -940,7 +940,7 @@
             }
         }
 
-        v_ast_accept_visitor(body, visitor, aux);
+        v_ast_accept_visitor(body, visitor);
 
         v_finish_function();
 
@@ -984,7 +984,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(type, visitor, aux);
+    v_ast_accept_visitor(type, visitor);
 
     var_type = v_get_result_type();
 
@@ -1029,7 +1029,7 @@
 
         v_set_result_type(t);
 
-        v_ast_accept_visitor(value, visitor, aux);
+        v_ast_accept_visitor(value, visitor);
 
         LLVMSetInitializer(value_g, v_get_result_value());
 
@@ -1075,10 +1075,10 @@
 
     if (!v_empty(type))
     {
-        v_ast_accept_visitor(type, visitor, aux);
+        v_ast_accept_visitor(type, visitor);
     }
 
-    v_ast_accept_visitor(value, visitor, aux);
+    v_ast_accept_visitor(value, visitor);
 
     t = v_get_result_type();
     v = v_get_result_value();
@@ -1211,7 +1211,7 @@
 
         v_list_get_items(lst+0, i, v_cast(lst+1, v_ast_base_ptr));
 
-        v_ast_accept_visitor(v_cast(lst+1, v_ast_base_ptr), visitor, aux);
+        v_ast_accept_visitor(v_cast(lst+1, v_ast_base_ptr), visitor);
 
         ++i;
     }
@@ -1482,7 +1482,7 @@
     //- Just "ignore" it...
     //-----------------------------------------------------------------
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 }
 
 
@@ -1551,7 +1551,7 @@
 
             v_set_result_type(INVIOLABLE_TAG);
 
-            v_ast_accept_visitor(item, visitor, aux);
+            v_ast_accept_visitor(item, visitor);
 
             argtypes[i] := v_get_result_type();
 
@@ -1561,7 +1561,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(ast+1, visitor, aux);
+    v_ast_accept_visitor(ast+1, visitor);
 
     ft = v_function_type(v_get_result_type(), argtypes, count, is_vararg);
 
@@ -1610,7 +1610,7 @@
 
         v_set_result_type(INVIOLABLE_TAG);
 
-        v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor, aux);
+        v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
     }
 
     t = v_get_result_type();
@@ -1632,24 +1632,24 @@
     v_function_hack("voidc_enable_definitions_compiler", ft);
 }
 {
-    v_return_if(voidc_visitor_get_void_method(voidc_compiler, unit_fun_defn_q));
+    v_return_if(voidc_visitor_get_void_method(voidc_compiler, unit_fun_defn_q, 0));
 
     voidc_enable_expression_compiler();         //- Sic!
 
 
     vis = voidc_compiler;
 
-    voidc_visitor_set_void_method(vis, vis, br_item_list_q,   compile_br_item_list);
-    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q,  compile_unit_fun_defn);
-    voidc_visitor_set_void_method(vis, vis, unit_var_defn_q,  compile_unit_var_defn);
-    voidc_visitor_set_void_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn);
-    voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit);
+    voidc_visitor_set_void_method(vis, vis, br_item_list_q,   compile_br_item_list,   0);
+    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q,  compile_unit_fun_defn,  0);
+    voidc_visitor_set_void_method(vis, vis, unit_var_defn_q,  compile_unit_var_defn,  0);
+    voidc_visitor_set_void_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  0);
+    voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, 0);
 
     q = v_quark_from_string;
 
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_to"),        compile_op_infix_to);
-    voidc_visitor_set_void_method(vis, vis, q("op_prefix_const"),    compile_op_prefix_cv);
-    voidc_visitor_set_void_method(vis, vis, q("op_prefix_volatile"), compile_op_prefix_cv);
+    voidc_visitor_set_void_method(vis, vis, q("op_infix_to"),        compile_op_infix_to,  0);
+    voidc_visitor_set_void_method(vis, vis, q("op_prefix_const"),    compile_op_prefix_cv, 0);
+    voidc_visitor_set_void_method(vis, vis, q("op_prefix_volatile"), compile_op_prefix_cv, 0);
 
     //-----------------------------------------------------------------
     typ = *v_alloca(v_type_ptr) := bool;

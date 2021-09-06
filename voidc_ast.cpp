@@ -264,9 +264,9 @@ v_visitor_set_method_##type(visitor_sptr_t *dst, const visitor_sptr_t *src, type
 
 //---------------------------------------------------------------------
 void
-v_ast_accept_visitor(const ast_base_sptr_t *object, const visitor_sptr_t *visitor, void *aux)
+v_ast_accept_visitor(const ast_base_sptr_t *object, const visitor_sptr_t *visitor)
 {
-    (*object)->accept(*visitor, aux);
+    (*object)->accept(*visitor);
 }
 
 

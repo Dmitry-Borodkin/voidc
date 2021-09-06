@@ -111,7 +111,7 @@
     //- {
     //-     base_ast = v_cast(stmt_list, v_ast_base_ptr);
     //-
-    //-     v_ast_accept_visitor(base_ast, visitor, aux);
+    //-     v_ast_accept_visitor(base_ast, visitor);
     //-
     //-     v_finish_function();
     //-
@@ -149,11 +149,10 @@
 
     v_store(base_ast, val0);
     v_store(visitor,  val1);
-    v_store(aux,      val2);
 
     accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
 
 
     finish_function_f = v_obtain_function("v_finish_function");
@@ -392,7 +391,7 @@
     //-
     //-     base_arg = v_cast(arg0, v_ast_base_ptr);
     //-
-    //-     v_ast_accept_visitor(base_arg, visitor, aux);
+    //-     v_ast_accept_visitor(base_arg, visitor);
     //-
     //-     fun_name = v_get_result_value();        //- :char_ptr
     //-
@@ -400,7 +399,7 @@
     //-
     //-     base_arg = v_cast(arg1, v_ast_base_ptr);
     //-
-    //-     v_ast_accept_visitor(base_arg, visitor, aux);
+    //-     v_ast_accept_visitor(base_arg, visitor);
     //-
     //-     fun_type = v_get_result_value();        //- :v_type_ptr
     //-
@@ -503,13 +502,10 @@
 
     base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
 
-    accept_visitor_f = v_obtain_function("v_ast_accept_visitor");
-
     v_store(base_arg, val0);
     v_store(visitor,  val1);
-    v_store(aux,      val2);
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
 
 
     get_res_val_f = v_obtain_function("v_get_result_value");
@@ -528,9 +524,8 @@
 
     v_store(base_arg, val0);
     v_store(visitor,  val1);
-    v_store(aux,      val2);
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
 
 
     fun_type = LLVMBuildCall(builder, get_res_val_f, 0, 0, "fun_type");
@@ -688,7 +683,7 @@
     //-
     //-         base_arg0 = v_cast(arg0, v_ast_base_ptr);
     //-
-    //-         v_ast_accept_visitor(base_arg0, visitor, aux);
+    //-         v_ast_accept_visitor(base_arg0, visitor);
     //-
     //-         v_pop_temporaries();
     //-
@@ -785,9 +780,8 @@
 
     v_store(base_arg0, val0);
     v_store(visitor,   val1);
-    v_store(aux,       val2);
 
-    LLVMBuildCall(builder, accept_visitor_f, val0, 3, "");
+    LLVMBuildCall(builder, accept_visitor_f, val0, 2, "");
 
 
     pop_temps_f = v_obtain_function("v_pop_temporaries");
@@ -903,7 +897,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);
 
     cond_a = v_get_result_value();
 
@@ -953,7 +947,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);
 
     cond_a = v_get_result_value();
 

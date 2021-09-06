@@ -765,7 +765,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast0, visitor, aux0);
+    v_ast_accept_visitor(ast0, visitor);
 
     v_assign(typ0, v_get_result_type());
     v_assign(val0, v_get_result_value());
@@ -773,7 +773,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast1, visitor, aux1);
+    v_ast_accept_visitor(ast1, visitor);
 
     v_assign(typ1, v_get_result_type());
     v_assign(val1, v_get_result_value());
@@ -827,7 +827,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(ast0, visitor, aux);
+    v_ast_accept_visitor(ast0, visitor);
 
     v_assign(typ0, v_get_result_type());
     v_assign(val0, v_get_result_value());
@@ -837,7 +837,7 @@
 
     v_set_result_type(e0);
 
-    v_ast_accept_visitor(ast1, visitor, aux);
+    v_ast_accept_visitor(ast1, visitor);
 
     v_assign(typ1, v_get_result_type());
     v_assign(val1, v_get_result_value());
@@ -1569,7 +1569,7 @@
 
         v_set_result_type(UNREFERENCE_TAG);
 
-        v_ast_accept_visitor(v_getelementptr(ast, i), visitor, aux);
+        v_ast_accept_visitor(v_getelementptr(ast, i), visitor);
 
         v = v_get_result_value();
 
@@ -1753,7 +1753,7 @@
 
         v_set_result_type(UNREFERENCE_TAG);
 
-        v_ast_accept_visitor(v_getelementptr(ast, i), visitor, aux);
+        v_ast_accept_visitor(v_getelementptr(ast, i), visitor);
 
         v = v_get_result_value();
 
@@ -2117,7 +2117,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     v_assign(typ, v_get_result_type());
     v_assign(val, v_get_result_value());
@@ -2144,7 +2144,7 @@
 
         v_set_result_type(UNREFERENCE_TAG);
 
-        v_ast_accept_visitor(ast_i, visitor, aux);
+        v_ast_accept_visitor(ast_i, visitor);
 
         t = v_get_result_type();
         v = v_get_result_value();
@@ -2475,7 +2475,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast0, visitor, aux);
+    v_ast_accept_visitor(ast0, visitor);
 
     v_assign(t0, v_get_result_type());
     v_assign(v0, v_get_result_value());
@@ -2486,7 +2486,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast1, visitor, aux);
+    v_ast_accept_visitor(ast1, visitor);
 
     v_assign(t1, v_get_result_type());
     v_assign(v1, v_get_result_value());
@@ -2610,7 +2610,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast0, visitor, aux);
+    v_ast_accept_visitor(ast0, visitor);
 
     v_assign(t0, v_get_result_type());
     v_assign(v0, v_get_result_value());
@@ -2621,7 +2621,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast1, visitor, aux);
+    v_ast_accept_visitor(ast1, visitor);
 
     v_assign(t1, v_get_result_type());
     v_assign(v1, v_get_result_value());
@@ -2884,7 +2884,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     t = v_get_result_type();
     v = v_get_result_value();
@@ -2908,7 +2908,7 @@
     if (pf) v_set_result_type(int);         //- ?
     else    v_set_result_type(st);
 
-    v_ast_accept_visitor(step_base, visitor, aux);
+    v_ast_accept_visitor(step_base, visitor);
 
     step_t = v_get_result_type();
     step_v = v_get_result_value();
@@ -3013,7 +3013,7 @@
 
     v_list_get_items(list, 1, ast);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     v_terminate(ast);
 }
@@ -3043,7 +3043,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     t = v_get_result_type();
     v = v_get_result_value();
@@ -3095,7 +3095,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     t = v_reference(v_alloca(v_type_ptr));
     v = v_reference(v_alloca(LLVMValueRef));
@@ -3159,7 +3159,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     t = v_reference(v_alloca(v_type_ptr));
     v = v_reference(v_alloca(LLVMValueRef));
@@ -3223,7 +3223,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     t = v_get_result_type();
     v = v_get_result_value();
@@ -3267,7 +3267,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     t = v_get_result_type();
     v = v_get_result_value();
@@ -3362,7 +3362,7 @@
 
     expr_base = v_cast(expr, v_ast_base_ptr);
 
-    v_ast_accept_visitor(expr_base, visitor, aux);
+    v_ast_accept_visitor(expr_base, visitor);
 
 
     v_terminate(expr);
@@ -3420,7 +3420,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(v_cast(agg, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(agg, v_ast_base_ptr), visitor);
 
     agg_t = v_reference(v_alloca(v_type_ptr));
     agg_v = v_reference(v_alloca(LLVMValueRef));
@@ -3430,7 +3430,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(idx, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(idx, v_ast_base_ptr), visitor);
 
     idx_t = v_get_result_type();
     idx_v = v_get_result_value();
@@ -3570,7 +3570,7 @@
 
     v_list_get_items(list, 1, ast);
 
-    v_ast_accept_visitor(ast, visitor, aux);
+    v_ast_accept_visitor(ast, visitor);
 
     v_terminate(ast);
 }
@@ -3673,7 +3673,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
 
     width_v = v_get_result_value();
 
@@ -3706,7 +3706,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
 
     width_v = v_get_result_value();
 
@@ -3739,7 +3739,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
 
     width_v = v_get_result_value();
 
@@ -3783,14 +3783,14 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);
 
     elt = v_get_result_type();
 
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg1, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg1, v_ast_base_ptr), visitor);
 
     size_v = v_get_result_value();
 
@@ -3826,14 +3826,14 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);
 
     elt = v_get_result_type();
 
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg1, v_ast_base_ptr), visitor, aux);
+    v_ast_accept_visitor(v_cast(arg1, v_ast_base_ptr), visitor);
 
     size_v = v_get_result_value();
 
@@ -3895,7 +3895,7 @@
         m = v_load(ti);
 
 
-        voidc_visitor_set_void_method(vis, vis, q, m);
+        voidc_visitor_set_void_method(vis, vis, q, m, 0);
 
 
         v_assign(i, v_binop(LLVMAdd, i, 1));

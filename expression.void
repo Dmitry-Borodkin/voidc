@@ -125,14 +125,15 @@
 
     v_add_parameter_name(f, 0, "void_obj", void_ptr);
     v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 2, "aux",      void_ptr);
 }
 {
 //  printf("voidc_ast_expr_node_accept\n");
 
     obj = v_cast(void_obj, v_ast_generic_list_ptr);
 
-    void_method = voidc_visitor_get_void_method(visitor, quark);
+    aux = v_reference(v_alloca(void_ptr));
+
+    void_method = voidc_visitor_get_void_method(visitor, quark, v_pointer(aux));
 
     method = v_cast(void_method, method_ptr);
 
@@ -752,23 +753,25 @@
 //printf("%s (\n", s);
 
 
-    void_method = voidc_visitor_get_void_method(visitor, q);
+    aux1 = v_reference(v_alloca(void_ptr));
+
+    void_method = voidc_visitor_get_void_method(visitor, q, v_pointer(aux1));
 
     if (void_method)
     {
         method = v_cast(void_method, method_ptr);
 
-        method(visitor, aux, list);
+        method(visitor, aux1, list);
     }
     else
     {
-        void_z_method = voidc_visitor_get_void_method(visitor, 0);
+        void_z_method = voidc_visitor_get_void_method(visitor, 0, v_pointer(aux1));
 
         z_method = v_cast(void_z_method, z_method_ptr);
 
 //printf("z_method: %p\n", z_method);
 
-        z_method(visitor, aux);
+        z_method(visitor, aux1);
     }
 
 //printf("%s )\n", s);
@@ -788,14 +791,14 @@
     v_function_hack("voidc_enable_expression_compiler", ft);
 }
 {
-    v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark));
+    v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark, 0));
 
 
     v_store(quark, v_getelementptr(voidc_ast_expr_node_vtable, 0, 2));
 
     vc = voidc_compiler;
 
-    voidc_visitor_set_void_method(vc, vc, quark, compile_ast_expr_node_t);
+    voidc_visitor_set_void_method(vc, vc, quark, compile_ast_expr_node_t, 0);
 
     voidc_ast_add_expr_op_methods();
 
