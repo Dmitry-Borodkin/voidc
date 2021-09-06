@@ -251,9 +251,9 @@ v_quark_t v_##type##_visitor_method_tag;
 
 #define DEF(type) \
 void \
-v_visitor_set_method_##type(visitor_sptr_t *dst, const visitor_sptr_t *src, type::visitor_method_t method) \
+v_visitor_set_method_##type(visitor_sptr_t *dst, const visitor_sptr_t *src, type::visitor_method_t method, void *aux) \
 { \
-    auto visitor = (*src)->set_void_method(v_##type##_visitor_method_tag, (void *)method); \
+    auto visitor = (*src)->set_void_method(v_##type##_visitor_method_tag, (void *)method, aux); \
     *dst = std::make_shared<const voidc_visitor_t>(visitor); \
 }
 

@@ -252,7 +252,7 @@
     //-
     //-     v_copy(saved_compiler_g, voidc_compiler);
     //-
-    //-     v_visitor_set_method_ast_unit_t(voidc_compiler, voidc_compiler, voidc_function_hack_visitor_method);
+    //-     v_visitor_set_method_ast_unit_t(voidc_compiler, voidc_compiler, voidc_function_hack_visitor_method, 0);
     //-
     //-     v_return(fun_value);
     //- }
@@ -359,13 +359,16 @@
     LLVMBuildCall(builder, vis_copy_f, val0, 3, "");
 
 
+    null_void_ptr_v = LLVMConstNull(void_ptr_);
+
     v_store(voidc_compiler_v, val0);
 //  v_store(voidc_compiler_v, val1);
     v_store(method_f,         val2);
+    v_store(null_void_ptr_v,  val3);
 
     set_method_f = v_obtain_function("v_visitor_set_method_ast_unit_t");
 
-    LLVMBuildCall(builder, set_method_f, val0, 3, "");
+    LLVMBuildCall(builder, set_method_f, val0, 4, "");
 
 
     LLVMBuildRet(builder, fun_value);
