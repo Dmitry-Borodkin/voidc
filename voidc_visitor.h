@@ -61,24 +61,11 @@ public:
     {
 //      printf("visit: %s\n", v_quark_to_string(q));
 
-        auto self = this->shared_from_this();
+        auto &[void_fun, aux] = void_methods.at(q);
 
-        if (auto *void_m = void_methods.find(q))    //- First, try given quark
-        {
-            auto [void_fun, aux] = *void_m;
+        auto self = shared_from_this();
 
-            reinterpret_cast<FunT>(void_fun)(&self, aux, args...);
-        }
-        else    //- Otherwise, try special case at quark 0
-        {
-            typedef void (*zf_t)(const visitor_sptr_t *, void *);
-
-//          printf("visit: ZERO !!!\n");
-
-            auto [void_zf, aux] = void_methods.at(0);
-
-            reinterpret_cast<zf_t>(void_zf)(&self, aux);
-        }
+        reinterpret_cast<FunT>(void_fun)(&self, aux, args...);
     }
 
 private:
