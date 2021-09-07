@@ -128,7 +128,11 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *,
 
         if (intrinsics.count(fun_name))
         {
-            intrinsics[fun_name](vis, nullptr, args);
+            auto &[void_fun, aux] = intrinsics[fun_name];
+
+            typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
+
+            reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args);
 
             return;
         }

@@ -257,25 +257,27 @@
     visitor_ptr   = v_pointer_type(voidc_opaque_visitor_sptr, 0);
     expr_list_ptr = v_pointer_type(v_ast_opaque_expr_list_sptr, 0);
 
-    v_store(visitor_ptr,   typ0);           //-
-    v_store(void_ptr,      typ1);           //-
-    v_store(expr_list_ptr, typ2);           //-
+    v_store(visitor_ptr,   typ0);           //- visitor
+    v_store(void_ptr,      typ1);           //- aux
+    v_store(expr_list_ptr, typ2);           //- args (AST)
 
     intrinsic_t = v_function_type(void, typ0, 3, false);
     v_export_type("voidc_intrinsic_t", intrinsic_t);
 
-    intrinsic_ptr = v_pointer_type(intrinsic_t, 0);
-
     v_store(char_ptr,      typ0);           //- Intrinsic name
-    v_store(intrinsic_ptr, typ1);           //- Intrinsic function
+    v_store(void_ptr,      typ1);           //- Intrinsic function
+    v_store(void_ptr,      typ2);           //- aux
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_export_intrinsic", ft);
     v_export_symbol_type("v_add_intrinsic",    ft);
 
-//  v_store(char_ptr,      typ0);           //- Intrinsic name
+    void_ptr_ptr = v_pointer_type(void_ptr, 0);
 
-    ft = v_function_type(intrinsic_ptr, typ0, 1, false);
+//  v_store(char_ptr,      typ0);           //- Intrinsic name
+    v_store(void_ptr_ptr,  typ1);           //- aux
+
+    ft = v_function_type(void_ptr, typ0, 2, false);
     v_export_symbol_type("v_get_intrinsic", ft);
 }
 

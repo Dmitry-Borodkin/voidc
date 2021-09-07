@@ -392,9 +392,9 @@
 
     voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_loop_t, 0);
 
-    v_export_intrinsic("v_continue", voidc_intrinsic_continue);
+    v_export_intrinsic("v_continue", voidc_intrinsic_continue, 0);
 
-    v_export_intrinsic("v_break", v_get_intrinsic("v_break"));      //- Re-export from "stmt_block" (?)
+    v_export_intrinsic("v_break", v_get_intrinsic("v_break", 0), 0);        //- Re-export from "stmt_block" (?)
 }
 
 

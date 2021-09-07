@@ -649,7 +649,7 @@ void static_initialize(void)
     auto &gctx = *voidc_global_ctx_t::voidc;
 
 #define DEF(name) \
-    gctx.decls.intrinsics.insert({#name, name});
+    gctx.decls.intrinsics.insert({#name, {(void *)name, nullptr}});
 
     DEF(v_initialize)
     DEF(v_terminate)

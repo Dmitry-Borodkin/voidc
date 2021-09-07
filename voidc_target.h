@@ -37,7 +37,9 @@ public:
     virtual ~base_compile_ctx_t() = default;
 
 public:
-    typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
+//  typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
+
+    using intrinsic_t = std::pair<void *, void *>;      //- Sic!
 
     struct declarations_t
     {
@@ -134,8 +136,8 @@ public:
     void export_symbol(const char *raw_name, v_type_t *type, void *value);
     void add_symbol(const char *raw_name, v_type_t *type, void *value);
 
-    void export_intrinsic(const char *fun_name, intrinsic_t fun);
-    void add_intrinsic(const char *fun_name, intrinsic_t fun);
+    void export_intrinsic(const char *fun_name, void *fun, void *aux=nullptr);
+    void add_intrinsic(const char *fun_name, void *fun, void *aux=nullptr);
 
     void export_type(const char *raw_name, v_type_t *type);
     void add_type(const char *raw_name, v_type_t *type);

@@ -863,8 +863,8 @@
     v_set_module(0);
 }
 
-{   v_export_intrinsic("v_function_hack", voidc_function_hack_intrinsic);
-    v_export_intrinsic("v_return",        voidc_function_hack_return_intrinsic);
+{   v_export_intrinsic("v_function_hack", voidc_function_hack_intrinsic, 0);
+    v_export_intrinsic("v_return",        voidc_function_hack_return_intrinsic, 0);
 }
 
 
@@ -923,7 +923,7 @@
 
     v_make_list_nil(ar_l);
 
-    voidc_function_hack_return_intrinsic(visitor, aux, ar_l);
+    voidc_function_hack_return_intrinsic(visitor, 0, ar_l);
 
     v_terminate(ar_l);
 
@@ -973,7 +973,7 @@
 
     v_make_list_nil(ar_l);
 
-    voidc_function_hack_return_intrinsic(visitor, aux, ar_l);
+    voidc_function_hack_return_intrinsic(visitor, 0, ar_l);
 
     v_terminate(ar_l);
 
@@ -1032,8 +1032,8 @@
 
 //---------------------------------------------------------------------
 {
-    v_export_intrinsic("v_return_if",      v_return_if_intrinsic);
-    v_export_intrinsic("v_return_if_not",  v_return_if_not_intrinsic);
+    v_export_intrinsic("v_return_if",      v_return_if_intrinsic, 0);
+    v_export_intrinsic("v_return_if_not",  v_return_if_not_intrinsic, 0);
 
     v_make_export_symbol("v_add_parameter_name");
 }

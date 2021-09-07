@@ -468,7 +468,7 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     void_ptr_type(make_pointer_type(void_type, 0))          //- address space 0 !?
 {
 #define DEF(name) \
-    decls.intrinsics.insert({#name, name});
+    decls.intrinsics.insert({#name, {(void *)name, nullptr}});
 
     DEF(v_alloca)
     DEF(v_getelementptr)
@@ -658,18 +658,18 @@ base_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::export_intrinsic(const char *fun_name, intrinsic_t fun)
+base_local_ctx_t::export_intrinsic(const char *fun_name, void *fun, void *aux)
 {
-    if (export_decls)   export_decls->intrinsics.insert({fun_name, fun});
+    if (export_decls)   export_decls->intrinsics.insert({fun_name, {fun, aux}});
 
-    decls.intrinsics.insert({fun_name, fun});
+    decls.intrinsics.insert({fun_name, {fun, aux}});
 }
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::add_intrinsic(const char *fun_name, intrinsic_t fun)
+base_local_ctx_t::add_intrinsic(const char *fun_name, void *fun, void *aux)
 {
-    decls.intrinsics.insert({fun_name, fun});
+    decls.intrinsics.insert({fun_name, {fun, aux}});
 }
 
 
@@ -2366,25 +2366,25 @@ v_add_alias(const char *name, const char *raw_name)
 
 //---------------------------------------------------------------------
 void
-v_export_intrinsic(const char *name, base_global_ctx_t::intrinsic_t fun)
+v_export_intrinsic(const char *name, void *fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.export_intrinsic(name, fun);
+    lctx.export_intrinsic(name, fun, aux);
 }
 
 void
-v_add_intrinsic(const char *name, base_global_ctx_t::intrinsic_t fun)
+v_add_intrinsic(const char *name, void *fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.add_intrinsic(name, fun);
+    lctx.add_intrinsic(name, fun, aux);
 }
 
-base_global_ctx_t::intrinsic_t
-v_get_intrinsic(const char *name)
+void *
+v_get_intrinsic(const char *name, void **aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -2393,8 +2393,11 @@ v_get_intrinsic(const char *name)
 
     auto it = intrinsics.find(name);
 
-    if (it != intrinsics.end())  return it->second;
-    else                         return nullptr;
+    if (it == intrinsics.end()) return nullptr;
+
+    if (aux)  *aux = it->second.second;
+
+    return  it->second.first;
 }
 
 
