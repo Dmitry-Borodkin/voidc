@@ -58,12 +58,6 @@
 
     v_add_type("method_ft",  method_ft);
     v_add_type("method_ptr", method_ptr);
-
-    z_method_ft  = v_function_type(void, typ0, 2, false);
-    z_method_ptr = v_pointer_type(z_method_ft, 0);
-
-    v_add_type("z_method_ft",  z_method_ft);
-    v_add_type("z_method_ptr", z_method_ptr);
 }
 
 
@@ -757,22 +751,10 @@
 
     void_method = voidc_visitor_get_void_method(visitor, q, v_pointer(aux1));
 
-    if (void_method)
-    {
-        method = v_cast(void_method, method_ptr);
+    method = v_cast(void_method, method_ptr);
 
-        method(visitor, aux1, list);
-    }
-    else
-    {
-        void_z_method = voidc_visitor_get_void_method(visitor, 0, v_pointer(aux1));
+    method(visitor, aux1, list);
 
-        z_method = v_cast(void_z_method, z_method_ptr);
-
-//printf("z_method: %p\n", z_method);
-
-        z_method(visitor, aux1);
-    }
 
 //printf("%s )\n", s);
 
