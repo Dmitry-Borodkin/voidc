@@ -305,11 +305,11 @@
     v_function_hack("voidc_enable_statement_defer", ft);
 }
 {
+    voidc_enable_statement_defer_compiler();
+
+
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("stmt_defer"));
-
-
-    voidc_enable_statement_defer_compiler();
 
 
     gr0 = v_alloca(v_peg_opaque_grammar_sptr);

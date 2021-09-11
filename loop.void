@@ -379,6 +379,9 @@
 //- Enable statement loop compilation
 //---------------------------------------------------------------------
 {
+    v_add_symbol("v_break_intrinsic", voidc_intrinsic_t, voidc_visitor_get_intrinsic(voidc_compiler, "v_break", 0));
+
+
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
@@ -390,11 +393,13 @@
 
     v_store(quark, v_getelementptr(voidc_ast_stmt_loop_vtable, 0, 2));
 
-    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_loop_t, 0);
+    vis = voidc_compiler;
 
-    v_export_intrinsic("v_continue", voidc_intrinsic_continue, 0);
+    voidc_visitor_set_void_method(vis, vis, quark, compile_ast_stmt_loop_t, 0);
 
-    v_export_intrinsic("v_break", v_get_intrinsic("v_break", 0), 0);        //- Re-export from "stmt_block" (?)
+    voidc_visitor_set_intrinsic(vis, vis, "v_continue", voidc_intrinsic_continue, 0);
+
+    voidc_visitor_set_intrinsic(vis, vis, "v_break", v_break_intrinsic, 0);     //- Re-export from "stmt_block" (?)
 }
 
 
@@ -408,11 +413,11 @@
     v_function_hack("voidc_enable_statement_loop", ft);
 }
 {
+    voidc_enable_statement_loop_compiler();
+
+
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("stmt_loop"));
-
-
-    voidc_enable_statement_loop_compiler();
 
 
     pp0 = v_alloca(v_peg_opaque_parser_sptr, 5);

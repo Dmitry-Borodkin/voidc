@@ -1651,18 +1651,17 @@
     voidc_visitor_set_void_method(vis, vis, q("op_prefix_const"),    compile_op_prefix_cv, 0);
     voidc_visitor_set_void_method(vis, vis, q("op_prefix_volatile"), compile_op_prefix_cv, 0);
 
+    voidc_visitor_set_intrinsic(vis, vis, "v.internal.var_defn", v_internal_var_defn_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "v.internal.val_defn", v_internal_val_defn_intrinsic, 0);
+
+    voidc_visitor_set_intrinsic(vis, vis, "v_undef", v_undef_intrinsic, 0);
+
     //-----------------------------------------------------------------
     typ = *v_alloca(v_type_ptr) := bool;
 
     ft = v_function_type(void, &typ, 1, false);
 
     v_add_symbol("v_set_export_flag", ft, 0);
-
-    //-----------------------------------------------------------------
-    v_add_intrinsic("v.internal.var_defn", v_internal_var_defn_intrinsic, 0);
-    v_add_intrinsic("v.internal.val_defn", v_internal_val_defn_intrinsic, 0);
-
-    v_add_intrinsic("v_undef", v_undef_intrinsic, 0);
 }
 
 
@@ -1676,12 +1675,11 @@
     v_function_hack("voidc_enable_definitions", ft);
 }
 {
+    voidc_enable_definitions_compiler();
+
+
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("unit_fun_defn"));
-
-//  printf("voidc_enable_definitions\n");
-
-    voidc_enable_definitions_compiler();
 
 
     any = v_alloca(v_util_opaque_std_any, 6);

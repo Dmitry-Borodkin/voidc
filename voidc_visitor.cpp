@@ -97,9 +97,36 @@ voidc_visitor_get_void_method(const visitor_sptr_t *ptr, v_quark_t quark, void *
 }
 
 void
-voidc_visitor_set_void_method(visitor_sptr_t *dst, const visitor_sptr_t *src, v_quark_t quark, void *void_method, void *aux)
+voidc_visitor_set_void_method(visitor_sptr_t *dst, const visitor_sptr_t *src, v_quark_t quark, void *void_fun, void *aux)
 {
-    auto visitor = (*src)->set_void_method(quark, void_method, aux);
+    auto visitor = (*src)->set_void_method(quark, void_fun, aux);
+
+    *dst = std::make_shared<const voidc_visitor_t>(visitor);
+}
+
+
+//---------------------------------------------------------------------
+void *
+voidc_visitor_get_intrinsic(const visitor_sptr_t *ptr, const char *name, void **aux_ptr)
+{
+    if (auto *vm = (*ptr)->intrinsics.find(name))
+    {
+        auto [void_fun, aux] = *vm;
+
+        if (aux_ptr)  *aux_ptr = aux;
+
+        return void_fun;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+void
+voidc_visitor_set_intrinsic(visitor_sptr_t *dst, const visitor_sptr_t *src, const char *name, void *void_fun, void *aux)
+{
+    auto visitor = (*src)->set_intrinsic(name, void_fun, aux);
 
     *dst = std::make_shared<const voidc_visitor_t>(visitor);
 }

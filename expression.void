@@ -34,6 +34,9 @@
     voidc_enable_statement_grammar();
 }
 
+{   v_import("printf.void");
+}
+
 
 //---------------------------------------------------------------------
 {   v_add_type("void_ptr", v_pointer_type(void, 0));
@@ -778,18 +781,18 @@
 
     v_store(quark, v_getelementptr(voidc_ast_expr_node_vtable, 0, 2));
 
-    vc = voidc_compiler;
+    vis = voidc_compiler;
 
-    voidc_visitor_set_void_method(vc, vc, quark, compile_ast_expr_node_t, 0);
+    voidc_visitor_set_void_method(vis, vis, quark, compile_ast_expr_node_t, 0);
 
     voidc_ast_add_expr_op_methods();
 
     //-------------------------------------------------------------
-    v_export_intrinsic("int",   v_get_intrinsic("int",   0), 0);
-    v_export_intrinsic("uint",  v_get_intrinsic("uint",  0), 0);
-    v_export_intrinsic("float", v_get_intrinsic("float", 0), 0);
-    v_export_intrinsic("vec",   v_get_intrinsic("vec",   0), 0);
-    v_export_intrinsic("svec",  v_get_intrinsic("svec",  0), 0);
+    voidc_visitor_set_intrinsic(vis, vis, "int",   v_get_intrinsic("int",   0), 0);
+    voidc_visitor_set_intrinsic(vis, vis, "uint",  v_get_intrinsic("uint",  0), 0);
+    voidc_visitor_set_intrinsic(vis, vis, "float", v_get_intrinsic("float", 0), 0);
+    voidc_visitor_set_intrinsic(vis, vis, "vec",   v_get_intrinsic("vec",   0), 0);
+    voidc_visitor_set_intrinsic(vis, vis, "svec",  v_get_intrinsic("svec",  0), 0);
 }
 
 
@@ -803,11 +806,11 @@
     v_function_hack("voidc_enable_expression", ft);
 }
 {
+    voidc_enable_expression_compiler();
+
+
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("expr_lr"));
-
-
-    voidc_enable_expression_compiler();
 
 
     gr0 = v_alloca(v_peg_opaque_grammar_sptr);
@@ -982,5 +985,6 @@
     v_make_export_symbol("voidc_enable_expression_compiler");
     v_make_export_symbol("voidc_enable_expression");
 }
+
 
 

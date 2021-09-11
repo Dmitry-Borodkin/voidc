@@ -124,12 +124,33 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *,
     {
         auto &fun_name = fname->name;
 
-        auto &intrinsics = lctx.decls.intrinsics;
+        void *void_fun = nullptr;
+        void *aux;
 
-        if (intrinsics.count(fun_name))
+        {   auto &intrinsics = lctx.decls.intrinsics;
+
+            auto it = intrinsics.find(fun_name);
+
+            if (it != intrinsics.end())
+            {
+                void_fun = it->second.first;
+                aux      = it->second.second;
+            }
+        }
+
+        if (!void_fun)
         {
-            auto &[void_fun, aux] = intrinsics[fun_name];
+            auto &intrinsics = (*vis)->intrinsics;
 
+            if (auto p = intrinsics.find(fun_name))
+            {
+                void_fun = p->first;
+                aux      = p->second;
+            }
+        }
+
+        if (void_fun)
+        {
             typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
 
             reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args);

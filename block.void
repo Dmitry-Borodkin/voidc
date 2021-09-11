@@ -486,7 +486,7 @@
 
     voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_block_t, 0);
 
-    v_export_intrinsic("v_break", voidc_intrinsic_break, 0);
+    voidc_visitor_set_intrinsic(voidc_compiler, voidc_compiler, "v_break", voidc_intrinsic_break, 0);
 }
 
 
@@ -500,11 +500,11 @@
     v_function_hack("voidc_enable_statement_block", ft);
 }
 {
+    voidc_enable_statement_block_compiler();
+
+
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("stmt_block"));
-
-
-    voidc_enable_statement_block_compiler();
 
 
     pp0 = v_alloca(v_peg_opaque_parser_sptr, 8);

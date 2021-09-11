@@ -689,11 +689,11 @@
     v_function_hack("voidc_enable_statement_if_then_else", ft);
 }
 {
+    voidc_enable_statement_if_then_else_compiler();
+
+
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("stmt_if_then_else"));
-
-
-    voidc_enable_statement_if_then_else_compiler();
 
 
     pp0 = v_alloca(v_peg_opaque_parser_sptr, 16);
