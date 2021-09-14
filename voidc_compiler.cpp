@@ -346,6 +346,435 @@ void compile_ast_expr_char_t(const visitor_sptr_t *vis, void *,
 
 
 //=====================================================================
+//- Intrinsics (true)
+//=====================================================================
+static void
+v_alloca(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() < 1  ||  (*args)->data.size() > 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    auto tt = lctx.result_type;
+
+
+    lctx.result_type = INVIOLABLE_TAG;
+
+    (*args)->data[0]->accept(*vis);             //- Element type
+
+    assert(lctx.result_value == nullptr);
+
+
+    auto type = lctx.result_type;
+    auto llvm_type = type->llvm_type();
+
+    LLVMValueRef v;
+
+    if ((*args)->data.size() == 1)              //- Just one
+    {
+        v = LLVMBuildAlloca(gctx.builder, llvm_type, "");
+    }
+    else                                        //- Array...
+    {
+        lctx.result_type = UNREFERENCE_TAG;
+
+        (*args)->data[1]->accept(*vis);             //- Array size
+
+        v = LLVMBuildArrayAlloca(gctx.builder, llvm_type, lctx.result_value, "");
+    }
+
+    auto t = gctx.make_pointer_type(type, LLVMGetPointerAddressSpace(LLVMTypeOf(v)));
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(t, v);
+}
+
+//---------------------------------------------------------------------
+static void
+v_getelementptr(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() < 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    auto tt = lctx.result_type;
+
+    auto arg_count = (*args)->data.size();
+
+    auto types  = std::make_unique<v_type_t *[]>(arg_count);
+    auto values = std::make_unique<LLVMValueRef[]>(arg_count);
+
+    for (int i=0; i<arg_count; ++i)
+    {
+        lctx.result_type = UNREFERENCE_TAG;
+
+        (*args)->data[i]->accept(*vis);
+
+        types[i]  = lctx.result_type;
+        values[i] = lctx.result_value;
+    }
+
+    auto v = LLVMBuildGEP(gctx.builder, values[0], &values[1], arg_count-1, "");
+
+    auto *p = static_cast<v_type_pointer_t *>(v_type_get_scalar_type(types[0]));
+
+    v_type_t *t = p->element_type();
+
+    for (int i=2; i<arg_count; ++i)
+    {
+        if (auto *ti = dynamic_cast<v_type_array_t *>(t))
+        {
+            t = ti->element_type();
+            continue;
+        }
+
+        if (auto *ti = dynamic_cast<v_type_vector_t *>(t))
+        {
+            t = ti->element_type();
+            continue;
+        }
+
+        if (auto *ti = dynamic_cast<v_type_struct_t *>(t))
+        {
+            auto idx = values[i];
+
+            auto num = unsigned(LLVMConstIntGetZExtValue(idx));
+
+            t = ti->element_types()[num];
+            continue;
+        }
+
+        assert(false && "Wrong GEP index");
+
+        t = nullptr;
+        break;
+    }
+
+    t = gctx.make_pointer_type(t, p->address_space());
+
+    for (int i=0; i<arg_count; ++i)
+    {
+        if (auto *vt = dynamic_cast<v_type_vector_t *>(types[i]))
+        {
+            auto count = vt->size();
+
+            if (vt->is_scalable())  t = gctx.make_svector_type(t, count);
+            else                    t = gctx.make_vector_type(t, count);
+
+            break;
+        }
+    }
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(t, v);
+}
+
+//---------------------------------------------------------------------
+static void
+v_store(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    lctx.result_type = UNREFERENCE_TAG;
+
+    (*args)->data[1]->accept(*vis);             //- "Place"
+
+    auto place = lctx.result_value;
+
+    lctx.result_type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
+
+    (*args)->data[0]->accept(*vis);             //- "Value"
+
+    LLVMBuildStore(gctx.builder, lctx.result_value, place);
+}
+
+//---------------------------------------------------------------------
+static void
+v_load(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 1)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    auto tt = lctx.result_type;
+
+    lctx.result_type = UNREFERENCE_TAG;
+
+    (*args)->data[0]->accept(*vis);
+
+    auto v = LLVMBuildLoad(gctx.builder, lctx.result_value, "");
+
+    auto t = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(t, v);
+}
+
+//---------------------------------------------------------------------
+static void
+v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    auto tt = lctx.result_type;
+
+    lctx.result_type = INVIOLABLE_TAG;
+
+    (*args)->data[0]->accept(*vis);             //- Value
+
+    auto src_value = lctx.result_value;
+
+    auto src_type = lctx.result_type;
+
+
+    lctx.result_type = INVIOLABLE_TAG;
+
+    (*args)->data[1]->accept(*vis);             //- Type
+
+    assert(lctx.result_value == nullptr);
+
+
+    auto dst_type = lctx.result_type;
+
+    auto opcode = LLVMOpcode(0);
+
+    if (auto *pst = dynamic_cast<v_type_reference_t *>(src_type))
+    {
+        if (auto *pdt = dynamic_cast<v_type_reference_t *>(dst_type))
+        {
+            //- WTF ?!?!?!?!?!?!?
+
+            if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
+            else                                                opcode = LLVMAddrSpaceCast;
+        }
+        else
+        {
+            src_value = LLVMBuildLoad(gctx.builder, src_value, "tmp");
+
+            src_type  = pst->element_type();
+        }
+    }
+
+    if (!opcode)
+    {
+        auto src_stype = v_type_get_scalar_type(src_type);
+        auto dst_stype = v_type_get_scalar_type(dst_type);
+
+        if (v_type_is_floating_point(src_stype))
+        {
+            if (v_type_is_floating_point(dst_stype))
+            {
+                auto sz = v_type_floating_point_get_width(src_stype);
+                auto dz = v_type_floating_point_get_width(dst_stype);
+
+                if (sz == dz)       opcode = LLVMBitCast;       //- ?
+                else if (sz > dz)   opcode = LLVMFPTrunc;
+                else                opcode = LLVMFPExt;
+            }
+            else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+            {
+                if (idt->is_signed()) opcode = LLVMFPToSI;
+                else                  opcode = LLVMFPToUI;
+            }
+            else
+            {
+                throw std::runtime_error("Bad cast from floating point");
+            }
+        }
+        else if (auto *ist = dynamic_cast<v_type_integer_t *>(src_stype))
+        {
+            if (v_type_is_floating_point(dst_stype))
+            {
+                if (ist->is_signed()) opcode = LLVMSIToFP;
+                else                  opcode = LLVMUIToFP;
+            }
+            else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+            {
+                auto sw = ist->width();
+                auto dw = idt->width();
+
+                if (sw == dw)       opcode = LLVMBitCast;       //- ?
+                else if (sw > dw)   opcode = LLVMTrunc;
+                else
+                {
+                    if (ist->is_signed()) opcode = LLVMSExt;        //- ?
+                    else                  opcode = LLVMZExt;        //- ?
+                }
+            }
+            else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+            {
+                opcode = LLVMIntToPtr;
+            }
+            else
+            {
+                throw std::runtime_error("Bad cast from integer");
+            }
+        }
+        else if (auto *pst = dynamic_cast<v_type_pointer_t *>(src_stype))
+        {
+            if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+            {
+                opcode = LLVMPtrToInt;
+            }
+            else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+            {
+                if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
+                else                                                opcode = LLVMAddrSpaceCast;
+            }
+            else
+            {
+                throw std::runtime_error("Bad cast from pointer");
+            }
+        }
+        else
+        {
+            throw std::runtime_error("Bad cast");
+        }
+    }
+
+    auto v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), "");
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(dst_type, v);
+}
+
+//---------------------------------------------------------------------
+static void
+v_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 1)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    auto tt = lctx.result_type;
+
+    lctx.result_type = INVIOLABLE_TAG;
+
+    (*args)->data[0]->accept(*vis);
+
+    auto t = lctx.result_type;
+    auto v = lctx.result_value;
+
+    if (t->kind() == v_type_t::k_reference)
+    {
+        auto rt = static_cast<v_type_reference_t *>(lctx.result_type);
+
+        t = gctx.make_pointer_type(rt->element_type(), rt->address_space());
+    }
+    else
+    {
+        v = lctx.make_temporary(t, v);
+
+        t = gctx.make_pointer_type(t, 0);
+    }
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(t, v);
+}
+
+//---------------------------------------------------------------------
+static void
+v_reference(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 1)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    auto tt = lctx.result_type;
+
+    lctx.result_type = UNREFERENCE_TAG;
+
+    (*args)->data[0]->accept(*vis);
+
+    auto pt = static_cast<v_type_pointer_t *>(lctx.result_type);
+
+    auto v = lctx.result_value;
+    auto t = gctx.make_reference_type(pt->element_type(), pt->address_space());
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(t, v);
+}
+
+//---------------------------------------------------------------------
+static void
+v_assign(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    assert(*args);
+    if ((*args)->data.size() != 2)
+    {
+        throw std::runtime_error("Wrong arguments number: " + std::to_string((*args)->data.size()));
+    }
+
+    auto tt = lctx.result_type;
+
+    lctx.result_type = INVIOLABLE_TAG;
+
+    (*args)->data[0]->accept(*vis);             //- "Place"
+
+    auto type  = lctx.result_type;
+    auto place = lctx.result_value;
+
+    lctx.result_type = static_cast<v_type_reference_t *>(lctx.result_type)->element_type();
+
+    (*args)->data[1]->accept(*vis);             //- "Value"
+
+    LLVMBuildStore(gctx.builder, lctx.result_value, place);
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(type, place);
+}
+
+
+//=====================================================================
 //- Compiler visitor
 //=====================================================================
 static
@@ -362,6 +791,20 @@ make_voidc_compiler(void)
         vis = vis.set_void_method(v_##type##_visitor_method_tag, (void *)compile_##type);
 
         DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
+
+#undef DEF
+
+#define DEF(name) \
+        vis = vis.set_intrinsic(#name, (void *)name, nullptr);
+
+        DEF(v_alloca)
+        DEF(v_getelementptr)
+        DEF(v_store)
+        DEF(v_load)
+        DEF(v_cast)
+        DEF(v_pointer)
+        DEF(v_reference)
+        DEF(v_assign)
 
 #undef DEF
 

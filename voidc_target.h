@@ -37,9 +37,7 @@ public:
     virtual ~base_compile_ctx_t() = default;
 
 public:
-//  typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
-
-    using intrinsic_t = std::pair<void *, void *>;      //- Sic!
+    using intrinsic_t = std::pair<void *, void *>;          //- I.e. (function, context)
 
     struct declarations_t
     {
