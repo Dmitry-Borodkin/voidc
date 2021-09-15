@@ -16,6 +16,9 @@
 }
 
 
+{ v_import("printf.void"); }
+
+
 //---------------------------------------------------------------------
 //- Some utility...
 //---------------------------------------------------------------------
@@ -75,8 +78,8 @@
     //-----------------------------------------------------------------
     //- Saved global variables
     //-----------------------------------------------------------------
-    //- var saved_module_g:    LLVMModuleRef;
-    //- var saved_compiler_g:  voidc_opaque_visitor_sptr;
+    //- saved_module_g:   LLVMModuleRef;
+    //- saved_compiler_g: voidc_opaque_visitor_sptr;
     //-----------------------------------------------------------------
     LLVMModuleRef_ = v_type_get_llvm_type(LLVMModuleRef);
 
@@ -102,12 +105,12 @@
     //- "Function hack" compiler visitor method
     //-----------------------------------------------------------------
     //- private
-    //- fun voidc_function_hack_visitor_method(visitor:   voidc_visitor_ptr,
-    //-                                        aux:       void_ptr,
-    //-                                        stmt_list: v_ast_stmt_list_ptr,
-    //-                                        line:      int,
-    //-                                        column:    int
-    //-                                       )
+    //- voidc_function_hack_visitor_method: (visitor:   voidc_visitor_ptr,
+    //-                                      aux:       void_ptr,
+    //-                                      stmt_list: v_ast_stmt_list_ptr,
+    //-                                      line:      int,
+    //-                                      column:    int
+    //-                                     ) -> void
     //- {
     //-     base_ast = v_cast(stmt_list, v_ast_base_ptr);
     //-
@@ -377,7 +380,9 @@
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_intrinsic(visitor: voidc_visitor_ptr, aux: void_ptr, arg_list: v_ast_expr_list_ptr)
+    //- voidc_function_hack_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
+    //-                                 list: v_ast_generic_list_ptr
+    //-                                ) -> void
     //- {
     //-     builder = v_target_get_builder();
     //-
@@ -388,11 +393,15 @@
     //-
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
+    //-     base_arg = v_cast(arg0, v_ast_base_ptr);
+    //-
+    //-     v_list_get_items(list, 0, base_arg, 1);
+    //-
+    //-     arg_list = v_cast(arg0, v_ast_expr_list_ptr);
+    //-
     //-     v_list_get_items(arg_list, 0, arg0, 2);
     //-
     //-     v_set_result_type(char_ptr);
-    //-
-    //-     base_arg = v_cast(arg0, v_ast_base_ptr);
     //-
     //-     v_ast_accept_visitor(base_arg, visitor);
     //-
@@ -444,9 +453,9 @@
     //-----------------------------------------------------------------
     intrinsic_f = v_obtain_function("voidc_function_hack_intrinsic");
 
-    visitor  = LLVMGetParam(intrinsic_f, 0);
-    aux      = LLVMGetParam(intrinsic_f, 1);
-    arg_list = LLVMGetParam(intrinsic_f, 2);
+    visitor = LLVMGetParam(intrinsic_f, 0);
+    aux     = LLVMGetParam(intrinsic_f, 1);
+    list    = LLVMGetParam(intrinsic_f, 2);
 
     entry = LLVMAppendBasicBlock(intrinsic_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -480,12 +489,30 @@
     arg1_v = LLVMBuildGEP(builder, arg0_v, val0, 1, "arg1");
 
 
+    v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
+
+    base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
+
+
+    v_store(list,     val0);
+    v_store(n0,       val1);
+    v_store(base_arg, val2);
+    v_store(n1,       val3);
+
+    generic_list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_generic_list_sptr);
+
+    LLVMBuildCall(builder, generic_list_get_items_f, val0, 4, "");
+
+
+    v_ast_expr_list_ptr_ = v_type_get_llvm_type(v_ast_expr_list_ptr);
+
+    arg_list = LLVMBuildBitCast(builder, arg0_v, v_ast_expr_list_ptr_, "arg_list");
+
+
     v_store(arg_list, val0);
     v_store(n0,       val1);
     v_store(arg0_v,   val2);
     v_store(n2,       val3);
-
-    _v_ast_opaque_expr_list_sptr = v_find_type("v_ast_opaque_expr_list_sptr");
 
     expr_list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_expr_list_sptr);
 
@@ -500,10 +527,6 @@
 
     LLVMBuildCall(builder, set_res_type_f, val0, 1, "");
 
-
-    v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
-
-    base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
 
     v_store(base_arg, val0);
     v_store(visitor,  val1);
@@ -665,17 +688,25 @@
     //-----------------------------------------------------------------
     //- "Return" intrinsic
     //-----------------------------------------------------------------
-    //- fun voidc_function_hack_return_intrinsic(visitor: voidc_visitor_ptr, aux: void_ptr, arg_list: v_ast_expr_list_ptr)
+    //- voidc_function_hack_return_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
+    //-                                        list: v_ast_generic_list_ptr
+    //-                                       ) -> void
     //- {
     //-     builder = v_target_get_builder();
+    //-
+    //-     arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    //-     v_initialize(arg0);
+    //-
+    //-     base_arg = v_cast(arg0, v_ast_base_ptr);
+    //-
+    //-     v_list_get_items(list, 0, base_arg, 1);
+    //-
+    //-     arg_list = v_cast(arg0, v_ast_expr_list_ptr);
     //-
     //-     args_count = v_list_get_size(arg_list);
     //-
     //-     if (args_count)
     //-     {
-    //-         arg0 = v_alloca(v_ast_opaque_expr_sptr);
-    //-         v_initialize(arg0);
-    //-
     //-         v_list_get_items(arg_list, 0, arg0, 1);
     //-
     //-         ret_type = v_get_variable_type("voidc.internal_return_type");
@@ -692,14 +723,12 @@
     //-
     //-         ret = v_get_result_value();
     //-
-    //-
     //-         ret_var_v = v_get_variable_value("voidc.internal_return_value");
     //-
     //-         LLVMBuildStore(builder, ret, ret_var_v);
-    //-
-    //-
-    //-         v_terminate(arg0);
     //-     }
+    //-
+    //-     v_terminate(arg0);
     //-
     //-     leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
     //-     leave_b  = LLVMValueAsBasicBlock(leave_bv);
@@ -709,15 +738,44 @@
     //-----------------------------------------------------------------
     return_f = v_obtain_function("voidc_function_hack_return_intrinsic");
 
-    visitor  = LLVMGetParam(return_f, 0);
-    aux      = LLVMGetParam(return_f, 1);
-    arg_list = LLVMGetParam(return_f, 2);
+    visitor = LLVMGetParam(return_f, 0);
+    aux     = LLVMGetParam(return_f, 1);
+    list    = LLVMGetParam(return_f, 2);
 
     entry = LLVMAppendBasicBlock(return_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
     builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
+
+
+    arg0_v = LLVMBuildAlloca(builder, v_ast_opaque_expr_sptr_, "arg0_v");
+
+
+    v_store(arg0_v, val0);
+    v_store(n1,     val1);
+
+    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_sptr);
+
+    LLVMBuildCall(builder, arg_init_f, val0, 2, "");
+
+
+    base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
+
+
+    v_store(list,     val0);
+    v_store(n0,       val1);
+    v_store(base_arg, val2);
+    v_store(n1,       val3);
+
+    generic_list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_generic_list_sptr);
+
+    LLVMBuildCall(builder, generic_list_get_items_f, val0, 4, "");
+
+
+    v_ast_expr_list_ptr_ = v_type_get_llvm_type(v_ast_expr_list_ptr);
+
+    arg_list = LLVMBuildBitCast(builder, arg0_v, v_ast_expr_list_ptr_, "arg_list");
 
 
     v_store(arg_list, val0);
@@ -737,17 +795,6 @@
 
 
     LLVMPositionBuilderAtEnd(builder, then_b);
-
-
-    arg0_v = LLVMBuildAlloca(builder, v_ast_opaque_expr_sptr_, "arg0_v");
-
-
-    v_store(arg0_v, val0);
-    v_store(n1,     val1);
-
-    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_sptr);
-
-    LLVMBuildCall(builder, arg_init_f, val0, 2, "");
 
 
     v_store(arg_list, val0);
@@ -813,16 +860,16 @@
     LLVMBuildCall(builder, llvm_build_store_f, val0, 3, "");
 
 
-    v_store(arg0_v, val0);
-    v_store(n1,     val1);
-
-    LLVMBuildCall(builder, expr_term_f, val0, 2, "");
-
-
     LLVMBuildBr(builder, else_b);
 
 
     LLVMPositionBuilderAtEnd(builder, else_b);
+
+
+    v_store(arg0_v, val0);
+    v_store(n1,     val1);
+
+    LLVMBuildCall(builder, expr_term_f, val0, 2, "");
 
 
     leave_bv_v_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_branch_target_leave", "leave_bv_v_n");
@@ -886,21 +933,27 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_intrinsic", voidc_intrinsic_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", voidc_visitor_ptr,      p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",     void_ptr,               p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("list",    v_ast_generic_list_ptr, p2);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg0);
 
-    v_list_get_items(arg_list, 0, arg0);
+    base_arg = v_cast(arg0, v_ast_base_ptr);
 
-    v_terminate(arg0);
+    v_list_get_items(list, 0, base_arg);
+
+    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, arg0);
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);
+    v_ast_accept_visitor(base_arg, visitor);
+
+    v_terminate(arg0);
 
     cond_a = v_get_result_value();
 
@@ -918,14 +971,20 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
+    ls_l = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(ls_l);
+
     ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(ar_l);
 
     v_make_list_nil(ar_l);
 
-    voidc_function_hack_return_intrinsic(visitor, 0, ar_l);
+    v_make_list(ls_l, 0, v_cast(ar_l, v_ast_base_ptr), 1);
+
+    voidc_function_hack_return_intrinsic(visitor, 0, ls_l);
 
     v_terminate(ar_l);
+    v_terminate(ls_l);
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 }
@@ -936,21 +995,27 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_not_intrinsic", voidc_intrinsic_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", voidc_visitor_ptr,      p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",     void_ptr,               p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("list",    v_ast_generic_list_ptr, p2);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg0);
 
-    v_list_get_items(arg_list, 0, arg0);
+    base_arg = v_cast(arg0, v_ast_base_ptr);
 
-    v_terminate(arg0);
+    v_list_get_items(list, 0, base_arg, 1);
+
+    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, arg0);
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);
+    v_ast_accept_visitor(base_arg, visitor);
+
+    v_terminate(arg0);
 
     cond_a = v_get_result_value();
 
@@ -968,14 +1033,20 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
+    ls_l = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(ls_l);
+
     ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(ar_l);
 
     v_make_list_nil(ar_l);
 
-    voidc_function_hack_return_intrinsic(visitor, 0, ar_l);
+    v_make_list(ls_l, 0, v_cast(ar_l, v_ast_base_ptr), 1);
+
+    voidc_function_hack_return_intrinsic(visitor, 0, ls_l);
 
     v_terminate(ar_l);
+    v_terminate(ls_l);
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 }

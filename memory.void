@@ -40,8 +40,17 @@
 //---------------------------------------------------------------------
 //- v_malloc
 //---------------------------------------------------------------------
-//- fun voidc_memory_malloc_intrinsic(visitor: voidc_visitor_t, aux: void_ptr, arg_list: v_ast_expr_list_ptr)
+//- voidc_memory_malloc_intrinsic: (visitor: voidc_visitor_t, aux: void_ptr,
+//-                                 list: v_ast_generic_list_ptr
+//-                                ) -> void
 //- {
+//-     arg_list = v_alloca(v_ast_opaque_expr_list_sptr);
+//-     v_initialize(arg_list);
+//-
+//-     base_arg_list = v_cast(arg_list, v_ast_base_ptr);
+//-
+//-     v_list_get_items(list, 0, base_arg_list);
+//-
 //-     args_count = v_list_get_size(arg_list);
 //-
 //-     args = v_alloca(v_ast_opaque_expr_sptr, args_count);
@@ -83,9 +92,9 @@
     //-----------------------------------------------------------------
     malloc_f = v_function_hack("voidc_memory_malloc_intrinsic", voidc_intrinsic_t);
 
-    visitor  = v_add_parameter_name(malloc_f, 0, "visitor",  voidc_visitor_ptr);
-    aux      = v_add_parameter_name(malloc_f, 1, "aux",      void_ptr);
-    arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", v_ast_expr_list_ptr);
+    visitor = v_add_parameter_name(malloc_f, 0, "visitor", voidc_visitor_ptr);
+    aux     = v_add_parameter_name(malloc_f, 1, "aux",     void_ptr);
+    list    = v_add_parameter_name(malloc_f, 2, "list",    v_ast_generic_list_ptr);
 
 
     val0 = v_alloca(LLVMValueRef, 4);
@@ -99,6 +108,34 @@
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
+
+
+    v_ast_opaque_expr_list_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_list_sptr);
+
+    arg_list = LLVMBuildAlloca(builder, v_ast_opaque_expr_list_sptr_, "arg_list");
+
+
+    v_store(arg_list, val0);
+    v_store(n1,       val1);
+
+    arg_list_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_list_sptr);
+
+    LLVMBuildCall(builder, arg_list_init_f, val0, 2, "");
+
+
+    v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
+
+    base_arg_list = LLVMBuildBitCast(builder, arg_list, v_ast_base_ptr_, "base_arg_list");
+
+
+    v_store(list,          val0);
+    v_store(n0,            val1);
+    v_store(base_arg_list, val2);
+    v_store(n1,            val3);
+
+    generic_list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_generic_list_sptr);
+
+    LLVMBuildCall(builder, generic_list_get_items_f, val0, 4, "");
 
 
     v_store(arg_list, val0);
@@ -221,10 +258,11 @@
 
     num_var_t = v_pointer_type(LLVMValueRef, 0);
 
-    v_add_variable("args",       v_ast_expr_ptr, args_v);
-    v_add_variable("args_count", int,            args_count_v);
-    v_add_variable("num_var",    num_var_t,      num_v);
-    v_add_variable("tt",         v_type_ptr,     tt_v);
+    v_add_variable("arg_list",   v_ast_expr_list_ptr, arg_list);
+    v_add_variable("args",       v_ast_expr_ptr,      args_v);
+    v_add_variable("args_count", int,                 args_count_v);
+    v_add_variable("num_var",    num_var_t,           num_v);
+    v_add_variable("tt",         v_type_ptr,          tt_v);
 }
 {
     number = v_load(num_var);
@@ -249,6 +287,7 @@
     v_adopt_result(pt, ret);
 
     v_terminate(args, args_count);
+    v_terminate(arg_list);
 }
 
 
@@ -259,9 +298,9 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_memory_mfree_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
     builder = v_target_get_builder();
@@ -271,7 +310,13 @@
     arg0 = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg0);
 
-    v_list_get_items(arg_list, 0, arg0, 1);
+    base_arg = v_cast(arg0, v_ast_base_ptr);
+
+    v_list_get_items(list, 0, base_arg);
+
+    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, arg0);
 
     arg_base = v_cast(arg0, v_ast_base_ptr);
 
