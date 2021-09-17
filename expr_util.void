@@ -45,13 +45,22 @@
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(voidc_visitor_ptr,      typ0);
-    v_store(void_ptr,               typ1);
-    v_store(v_ast_generic_list_ptr, typ2);
+    v_store(char_ptr, typ0);
+    v_store(char_ptr, typ1);
 
-    method_ft = v_function_type(void, typ0, 3, false);
+    ft = v_function_type(int, typ0, 2, false);
+    v_add_symbol("strcmp", ft, 0);
 
-    v_add_type("method_ft", method_ft);
+//  v_store(char_ptr, typ0);
+//  v_store(char_ptr, typ1);
+    v_store(size_t,   typ2);
+
+    ft = v_function_type(int, typ0, 3, false);
+    v_add_symbol("strncmp", ft, 0);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -82,7 +91,7 @@
     ft = v_function_type(void, typ0, 4, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("v_ast_make_expr_op_binary", ft);
+    f = v_function_hack("v_ast_make_operator_binary", ft);
 
     v_add_parameter_name(f, 0, "ret",  v_ast_generic_list_ptr);
     v_add_parameter_name(f, 1, "name", char_ptr);
@@ -123,7 +132,7 @@
     ft = v_function_type(void, typ0, 3, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("v_ast_make_expr_op_unary", ft);
+    f = v_function_hack("v_ast_make_operator_unary", ft);
 
     v_add_parameter_name(f, 0, "ret",  v_ast_generic_list_ptr);
     v_add_parameter_name(f, 1, "name", char_ptr);
@@ -198,7 +207,7 @@
     op = v_alloca(v_ast_opaque_generic_list_sptr);
     v_initialize(op);
 
-    v_ast_make_expr_op_binary(op, name, prec, left);
+    v_ast_make_operator_binary(op, name, prec, left);
 
     v_list_append(expr_oplist, expr_oplist, v_cast(op, v_ast_base_ptr));
 
@@ -226,7 +235,7 @@
     op = v_alloca(v_ast_opaque_generic_list_sptr);
     v_initialize(op);
 
-    v_ast_make_expr_op_unary(op, name, prec);
+    v_ast_make_operator_unary(op, name, prec);
 
     v_list_append(expr_oplist, expr_oplist, v_cast(op, v_ast_base_ptr));
 
@@ -310,17 +319,8 @@
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("expr_node_tag",   q_ref, q("v_ast_expr_node_t_visitor_method_tag"));
-
-    v_add_symbol("opc_logical_and", q_ref, q("op_infix_logical_and"));
-    v_add_symbol("opc_logical_or",  q_ref, q("op_infix_logical_or"));
-
-    v_add_symbol("opc_relation_lt", q_ref, q("op_infix_lt"));
-    v_add_symbol("opc_relation_le", q_ref, q("op_infix_le"));
-    v_add_symbol("opc_relation_gt", q_ref, q("op_infix_gt"));
-    v_add_symbol("opc_relation_ge", q_ref, q("op_infix_ge"));
-    v_add_symbol("opc_relation_eq", q_ref, q("op_infix_eq"));
-    v_add_symbol("opc_relation_ne", q_ref, q("op_infix_ne"));
+    v_add_symbol("expr_call_tag",       q_ref, q("v_ast_expr_call_t_visitor_method_tag"));
+    v_add_symbol("expr_identifier_tag", q_ref, q("v_ast_expr_identifier_t_visitor_method_tag"));
 }
 
 //---------------------------------------------------------------------
@@ -1140,11 +1140,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_assign - compiler method
+//- op_infix_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_assign", method_ft);
+    f = v_function_hack("op_infix_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1156,11 +1156,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -1168,7 +1170,6 @@
     v1 = v_reference(v_alloca(LLVMValueRef));
 
     prepare_assign_arguments(ast0, visitor, aux, t0, v0, t1, v1);
-
 
     v_terminate(ast0, 2);
 
@@ -1224,11 +1225,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -1236,7 +1239,6 @@
     v1 = v_reference(v_alloca(LLVMValueRef));
 
     prepare_assign_arguments(ast0, visitor, aux, t0, v0, t1, v1);
-
 
     v_terminate(ast0, 2);
 
@@ -1258,11 +1260,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_add_assign - compiler method
+//- op_infix_add_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_add_assign", method_ft);
+    f = v_function_hack("op_infix_add_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1275,11 +1277,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_sub_assign - compiler method
+//- op_infix_sub_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_sub_assign", method_ft);
+    f = v_function_hack("op_infix_sub_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1292,11 +1294,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_mul_assign - compiler method
+//- op_infix_mul_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_mul_assign", method_ft);
+    f = v_function_hack("op_infix_mul_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1309,11 +1311,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_div_assign - compiler method
+//- op_infix_div_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_div_assign", method_ft);
+    f = v_function_hack("op_infix_div_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1326,11 +1328,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_rem_assign - compiler method
+//- op_infix_rem_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_rem_assign", method_ft);
+    f = v_function_hack("op_infix_rem_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1343,11 +1345,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_shl_assign - compiler method
+//- op_infix_shl_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_shl_assign", method_ft);
+    f = v_function_hack("op_infix_shl_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1360,11 +1362,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_shr_assign - compiler method
+//- op_infix_shr_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_shr_assign", method_ft);
+    f = v_function_hack("op_infix_shr_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1377,11 +1379,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_and_assign - compiler method
+//- op_infix_and_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_and_assign", method_ft);
+    f = v_function_hack("op_infix_and_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1394,11 +1396,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_xor_assign - compiler method
+//- op_infix_xor_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_xor_assign", method_ft);
+    f = v_function_hack("op_infix_xor_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1411,11 +1413,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_or_assign - compiler method
+//- op_infix_or_assign - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_or_assign", method_ft);
+    f = v_function_hack("op_infix_or_assign", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1454,43 +1456,58 @@
 {
     tag = v_ast_base_get_visitor_method_tag(arg);
 
-    if (v_icmp(LLVMIntNE, tag, expr_node_tag))  v_return(false);
+    if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(false);
 
-    obj = v_ast_generic_get_object(arg);
+    arg = v_cast(arg, v_ast_expr_ptr);
 
-    lst = v_cast(obj, v_ast_generic_list_ptr);
+    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(etmp);
 
-    op = v_alloca(v_ast_opaque_generic_list_sptr);
-    v_initialize(op);
+    v_ast_expr_call_get_fun_expr(arg, etmp);
 
-    v_list_get_items(lst, 0, v_cast(op, v_ast_base_ptr));
+    tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
-    opc = v_alloca(v_ast_opaque_expr_sptr);
-    v_initialize(opc);
+    if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
+    {
+        v_terminate(etmp);
+        v_return(false);
+    }
 
-    v_list_get_items(op, 0, v_cast(opc, v_ast_base_ptr));
+    name = v_ast_expr_identifier_get_name(etmp);
 
-    tag = v_ast_expr_integer_get_number(opc);
+    v_terminate(etmp);
 
-    v_terminate(opc);
-    v_terminate(op);
+    if (strcmp(name, "v.op_infix_logical_and"))
+    {
+        v_return(false);
+    }
 
-    tag = v_cast(tag, v_quark_t);
+    if (lhs) ;
+    else if (rhs) ;
+    else
+    {
+        v_return(true);
+    }
 
-    if (v_icmp(LLVMIntNE, tag, opc_logical_and))  v_return(false);
+    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(lst);
 
-    if (lhs)  v_list_get_items(lst, 1, lhs);
-    if (rhs)  v_list_get_items(lst, 2, rhs);
+    v_ast_expr_call_get_arg_list(arg, lst);
+
+    if (lhs)  v_list_get_items(lst, 0, v_cast(lhs, v_ast_expr_ptr));
+    if (rhs)  v_list_get_items(lst, 1, v_cast(rhs, v_ast_expr_ptr));
+
+    v_terminate(lst);
 
     v_return(true);
 }
 
 //---------------------------------------------------------------------
-//- op_infix_logical_and - compiler method
+//- op_infix_logical_and - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_logical_and", method_ft);
+    f = v_function_hack("op_infix_logical_and", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1505,7 +1522,11 @@
     {   ast = v_alloca(v_ast_opaque_base_sptr);
         v_initialize(ast);
 
-        v_list_get_items(list, 1, ast);
+        v_list_get_items(list, 0, ast);
+
+        arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+        v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
         loop
         {
@@ -1525,7 +1546,11 @@
 
         v_assign(ast_i, v_getelementptr(ast, v_binop(LLVMSub, N, 2)));
 
-        v_list_get_items(list, 1, ast_i, 2);
+        v_list_get_items(list, 0, ast_i);
+
+        arg_list = v_cast(ast_i, v_ast_expr_list_ptr);
+
+        v_list_get_items(arg_list, 0, v_cast(ast_i, v_ast_expr_ptr), 2);
 
         loop
         {
@@ -1638,43 +1663,58 @@
 {
     tag = v_ast_base_get_visitor_method_tag(arg);
 
-    if (v_icmp(LLVMIntNE, tag, expr_node_tag))  v_return(false);
+    if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(false);
 
-    obj = v_ast_generic_get_object(arg);
+    arg = v_cast(arg, v_ast_expr_ptr);
 
-    lst = v_cast(obj, v_ast_generic_list_ptr);
+    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(etmp);
 
-    op = v_alloca(v_ast_opaque_generic_list_sptr);
-    v_initialize(op);
+    v_ast_expr_call_get_fun_expr(arg, etmp);
 
-    v_list_get_items(lst, 0, v_cast(op, v_ast_base_ptr));
+    tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
-    opc = v_alloca(v_ast_opaque_expr_sptr);
-    v_initialize(opc);
+    if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
+    {
+        v_terminate(etmp);
+        v_return(false);
+    }
 
-    v_list_get_items(op, 0, v_cast(opc, v_ast_base_ptr));
+    name = v_ast_expr_identifier_get_name(etmp);
 
-    tag = v_ast_expr_integer_get_number(opc);
+    v_terminate(etmp);
 
-    v_terminate(opc);
-    v_terminate(op);
+    if (strcmp(name, "v.op_infix_logical_or"))
+    {
+        v_return(false);
+    }
 
-    tag = v_cast(tag, v_quark_t);
+    if (lhs) ;
+    else if (rhs) ;
+    else
+    {
+        v_return(true);
+    }
 
-    if (v_icmp(LLVMIntNE, tag, opc_logical_or))   v_return(false);
+    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(lst);
 
-    if (lhs)  v_list_get_items(lst, 1, lhs);
-    if (rhs)  v_list_get_items(lst, 2, rhs);
+    v_ast_expr_call_get_arg_list(arg, lst);
+
+    if (lhs)  v_list_get_items(lst, 0, v_cast(lhs, v_ast_expr_ptr));
+    if (rhs)  v_list_get_items(lst, 1, v_cast(rhs, v_ast_expr_ptr));
+
+    v_terminate(lst);
 
     v_return(true);
 }
 
 //---------------------------------------------------------------------
-//- op_infix_logical_or - compiler method
+//- op_infix_logical_or - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_logical_or", method_ft);
+    f = v_function_hack("op_infix_logical_or", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1689,7 +1729,11 @@
     {   ast = v_alloca(v_ast_opaque_base_sptr);
         v_initialize(ast);
 
-        v_list_get_items(list, 1, ast);
+        v_list_get_items(list, 0, ast);
+
+        arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+        v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
         loop
         {
@@ -1709,7 +1753,11 @@
 
         v_assign(ast_i, v_getelementptr(ast, v_binop(LLVMSub, N, 2)));
 
-        v_list_get_items(list, 1, ast_i, 2);
+        v_list_get_items(list, 0, ast_i);
+
+        arg_list = v_cast(ast_i, v_ast_expr_list_ptr);
+
+        v_list_get_items(arg_list, 0, v_cast(ast_i, v_ast_expr_ptr), 2);
 
         loop
         {
@@ -1797,11 +1845,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_and - compiler method
+//- op_infix_and - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_and", method_ft);
+    f = v_function_hack("op_infix_and", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1813,11 +1861,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -1838,11 +1888,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_xor - compiler method
+//- op_infix_xor - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_xor", method_ft);
+    f = v_function_hack("op_infix_xor", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1854,11 +1904,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -1879,11 +1931,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_or - compiler method
+//- op_infix_or - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_or", method_ft);
+    f = v_function_hack("op_infix_or", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1895,11 +1947,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -1964,45 +2018,64 @@
 {
     tag = v_ast_base_get_visitor_method_tag(arg);
 
-    if (v_icmp(LLVMIntNE, tag, expr_node_tag))  v_return(false);
+    if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(0);
 
-    obj = v_ast_generic_get_object(arg);
+    arg = v_cast(arg, v_ast_expr_ptr);
 
-    lst = v_cast(obj, v_ast_generic_list_ptr);
+    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(etmp);
 
-    op = v_alloca(v_ast_opaque_generic_list_sptr);
-    v_initialize(op);
+    v_ast_expr_call_get_fun_expr(arg, etmp);
 
-    v_list_get_items(lst, 0, v_cast(op, v_ast_base_ptr));
+    tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
-    opc = v_alloca(v_ast_opaque_expr_sptr);
-    v_initialize(opc);
+    if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
+    {
+        v_terminate(etmp);
+        v_return(false);
+    }
 
-    v_list_get_items(op, 0, v_cast(opc, v_ast_base_ptr));
+    name = v_ast_expr_identifier_get_name(etmp);
 
-    tag = v_ast_expr_integer_get_number(opc);
+    v_terminate(etmp);
 
-    v_terminate(opc);
-    v_terminate(op);
-
-    tag = v_cast(tag, v_quark_t);
+    if (strncmp(name, "v.op_infix_", 11))
+    {
+        v_return(0);
+    }
 
     rk = v_reference(v_alloca(int));
 
     block
     {
-        if (v_icmp(LLVMIntEQ, tag, opc_relation_lt))  { v_assign(rk, rk_lt); v_break(); }
-        if (v_icmp(LLVMIntEQ, tag, opc_relation_le))  { v_assign(rk, rk_le); v_break(); }
-        if (v_icmp(LLVMIntEQ, tag, opc_relation_gt))  { v_assign(rk, rk_gt); v_break(); }
-        if (v_icmp(LLVMIntEQ, tag, opc_relation_ge))  { v_assign(rk, rk_ge); v_break(); }
-        if (v_icmp(LLVMIntEQ, tag, opc_relation_eq))  { v_assign(rk, rk_eq); v_break(); }
-        if (v_icmp(LLVMIntEQ, tag, opc_relation_ne))  { v_assign(rk, rk_ne); v_break(); }
+        suffix = v_getelementptr(name, 11);
+
+        if (strcmp(suffix, "lt")) ; else { v_assign(rk, rk_lt); v_break(); }
+        if (strcmp(suffix, "le")) ; else { v_assign(rk, rk_le); v_break(); }
+        if (strcmp(suffix, "gt")) ; else { v_assign(rk, rk_gt); v_break(); }
+        if (strcmp(suffix, "ge")) ; else { v_assign(rk, rk_ge); v_break(); }
+        if (strcmp(suffix, "eq")) ; else { v_assign(rk, rk_eq); v_break(); }
+        if (strcmp(suffix, "ne")) ; else { v_assign(rk, rk_ne); v_break(); }
 
         v_return(0);
     }
 
-    if (lhs)  v_list_get_items(lst, 1, lhs);
-    if (rhs)  v_list_get_items(lst, 2, rhs);
+    if (lhs) ;
+    else if (rhs) ;
+    else
+    {
+        v_return(true);
+    }
+
+    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(lst);
+
+    v_ast_expr_call_get_arg_list(arg, lst);
+
+    if (lhs)  v_list_get_items(lst, 0, v_cast(lhs, v_ast_expr_ptr));
+    if (rhs)  v_list_get_items(lst, 1, v_cast(rhs, v_ast_expr_ptr));
+
+    v_terminate(lst);
 
     v_return(rk);
 }
@@ -2040,7 +2113,11 @@
     {   ast = v_alloca(v_ast_opaque_base_sptr);
         v_initialize(ast);
 
-        v_list_get_items(list, 1, ast);
+        v_list_get_items(list, 0, ast);
+
+        arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+        v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
         loop
         {
@@ -2062,24 +2139,35 @@
 
     i = v_reference(v_alloca(int));
 
-    {   v_assign(i, v_binop(LLVMSub, N, 2));
+    {   ast_i = v_reference(v_alloca(v_ast_base_ptr));
+        rel_i = v_reference(v_alloca(int_ptr));
 
-        v_list_get_items(list, 1, v_getelementptr(ast, i), 2);
+        i = v_binop(LLVMSub, N, 2);
+
+        v_assign(ast_i, v_getelementptr(ast, i));
+        v_assign(rel_i, v_getelementptr(rel, i));
+
+        v_list_get_items(list, 0, ast_i);
+
+        arg_list = v_cast(ast_i, v_ast_expr_list_ptr);
+
+        v_list_get_items(arg_list, 0, v_cast(ast_i, v_ast_expr_ptr), 2);
 
         v_store(kind, v_getelementptr(rel, i));
 
         loop
         {
-            ast_i  = v_getelementptr(ast, i);
+            ast_i1 = v_getelementptr(ast_i, -1);
 
-            rk = check_relation(ast_i, v_getelementptr(ast_i, -1), ast_i);
+            rk = check_relation(ast_i, ast_i1, ast_i);
 
             if (rk) ;
             else    v_break();
 
-            v_assign(i, v_binop(LLVMSub, i, 1));        //- Sic!
+            v_store(rk, rel_i);
 
-            v_store(rk, v_getelementptr(rel, i));
+            v_assign(ast_i, ast_i1);
+            v_assign(rel_i, v_getelementptr(rel_i, -1));
         }
     }
 
@@ -2261,11 +2349,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_le - compiler method
+//- op_infix_le - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_le", method_ft);
+    f = v_function_hack("op_infix_le", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2278,11 +2366,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_lt - compiler method
+//- op_infix_lt - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_lt", method_ft);
+    f = v_function_hack("op_infix_lt", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2294,11 +2382,11 @@
     relation_helper(visitor, aux, list, rk_lt);
 }
 //---------------------------------------------------------------------
-//- op_infix_ge - compiler method
+//- op_infix_ge - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_ge", method_ft);
+    f = v_function_hack("op_infix_ge", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2311,11 +2399,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_gt - compiler method
+//- op_infix_gt - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_gt", method_ft);
+    f = v_function_hack("op_infix_gt", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2328,11 +2416,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_eq - compiler method
+//- op_infix_eq - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_eq", method_ft);
+    f = v_function_hack("op_infix_eq", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2345,11 +2433,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_ne - compiler method
+//- op_infix_ne - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_ne", method_ft);
+    f = v_function_hack("op_infix_ne", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2363,11 +2451,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_shl - compiler method
+//- op_infix_shl - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_shl", method_ft);
+    f = v_function_hack("op_infix_shl", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2379,11 +2467,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2404,11 +2494,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_shr - compiler method
+//- op_infix_shr - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_shr", method_ft);
+    f = v_function_hack("op_infix_shr", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2420,11 +2510,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2446,11 +2538,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_add - compiler method
+//- op_infix_add - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_add", method_ft);
+    f = v_function_hack("op_infix_add", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2464,7 +2556,11 @@
 
     ast1 = v_getelementptr(ast0, 1);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
+
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
 
     tt = v_get_result_type();
@@ -2581,11 +2677,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_sub - compiler method
+//- op_infix_sub - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_sub", method_ft);
+    f = v_function_hack("op_infix_sub", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2599,7 +2695,11 @@
 
     ast1 = v_getelementptr(ast0, 1);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
+
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
 
     tt = v_get_result_type();
@@ -2720,11 +2820,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_mul - compiler method
+//- op_infix_mul - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_mul", method_ft);
+    f = v_function_hack("op_infix_mul", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2736,11 +2836,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2761,11 +2863,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_div - compiler method
+//- op_infix_div - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_div", method_ft);
+    f = v_function_hack("op_infix_div", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2777,11 +2879,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2802,11 +2906,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_rem - compiler method
+//- op_infix_rem - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_rem", method_ft);
+    f = v_function_hack("op_infix_rem", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2818,11 +2922,13 @@
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
-    v_list_get_items(list, 1, ast0, 2);
+    v_list_get_items(list, 0, ast0);
 
+    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
     tt = v_get_result_type();
-
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2859,10 +2965,10 @@
     v_store(intptr_t,               typ3);
     v_store(bool,                   typ4);
 
-    method_ft = v_function_type(void, typ0, 5, false);
+    ft = v_function_type(void, typ0, 5, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("inc_dec_helper", method_ft);
+    f = v_function_hack("inc_dec_helper", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2876,7 +2982,11 @@
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
 
     tt = v_get_result_type();
@@ -2961,11 +3071,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_prefix_inc - compiler method
+//- op_prefix_inc - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_inc", method_ft);
+    f = v_function_hack("op_prefix_inc", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2978,11 +3088,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_prefix_dec - compiler method
+//- op_prefix_dec - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_dec", method_ft);
+    f = v_function_hack("op_prefix_dec", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2995,11 +3105,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_prefix_plus - compiler method
+//- op_prefix_plus - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_plus", method_ft);
+    f = v_function_hack("op_prefix_plus", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3011,7 +3121,11 @@
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
     v_ast_accept_visitor(ast, visitor);
 
@@ -3019,11 +3133,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_prefix_minus - compiler method
+//- op_prefix_minus - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_minus", method_ft);
+    f = v_function_hack("op_prefix_minus", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3035,7 +3149,11 @@
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
 
     tt = v_get_result_type();
@@ -3071,11 +3189,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_prefix_star - compiler method
+//- op_prefix_star - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_star", method_ft);
+    f = v_function_hack("op_prefix_star", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3087,7 +3205,11 @@
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
 
     tt = v_get_result_type();
@@ -3135,11 +3257,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_prefix_amp - compiler method
+//- op_prefix_amp - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_amp", method_ft);
+    f = v_function_hack("op_prefix_amp", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3151,7 +3273,11 @@
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
 
     tt = v_get_result_type();
@@ -3199,11 +3325,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_prefix_bang - compiler method
+//- op_prefix_bang - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_bang", method_ft);
+    f = v_function_hack("op_prefix_bang", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3215,7 +3341,11 @@
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
 
     tt = v_get_result_type();
@@ -3243,11 +3373,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_prefix_tilda - compiler method
+//- op_prefix_tilda - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_tilda", method_ft);
+    f = v_function_hack("op_prefix_tilda", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3259,7 +3389,11 @@
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
 
     tt = v_get_result_type();
@@ -3288,11 +3422,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_postfix_inc - compiler method
+//- op_postfix_inc - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_postfix_inc", method_ft);
+    f = v_function_hack("op_postfix_inc", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3305,11 +3439,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_postfix_dec - compiler method
+//- op_postfix_dec - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_postfix_dec", method_ft);
+    f = v_function_hack("op_postfix_dec", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3323,11 +3457,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_postfix_call - compiler method
+//- op_postfix_call - compiler intrinsic                        DEAD!!!
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_postfix_call", method_ft);
+    f = v_function_hack("op_postfix_call", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3336,47 +3470,16 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
-    v_initialize(ast0, 2);
-
-    ast1 = v_getelementptr(ast0, 1);
-
-
-    v_list_get_items(list, 0, ast0, 2);
-
-
-    fun = v_cast(ast1, v_ast_expr_ptr);
-
-
-    arg_list = v_alloca(v_ast_opaque_expr_list_sptr);
-    v_initialize(arg_list);
-
-    v_list_get_items(v_cast(ast0, v_ast_generic_list_ptr), 2, v_cast(arg_list, v_ast_base_ptr));
-
-
-    expr = v_alloca(v_ast_opaque_expr_sptr);
-    v_initialize(expr);
-
-    v_ast_make_expr_call(expr, fun, arg_list);      //- ?!?!?!?!?!?!?!?!?!
-
-
-    expr_base = v_cast(expr, v_ast_base_ptr);
-
-    v_ast_accept_visitor(expr_base, visitor);
-
-
-    v_terminate(expr);
-    v_terminate(arg_list);
-    v_terminate(ast0, 2);
+    //- WTF !?!?!?!?!
 }
 
 
 //---------------------------------------------------------------------
-//- op_postfix_index - compiler method
+//- op_postfix_index - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_postfix_index", method_ft);
+    f = v_function_hack("op_postfix_index", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3385,22 +3488,20 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
-    v_initialize(ast0, 2);
-
-    ast1 = v_getelementptr(ast0, 1);
+    lst0 = v_alloca(v_ast_opaque_expr_list_sptr, 2);
+    v_initialize(lst0, 2);
 
 
-    v_list_get_items(list, 0, ast0, 2);
+    v_list_get_items(list, 0, v_cast(lst0, v_ast_base_ptr), 2);
 
 
-    agg = v_cast(ast1, v_ast_expr_ptr);
+    agg = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(agg);
+
+    v_list_get_items(lst0, 0, agg);
 
 
-    idx_list = v_alloca(v_ast_opaque_expr_list_sptr);
-    v_initialize(idx_list);
-
-    v_list_get_items(v_cast(ast0, v_ast_generic_list_ptr), 2, v_cast(idx_list, v_ast_base_ptr));
+    idx_list = v_getelementptr(lst0, 1);
 
 
     idx = v_alloca(v_ast_opaque_expr_sptr);
@@ -3437,8 +3538,8 @@
 
 
     v_terminate(idx);
-    v_terminate(idx_list);
-    v_terminate(ast0, 2);
+    v_terminate(agg);
+    v_terminate(lst0, 2);
 
 
     if (agg_v) ;    //- Value ...
@@ -3552,11 +3653,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_parentheses - compiler method
+//- op_parentheses - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_parentheses", method_ft);
+    f = v_function_hack("op_parentheses", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -3568,7 +3669,11 @@
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
     v_ast_accept_visitor(ast, visitor);
 
@@ -3627,7 +3732,7 @@
     }
 
 
-    elt_t = v_pointer_type(method_ft, 0);
+    elt_t = v_pointer_type(voidc_intrinsic_t, 0);
     tab_t = v_array_type(elt_t, v_cast(count, uint64_t));
 
     elt_t_ = v_type_get_llvm_type(elt_t);
@@ -3902,6 +4007,9 @@
     arg = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg);
 
+    sstr = v_alloca(v_util_opaque_std_string);
+    v_initialize(sstr);
+
 
     i = v_reference(v_alloca(int));
 
@@ -3917,20 +4025,23 @@
         v_list_get_items(op, 0, v_cast(arg, v_ast_base_ptr));
 
         q = v_ast_expr_integer_get_number(arg);
-
         q = v_cast(q, v_quark_t);
+
+        v_std_string_set(sstr, "v.");
+
+        v_std_string_append(sstr, v_quark_to_string(q));
 
         ti = v_getelementptr(voidc_ast_expr_op_method_table, 0, i);
 
         m = v_load(ti);
 
-
-        voidc_visitor_set_void_method(vis, vis, q, m, 0);
+        voidc_visitor_set_intrinsic(vis, vis, v_std_string_get(sstr), m, 0);
 
 
         v_assign(i, v_binop(LLVMAdd, i, 1));
     }
 
+    v_terminate(sstr);
     v_terminate(arg);
     v_terminate(op);
 
@@ -3940,13 +4051,13 @@
 
 
     //-------------------------------------------------------------
-    v_export_intrinsic("int",   voidc_int_type_intrinsic, 0);
-    v_export_intrinsic("uint",  voidc_uint_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "int",   voidc_int_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "uint",  voidc_uint_type_intrinsic, 0);
 
-    v_export_intrinsic("float", voidc_float_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "float", voidc_float_type_intrinsic, 0);
 
-    v_export_intrinsic("vec",   voidc_vec_type_intrinsic, 0);
-    v_export_intrinsic("svec",  voidc_svec_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "vec",   voidc_vec_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "svec",  voidc_svec_type_intrinsic, 0);
 }
 
 
@@ -3970,8 +4081,8 @@
 //- ...
 //---------------------------------------------------------------------
 {
-    v_make_export_symbol("v_ast_make_expr_op_binary");
-    v_make_export_symbol("v_ast_make_expr_op_unary");
+    v_make_export_symbol("v_ast_make_operator_binary");
+    v_make_export_symbol("v_ast_make_operator_unary");
 
     v_make_export_symbol("voidc_ast_add_expr_op_methods");
 }

@@ -50,6 +50,21 @@
 
 
 //---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 2);
+
+    typ[0] := char_ptr;
+    typ[1] := char_ptr;
+
+    ft = v_function_type(int, typ, 2, false);
+    v_add_symbol("strcmp", ft, 0);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+
+//---------------------------------------------------------------------
 //- Some utility...
 //---------------------------------------------------------------------
 {   typ = v_alloca(v_type_ptr, 2);
@@ -352,15 +367,6 @@
 //---------------------------------------------------------------------
 //- mk_unit_var_defn - grammar action
 //---------------------------------------------------------------------
-{   tag_ptr = v_quark_ptr_from_string("v_ast_expr_node_t_visitor_method_tag");
-    opc_ptr = v_quark_ptr_from_string("op_infix_assign");
-
-    q_ref = v_reference_type(v_quark_t, 0);
-
-    v_add_symbol("expr_node_tag", q_ref, tag_ptr);
-    v_add_symbol("opc_assign",    q_ref, opc_ptr);
-}
-
 {
     //-----------------------------------------------------------------
     f = v_function_hack("mk_unit_var_defn_grammar_action", v_peg_grammar_action_fun_t);
@@ -372,7 +378,8 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-//  printf("mk_unit_var_defn_grammar_action\n");
+//    printf("mk_unit_var_defn_grammar_action\n");
+//    defer printf("mk_unit_var_defn_grammar_action leave\n");
 
     q_id = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
 
@@ -391,29 +398,29 @@
     {
         tag = v_ast_base_get_visitor_method_tag(ast+2);
 
-        if (tag != expr_node_tag)   v_break();
+        if (tag != v_ast_expr_call_t_visitor_method_tag) v_break();
 
-        obj = v_ast_generic_get_object(ast+2);
+        ast2 = v_cast(ast+2, v_ast_expr_ptr);
 
-        lst = v_cast(obj, v_ast_generic_list_ptr);
+        etmp = v_alloca(v_ast_opaque_expr_sptr);
+        v_initialize(etmp);
+        defer v_terminate(etmp);
 
-        op = v_alloca(v_ast_opaque_generic_list_sptr);
-        v_initialize(op);
-        defer v_terminate(op);
+        v_ast_expr_call_get_fun_expr(ast2, etmp);
 
-        v_list_get_items(lst, 0, v_cast(op, v_ast_base_ptr));
+        tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
-        opc = v_alloca(v_ast_opaque_expr_sptr);
-        v_initialize(opc);
-        defer v_terminate(opc);
+        if (tag != v_ast_expr_identifier_t_visitor_method_tag) v_break();
 
-        v_list_get_items(op, 0, v_cast(opc, v_ast_base_ptr));
+        name = v_ast_expr_identifier_get_name(etmp);
 
-        tag = v_ast_expr_integer_get_number(opc);
+        if (strcmp(name, "v.op_infix_assign"))  v_break();
 
-        if (tag != opc_assign)  v_break();
+        arg_list = v_cast(etmp, v_ast_expr_list_ptr);
 
-        v_list_get_items(lst, 1, ast+2, 2);
+        v_ast_expr_call_get_arg_list(ast2, arg_list);
+
+        v_list_get_items(arg_list, 0, ast2, 2);
     }
 
     v_list_get_items(q_id, 0, ast, 2);
@@ -577,29 +584,29 @@
     {
         tag = v_ast_base_get_visitor_method_tag(ast+0);
 
-        if (tag != expr_node_tag)   v_break();
+        if (tag != v_ast_expr_call_t_visitor_method_tag) v_break();
 
-        obj = v_ast_generic_get_object(ast+0);
+        ast0 = v_cast(ast+0, v_ast_expr_ptr);
 
-        lst = v_cast(obj, v_ast_generic_list_ptr);
+        etmp = v_alloca(v_ast_opaque_expr_sptr);
+        v_initialize(etmp);
+        defer v_terminate(etmp);
 
-        op = v_alloca(v_ast_opaque_generic_list_sptr);
-        v_initialize(op);
-        defer v_terminate(op);
+        v_ast_expr_call_get_fun_expr(ast0, etmp);
 
-        v_list_get_items(lst, 0, v_cast(op, v_ast_base_ptr));
+        tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
-        opc = v_alloca(v_ast_opaque_expr_sptr);
-        v_initialize(opc);
-        defer v_terminate(opc);
+        if (tag != v_ast_expr_identifier_t_visitor_method_tag) v_break();
 
-        v_list_get_items(op, 0, v_cast(opc, v_ast_base_ptr));
+        name = v_ast_expr_identifier_get_name(etmp);
 
-        tag = v_ast_expr_integer_get_number(opc);
+        if (strcmp(name, "v.op_infix_assign"))  v_break();
 
-        if (tag != opc_assign)  v_break();
+        arg_list = v_cast(etmp, v_ast_expr_list_ptr);
 
-        v_list_get_items(lst, 1, ast+0, 2);
+        v_ast_expr_call_get_arg_list(ast0, arg_list);
+
+        v_list_get_items(arg_list, 0, ast0, 2);
     }
 //    else
 //    {
@@ -677,7 +684,7 @@
 
 
 //---------------------------------------------------------------------
-//- v.internal.var_defn intrinsic
+//- v.internal.var_defn - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
@@ -688,6 +695,8 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
+//  printf("v_internal_var_defn_intrinsic\n");
+
     arg = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg, 2);
     defer v_terminate(arg, 2);
@@ -727,7 +736,7 @@
 }
 
 //---------------------------------------------------------------------
-//- v.internal.val_defn intrinsic
+//- v.internal.val_defn - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
@@ -738,6 +747,8 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
+//  printf("v_internal_val_defn_intrinsic\n");
+
     arg = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg, 2);
     defer v_terminate(arg, 2);
@@ -837,7 +848,8 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-//  printf("compile_unit_fun_defn\n");
+//    printf("compile_unit_fun_defn\n");
+//    defer printf("compile_unit_fun_defn leave\n");
 
     ast = v_alloca(v_ast_opaque_base_sptr, 9);
     v_initialize(ast, 9);
@@ -858,22 +870,21 @@
     body     = ast + 4;
 
     //-------------------------------------------------------------
-    args = v_cast(v_ast_generic_get_object(params), v_ast_generic_list_ptr);
+    args = v_cast(ast+5, v_ast_expr_list_ptr);
 
-    v_list_get_items(args, 1, ast+5);
+    v_ast_expr_call_get_arg_list(v_cast(params, v_ast_expr_ptr), args);
+
+    v_list_get_items(args, 0, v_cast(ast+5, v_ast_expr_ptr));
 
     args = v_cast(ast+5, v_ast_generic_list_ptr);
 
-    //-------------------------------------------------------------
-    v_copy(ast+6, v_cast(op_infix_to, v_ast_base_ptr));
-    v_copy(ast+7, params);
-    v_copy(ast+8, ret_type);
 
+    //-------------------------------------------------------------
     expr = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(expr);
     defer v_terminate(expr);
 
-    v_ast_make_expr_node(expr, ast+6, 3);
+    v_ast_make_expr_op_binary(expr, op_infix_to, v_cast(params, v_ast_expr_ptr), v_cast(ret_type, v_ast_expr_ptr));
 
 
     v_set_result_type(INVIOLABLE_TAG);
@@ -975,7 +986,8 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-//  printf("compile_unit_var_defn\n");
+//    printf("compile_unit_var_defn\n");
+//    defer printf("compile_unit_var_defn leave\n");
 
     ast = v_alloca(v_ast_opaque_base_sptr, 4);
     v_initialize(ast, 4);
@@ -1469,11 +1481,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_prefix_const/volatile - compiler method
+//- op_prefix_const/volatile - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_op_prefix_cv", method_ft);
+    f = v_function_hack("compile_op_prefix_cv", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1488,7 +1500,11 @@
     v_initialize(ast);
     defer v_terminate(ast);
 
-    v_list_get_items(list, 1, ast);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
     //-----------------------------------------------------------------
     //- Just "ignore" it...
@@ -1499,11 +1515,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_to - compiler method (types only(!))
+//- op_infix_to - compiler intrinsic (types only(!))
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_op_infix_to", method_ft);
+    f = v_function_hack("compile_op_infix_to", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1512,20 +1528,28 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-//  printf("compile_op_infix_to\n");
+//    printf("compile_op_infix_to\n");
+//    defer printf("compile_op_infix_to leave\n");
 
     ast = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
-    v_list_get_items(list, 1, ast, 2);
+    v_list_get_items(list, 0, ast);
+
+    arg_list = v_cast(ast, v_ast_expr_list_ptr);
+
+    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr), 2);
 
 
-    args = v_cast(v_ast_generic_get_object(ast+0), v_ast_generic_list_ptr);
+    args = v_cast(ast+0, v_ast_expr_list_ptr);
 
-    v_list_get_items(args, 1, ast+0);
+    v_ast_expr_call_get_arg_list(v_cast(ast+0, v_ast_expr_ptr), args);
+
+    v_list_get_items(args, 0, v_cast(ast+0, v_ast_expr_ptr));
 
     args = v_cast(ast+0, v_ast_generic_list_ptr);
+
 
     argtypes = *v_alloca(* v_type_ptr) := 0;
     defer if (argtypes) v_mfree(argtypes);
@@ -1663,11 +1687,9 @@
     voidc_visitor_set_void_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  0);
     voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, 0);
 
-    q = v_quark_from_string;
-
-    voidc_visitor_set_void_method(vis, vis, q("op_infix_to"),        compile_op_infix_to,  0);
-    voidc_visitor_set_void_method(vis, vis, q("op_prefix_const"),    compile_op_prefix_cv, 0);
-    voidc_visitor_set_void_method(vis, vis, q("op_prefix_volatile"), compile_op_prefix_cv, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "v.op_infix_to",        compile_op_infix_to,  0);
+    voidc_visitor_set_intrinsic(vis, vis, "v.op_prefix_const",    compile_op_prefix_cv, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "v.op_prefix_volatile", compile_op_prefix_cv, 0);
 
     voidc_visitor_set_intrinsic(vis, vis, "v.internal.var_defn", v_internal_var_defn_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.internal.val_defn", v_internal_val_defn_intrinsic, 0);
@@ -1867,9 +1889,9 @@
     v_initialize(op_prefix_const);
     v_initialize(op_prefix_volatile);
 
-    v_ast_make_expr_op_binary(op_infix_to,        "op_infix_to",        30000, 1);      //- "Postfix" priority, left-assoc
-    v_ast_make_expr_op_unary( op_prefix_const,    "op_prefix_const",    20000);         //- "Prefix" priority
-    v_ast_make_expr_op_unary( op_prefix_volatile, "op_prefix_volatile", 20000);         //- "Prefix" priority
+    v_ast_make_operator_binary(op_infix_to,        "op_infix_to",        30000, 1);     //- "Postfix" priority, left-assoc
+    v_ast_make_operator_unary( op_prefix_const,    "op_prefix_const",    20000);        //- "Prefix" priority
+    v_ast_make_operator_unary( op_prefix_volatile, "op_prefix_volatile", 20000);        //- "Prefix" priority
 
     voidc_atexit(voidc_definitions_internal_terminate_gloabls);
 }
