@@ -1452,7 +1452,9 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    br_num = v_std_any_get_value(intptr_t, any0);
+    br_num = v_std_any_get_value(size_t, any0);     //- size_t == uintptr_t ...
+
+    br_num = v_cast(br_num, intptr_t);
 
 
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
@@ -2043,7 +2045,9 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    br_num = v_std_any_get_value(intptr_t, any0);
+    br_num = v_std_any_get_value(size_t, any0);     //- size_t == uintptr_t ...
+
+    br_num = v_cast(br_num, intptr_t);
 
 
     any1 = v_getelementptr(any0, 1);

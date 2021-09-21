@@ -836,9 +836,9 @@
                 ;
 
         prefix = "++"       { op_prefix_inc }
-               / '+'        { op_prefix_plus }
+               / '+' ![0-9] { op_prefix_plus }
                / "--"       { op_prefix_dec }
-               / '-'        { op_prefix_minus }
+               / '-' ![0-9] { op_prefix_minus }
                / '*'        { op_prefix_star }
                / '&'        { op_prefix_amp }
                / '!'        { op_prefix_bang }

@@ -395,6 +395,10 @@ voidc_types_ctx_t::make_svector_type(v_type_t *et, unsigned count)
 //-----------------------------------------------------------------
 void voidc_types_static_initialize(void)
 {
+    static_assert(sizeof(size_t)    == sizeof(void *));     //- Sic!!!
+    static_assert(sizeof(intptr_t)  == sizeof(void *));     //- Sic!!!
+    static_assert(sizeof(uintptr_t) == sizeof(void *));     //- Sic!!!
+
     auto &gctx = *voidc_global_ctx_t::voidc;
 
     auto int_type = gctx.int_type;

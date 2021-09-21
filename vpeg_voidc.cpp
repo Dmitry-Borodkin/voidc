@@ -134,24 +134,45 @@ mk_expr_char(std::any *ret, const std::any *args, size_t)
 }
 
 static void
+mk_pos_integer(std::any *ret, const std::any *args, size_t)
+{
+    uintptr_t n = std::any_cast<uintptr_t>(args[0]);
+
+    if (n > (~uintptr_t(0) >> 1)) return;               //- Fail!
+
+    *ret = intptr_t(n);
+}
+
+static void
 mk_neg_integer(std::any *ret, const std::any *args, size_t)
 {
-    auto n = std::any_cast<intptr_t>(args[0]);
+    uintptr_t n = std::any_cast<uintptr_t>(args[0]);
 
-    *ret = -n;
+    if (n > ~(~uintptr_t(0) >> 1))  return;             //- Fail!
+
+    *ret = intptr_t(~n + 1);    //- "Safe" negate...
 }
 
 static void
 mk_dec_integer(std::any *ret, const std::any *args, size_t)
 {
-    auto n = std::any_cast<intptr_t>(args[0]);
+    uintptr_t n = std::any_cast<uintptr_t>(args[0]);
 
-//  intptr_t d = std::any_cast<char32_t>(args[1]) - U'0';
-    intptr_t d = (char32_t)std::any_cast<uint32_t>(args[1]) - U'0';
+    if (n > UINTPTR_MAX/10) return;                             //- Fail!
 
-//  printf("dec_int: %d %d\n", (int)n, (int)d);
+    uintptr_t d = uintptr_t(char32_t(std::any_cast<uint32_t>(args[1])) - U'0');
+
+    if (n == UINTPTR_MAX/10  &&  d > UINTPTR_MAX%10) return;    //- Fail!
 
     if (n)  d += 10*n;
+
+    *ret = d;
+}
+
+static void
+mk_dec_numdigit(std::any *ret, const std::any *args, size_t)
+{
+    uintptr_t d = uintptr_t(char32_t(std::any_cast<uint32_t>(args[0])) - U'0');
 
     *ret = d;
 }
@@ -161,8 +182,7 @@ mk_string(std::any *ret, const std::any *args, size_t)
 {
     auto s = std::any_cast<const std::string>(args[0]);
 
-//  auto c = std::any_cast<char32_t>(args[1]);
-    auto c = (char32_t)std::any_cast<uint32_t>(args[1]);
+    auto c = char32_t(std::any_cast<uint32_t>(args[1]));
 
     char d[5];
 
@@ -236,8 +256,10 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(mk_expr_integer)
     DEF(mk_expr_string)
     DEF(mk_expr_char)
+    DEF(mk_pos_integer)
     DEF(mk_neg_integer)
     DEF(mk_dec_integer)
+    DEF(mk_dec_numdigit)
     DEF(mk_string)
     DEF(mk_EOF)
 
@@ -591,13 +613,24 @@ vpeg::grammar_t make_voidc_grammar(void)
 
 
     //-------------------------------------------------------------
-    //- integer <- dec_natural
-    //-          / '-' n:dec_natural    { mk_neg_integer(n) }
+    //- integer <- '+'? n:dec_natural   { mk_pos_integer(n) }
+    //-          / '-'  n:dec_natural   { mk_neg_integer(n) }
 
     gr = gr.set_parser("integer",
     mk_choice_parser(
     {
-        ip_dec_natural,
+        mk_sequence_parser(
+        {
+            mk_question_parser(mk_character_parser('+')),
+            mk_catch_variable_parser("n", ip_dec_natural),
+
+            mk_action_parser(
+                mk_call_action("mk_pos_integer",
+                {
+                    mk_identifier_argument("n")
+                })
+            )
+        }),
 
         mk_sequence_parser(
         {
@@ -615,7 +648,7 @@ vpeg::grammar_t make_voidc_grammar(void)
 
     //-------------------------------------------------------------
     //- dec_natural <- dec_positive
-    //-              / '0'              { 0 }
+    //-              / '0'              { mk_dec_numdigit('0') }
 
     gr = gr.set_parser("dec_natural",
     mk_choice_parser(
@@ -627,14 +660,17 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_character_parser('0'),
 
             mk_action_parser(
-                mk_return_action(mk_integer_argument(0))
+                mk_call_action("mk_dec_numdigit",
+                {
+                    mk_character_argument('0')
+                })
             )
         })
     }));
 
     //-------------------------------------------------------------
     //- dec_positive <- n:dec_positive d:dec_digit      { mk_dec_integer(n, d) }
-    //-               / d:[1-9]                         { mk_dec_integer(0, d) }
+    //-               / d:[1-9]                         { mk_dec_numdigit(d) }
 
     gr = gr.set_parser("dec_positive",
     mk_choice_parser(
@@ -659,9 +695,8 @@ vpeg::grammar_t make_voidc_grammar(void)
             ),
 
             mk_action_parser(
-                mk_call_action("mk_dec_integer",
+                mk_call_action("mk_dec_numdigit",
                 {
-                    mk_integer_argument(0),
                     mk_identifier_argument("d")
                 })
             )
