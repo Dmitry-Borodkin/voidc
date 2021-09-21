@@ -781,12 +781,13 @@
 //- prepare_assign_arguments - utility...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 6);
+    typ0 = v_alloca(v_type_ptr, 7);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
     typ5 = v_getelementptr(typ0, 5);
+    typ6 = v_getelementptr(typ0, 6);
 
     type_ref  = v_reference_type(v_type_ptr, 0);
     value_ref = v_reference_type(LLVMValueRef, 0);
@@ -797,8 +798,9 @@
     v_store(value_ref,         typ3);
     v_store(type_ref,          typ4);
     v_store(value_ref,         typ5);
+    v_store(bool,              typ6);
 
-    ft = v_function_type(void, typ0, 6, false);
+    ft = v_function_type(void, typ0, 7, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("prepare_assign_arguments", ft);
@@ -811,6 +813,7 @@
     v_add_parameter_name(f, 3, "val0",    value_ref);
     v_add_parameter_name(f, 4, "typ1",    type_ref);
     v_add_parameter_name(f, 5, "val1",    value_ref);
+    v_add_parameter_name(f, 6, "flag",    bool);
 }
 {
     ast1 = v_getelementptr(ast0, 1);
@@ -826,7 +829,16 @@
 
     e0 = v_type_refptr_get_element_type(typ0);
 
-    v_set_result_type(e0);
+    if (flag)
+    {
+        if (v_type_is_pointer(e0))  v_set_result_type(intptr_t);
+        else                        v_set_result_type(e0);
+    }
+    else
+    {
+        v_set_result_type(e0);
+    }
+
 
     v_ast_accept_visitor(ast1, visitor);
 
@@ -1160,7 +1172,7 @@
     t1 = v_reference(v_alloca(v_type_ptr));
     v1 = v_reference(v_alloca(LLVMValueRef));
 
-    prepare_assign_arguments(ast0, visitor, t0, v0, t1, v1);
+    prepare_assign_arguments(ast0, visitor, t0, v0, t1, v1, false);
 
     v_terminate(ast0, 2);
 
@@ -1188,17 +1200,19 @@
 //- op_assign_helper - utility
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 3);
+    typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
 
     fun_ptr = v_pointer_type(compile_op_ft, 0);
 
     v_store(voidc_visitor_ptr,      typ0);
     v_store(v_ast_generic_list_ptr, typ1);
     v_store(fun_ptr,                typ2);
+    v_store(bool,                   typ3);
 
-    ft = v_function_type(void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 4, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("op_assign_helper", ft);
@@ -1208,6 +1222,7 @@
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "list",    v_ast_generic_list_ptr);
     v_add_parameter_name(f, 2, "compile", fun_ptr);
+    v_add_parameter_name(f, 3, "flag",    bool);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
@@ -1226,7 +1241,7 @@
     t1 = v_reference(v_alloca(v_type_ptr));
     v1 = v_reference(v_alloca(LLVMValueRef));
 
-    prepare_assign_arguments(ast0, visitor, t0, v0, t1, v1);
+    prepare_assign_arguments(ast0, visitor, t0, v0, t1, v1, flag);
 
     v_terminate(ast0, 2);
 
@@ -1261,7 +1276,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_add);
+    op_assign_helper(visitor, list, compile_add, true);
 }
 
 //---------------------------------------------------------------------
@@ -1278,7 +1293,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_sub);
+    op_assign_helper(visitor, list, compile_sub, true);
 }
 
 //---------------------------------------------------------------------
@@ -1295,7 +1310,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_mul);
+    op_assign_helper(visitor, list, compile_mul, false);
 }
 
 //---------------------------------------------------------------------
@@ -1312,7 +1327,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_div);
+    op_assign_helper(visitor, list, compile_div, false);
 }
 
 //---------------------------------------------------------------------
@@ -1329,7 +1344,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_rem);
+    op_assign_helper(visitor, list, compile_rem, false);
 }
 
 //---------------------------------------------------------------------
@@ -1346,7 +1361,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_shl);
+    op_assign_helper(visitor, list, compile_shl, false);
 }
 
 //---------------------------------------------------------------------
@@ -1363,7 +1378,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_shr);
+    op_assign_helper(visitor, list, compile_shr, false);
 }
 
 //---------------------------------------------------------------------
@@ -1380,7 +1395,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_and);
+    op_assign_helper(visitor, list, compile_and, false);
 }
 
 //---------------------------------------------------------------------
@@ -1397,7 +1412,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_xor);
+    op_assign_helper(visitor, list, compile_xor, false);
 }
 
 //---------------------------------------------------------------------
@@ -1414,7 +1429,7 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-    op_assign_helper(visitor, list, compile_or);
+    op_assign_helper(visitor, list, compile_or, false);
 }
 
 

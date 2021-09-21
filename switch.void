@@ -822,7 +822,7 @@
         case_list is left-recursive;
 
 
-        case_block = c:case_item_list _ s:stmt_list     { mk_case_block(c, s) };
+        case_block = c:case_item_list _ s:case_stmt_list    { mk_case_block(c, s) };
 
 
         case_item_list = l:case_item_list _ i:case_item     { mk_expr_list(l, i) }
@@ -833,6 +833,14 @@
 
         case_item = "case" !ident_cont _ e:expr _ ':'   { mk_case_item(e) }
                   / "default" _ ':'                     { mk_case_item(0) };
+
+
+        case_stmt_list = l:case_stmt_list _ i:case_stmt     { mk_stmt_list(l, i) }
+                       / i:case_stmt                        { mk_stmt_list(0, i) };
+
+        case_stmt_list is left-recursive;
+
+        case_stmt = !("default" _ ':')  stmt;
 
 
         stmt += stmt_switch;
