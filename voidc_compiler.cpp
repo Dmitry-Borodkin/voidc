@@ -387,29 +387,15 @@ v_alloca(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t *list)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    assert(list);
-    if ((*list)->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong argument lists number: " + std::to_string((*list)->data.size()));
-    }
-
     auto args = std::dynamic_pointer_cast<const ast_expr_list_t>((*list)->data[0]);
 
-    assert(args);
-    if (args->data.size() < 1  ||  args->data.size() > 2)
-    {
-        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
-    }
-
     auto tt = lctx.result_type;
-
 
     lctx.result_type = INVIOLABLE_TAG;
 
     args->data[0]->accept(*vis);                //- Element type
 
     assert(lctx.result_value == nullptr);
-
 
     auto type = lctx.result_type;
     auto llvm_type = type->llvm_type();
@@ -443,19 +429,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    assert(list);
-    if ((*list)->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong argument lists number: " + std::to_string((*list)->data.size()));
-    }
-
     auto args = std::dynamic_pointer_cast<const ast_expr_list_t>((*list)->data[0]);
-
-    assert(args);
-    if (args->data.size() < 2)
-    {
-        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
-    }
 
     auto tt = lctx.result_type;
 
@@ -537,19 +511,7 @@ v_store(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t *list)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    assert(list);
-    if ((*list)->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong argument lists number: " + std::to_string((*list)->data.size()));
-    }
-
     auto args = std::dynamic_pointer_cast<const ast_expr_list_t>((*list)->data[0]);
-
-    assert(args);
-    if (args->data.size() != 2)
-    {
-        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
-    }
 
     lctx.result_type = UNREFERENCE_TAG;
 
@@ -571,19 +533,7 @@ v_load(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t *list)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    assert(list);
-    if ((*list)->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong argument lists number: " + std::to_string((*list)->data.size()));
-    }
-
     auto args = std::dynamic_pointer_cast<const ast_expr_list_t>((*list)->data[0]);
-
-    assert(args);
-    if (args->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
-    }
 
     auto tt = lctx.result_type;
 
@@ -607,19 +557,7 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t *list)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    assert(list);
-    if ((*list)->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong argument lists number: " + std::to_string((*list)->data.size()));
-    }
-
     auto args = std::dynamic_pointer_cast<const ast_expr_list_t>((*list)->data[0]);
-
-    assert(args);
-    if (args->data.size() != 2)
-    {
-        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
-    }
 
     auto tt = lctx.result_type;
 
@@ -631,13 +569,11 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t *list)
 
     auto src_type = lctx.result_type;
 
-
     lctx.result_type = INVIOLABLE_TAG;
 
     args->data[1]->accept(*vis);                //- Type
 
     assert(lctx.result_value == nullptr);
-
 
     auto dst_type = lctx.result_type;
 
@@ -751,19 +687,7 @@ v_pointer(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t *list
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    assert(list);
-    if ((*list)->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong argument lists number: " + std::to_string((*list)->data.size()));
-    }
-
     auto args = std::dynamic_pointer_cast<const ast_expr_list_t>((*list)->data[0]);
-
-    assert(args);
-    if (args->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
-    }
 
     auto tt = lctx.result_type;
 
@@ -799,19 +723,7 @@ v_reference(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t *li
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    assert(list);
-    if ((*list)->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong argument lists number: " + std::to_string((*list)->data.size()));
-    }
-
     auto args = std::dynamic_pointer_cast<const ast_expr_list_t>((*list)->data[0]);
-
-    assert(args);
-    if (args->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
-    }
 
     auto tt = lctx.result_type;
 
@@ -836,19 +748,7 @@ v_assign(const visitor_sptr_t *vis, void *, const ast_generic_list_sptr_t *list)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    assert(list);
-    if ((*list)->data.size() != 1)
-    {
-        throw std::runtime_error("Wrong argument lists number: " + std::to_string((*list)->data.size()));
-    }
-
     auto args = std::dynamic_pointer_cast<const ast_expr_list_t>((*list)->data[0]);
-
-    assert(args);
-    if (args->data.size() != 2)
-    {
-        throw std::runtime_error("Wrong arguments number: " + std::to_string(args->data.size()));
-    }
 
     auto tt = lctx.result_type;
 
