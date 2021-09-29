@@ -23,6 +23,8 @@
     v_import("switch.void");
 }
 
+//{ v_import("printf.void"); }
+
 {   voidc_enable_statement_if_then_else();
     voidc_enable_statement_block();
     voidc_enable_statement_loop();
@@ -319,8 +321,8 @@
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("expr_call_tag",       q_ref, q("v_ast_expr_call_t_visitor_method_tag"));
-    v_add_symbol("expr_identifier_tag", q_ref, q("v_ast_expr_identifier_t_visitor_method_tag"));
+    v_add_symbol("expr_call_tag",       q_ref, q("ast_expr_call_t"));
+    v_add_symbol("expr_identifier_tag", q_ref, q("ast_expr_identifier_t"));
 }
 
 //---------------------------------------------------------------------
@@ -2035,7 +2037,7 @@
     if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
     {
         v_terminate(etmp);
-        v_return(false);
+        v_return(0);
     }
 
     name = v_ast_expr_identifier_get_name(etmp);
@@ -2067,7 +2069,7 @@
     else if (rhs) ;
     else
     {
-        v_return(true);
+        v_return(rk);
     }
 
     lst = v_alloca(v_ast_opaque_expr_list_sptr);
@@ -2153,7 +2155,7 @@
 
         v_list_get_items(arg_list, 0, v_cast(ast_i, v_ast_expr_ptr), 2);
 
-        v_store(kind, v_getelementptr(rel, i));
+        v_store(kind, rel_i);
 
         loop
         {
@@ -2164,10 +2166,10 @@
             if (rk) ;
             else    v_break();
 
-            v_store(rk, rel_i);
-
             v_assign(ast_i, ast_i1);
             v_assign(rel_i, v_getelementptr(rel_i, -1));
+
+            v_store(rk, rel_i);
         }
     }
 
