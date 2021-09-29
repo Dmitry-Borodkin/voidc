@@ -1537,6 +1537,16 @@ voidc_get_unit_buffer(void)
     return  lctx.unit_buffer;
 }
 
+//---------------------------------------------------------------------
+void
+voidc_flush_unit_symbols(void)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    lctx.flush_unit_symbols();
+}
+
 
 //---------------------------------------------------------------------
 void
