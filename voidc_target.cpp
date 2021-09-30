@@ -801,11 +801,6 @@ voidc_global_ctx_t::static_initialize(void)
 #undef DEF
 
     //-------------------------------------------------------------
-    voidc->add_symbol_value("stdin",  (void *)stdin);       //- WTF?
-    voidc->add_symbol_value("stdout", (void *)stdout);      //- WTF?
-    voidc->add_symbol_value("stderr", (void *)stderr);      //- WTF?
-
-    //-------------------------------------------------------------
     {   v_type_t *typ[3];
 
         typ[0] = voidc->char_ptr_type;
@@ -1061,7 +1056,7 @@ voidc_local_ctx_t::find_symbol_value(const char *raw_name)
         sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(voidc_global_ctx_t::main_jd), raw_name);
     }
 
-    if (sym)  return (v_type_t *)sym->getAddress();
+    if (sym)  return (void *)sym->getAddress();
 
     return nullptr;
 }

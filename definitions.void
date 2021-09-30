@@ -1724,6 +1724,9 @@
     v_return_if(voidc_grammar_has_parser("unit_fun_defn"));
 
 
+    voidc_enable_expression();          //- Sic!
+
+
     any = v_alloca(v_util_opaque_std_any, 6);
     v_initialize(any, 6);
     defer v_terminate(any, 6);
