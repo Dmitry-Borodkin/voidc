@@ -289,6 +289,8 @@ voidc_types_ctx_t::make_function_type(v_type_t *ret, v_type_t * const *args, uns
 
     std::copy_n(args, count, ft_data+1);
 
+    assert((std::all_of(ft_data, ft_data+N, [this](auto t){ return &t->context == this; })));
+
     v_type_function_t::key_t key = { {ft_data, ft_data+N}, var_arg };
 
     auto [it, nx] = function_types.try_emplace(key, nullptr);
@@ -303,6 +305,8 @@ voidc_types_ctx_t::make_function_type(v_type_t *ret, v_type_t * const *args, uns
 v_type_pointer_t *
 voidc_types_ctx_t::make_pointer_type(v_type_t *et, unsigned addr_space)
 {
+    assert(&et->context == this);
+
     v_type_pointer_t::key_t key = { et, addr_space };
 
     auto [it, nx] = pointer_types.try_emplace(key, nullptr);
@@ -316,6 +320,8 @@ voidc_types_ctx_t::make_pointer_type(v_type_t *et, unsigned addr_space)
 v_type_reference_t *
 voidc_types_ctx_t::make_reference_type(v_type_t *et, unsigned addr_space)
 {
+    assert(&et->context == this);
+
     v_type_reference_t::key_t key = { et, addr_space };
 
     auto [it, nx] = reference_types.try_emplace(key, nullptr);
@@ -340,6 +346,8 @@ voidc_types_ctx_t::make_struct_type(const std::string &name)
 v_type_struct_t *
 voidc_types_ctx_t::make_struct_type(v_type_t * const *elts, unsigned count, bool packed)
 {
+    assert((std::all_of(elts, elts+count, [this](auto t){ return &t->context == this; })));
+
     v_type_struct_t::body_key_t key = { {elts, elts+count}, packed };
 
     auto [it, nx] = anon_struct_types.try_emplace(key, nullptr);
@@ -354,6 +362,8 @@ voidc_types_ctx_t::make_struct_type(v_type_t * const *elts, unsigned count, bool
 v_type_array_t *
 voidc_types_ctx_t::make_array_type(v_type_t *et, uint64_t count)
 {
+    assert(&et->context == this);
+
     v_type_array_t::key_t key = { et, count };
 
     auto [it, nx] = array_types.try_emplace(key, nullptr);
@@ -368,6 +378,8 @@ voidc_types_ctx_t::make_array_type(v_type_t *et, uint64_t count)
 v_type_vector_t *
 voidc_types_ctx_t::make_vector_type(v_type_t *et, unsigned count)
 {
+    assert(&et->context == this);
+
     v_type_vector_t::key_t key = { et, count };
 
     auto [it, nx] = vector_types.try_emplace(key, nullptr);
@@ -380,6 +392,8 @@ voidc_types_ctx_t::make_vector_type(v_type_t *et, unsigned count)
 v_type_svector_t *
 voidc_types_ctx_t::make_svector_type(v_type_t *et, unsigned count)
 {
+    assert(&et->context == this);
+
     v_type_svector_t::key_t key = { et, count };
 
     auto [it, nx] = svector_types.try_emplace(key, nullptr);

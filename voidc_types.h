@@ -58,6 +58,8 @@ protected:
       : context(ctx)
     {}
 
+    friend class voidc_types_ctx_t;
+
 private:
     v_type_t(const v_type_t &) = delete;
     v_type_t &operator=(const v_type_t &) = delete;
