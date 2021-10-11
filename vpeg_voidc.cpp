@@ -230,6 +230,14 @@ mk_EOF(std::any *ret, const std::any *args, size_t)
     *ret = ptr;
 }
 
+static void
+check_shebang(std::any *ret, const std::any *args, size_t)
+{
+    auto pos = std::any_cast<size_t>(args[0]);
+
+    if (pos == 0)   *ret = 0;       //- ...
+}
+
 
 //---------------------------------------------------------------------
 }   //- extern "C"
@@ -262,6 +270,7 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(mk_dec_numdigit)
     DEF(mk_string)
     DEF(mk_EOF)
+    DEF(check_shebang)
 
 #undef DEF
 
@@ -292,43 +301,49 @@ vpeg::grammar_t make_voidc_grammar(void)
 
     DEF(_)
     DEF(comment)
+    DEF(shebang)
     DEF(space)
     DEF(EOL)
 
 #undef DEF
 
     //-------------------------------------------------------------
-    //- unit <- _ <'{'> _ l:stmt_list _ '}'     { mk_unit(l, $1s) }
-    //-       / _ !.                            { mk_EOF() }
+    //- unit <- shebang? _ ( <'{'> _ l:stmt_list _ '}'      { mk_unit(l, $1s) }
+    //-                      / !.                           { mk_EOF() }
+    //-                    )
 
     gr = gr.set_parser("unit",
-    mk_choice_parser(
+    mk_sequence_parser(
     {
-        mk_sequence_parser(
-        {
-            ip__,
-            mk_catch_string_parser(mk_character_parser('{')),
-            ip__,
-            mk_catch_variable_parser("l", ip_stmt_list),
-            ip__,
-            mk_character_parser('}'),
+        mk_question_parser(ip_shebang),
+        ip__,
 
-            mk_action_parser(
-                mk_call_action("mk_unit",
-                {
-                    mk_identifier_argument("l"),
-                    mk_backref_argument(1, backref_argument_t::bk_start)
-                })
-            )
-        }),
-        mk_sequence_parser(
+        mk_choice_parser(
         {
-            ip__,
-            mk_not_parser(mk_dot_parser()),
+            mk_sequence_parser(
+            {
+                mk_catch_string_parser(mk_character_parser('{')),
+                ip__,
+                mk_catch_variable_parser("l", ip_stmt_list),
+                ip__,
+                mk_character_parser('}'),
 
-            mk_action_parser(
-                mk_call_action("mk_EOF", {})
-            )
+                mk_action_parser(
+                    mk_call_action("mk_unit",
+                    {
+                        mk_identifier_argument("l"),
+                        mk_backref_argument(1, backref_argument_t::bk_start)
+                    })
+                )
+            }),
+            mk_sequence_parser(
+            {
+                mk_not_parser(mk_dot_parser()),
+
+                mk_action_parser(
+                    mk_call_action("mk_EOF", {})
+                )
+            })
         })
     }));
 
@@ -866,6 +881,32 @@ vpeg::grammar_t make_voidc_grammar(void)
         ),
         ip_EOL
     }));
+
+    //-------------------------------------------------------------
+    //- shebang <- "#!" { check_shebang($0s) } (!EOL .)* EOL
+
+    gr = gr.set_parser("shebang",
+    mk_sequence_parser(
+    {
+        mk_literal_parser("#!"),
+
+        mk_action_parser(
+            mk_call_action("check_shebang",
+            {
+                mk_backref_argument(0, backref_argument_t::bk_start)
+            })
+        ),
+
+        mk_star_parser(
+            mk_sequence_parser(
+            {
+                mk_not_parser(ip_EOL),
+                mk_dot_parser()
+            })
+        ),
+        ip_EOL
+    }));
+
 
     //-------------------------------------------------------------
     //- space <- ' ' / '\t' / EOL
