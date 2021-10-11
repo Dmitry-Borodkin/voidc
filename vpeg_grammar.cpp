@@ -120,8 +120,6 @@ std::any grammar_t::parse(v_quark_t q_name, context_t &ctx) const
 //-----------------------------------------------------------------
 void grammar_t::static_initialize(void)
 {
-    static_assert((sizeof(parser_sptr_t) % sizeof(intptr_t)) == 0);
-
     auto &gctx = *voidc_global_ctx_t::voidc;
 
     v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(parser_sptr_t)/sizeof(intptr_t));

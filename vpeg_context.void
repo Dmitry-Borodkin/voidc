@@ -7,6 +7,7 @@
     v_import("voidc_target.void");
     v_import("voidc_types.void");
     v_import("voidc_util.void");
+    v_import("voidc_quark.void");
 
     v_import("vpeg_parser.void");
     v_import("vpeg_grammar.void");
@@ -16,15 +17,52 @@
 
 
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ptr, 3);
+{   v_util_register_itcmep_impl(v_peg_opaque_context_sptr, "v_peg", "context");
+}
+
+//---------------------------------------------------------------------
+{   context_ptr = v_pointer_type(v_peg_opaque_context_sptr, 0);
+    v_export_type("v_peg_context_ptr", context_ptr);
+}
+
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
 
     v_store(v_peg_grammar_ptr, typ0);
 
     ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("v_peg_get_grammar", ft);
     v_export_symbol_type("v_peg_set_grammar", ft);
+
+    v_store(v_peg_context_ptr, typ0);
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_export_symbol_type("v_peg_get_context", ft);
+    v_export_symbol_type("v_peg_set_context", ft);
+
+    void_ptr = v_pointer_type(void, 0);
+
+    v_store(void_ptr, typ0);
+
+    fgetc_fun_t   = v_function_type(int, typ0, 1, false);
+    fgetc_fun_ptr = v_pointer_type(fgetc_fun_t, 0);
+
+    v_store(v_peg_context_ptr, typ0);
+    v_store(fgetc_fun_ptr,     typ1);
+    v_store(void_ptr,          typ2);
+    v_store(v_peg_grammar_ptr, typ3);
+
+    ft = v_function_type(void, typ0, 4, false);
+    v_export_symbol_type("v_peg_make_context", ft);
+
+    v_store(v_util_std_any_ptr, typ0);
+    v_store(v_quark_t,          typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_parse", ft);
 
     size_t_ref = v_reference_type(size_t, 0);
 

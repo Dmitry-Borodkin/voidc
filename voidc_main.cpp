@@ -34,8 +34,10 @@
 static vpeg::grammar_t voidc_grammar;
 
 static ast_unit_sptr_t
-parse_unit(vpeg::context_t &pctx)
+parse_unit(void)
 {
+    auto &pctx = *vpeg::context_t::current_ctx;
+
     static const auto unit_q = v_quark_from_string("unit");
 
     auto ret = pctx.grammar.parse(unit_q, pctx);
@@ -486,13 +488,11 @@ v_import_helper(const char *name, bool _export)
             std::fwrite(buf, sizeof(size_t), 1, outfs);         //- Pointer to imports...
         }
 
-        {   vpeg::context_t pctx(infs, voidc_grammar);
+        {   auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
 
-            auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
+            vpeg::context_t::current_ctx = std::make_shared<vpeg::context_t>(infs, voidc_grammar);
 
-            vpeg::context_t::current_ctx = &pctx;
-
-            while(auto unit = parse_unit(pctx))
+            while(auto unit = parse_unit())
             {
                 unit->accept(voidc_compiler);
 
@@ -742,11 +742,9 @@ main(int argc, char *argv[])
 
             lctx.filename = src_name;
 
-            vpeg::context_t pctx(istr, current_grammar);
+            vpeg::context_t::current_ctx = std::make_shared<vpeg::context_t>(istr, current_grammar);
 
-            vpeg::context_t::current_ctx = &pctx;
-
-            while(auto unit = parse_unit(pctx))
+            while(auto unit = parse_unit())
             {
                 unit->accept(voidc_compiler);
 
@@ -759,9 +757,9 @@ main(int argc, char *argv[])
                 lctx.unit_buffer = nullptr;
             }
 
-            vpeg::context_t::current_ctx = nullptr;     //- ?
+            current_grammar = vpeg::context_t::current_ctx->grammar;
 
-            current_grammar = pctx.grammar;
+            vpeg::context_t::current_ctx = nullptr;     //- ?
 
             if (src != "-")   std::fclose(istr);
         }

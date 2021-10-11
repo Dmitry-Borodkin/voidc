@@ -22,6 +22,8 @@
 namespace vpeg
 {
 
+extern "C" typedef int (*context_fgetc_fun_t)(void *data);
+
 
 //---------------------------------------------------------------------
 //- Parsing context
@@ -29,6 +31,8 @@ namespace vpeg
 class context_t
 {
 public:
+    context_t(context_fgetc_fun_t fun, void *data, const grammar_t &_grammar);
+
     context_t(std::FILE *_input, const grammar_t &_grammar);
 
 public:
@@ -36,7 +40,7 @@ public:
     static void static_terminate(void);
 
 public:
-    static context_t *current_ctx;
+    static std::shared_ptr<context_t> current_ctx;
 
 public:
     struct variables_t
@@ -68,9 +72,6 @@ public:
 
         grammar.check_hash();
     }
-
-public:
-    bool is_ok(void) { return !std::ferror(input); }
 
 public:
     char32_t get_character(void)
@@ -121,8 +122,11 @@ public:
     size_t get_buffer_size(void) const { return buffer.size(); }
 
 private:
-    std::FILE *input;
+    const context_fgetc_fun_t fgetc_fun;
 
+    void * const fgetc_fun_data;
+
+private:
     size_t position = 0;
 
     immer::vector<char32_t> buffer;
@@ -137,6 +141,8 @@ private:
 
     size_t current_line = 1;
 };
+
+typedef std::shared_ptr<context_t> context_sptr_t;
 
 
 //---------------------------------------------------------------------

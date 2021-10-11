@@ -1,0 +1,106 @@
+{   v_import("voidc_util.void");
+    v_import("voidc_quark.void");
+    v_import("vpeg_parser.void");
+    v_import("vpeg_grammar.void");
+    v_import("vpeg_context.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("function_hack.void");
+    v_import("if_then_else.void");
+    v_import("block.void");
+    v_import("loop.void");
+    v_import("grammar.void");
+    v_import("expression.void");
+    v_import("defer.void");
+    v_import("definitions.void");
+}
+
+{   v_export_import("printf.void");
+}
+
+{
+    voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_statement_loop();
+    voidc_enable_statement_grammar();
+    voidc_enable_expression();
+    voidc_enable_statement_defer();
+    voidc_enable_definitions();
+}
+
+
+//---------------------------------------------------------------------
+cur_str: &*const char := v_undef();
+
+fgetc_fun: (void_data: *void) -> int
+{
+    cur_pos = *(void_data : *int);
+
+    c = (cur_str[cur_pos] : uint(8));
+
+    if (!c) v_return(-1);
+
+    ++cur_pos;
+
+    v_return(c);
+}
+
+
+//---------------------------------------------------------------------
+{   grm = v_alloca(v_peg_opaque_grammar_sptr);
+    v_initialize(grm);
+    defer v_terminate(grm);
+
+    v_peg_get_grammar(grm);
+
+    grammar grm
+    {
+    parsers:
+
+        my_unit = _ i:integer   { i }
+                / _ !.          { mk_EOF() }
+                ;
+    }
+
+    my_q = v_quark_from_string("my_unit");
+
+    //-----------------------------------------------------------------
+    ctx = v_alloca(v_peg_opaque_context_sptr, 2);
+    v_initialize(ctx, 2);
+    defer v_terminate(ctx, 2);
+
+    my_ctx    = ctx + 0;
+    saved_ctx = ctx + 1;
+
+    cur_pos: &int := v_undef();
+
+    v_peg_make_context(my_ctx, fgetc_fun, &cur_pos, grm);
+
+    //-----------------------------------------------------------------
+    v_peg_get_context(saved_ctx);
+    defer v_peg_set_context(saved_ctx);
+
+    v_peg_set_context(my_ctx);
+
+    res = v_alloca(v_util_opaque_std_any);
+    v_initialize(res);
+    defer v_terminate(res);
+
+    cur_str := " 1000 0 1 2 3 4 5 6 7 8 9 ";
+
+    cur_pos := 0;
+
+    loop
+    {
+        v_peg_parse(res, my_q);
+
+        pnum = v_std_any_get_pointer(intptr_t, res);
+
+        if (!pnum)  v_break();
+
+        printf("num: %d\n", (*pnum : int));
+    }
+}
+
+
