@@ -231,7 +231,7 @@ mk_EOF(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-check_shebang(std::any *ret, const std::any *args, size_t)
+is_SOF(std::any *ret, const std::any *args, size_t)
 {
     auto pos = std::any_cast<size_t>(args[0]);
 
@@ -270,7 +270,7 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(mk_dec_numdigit)
     DEF(mk_string)
     DEF(mk_EOF)
-    DEF(check_shebang)
+    DEF(is_SOF)
 
 #undef DEF
 
@@ -883,19 +883,19 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- shebang <- "#!" { check_shebang($0s) } (!EOL .)* EOL
+    //- shebang <- { is_SOF($0s) } "#!" (!EOL .)* EOL
 
     gr = gr.set_parser("shebang",
     mk_sequence_parser(
     {
-        mk_literal_parser("#!"),
-
         mk_action_parser(
-            mk_call_action("check_shebang",
+            mk_call_action("is_SOF",
             {
                 mk_backref_argument(0, backref_argument_t::bk_start)
             })
         ),
+
+        mk_literal_parser("#!"),
 
         mk_star_parser(
             mk_sequence_parser(
