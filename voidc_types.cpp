@@ -117,7 +117,14 @@ v_type_struct_t::obtain_llvm_type(void) const
 
     if (body_key)
     {
-        if (t  &&  !LLVMIsOpaqueStruct(t))  return t;
+        if (t)
+        {
+            if (!LLVMIsOpaqueStruct(t))   return t;
+
+            //- Create placeholder to prevent infinite recursion...
+
+            LLVMStructSetBody(t, nullptr, 0, body_key->second);     //- ???
+        }
 
         const std::size_t N = body_key->first.size();
 
@@ -256,24 +263,29 @@ voidc_types_ctx_t::~voidc_types_ctx_t()
 
 
 //---------------------------------------------------------------------
+template <typename T, typename K> inline
+T *
+voidc_types_ctx_t::make_type_helper(types_map_t<T, K> &tmap, const K &key)
+{
+    auto [it, nx] = tmap.try_emplace(key, nullptr);
+
+    if (nx) it->second.reset(new T(*this, it->first));
+
+    return  it->second.get();
+}
+
+
+//---------------------------------------------------------------------
 v_type_int_t *
 voidc_types_ctx_t::make_int_type(unsigned bits)
 {
-    auto [it, nx] = int_types.try_emplace(bits, nullptr);
-
-    if (nx) it->second.reset(new v_type_int_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(int_types, bits);
 }
 
 v_type_uint_t *
 voidc_types_ctx_t::make_uint_type(unsigned bits)
 {
-    auto [it, nx] = uint_types.try_emplace(bits, nullptr);
-
-    if (nx) it->second.reset(new v_type_uint_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(uint_types, bits);
 }
 
 
@@ -293,11 +305,7 @@ voidc_types_ctx_t::make_function_type(v_type_t *ret, v_type_t * const *args, uns
 
     v_type_function_t::key_t key = { {ft_data, ft_data+N}, var_arg };
 
-    auto [it, nx] = function_types.try_emplace(key, nullptr);
-
-    if (nx) it->second.reset(new v_type_function_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(function_types, key);
 }
 
 
@@ -309,11 +317,7 @@ voidc_types_ctx_t::make_pointer_type(v_type_t *et, unsigned addr_space)
 
     v_type_pointer_t::key_t key = { et, addr_space };
 
-    auto [it, nx] = pointer_types.try_emplace(key, nullptr);
-
-    if (nx) it->second.reset(new v_type_pointer_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(pointer_types, key);
 }
 
 //---------------------------------------------------------------------
@@ -324,11 +328,7 @@ voidc_types_ctx_t::make_reference_type(v_type_t *et, unsigned addr_space)
 
     v_type_reference_t::key_t key = { et, addr_space };
 
-    auto [it, nx] = reference_types.try_emplace(key, nullptr);
-
-    if (nx) it->second.reset(new v_type_reference_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(reference_types, key);
 }
 
 
@@ -336,11 +336,7 @@ voidc_types_ctx_t::make_reference_type(v_type_t *et, unsigned addr_space)
 v_type_struct_t *
 voidc_types_ctx_t::make_struct_type(const std::string &name)
 {
-    auto [it, nx] = named_struct_types.try_emplace(name, nullptr);
-
-    if (nx) it->second.reset(new v_type_struct_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(named_struct_types, name);
 }
 
 v_type_struct_t *
@@ -350,11 +346,7 @@ voidc_types_ctx_t::make_struct_type(v_type_t * const *elts, unsigned count, bool
 
     v_type_struct_t::body_key_t key = { {elts, elts+count}, packed };
 
-    auto [it, nx] = anon_struct_types.try_emplace(key, nullptr);
-
-    if (nx) it->second.reset(new v_type_struct_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(anon_struct_types, key);
 }
 
 
@@ -366,11 +358,7 @@ voidc_types_ctx_t::make_array_type(v_type_t *et, uint64_t count)
 
     v_type_array_t::key_t key = { et, count };
 
-    auto [it, nx] = array_types.try_emplace(key, nullptr);
-
-    if (nx) it->second.reset(new v_type_array_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(array_types, key);
 }
 
 
@@ -382,11 +370,7 @@ voidc_types_ctx_t::make_vector_type(v_type_t *et, unsigned count)
 
     v_type_vector_t::key_t key = { et, count };
 
-    auto [it, nx] = vector_types.try_emplace(key, nullptr);
-
-    if (nx) it->second.reset(new v_type_vector_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(vector_types, key);
 }
 
 v_type_svector_t *
@@ -396,11 +380,7 @@ voidc_types_ctx_t::make_svector_type(v_type_t *et, unsigned count)
 
     v_type_svector_t::key_t key = { et, count };
 
-    auto [it, nx] = svector_types.try_emplace(key, nullptr);
-
-    if (nx) it->second.reset(new v_type_svector_t(*this, it->first));
-
-    return  it->second.get();
+    return make_type_helper(svector_types, key);
 }
 
 

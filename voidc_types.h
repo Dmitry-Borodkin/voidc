@@ -465,21 +465,27 @@ private:
     std::unique_ptr<v_type_f64_t>  _f64_type;
     std::unique_ptr<v_type_f128_t> _f128_type;
 
-    std::map<unsigned, std::unique_ptr<v_type_int_t>>  int_types;
-    std::map<unsigned, std::unique_ptr<v_type_uint_t>> uint_types;
+    template <typename T, typename K = typename T::key_t>
+    using types_map_t = std::map<K, std::unique_ptr<T>>;
 
-    std::map<v_type_function_t::key_t, std::unique_ptr<v_type_function_t>> function_types;
+    template <typename T, typename K = typename T::key_t> inline
+    T *make_type_helper(types_map_t<T, K> &tmap, const K &key);
 
-    std::map<v_type_pointer_t::key_t,   std::unique_ptr<v_type_pointer_t>>   pointer_types;
-    std::map<v_type_reference_t::key_t, std::unique_ptr<v_type_reference_t>> reference_types;
+    types_map_t<v_type_int_t,  unsigned> int_types;
+    types_map_t<v_type_uint_t, unsigned> uint_types;
 
-    std::map<v_type_struct_t::name_key_t, std::unique_ptr<v_type_struct_t>> named_struct_types;
-    std::map<v_type_struct_t::body_key_t, std::unique_ptr<v_type_struct_t>> anon_struct_types;
+    types_map_t<v_type_function_t> function_types;
 
-    std::map<v_type_array_t::key_t, std::unique_ptr<v_type_array_t>> array_types;
+    types_map_t<v_type_pointer_t>   pointer_types;
+    types_map_t<v_type_reference_t> reference_types;
 
-    std::map<v_type_vector_t::key_t, std::unique_ptr<v_type_vector_t>> vector_types;
-    std::map<v_type_svector_t::key_t, std::unique_ptr<v_type_svector_t>> svector_types;
+    types_map_t<v_type_struct_t, v_type_struct_t::name_key_t> named_struct_types;
+    types_map_t<v_type_struct_t, v_type_struct_t::body_key_t> anon_struct_types;
+
+    types_map_t<v_type_array_t> array_types;
+
+    types_map_t<v_type_vector_t>  vector_types;
+    types_map_t<v_type_svector_t> svector_types;
 
 public:
     v_type_void_t * const void_type;

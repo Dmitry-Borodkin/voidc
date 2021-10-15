@@ -11,6 +11,7 @@
     v_import("llvm-c/Core.void");
 
     v_import("function_hack.void");
+    v_import("memory.void");
     v_import("if_then_else.void");
     v_import("block.void");
     v_import("loop.void");
@@ -29,16 +30,80 @@
 
 
 //---------------------------------------------------------------------
+//- Types dictionary...
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 2);
+
+    typ[0] := v_type_ptr;           //- Key
+    typ[1] := LLVMValueRef;         //- Value
+
+    node_t = v_struct_type(typ, 2, false);      //- Tree node
+
+    node_ptr = v_pointer_type(node_t, 0);
+
+    v_add_type("node_t",   node_t);
+    v_add_type("node_ptr", node_ptr);
+
+    //-----------------------------------------------------------------
+    dict_t = v_pointer_type(void, 0);           //- Types dictionary
+
+    dict_ptr = v_pointer_type(dict_t, 0);
+
+    v_add_type("dict_t",   dict_t);
+    v_add_type("dict_ptr", dict_ptr);
+}
+
+//---------------------------------------------------------------------
+//- tsearch etc...
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 3);
+
+    void_ptr = v_pointer_type(void, 0);
+
+    typ[0] := void_ptr;
+    typ[1] := void_ptr;
+
+    compare_ft  = v_function_type(int, typ, 2, false);
+    compare_ptr = v_pointer_type(compare_ft, 0);
+
+//  typ[0] := void_ptr;                         //- key
+    typ[1] := v_pointer_type(void_ptr, 0);      //- rootp
+    typ[2] := compare_ptr;                      //- compar
+
+    ft = v_function_type(void_ptr, typ, 3, false);
+    v_add_symbol("tsearch", ft, 0);
+    v_add_symbol("tfind", ft, 0);
+    v_add_symbol("tdelete", ft, 0);
+
+//  typ[0] := void_ptr;                         //- key
+
+    free_ft  = v_function_type(void, typ, 1, false);
+    free_ptr = v_pointer_type(free_ft, 0);
+
+//  typ[0] := void_ptr;                         //- root
+    typ[1] := free_ptr;                         //- free_node
+
+    ft = v_function_type(void, typ, 2, false);
+    v_add_symbol("tdestroy", ft, 0);
+
+    v_add_type("void_ptr",   void_ptr);
+    v_add_type("compare_ft", compare_ft);
+    v_add_type("free_ft",    free_ft);
+}
+
+
+//---------------------------------------------------------------------
 //- Context type
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ptr, 3);
+    typ = v_alloca(v_type_ptr, 4);
 
     typ[0] := int;                      //- Current stack length
     typ[1] := int;                      //- Maximum stack length
     typ[2] := LLVMValueRef;             //- The stack...
+    typ[3] := dict_t;                   //- Types dictionary
 
-    ctx_t = v_struct_type(typ, 3, false);
+    ctx_t = v_struct_type(typ, 4, false);
 
     ctx_ref = v_reference_type(ctx_t, 0);
 
@@ -53,6 +118,7 @@
     v_add_constant("stk_current",  int, LLVMConstInt(int_, 0, 0));
     v_add_constant("stk_maximum",  int, LLVMConstInt(int_, 1, 0));
     v_add_constant("stk_stack",    int, LLVMConstInt(int_, 2, 0));
+    v_add_constant("stk_dict",     int, LLVMConstInt(int_, 3, 0));
 
     llvm_opaque_type = v_type_refptr_get_element_type(LLVMTypeRef);
 
@@ -73,6 +139,129 @@
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
     voidc_set_unit_buffer(0);
+}
+
+
+//---------------------------------------------------------------------
+//- Types dictionary utility
+//---------------------------------------------------------------------
+{   f = v_function_hack("compare_nodes", compare_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "lhs", void_ptr);
+    v_add_parameter_name(f, 1, "rhs", void_ptr);
+}
+{
+    lhs = *v_cast(lhs, node_ptr);
+    rhs = *v_cast(rhs, node_ptr);
+
+    lhs = v_cast(lhs[0], size_t);
+    rhs = v_cast(rhs[0], size_t);
+
+    if (lhs < rhs)  v_return(-1);
+    if (lhs > rhs)  v_return(+1);
+
+    v_return(0);
+}
+
+//---------------------------------------------------------------------
+{   f = v_function_hack("free_node", free_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "void_node", void_ptr);
+}
+{
+    v_mfree(v_cast(void_node, node_ptr));
+}
+
+
+//---------------------------------------------------------------------
+//- Types dictionary API...
+//---------------------------------------------------------------------
+{   typ = *v_alloca(v_type_ptr) := dict_ptr;
+
+    ft = v_function_type(void, &typ, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("dict_initialize", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "dict", dict_ptr);
+}
+{
+    dict[0] := 0;       //- All zeros
+}
+
+//---------------------------------------------------------------------
+{   typ = *v_alloca(v_type_ptr) := dict_ptr;
+
+    ft = v_function_type(void, &typ, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("dict_terminate", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "dict", dict_ptr);
+}
+{
+    tdestroy(dict[0], free_node);
+}
+
+
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 2);
+
+    typ[0] := dict_ptr;
+    typ[1] := v_type_ptr;
+
+    ft = v_function_type(LLVMValueRef, typ, 2, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("dict_find", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "dict", dict_ptr);
+    v_add_parameter_name(f, 1, "key",  v_type_ptr);
+}
+{
+    r = tfind(&key, dict, compare_nodes);
+
+    if (!r) v_return(0);
+    else    v_return(v_cast(r, *node_ptr)[0][0][1]);
+}
+
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 3);
+
+    typ[0] := dict_ptr;
+    typ[1] := v_type_ptr;
+    typ[2] := LLVMValueRef;
+
+    ft = v_function_type(void, typ, 3, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("dict_insert", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "dict",  dict_ptr);
+    v_add_parameter_name(f, 1, "key",   v_type_ptr);
+    v_add_parameter_name(f, 2, "value", LLVMValueRef);
+}
+{
+    //- assert(!dict_find(key));
+
+    node = *v_malloc(node_t);
+
+    node[0] := key;
+    node[1] := value;
+
+    tsearch(&node, dict, compare_nodes);
 }
 
 
@@ -116,7 +305,25 @@
     ctx[stk_current] := 0;
     ctx[stk_maximum] := 0;
     ctx[stk_stack]   := 0;
+
+    dict_initialize(&ctx[stk_dict]);
 }
+
+//---------------------------------------------------------------------
+{
+    typ = *v_alloca(v_type_ptr) := ctx_ref;
+
+    ft = v_function_type(void, &typ, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_compile_type_ctx_terminate", ft);
+
+    v_add_parameter_name(f, 0, "ctx", ctx_ref);
+}
+{
+    dict_terminate(&ctx[stk_dict]);
+}
+
 
 //---------------------------------------------------------------------
 {
@@ -283,6 +490,11 @@
     v_add_parameter_name(f, 1, "ctx",  ctx_ref);
 }
 {
+    {   r = dict_find(&ctx[stk_dict], type);
+
+        if (r)  v_return(r);
+    }
+
     fn = *v_alloca(*char);
 
     k = v_kind(type);
@@ -309,6 +521,8 @@
 
     builder = v_target_get_builder();
 
+    ret = *v_alloca(LLVMValueRef);
+
     switch(k)
     {
     case v_type_kind_void:
@@ -316,7 +530,10 @@
     case v_type_kind_f32:
     case v_type_kind_f64:
     case v_type_kind_f128:
-        v_return(LLVMBuildCall(builder, f, 0, 0, ""));
+
+        ret := LLVMBuildCall(builder, f, 0, 0, "");
+
+        v_break();
 
     case v_type_kind_int:
     case v_type_kind_uint:
@@ -325,7 +542,9 @@
 
             val = LLVMConstInt(unsigned_, w, 0);
 
-            v_return(LLVMBuildCall(builder, f, &val, 1, ""));
+            ret := LLVMBuildCall(builder, f, &val, 1, "");
+
+            v_break();
         }
 
     case v_type_kind_function:
@@ -378,9 +597,9 @@
                 val[1] := LLVMConstNull(v_type_ptr_ptr_);
             }
 
-            ret = LLVMBuildCall(builder, f, val, 4, "");
+            ret := LLVMBuildCall(builder, f, val, 4, "");
 
-            v_return(ret);
+            v_break();
         }
 
     case v_type_kind_pointer:
@@ -392,11 +611,22 @@
 
             val[1] := LLVMConstInt(unsigned_, v_type_refptr_get_address_space(type), 0);
 
-            v_return(LLVMBuildCall(builder, f, val, 2, ""));
+            ret := LLVMBuildCall(builder, f, val, 2, "");
+
+            v_break();
         }
 
     case v_type_kind_struct:
         {
+            name = v_type_struct_get_name(type);
+
+            if (name)
+            {
+                name_v = LLVMBuildGlobalStringPtr(builder, name, "");
+
+                ret := LLVMBuildCall(builder, v_obtain_function("v_struct_type_named"), &name_v, 1, "");
+            }
+
             elts_v   = *v_alloca(LLVMValueRef);
             count_v  = *v_alloca(LLVMValueRef);
             packed_v = *v_alloca(LLVMValueRef);
@@ -448,16 +678,8 @@
                 packed_v := LLVMConstInt(bool_, p, 0);
             }
 
-            ret = *v_alloca(LLVMValueRef);
-
-            name = v_type_struct_get_name(type);
-
             if (name)
             {
-                name_v = LLVMBuildGlobalStringPtr(builder, name, "");
-
-                ret := LLVMBuildCall(builder, v_obtain_function("v_struct_type_named"), &name_v, 1, "");
-
                 if (has_body)
                 {
                     val = v_alloca(LLVMValueRef, 4);
@@ -483,7 +705,7 @@
                 ret := LLVMBuildCall(builder, f, val, 3, "");
             }
 
-            v_return(ret);
+            v_break();
         }
 
     case v_type_kind_array:
@@ -494,7 +716,9 @@
 
             val[1] := LLVMConstInt(uint64_t_, v_type_array_get_length(type), 0);
 
-            v_return(LLVMBuildCall(builder, f, val, 2, ""));
+            ret := LLVMBuildCall(builder, f, val, 2, "");
+
+            v_break();
         }
 
     case v_type_kind_vector:
@@ -506,9 +730,15 @@
 
             val[1] := LLVMConstInt(unsigned_, v_type_vector_get_size(type), 0);
 
-            v_return(LLVMBuildCall(builder, f, val, 2, ""));
+            ret := LLVMBuildCall(builder, f, val, 2, "");
+
+            v_break();
         }
     }
+
+    dict_insert(&ctx[stk_dict], type, ret);
+
+    v_return(ret);
 }
 
 
@@ -533,6 +763,7 @@
     v_export_type("voidc_compile_type_ctx_t", ctx_t);
 
     v_make_export_symbol("voidc_compile_type_ctx_initialize");
+    v_make_export_symbol("voidc_compile_type_ctx_terminate");
     v_make_export_symbol("voidc_compile_type_ctx_get_stack_length");
     v_make_export_symbol("voidc_compile_type_ctx_set_stack");
 

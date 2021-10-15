@@ -1434,6 +1434,8 @@
             ++i;
         }
 
+        voidc_compile_type_ctx_terminate(ctx);
+
         if (stksv)
         {
             LLVMBuildCall(builder, v_obtain_function("llvm.stackrestore"), &stksv, 1, "");
