@@ -32,7 +32,7 @@
 //---------------------------------------------------------------------
 //- Types dictionary...
 //---------------------------------------------------------------------
-{   typ = v_alloca(v_type_ptr, 2);
+{   typ = v_alloca(v_type_ptr, 3);
 
     typ[0] := v_type_ptr;           //- Key
     typ[1] := LLVMValueRef;         //- Value
@@ -268,10 +268,12 @@
 //---------------------------------------------------------------------
 //- Context utility
 //---------------------------------------------------------------------
-{
-    typ = *v_alloca(v_type_ptr) := ctx_ref;
+{   typ = v_alloca(v_type_ptr, 2);
 
-    ft = v_function_type(void, &typ, 1, false);
+    typ[0] := ctx_ref;
+    typ[1] := unsigned;
+
+    ft = v_function_type(void, typ, 2, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("ctx_stk_push", ft);
@@ -279,9 +281,10 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ctx", ctx_ref);
+    v_add_parameter_name(f, 1, "num", unsigned);
 }
 {
-    cur = ++ctx[stk_current];
+    cur = ctx[stk_current] += num;
 
     if (ctx[stk_maximum] < cur)
     {
@@ -316,12 +319,13 @@
     ft = v_function_type(void, &typ, 1, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_compile_type_ctx_terminate", ft);
+    f = v_function_hack("voidc_compile_type_ctx_reset", ft);
 
     v_add_parameter_name(f, 0, "ctx", ctx_ref);
 }
 {
     dict_terminate(&ctx[stk_dict]);
+    dict_initialize(&ctx[stk_dict]);    //- Sic!
 }
 
 
@@ -377,6 +381,8 @@
     v_add_parameter_name(f, 1, "ctx",  ctx_ref);
 }
 {
+    if (dict_find(&ctx[stk_dict], type))  v_return();
+
     comp_length = voidc_compile_type_compute_stack_length;
 
     switch(v_kind(type))
@@ -389,7 +395,7 @@
     case v_type_kind_int:
     case v_type_kind_uint:
 
-        v_return();
+        v_return();     //- Sic!
 
     case v_type_kind_function:
         {
@@ -397,10 +403,10 @@
 
             n = v_type_function_get_param_count(type);
 
+            cur_stk = v_load(&ctx[stk_current]);
+
             if (n)
             {
-                cur_stk = v_load(&ctx[stk_current]);
-
                 arg = v_alloca(v_type_ptr, n);
 
                 v_type_function_get_param_types(type, arg);
@@ -413,33 +419,43 @@
 
                     comp_length(arg[i], ctx);
 
-                    ctx_stk_push(ctx);
-
                     ++i;
                 }
+            }
+
+            if (dict_find(&ctx[stk_dict], type))  v_return();
+
+            if (n)
+            {
+                ctx_stk_push(ctx, n);
 
                 ctx[stk_current] := cur_stk;
             }
 
-            v_return();
+            v_break();
         }
 
     case v_type_kind_pointer:
     case v_type_kind_reference:
 
         comp_length(v_type_refptr_get_element_type(type), ctx);
-        v_return();
+        v_break();
 
     case v_type_kind_struct:
         {
             if (v_type_struct_is_opaque(type))  v_return();
 
+            if (v_type_struct_get_name(type))
+            {
+                dict_insert(&ctx[stk_dict], type, v_cast(1, LLVMValueRef));     //- Sic!
+            }
+
+            cur_stk = v_load(&ctx[stk_current]);
+
             n = v_type_struct_get_element_count(type);
 
             if (n)
             {
-                cur_stk = v_load(&ctx[stk_current]);
-
                 i = *v_alloca(int) := 0;
 
                 loop
@@ -448,28 +464,37 @@
 
                     comp_length(v_type_struct_get_type_at_index(type, i), ctx);
 
-                    ctx_stk_push(ctx);
-
                     ++i;
                 }
+            }
+
+            if (dict_find(&ctx[stk_dict], type))  v_return();
+
+            if (n)
+            {
+                ctx_stk_push(ctx, n);
 
                 ctx[stk_current] := cur_stk;
             }
 
-            v_return();
+            v_break();
         }
 
     case v_type_kind_array:
 
         comp_length(v_type_array_get_element_type(type), ctx);
-        v_return();
+        v_break();
 
     case v_type_kind_vector:
     case v_type_kind_svector:
 
         comp_length(v_type_vector_get_element_type(type), ctx);
-        v_return();
+        v_break();
     }
+
+    if (dict_find(&ctx[stk_dict], type))  v_return();
+
+    dict_insert(&ctx[stk_dict], type, v_cast(1, LLVMValueRef));     //- Sic!
 }
 
 
@@ -553,27 +578,44 @@
 
             val[0] := voidc_compile_type(v_type_function_get_return_type(type), ctx);
 
+            {   r = dict_find(&ctx[stk_dict], type);
+
+                if (r)  v_return(r);
+            }
+
             n = v_type_function_get_param_count(type);
-
-            val[2] := LLVMConstInt(int_, n, 0);
-
-            v = v_type_function_is_var_arg(type);
-
-            val[3] := LLVMConstInt(bool_, v, 0);
 
             if (n)
             {
+                a_t = v_alloca(v_type_ptr, n);
+
+                v_type_function_get_param_types(type, a_t);
+
+                a_v = v_alloca(LLVMValueRef, n);
+
+                i = *v_alloca(int) := 0;
+
+                loop
+                {
+                    if (i == n) v_break();
+
+                    a_v[i] := voidc_compile_type(a_t[i], ctx);
+
+                    ++i;
+                }
+
+                {   r = dict_find(&ctx[stk_dict], type);
+
+                    if (r)  v_return(r);
+                }
+
                 cur_stk = v_load(&ctx[stk_current]);
 
                 cur_stk_v = LLVMConstInt(int_, cur_stk, 0);
 
                 val[1] := LLVMBuildGEP(builder, ctx[stk_stack], &cur_stk_v, 1, "");
 
-                arg = v_alloca(v_type_ptr, n);
-
-                v_type_function_get_param_types(type, arg);
-
-                i = *v_alloca(int) := 0;
+                i := 0;
 
                 loop
                 {
@@ -583,7 +625,7 @@
 
                     val_i_v = LLVMBuildGEP(builder, val[1], &i_v, 1, "");
 
-                    LLVMBuildStore(builder, voidc_compile_type(arg[i], ctx), val_i_v);
+                    LLVMBuildStore(builder, a_v[i], val_i_v);
 
                     ctx[stk_current]++;
 
@@ -597,6 +639,12 @@
                 val[1] := LLVMConstNull(v_type_ptr_ptr_);
             }
 
+            val[2] := LLVMConstInt(int_, n, 0);
+
+            v = v_type_function_is_var_arg(type);
+
+            val[3] := LLVMConstInt(bool_, v, 0);
+
             ret := LLVMBuildCall(builder, f, val, 4, "");
 
             v_break();
@@ -608,6 +656,11 @@
             val = v_alloca(LLVMValueRef, 2);
 
             val[0] := voidc_compile_type(v_type_refptr_get_element_type(type), ctx);
+
+            {   r = dict_find(&ctx[stk_dict], type);
+
+                if (r)  v_return(r);
+            }
 
             val[1] := LLVMConstInt(unsigned_, v_type_refptr_get_address_space(type), 0);
 
@@ -625,6 +678,8 @@
                 name_v = LLVMBuildGlobalStringPtr(builder, name, "");
 
                 ret := LLVMBuildCall(builder, v_obtain_function("v_struct_type_named"), &name_v, 1, "");
+
+                dict_insert(&ctx[stk_dict], type, ret);     //- Sic!
             }
 
             elts_v   = *v_alloca(LLVMValueRef);
@@ -637,17 +692,35 @@
             {
                 n = v_type_struct_get_element_count(type);
 
-                count_v := LLVMConstInt(unsigned_, n, 0);
-
                 if (n)
                 {
+                    a_v = v_alloca(LLVMValueRef, n);
+
+                    i = *v_alloca(int) := 0;
+
+                    loop
+                    {
+                        if (i == n) v_break();
+
+                        typ_i = v_type_struct_get_type_at_index(type, i);
+
+                        a_v[i] := voidc_compile_type(typ_i, ctx);
+
+                        ++i;
+                    }
+
+                    {   r = dict_find(&ctx[stk_dict], type);
+
+                        if (r)  v_return(r);
+                    }
+
                     cur_stk = v_load(&ctx[stk_current]);
 
                     cur_stk_v = LLVMConstInt(int_, cur_stk, 0);
 
                     elts_v := LLVMBuildGEP(builder, ctx[stk_stack], &cur_stk_v, 1, "");
 
-                    i = *v_alloca(int) := 0;
+                    i := 0;
 
                     loop
                     {
@@ -657,9 +730,7 @@
 
                         elt_i_v = LLVMBuildGEP(builder, elts_v, &i_v, 1, "");
 
-                        typ_i = v_type_struct_get_type_at_index(type, i);
-
-                        LLVMBuildStore(builder, voidc_compile_type(typ_i, ctx), elt_i_v);
+                        LLVMBuildStore(builder, a_v[i], elt_i_v);
 
                         ctx[stk_current]++;
 
@@ -672,6 +743,8 @@
                 {
                     elts_v := LLVMConstNull(v_type_ptr_ptr_);
                 }
+
+                count_v := LLVMConstInt(unsigned_, n, 0);
 
                 p = v_type_struct_is_packed(type);
 
@@ -691,6 +764,8 @@
 
                     LLVMBuildCall(builder, v_obtain_function("v_type_struct_set_body"), val, 4, "");
                 }
+
+                v_return(ret);      //- Sic!
             }
             else
             {
@@ -714,6 +789,11 @@
 
             val[0] := voidc_compile_type(v_type_array_get_element_type(type), ctx);
 
+            {   r = dict_find(&ctx[stk_dict], type);
+
+                if (r)  v_return(r);
+            }
+
             val[1] := LLVMConstInt(uint64_t_, v_type_array_get_length(type), 0);
 
             ret := LLVMBuildCall(builder, f, val, 2, "");
@@ -727,6 +807,11 @@
             val = v_alloca(LLVMValueRef, 2);
 
             val[0] := voidc_compile_type(v_type_vector_get_element_type(type), ctx);
+
+            {   r = dict_find(&ctx[stk_dict], type);
+
+                if (r)  v_return(r);
+            }
 
             val[1] := LLVMConstInt(unsigned_, v_type_vector_get_size(type), 0);
 
@@ -763,7 +848,7 @@
     v_export_type("voidc_compile_type_ctx_t", ctx_t);
 
     v_make_export_symbol("voidc_compile_type_ctx_initialize");
-    v_make_export_symbol("voidc_compile_type_ctx_terminate");
+    v_make_export_symbol("voidc_compile_type_ctx_reset");
     v_make_export_symbol("voidc_compile_type_ctx_get_stack_length");
     v_make_export_symbol("voidc_compile_type_ctx_set_stack");
 

@@ -1341,6 +1341,8 @@
             voidc_compile_type_ctx_set_stack(ctx, ctx_stack);
         }
 
+        voidc_compile_type_ctx_reset(ctx);      //- Sic!
+
         val = v_alloca(LLVMValueRef, 6);
 
         llvm_const_int_f = v_obtain_function("LLVMConstInt");
@@ -1434,7 +1436,7 @@
             ++i;
         }
 
-        voidc_compile_type_ctx_terminate(ctx);
+        voidc_compile_type_ctx_reset(ctx);
 
         if (stksv)
         {
