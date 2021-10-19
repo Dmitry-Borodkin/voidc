@@ -136,12 +136,6 @@ using v_type_f32_t  = v_type_simple_t<v_type_t::k_f32>;
 using v_type_f64_t  = v_type_simple_t<v_type_t::k_f64>;
 using v_type_f128_t = v_type_simple_t<v_type_t::k_f128>;
 
-template<> extern LLVMTypeRef v_type_void_t::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_f16_t ::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_f32_t ::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_f64_t ::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_f128_t::obtain_llvm_type(void) const;
-
 
 //---------------------------------------------------------------------
 //- Integer types: signed/unsigned
@@ -390,9 +384,6 @@ class v_type_vector_tag_t : public v_type_tag_t<v_type_vector_base_t, tag>
 //---------------------------------------------------------------------
 using v_type_vector_t  = v_type_vector_tag_t<v_type_t::k_vector>;
 using v_type_svector_t = v_type_vector_tag_t<v_type_t::k_svector>;
-
-template<> extern LLVMTypeRef v_type_vector_t::obtain_llvm_type(void) const;
-template<> extern LLVMTypeRef v_type_svector_t::obtain_llvm_type(void) const;
 
 
 //---------------------------------------------------------------------
