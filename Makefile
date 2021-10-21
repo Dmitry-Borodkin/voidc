@@ -4,6 +4,8 @@
 #MYFLAGS=-O3 -Oz -DNDEBUG
 MYFLAGS=-g -fsanitize=address -fno-omit-frame-pointer
 
+CC=clang
+CFLAGS= `llvm-config --cflags` $(MYFLAGS)
 
 CXX=clang++
 CXXFLAGS= `llvm-config --cxxflags` -std=c++17 $(MYFLAGS)
@@ -17,6 +19,9 @@ all: voidc
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $<
 
 
 OBJS = \
@@ -32,6 +37,7 @@ vpeg_parser.o \
 vpeg_grammar.o \
 vpeg_context.o \
 vpeg_voidc.o \
+tq84-tsearch.o \
 
 
 voidc: $(OBJS)
@@ -50,7 +56,8 @@ clean:
 
 
 #----------------------------------------------------------------------
-.depend: $(wildcard *.cpp *.h) Makefile
+.depend: $(wildcard *.cpp *.c *.h) Makefile
+	$(CC) $(CFLAGS) -MM *.c >>.depend
 	$(CXX) $(CXXFLAGS) -MM *.cpp >>.depend
 
 include .depend

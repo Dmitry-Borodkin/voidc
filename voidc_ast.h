@@ -80,6 +80,8 @@ typedef std::shared_ptr<const ast_expr_base_t> ast_expr_sptr_t;
 template<typename Self, typename T>
 struct ast_list_t : public virtual ast_base_t, public std::enable_shared_from_this<Self>
 {
+    using item_t = T;
+
     const immer::vector<std::shared_ptr<const T>> data;
 
     ast_list_t() : data{} {}
@@ -110,11 +112,11 @@ public:
 
 private:
     immer::vector<std::shared_ptr<const T>>
-    do_append(const std::shared_ptr<const T> *list, size_t count) const
+    do_append(const std::shared_ptr<const T> *items, size_t count) const
     {
         auto t = data.transient();
 
-        for (size_t i=0; i<count; ++i)  t.push_back(list[i]);
+        for (size_t i=0; i<count; ++i)  t.push_back(items[i]);
 
         return t.persistent();
     }
