@@ -250,6 +250,10 @@ maybe_split_for_insert (node *rootp, node *parentp, node *gparentp,
     }
 }
 
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
 /* Find or insert datum into search tree.
    KEY is the key to be located, ROOTP is the address of tree root,
    COMPAR the ordering function.  */
@@ -365,7 +369,7 @@ tq84_tdelete (const void *key, void **vrootp, tq84__compar_fn_t compar)
      would need to have around 250.000 nodes.  */
   int stacksize = 40;
   int sp = 0;
-  node **nodestack = alloca (sizeof (node *) * stacksize);
+  node **nodestack = (node **) alloca (sizeof (node *) * stacksize);
 
   if (rootp == NULL)
     return NULL;
@@ -380,8 +384,8 @@ tq84_tdelete (const void *key, void **vrootp, tq84__compar_fn_t compar)
 	{
 	  node **newstack;
 	  stacksize += 20;
-	  newstack = alloca (sizeof (node *) * stacksize);
-	  nodestack = memcpy (newstack, nodestack, sp * sizeof (node *));
+	  newstack = (node **) alloca (sizeof (node *) * stacksize);
+	  nodestack = (node **) memcpy (newstack, nodestack, sp * sizeof (node *));
 	}
 
       nodestack[sp++] = rootp;
@@ -426,8 +430,8 @@ tq84_tdelete (const void *key, void **vrootp, tq84__compar_fn_t compar)
 	    {
 	      node **newstack;
 	      stacksize += 20;
-	      newstack = alloca (sizeof (node *) * stacksize);
-	      nodestack = memcpy (newstack, nodestack, sp * sizeof (node *));
+	      newstack = (node **) alloca (sizeof (node *) * stacksize);
+	      nodestack = (node **) memcpy (newstack, nodestack, sp * sizeof (node *));
 	    }
 	  nodestack[sp++] = parentp;
 	  parentp = up;
@@ -628,6 +632,9 @@ tq84_tdelete (const void *key, void **vrootp, tq84__compar_fn_t compar)
   return retval;
 }
 
+VOIDC_DLLEXPORT_END
+}
+
 
 /* Walk the nodes of a tree.
    ROOT is the root of the tree to be walked, ACTION the function to be
@@ -652,6 +659,10 @@ trecurse (const void *vroot, tq84__action_fn_t action, int level)
 }
 
 
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
 /* Walk the nodes of a tree.
    ROOT is the root of the tree to be walked, ACTION the function to be
    called at each node.  */
@@ -664,6 +675,8 @@ tq84_twalk (const void *vroot, tq84__action_fn_t action)
     trecurse (root, action, 0);
 }
 
+VOIDC_DLLEXPORT_END
+}
 
 
 /* The standardized functions miss an important functionality: the
@@ -680,6 +693,10 @@ tdestroy_recurse (node root, tq84__free_fn_t freefct)
   free (root);
 }
 
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
 void
 tq84_tdestroy (void *vroot, tq84__free_fn_t freefct)
 {
@@ -687,4 +704,7 @@ tq84_tdestroy (void *vroot, tq84__free_fn_t freefct)
 
   if (root != NULL)
     tdestroy_recurse (root, freefct);
+}
+
+VOIDC_DLLEXPORT_END
 }
