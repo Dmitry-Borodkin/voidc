@@ -2,7 +2,6 @@
 MYFLAGS=-fcxx-exceptions -IC:/Tools/include
 #MYFLAGS=-fsanitize=address -fno-omit-frame-pointer
 
-
 CXX=clang++
 #CXX=g++
 #CXXFLAGS=-g `llvm-config --cxxflags` -std=c++17 $(MYFLAGS) -frtti
@@ -21,7 +20,6 @@ all: voidc.exe
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-
 OBJS = \
 voidc_ast.o \
 voidc_types.o \
@@ -35,6 +33,7 @@ vpeg_parser.o \
 vpeg_grammar.o \
 vpeg_context.o \
 vpeg_voidc.o \
+tq84-tsearch.o \
 
 
 voidc.exe: $(OBJS)

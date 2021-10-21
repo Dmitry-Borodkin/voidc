@@ -26,6 +26,13 @@
 #ifndef TQ84_SEARCH_H
 #define	TQ84_SEARCH_H 1
 
+#include "voidc_dllexport.h"
+
+extern "C"
+{
+
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
 typedef enum
 {
   preorder,
@@ -63,5 +70,8 @@ void tq84_twalk (const void *__root, tq84__action_fn_t __action);
 typedef void (*tq84__free_fn_t) (void *__nodep);
 
 void tq84_tdestroy (void *__root, tq84__free_fn_t __freefct);
+
+VOIDC_DLLEXPORT_END
+}
 
 #endif
