@@ -33,7 +33,6 @@ vpeg_parser.o \
 vpeg_grammar.o \
 vpeg_context.o \
 vpeg_voidc.o \
-tq84-tsearch.o \
 
 
 voidc.exe: $(OBJS)

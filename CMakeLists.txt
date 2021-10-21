@@ -1,8 +1,6 @@
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 
-set(CMAKE_CXX_STANDARD 17)
-
 
 cmake_minimum_required(VERSION 3.13.4)
 project(Voidc)
@@ -17,6 +15,8 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 # E.g. if using the C++ header files
 # you will need to enable C++11 support
 # for your compiler.
+
+set(CMAKE_CXX_STANDARD 17)
 
 include_directories(${LLVM_INCLUDE_DIRS})
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
@@ -37,7 +37,6 @@ add_executable(voidc
     vpeg_grammar.cpp
     vpeg_context.cpp
     vpeg_voidc.cpp
-    tq84-tsearch.c
 )
 
 

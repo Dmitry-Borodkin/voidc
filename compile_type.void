@@ -64,36 +64,19 @@
     typ[1] := void_ptr;
 
     compare_ft  = v_function_type(int, typ, 2, false);
-    compare_ptr = v_pointer_type(compare_ft, 0);
-
-//  typ[0] := void_ptr;                         //- key
-    typ[1] := v_pointer_type(void_ptr, 0);      //- rootp
-    typ[2] := compare_ptr;                      //- compar
-
-    ft = v_function_type(void_ptr, typ, 3, false);
-    v_add_symbol("tq84_tsearch", ft, 0);
-    v_add_symbol("tq84_tfind", ft, 0);
-    v_add_symbol("tq84_tdelete", ft, 0);
 
 //  typ[0] := void_ptr;                         //- key
 
     free_ft  = v_function_type(void, typ, 1, false);
-    free_ptr = v_pointer_type(free_ft, 0);
-
-//  typ[0] := void_ptr;                         //- root
-    typ[1] := free_ptr;                         //- free_node
-
-    ft = v_function_type(void, typ, 2, false);
-    v_add_symbol("tq84_tdestroy", ft, 0);
 
     v_add_type("void_ptr",   void_ptr);
     v_add_type("compare_ft", compare_ft);
     v_add_type("free_ft",    free_ft);
 
-    v_add_alias("tsearch",  "tq84_tsearch");
-    v_add_alias("tfind",    "tq84_tfind");
-    v_add_alias("tdelete",  "tq84_tdelete");
-    v_add_alias("tdestroy", "tq84_tdestroy");
+    v_add_alias("tsearch",  "v_tsearch");
+    v_add_alias("tfind",    "v_tfind");
+//  v_add_alias("tdelete",  "v_tdelete");
+    v_add_alias("tdestroy", "v_tdestroy");
 }
 
 
