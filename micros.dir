@@ -1,5 +1,5 @@
-            ****  Язык программирования Void  ****             │Makefile clean
-                                                               │mingw64.mak clean
+            ****  Язык программирования Void  ****             │
+                                                               │
                                                                │
 voidc_ast.cpp                                                  │voidc_ast.cpp
     .h                                                         │voidc_ast.h
@@ -143,9 +143,15 @@ expr_test                                                      │expr_test.void
                                                                │
 ───────────────────────────────────────────────────────────────│
 CMakeLists.txt                                                 │CMakeLists.txt
-───────────────────────────────────────────────────────────────│
-Makefile                                                       │Makefile -j9
-Makefile Win                                                   │mingw64.mak -j5
+                                                               │
+    config                                                     │mk_config
+                                                               │
+    build                                                      │mk_build
+                                                               │
+    clean                                                      │mk_clean
+                                                               │
+    distclean                                                  │mk_distclean
+                                                               │
 ═══════════════════════════════════════════════════════════════│*
 README                                                         │README.md
 ───────────────────────────────────────────────────────────────│
@@ -154,7 +160,6 @@ GNU LGPL 3.0                                                   │LICENSE
 .hgignore                                                      │.hgignore
 ───────────────────────────────────────────────────────────────│
 void.doit                                                      │void.doit
-mak.doit                                                       │mak.doit
 ───────────────────────────────────────────────────────────────│
 micros.incdirs                                                 │micros.incdirs
   ..                                                           │incdirs.doit

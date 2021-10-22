@@ -1,0 +1,9 @@
+
+if [[ "$OSTYPE" =~ ^linux ]]; then
+    cmake --build build $2 $3 $4 $5 $6 $7 $8 $9 -- -j9
+fi
+
+if [[ "$OSTYPE" =~ ^msys ]]; then
+    cmake --build build $2 $3 $4 $5 $6 $7 $8 $9 -- -j5
+fi
+

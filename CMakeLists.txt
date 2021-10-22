@@ -18,6 +18,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 set(CMAKE_CXX_STANDARD 17)
 
+
 include_directories(${LLVM_INCLUDE_DIRS})
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
@@ -40,13 +41,24 @@ add_executable(voidc
 )
 
 
-target_compile_options(voidc PRIVATE -g -fsanitize=address -fno-omit-frame-pointer)
+if (UNIX)
+
+    target_compile_options(voidc PRIVATE -g -fsanitize=address -fno-omit-frame-pointer)
+
+    target_link_options(voidc PRIVATE -rdynamic -g -fsanitize=address -fno-omit-frame-pointer)
+
+endif (UNIX)
+
+
+if (MINGW)
+
+    target_compile_options(voidc PRIVATE -O3 -fcxx-exceptions -IC:/Tools/include -frtti)
+
+endif (MINGW)
 
 
 # Link against LLVM library(!)
 target_link_libraries(voidc LLVM)
 
-
-target_link_options(voidc PRIVATE -rdynamic -g -fsanitize=address -fno-omit-frame-pointer)
 
 
