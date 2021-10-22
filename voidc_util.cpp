@@ -828,26 +828,24 @@ struct tree_impl_t
 {
     struct compare_t
     {
-        explicit compare_t(compare_fun_t *p_fun)
+        explicit compare_t(compare_fun_t &p_fun)
           : compare(p_fun)
         {}
 
-        compare_fun_t *compare;
+        compare_fun_t &compare;
 
         bool operator()(const void *lhs, const void *rhs) const
         {
-            if (*compare) return  ((*compare)(lhs, rhs) < 0);
+            if (compare)  return  (compare(lhs, rhs) < 0);
             else          return  (uintptr_t(lhs) < uintptr_t(rhs));
         }
     };
 
-    compare_fun_t fun = 0;
-
-    compare_t compare = compare_t(&fun);
+    compare_fun_t compare_fun = 0;
 
     typedef std::set<const void *, compare_t> tree_t;
 
-    tree_t tree = tree_t(compare);
+    tree_t tree = tree_t(compare_t(compare_fun));
 };
 
 //---------------------------------------------------------------------
@@ -865,11 +863,11 @@ v_tsearch(const void *key, void **rootp, compare_fun_t compar)
 
     auto root = reinterpret_cast<tree_impl_t *>(*rootp);
 
-    root->fun = compar;
+    root->compare_fun = compar;     //- WTF ?!?!?
 
     auto [it,ok] = root->tree.insert(key);
 
-    return  (void *)&*it;       //- Sic!(?)
+    return  (void *)&*it;           //- Sic!(?)
 }
 
 //---------------------------------------------------------------------
@@ -882,13 +880,13 @@ v_tfind(const void *key, void **rootp, compare_fun_t compar)
 
     auto root = reinterpret_cast<tree_impl_t *>(*rootp);
 
-    root->fun = compar;
+    root->compare_fun = compar;     //- WTF ?!?!?
 
     auto it = root->tree.find(key);
 
     if (it == root->tree.end()) return nullptr;
 
-    return  (void *)&*it;       //- Sic!(?)
+    return  (void *)&*it;           //- Sic!(?)
 }
 
 
@@ -900,7 +898,7 @@ v_tdestroy(void *root_, void (*free_node)(void *nodep))
 
     auto root = reinterpret_cast<tree_impl_t *>(root_);
 
-    for (auto &it: root->tree)   free_node((void *)it);
+    for (auto &it: root->tree)   free_node((void *)it);     //- ?
 
     delete root;
 }
