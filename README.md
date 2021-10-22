@@ -70,8 +70,13 @@ The `voidc` is "tested" (well, in some sense) under Linux and Windows (MSYS2/Min
 
 #### Build:
 
-  - Linux: just simplistic `$ make`;
-  - Windows: `$ mingw32-make -f mingw64.mak`.
+Try scripts...
+
+```bash
+$ ./mk_config
+
+$ ./mk_build
+```
 
 
 ## Usage
@@ -81,9 +86,9 @@ Currently (Oct 2021) `voidc` works mainly from it's source directory.
 You can try some of:
 
 ```bash
-$ ./voidc hello.void
+$ ./build/voidc hello.void
 
-$ ./voidc hello_jit.void
+$ ./build/voidc hello_jit.void
 ```
 
 You should see the sacramental "Hello, world!" messages with some LLVM's printouts...
@@ -93,7 +98,7 @@ BTW, first time it can take a while due to long (idk, 10-30 sec) compilation of 
 After that, try:
 
 ```bash
-$ ./voidc definitions_test.void
+$ ./build/voidc definitions_test.void
 ```
 
 This "script" (with imports) uses almost all language features developed so far.
