@@ -114,6 +114,12 @@ import_paths_initialize(const char *exe_name)
             p = p.parent_path();
 
             import_paths.push_back(p);
+
+            //- Dirty hack...
+
+            import_paths.push_back(p / "..");               //- WTF ?!?!?
+            import_paths.push_back(p / "../level-00");      //- WTF ?!?!?
+            import_paths.push_back(p / "../level-01");      //- WTF ?!?!?
         }
     }
 }
