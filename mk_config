@@ -1,9 +1,9 @@
 
 if [[ "$OSTYPE" =~ ^linux ]]; then
-    cmake -S . -B build  $2 $3 $4 $5 $6 $7 $8 $9
+    cmake -S . -B build  $@
 fi
 
 if [[ "$OSTYPE" =~ ^msys ]]; then
-    cmake -S . -B build -G "MinGW Makefiles"  $2 $3 $4 $5 $6 $7 $8 $9
+    cmake -S . -B build -G "MinGW Makefiles"  $@
 fi
 

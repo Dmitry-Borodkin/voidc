@@ -1,20 +1,25 @@
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 
-
 cmake_minimum_required(VERSION 3.13.4)
+
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "No build type selected, default to Debug")
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type (default Debug)" FORCE)
+endif()
+
+string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
+
+
+#----------------------------------------------------------------------
 project(Voidc)
+#----------------------------------------------------------------------
 
 
 find_package(LLVM REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
-# Set your project compile flags.
-# E.g. if using the C++ header files
-# you will need to enable C++11 support
-# for your compiler.
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -24,7 +29,7 @@ separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
 
-# Now build our tools
+#----------------------------------------------------------------------
 add_executable(voidc
     voidc_ast.cpp
     voidc_types.cpp
@@ -41,11 +46,24 @@ add_executable(voidc
 )
 
 
+#----------------------------------------------------------------------
 if (UNIX)
 
-    target_compile_options(voidc PRIVATE -g -fsanitize=address -fno-omit-frame-pointer)
+    if (${uppercase_CMAKE_BUILD_TYPE} STREQUAL DEBUG)
 
-    target_link_options(voidc PRIVATE -rdynamic -g -fsanitize=address -fno-omit-frame-pointer)
+       set(MYFLAGS -g -fsanitize=address -fno-omit-frame-pointer)
+
+    endif()
+
+    if (${uppercase_CMAKE_BUILD_TYPE} STREQUAL RELEASE)
+
+       set(MYFLAGS -O3 -Oz -DNDEBUG)
+
+    endif()
+
+    target_compile_options(voidc PRIVATE ${MYFLAGS})
+
+    target_link_options(voidc PRIVATE -rdynamic ${MYFLAGS})
 
 endif (UNIX)
 

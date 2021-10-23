@@ -898,7 +898,10 @@ v_tdestroy(void *root_, void (*free_node)(void *nodep))
 
     auto root = reinterpret_cast<tree_impl_t *>(root_);
 
-    for (auto &it: root->tree)   free_node((void *)it);     //- ?
+    if (free_node)
+    {
+        for (auto &it: root->tree)   free_node((void *)it);     //- ?
+    }
 
     delete root;
 }
