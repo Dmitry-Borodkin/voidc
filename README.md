@@ -86,9 +86,9 @@ Currently (Oct 2021) `voidc` works mainly from it's source directory.
 You can try some of:
 
 ```bash
-$ ./build/voidc hello.void
+$ build/voidc hello.void
 
-$ ./build/voidc hello_jit.void
+$ build/voidc hello_jit.void
 ```
 
 You should see the sacramental "Hello, world!" messages with some LLVM's printouts...
@@ -98,7 +98,7 @@ BTW, first time it can take a while due to long (idk, 10-30 sec) compilation of 
 After that, try:
 
 ```bash
-$ ./build/voidc level-01/definitions_test.void
+$ build/voidc level-01/definitions_test.void
 ```
 
 This "script" (with imports) uses almost all language features developed so far.
