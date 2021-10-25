@@ -1153,17 +1153,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -1209,10 +1206,10 @@
 
     fun_ptr = v_pointer_type(compile_op_ft, 0);
 
-    v_store(voidc_visitor_ptr,      typ0);
-    v_store(v_ast_generic_list_ptr, typ1);
-    v_store(fun_ptr,                typ2);
-    v_store(bool,                   typ3);
+    v_store(voidc_visitor_ptr,   typ0);
+    v_store(v_ast_expr_list_ptr, typ1);
+    v_store(fun_ptr,             typ2);
+    v_store(bool,                typ3);
 
     ft = v_function_type(void, typ0, 4, false);
 
@@ -1221,18 +1218,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "list",    v_ast_generic_list_ptr);
-    v_add_parameter_name(f, 2, "compile", fun_ptr);
-    v_add_parameter_name(f, 3, "flag",    bool);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 2, "compile",  fun_ptr);
+    v_add_parameter_name(f, 3, "flag",     bool);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -1273,12 +1266,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_add, true);
+    op_assign_helper(visitor, arg_list, compile_add, true);
 }
 
 //---------------------------------------------------------------------
@@ -1290,12 +1284,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_sub, true);
+    op_assign_helper(visitor, arg_list, compile_sub, true);
 }
 
 //---------------------------------------------------------------------
@@ -1307,12 +1302,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_mul, false);
+    op_assign_helper(visitor, arg_list, compile_mul, false);
 }
 
 //---------------------------------------------------------------------
@@ -1324,12 +1320,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_div, false);
+    op_assign_helper(visitor, arg_list, compile_div, false);
 }
 
 //---------------------------------------------------------------------
@@ -1341,12 +1338,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_rem, false);
+    op_assign_helper(visitor, arg_list, compile_rem, false);
 }
 
 //---------------------------------------------------------------------
@@ -1358,12 +1356,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_shl, false);
+    op_assign_helper(visitor, arg_list, compile_shl, false);
 }
 
 //---------------------------------------------------------------------
@@ -1375,12 +1374,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_shr, false);
+    op_assign_helper(visitor, arg_list, compile_shr, false);
 }
 
 //---------------------------------------------------------------------
@@ -1392,12 +1392,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_and, false);
+    op_assign_helper(visitor, arg_list, compile_and, false);
 }
 
 //---------------------------------------------------------------------
@@ -1409,12 +1410,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_xor, false);
+    op_assign_helper(visitor, arg_list, compile_xor, false);
 }
 
 //---------------------------------------------------------------------
@@ -1426,12 +1428,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    op_assign_helper(visitor, list, compile_or, false);
+    op_assign_helper(visitor, arg_list, compile_or, false);
 }
 
 
@@ -1516,9 +1519,10 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     N = v_reference(v_alloca(int));
@@ -1526,10 +1530,6 @@
 
     {   ast = v_alloca(v_ast_opaque_base_sptr);
         v_initialize(ast);
-
-        v_list_get_items(list, 0, ast);
-
-        arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
         v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -1550,10 +1550,6 @@
     {   ast_i = v_reference(v_alloca(v_ast_base_ptr));
 
         v_assign(ast_i, v_getelementptr(ast, v_binop(LLVMSub, N, 2)));
-
-        v_list_get_items(list, 0, ast_i);
-
-        arg_list = v_cast(ast_i, v_ast_expr_list_ptr);
 
         v_list_get_items(arg_list, 0, v_cast(ast_i, v_ast_expr_ptr), 2);
 
@@ -1723,9 +1719,10 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     N = v_reference(v_alloca(int));
@@ -1733,10 +1730,6 @@
 
     {   ast = v_alloca(v_ast_opaque_base_sptr);
         v_initialize(ast);
-
-        v_list_get_items(list, 0, ast);
-
-        arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
         v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -1757,10 +1750,6 @@
     {   ast_i = v_reference(v_alloca(v_ast_base_ptr));
 
         v_assign(ast_i, v_getelementptr(ast, v_binop(LLVMSub, N, 2)));
-
-        v_list_get_items(list, 0, ast_i);
-
-        arg_list = v_cast(ast_i, v_ast_expr_list_ptr);
 
         v_list_get_items(arg_list, 0, v_cast(ast_i, v_ast_expr_ptr), 2);
 
@@ -1858,17 +1847,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -1901,17 +1887,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -1944,17 +1927,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -2093,9 +2073,9 @@
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(voidc_visitor_ptr,      typ0);
-    v_store(v_ast_generic_list_ptr, typ1);
-    v_store(int,                    typ2);
+    v_store(voidc_visitor_ptr,   typ0);
+    v_store(v_ast_expr_list_ptr, typ1);
+    v_store(int,                 typ2);
 
     ft = v_function_type(void, typ0, 3, false);
 
@@ -2104,9 +2084,9 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "list",    v_ast_generic_list_ptr);
-    v_add_parameter_name(f, 2, "kind",    int);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 2, "kind",     int);
 }
 {
     N = v_reference(v_alloca(int));
@@ -2114,10 +2094,6 @@
 
     {   ast = v_alloca(v_ast_opaque_base_sptr);
         v_initialize(ast);
-
-        v_list_get_items(list, 0, ast);
-
-        arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
         v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -2148,10 +2124,6 @@
 
         v_assign(ast_i, v_getelementptr(ast, i));
         v_assign(rel_i, v_getelementptr(rel, i));
-
-        v_list_get_items(list, 0, ast_i);
-
-        arg_list = v_cast(ast_i, v_ast_expr_list_ptr);
 
         v_list_get_items(arg_list, 0, v_cast(ast_i, v_ast_expr_ptr), 2);
 
@@ -2359,12 +2331,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    relation_helper(visitor, list, rk_le);
+    relation_helper(visitor, arg_list, rk_le);
 }
 
 //---------------------------------------------------------------------
@@ -2376,12 +2349,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    relation_helper(visitor, list, rk_lt);
+    relation_helper(visitor, arg_list, rk_lt);
 }
 //---------------------------------------------------------------------
 //- op_infix_ge - compiler intrinsic
@@ -2392,12 +2366,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    relation_helper(visitor, list, rk_ge);
+    relation_helper(visitor, arg_list, rk_ge);
 }
 
 //---------------------------------------------------------------------
@@ -2409,12 +2384,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    relation_helper(visitor, list, rk_gt);
+    relation_helper(visitor, arg_list, rk_gt);
 }
 
 //---------------------------------------------------------------------
@@ -2426,12 +2402,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    relation_helper(visitor, list, rk_eq);
+    relation_helper(visitor, arg_list, rk_eq);
 }
 
 //---------------------------------------------------------------------
@@ -2443,12 +2420,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    relation_helper(visitor, list, rk_ne);
+    relation_helper(visitor, arg_list, rk_ne);
 }
 
 
@@ -2461,17 +2439,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -2504,17 +2479,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -2548,19 +2520,16 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
     ast1 = v_getelementptr(ast0, 1);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -2687,19 +2656,16 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
 
     ast1 = v_getelementptr(ast0, 1);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -2830,17 +2796,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -2873,17 +2836,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -2916,17 +2876,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
     v_initialize(ast0, 2);
-
-    v_list_get_items(list, 0, ast0);
-
-    arg_list = v_cast(ast0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
 
@@ -2960,10 +2917,10 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
-    v_store(voidc_visitor_ptr,      typ0);
-    v_store(v_ast_generic_list_ptr, typ1);
-    v_store(intptr_t,               typ2);
-    v_store(bool,                   typ3);
+    v_store(voidc_visitor_ptr,   typ0);
+    v_store(v_ast_expr_list_ptr, typ1);
+    v_store(intptr_t,            typ2);
+    v_store(bool,                typ3);
 
     ft = v_function_type(void, typ0, 4, false);
 
@@ -2972,18 +2929,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "list",    v_ast_generic_list_ptr);
-    v_add_parameter_name(f, 2, "delta",   intptr_t);
-    v_add_parameter_name(f, 3, "is_pref", bool);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 2, "delta",    intptr_t);
+    v_add_parameter_name(f, 3, "is_pref",  bool);
 }
 {
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
-
-    v_list_get_items(list, 0, ast);
-
-    arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -3078,12 +3031,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    inc_dec_helper(visitor, list, 1, true);
+    inc_dec_helper(visitor, arg_list, 1, true);
 }
 
 //---------------------------------------------------------------------
@@ -3095,12 +3049,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    inc_dec_helper(visitor, list, -1, true);
+    inc_dec_helper(visitor, arg_list, -1, true);
 }
 
 //---------------------------------------------------------------------
@@ -3112,17 +3067,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
-
-    v_list_get_items(list, 0, ast);
-
-    arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -3140,17 +3092,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
-
-    v_list_get_items(list, 0, ast);
-
-    arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -3196,17 +3145,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
-
-    v_list_get_items(list, 0, ast);
-
-    arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -3264,17 +3210,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
-
-    v_list_get_items(list, 0, ast);
-
-    arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -3332,17 +3275,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
-
-    v_list_get_items(list, 0, ast);
-
-    arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -3380,17 +3320,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
-
-    v_list_get_items(list, 0, ast);
-
-    arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -3429,12 +3366,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    inc_dec_helper(visitor, list, 1, false);
+    inc_dec_helper(visitor, arg_list, 1, false);
 }
 
 //---------------------------------------------------------------------
@@ -3446,12 +3384,13 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    inc_dec_helper(visitor, list, -1, false);
+    inc_dec_helper(visitor, arg_list, -1, false);
 }
 
 
@@ -3464,9 +3403,10 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     //- WTF !?!?!?!?!
@@ -3482,25 +3422,19 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
-    lst0 = v_alloca(v_ast_opaque_expr_list_sptr, 2);
-    v_initialize(lst0, 2);
-
-
-    v_list_get_items(list, 0, v_cast(lst0, v_ast_base_ptr), 2);
-
-
     agg = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(agg);
 
-    v_list_get_items(lst0, 0, agg);
+    v_list_get_items(arg_list, 0, agg);
 
 
-    idx_list = v_getelementptr(lst0, 1);
+    idx_list = v_getelementptr(arg_list, 1);
 
 
     idx = v_alloca(v_ast_opaque_expr_sptr);
@@ -3538,7 +3472,6 @@
 
     v_terminate(idx);
     v_terminate(agg);
-    v_terminate(lst0, 2);
 
 
     if (agg_v) ;    //- Value ...
@@ -3660,17 +3593,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     ast = v_alloca(v_ast_opaque_base_sptr);
     v_initialize(ast);
-
-    v_list_get_items(list, 0, ast);
-
-    arg_list = v_cast(ast, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
 
@@ -3765,19 +3695,14 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_int_type_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     arg = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg);
-
-    base_arg = v_cast(arg, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg);
 
@@ -3804,19 +3729,14 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_uint_type_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     arg = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg);
-
-    base_arg = v_cast(arg, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg);
 
@@ -3843,19 +3763,14 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_float_type_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     arg = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg);
-
-    base_arg = v_cast(arg, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg);
 
@@ -3890,21 +3805,16 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_vec_type_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
-
-    base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg0, 2);
 
@@ -3939,21 +3849,16 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_svec_type_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
-
-    base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg0, 2);
 

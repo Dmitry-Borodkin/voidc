@@ -381,7 +381,7 @@
     //- "Function hack" intrinsic
     //-----------------------------------------------------------------
     //- voidc_function_hack_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
-    //-                                 list: v_ast_generic_list_ptr
+    //-                                 arg_list: v_ast_expr_list_ptr, count: int
     //-                                ) -> void
     //- {
     //-     builder = v_target_get_builder();
@@ -394,10 +394,6 @@
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
     //-     base_arg = v_cast(arg0, v_ast_base_ptr);
-    //-
-    //-     v_list_get_items(list, 0, base_arg, 1);
-    //-
-    //-     arg_list = v_cast(arg0, v_ast_expr_list_ptr);
     //-
     //-     v_list_get_items(arg_list, 0, arg0, 2);
     //-
@@ -453,9 +449,10 @@
     //-----------------------------------------------------------------
     intrinsic_f = v_obtain_function("voidc_function_hack_intrinsic");
 
-    visitor = LLVMGetParam(intrinsic_f, 0);
-    aux     = LLVMGetParam(intrinsic_f, 1);
-    list    = LLVMGetParam(intrinsic_f, 2);
+    visitor  = LLVMGetParam(intrinsic_f, 0);
+    aux      = LLVMGetParam(intrinsic_f, 1);
+    arg_list = LLVMGetParam(intrinsic_f, 2);
+    count    = LLVMGetParam(intrinsic_f, 3);
 
     entry = LLVMAppendBasicBlock(intrinsic_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -492,21 +489,6 @@
     v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
 
     base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
-
-
-    v_store(list,     val0);
-    v_store(n0,       val1);
-    v_store(base_arg, val2);
-    v_store(n1,       val3);
-
-    generic_list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_generic_list_sptr);
-
-    LLVMBuildCall(builder, generic_list_get_items_f, val0, 4, "");
-
-
-    v_ast_expr_list_ptr_ = v_type_get_llvm_type(v_ast_expr_list_ptr);
-
-    arg_list = LLVMBuildBitCast(builder, arg0_v, v_ast_expr_list_ptr_, "arg_list");
 
 
     v_store(arg_list, val0);
@@ -689,7 +671,7 @@
     //- "Return" intrinsic
     //-----------------------------------------------------------------
     //- voidc_function_hack_return_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
-    //-                                        list: v_ast_generic_list_ptr
+    //-                                        arg_list: v_ast_expr_list_ptr, count: int
     //-                                       ) -> void
     //- {
     //-     builder = v_target_get_builder();
@@ -698,10 +680,6 @@
     //-     v_initialize(arg0);
     //-
     //-     base_arg = v_cast(arg0, v_ast_base_ptr);
-    //-
-    //-     v_list_get_items(list, 0, base_arg, 1);
-    //-
-    //-     arg_list = v_cast(arg0, v_ast_expr_list_ptr);
     //-
     //-     args_count = v_list_get_size(arg_list);
     //-
@@ -738,9 +716,10 @@
     //-----------------------------------------------------------------
     return_f = v_obtain_function("voidc_function_hack_return_intrinsic");
 
-    visitor = LLVMGetParam(return_f, 0);
-    aux     = LLVMGetParam(return_f, 1);
-    list    = LLVMGetParam(return_f, 2);
+    visitor  = LLVMGetParam(return_f, 0);
+    aux      = LLVMGetParam(return_f, 1);
+    arg_list = LLVMGetParam(return_f, 2);
+    count    = LLVMGetParam(return_f, 3);
 
     entry = LLVMAppendBasicBlock(return_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -761,21 +740,6 @@
 
 
     base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
-
-
-    v_store(list,     val0);
-    v_store(n0,       val1);
-    v_store(base_arg, val2);
-    v_store(n1,       val3);
-
-    generic_list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_generic_list_sptr);
-
-    LLVMBuildCall(builder, generic_list_get_items_f, val0, 4, "");
-
-
-    v_ast_expr_list_ptr_ = v_type_get_llvm_type(v_ast_expr_list_ptr);
-
-    arg_list = LLVMBuildBitCast(builder, arg0_v, v_ast_expr_list_ptr_, "arg_list");
 
 
     v_store(arg_list, val0);
@@ -933,19 +897,16 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_intrinsic", voidc_intrinsic_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", voidc_visitor_ptr,      p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",     void_ptr,               p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("list",    v_ast_generic_list_ptr, p2);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
+    p3 = LLVMGetParam(f, 3);    v_add_variable("count",    int,                 p3);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg0);
 
     base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg0);
 
@@ -971,20 +932,14 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
-    ls_l = v_alloca(v_ast_opaque_generic_list_sptr);
-    v_initialize(ls_l);
-
     ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(ar_l);
 
     v_make_list_nil(ar_l);
 
-    v_make_list(ls_l, 0, v_cast(ar_l, v_ast_base_ptr), 1);
-
-    voidc_function_hack_return_intrinsic(visitor, 0, ls_l);
+    voidc_function_hack_return_intrinsic(visitor, 0, ar_l, 1);
 
     v_terminate(ar_l);
-    v_terminate(ls_l);
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 }
@@ -995,19 +950,16 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_not_intrinsic", voidc_intrinsic_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", voidc_visitor_ptr,      p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",     void_ptr,               p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("list",    v_ast_generic_list_ptr, p2);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
+    p3 = LLVMGetParam(f, 3);    v_add_variable("count",    int,                 p3);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(arg0);
 
     base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg, 1);
-
-    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg0);
 
@@ -1033,20 +985,14 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
-    ls_l = v_alloca(v_ast_opaque_generic_list_sptr);
-    v_initialize(ls_l);
-
     ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(ar_l);
 
     v_make_list_nil(ar_l);
 
-    v_make_list(ls_l, 0, v_cast(ar_l, v_ast_base_ptr), 1);
-
-    voidc_function_hack_return_intrinsic(visitor, 0, ls_l);
+    voidc_function_hack_return_intrinsic(visitor, 0, ar_l, 1);
 
     v_terminate(ar_l);
-    v_terminate(ls_l);
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 }

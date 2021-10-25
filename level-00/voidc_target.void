@@ -251,18 +251,20 @@
 
 
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ptr, 3);
+{   typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
 
-    visitor_ptr      = v_pointer_type(voidc_opaque_visitor_sptr, 0);
-    generic_list_ptr = v_pointer_type(v_ast_opaque_generic_list_sptr, 0);
+    visitor_ptr   = v_pointer_type(voidc_opaque_visitor_sptr, 0);
+    expr_list_ptr = v_pointer_type(v_ast_opaque_expr_list_sptr, 0);
 
-    v_store(visitor_ptr,      typ0);        //- visitor
-    v_store(void_ptr,         typ1);        //- aux
-    v_store(generic_list_ptr, typ2);        //- list (AST)
+    v_store(visitor_ptr,   typ0);           //- visitor
+    v_store(void_ptr,      typ1);           //- aux
+    v_store(expr_list_ptr, typ2);           //- args (AST)
+    v_store(int,           typ3);           //- number of args lists
 
-    intrinsic_t = v_function_type(void, typ0, 3, false);
+    intrinsic_t = v_function_type(void, typ0, 4, false);
     v_export_type("voidc_intrinsic_t", intrinsic_t);
 
     v_store(char_ptr,      typ0);           //- Intrinsic name

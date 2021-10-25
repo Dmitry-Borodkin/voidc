@@ -45,9 +45,10 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_binop_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     builder = v_target_get_builder();
@@ -60,12 +61,6 @@
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
-
-    base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg0, 3);
 
@@ -153,9 +148,10 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_icmp_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     builder = v_target_get_builder();
@@ -168,12 +164,6 @@
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
-
-    base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg0, 3);
 
@@ -233,9 +223,10 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_fcmp_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     builder = v_target_get_builder();
@@ -248,12 +239,6 @@
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
-
-    base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(list, 0, base_arg);
-
-    arg_list = v_cast(arg0, v_ast_expr_list_ptr);
 
     v_list_get_items(arg_list, 0, arg0, 3);
 
