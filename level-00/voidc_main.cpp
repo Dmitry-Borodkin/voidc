@@ -325,7 +325,7 @@ struct out_binary_t
         {
             for (int j=len-6; j < len; j++)
             {
-                template_name[j] = letters[std::rand()/((RAND_MAX + 1u)/62)];
+                template_name[j] = letters[std::rand()/(RAND_MAX/61)];
             }
 
             fd = _wsopen(template_name,
