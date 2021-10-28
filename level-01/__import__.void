@@ -1,0 +1,68 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2021 Dmitry Borodkin <borodkin-dn@yandex.ru>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("level-01  must be imported into the voidc target only!");
+
+    v_import("voidc_target.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_export_import("function_hack.void");
+    v_export_import("memory.void");
+    v_export_import("if_then_else.void");
+    v_export_import("block.void");
+    v_export_import("loop.void");
+    v_export_import("grammar.void");
+    v_export_import("switch.void");
+    v_export_import("expression.void");
+    v_export_import("defer.void");
+    v_export_import("definitions.void");
+}
+
+
+//---------------------------------------------------------------------
+{   voidc_enable_definitions();
+}
+
+
+//=====================================================================
+{   module = LLVMModuleCreateWithName("level-01_module");
+
+    v_set_module(module);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+
+//---------------------------------------------------------------------
+export
+v_enable_level_01: () -> void
+{
+    voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_statement_loop();
+    voidc_enable_statement_grammar();
+    voidc_enable_statement_switch();
+    voidc_enable_expression();
+    voidc_enable_statement_defer();
+    voidc_enable_definitions();
+}
+
+
+//---------------------------------------------------------------------
+{
+    module = v_get_module();
+
+    //-----------------------------------------------------------------
+//  v_debug_print_module(1);
+
+    voidc_unit_load_module_to_jit(module);
+
+    LLVMDisposeModule(module);
+    v_set_module(0);
+}
+
+

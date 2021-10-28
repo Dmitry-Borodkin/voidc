@@ -130,22 +130,44 @@ import_paths_initialize(const char *exe_name)
 static fs::path
 find_file_for_import(const fs::path &parent, const fs::path &filename)
 {
+    fs::path ret;
+
     if (filename.is_relative())
     {
         auto p = parent / filename;
 
-        if (fs::exists(p))  return  fs::canonical(p);
-
-        for (auto it : import_paths)
+        if (fs::exists(p))
         {
-            auto p = it / filename;
+            ret = p;
+        }
+        else
+        {
+            for (auto it : import_paths)
+            {
+                auto p = it / filename;
 
-            if (fs::exists(p))  return  fs::canonical(p);
+                if (fs::exists(p))
+                {
+                    ret = p;
+
+                    break;
+                }
+            }
         }
     }
     else if (fs::exists(filename))
     {
-        return  fs::canonical(filename);
+        ret = filename;
+    }
+
+    if (fs::is_directory(ret))
+    {
+        ret = ret / "__import__.void";
+    }
+
+    if (fs::is_regular_file(ret))
+    {
+        return  fs::canonical(ret);
     }
 
     return  "";
