@@ -651,6 +651,32 @@ voidc_guard_target(const char *errmsg)
 }
 
 
+//--------------------------------------------------------------------
+std::FILE *
+v_fopen(const char *filename, const char *prop)
+{
+
+#ifdef _WIN32
+
+    fs::path fpath = fs::u8path(filename);
+
+    int len = std::strlen(prop);
+
+    auto u16prop = std::make_unique<uint16_t[]>(len);
+
+    for (int i=0; i<=len; ++i)  u16prop[i] = (uint16_t)prop[i];     //- ASCII only!
+
+    return _wfopen(fpath.c_str(), u16prop.get());
+
+#else
+
+    return std::fopen(filename, prop);
+
+#endif
+
+}
+
+
 VOIDC_DLLEXPORT_END
 
 }   //- extern "C"

@@ -70,7 +70,7 @@
 
     ft = v_function_type(FILE_ptr, typ, 2, false);
 
-    v_export_symbol_type("fopen", ft);
+    v_export_symbol_type("v_fopen", ft);
 
     typ[0] := FILE_ptr;
 
@@ -95,7 +95,7 @@
 
 {   filename = "defer_test.void";
 
-    f = fopen(filename, "r");
+    f = v_fopen(filename, "r");
 
     if (f)  printf("%s opened\n", filename);
     else
