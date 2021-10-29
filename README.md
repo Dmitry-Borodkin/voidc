@@ -9,6 +9,18 @@ Extendability of Void is practically limitless (any syntax/semantics),
 restricted only by decidability and ~your money~ imagination.
 
 
+#### Hello, world:
+
+```C
+{   v_import("printf.void"); }      // Import declaration of C's "printf"
+
+{   printf("Hello, world\n"); }     // Just call it...
+```
+
+See more details in [tutorial](doc/tutorial.md).
+(Spoiler: it's all about those *magic curly braces*... :wink:)
+
+
 #### Main architecture features:
 
   - Starting from minimalistic language "kernel", which is:
