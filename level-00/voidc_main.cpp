@@ -662,11 +662,11 @@ v_fopen(const char *filename, const char *prop)
 
     int len = std::strlen(prop);
 
-    auto u16prop = std::make_unique<uint16_t[]>(len);
+    auto wprop = std::make_unique<wchar_t[]>(len+1);
 
-    for (int i=0; i<=len; ++i)  u16prop[i] = (uint16_t)prop[i];     //- ASCII only!
+    for (int i=0; i<=len; ++i)  wprop[i] = (wchar_t)prop[i];        //- ASCII only!
 
-    return _wfopen(fpath.c_str(), u16prop.get());
+    return _wfopen(fpath.c_str(), wprop.get());
 
 #else
 
