@@ -698,6 +698,14 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
 #undef DEF
     }
+
+#ifdef _WIN32
+
+    decls.constants.insert({"_WIN32", bool_type});
+
+    constant_values.insert({"_WIN32", LLVMConstInt(bool_type->llvm_type(), true, false)});      //- ?
+
+#endif
 }
 
 
@@ -1375,25 +1383,26 @@ v_find_constant(const char *raw_name, v_type_t **type, LLVMValueRef *value)
         {
             t = itt->second;
 
-            {   auto itv = lctx.constant_values.find(raw_name);
-
-                if (itv != lctx.constant_values.end())
-                {
-                    v = itv->second;
-                }
-            }
-
-            if (!v)
+            if (value)
             {
-                auto itv = gctx.constant_values.find(raw_name);
+                {   auto itv = lctx.constant_values.find(raw_name);
 
-                if (itv != gctx.constant_values.end())
+                    if (itv != lctx.constant_values.end())
+                    {
+                        v = itv->second;
+                    }
+                }
+
+                if (!v)
                 {
-                    v = itv->second;
+                    auto itv = gctx.constant_values.find(raw_name);
+
+                    if (itv != gctx.constant_values.end())
+                    {
+                        v = itv->second;
+                    }
                 }
             }
-
-//          assert(v);
         }
     }
 
