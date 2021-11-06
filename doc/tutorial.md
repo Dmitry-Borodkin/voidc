@@ -14,15 +14,15 @@ understands basic notions of LLVM-C API, and in general "has an idea of how comp
 ```
 
 Void's source text is a sequence of so-called "units".
-In example above we can see two units: first with `v_import`, and second with `printf`.
-Each unit (usually) is enclosed in (*magic* :wink:) curly braces and can be seen as a function's body
+In example above you can see two of them: the first with `v_import`, and the second with `printf`.
+Each unit (usually) is enclosed in (*magic*) curly braces and can be seen as a function's body
 in the syntax similiar to "C".
 
 Units are processed by the `voidc` compiler sequentially, one by one.
 For each unit, the following operations are performed:
 
-  1. Source text is parsed down to the enclosing `}`, resulting in the AST.
-  2. The AST is compiled to the object file (in memory) which contains the "unit action" function.
+  1. Source text is *parsed* down to the enclosing `}`, resulting in the AST.
+  2. The AST is *compiled* to the object file (in memory) which contains the "unit action" function.
   3. This "unit action" is *executed* in compiler's environment by LLVM's JIT.
 
 In the "Hello, world" example above the first unit calls the compiler's intrinsic function `v_import`.
@@ -31,10 +31,12 @@ and "imports" it into the "current scope". The "printf.void" file "gives out" on
 of C's `printf` function. But that's enough for the second unit which calls this function with sacramental
 greeting message as an argument.
 
-
-
-
-
+**Essential Note:** it is very important to understand the consequences of this
+*parse-compile-execute* architecture of the Viodc's "mainloop"...
+It's the key to ~enormous~ extensibility of the Void as a language.
+This structure intendend to be seen as the ~back~door to the compiler.
+You just open the curly brace and enter the compiler as your workshop...
+This is why these curly braces are *magic* :wink:.
 
 
 
