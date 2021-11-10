@@ -13,7 +13,7 @@
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Globals
 //---------------------------------------------------------------------
 static std::unordered_map<std::string, v_quark_t> voidc_quark_from_string;
 
@@ -21,7 +21,7 @@ static immer::vector_transient<const char *> voidc_quark_to_string;
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Basics
 //---------------------------------------------------------------------
 const v_quark_t *
 v_quark_ptr_from_string(const char *str)
@@ -61,5 +61,39 @@ v_quark_to_string(v_quark_t vq)
     return  voidc_quark_to_string[vq-1];        //- Sic!
 }
 
+
+//---------------------------------------------------------------------
+//- Utility
+//---------------------------------------------------------------------
+v_quark_t
+v_quark_try_string(const char *str)
+{
+    if (str == nullptr) return 0;
+
+    auto it = voidc_quark_from_string.find(str);
+
+    if (it == voidc_quark_from_string.end())  return 0;
+
+    return it->second;
+}
+
+//---------------------------------------------------------------------
+const char *
+v_intern_string(const char *str)
+{
+    if (str == nullptr) return nullptr;
+
+    assert(voidc_quark_to_string.size() == voidc_quark_from_string.size());
+
+    auto q = v_quark_t(voidc_quark_from_string.size() + 1);     //- Sic!
+
+    auto [it, ok] = voidc_quark_from_string.insert({str, q});
+
+    auto s = it->first.c_str();
+
+    if (ok) voidc_quark_to_string.push_back(s);
+
+    return s;
+}
 
 

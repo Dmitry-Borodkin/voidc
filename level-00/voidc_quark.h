@@ -26,6 +26,11 @@ v_quark_t v_quark_from_string(const char *str);
 const char *v_quark_to_string(v_quark_t vq);
 
 
+v_quark_t v_quark_try_string(const char *str);
+
+const char *v_intern_string(const char *str);
+
+
 VOIDC_DLLEXPORT_END
 
 //---------------------------------------------------------------------

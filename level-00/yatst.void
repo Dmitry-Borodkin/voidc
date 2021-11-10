@@ -270,3 +270,17 @@
 }
 
 
+{   printf("\n");
+
+    str = "Some test string";
+
+    printf("try: %d = [%s] %p\n", v_quark_try_string(str), str, str);
+
+    s = v_intern_string(str);
+
+    printf("intern: [%s] %p\n", s, s);
+
+    printf("try: %d = [%s] %p\n", v_quark_try_string(str), str, v_intern_string(str));
+}
+
+

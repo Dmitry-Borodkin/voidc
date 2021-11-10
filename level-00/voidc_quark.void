@@ -28,12 +28,15 @@
 
     ft = v_function_type(v_quark_t, typ, 1, false);
     v_export_symbol_type("v_quark_from_string", ft);
+    v_export_symbol_type("v_quark_try_string", ft);
+
+    ft = v_function_type(char_ptr, typ, 1, false);
+    v_export_symbol_type("v_intern_string", ft);
 
     v_store(v_quark_t, typ);
 
-    ft = v_function_type(char_ptr, typ, 1, 0);
+    ft = v_function_type(char_ptr, typ, 1, false);
     v_export_symbol_type("v_quark_to_string", ft);
 }
-
 
 
