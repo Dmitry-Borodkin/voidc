@@ -89,10 +89,10 @@ In the case of `printf` we have almost all necessary tools accessible, except on
 the function `v_pointer_type` (to build "pointer to char" type).
 So, the first unit makes exactly this thing: it declares the `v_pointer_type` function...
 
-As it's frequently happened in programming, it's better to read it *sdrawkcab*...
+As is often the case in programming, it is best to read it *sdrawkcab*...
 
 The last statement of the unit calls the function `v_add_symbol` to "declare" the `v_pointer_type` function.
-The term "symbol" denotes a symbol in the terminology of (JIT's) linker.
+The term "symbol" here denotes a symbol in the terminology of (JIT's) linker.
 
 The last but one statement builds the type of the `v_pointer_type` function.
 

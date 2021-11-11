@@ -30,6 +30,8 @@ v_quark_t v_quark_try_string(const char *str);
 
 const char *v_intern_string(const char *str);
 
+const char *v_intern_try_string(const char *str);
+
 
 VOIDC_DLLEXPORT_END
 

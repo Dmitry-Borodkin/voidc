@@ -8,6 +8,7 @@
 #include <cassert>
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include <immer/vector_transient.hpp>
 
@@ -15,7 +16,9 @@
 //---------------------------------------------------------------------
 //- Globals
 //---------------------------------------------------------------------
-static std::unordered_map<std::string, v_quark_t> voidc_quark_from_string;
+static std::unordered_set<std::string> voidc_interned_strings;
+
+static std::unordered_map<const char *, const v_quark_t> voidc_quark_from_string;
 
 static immer::vector_transient<const char *> voidc_quark_to_string;
 
@@ -33,15 +36,9 @@ v_quark_ptr_from_string(const char *str)
         return &zero;
     }
 
-    assert(voidc_quark_to_string.size() == voidc_quark_from_string.size());
+    if (v_intern_try_string(str))   return &voidc_quark_from_string[str];
 
-    auto q = v_quark_t(voidc_quark_from_string.size() + 1);     //- Sic!
-
-    auto [it, ok] = voidc_quark_from_string.insert({str, q});
-
-    if (ok) voidc_quark_to_string.push_back( it->first.c_str() );
-
-    return &it->second;
+    return &voidc_quark_from_string[v_intern_string(str)];
 }
 
 //---------------------------------------------------------------------
@@ -70,11 +67,15 @@ v_quark_try_string(const char *str)
 {
     if (str == nullptr) return 0;
 
-    auto it = voidc_quark_from_string.find(str);
+    if (v_intern_try_string(str))   return voidc_quark_from_string[str];
 
-    if (it == voidc_quark_from_string.end())  return 0;
+    auto it = voidc_interned_strings.find(str);
 
-    return it->second;
+    if (it == voidc_interned_strings.end()) return 0;
+
+    auto it_str = it->c_str();
+
+    return voidc_quark_from_string[it_str];
 }
 
 //---------------------------------------------------------------------
@@ -83,17 +84,33 @@ v_intern_string(const char *str)
 {
     if (str == nullptr) return nullptr;
 
-    assert(voidc_quark_to_string.size() == voidc_quark_from_string.size());
+    auto [it, ok] = voidc_interned_strings.insert(str);
 
-    auto q = v_quark_t(voidc_quark_from_string.size() + 1);     //- Sic!
+    auto it_str = it->c_str();
 
-    auto [it, ok] = voidc_quark_from_string.insert({str, q});
+    if (ok)
+    {
+        auto q = v_quark_t(voidc_quark_from_string.size() + 1);     //- Sic!
 
-    auto s = it->first.c_str();
+        voidc_quark_from_string.insert({it_str, q});
 
-    if (ok) voidc_quark_to_string.push_back(s);
+        voidc_quark_to_string.push_back(it_str);
+    }
 
-    return s;
+    return it_str;
+}
+
+//---------------------------------------------------------------------
+const char *
+v_intern_try_string(const char *str)
+{
+    if (str == nullptr) return nullptr;
+
+    auto it = voidc_quark_from_string.find(str);
+
+    if (it == voidc_quark_from_string.end())  return nullptr;
+
+    return str;     //- Sic!
 }
 
 
