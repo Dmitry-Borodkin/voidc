@@ -898,17 +898,9 @@
 
     if (!v_empty(body))
     {
-        argtypes = *v_alloca(* v_type_ptr) := 0;
-        defer if (argtypes) v_mfree(argtypes);
-
         count = v_type_function_get_param_count(fun_type);
 
-        if (count)
-        {
-            argtypes := v_malloc(v_type_ptr, count);
-
-            v_type_function_get_param_types(fun_type, argtypes);
-        }
+        argtypes = v_type_function_get_param_types(fun_type);
 
         //- assert(v_get_module() == 0);
 

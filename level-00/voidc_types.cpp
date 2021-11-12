@@ -611,12 +611,10 @@ v_type_function_get_param_count(v_type_t *type)
     return static_cast<v_type_function_t *>(type)->param_count();
 }
 
-void
-v_type_function_get_param_types(v_type_t *type, v_type_t **params)
+v_type_t * const *
+v_type_function_get_param_types(v_type_t *type)
 {
-    auto fp = static_cast<v_type_function_t *>(type);
-
-    std::copy_n(fp->param_types(), fp->param_count(), params);
+    return static_cast<v_type_function_t *>(type)->param_types();
 }
 
 
@@ -715,18 +713,10 @@ v_type_struct_get_element_count(v_type_t *type)
     return static_cast<v_type_struct_t *>(type)->element_count();
 }
 
-void
-v_type_struct_get_element_types(v_type_t *type, v_type_t **elts)
+v_type_t * const *
+v_type_struct_get_element_types(v_type_t *type)
 {
-    auto sp = static_cast<v_type_struct_t *>(type);
-
-    std::copy_n(sp->element_types(), sp->element_count(), elts);
-}
-
-v_type_t *
-v_type_struct_get_type_at_index(v_type_t *type, unsigned idx)
-{
-    return static_cast<v_type_struct_t *>(type)->element_types()[idx];
+    return static_cast<v_type_struct_t *>(type)->element_types();
 }
 
 

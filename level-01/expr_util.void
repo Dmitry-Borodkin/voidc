@@ -3536,7 +3536,7 @@
         {
             i = v_cast(LLVMConstIntGetZExtValue(idx_v), unsigned);
 
-            e = v_type_struct_get_type_at_index(e, i);
+            e = v_load(v_getelementptr(v_type_struct_get_element_types(e), i));
 
             v_assign(t, v_reference_type(e, a));
         }
@@ -3569,7 +3569,7 @@
 
             if (v_type_is_struct(agg_t))
             {
-                v_assign(t, v_type_struct_get_type_at_index(agg_t, i));
+                v_assign(t, v_load(v_getelementptr(v_type_struct_get_element_types(agg_t), i)));
             }
             else    //- assert(v_type_is_array(agg_t));
             {

@@ -392,9 +392,7 @@
 
             if (n)
             {
-                arg = v_alloca(v_type_ptr, n);
-
-                v_type_function_get_param_types(type, arg);
+                arg = v_type_function_get_param_types(type);
 
                 i = *v_alloca(int) := 0;
 
@@ -434,13 +432,15 @@
 
             if (n)
             {
+                elt = v_type_struct_get_element_types(type);
+
                 i = *v_alloca(int) := 0;
 
                 loop
                 {
                     if (i == n) v_break();
 
-                    comp_length(v_type_struct_get_type_at_index(type, i), ctx);
+                    comp_length(elt[i], ctx);
 
                     ++i;
                 }
@@ -560,9 +560,7 @@
 
             if (n)
             {
-                a_t = v_alloca(v_type_ptr, n);
-
-                v_type_function_get_param_types(type, a_t);
+                a_t = v_type_function_get_param_types(type);
 
                 a_v = v_alloca(LLVMValueRef, n);
 
@@ -659,6 +657,8 @@
 
                 if (n)
                 {
+                    a_t = v_type_struct_get_element_types(type);
+
                     a_v = v_alloca(LLVMValueRef, n);
 
                     i = *v_alloca(int) := 0;
@@ -667,9 +667,7 @@
                     {
                         if (i == n) v_break();
 
-                        typ_i = v_type_struct_get_type_at_index(type, i);
-
-                        a_v[i] := voidc_compile_type(typ_i, ctx);
+                        a_v[i] := voidc_compile_type(a_t[i], ctx);
 
                         ++i;
                     }

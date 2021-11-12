@@ -123,9 +123,8 @@
     v_export_symbol_type("v_type_function_get_param_count", ft);
 
 //  v_store(v_type_ptr, typ0);          //-
-    v_store(type_ptr,   typ1);          //- Parameter types (out)
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_function_get_param_types", ft);
 
     //-----------------------------------------------------------------
@@ -195,16 +194,9 @@
     v_export_symbol_type("v_type_struct_get_element_count", ft);
 
 //  v_store(v_type_ptr, typ0);          //-
-//  v_store(type_ptr,   typ1);          //- Element types (out)
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_struct_get_element_types", ft);
-
-//  v_store(v_type_ptr, typ0);          //-
-    v_store(unsigned,   typ1);          //- Index
-
-    ft = v_function_type(v_type_ptr, typ0, 2, false);
-    v_export_symbol_type("v_type_struct_get_type_at_index", ft);
 
     //-----------------------------------------------------------------
 //  v_store(v_type_ptr, typ0);          //- Element type
