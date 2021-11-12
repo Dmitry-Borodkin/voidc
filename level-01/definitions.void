@@ -39,10 +39,6 @@
 }
 
 
-{   v_import("printf.void");
-}
-
-
 //---------------------------------------------------------------------
 {   v_add_type("void_ptr", v_pointer_type(void, 0));
     v_add_type("char_ptr", v_pointer_type(char, 0));
@@ -608,10 +604,6 @@
 
         v_list_get_items(arg_list, 0, ast0, 2);
     }
-//    else
-//    {
-//        //- ?!?!?!?!?!?!?
-//    }
 
     lst = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(lst);
