@@ -70,7 +70,19 @@ endif (UNIX)
 
 if (MINGW)
 
-    target_compile_options(voidc PRIVATE -O3 -fcxx-exceptions -IC:/Tools/include -frtti)
+    if (${uppercase_CMAKE_BUILD_TYPE} STREQUAL DEBUG)
+
+       set(MYFLAGS -g)
+
+    endif()
+
+    if (${uppercase_CMAKE_BUILD_TYPE} STREQUAL RELEASE)
+
+       set(MYFLAGS -O3 -Oz -DNDEBUG)
+
+    endif()
+
+    target_compile_options(voidc PRIVATE ${MYFLAGS} -fcxx-exceptions -IC:/Tools/include -frtti)
 
 endif (MINGW)
 
