@@ -59,17 +59,18 @@ namespace utility
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_init_term_helper(const visitor_sptr_t *vis,
-                        const ast_expr_list_sptr_t &args,
-                        const v_util_function_dict_t &dict
-                       )
+void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                           const ast_expr_list_sptr_t *args, int count
+                          )
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    args->data[0]->accept(*vis);
+    (*args)->data[0]->accept(*vis);
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
@@ -87,7 +88,7 @@ void v_init_term_helper(const visitor_sptr_t *vis,
 
     values[0] = lctx.result_value;
 
-    if (args->data.size() == 1)
+    if ((*args)->data.size() == 1)
     {
         values[1] = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
     }
@@ -95,7 +96,7 @@ void v_init_term_helper(const visitor_sptr_t *vis,
     {
         lctx.result_type = UNREFERENCE_TAG;
 
-        args->data[1]->accept(*vis);
+        (*args)->data[1]->accept(*vis);
 
         values[1] = lctx.result_value;
     }
@@ -105,32 +106,18 @@ void v_init_term_helper(const visitor_sptr_t *vis,
 
 //---------------------------------------------------------------------
 static
-void v_initialize(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                           const ast_expr_list_sptr_t *args, int count
+                          )
 {
-    v_init_term_helper(vis, *args, v_util_initialize_dict);
-}
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
 
-//---------------------------------------------------------------------
-static
-void v_terminate(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
-{
-    v_init_term_helper(vis, *args, v_util_terminate_dict);
-}
-
-
-//---------------------------------------------------------------------
-static
-void v_copy_move_helper(const visitor_sptr_t *vis,
-                        const ast_expr_list_sptr_t &args,
-                        const v_util_function_dict_t &dict
-                       )
-{
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    args->data[0]->accept(*vis);
+    (*args)->data[0]->accept(*vis);
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
@@ -150,7 +137,7 @@ void v_copy_move_helper(const visitor_sptr_t *vis,
 
     for (int i=1; i<3; ++i)
     {
-        if (args->data.size() <= i)
+        if ((*args)->data.size() <= i)
         {
             values[i] = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
         }
@@ -158,7 +145,7 @@ void v_copy_move_helper(const visitor_sptr_t *vis,
         {
             lctx.result_type = UNREFERENCE_TAG;
 
-            args->data[i]->accept(*vis);
+            (*args)->data[i]->accept(*vis);
 
             values[i] = lctx.result_value;
         }
@@ -169,24 +156,13 @@ void v_copy_move_helper(const visitor_sptr_t *vis,
 
 //---------------------------------------------------------------------
 static
-void v_copy(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                       const ast_expr_list_sptr_t *args, int count
+                      )
 {
-    v_copy_move_helper(vis, *args, v_util_copy_dict);
-}
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
 
-//---------------------------------------------------------------------
-static
-void v_move(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
-{
-    v_copy_move_helper(vis, *args, v_util_move_dict);
-}
-
-
-//---------------------------------------------------------------------
-static
-void v_empty(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
-{
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     auto tt = lctx.result_type;
@@ -197,7 +173,7 @@ void v_empty(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = v_util_empty_dict.at(type).c_str();
+    const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -217,9 +193,13 @@ void v_empty(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args
 
 //---------------------------------------------------------------------
 static
-void v_kind(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                      const ast_expr_list_sptr_t *args, int count
+                     )
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     auto tt = lctx.result_type;
@@ -230,7 +210,7 @@ void v_kind(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = v_util_kind_dict.at(type).c_str();
+    const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -250,19 +230,20 @@ void v_kind(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_helper(const visitor_sptr_t *vis,
-                          const ast_expr_list_sptr_t &args,
-                          const v_util_function_dict_t &dict
-                         )
+void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                                   const ast_expr_list_sptr_t *args, int count
+                                  )
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     auto tt = lctx.result_type;
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    args->data[0]->accept(*vis);            //- Type
+    (*args)->data[0]->accept(*vis);            //- Type
 
     assert(lctx.result_value == nullptr);
 
@@ -280,16 +261,9 @@ void v_std_any_get_helper(const visitor_sptr_t *vis,
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    args->data[1]->accept(*vis);
+    (*args)->data[1]->accept(*vis);
 
     auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
-
-    if (&dict == &v_util_std_any_get_pointer_dict)
-    {
-        auto adsp = LLVMGetPointerAddressSpace(LLVMTypeOf(v));
-
-        type = gctx.make_pointer_type(type, adsp);
-    }
 
     lctx.result_type = tt;
 
@@ -298,23 +272,59 @@ void v_std_any_get_helper(const visitor_sptr_t *vis,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_value(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                                     const ast_expr_list_sptr_t *args, int count
+                                    )
 {
-    v_std_any_get_helper(vis, *args, v_util_std_any_get_value_dict);
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    auto tt = lctx.result_type;
+
+    lctx.result_type = INVIOLABLE_TAG;
+
+    (*args)->data[0]->accept(*vis);            //- Type
+
+    assert(lctx.result_value == nullptr);
+
+    auto type = lctx.result_type;
+
+    const char *fun = dict.at(type).c_str();
+
+    LLVMValueRef f  = nullptr;
+    v_type_t    *ft = nullptr;
+
+    if (!lctx.obtain_identifier(fun, ft, f))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+    }
+
+    lctx.result_type = UNREFERENCE_TAG;
+
+    (*args)->data[1]->accept(*vis);
+
+    auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
+
+    auto adsp = LLVMGetPointerAddressSpace(LLVMTypeOf(v));
+
+    type = gctx.make_pointer_type(type, adsp);
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(type, v);
 }
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                                   const ast_expr_list_sptr_t *args, int count
+                                  )
 {
-    v_std_any_get_helper(vis, *args, v_util_std_any_get_pointer_dict);
-}
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
 
-//---------------------------------------------------------------------
-static
-void v_std_any_set_value(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
-{
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     LLVMValueRef values[2];
@@ -328,7 +338,7 @@ void v_std_any_set_value(const visitor_sptr_t *vis, void *, const ast_expr_list_
         values[i] = lctx.result_value;
     }
 
-    const char *fun = v_util_std_any_set_value_dict.at(lctx.result_type).c_str();
+    const char *fun = dict.at(lctx.result_type).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -344,9 +354,13 @@ void v_std_any_set_value(const visitor_sptr_t *vis, void *, const ast_expr_list_
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                                     const ast_expr_list_sptr_t *args, int count
+                                    )
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     LLVMValueRef values[2];
@@ -362,7 +376,7 @@ void v_std_any_set_pointer(const visitor_sptr_t *vis, void *, const ast_expr_lis
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = v_util_std_any_set_pointer_dict.at(type).c_str();
+    const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -378,18 +392,18 @@ void v_std_any_set_pointer(const visitor_sptr_t *vis, void *, const ast_expr_lis
 
 //---------------------------------------------------------------------
 static
-void v_make_list_helper(const visitor_sptr_t *vis,
-                        const ast_expr_list_sptr_t &args,
-                        const v_util_function_dict_t &dict
-                       )
+void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                           const ast_expr_list_sptr_t *args, int count
+                          )
 {
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
 
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    args->data[0]->accept(*vis);
+    (*args)->data[0]->accept(*vis);
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
@@ -413,7 +427,7 @@ void v_make_list_helper(const visitor_sptr_t *vis,
     auto par_count = ft->param_count();
     auto par_types = ft->param_types();
 
-    auto arg_count = args->data.size();
+    auto arg_count = (*args)->data.size();
 
 
     auto values = std::make_unique<LLVMValueRef[]>(arg_count);
@@ -425,7 +439,7 @@ void v_make_list_helper(const visitor_sptr_t *vis,
         if (i < par_count)  lctx.result_type = par_types[i];
         else                lctx.result_type = UNREFERENCE_TAG;
 
-        args->data[i]->accept(*vis);
+        (*args)->data[i]->accept(*vis);
 
         values[i] = lctx.result_value;
     }
@@ -433,26 +447,16 @@ void v_make_list_helper(const visitor_sptr_t *vis,
     LLVMBuildCall(gctx.builder, f, values.get(), arg_count, "");
 }
 
-//---------------------------------------------------------------------
-static
-void v_make_list_nil(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
-{
-    v_make_list_helper(vis, *args, v_util_make_list_nil_dict);
-}
 
 //---------------------------------------------------------------------
 static
-void v_make_list(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                             const ast_expr_list_sptr_t *args, int count
+                            )
 {
-    v_make_list_helper(vis, *args, v_util_make_list_dict);
-}
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
 
-
-//---------------------------------------------------------------------
-static
-void v_list_append(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
-{
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     lctx.result_type = UNREFERENCE_TAG;
@@ -461,7 +465,7 @@ void v_list_append(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = v_util_list_append_dict.at(type).c_str();
+    const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -497,9 +501,13 @@ void v_list_append(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t
 
 //---------------------------------------------------------------------
 static
-void v_list_get_size(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                               const ast_expr_list_sptr_t *args, int count
+                              )
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     auto tt = lctx.result_type;
@@ -510,7 +518,7 @@ void v_list_get_size(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = v_util_list_get_size_dict.at(type).c_str();
+    const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -530,9 +538,13 @@ void v_list_get_size(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr
 
 //---------------------------------------------------------------------
 static
-void v_list_get_items(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+                                const ast_expr_list_sptr_t *args, int count
+                               )
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+
+    auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     lctx.result_type = UNREFERENCE_TAG;
@@ -541,7 +553,7 @@ void v_list_get_items(const visitor_sptr_t *vis, void *, const ast_expr_list_spt
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = v_util_list_get_items_dict.at(type).c_str();
+    const char *fun = dict.at(type).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -582,31 +594,35 @@ void static_initialize(void)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
 
-#define DEF(name) \
-    gctx.decls.intrinsics.insert({#name, {(void *)name, nullptr}});
+#define DEF2(name, fname) \
+    gctx.decls.intrinsics.insert({"v_" #name, {(void *)fname, &v_util_##name##_dict}});
 
-    DEF(v_initialize)
-    DEF(v_terminate)
+#define DEF(name) DEF2(name, v_##name##_intrinsic)
 
-    DEF(v_copy)
-    DEF(v_move)
+    DEF2(initialize, v_init_term_intrinsic)
+    DEF2(terminate,  v_init_term_intrinsic)
 
-    DEF(v_empty)
+    DEF2(copy, v_copy_move_intrinsic)
+    DEF2(move, v_copy_move_intrinsic)
 
-    DEF(v_kind)
+    DEF(empty)
 
-    DEF(v_std_any_get_value)
-    DEF(v_std_any_get_pointer)
-    DEF(v_std_any_set_value)
-    DEF(v_std_any_set_pointer)
+    DEF(kind)
 
-    DEF(v_make_list_nil)
-    DEF(v_make_list)
-    DEF(v_list_append)
-    DEF(v_list_get_size)
-    DEF(v_list_get_items)
+    DEF(std_any_get_value)
+    DEF(std_any_get_pointer)
+    DEF(std_any_set_value)
+    DEF(std_any_set_pointer)
+
+    DEF2(make_list_nil, v_make_list_intrinsic)
+    DEF2(make_list,     v_make_list_intrinsic)
+
+    DEF(list_append)
+    DEF(list_get_size)
+    DEF(list_get_items)
 
 #undef DEF
+#undef DEF2
 
     //-----------------------------------------------------------------
     auto add_type = [&gctx](const char *raw_name, v_type_t *type)
