@@ -705,7 +705,16 @@ main(int argc, char *argv[])
 
     {   const char *exe_name = nullptr;
 
-        if (argc > 0) exe_name = argv[0];
+#ifdef _WIN32
+        wchar_t path[MAX_PATH] = { 0 };
+        GetModuleFileNameW(NULL, path, MAX_PATH);
+
+        fs::path fs_path(path);
+
+        exe_name = fs_path.c_str();
+#else
+        exe_name = "/proc/self/exe";
+#endif
 
         import_paths_initialize(exe_name);
     }

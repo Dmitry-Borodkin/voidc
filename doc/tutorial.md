@@ -7,7 +7,7 @@ understands basic notions of LLVM-C API, and in general "has an idea of how comp
 
 #### The "Hello, world" example:
 
-```C
+```
 {   v_import("printf.void"); }      // Import declaration of C's "printf"
 
 {   printf("Hello, world\n"); }     // Just call it...
@@ -44,7 +44,7 @@ This is why these curly braces are *magic* :wink:.
 Let's try to dig a bit deeper and see how it's possible to declare `printf`
 "from scratch", without any *imports*...
 
-```C
+```
 // Unit 1: declaration of the v_pointer_type
 {
     typ0 = v_alloca(v_type_ptr, 2);     // Allocate "array" for two types
