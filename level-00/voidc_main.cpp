@@ -23,6 +23,7 @@
 #include <share.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <windows.h>
 #endif
 
 #include <llvm-c/Core.h>
@@ -75,7 +76,7 @@ static std::list<fs::path> import_paths;
 #endif
 
 void
-import_paths_initialize(const char *exe_name)
+import_paths_initialize(fs::path &exe_path)
 {
     if (auto paths = std::getenv("VOIDC_IMPORT"))
     {
@@ -104,23 +105,20 @@ import_paths_initialize(const char *exe_name)
         import_paths = {"."};
     }
 
-    if (exe_name)
+    if (fs::exists(exe_path))
     {
-        fs::path p(exe_name);
+        fs::path p(exe_path);
 
-        if (fs::exists(p))
-        {
-            p = fs::canonical(p);
-            p = p.parent_path();
+        p = fs::canonical(p);
+        p = p.parent_path();
 
-            import_paths.push_back(p);
+        import_paths.push_back(p);
 
-            //- Dirty hack...
+        //- Dirty hack...
 
-            import_paths.push_back(p / "..");               //- WTF ?!?!?
-            import_paths.push_back(p / "../level-00");      //- WTF ?!?!?
-            import_paths.push_back(p / "../level-01");      //- WTF ?!?!?
-        }
+        import_paths.push_back(p / "..");               //- WTF ?!?!?
+        import_paths.push_back(p / "../level-00");      //- WTF ?!?!?
+        import_paths.push_back(p / "../level-01");      //- WTF ?!?!?
     }
 }
 
@@ -703,20 +701,18 @@ main(int argc, char *argv[])
     std::srand(std::time(nullptr));
 #endif
 
-    {   const char *exe_name = nullptr;
+    {   fs::path exe_path;
 
 #ifdef _WIN32
-        wchar_t path[MAX_PATH] = { 0 };
-        GetModuleFileNameW(NULL, path, MAX_PATH);
+        wchar_t path[_MAX_PATH] = { 0 };
+        GetModuleFileNameW(NULL, path, _MAX_PATH);
 
-        fs::path fs_path(path);
-
-        exe_name = fs_path.c_str();
+        exe_path = path;
 #else
-        exe_name = "/proc/self/exe";
+        exe_path = "/proc/self/exe";
 #endif
 
-        import_paths_initialize(exe_name);
+        import_paths_initialize(exe_path);
     }
 
     std::list<std::string> sources;
