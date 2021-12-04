@@ -803,6 +803,15 @@ main(int argc, char *argv[])
 
             vpeg::context_t::current_ctx = std::make_shared<vpeg::context_t>(istr, current_grammar);
 
+            {   auto &pctx = *vpeg::context_t::current_ctx;
+
+                static const auto shebang_q = v_quark_from_string("shebang");
+
+                pctx.grammar.parse(shebang_q, pctx);
+
+                pctx.memo.clear();
+            }
+
             while(auto unit = parse_unit())
             {
                 unit->accept(voidc_compiler);

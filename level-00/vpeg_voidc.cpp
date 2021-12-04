@@ -308,14 +308,13 @@ vpeg::grammar_t make_voidc_grammar(void)
 #undef DEF
 
     //-------------------------------------------------------------
-    //- unit <- shebang? _ ( <'{'> _ l:stmt_list _ '}'      { mk_unit(l, $1s) }
-    //-                      / !.                           { mk_EOF() }
-    //-                    )
+    //- unit <- _ ( <'{'> _ l:stmt_list _ '}'       { mk_unit(l, $1s) }
+    //-             / !.                            { mk_EOF() }
+    //-           )
 
     gr = gr.set_parser("unit",
     mk_sequence_parser(
     {
-        mk_question_parser(ip_shebang),
         ip__,
 
         mk_choice_parser(
@@ -882,30 +881,33 @@ vpeg::grammar_t make_voidc_grammar(void)
         ip_EOL
     }));
 
+
     //-------------------------------------------------------------
-    //- shebang <- { is_SOF($0s) } "#!" (!EOL .)* EOL
+    //- shebang <- ({ is_SOF($0s) } "#!" (!EOL .)* EOL)?
 
     gr = gr.set_parser("shebang",
-    mk_sequence_parser(
-    {
-        mk_action_parser(
-            mk_call_action("is_SOF",
-            {
-                mk_backref_argument(0, backref_argument_t::bk_start)
-            })
-        ),
+    mk_question_parser(
+        mk_sequence_parser(
+        {
+            mk_action_parser(
+                mk_call_action("is_SOF",
+                {
+                    mk_backref_argument(0, backref_argument_t::bk_start)
+                })
+            ),
 
-        mk_literal_parser("#!"),
+            mk_literal_parser("#!"),
 
-        mk_star_parser(
-            mk_sequence_parser(
-            {
-                mk_not_parser(ip_EOL),
-                mk_dot_parser()
-            })
-        ),
-        ip_EOL
-    }));
+            mk_star_parser(
+                mk_sequence_parser(
+                {
+                    mk_not_parser(ip_EOL),
+                    mk_dot_parser()
+                })
+            ),
+            ip_EOL
+        })
+    ));
 
 
     //-------------------------------------------------------------
