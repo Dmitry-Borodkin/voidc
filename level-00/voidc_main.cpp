@@ -760,6 +760,11 @@ main(int argc, char *argv[])
         gctx.decls.symbols.insert({"v_import",            import_f_type});
         gctx.decls.symbols.insert({"voidc_import",        import_f_type});
         gctx.decls.symbols.insert({"voidc_guard_target",  import_f_type});      //- Kind of...
+
+#ifdef _WIN32
+        gctx.add_symbol_value("stdout", stdout);
+        gctx.add_symbol_value("stderr", stderr);
+#endif
     }
 
     v_ast_static_initialize();
