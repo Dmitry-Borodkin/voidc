@@ -721,7 +721,7 @@ main(int argc, char *argv[])
     {
         char c;
 
-        if ((c = getopt(argc, argv, "-I:")) != -1)
+        if ((c = getopt(argc, argv, "-Is:")) != -1)
         {
             //- Option argument
 
@@ -729,6 +729,11 @@ main(int argc, char *argv[])
             {
             case 'I':
                 import_paths.push_back(optarg);
+                break;
+
+            case 's':
+                sources.push_back(optarg);
+                c = -1;
                 break;
 
             case 1:
@@ -739,10 +744,8 @@ main(int argc, char *argv[])
                 break;
             }
         }
-        else
-        {
-            break;
-        }
+
+        if (c == -1)  break;
     }
 
     if (sources.empty())  sources.push_back("-");
@@ -765,6 +768,9 @@ main(int argc, char *argv[])
         gctx.add_symbol_value("stdout", stdout);
         gctx.add_symbol_value("stderr", stderr);
 #endif
+
+        gctx.add_symbol_value("voidc_argc", &argc);
+        gctx.add_symbol_value("voidc_argv", &argv);
     }
 
     v_ast_static_initialize();
