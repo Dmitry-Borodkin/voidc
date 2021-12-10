@@ -284,6 +284,28 @@
     v_export_symbol_type("v_get_intrinsic", ft);
 }
 
+
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    v_store(void_ptr, typ0);
+
+    fun_t = v_function_type(void, typ0, 1, false);
+
+    fun_ptr = v_pointer_type(fun_t, 0);
+
+    v_store(fun_ptr,  typ0);
+    v_store(void_ptr, typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+
+    v_export_symbol_type("v_add_cleaner", ft);
+    v_export_symbol_type("v_add_local_cleaner", ft);
+}
+
+
+//---------------------------------------------------------------------
 {   ft = v_function_type(LLVMContextRef, 0, 0, false);
     v_export_symbol_type("v_target_get_voidc_llvm_ctx", ft);
     v_export_symbol_type("v_target_get_llvm_ctx", ft);
@@ -340,14 +362,6 @@
 
     ft = v_function_type(bool, 0, 0, false);
     v_export_symbol_type("v_target_local_ctx_has_parent", ft);
-}
-
-{   typ = v_alloca(v_type_ptr);
-
-    v_store(v_pointer_type(v_function_type(void, 0, 0, false), 0), typ);
-
-    ft = v_function_type(int, typ, 1, false);
-    v_export_symbol_type("voidc_atexit", ft);
 }
 
 {   type = v_struct_type_named("struct.LLVMOpaqueTargetMachine");

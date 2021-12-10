@@ -71,6 +71,23 @@ public:
         if (it != decls.symbols.end())  return it->second;
         else                            return nullptr;
     }
+
+public:
+    void add_cleaner(void (*fun)(void *data), void *data)
+    {
+        cleaners.push_front({fun, data});
+    }
+
+protected:
+    void run_cleaners(void)
+    {
+        for (auto &it: cleaners) it.first(it.second);
+
+        cleaners.clear();       //- Sic!
+    }
+
+private:
+    std::forward_list<std::pair<void (*)(void *), void *>> cleaners;
 };
 
 
@@ -298,7 +315,7 @@ class target_global_ctx_t : public base_global_ctx_t
 {
 public:
     target_global_ctx_t(size_t int_size, size_t long_size, size_t ptr_size);
-    ~target_global_ctx_t();
+    ~target_global_ctx_t() override;
 
 public:
     void add_symbol_value(const char *raw_name, void *value) override;
@@ -316,7 +333,7 @@ class target_local_ctx_t : public base_local_ctx_t
 {
 public:
     explicit target_local_ctx_t(base_global_ctx_t &global);
-    ~target_local_ctx_t() = default;
+    ~target_local_ctx_t() override;
 
 public:
     void add_symbol_value(const char *raw_name, void *value) override;

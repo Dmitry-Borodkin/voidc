@@ -246,7 +246,7 @@
 
 
 //=====================================================================
-//- Constructor/destructor
+//- Constructor/destructor (kinda)
 //=====================================================================
 {
     ft = v_function_type(void, 0, 0, false);
@@ -326,16 +326,19 @@
 }
 
 //---------------------------------------------------------------------
-{
-    ft = v_function_type(void, 0, 0, false);
+{   typ = v_alloca(v_type_ptr);
+
+    v_store(void_ptr, typ);
+
+    ft = v_function_type(void, typ, 1, false);
 
     //-----------------------------------------------------------------
-    v_function_hack("expr_oplist_dtor", ft);
+    v_function_hack("expr_oplist_cleaner", ft);
 }
 {
     v_terminate(expr_oplist);
 
-//  printf("expr_oplist_dtor()\n");
+//  printf("expr_oplist_cleaner()\n");
 }
 
 
@@ -357,7 +360,7 @@
 //---------------------------------------------------------------------
 {   expr_oplist_ctor();
 
-    voidc_atexit(expr_oplist_dtor);
+    v_add_cleaner(expr_oplist_cleaner, 0);
 }
 
 

@@ -832,12 +832,10 @@ voidc_global_ctx_t::static_initialize(void)
 }
 
 //---------------------------------------------------------------------
-static std::forward_list<void (*)(void)> voidc_atexit_list;
-
 void
 voidc_global_ctx_t::static_terminate(void)
 {
-    for (auto it: voidc_atexit_list)  it();
+    voidc->run_cleaners();
 
     voidc_types_static_terminate();
 
@@ -1026,6 +1024,8 @@ voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
 //---------------------------------------------------------------------
 voidc_local_ctx_t::~voidc_local_ctx_t()
 {
+    run_cleaners();
+
     if (parent_ctx)
     {
         //- Restore link order
@@ -1237,6 +1237,8 @@ target_global_ctx_t::target_global_ctx_t(size_t int_size, size_t long_size, size
 
 target_global_ctx_t::~target_global_ctx_t()
 {
+    run_cleaners();
+
     LLVMContextDispose(llvm_ctx);
 }
 
@@ -1255,6 +1257,11 @@ target_global_ctx_t::add_symbol_value(const char *raw_name, void *value)
 target_local_ctx_t::target_local_ctx_t(base_global_ctx_t &global)
   : base_local_ctx_t(global)
 {
+}
+
+target_local_ctx_t::~target_local_ctx_t()
+{
+    run_cleaners();
 }
 
 
@@ -1973,6 +1980,25 @@ v_get_intrinsic(const char *name, void **aux)
 
 
 //---------------------------------------------------------------------
+void
+v_add_cleaner(void (*fun)(void *), void *data)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    gctx.add_cleaner(fun, data);
+}
+
+void
+v_add_local_cleaner(void (*fun)(void *), void *data)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.add_cleaner(fun, data);
+}
+
+
+//---------------------------------------------------------------------
 LLVMContextRef
 v_target_get_voidc_llvm_ctx(void)
 {
@@ -2057,14 +2083,6 @@ v_target_local_ctx_has_parent(void)
     auto &lctx = *gctx.local_ctx;
 
     return  lctx.has_parent();
-}
-
-
-//---------------------------------------------------------------------
-void
-voidc_atexit(void (*func)(void))
-{
-    voidc_atexit_list.push_front(func);
 }
 
 
