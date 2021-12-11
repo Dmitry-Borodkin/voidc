@@ -734,9 +734,7 @@
     v_store(arg0_v, val0);
     v_store(n1,     val1);
 
-    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_sptr);
-
-    LLVMBuildCall(builder, arg_init_f, val0, 2, "");
+    LLVMBuildCall(builder, expr_init_f, val0, 2, "");
 
 
     base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
@@ -766,9 +764,7 @@
     v_store(arg0_v,   val2);
     v_store(n1,       val3);
 
-    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_expr_list_sptr);
-
-    LLVMBuildCall(builder, list_get_items_f, val0, 4, "");
+    LLVMBuildCall(builder, expr_list_get_items_f, val0, 4, "");
 
 
     ret_type_var_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_return_type", "ret_type_var_n");
