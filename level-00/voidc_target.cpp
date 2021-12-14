@@ -425,7 +425,9 @@ base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
 
     LLVMPositionBuilderAtEnd(global_ctx.builder, entry);
 
-    vars = variables_t();       //- Sic!
+    vars = variables_t();       //- ?
+
+    push_variables();
 
     auto ret_type = static_cast<v_type_function_t *>(type)->return_type();
 
@@ -480,8 +482,9 @@ base_local_ctx_t::finish_function(void)
         LLVMBuildRet(global_ctx.builder, ret_value);
     }
 
-
     LLVMClearInsertionPosition(global_ctx.builder);
+
+    pop_variables();
 }
 
 
@@ -548,6 +551,26 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
     }
 
     result_value = value;
+}
+
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::push_variables(void)
+{
+    vars_stack.push_front({decls, vars});
+}
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::pop_variables(void)
+{
+    auto &top = vars_stack.front();
+
+    decls = top.first;
+    vars  = top.second;
+
+    vars_stack.pop_front();
 }
 
 
@@ -1171,7 +1194,7 @@ voidc_local_ctx_t::finish_unit_action(void)
     //-------------------------------------------------------------
     LLVMDisposeModule(module);
 
-    vars = variables_t();
+    vars = variables_t();       //- ?
 }
 
 //---------------------------------------------------------------------
@@ -1784,7 +1807,7 @@ v_get_variables_size(void)
 
 //---------------------------------------------------------------------
 void
-v_clear_variables(void)
+v_clear_variables(void)         //- ?
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -1798,7 +1821,7 @@ v_save_variables(void)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.vars_stack.push_front({lctx.decls, lctx.vars});
+    lctx.push_variables();
 }
 
 void
@@ -1807,12 +1830,7 @@ v_restore_variables(void)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto &top = lctx.vars_stack.front();
-
-    lctx.decls = top.first;
-    lctx.vars  = top.second;
-
-    lctx.vars_stack.pop_front();
+    lctx.pop_variables();
 }
 
 //---------------------------------------------------------------------

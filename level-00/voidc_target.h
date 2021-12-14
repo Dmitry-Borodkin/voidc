@@ -191,6 +191,11 @@ public:
 
     variables_t vars;
 
+public:
+    void push_variables(void);
+    void pop_variables(void);
+
+private:
     std::forward_list<std::pair<declarations_t, variables_t>> vars_stack;       //- Sic!
 
 public:
