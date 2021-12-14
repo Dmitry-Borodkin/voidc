@@ -141,12 +141,10 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *,
 
         {   auto &intrinsics = lctx.decls.intrinsics;
 
-            auto it = intrinsics.find(fun_name);
-
-            if (it != intrinsics.end())
+            if (auto p = intrinsics.find(fun_name))
             {
-                void_fun = it->second.first;
-                aux      = it->second.second;
+                void_fun = p->first;
+                aux      = p->second;
             }
         }
 

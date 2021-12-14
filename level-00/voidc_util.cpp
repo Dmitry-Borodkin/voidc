@@ -595,7 +595,7 @@ void static_initialize(void)
     auto &gctx = *voidc_global_ctx_t::voidc;
 
 #define DEF2(name, fname) \
-    gctx.decls.intrinsics.insert({"v_" #name, {(void *)fname, &v_util_##name##_dict}});
+    gctx.decls.intrinsics_insert({"v_" #name, {(void *)fname, &v_util_##name##_dict}});
 
 #define DEF(name) DEF2(name, v_##name##_intrinsic)
 
@@ -627,9 +627,9 @@ void static_initialize(void)
     //-----------------------------------------------------------------
     auto add_type = [&gctx](const char *raw_name, v_type_t *type)
     {
-        gctx.decls.constants.insert({raw_name, type});
+        gctx.decls.constants_insert({raw_name, type});
 
-        gctx.decls.symbols.insert({raw_name, gctx.opaque_type_type});
+        gctx.decls.symbols_insert({raw_name, gctx.opaque_type_type});
 
         gctx.add_symbol_value(raw_name, type);
     };

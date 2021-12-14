@@ -30,6 +30,21 @@ DEFINE_SIMPLE_CONVERSION_FUNCTIONS(LLJIT, LLVMOrcLLJITRef)
 
 
 //---------------------------------------------------------------------
+//- Base Compilation Context
+//---------------------------------------------------------------------
+void
+base_compile_ctx_t::declarations_t::insert(const declarations_t &other)
+{
+    if (other.empty())  return;
+
+    for (auto it : other.aliases)     aliases_insert(it);
+    for (auto it : other.constants)   constants_insert(it);
+    for (auto it : other.symbols)     symbols_insert(it);
+    for (auto it : other.intrinsics)  intrinsics_insert(it);
+}
+
+
+//---------------------------------------------------------------------
 //- Base Global Context
 //---------------------------------------------------------------------
 base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
@@ -85,9 +100,9 @@ base_global_ctx_t::initialize(void)
 
     auto add_type = [this, opaque_type](const char *raw_name, v_type_t *type)
     {
-        decls.constants.insert({raw_name, type});
+        decls.constants_insert({raw_name, type});
 
-        decls.symbols.insert({raw_name, opaque_type});
+        decls.symbols_insert({raw_name, opaque_type});
 
         add_symbol_value(raw_name, type);
     };
@@ -114,7 +129,7 @@ base_global_ctx_t::initialize(void)
     //-----------------------------------------------------------------
     auto add_bool_const = [this](const char *raw_name, bool value)
     {
-        decls.constants.insert({raw_name, bool_type});
+        decls.constants_insert({raw_name, bool_type});
 
         constant_values.insert({raw_name, LLVMConstInt(bool_type->llvm_type(), value, false)});
     };
@@ -128,8 +143,8 @@ base_global_ctx_t::initialize(void)
     auto stacksave_ft    = make_function_type(i8_ptr_type, nullptr, 0, false);
     auto stackrestore_ft = make_function_type(void_type, &i8_ptr_type, 1, false);
 
-    decls.symbols.insert({"llvm.stacksave",    stacksave_ft});
-    decls.symbols.insert({"llvm.stackrestore", stackrestore_ft});
+    decls.symbols_insert({"llvm.stacksave",    stacksave_ft});
+    decls.symbols_insert({"llvm.stackrestore", stackrestore_ft});
 }
 
 
@@ -155,16 +170,16 @@ base_local_ctx_t::~base_local_ctx_t()
 void
 base_local_ctx_t::export_alias(const char *name, const char *raw_name)
 {
-    if (export_decls)   export_decls->aliases.insert({name, raw_name});
+    if (export_decls)   export_decls->aliases_insert({name, raw_name});
 
-    decls.aliases.insert({name, raw_name});
+    decls.aliases_insert({name, raw_name});
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::add_alias(const char *name, const char *raw_name)
 {
-    decls.aliases.insert({name, raw_name});
+    decls.aliases_insert({name, raw_name});
 }
 
 
@@ -172,9 +187,9 @@ base_local_ctx_t::add_alias(const char *name, const char *raw_name)
 void
 base_local_ctx_t::export_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
 {
-    if (export_decls)   export_decls->constants.insert({raw_name, type});
+    if (export_decls)   export_decls->constants_insert({raw_name, type});
 
-    decls.constants.insert({raw_name, type});
+    decls.constants_insert({raw_name, type});
 
     if (value)  global_ctx.constant_values.insert({raw_name, value});
 }
@@ -183,7 +198,7 @@ base_local_ctx_t::export_constant(const char *raw_name, v_type_t *type, LLVMValu
 void
 base_local_ctx_t::add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value)
 {
-    decls.constants.insert({raw_name, type});
+    decls.constants_insert({raw_name, type});
 
     if (value)  constant_values.insert({raw_name, value});
 }
@@ -195,9 +210,9 @@ base_local_ctx_t::export_symbol(const char *raw_name, v_type_t *type, void *valu
 {
     if (type)
     {
-        if (export_decls)   export_decls->symbols.insert({raw_name, type});
+        if (export_decls)   export_decls->symbols_insert({raw_name, type});
 
-        decls.symbols.insert({raw_name, type});
+        decls.symbols_insert({raw_name, type});
     }
 
     if (value)  global_ctx.add_symbol_value(raw_name, value);
@@ -207,7 +222,7 @@ base_local_ctx_t::export_symbol(const char *raw_name, v_type_t *type, void *valu
 void
 base_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 {
-    if (type)   decls.symbols.insert({raw_name, type});
+    if (type)   decls.symbols_insert({raw_name, type});
 
     if (value)  add_symbol_value(raw_name, value);
 }
@@ -217,16 +232,16 @@ base_local_ctx_t::add_symbol(const char *raw_name, v_type_t *type, void *value)
 void
 base_local_ctx_t::export_intrinsic(const char *fun_name, void *fun, void *aux)
 {
-    if (export_decls)   export_decls->intrinsics.insert({fun_name, {fun, aux}});
+    if (export_decls)   export_decls->intrinsics_insert({fun_name, {fun, aux}});
 
-    decls.intrinsics.insert({fun_name, {fun, aux}});
+    decls.intrinsics_insert({fun_name, {fun, aux}});
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::add_intrinsic(const char *fun_name, void *fun, void *aux)
 {
-    decls.intrinsics.insert({fun_name, {fun, aux}});
+    decls.intrinsics_insert({fun_name, {fun, aux}});
 }
 
 
@@ -253,9 +268,7 @@ base_local_ctx_t::add_type(const char *raw_name, v_type_t *type)
 const std::string
 base_local_ctx_t::check_alias(const std::string &name)
 {
-    auto it = decls.aliases.find(name);
-
-    if (it != decls.aliases.end())  return it->second;
+    if (auto p = decls.aliases.find(name))  return *p;
 
     return  name;
 }
@@ -293,11 +306,9 @@ base_local_ctx_t::find_constant(const char *raw_name, v_type_t * &type, LLVMValu
     v_type_t    *t = nullptr;
     LLVMValueRef v = nullptr;
 
-    auto itt = decls.constants.find(raw_name);
-
-    if (itt != decls.constants.end())
+    if (auto p = decls.constants.find(raw_name))
     {
-        t = itt->second;
+        t = *p;
 
         {   auto itv = constant_values.find(raw_name);
 
@@ -666,9 +677,9 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     auto add_type = [this](const char *raw_name, v_type_t *type)
     {
-        decls.constants.insert({raw_name, type});
+        decls.constants_insert({raw_name, type});
 
-        decls.symbols.insert({raw_name, opaque_type_type});
+        decls.symbols_insert({raw_name, opaque_type_type});
 
         add_symbol_value(raw_name, type);
     };
@@ -686,7 +697,7 @@ voidc_global_ctx_t::voidc_global_ctx_t()
         };
 
 #define DEF(name, ret, num) \
-        decls.symbols.insert({#name, make_function_type(ret, types, num, false)});
+        decls.symbols_insert({#name, make_function_type(ret, types, num, false)});
 
         DEF(v_function_type, type_ptr_type, 4)
 
@@ -701,7 +712,7 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
 #ifdef _WIN32
 
-    decls.constants.insert({"_WIN32", bool_type});
+    decls.constants_insert({"_WIN32", bool_type});
 
     constant_values.insert({"_WIN32", LLVMConstInt(bool_type->llvm_type(), true, false)});      //- ?
 
@@ -817,7 +828,7 @@ voidc_global_ctx_t::static_initialize(void)
 
         auto ft = voidc->make_function_type(voidc->void_type, typ, 3, false);
 
-        voidc->decls.symbols.insert({"voidc_object_file_load_to_jit_internal_helper", ft});
+        voidc->decls.symbols_insert({"voidc_object_file_load_to_jit_internal_helper", ft});
     }
 
     //-------------------------------------------------------------
@@ -1384,30 +1395,27 @@ v_find_constant(const char *raw_name, v_type_t **type, LLVMValueRef *value)
     v_type_t    *t = nullptr;
     LLVMValueRef v = nullptr;
 
-    {   auto itt = lctx.decls.constants.find(raw_name);
+    if (auto p = lctx.decls.constants.find(raw_name))
+    {
+        t = *p;
 
-        if (itt != lctx.decls.constants.end())
+        if (value)
         {
-            t = itt->second;
+            {   auto itv = lctx.constant_values.find(raw_name);
 
-            if (value)
-            {
-                {   auto itv = lctx.constant_values.find(raw_name);
-
-                    if (itv != lctx.constant_values.end())
-                    {
-                        v = itv->second;
-                    }
-                }
-
-                if (!v)
+                if (itv != lctx.constant_values.end())
                 {
-                    auto itv = gctx.constant_values.find(raw_name);
+                    v = itv->second;
+                }
+            }
 
-                    if (itv != gctx.constant_values.end())
-                    {
-                        v = itv->second;
-                    }
+            if (!v)
+            {
+                auto itv = gctx.constant_values.find(raw_name);
+
+                if (itv != gctx.constant_values.end())
+                {
+                    v = itv->second;
                 }
             }
         }
@@ -1790,7 +1798,7 @@ v_save_variables(void)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.vars_stack.push_front(lctx.vars);
+    lctx.vars_stack.push_front({lctx.decls, lctx.vars});
 }
 
 void
@@ -1799,7 +1807,10 @@ v_restore_variables(void)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.vars = lctx.vars_stack.front();
+    auto &top = lctx.vars_stack.front();
+
+    lctx.decls = top.first;
+    lctx.vars  = top.second;
 
     lctx.vars_stack.pop_front();
 }
@@ -1969,13 +1980,14 @@ v_get_intrinsic(const char *name, void **aux)
 
     auto &intrinsics = lctx.decls.intrinsics;
 
-    auto it = intrinsics.find(name);
+    if (auto p = intrinsics.find(name))
+    {
+        if (aux)  *aux = p->second;
 
-    if (it == intrinsics.end()) return nullptr;
+        return  p->first;
+    }
 
-    if (aux)  *aux = it->second.second;
-
-    return  it->second.first;
+    return nullptr;
 }
 
 

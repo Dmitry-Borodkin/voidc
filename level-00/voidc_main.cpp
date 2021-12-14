@@ -758,11 +758,11 @@ main(int argc, char *argv[])
 
     {   v_type_t *import_f_type = gctx.make_function_type(gctx.void_type, &gctx.char_ptr_type, 1, false);
 
-        gctx.decls.symbols.insert({"v_export_import",     import_f_type});
-        gctx.decls.symbols.insert({"voidc_export_import", import_f_type});
-        gctx.decls.symbols.insert({"v_import",            import_f_type});
-        gctx.decls.symbols.insert({"voidc_import",        import_f_type});
-        gctx.decls.symbols.insert({"voidc_guard_target",  import_f_type});      //- Kind of...
+        gctx.decls.symbols_insert({"v_export_import",     import_f_type});
+        gctx.decls.symbols_insert({"voidc_export_import", import_f_type});
+        gctx.decls.symbols_insert({"v_import",            import_f_type});
+        gctx.decls.symbols_insert({"voidc_import",        import_f_type});
+        gctx.decls.symbols_insert({"voidc_guard_target",  import_f_type});      //- Kind of...
 
 #ifdef _WIN32
         gctx.add_symbol_value("stdout", stdout);

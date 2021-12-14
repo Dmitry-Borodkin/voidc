@@ -126,9 +126,9 @@ void grammar_t::static_initialize(void)
 
     auto add_type = [&gctx](const char *raw_name, v_type_t *type)
     {
-        gctx.decls.constants.insert({raw_name, type});
+        gctx.decls.constants_insert({raw_name, type});
 
-        gctx.decls.symbols.insert({raw_name, gctx.opaque_type_type});
+        gctx.decls.symbols_insert({raw_name, gctx.opaque_type_type});
 
         gctx.add_symbol_value(raw_name, type);
     };

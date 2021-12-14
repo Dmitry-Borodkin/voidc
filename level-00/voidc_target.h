@@ -41,18 +41,22 @@ public:
 
     struct declarations_t
     {
-        std::map<std::string, std::string> aliases;
-        std::map<std::string, v_type_t *>  constants;
-        std::map<std::string, v_type_t *>  symbols;
-        std::map<std::string, intrinsic_t> intrinsics;
+        immer::map<std::string, std::string> aliases;
+        immer::map<std::string, v_type_t *>  constants;
+        immer::map<std::string, v_type_t *>  symbols;
+        immer::map<std::string, intrinsic_t> intrinsics;
 
-        void insert(const declarations_t &other)
+        bool empty(void) const
         {
-            aliases.insert(other.aliases.begin(), other.aliases.end());
-            constants.insert(other.constants.begin(), other.constants.end());
-            symbols.insert(other.symbols.begin(), other.symbols.end());
-            intrinsics.insert(other.intrinsics.begin(), other.intrinsics.end());
+            return (aliases.empty() && constants.empty() && symbols.empty() && intrinsics.empty());
         }
+
+        void aliases_insert   (std::pair<std::string, std::string> v) { aliases    = aliases.insert(v); }
+        void constants_insert (std::pair<std::string, v_type_t *>  v) { constants  = constants.insert(v); }
+        void symbols_insert   (std::pair<std::string, v_type_t *>  v) { symbols    = symbols.insert(v); }
+        void intrinsics_insert(std::pair<std::string, intrinsic_t> v) { intrinsics = intrinsics.insert(v); }
+
+        void insert(const declarations_t &other);
     };
 
     declarations_t decls;
@@ -66,10 +70,10 @@ public:
 public:
     v_type_t *get_symbol_type(const char *raw_name) const
     {
-        auto it = decls.symbols.find(raw_name);
+        auto *pt = decls.symbols.find(raw_name);
 
-        if (it != decls.symbols.end())  return it->second;
-        else                            return nullptr;
+        if (pt) return *pt;
+        else    return nullptr;
     }
 
 public:
@@ -187,7 +191,7 @@ public:
 
     variables_t vars;
 
-    std::forward_list<variables_t> vars_stack;
+    std::forward_list<std::pair<declarations_t, variables_t>> vars_stack;       //- Sic!
 
 public:
     v_type_t    *result_type  = nullptr;

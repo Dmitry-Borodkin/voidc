@@ -400,9 +400,9 @@ void parsers_static_initialize(void)
 
     auto add_type = [&gctx](const char *raw_name, v_type_t *type)
     {
-        gctx.decls.constants.insert({raw_name, type});
+        gctx.decls.constants_insert({raw_name, type});
 
-        gctx.decls.symbols.insert({raw_name, gctx.opaque_type_type});
+        gctx.decls.symbols_insert({raw_name, gctx.opaque_type_type});
 
         gctx.add_symbol_value(raw_name, type);
     };
@@ -423,7 +423,7 @@ void parsers_static_initialize(void)
     auto int_llvm_type = int_type->llvm_type();
 
 #define DEF(name, kind) \
-    gctx.decls.constants.insert({"v_peg_" #name "_kind_" #kind, int_type}); \
+    gctx.decls.constants_insert({"v_peg_" #name "_kind_" #kind, int_type}); \
     gctx.constant_values.insert({"v_peg_" #name "_kind_" #kind, \
         LLVMConstInt(int_llvm_type, name##_t::k_##kind, 0)});
 
@@ -456,7 +456,7 @@ void parsers_static_initialize(void)
 #undef DEF
 
 #define DEF(kind) \
-    gctx.decls.constants.insert({"v_peg_backref_argument_kind_" #kind, int_type}); \
+    gctx.decls.constants_insert({"v_peg_backref_argument_kind_" #kind, int_type}); \
     gctx.constant_values.insert({"v_peg_backref_argument_kind_" #kind, \
         LLVMConstInt(int_llvm_type, backref_argument_t::bk_##kind, 0)});
 
