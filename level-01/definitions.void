@@ -11,7 +11,6 @@
     v_import("voidc_quark.void");
     v_import("voidc_visitor.void");
     v_import("voidc_compiler.void");
-    v_import("vpeg_parser.void");
     v_import("vpeg_grammar.void");
     v_import("vpeg_context.void");
 
@@ -1152,7 +1151,8 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-//  printf("compile_defn_list_unit\n");
+//    printf("compile_defn_list_unit\n");
+//    defer printf("compile_defn_list_unit leave\n");
 
     //- Definitions (i.e. "values of things") ---------------------
 
@@ -1238,6 +1238,12 @@
         column = v_cast(v_ast_expr_integer_get_number(expr+1), int);
 
         voidc_prepare_unit_action(line, column);
+
+        //---------------------------------------------------------
+        v_import("voidc_target.void");
+        v_import("voidc_types.void");
+
+        v_import("llvm-c/Core.void");
 
         //---------------------------------------------------------
         item = v_alloca(v_ast_opaque_expr_list_sptr);

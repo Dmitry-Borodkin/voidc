@@ -416,6 +416,40 @@
 
 
     //-----------------------------------------------------------------
+    //- ...
+
+    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(arg0, 2);
+
+    arg1 = v_getelementptr(arg0, 1);
+
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(stmt);
+
+
+    //-----------------------------------------------------------------
+    //- Local imports
+
+    v_ast_make_expr_string(arg0, "voidc_util.void");
+
+    v_ast_make_stmt_call(stmt, "", "voidc_local_import", arg0, 1);
+
+    v_list_append(gr_stmt_list, gr_stmt_list, stmt);
+
+    v_ast_make_expr_string(arg0, "vpeg_parser.void");
+
+    v_ast_make_stmt_call(stmt, "", "voidc_local_import", arg0, 1);
+
+    v_list_append(gr_stmt_list, gr_stmt_list, stmt);
+
+    v_ast_make_expr_string(arg0, "vpeg_grammar.void");
+
+    v_ast_make_stmt_call(stmt, "", "voidc_local_import", arg0, 1);
+
+    v_list_append(gr_stmt_list, gr_stmt_list, stmt);
+
+
+    //-----------------------------------------------------------------
     //- Parsers "stack"
 
     voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
@@ -446,18 +480,6 @@
                                       voidc_ast_stmt_grammar_ranges_count,
                                       0
                                      );
-
-
-    //-----------------------------------------------------------------
-    //- ...
-
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
-    v_initialize(arg0, 2);
-
-    arg1 = v_getelementptr(arg0, 1);
-
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
-    v_initialize(stmt);
 
 
     //-----------------------------------------------------------------

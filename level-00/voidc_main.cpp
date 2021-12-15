@@ -604,6 +604,25 @@ voidc_import_helper(const char *name, bool _export)
 }
 
 
+//---------------------------------------------------------------------
+static void
+v_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+{
+    auto &r = dynamic_cast<const ast_expr_string_t &>(*(*args)->data[0]);
+
+    v_import_helper(r.string.c_str(), false);
+}
+
+//---------------------------------------------------------------------
+static void
+voidc_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+{
+    auto &r = dynamic_cast<const ast_expr_string_t &>(*(*args)->data[0]);
+
+    voidc_import_helper(r.string.c_str(), false);
+}
+
+
 //--------------------------------------------------------------------
 extern "C"
 {
@@ -763,6 +782,9 @@ main(int argc, char *argv[])
         gctx.decls.symbols_insert({"v_import",            import_f_type});
         gctx.decls.symbols_insert({"voidc_import",        import_f_type});
         gctx.decls.symbols_insert({"voidc_guard_target",  import_f_type});      //- Kind of...
+
+        gctx.decls.intrinsics_insert({"v_local_import",     {(void *)v_local_import,     nullptr}});
+        gctx.decls.intrinsics_insert({"voidc_local_import", {(void *)voidc_local_import, nullptr}});
 
 #ifdef _WIN32
         gctx.add_symbol_value("stdout", stdout);
