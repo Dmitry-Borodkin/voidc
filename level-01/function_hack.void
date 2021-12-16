@@ -928,14 +928,10 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
-    ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
-    v_initialize(ar_l);
+    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
-    v_make_list_nil(ar_l);
-
-    voidc_function_hack_return_intrinsic(visitor, 0, ar_l, 1);
-
-    v_terminate(ar_l);
+    LLVMBuildBr(builder, leave_b);
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 }
@@ -981,14 +977,10 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
-    ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
-    v_initialize(ar_l);
+    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
-    v_make_list_nil(ar_l);
-
-    voidc_function_hack_return_intrinsic(visitor, 0, ar_l, 1);
-
-    v_terminate(ar_l);
+    LLVMBuildBr(builder, leave_b);
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 }
