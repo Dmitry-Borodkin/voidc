@@ -106,7 +106,7 @@
 
     v_store(arg_list, val0);
 
-    list_get_size_f = v_obtain_dict_function(v_util_list_get_size_dict, v_ast_opaque_expr_list_sptr);
+    list_get_size_f = v_obtain_function("v_ast_list_get_size_expr_list_impl");
 
     args_count_v = LLVMBuildCall(builder, list_get_size_f, val0, 1, "args_count_v");
 
@@ -119,7 +119,7 @@
     v_store(args_v,       val0);
     v_store(args_count_v, val1);
 
-    arg_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_expr_sptr);
+    arg_init_f = v_obtain_function("v_ast_initialize_expr_impl");
 
     LLVMBuildCall(builder, arg_init_f, val0, 2, "");
 
@@ -129,7 +129,7 @@
     v_store(args_v,       val2);
     v_store(args_count_v, val3);
 
-    list_get_items_f = v_obtain_dict_function(v_util_list_get_items_dict, v_ast_opaque_expr_list_sptr);
+    list_get_items_f = v_obtain_function("v_ast_list_get_items_expr_list_impl");
 
     LLVMBuildCall(builder, list_get_items_f, val0, 4, "");
 

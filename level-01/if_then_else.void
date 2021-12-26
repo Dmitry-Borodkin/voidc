@@ -286,7 +286,7 @@
     par_else = LLVMBuildGEP(builder, any0, val0, 1, "par_else");
 
 
-    get_arg_f = v_obtain_dict_function(v_util_std_any_get_pointer_dict, v_ast_opaque_stmt_sptr);
+    get_arg_f = v_obtain_function("v_ast_std_any_get_pointer_stmt_impl");
 
     v_store(par_else, val0);
 
@@ -302,7 +302,7 @@
 
     stmt = LLVMBuildAlloca(builder, v_ast_opaque_stmt_sptr_, "stmt");
 
-    stmt_sptr_init_f = v_obtain_dict_function(v_util_initialize_dict, v_ast_opaque_stmt_sptr);
+    stmt_sptr_init_f = v_obtain_function("v_ast_initialize_stmt_impl");
 
     v_store(stmt, val0);
     v_store(n1,   val1);
@@ -439,7 +439,7 @@
     builder_v = LLVMBuildCall(builder, get_builder_f, val0, 0, "builder_v");
 
 
-    stmt_empty_f = v_obtain_dict_function(v_util_empty_dict, v_ast_opaque_stmt_sptr);
+    stmt_empty_f = v_obtain_function("v_ast_empty_stmt_impl");
 
     v_store(stmt, val0);
 
