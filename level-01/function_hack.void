@@ -679,8 +679,6 @@
     //-     arg0 = v_alloca(v_ast_opaque_expr_sptr);
     //-     v_initialize(arg0);
     //-
-    //-     base_arg = v_cast(arg0, v_ast_base_ptr);
-    //-
     //-     args_count = v_list_get_size(arg_list);
     //-
     //-     if (args_count)
@@ -735,9 +733,6 @@
     v_store(n1,     val1);
 
     LLVMBuildCall(builder, expr_init_f, val0, 2, "");
-
-
-    base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
 
 
     v_store(arg_list, val0);
