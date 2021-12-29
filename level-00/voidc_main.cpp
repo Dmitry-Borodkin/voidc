@@ -395,7 +395,7 @@ v_import_helper(const char *name, bool _export)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
-    auto *parent_lctx = vctx.local_ctx;
+    auto *parent_lctx = static_cast<voidc_local_ctx_t *>(vctx.local_ctx);
 
     parent_lctx->imports.insert(name);
 
@@ -414,15 +414,17 @@ v_import_helper(const char *name, bool _export)
 
     base_compile_ctx_t::declarations_t *export_decls = nullptr;
 
-    {   auto &tctx = *voidc_global_ctx_t::target;
+    auto &tctx = *voidc_global_ctx_t::target;
 
-        auto [it, ok] = tctx.imported.try_emplace(src_filename_str);
+    auto *target_lctx = tctx.local_ctx;
+
+    {   auto [it, ok] = tctx.imported.try_emplace(src_filename_str);
 
         if (!ok)    //- Already imported
         {
-            parent_lctx->decls.insert(it->second);
+            target_lctx->decls.insert(it->second);
 
-            if (_export  &&  parent_lctx->export_decls) parent_lctx->export_decls->insert(it->second);
+            if (_export  &&  target_lctx->export_decls) target_lctx->export_decls->insert(it->second);
 
             return;     //- Sic!
         }
@@ -442,7 +444,7 @@ v_import_helper(const char *name, bool _export)
 
     lctx.filename = src_filename_str;
 
-    lctx.export_decls = export_decls;
+    if (&tctx == &vctx) lctx.export_decls = export_decls;
 
     auto saved_compiler = make_voidc_compiler();
 
@@ -573,9 +575,9 @@ v_import_helper(const char *name, bool _export)
 
     std::fclose(infs);
 
-    parent_lctx->decls.insert(*export_decls);
+    target_lctx->decls.insert(*export_decls);
 
-    if (_export  &&  parent_lctx->export_decls) parent_lctx->export_decls->insert(*export_decls);
+    if (_export  &&  target_lctx->export_decls) target_lctx->export_decls->insert(*export_decls);
 
     std::swap(voidc_compiler, saved_compiler);
 }

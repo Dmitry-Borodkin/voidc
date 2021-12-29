@@ -141,9 +141,6 @@ public:
     base_global_ctx_t &global_ctx;
 
 public:
-    std::set<std::string> imports;
-
-public:
     declarations_t *export_decls = nullptr;
 
     void export_alias(const char *name, const char *raw_name);
@@ -287,6 +284,9 @@ class voidc_local_ctx_t : public base_local_ctx_t
 public:
     explicit voidc_local_ctx_t(voidc_global_ctx_t &global);
     ~voidc_local_ctx_t() override;
+
+public:
+    std::set<std::string> imports;
 
 public:
     void add_symbol_value(const char *raw_name, void *value) override;
