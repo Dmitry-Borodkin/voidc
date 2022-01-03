@@ -139,23 +139,14 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *,
     {
         auto &fun_name = fname->name;
 
-        {   auto &intrinsics = lctx.decls.intrinsics;
-
-            if (auto p = intrinsics.find(fun_name))
-            {
-                void_fun = p->first;
-                aux      = p->second;
-            }
-        }
-
-        if (!void_fun)
+        for (auto &intrs : {lctx.decls.intrinsics, (*vis)->intrinsics})
         {
-            auto &intrinsics = (*vis)->intrinsics;
-
-            if (auto p = intrinsics.find(fun_name))
+            if (auto p = intrs.find(fun_name))
             {
                 void_fun = p->first;
                 aux      = p->second;
+
+                break;
             }
         }
     }

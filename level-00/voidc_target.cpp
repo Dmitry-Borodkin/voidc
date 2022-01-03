@@ -310,21 +310,15 @@ base_local_ctx_t::find_constant(const char *raw_name, v_type_t * &type, LLVMValu
     {
         t = *p;
 
-        {   auto itv = constant_values.find(raw_name);
-
-            if (itv != constant_values.end())
-            {
-                v = itv->second;
-            }
-        }
-
-        if (!v)
+        for (auto &cv : {constant_values, global_ctx.constant_values})
         {
-            auto itv = global_ctx.constant_values.find(raw_name);
+            auto itv = cv.find(raw_name);
 
-            if (itv != global_ctx.constant_values.end())
+            if (itv != cv.end())
             {
                 v = itv->second;
+
+                break;
             }
         }
     }
@@ -1091,14 +1085,12 @@ voidc_local_ctx_t::add_symbol_value(const char *raw_name, void *value)
 void *
 voidc_local_ctx_t::find_symbol_value(const char *raw_name)
 {
-    auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(local_jd), raw_name);
-
-    if (!sym)
+    for (auto jd : {local_jd, voidc_global_ctx_t::main_jd})
     {
-        sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(voidc_global_ctx_t::main_jd), raw_name);
-    }
+        auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(jd), raw_name);
 
-    if (sym)  return (void *)sym->getAddress();
+        if (sym)  return (void *)sym->getAddress();
+    }
 
     return nullptr;
 }
@@ -1424,21 +1416,15 @@ v_find_constant(const char *raw_name, v_type_t **type, LLVMValueRef *value)
 
         if (value)
         {
-            {   auto itv = lctx.constant_values.find(raw_name);
-
-                if (itv != lctx.constant_values.end())
-                {
-                    v = itv->second;
-                }
-            }
-
-            if (!v)
+            for (auto &cv : {lctx.constant_values, gctx.constant_values})
             {
-                auto itv = gctx.constant_values.find(raw_name);
+                auto itv = cv.find(raw_name);
 
-                if (itv != gctx.constant_values.end())
+                if (itv != cv.end())
                 {
                     v = itv->second;
+
+                    break;
                 }
             }
         }
