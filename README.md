@@ -43,7 +43,7 @@ See more details in [tutorial](doc/tutorial.md).
     - Finally, some "normal" syntax for function's and variable's definitions/declarations.
 
 
-For the moment (Oct 2021), language seems to be ready just for some early experiments...
+For the moment (Jan 2022), language seems to be ready just for some early experiments...
 
 
 **Note:** Void is *not* intended to be seen as a complete/finished/whatever programming language in usual sense...
@@ -93,7 +93,7 @@ $ ./mk_build
 
 ## Usage
 
-Currently (Oct 2021) `voidc` works mainly from it's source directory.
+Currently (Jan 2022) `voidc` works mainly from it's source directory.
 
 You can try some of:
 
