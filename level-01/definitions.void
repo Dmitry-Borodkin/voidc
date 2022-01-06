@@ -1762,8 +1762,8 @@
 
     parsers:
 
-        prefix += "const"    !ident_start  { op_prefix_const }
-                / "volatile" !ident_start  { op_prefix_volatile }
+        prefix += "const"    !ident_cont  { op_prefix_const }
+                / "volatile" !ident_cont  { op_prefix_volatile }
                 ;
 
 
@@ -1790,8 +1790,8 @@
                 ;
 
 
-        qualif_flag = "export"  !ident_start _ {qf_export}
-                    / "private" !ident_start _ {qf_private}
+        qualif_flag = "export"  !ident_cont _ {qf_export}
+                    / "private" !ident_cont _ {qf_private}
                     / {qf_none};
 
         qlf_ident = q:qualif_flag i:identifier  { mk_qlf_ident(q, i) };
