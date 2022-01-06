@@ -5,7 +5,7 @@
 understands basic notions of LLVM-C API, and in general "has an idea of how compilers work"...
 
 
-#### The "Hello, world" example:
+### The "Hello, world" example:
 
 ```
 {   v_import("printf.void"); }      // Import declaration of C's "printf"
@@ -89,12 +89,41 @@ In the case of `printf` we have almost all necessary tools accessible, except on
 the function `v_pointer_type` (to build "pointer to char" type).
 So, the first unit makes exactly this thing: it declares the `v_pointer_type` function...
 
-As is often the case in programming, it is best to read it *sdrawkcab*...
+As is often the case in programming, it is best to read it *sdrawkcab*:
 
-The last statement of the unit calls the function `v_add_symbol` to "declare" the `v_pointer_type` function.
-The term "symbol" here denotes a symbol in the terminology of (JIT's) linker.
+- The last statement of the unit calls the function `v_add_symbol` to "declare" the `v_pointer_type` function.
+  The term "symbol" here denotes a symbol in the terminology of (JIT's) linker.
 
-The last but one statement builds the type of the `v_pointer_type` function.
+- The last but one statement builds the type of the `v_pointer_type` function.
+
+- The previous pair of statements (containing `v_store`) form the list of argument types for the `v_pointer_type` function.
+
+- And "finally", the first couple of statements prepare the memory (in stack) for the list of argument types.
+
+Many important details have been omitted for brevity. We'll come back to them later.
+
+The second unit, in similiar way as the first one, declares the `printf` function.
+Note the use of the `v_pointer_type` function.
+
+The third unit just calls the `printf`...
+
+
+### Language syntax (and semantics).
+
+In fact, Void as a language *has no* fixed/constant/static syntax/semantics...
+Instead, it has a minimalist "starter language" and a set of "language development" tools.
+Then the language is *developed*, and this development is organized into so-called "levels".
+
+For the moment (Jan 2022) there are only two levels:
+
+  - Level 0.0 - "starter language" and compiler API.
+  - Level 0.1 - control flow, grammars, expressions and declarations/definitions.
+
+Let's take a look of them closer.
+
+
+#### The Starter Language.
+
 
 
 
