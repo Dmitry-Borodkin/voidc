@@ -308,41 +308,37 @@ vpeg::grammar_t make_voidc_grammar(void)
 #undef DEF
 
     //-------------------------------------------------------------
-    //- unit <- _ ( <'{'> _ l:stmt_list _ '}'       { mk_unit(l, $1s) }
-    //-             / !.                            { mk_EOF() }
-    //-           )
+    //- unit <- _ <'{'> _ l:stmt_list _ '}'     { mk_unit(l, $1s) }
+    //-       / _ !.                            { mk_EOF() }
 
     gr = gr.set_parser("unit",
-    mk_sequence_parser(
+    mk_choice_parser(
     {
-        ip__,
-
-        mk_choice_parser(
+        mk_sequence_parser(
         {
-            mk_sequence_parser(
-            {
-                mk_catch_string_parser(mk_character_parser('{')),
-                ip__,
-                mk_catch_variable_parser("l", ip_stmt_list),
-                ip__,
-                mk_character_parser('}'),
+            ip__,
+            mk_catch_string_parser(mk_character_parser('{')),
+            ip__,
+            mk_catch_variable_parser("l", ip_stmt_list),
+            ip__,
+            mk_character_parser('}'),
 
-                mk_action_parser(
-                    mk_call_action("mk_unit",
-                    {
-                        mk_identifier_argument("l"),
-                        mk_backref_argument(1, backref_argument_t::bk_start)
-                    })
-                )
-            }),
-            mk_sequence_parser(
-            {
-                mk_not_parser(mk_dot_parser()),
+            mk_action_parser(
+                mk_call_action("mk_unit",
+                {
+                    mk_identifier_argument("l"),
+                    mk_backref_argument(1, backref_argument_t::bk_start)
+                })
+            )
+        }),
+        mk_sequence_parser(
+        {
+            ip__,
+            mk_not_parser(mk_dot_parser()),
 
-                mk_action_parser(
-                    mk_call_action("mk_EOF", {})
-                )
-            })
+            mk_action_parser(
+                mk_call_action("mk_EOF", {})
+            )
         })
     }));
 
@@ -806,7 +802,7 @@ vpeg::grammar_t make_voidc_grammar(void)
     }), true);      //- Left recursion!
 
     //-------------------------------------------------------------
-    //- str_char <- ![\n\r\t'"] character
+    //- str_char <- ![\n\r\t\'\"] character
 
     gr = gr.set_parser("str_char",
     mk_sequence_parser(
