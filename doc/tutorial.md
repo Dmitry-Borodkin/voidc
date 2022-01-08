@@ -19,11 +19,13 @@ Each unit (usually) is enclosed in (*magic*) curly braces and can be seen as a f
 in the syntax similiar to "C".
 
 Units are processed by the `voidc` compiler sequentially, one by one.
-For each unit, the following operations are performed:
+For each unit, the following operations are performed, in order:
 
   1. Source text is *parsed* down to the enclosing `}`, resulting in the AST.
   2. The AST is *compiled* to the object file (in memory) which contains the "unit action" function.
   3. This "unit action" is *executed* in compiler's environment by LLVM's JIT.
+
+I.e. *parsing* of the next unit will start right after the previous one has been *executed*...
 
 In the "Hello, world" example above the first unit calls the compiler's intrinsic function `v_import`.
 This function receives the name of the source file "printf.void" (from the Voidc's root directory)
@@ -32,8 +34,9 @@ of C's `printf` function. But that's enough for the second unit which calls this
 greeting message as an argument.
 
 **Essential Note:** it is very important to understand the consequences of this
-*parse-compile-execute* architecture of the Viodc's "mainloop"...
+*parse-compile-execute* architecture of the Voidc's "mainloop"...
 It's the key to ~enormous~ extensibility of the Void as a language.
+Each unit (during *execution*) can change compiler's state to "something completely different"(c)...
 This structure intendend to be seen as the ~back~door to the compiler.
 You just open the curly brace and enter the compiler as your workshop...
 This is why these curly braces are *magic* :wink:.
@@ -124,7 +127,30 @@ Let's take a look of them closer.
 
 #### The Starter Language.
 
+- The `voidc` awaits source files properly encoded in UTF-8.
+- Parser works at a Unicode Code Point "granularity".
+- Whitespaces are: `' '`, `'\t'`, `'\n'` and `'\r'` (in C's notation).
+- Comments are BCPL's `//` till the end of line.
+- Whitespaces and comments mostly ignored (just delimiters, like in C).
 
+Abstract syntax can be expressed in EBNF-like notation:
+
+```EBNF
+unit = "{" {stmt} "}"
+
+stmt = [[ident "="] expr] ";"
+
+expr = prim {"(" [expr {"," expr}] ")"}
+
+prim = ident | integer | string | char
+```
+
+- Identifiers are C's: `[a-zA-Z_][a-zA-Z_0-9]*`, case-sensitive.
+- Integers only decimal, optionaly signed, without leading zeros.
+- Strings and chars similiar to C's, with some "restrictions":
+  - Strings are NOT "auto-concatenable".
+  - Escapes limited only to `\t`, `\n`, `\r`, `\'`, `\"` and `\\`.
+  - Any other valid Unicode Code Points are *allowed* (except zero).
 
 
 
