@@ -36,8 +36,8 @@ greeting message as an argument.
 **Essential Note:** it is very important to understand the consequences of this
 *parse-compile-execute* architecture of the Voidc's "mainloop"...
 It's the key to ~enormous~ extensibility of the Void as a language.
-Each unit (during *execution*) can change compiler's state to "something completely different"(c)...
-This structure intendend to be seen as the ~back~door to the compiler.
+Each unit (during *execution*) can change compiler's state into "something completely different"(c)...
+This feature intendend to be seen as the ~back~door to the compiler.
 You just open the curly brace and enter the compiler as your workshop...
 This is why these curly braces are *magic* :wink:.
 
@@ -151,6 +151,23 @@ prim = ident | integer | string | char
   - Strings are NOT "auto-concatenable".
   - Escapes limited only to `\t`, `\n`, `\r`, `\'`, `\"` and `\\`.
   - Any other valid Unicode Code Points are *allowed* (except zero).
+
+So, as you can see, the Starter Language is rather limited:
+- There's no keywords.
+- There's no operators.
+- There's no flow control.
+- There's no preprocessor.
+- ...
+
+How the f*** it is possible to program in it?
+
+Well... To get an idea you can check the ["hello_jit.void"](../hello_jit.void) example.
+
+In Void you *must* "write program to write program"(c)...
+
+
+
+
 
 
 
