@@ -150,20 +150,66 @@ prim = ident | integer | string | char
 - Strings and chars similiar to C's, with some "restrictions":
   - Strings are NOT "auto-concatenable".
   - Escapes limited only to `\t`, `\n`, `\r`, `\'`, `\"` and `\\`.
-  - Any other valid Unicode Code Points are *allowed* (except zero).
+  - Any other valid non-null Unicode Code Points are *allowed*.
 
 So, as you can see, the Starter Language is rather limited:
 - There's no keywords.
 - There's no operators.
+- There's no arithmetics.
 - There's no flow control.
 - There's no preprocessor.
-- ...
+- There's no floating-point, hexadecimal, octal or binary literals.
+- Etc, etc, etc ...
 
-How the f*** it is possible to program in it?
+How the hell it is possible to program in it?
 
 Well... To get an idea you can check the ["hello_jit.void"](../hello_jit.void) example.
 
 In Void you *must* "write program to write program"(c)...
+
+All the Starter Language really allows is to call functions. Sequentially.
+```
+printf("Hello!\n");
+printf("Hello again!\n");
+printf("Hello one more time!\n");
+```
+
+Function calls can be nested and "curried" (like in C).
+```
+foo(bar("Hi", 42), 'Ы')(1, 2, 3)(-7);
+```
+
+What a function returns can be named by an identifier.
+```
+n = strlen("Some string");
+```
+
+These identifiers can be used in subsequent statements.
+```
+C = 'Ъ';
+
+printf("Cyrillic Capital Letter Hard Sign: %d\n", C);
+```
+
+Identifiers also can be "shadowed" by subsequent "renamings".
+```
+u = "1";
+u = atof(u);
+
+v = u;
+
+v = fma(v, u, v);
+v = fma(v, u, v);
+v = fma(v, u, v);
+v = fma(v, u, v);
+
+printf("v: %g\n", v);
+```
+
+Please note, in contrast to C, in the Starter Language:
+- The identifier to the left of the '=' symbol does NOT denote a variable.
+- The '=' symbol does NOT denote an assignment.
+
 
 
 
