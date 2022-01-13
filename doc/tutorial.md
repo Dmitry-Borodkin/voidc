@@ -1,11 +1,11 @@
 
-## The Void Programming Language Tutorial
+# The Void Programming Language Tutorial
 
 **Disclaimer:** this tutorial assumes the reader has a rather good knowledge of C/C++,
 understands basic notions of LLVM-C API, and in general "has an idea of how compilers work"...
 
 
-### The "Hello, world" example:
+## The "Hello, world" example:
 
 ```
 {   v_import("printf.void"); }      // Import declaration of C's "printf"
@@ -42,7 +42,7 @@ You just open the curly brace and enter the compiler as your workshop...
 This is why these curly braces are *magic* :wink:.
 
 
-#### The extended "Hello, world" example
+### The extended "Hello, world" example
 
 Let's try to dig a bit deeper and see how it's possible to declare `printf`
 "from scratch", without any *imports*...
@@ -111,7 +111,7 @@ Note the use of the `v_pointer_type` function.
 The third unit just calls the `printf`...
 
 
-### Language syntax (and semantics).
+## Language syntax (and semantics).
 
 In fact, Void as a language *has no* fixed/constant/static syntax/semantics...
 Instead, it has a minimalist "starter language" and a set of "language development" tools.
@@ -125,7 +125,9 @@ For the moment (Jan 2022) there are only two levels:
 Let's take a look of them closer.
 
 
-#### The Starter Language.
+### The Starter Language.
+
+#### Syntax (and a bit of semantics).
 
 - The `voidc` awaits source files properly encoded in UTF-8.
 - Parser works at a Unicode Code Point "granularity".
@@ -153,12 +155,12 @@ prim = ident | integer | string | char
   - Any other valid non-null Unicode Code Points are *allowed*.
 
 So, as you can see, the Starter Language is rather limited:
-- There's no keywords.
-- There's no operators.
-- There's no arithmetics.
-- There's no flow control.
-- There's no preprocessor.
-- There's no floating-point, hexadecimal, octal or binary literals.
+- There are no keywords.
+- There are no operators.
+- There is no arithmetic.
+- There is no flow control.
+- There is no preprocessor.
+- There are no floating-point, hexadecimal, octal or binary literals.
 - Etc, etc, etc ...
 
 How the hell it is possible to program in it?
@@ -191,7 +193,7 @@ C = 'Ъ';
 printf("Cyrillic Capital Letter Hard Sign: %d\n", C);
 ```
 
-Identifiers also can be "shadowed" by subsequent "renamings".
+Identifiers also can be "shadowed" by subsequent "renamings" (like in Rust).
 ```
 u = "1";
 u = atof(u);
@@ -207,8 +209,29 @@ printf("v: %g\n", v);
 ```
 
 Please note, in contrast to C, in the Starter Language:
-- The identifier to the left of the '=' symbol does NOT denote a variable.
-- The '=' symbol does NOT denote an assignment.
+- The identifier to the left of the `=` symbol does NOT denote a variable.
+- The `=` symbol does NOT denote an assignment.
+
+In fact, the semantics of `=` in Void is almost the same as in LLVM IR (with respect to "shadowing").
+
+
+#### Not all functions are the same...
+
+Some of them are very different.
+
+Let's look at 'The extended "Hello, world" example'. In it's code there are several "function calls".
+Some of them actually call real functions (in the "C" language sense).
+But some do "something different"...
+
+Identifiers `v_alloca`, `v_getelementptr` and `v_store` denote so called **"compile-time intrinsic functions"**.
+
+
+
+
+
+
+
+
 
 
 
