@@ -217,16 +217,16 @@ In fact, the semantics of `=` in Void is almost the same as in LLVM IR (with res
 
 #### Not all functions are the same...
 
-Some of them are very different.
-
-Let's look at 'The extended "Hello, world" example'. In it's code there are several "function calls".
+Let's look at [The extended "Hello, world" example](#the-extended-hello-world-example).
+In it's code there are several "function calls".
 Some of them actually call real functions (in the "C" language sense).
-But some do "something different"...
+But others do "something different"...
 
 Identifiers `v_alloca`, `v_getelementptr` and `v_store` denote so called **"compile-time intrinsic functions"**.
+Such functions actually called during *compilation* phase.
+They take arguments in the form of AST and their purpose is (usually) to generate code...
 
-
-
+As for the mentioned *"ct-intrinsics"*, their semantics correspond to the LLVM IR instructions of similar name.
 
 
 
