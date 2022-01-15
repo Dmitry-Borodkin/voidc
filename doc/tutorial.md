@@ -228,13 +228,17 @@ They take arguments in the form of AST and their purpose is (usually) to generat
 
 As for the mentioned *"ct-intrinsics"*, their semantics correspond to the LLVM IR instructions of similar name.
 
+There are number of "predefined" compile-time intrinsics, and it's entirely possible to create your own.
+The main advantage of such functions is that they can be *polymorphic* in the broadest sense.
+They can interpret their arguments "by their own rules".
+They can generate code "in their own way" and/or change the state of the compiler "at their discretion"...
+
+*Ct-intrinsics* are the most widely used "language development" tools mentioned above.
 
 
+### The Void's Types.
 
-
-
-
-
+The typing of the Starter Language can be characterized as *static* and *implicit*.
 
 
 
