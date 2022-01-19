@@ -181,7 +181,7 @@ Function calls can be nested and "curried" (like in C).
 foo(bar("Hi", 42), 'Ы')(1, 2, 3)(-7);
 ```
 
-What a function returns can be named by an identifier.
+What a function returns can be "named" by an identifier.
 ```
 n = strlen("Some string");
 ```
@@ -239,6 +239,31 @@ They can generate code "in their own way" and/or change the state of the compile
 ### The Void's Types.
 
 The typing of the Starter Language can be characterized as *static* and *implicit*.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

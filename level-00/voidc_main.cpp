@@ -610,18 +610,38 @@ voidc_import_helper(const char *name, bool _export)
 static void
 v_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
 {
+    auto target = voidc_global_ctx_t::target;
+
+    auto saved_builder = target->builder;
+
+    target->builder = LLVMCreateBuilderInContext(target->llvm_ctx);
+
     auto &r = dynamic_cast<const ast_expr_string_t &>(*(*args)->data[0]);
 
     v_import_helper(r.string.c_str(), false);
+
+    LLVMDisposeBuilder(target->builder);
+
+    target->builder = saved_builder;
 }
 
 //---------------------------------------------------------------------
 static void
 voidc_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
 {
+    auto voidc = voidc_global_ctx_t::voidc;
+
+    auto saved_builder = voidc->builder;
+
+    voidc->builder = LLVMCreateBuilderInContext(voidc->llvm_ctx);
+
     auto &r = dynamic_cast<const ast_expr_string_t &>(*(*args)->data[0]);
 
     voidc_import_helper(r.string.c_str(), false);
+
+    LLVMDisposeBuilder(voidc->builder);
+
+    voidc->builder = saved_builder;
 }
 
 

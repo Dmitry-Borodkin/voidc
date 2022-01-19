@@ -108,7 +108,7 @@ public:
     std::map<std::string, declarations_t> imported;
 
 public:
-    const LLVMBuilderRef builder;
+    LLVMBuilderRef builder;         //- Sic !?!
 
     v_type_t * const char_ptr_type;
     v_type_t * const void_ptr_type;
