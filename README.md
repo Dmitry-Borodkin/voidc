@@ -5,7 +5,7 @@
 
 Void is an open-source, highly extensible programming language, minimalistic and low-level in its base.
 It uses LLVM for code generation and can be seen as a thin (well, in some sense) shell around it.
-Extendability of Void is practically limitless (any syntax/semantics),
+Extensibility of Void is practically limitless (any syntax/semantics),
 restricted only by decidability and ~your money~ imagination.
 
 
@@ -53,8 +53,6 @@ and for development of *itself* particularly.
 
 #### Nearest TODO(s):
 
-  - Restructuring source tree (by language "levels");
-
   - Documenting everything written so far;
 
   - Preparing for next developments:
@@ -82,7 +80,7 @@ The `voidc` is "tested" (well, in some sense) under Linux and Windows (MSYS2/Min
 
 #### Build:
 
-Try scripts...
+Try scripts (CMake needed)...
 
 ```bash
 $ ./mk_config

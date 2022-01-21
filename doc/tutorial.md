@@ -15,8 +15,7 @@ understands basic notions of LLVM-C API, and in general "has an idea of how comp
 
 Void's source text is a sequence of so-called "units".
 In example above you can see two of them: the first with `v_import`, and the second with `printf`.
-Each unit (usually) is enclosed in (*magic*) curly braces and can be seen as a function's body
-in the syntax similiar to "C".
+Each unit is (usually) enclosed in (*magic*) curly braces and can be thought of as a function body in a "C"-like syntax.
 
 Units are processed by the `voidc` compiler sequentially, one by one.
 For each unit, the following operations are performed, in order:
@@ -36,7 +35,7 @@ greeting message as an argument.
 **Essential Note:** it is very important to understand the consequences of this
 *parse-compile-execute* architecture of the Voidc's "mainloop"...
 It's the key to ~enormous~ extensibility of the Void as a language.
-Each unit (during *execution*) can change compiler's state into "something completely different"(c)...
+Each unit can change compiler's state into "something completely different"(c)...
 This feature intendend to be seen as the ~back~door to the compiler.
 You just open the curly brace and enter the compiler as your workshop...
 This is why these curly braces are *magic* :wink:.
@@ -238,15 +237,20 @@ They can generate code "in their own way" and/or change the state of the compile
 
 ### The Void's Types.
 
-The typing of the Starter Language can be characterized as *static* and *implicit*.
+Starter Language's typing can be described as *static* and *implicit*.
+This means that the identifier to the left of the `=` takes the type
+*implicitly* determined by the expression on the right.
+This type does not change during identifier's "lifetime" (with respect to "shadowing").
+
+The Void has it's own type system, which is "mapped" to LLVM's one and can be seen as an *extension* of it...
 
 
+#### Integer types.
 
+Void's integer types are all LLVM's ones with additional "attribute" of *signedness*.
 
-
-
-
-
+Yes! You can use integers of any bitwidth accepted by LLVM.
+And they can also be signed or unsigned.
 
 
 
