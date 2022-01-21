@@ -261,7 +261,7 @@
     //-------------------------------------------------------------
     v_store(v_ast_base_ptr,     typ0);              //- (out)
     v_store(generic_vtable_ptr, typ1);              //-
-    v_store(void_ptr,           typ2);              //- object
+    v_store(size_t,             typ2);              //- object's size
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_ast_make_generic", ft);
@@ -269,21 +269,21 @@
     //-------------------------------------------------------------
     v_store(v_ast_unit_ptr,     typ0);              //- (out)
 //  v_store(generic_vtable_ptr, typ1);              //-
-//  v_store(void_ptr,           typ2);              //- object
+//  v_store(size_t,             typ2);              //- object's size
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_ast_make_unit_generic", ft);
 
     v_store(v_ast_stmt_ptr,     typ0);              //- (out)
 //  v_store(generic_vtable_ptr, typ1);              //-
-//  v_store(void_ptr,           typ2);              //- object
+//  v_store(size_t,             typ2);              //- object's size
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_ast_make_stmt_generic", ft);
 
     v_store(v_ast_expr_ptr,     typ0);              //- (out)
 //  v_store(generic_vtable_ptr, typ1);              //-
-//  v_store(void_ptr,           typ2);              //- object
+//  v_store(size_t,             typ2);              //- object's size
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_ast_make_expr_generic", ft);

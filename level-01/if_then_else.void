@@ -18,7 +18,6 @@
     v_import("llvm-c/Core.void");
 
     v_import("function_hack.void");
-    v_import("memory.void");
 }
 
 
@@ -65,6 +64,10 @@
 
     v_add_type("ast_stmt_if_then_else_t",   ast_stmt_if_then_else_t);
     v_add_type("ast_stmt_if_then_else_ptr", ast_stmt_if_then_else_ptr);
+
+    size_v = LLVMSizeOf(v_type_get_llvm_type(ast_stmt_if_then_else_t));
+
+    v_add_constant("ast_stmt_if_then_else_t_size", size_t, size_v);
 }
 
 
@@ -114,8 +117,6 @@
     v_terminate(condition);
     v_terminate(stmt_then);
     v_terminate(stmt_else);
-
-    v_mfree(obj);
 }
 
 
@@ -210,7 +211,14 @@
     v_add_parameter_name(f, 3, "stmt_else", v_ast_stmt_ptr);
 }
 {
-    obj = v_malloc(ast_stmt_if_then_else_t);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(stmt);
+
+    v_ast_make_stmt_generic(stmt, voidc_ast_stmt_if_then_else_vtable, ast_stmt_if_then_else_t_size);
+
+    void_obj = v_ast_generic_get_object(v_cast(stmt, v_ast_base_ptr));
+
+    obj = v_cast(void_obj, ast_stmt_if_then_else_ptr);
 
     obj_condition = v_getelementptr(obj, 0, 0);
     obj_stmt_then = v_getelementptr(obj, 0, 1);
@@ -224,7 +232,9 @@
     v_copy(obj_stmt_then, stmt_then);
     v_copy(obj_stmt_else, stmt_else);
 
-    v_ast_make_stmt_generic(ret, voidc_ast_stmt_if_then_else_vtable, obj);
+    v_copy(ret, stmt);
+
+    v_terminate(stmt);
 }
 
 

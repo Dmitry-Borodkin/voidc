@@ -73,6 +73,10 @@
     v_add_type("ast_stmt_switch_t",   ast_stmt_switch_t);
     v_add_type("ast_stmt_switch_ptr", ast_stmt_switch_ptr);
 
+    size_v = LLVMSizeOf(v_type_get_llvm_type(ast_stmt_switch_t));
+
+    v_add_constant("ast_stmt_switch_t_size", size_t, size_v);
+
 
     //-----------------------------------------------------------------
     //- ast_case_block_t ...
@@ -88,6 +92,10 @@
 
     v_add_type("ast_case_block_t",   ast_case_block_t);
     v_add_type("ast_case_block_ptr", ast_case_block_ptr);
+
+    size_v = LLVMSizeOf(v_type_get_llvm_type(ast_case_block_t));
+
+    v_add_constant("ast_case_block_t_size", size_t, size_v);
 }
 
 
@@ -135,8 +143,6 @@
 
     v_terminate(arg);
     v_terminate(list);
-
-    v_mfree(obj);
 }
 
 
@@ -227,7 +233,14 @@
     v_add_parameter_name(f, 2, "list", v_ast_generic_list_ptr);
 }
 {
-    obj = v_malloc(ast_stmt_switch_t);
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(stmt);
+
+    v_ast_make_stmt_generic(stmt, voidc_ast_stmt_switch_vtable, ast_stmt_switch_t_size);
+
+    void_obj = v_ast_generic_get_object(v_cast(stmt, v_ast_base_ptr));
+
+    obj = v_cast(void_obj, ast_stmt_switch_ptr);
 
     obj_arg  = v_getelementptr(obj, 0, 0);
     obj_list = v_getelementptr(obj, 0, 1);
@@ -238,7 +251,9 @@
     v_copy(obj_arg,  arg);
     v_copy(obj_list, list);
 
-    v_ast_make_stmt_generic(ret, voidc_ast_stmt_switch_vtable, obj);
+    v_copy(ret, stmt);
+
+    v_terminate(stmt);
 }
 
 
@@ -261,8 +276,6 @@
 
     v_terminate(arg_list);
     v_terminate(stmt_list);
-
-    v_mfree(obj);
 }
 
 
@@ -331,7 +344,14 @@
     v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ptr);
 }
 {
-    obj = v_malloc(ast_case_block_t);
+    case = v_alloca(v_ast_opaque_base_sptr);
+    v_initialize(case);
+
+    v_ast_make_generic(case, voidc_ast_case_block_vtable, ast_case_block_t_size);
+
+    void_obj = v_ast_generic_get_object(case);
+
+    obj = v_cast(void_obj, ast_case_block_ptr);
 
     obj_arg_list  = v_getelementptr(obj, 0, 0);
     obj_stmt_list = v_getelementptr(obj, 0, 1);
@@ -342,7 +362,9 @@
     v_copy(obj_arg_list,  arg_list);
     v_copy(obj_stmt_list, stmt_list);
 
-    v_ast_make_generic(ret, voidc_ast_case_block_vtable, obj);
+    v_copy(ret, case);
+
+    v_terminate(case);
 }
 
 

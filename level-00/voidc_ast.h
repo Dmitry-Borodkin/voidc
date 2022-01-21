@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <cstdio>
+#include <cstdlib>
 
 #include <immer/vector.hpp>
 #include <immer/vector_transient.hpp>
@@ -361,14 +362,18 @@ struct ast_generic_vtable
 //---------------------------------------------------------------------
 struct ast_generic_t : public virtual ast_base_t
 {
-    ast_generic_t(const ast_generic_vtable *vtab, void *obj)
+    ast_generic_t(const ast_generic_vtable *vtab, size_t size)
       : vtable(vtab),
-        _object(obj)
-    {}
+        object(std::malloc(size))
+    {
+        assert(object);
+    }
 
     ~ast_generic_t() override
     {
-        vtable->destroy(_object);
+        vtable->destroy(object);
+
+        std::free(object);
     }
 
 public:
@@ -379,16 +384,13 @@ public:
 
     const ast_generic_vtable * const vtable;
 
-    const void * const &object = _object;
+    void * const object;
 
 public:
     v_quark_t method_tag(void) const override
     {
         return  vtable->visitor_method_tag;
     }
-
-private:
-    void * const _object;
 };
 
 typedef std::shared_ptr<const ast_generic_t>  ast_generic_sptr_t;
@@ -396,22 +398,22 @@ typedef std::shared_ptr<const ast_generic_t>  ast_generic_sptr_t;
 //---------------------------------------------------------------------
 struct ast_unit_generic_t : public ast_unit_base_t, public ast_generic_t
 {
-    explicit ast_unit_generic_t(const ast_generic_vtable *vtab, void *obj)
-      : ast_generic_t(vtab, obj)
+    explicit ast_unit_generic_t(const ast_generic_vtable *vtab, size_t size)
+      : ast_generic_t(vtab, size)
     {}
 };
 
 struct ast_stmt_generic_t : public ast_stmt_base_t, public ast_generic_t
 {
-    explicit ast_stmt_generic_t(const ast_generic_vtable *vtab, void *obj)
-      : ast_generic_t(vtab, obj)
+    explicit ast_stmt_generic_t(const ast_generic_vtable *vtab, size_t size)
+      : ast_generic_t(vtab, size)
     {}
 };
 
 struct ast_expr_generic_t : public ast_expr_base_t, public ast_generic_t
 {
-    explicit ast_expr_generic_t(const ast_generic_vtable *vtab, void *obj)
-      : ast_generic_t(vtab, obj)
+    explicit ast_expr_generic_t(const ast_generic_vtable *vtab, size_t size)
+      : ast_generic_t(vtab, size)
     {}
 };
 
