@@ -237,8 +237,10 @@
 
     v_store(void_ptr, typ0);                        //- object
 
-    destroy_ft = v_function_type(void, typ0, 1, false);
-    destroy_p  = v_pointer_type(destroy_ft, 0);
+    init_ft = v_function_type(void, typ0, 1, false);
+    init_p  = v_pointer_type(init_ft, 0);
+
+    term_p = init_p;
 
 //  v_store(void_ptr,          typ0);               //- object
     v_store(voidc_visitor_ptr, typ1);               //-
@@ -246,15 +248,17 @@
     accept_ft = v_function_type(void, typ0, 2, false);
     accept_p  = v_pointer_type(accept_ft, 0);
 
-    v_store(destroy_p, typ0);                       //-
-    v_store(accept_p,  typ1);                       //-
-    v_store(v_quark_t, typ2);                       //-
+    v_store(init_p,    typ0);                       //- init
+    v_store(term_p,    typ1);                       //- term
+    v_store(accept_p,  typ2);                       //- accept
+    v_store(v_quark_t, typ3);                       //- method tag
 
-    v_type_struct_set_body(generic_vtable, typ0, 3, 0);
+    v_type_struct_set_body(generic_vtable, typ0, 4, 0);
     v_export_type("v_ast_generic_vtable", generic_vtable);
 
-    v_export_type("v_ast_generic_destroy_fun_t", destroy_ft);
-    v_export_type("v_ast_generic_accept_fun_t",  accept_ft);
+    v_export_type("v_ast_generic_init_fun_t",   init_ft);
+    v_export_type("v_ast_generic_term_fun_t",   init_ft);       //- Sic! (init_ft == "term_ft")
+    v_export_type("v_ast_generic_accept_fun_t", accept_ft);
 
     generic_vtable_ptr = v_pointer_type(generic_vtable, 0);
 

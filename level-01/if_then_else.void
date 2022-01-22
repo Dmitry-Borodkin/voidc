@@ -97,11 +97,35 @@
 
 
 //---------------------------------------------------------------------
-//- destroy ...
+//- init ...
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_stmt_if_then_else_destroy", v_ast_generic_destroy_fun_t);
+    f = v_function_hack("voidc_ast_stmt_if_then_else_init", v_ast_generic_init_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
+}
+{
+    obj = v_cast(void_obj, ast_stmt_if_then_else_ptr);
+
+    condition = v_getelementptr(obj, 0, 0);
+    stmt_then = v_getelementptr(obj, 0, 1);
+    stmt_else = v_getelementptr(obj, 0, 2);
+
+    v_initialize(condition);
+    v_initialize(stmt_then);
+    v_initialize(stmt_else);
+}
+
+
+//---------------------------------------------------------------------
+//- term ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_if_then_else_term", v_ast_generic_term_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -155,21 +179,24 @@
 {
     module = v_get_module();
 
-    val0 = v_alloca(LLVMValueRef, 3);
+    val0 = v_alloca(LLVMValueRef, 4);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
+    val3 = v_getelementptr(val0, 3);
 
-    destroy_f = v_obtain_function("voidc_ast_stmt_if_then_else_destroy");
-    accept_f  = v_obtain_function("voidc_ast_stmt_if_then_else_accept");
-    quark_u   = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
+    init_f   = v_obtain_function("voidc_ast_stmt_if_then_else_init");
+    term_f   = v_obtain_function("voidc_ast_stmt_if_then_else_term");
+    accept_f = v_obtain_function("voidc_ast_stmt_if_then_else_accept");
+    quark_u  = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
 
-    v_store(destroy_f, val0);
-    v_store(accept_f,  val1);
-    v_store(quark_u,   val2);
+    v_store(init_f,   val0);
+    v_store(term_f,   val1);
+    v_store(accept_f, val2);
+    v_store(quark_u,  val3);
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 4);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_stmt_if_then_else_vtable");
 
@@ -211,12 +238,9 @@
     v_add_parameter_name(f, 3, "stmt_else", v_ast_stmt_ptr);
 }
 {
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
-    v_initialize(stmt);
+    v_ast_make_stmt_generic(ret, voidc_ast_stmt_if_then_else_vtable, ast_stmt_if_then_else_t_size);
 
-    v_ast_make_stmt_generic(stmt, voidc_ast_stmt_if_then_else_vtable, ast_stmt_if_then_else_t_size);
-
-    void_obj = v_ast_generic_get_object(v_cast(stmt, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(v_cast(ret, v_ast_base_ptr));
 
     obj = v_cast(void_obj, ast_stmt_if_then_else_ptr);
 
@@ -224,17 +248,9 @@
     obj_stmt_then = v_getelementptr(obj, 0, 1);
     obj_stmt_else = v_getelementptr(obj, 0, 2);
 
-    v_initialize(obj_condition);
-    v_initialize(obj_stmt_then);
-    v_initialize(obj_stmt_else);
-
     v_copy(obj_condition, condition);
     v_copy(obj_stmt_then, stmt_then);
     v_copy(obj_stmt_else, stmt_else);
-
-    v_copy(ret, stmt);
-
-    v_terminate(stmt);
 }
 
 
@@ -252,9 +268,10 @@
 //-
 //-     stmt_else_v = v_alloca(v_ast_stmt_ptr);
 //-
-//-     stmt = v_alloca(v_ast_opaque_stmt_sptr);
+//-     stm0 = v_alloca(v_ast_opaque_stmt_sptr, 2);
+//-     v_initialize(stm0, 2);
 //-
-//-     v_initialize(stmt);
+//-     stm1 = v_getelementptr(stm0, 1);
 //-
 //-     if (stmt_else_ptr)
 //-     {
@@ -262,7 +279,7 @@
 //-     }
 //-     else
 //-     {
-//-         v_store(stmt, stmt_else_v);     //- empty...
+//-         v_store(stm1, stmt_else_v);     //- empty (non-aliased...)
 //-     }
 //-
 //-     ...
@@ -310,14 +327,19 @@
 
     v_ast_opaque_stmt_sptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_sptr);
 
-    stmt = LLVMBuildAlloca(builder, v_ast_opaque_stmt_sptr_, "stmt");
+    stm0 = LLVMBuildArrayAlloca(builder, v_ast_opaque_stmt_sptr_, n2, "stm0");
 
     stmt_sptr_init_f = v_obtain_function("v_ast_initialize_stmt_impl");
 
-    v_store(stmt, val0);
-    v_store(n1,   val1);
+    v_store(stm0, val0);
+    v_store(n2,   val1);
 
     LLVMBuildCall(builder, stmt_sptr_init_f, val0, 2, "");
+
+
+    v_store(n1, val0);
+
+    stm1 = LLVMBuildGEP(builder, stm0, val0, 1, "stm1");
 
 
     then_b = LLVMAppendBasicBlock(f, "then_b");
@@ -339,7 +361,7 @@
 
     LLVMPositionBuilderAtEnd(builder, else_b);
 
-    LLVMBuildStore(builder, stmt, stmt_else_v);
+    LLVMBuildStore(builder, stm1, stmt_else_v);
 
     LLVMBuildBr(builder, cont_b);
 
@@ -349,7 +371,7 @@
 
     stmt_ptr_ptr = v_pointer_type(v_ast_stmt_ptr, 0);
 
-    v_add_variable("stmt",        v_ast_stmt_ptr, stmt);
+    v_add_variable("stm0",        v_ast_stmt_ptr, stm0);
     v_add_variable("stmt_else_v", stmt_ptr_ptr,   stmt_else_v);
 }
 {
@@ -359,11 +381,11 @@
     stmt_then = v_std_any_get_pointer(v_ast_opaque_stmt_sptr, par_then);
     stmt_else = v_load(stmt_else_v);
 
-    v_ast_make_stmt_if_then_else(stmt, condition, stmt_then, stmt_else);
+    v_ast_make_stmt_if_then_else(stm0, condition, stmt_then, stmt_else);
 
-    v_std_any_set_pointer(ret, stmt);
+    v_std_any_set_pointer(ret, stm0);
 
-    v_terminate(stmt);
+    v_terminate(stm0, 2);
 }
 
 
@@ -683,7 +705,7 @@
     v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark, 0));
 
 
-    v_store(quark, v_getelementptr(voidc_ast_stmt_if_then_else_vtable, 0, 2));
+    v_store(quark, v_getelementptr(voidc_ast_stmt_if_then_else_vtable, 0, 3));
 
     voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_if_then_else_t, 0);
 }

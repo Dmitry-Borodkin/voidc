@@ -113,9 +113,10 @@
 //---------------------------------------------------------------------
 //- AST generic...
 //---------------------------------------------------------------------
-{   v_add_symbol("destroy_f", v_ast_generic_destroy_fun_t, 0);
-    v_add_symbol("accept_f",  v_ast_generic_accept_fun_t,  0);
-    v_add_symbol("vtable_g",  v_ast_generic_vtable,        0);
+{   v_add_symbol("init_f",   v_ast_generic_init_fun_t,   0);
+    v_add_symbol("term_f",   v_ast_generic_term_fun_t,   0);
+    v_add_symbol("accept_f", v_ast_generic_accept_fun_t, 0);
+    v_add_symbol("vtable_g", v_ast_generic_vtable,       0);
 }
 
 //---------------------------------------------------------------------
@@ -125,19 +126,38 @@
 
     builder = v_target_get_voidc_builder();
 
-    destroy_f = v_obtain_function("destroy_f");
-    LLVMSetLinkage(destroy_f, LLVMPrivateLinkage);
+    val0 = v_alloca(LLVMValueRef, 4);
+    val1 = v_getelementptr(val0, 1);
+    val2 = v_getelementptr(val0, 2);
+    val3 = v_getelementptr(val0, 3);
 
-    entry = LLVMAppendBasicBlock(destroy_f, "entry");
+
+    init_f = v_obtain_function("init_f");
+    LLVMSetLinkage(init_f, LLVMPrivateLinkage);
+
+    entry = LLVMAppendBasicBlock(init_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
     printf_f = v_obtain_function("printf");
 
-    str = LLVMBuildGlobalStringPtr(builder, "destroy!\n", "str");
+    str = LLVMBuildGlobalStringPtr(builder, "init!\n", "str");
 
-    val0 = v_alloca(LLVMValueRef, 3);
-    val1 = v_getelementptr(val0, 1);
-    val2 = v_getelementptr(val0, 2);
+    v_store(str, val0);
+
+    LLVMBuildCall(builder, printf_f, val0, 1, "");
+
+    LLVMBuildRetVoid(builder);
+
+
+    term_f = v_obtain_function("term_f");
+    LLVMSetLinkage(term_f, LLVMPrivateLinkage);
+
+    entry = LLVMAppendBasicBlock(term_f, "entry");
+    LLVMPositionBuilderAtEnd(builder, entry);
+
+    printf_f = v_obtain_function("printf");
+
+    str = LLVMBuildGlobalStringPtr(builder, "term!\n", "str");
 
     v_store(str, val0);
 
@@ -170,13 +190,14 @@
 
     quark_v = LLVMConstInt(v_type_get_llvm_type(v_quark_t), quark, 0);
 
-    v_store(destroy_f, val0);
-    v_store(accept_f,  val1);
-    v_store(quark_v,   val2);
+    v_store(init_f,   val0);
+    v_store(term_f,   val1);
+    v_store(accept_f, val2);
+    v_store(quark_v,  val3);
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 4);
 
     vtable_g = v_obtain_global("vtable_g");
 

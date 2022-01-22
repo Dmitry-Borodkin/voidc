@@ -93,11 +93,31 @@
 
 
 //---------------------------------------------------------------------
-//- destroy ...
+//- init ...
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_stmt_defer_destroy", v_ast_generic_destroy_fun_t);
+    f = v_function_hack("voidc_ast_stmt_defer_init", v_ast_generic_init_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
+}
+{
+    obj = v_cast(void_obj, ast_stmt_defer_ptr);
+
+    stmt = v_getelementptr(obj, 0, 0);
+
+    v_initialize(stmt);
+}
+
+
+//---------------------------------------------------------------------
+//- term ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_defer_term", v_ast_generic_term_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -145,19 +165,21 @@
 {
     module = v_get_module();
 
-    val = v_alloca(LLVMValueRef, 3);
+    val = v_alloca(LLVMValueRef, 4);
 
-    destroy_f = v_obtain_function("voidc_ast_stmt_defer_destroy");
-    accept_f  = v_obtain_function("voidc_ast_stmt_defer_accept");
-    quark_u   = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
+    init_f   = v_obtain_function("voidc_ast_stmt_defer_init");
+    term_f   = v_obtain_function("voidc_ast_stmt_defer_term");
+    accept_f = v_obtain_function("voidc_ast_stmt_defer_accept");
+    quark_u  = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
 
-    val[0] := destroy_f;
-    val[1] := accept_f;
-    val[2] := quark_u;
+    val[0] := init_f;
+    val[1] := term_f;
+    val[2] := accept_f;
+    val[3] := quark_u;
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val, 3);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val, 4);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_stmt_defer_vtable");
 
@@ -192,24 +214,15 @@
     v_add_parameter_name(f, 1, "stmt", v_ast_stmt_ptr);
 }
 {
-    stmp = v_alloca(v_ast_opaque_stmt_sptr);
-    v_initialize(stmp);
+    v_ast_make_stmt_generic(ret, voidc_ast_stmt_defer_vtable, ast_stmt_defer_t_size);
 
-    v_ast_make_stmt_generic(stmp, voidc_ast_stmt_defer_vtable, ast_stmt_defer_t_size);
-
-    void_obj = v_ast_generic_get_object(v_cast(stmp, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(v_cast(ret, v_ast_base_ptr));
 
     obj = v_cast(void_obj, ast_stmt_defer_ptr);
 
     obj_stmt = v_getelementptr(obj, 0, 0);
 
-    v_initialize(obj_stmt);
-
     v_copy(obj_stmt, stmt);
-
-    v_copy(ret, stmp);
-
-    v_terminate(stmp);
 }
 
 
@@ -298,7 +311,7 @@
     v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark, 0));
 
 
-    v_store(quark, v_getelementptr(voidc_ast_stmt_defer_vtable, 0, 2));
+    v_store(quark, v_getelementptr(voidc_ast_stmt_defer_vtable, 0, 3));
 
     voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_defer_t, 0);
 }

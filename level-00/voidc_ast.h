@@ -348,7 +348,8 @@ extern "C"
 
 struct ast_generic_vtable
 {
-    void (*destroy)(void *object);
+    void (*init)(void *object);
+    void (*term)(void *object);
 
     void (*accept)(const void *object, const visitor_sptr_t *visitor);
 
@@ -366,12 +367,12 @@ struct ast_generic_t : public virtual ast_base_t
       : vtable(vtab),
         object(std::malloc(size))
     {
-        assert(object);
+        vtable->init(object);
     }
 
     ~ast_generic_t() override
     {
-        vtable->destroy(object);
+        vtable->term(object);
 
         std::free(object);
     }

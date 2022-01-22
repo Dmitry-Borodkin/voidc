@@ -125,11 +125,33 @@
 
 
 //---------------------------------------------------------------------
-//- stmt_switch destroy ...
+//- stmt_switch init ...
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_stmt_switch_destroy", v_ast_generic_destroy_fun_t);
+    f = v_function_hack("voidc_ast_stmt_switch_init", v_ast_generic_init_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
+}
+{
+    obj = v_cast(void_obj, ast_stmt_switch_ptr);
+
+    arg  = v_getelementptr(obj, 0, 0);
+    list = v_getelementptr(obj, 0, 1);
+
+    v_initialize(arg);
+    v_initialize(list);
+}
+
+
+//---------------------------------------------------------------------
+//- stmt_switch term ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_stmt_switch_term", v_ast_generic_term_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -180,21 +202,24 @@
 {
     module = v_get_module();
 
-    val0 = v_alloca(LLVMValueRef, 3);
+    val0 = v_alloca(LLVMValueRef, 4);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
+    val3 = v_getelementptr(val0, 3);
 
-    destroy_f = v_obtain_function("voidc_ast_stmt_switch_destroy");
-    accept_f  = v_obtain_function("voidc_ast_stmt_switch_accept");
-    quark_u   = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
+    init_f   = v_obtain_function("voidc_ast_stmt_switch_init");
+    term_f   = v_obtain_function("voidc_ast_stmt_switch_term");
+    accept_f = v_obtain_function("voidc_ast_stmt_switch_accept");
+    quark_u  = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
 
-    v_store(destroy_f, val0);
-    v_store(accept_f,  val1);
-    v_store(quark_u,   val2);
+    v_store(init_f,   val0);
+    v_store(term_f,   val1);
+    v_store(accept_f, val2);
+    v_store(quark_u,  val3);
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 4);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_stmt_switch_vtable");
 
@@ -233,36 +258,48 @@
     v_add_parameter_name(f, 2, "list", v_ast_generic_list_ptr);
 }
 {
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
-    v_initialize(stmt);
+    v_ast_make_stmt_generic(ret, voidc_ast_stmt_switch_vtable, ast_stmt_switch_t_size);
 
-    v_ast_make_stmt_generic(stmt, voidc_ast_stmt_switch_vtable, ast_stmt_switch_t_size);
-
-    void_obj = v_ast_generic_get_object(v_cast(stmt, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(v_cast(ret, v_ast_base_ptr));
 
     obj = v_cast(void_obj, ast_stmt_switch_ptr);
 
     obj_arg  = v_getelementptr(obj, 0, 0);
     obj_list = v_getelementptr(obj, 0, 1);
 
-    v_initialize(obj_arg);
-    v_initialize(obj_list);
-
     v_copy(obj_arg,  arg);
     v_copy(obj_list, list);
-
-    v_copy(ret, stmt);
-
-    v_terminate(stmt);
 }
 
 
 //---------------------------------------------------------------------
-//- case_block destroy ...
+//- case_block init ...
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_case_block_destroy", v_ast_generic_destroy_fun_t);
+    f = v_function_hack("voidc_ast_case_block_init", v_ast_generic_init_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "void_obj", void_ptr);
+}
+{
+    obj = v_cast(void_obj, ast_case_block_ptr);
+
+    arg_list  = v_getelementptr(obj, 0, 0);
+    stmt_list = v_getelementptr(obj, 0, 1);
+
+    v_initialize(arg_list);
+    v_initialize(stmt_list);
+}
+
+
+//---------------------------------------------------------------------
+//- case_block term ...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ast_case_block_term", v_ast_generic_term_fun_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -285,11 +322,13 @@
 {
     module = v_get_module();
 
-    val0 = v_alloca(LLVMValueRef, 3);
+    val0 = v_alloca(LLVMValueRef, 4);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
+    val3 = v_getelementptr(val0, 3);
 
-    destroy_f = v_obtain_function("voidc_ast_case_block_destroy");
+    init_f = v_obtain_function("voidc_ast_case_block_init");
+    term_f = v_obtain_function("voidc_ast_case_block_term");
 
     accept_p  = v_pointer_type(v_ast_generic_accept_fun_t, 0);
     accept_p_ = v_type_get_llvm_type(accept_p);
@@ -299,13 +338,14 @@
     accept_u = LLVMGetUndef(accept_p_);
     quark_u  = LLVMGetUndef(v_quark_t_);
 
-    v_store(destroy_f, val0);
-    v_store(accept_u,  val1);       //- Undef!
-    v_store(quark_u,   val2);       //- Undef!
+    v_store(init_f,   val0);
+    v_store(term_f,   val1);
+    v_store(accept_u, val2);        //- Undef!
+    v_store(quark_u,  val3);        //- Undef!
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 4);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_case_block_vtable");
 
@@ -344,27 +384,17 @@
     v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ptr);
 }
 {
-    case = v_alloca(v_ast_opaque_base_sptr);
-    v_initialize(case);
+    v_ast_make_generic(ret, voidc_ast_case_block_vtable, ast_case_block_t_size);
 
-    v_ast_make_generic(case, voidc_ast_case_block_vtable, ast_case_block_t_size);
-
-    void_obj = v_ast_generic_get_object(case);
+    void_obj = v_ast_generic_get_object(ret);
 
     obj = v_cast(void_obj, ast_case_block_ptr);
 
     obj_arg_list  = v_getelementptr(obj, 0, 0);
     obj_stmt_list = v_getelementptr(obj, 0, 1);
 
-    v_initialize(obj_arg_list);
-    v_initialize(obj_stmt_list);
-
     v_copy(obj_arg_list,  arg_list);
     v_copy(obj_stmt_list, stmt_list);
-
-    v_copy(ret, case);
-
-    v_terminate(case);
 }
 
 
@@ -791,7 +821,7 @@
     v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark, 0));
 
 
-    v_store(quark, v_getelementptr(voidc_ast_stmt_switch_vtable, 0, 2));
+    v_store(quark, v_getelementptr(voidc_ast_stmt_switch_vtable, 0, 3));
 
     vis = voidc_compiler;
 
