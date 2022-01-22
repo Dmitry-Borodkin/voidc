@@ -30,9 +30,9 @@ See more details in [tutorial](doc/tutorial.md).
     - Has some predefined tools for further "bootstrapping".
 
   - Continuing with exposing compiler's internal API(s):
-    - Extendable parser based on PEG-machinery;
-    - Extendable AST;
-    - Extendable compiler based on "visitor pattern";
+    - Extensible parser based on PEG-machinery;
+    - Extensible AST;
+    - Extensible compiler based on "visitor pattern";
     - Exposing essential parts of LLVM-C API (Core, TargetMachine, etc.).
 
   - Developing further language features:
