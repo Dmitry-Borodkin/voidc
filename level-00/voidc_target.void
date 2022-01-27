@@ -221,7 +221,16 @@
     ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("voidc_add_object_file_to_jit", ft);
     v_export_symbol_type("voidc_add_local_object_file_to_jit", ft);
+    v_export_symbol_type("voidc_unit_load_object_file_to_jit", ft);
+    v_export_symbol_type("voidc_unit_load_local_object_file_to_jit", ft);
     v_export_symbol_type("voidc_set_unit_buffer", ft);
+
+//  v_store(LLVMMemoryBufferRef, typ0);     //-
+//  v_store(bool,                typ1);     //-
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("voidc_compile_load_object_file_to_jit", ft);
+
 
     ft = v_function_type(LLVMMemoryBufferRef, 0, 0, false);
     v_export_symbol_type("voidc_get_unit_buffer", ft);

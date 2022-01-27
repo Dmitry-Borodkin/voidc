@@ -1589,35 +1589,12 @@ voidc_object_file_load_to_jit_internal_helper(const char *buf, size_t len, bool 
 }
 
 void
-voidc_compile_load_module_to_jit(LLVMModuleRef module, bool is_local)
+voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local)
 {
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
 
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
-
-    //- Emit module -> membuf
-
-    LLVMMemoryBufferRef membuf = nullptr;
-
-    char *msg = nullptr;
-
-    auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
-                                                   module,
-                                                   LLVMObjectFile,
-                                                   &msg,
-                                                   &membuf);
-
-    if (err)
-    {
-        printf("\n%s\n", msg);
-
-        LLVMDisposeMessage(msg);
-
-        exit(1);                //- Sic !!!
-    }
-
-    assert(membuf);
 
     auto membuf_ptr  = LLVMGetBufferStart(membuf);
     auto membuf_size = LLVMGetBufferSize(membuf);
@@ -1649,12 +1626,80 @@ voidc_compile_load_module_to_jit(LLVMModuleRef module, bool is_local)
     val[2] = LLVMConstInt(gctx.bool_type->llvm_type(), is_local, 0);
 
     LLVMBuildCall(gctx.builder, f, val, 3, "");
+}
+
+void
+voidc_compile_load_module_to_jit(LLVMModuleRef module, bool is_local)
+{
+    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    //- Emit module -> membuf
+
+    LLVMMemoryBufferRef membuf = nullptr;
+
+    char *msg = nullptr;
+
+    auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
+                                                   module,
+                                                   LLVMObjectFile,
+                                                   &msg,
+                                                   &membuf);
+
+    if (err)
+    {
+        printf("\n%s\n", msg);
+
+        LLVMDisposeMessage(msg);
+
+        exit(1);                //- Sic !!!
+    }
+
+    assert(membuf);
+
+    voidc_compile_load_object_file_to_jit(membuf, is_local);
 
     LLVMDisposeMemoryBuffer(membuf);
 }
 
 
 VOIDC_DLLEXPORT_END
+
+
+static void
+load_object_file_helper(LLVMMemoryBufferRef membuf, bool is_local)
+{
+    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
+
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    if (lctx.module)    //- Called directly from unit ...
+    {
+        if (is_local) voidc_add_local_object_file_to_jit(membuf);
+        else          voidc_add_object_file_to_jit(membuf);
+    }
+
+    //- Generate unit ...
+
+    auto saved_module = lctx.module;
+
+    //- Do replace/make unit...
+
+    if (lctx.unit_buffer)   LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+    lctx.prepare_unit_action(0, 0);         //- line, column ?..
+
+    voidc_compile_load_object_file_to_jit(membuf, is_local);
+
+//  base_global_ctx_t::debug_print_module = 1;
+
+    lctx.finish_unit_action();
+
+    lctx.module = saved_module;
+}
 
 
 static void
@@ -1681,9 +1726,7 @@ load_module_helper(LLVMModuleRef module, bool is_local)
 
     if (lctx.unit_buffer)   LLVMDisposeMemoryBuffer(lctx.unit_buffer);
 
-    static int column = 0;
-
-    lctx.prepare_unit_action(0, column++);      //- line, column ?..
+    lctx.prepare_unit_action(0, 0);         //- line, column ?..
 
     voidc_compile_load_module_to_jit(module, is_local);
 
@@ -1696,6 +1739,21 @@ load_module_helper(LLVMModuleRef module, bool is_local)
 
 
 VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+
+//---------------------------------------------------------------------
+void
+voidc_unit_load_local_object_file_to_jit(LLVMMemoryBufferRef membuf)
+{
+    load_object_file_helper(membuf, true);
+}
+
+//---------------------------------------------------------------------
+void
+voidc_unit_load_object_file_to_jit(LLVMMemoryBufferRef membuf)
+{
+    load_object_file_helper(membuf, false);
+}
 
 
 //---------------------------------------------------------------------
