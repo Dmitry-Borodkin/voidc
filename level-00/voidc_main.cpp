@@ -743,7 +743,7 @@ main(int argc, char *argv[])
     {
         char c;
 
-        if ((c = getopt(argc, argv, "-Is:")) != -1)
+        if ((c = getopt(argc, argv, "-I:s:")) != -1)
         {
             //- Option argument
 

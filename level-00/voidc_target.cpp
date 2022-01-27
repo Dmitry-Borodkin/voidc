@@ -1676,9 +1676,6 @@ load_object_file_helper(LLVMMemoryBufferRef membuf, bool is_local)
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
 
-    if (is_local) voidc_add_local_object_file_to_jit(membuf);
-    else          voidc_add_object_file_to_jit(membuf);
-
     //- Generate unit ...
 
     auto saved_module = lctx.module;
@@ -1708,9 +1705,6 @@ load_module_helper(LLVMModuleRef module, bool is_local)
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
 
     gctx.prepare_module_for_jit(module);
-
-    if (is_local) lctx.add_module_to_jit(module);
-    else          gctx.add_module_to_jit(module);
 
     //- Generate unit ...
 
