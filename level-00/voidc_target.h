@@ -26,6 +26,8 @@
 //---------------------------------------------------------------------
 class base_local_ctx_t;
 
+extern "C" typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
+
 
 //---------------------------------------------------------------------
 //- Base Compilation Context
@@ -202,6 +204,15 @@ public:
     void adopt_result(v_type_t *type, LLVMValueRef value);
 
 public:
+    LLVMValueRef convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
+    {
+        return convert_to_type_fun(convert_to_type_ctx, t0, v0, t1);
+    }
+
+    convert_to_type_t convert_to_type_fun;
+    void             *convert_to_type_ctx;
+
+public:
     LLVMValueRef make_temporary(v_type_t *type, LLVMValueRef value);
 
     void push_temporaries(void);
@@ -217,16 +228,6 @@ private:
 
     base_local_ctx_t * const parent_ctx = nullptr;
 };
-
-//---------------------------------------------------------------------
-extern "C"
-{
-VOIDC_DLLEXPORT_BEGIN_VARIABLE
-
-    extern LLVMValueRef (*v_convert_to_type)(v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
-
-VOIDC_DLLEXPORT_END
-}
 
 
 //---------------------------------------------------------------------

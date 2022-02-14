@@ -325,26 +325,13 @@ void compile_ast_expr_string_t(const visitor_sptr_t *vis, void *,
     auto &lctx = *gctx.local_ctx;
 
 
-    auto typ_ = gctx.make_array_type(gctx.char_type, str->size()+1)->llvm_type();
+    auto len = str->size();
 
-    auto str_ga = LLVMAddGlobal(lctx.module, typ_, "str");
+    auto val = LLVMConstStringInContext(gctx.llvm_ctx, str->c_str(), unsigned(len), 0);
 
-    LLVMSetLinkage(str_ga, LLVMPrivateLinkage);
+    auto typ = gctx.make_array_type(gctx.char_type, len+1);
 
-    auto str_va = LLVMConstStringInContext(gctx.llvm_ctx, str->c_str(), unsigned(str->size()), 0);
-
-    LLVMSetInitializer(str_ga, str_va);
-
-    auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
-
-    LLVMValueRef val[2] = { n0, n0 };
-
-    auto v = LLVMConstGEP(str_ga, val, 2);
-
-
-//    auto v = LLVMBuildGlobalStringPtr(gctx.builder, str->c_str(), "str");
-
-    lctx.adopt_result(gctx.char_ptr_type, v);
+    lctx.adopt_result(typ, val);
 }
 
 

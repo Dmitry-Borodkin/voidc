@@ -151,9 +151,13 @@ base_global_ctx_t::initialize(void)
 //---------------------------------------------------------------------
 //- Base Local Context
 //---------------------------------------------------------------------
+static LLVMValueRef v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
+
 base_local_ctx_t::base_local_ctx_t(base_global_ctx_t &_global)
   : global_ctx(_global),
-    parent_ctx(_global.local_ctx)
+    parent_ctx(_global.local_ctx),
+    convert_to_type_fun(v_convert_to_type_default),
+    convert_to_type_ctx(0)
 {
     global_ctx.local_ctx = this;
 
@@ -494,9 +498,31 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 
         if (src_ref)
         {
-            result_type = static_cast<v_type_reference_t *>(type)->element_type();
+            auto et = static_cast<v_type_reference_t *>(type)->element_type();
+
+            if (et->kind() == v_type_t::k_array)
+            {
+                result_type = global_ctx.make_pointer_type(et, 0);
+
+                break;      //- value unchanged...
+            }
+
+            result_type = et;
 
             value = LLVMBuildLoad(global_ctx.builder, value, "tmp");
+
+            break;
+        }
+
+        if (type->kind() == v_type_t::k_array)
+        {
+            //- Special case for C-like array-to-pointer "promotion"...
+
+            auto et = static_cast<v_type_array_t *>(type)->element_type();
+
+            result_type = global_ctx.make_pointer_type(et, 0);
+
+            value = convert_to_type(type, value, result_type);
 
             break;
         }
@@ -537,7 +563,7 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
             }
             else
             {
-                value = v_convert_to_type(src_typ, value, dst_typ);     //- "generic" ...
+                value = convert_to_type(src_typ, value, dst_typ);       //- "generic" ...
             }
         }
 
@@ -619,9 +645,40 @@ extern "C"
 {
 
 static LLVMValueRef
-v_convert_to_type_default(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
+v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 {
     if (t0 == t1)   return v0;      //- No conversion...
+
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (t0->kind() == v_type_t::k_array  &&
+        t1->kind() == v_type_t::k_pointer
+       )
+    {
+        //- C-like array-to-pointer "promotion"...
+
+        LLVMValueRef v1;
+
+        if (LLVMIsConstant(v0))
+        {
+            v1 = LLVMAddGlobal(lctx.module, t0->llvm_type(), "arr");
+
+            LLVMSetLinkage(v1, LLVMPrivateLinkage);
+
+            LLVMSetInitializer(v1, v0);
+        }
+        else
+        {
+            v1 = lctx.make_temporary(t0, v0);
+        }
+
+        auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
+
+        LLVMValueRef val[2] = { n0, n0 };
+
+        return  LLVMConstGEP(v1, val, 2);
+    }
 
     //- Only simple scalar "promotions" ...
     //- t1 must be "bigger or equal" than t0 ...
@@ -636,34 +693,27 @@ v_convert_to_type_default(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
         }
         else
         {
-            assert(dynamic_cast<v_type_integer_t *>(t0));
-
-            auto t = static_cast<v_type_integer_t *>(t0);
-
-            if (t->is_signed()) opcode = LLVMSIToFP;
-            else                opcode = LLVMUIToFP;
+            if (auto t = dynamic_cast<v_type_integer_t *>(t0))
+            {
+                if (t->is_signed()) opcode = LLVMSIToFP;
+                else                opcode = LLVMUIToFP;
+            }
         }
     }
     else
     {
-        assert(dynamic_cast<v_type_integer_t *>(t0));
-
-        auto t = static_cast<v_type_integer_t *>(t0);
-
-        if (t->is_signed()) opcode = LLVMSExt;
-        else                opcode = LLVMZExt;
+        if (auto t = dynamic_cast<v_type_integer_t *>(t0))
+        {
+            if (t->is_signed()) opcode = LLVMSExt;
+            else                opcode = LLVMZExt;
+        }
     }
 
-    auto &gctx = *voidc_global_ctx_t::target;
+    if (!opcode)  return v0;    //- Sic!
 
     return  LLVMBuildCast(gctx.builder, opcode, v0, t1->llvm_type(), "");
 }
 
-VOIDC_DLLEXPORT_BEGIN_VARIABLE
-
-    LLVMValueRef (*v_convert_to_type)(v_type_t *t0, LLVMValueRef v0, v_type_t *t1) = v_convert_to_type_default;
-
-VOIDC_DLLEXPORT_END
 }
 
 
@@ -1910,6 +1960,37 @@ v_adopt_result(v_type_t *type, LLVMValueRef value)
     auto &lctx = *gctx.local_ctx;
 
     lctx.adopt_result(type, value);
+}
+
+//---------------------------------------------------------------------
+convert_to_type_t
+v_get_convert_to_type(void **pctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (pctx) *pctx = lctx.convert_to_type_ctx;
+
+    return lctx.convert_to_type_fun;
+}
+
+void
+v_set_convert_to_type(convert_to_type_t fun, void *ctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.convert_to_type_fun = fun;
+    lctx.convert_to_type_ctx = ctx;
+}
+
+LLVMValueRef
+v_convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return  lctx.convert_to_type(t0, v0, t1);
 }
 
 //---------------------------------------------------------------------
