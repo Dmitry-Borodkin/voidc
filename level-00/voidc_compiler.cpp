@@ -553,6 +553,22 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
             if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
             else                                                opcode = LLVMAddrSpaceCast;
         }
+        else if (pst->element_type()->kind() == v_type_t::k_array  &&
+                 dst_type->kind() == v_type_t::k_pointer
+                )
+        {
+            //- C-like array-to-pointer "promotion" (from reference)...
+
+            auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
+
+            LLVMValueRef val[2] = { n0, n0 };
+
+            src_value = LLVMConstGEP(src_value, val, 2);
+
+            auto et = static_cast<v_type_array_t *>(pst->element_type())->element_type();
+
+            src_type  = gctx.make_pointer_type(et, pst->address_space());
+        }
         else
         {
             src_value = LLVMBuildLoad(gctx.builder, src_value, "tmp");
@@ -561,84 +577,116 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
         }
     }
 
+    LLVMValueRef v;
+
     if (!opcode)
     {
-        auto src_stype = v_type_get_scalar_type(src_type);
-        auto dst_stype = v_type_get_scalar_type(dst_type);
-
-        if (v_type_is_floating_point(src_stype))
+        if (src_type->kind() == v_type_t::k_array  &&
+            dst_type->kind() == v_type_t::k_pointer
+           )
         {
-            if (v_type_is_floating_point(dst_stype))
-            {
-                auto sz = v_type_floating_point_get_width(src_stype);
-                auto dz = v_type_floating_point_get_width(dst_stype);
+            //- C-like array-to-pointer "promotion" (from value)...
 
-                if (sz == dz)       opcode = LLVMBitCast;       //- ?
-                else if (sz > dz)   opcode = LLVMFPTrunc;
-                else                opcode = LLVMFPExt;
-            }
-            else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+            LLVMValueRef v1;
+
+            if (LLVMIsConstant(src_value))
             {
-                if (idt->is_signed()) opcode = LLVMFPToSI;
-                else                  opcode = LLVMFPToUI;
+                v1 = LLVMAddGlobal(lctx.module, src_type->llvm_type(), "arr");
+
+                LLVMSetLinkage(v1, LLVMPrivateLinkage);
+
+                LLVMSetInitializer(v1, src_value);
             }
             else
             {
-                throw std::runtime_error("Bad cast from floating point");
+                v1 = lctx.make_temporary(src_type, src_value);
             }
-        }
-        else if (auto *ist = dynamic_cast<v_type_integer_t *>(src_stype))
-        {
-            if (v_type_is_floating_point(dst_stype))
-            {
-                if (ist->is_signed()) opcode = LLVMSIToFP;
-                else                  opcode = LLVMUIToFP;
-            }
-            else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
-            {
-                auto sw = ist->width();
-                auto dw = idt->width();
 
-                if (sw == dw)       opcode = LLVMBitCast;       //- ?
-                else if (sw > dw)   opcode = LLVMTrunc;
-                else
-                {
-                    if (ist->is_signed()) opcode = LLVMSExt;        //- ?
-                    else                  opcode = LLVMZExt;        //- ?
-                }
-            }
-            else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
-            {
-                opcode = LLVMIntToPtr;
-            }
-            else
-            {
-                throw std::runtime_error("Bad cast from integer");
-            }
-        }
-        else if (auto *pst = dynamic_cast<v_type_pointer_t *>(src_stype))
-        {
-            if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
-            {
-                opcode = LLVMPtrToInt;
-            }
-            else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
-            {
-                if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
-                else                                                opcode = LLVMAddrSpaceCast;
-            }
-            else
-            {
-                throw std::runtime_error("Bad cast from pointer");
-            }
+            auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
+
+            LLVMValueRef val[2] = { n0, n0 };
+
+            v = LLVMConstGEP(v1, val, 2);
         }
         else
         {
-            throw std::runtime_error("Bad cast");
+            auto src_stype = v_type_get_scalar_type(src_type);
+            auto dst_stype = v_type_get_scalar_type(dst_type);
+
+            if (v_type_is_floating_point(src_stype))
+            {
+                if (v_type_is_floating_point(dst_stype))
+                {
+                    auto sz = v_type_floating_point_get_width(src_stype);
+                    auto dz = v_type_floating_point_get_width(dst_stype);
+
+                    if (sz == dz)       opcode = LLVMBitCast;       //- ?
+                    else if (sz > dz)   opcode = LLVMFPTrunc;
+                    else                opcode = LLVMFPExt;
+                }
+                else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+                {
+                    if (idt->is_signed()) opcode = LLVMFPToSI;
+                    else                  opcode = LLVMFPToUI;
+                }
+                else
+                {
+                    throw std::runtime_error("Bad cast from floating point");
+                }
+            }
+            else if (auto *ist = dynamic_cast<v_type_integer_t *>(src_stype))
+            {
+                if (v_type_is_floating_point(dst_stype))
+                {
+                    if (ist->is_signed()) opcode = LLVMSIToFP;
+                    else                  opcode = LLVMUIToFP;
+                }
+                else if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+                {
+                    auto sw = ist->width();
+                    auto dw = idt->width();
+
+                    if (sw == dw)       opcode = LLVMBitCast;       //- ?
+                    else if (sw > dw)   opcode = LLVMTrunc;
+                    else
+                    {
+                        if (ist->is_signed()) opcode = LLVMSExt;        //- ?
+                        else                  opcode = LLVMZExt;        //- ?
+                    }
+                }
+                else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+                {
+                    opcode = LLVMIntToPtr;
+                }
+                else
+                {
+                    throw std::runtime_error("Bad cast from integer");
+                }
+            }
+            else if (auto *pst = dynamic_cast<v_type_pointer_t *>(src_stype))
+            {
+                if (auto *idt = dynamic_cast<v_type_integer_t *>(dst_stype))
+                {
+                    opcode = LLVMPtrToInt;
+                }
+                else if (auto *pdt = dynamic_cast<v_type_pointer_t *>(dst_stype))
+                {
+                    if (pst->address_space() == pdt->address_space())   opcode = LLVMBitCast;
+                    else                                                opcode = LLVMAddrSpaceCast;
+                }
+                else
+                {
+                    throw std::runtime_error("Bad cast from pointer");
+                }
+            }
+            else
+            {
+                throw std::runtime_error("Bad cast");
+            }
+
+            v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), "");
         }
     }
-
-    auto v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), "");
 
     lctx.result_type = tt;
 
@@ -669,7 +717,20 @@ v_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, i
     }
     else
     {
-        v = lctx.make_temporary(t, v);
+        if (LLVMIsConstant(v))
+        {
+            auto v1 = LLVMAddGlobal(lctx.module, t->llvm_type(), "tmp");
+
+            LLVMSetLinkage(v1, LLVMPrivateLinkage);
+
+            LLVMSetInitializer(v1, v);
+
+            v = v1;
+        }
+        else
+        {
+            v = lctx.make_temporary(t, v);
+        }
 
         t = gctx.make_pointer_type(t, 0);
     }

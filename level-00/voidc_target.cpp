@@ -652,35 +652,48 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    if (t0->kind() == v_type_t::k_array  &&
-        t1->kind() == v_type_t::k_pointer
-       )
+    if (t1->kind() == v_type_t::k_pointer)
     {
-        //- C-like array-to-pointer "promotion"...
+        LLVMValueRef v1 = 0;
 
-        LLVMValueRef v1;
-
-        if (LLVMIsConstant(v0))
+        if (auto tr = dynamic_cast<v_type_reference_t *>(t0))
         {
-            v1 = LLVMAddGlobal(lctx.module, t0->llvm_type(), "arr");
+            if (tr->element_type()->kind() == v_type_t::k_array)
+            {
+                //- C-like array-to-pointer "promotion" (from reference)...
 
-            LLVMSetLinkage(v1, LLVMPrivateLinkage);
-
-            LLVMSetInitializer(v1, v0);
+                v1 = v0;
+            }
         }
-        else
+        else if (t0->kind() == v_type_t::k_array)
         {
-            v1 = lctx.make_temporary(t0, v0);
+            //- C-like array-to-pointer "promotion" (from value)...
+
+            if (LLVMIsConstant(v0))
+            {
+                v1 = LLVMAddGlobal(lctx.module, t0->llvm_type(), "arr");
+
+                LLVMSetLinkage(v1, LLVMPrivateLinkage);
+
+                LLVMSetInitializer(v1, v0);
+            }
+            else
+            {
+                v1 = lctx.make_temporary(t0, v0);
+            }
         }
 
-        auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
+        if (v1)
+        {
+            auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
 
-        LLVMValueRef val[2] = { n0, n0 };
+            LLVMValueRef val[2] = { n0, n0 };
 
-        return  LLVMConstGEP(v1, val, 2);
+            return  LLVMConstGEP(v1, val, 2);
+        }
     }
 
-    //- Only simple scalar "promotions" ...
+    //- Just simple scalar "promotions" ...
     //- t1 must be "bigger or equal" than t0 ...
 
     LLVMOpcode opcode = LLVMOpcode(0);      //- ?
