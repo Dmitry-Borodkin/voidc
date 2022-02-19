@@ -17,41 +17,6 @@
 
 
 //---------------------------------------------------------------------
-using v_util_function_dict_t = std::map<v_type_t *, std::string>;
-
-extern "C"
-{
-
-VOIDC_DLLEXPORT_BEGIN_VARIABLE
-
-v_util_function_dict_t v_util_initialize_dict;
-v_util_function_dict_t v_util_terminate_dict;
-
-v_util_function_dict_t v_util_copy_dict;
-v_util_function_dict_t v_util_move_dict;
-
-v_util_function_dict_t v_util_empty_dict;
-
-v_util_function_dict_t v_util_kind_dict;
-
-v_util_function_dict_t v_util_std_any_get_value_dict;
-v_util_function_dict_t v_util_std_any_get_pointer_dict;
-v_util_function_dict_t v_util_std_any_set_value_dict;
-v_util_function_dict_t v_util_std_any_set_pointer_dict;
-
-v_util_function_dict_t v_util_make_list_nil_dict;
-v_util_function_dict_t v_util_make_list_dict;
-v_util_function_dict_t v_util_list_append_dict;
-v_util_function_dict_t v_util_list_get_size_dict;
-v_util_function_dict_t v_util_list_get_items_dict;
-
-VOIDC_DLLEXPORT_END
-
-//---------------------------------------------------------------------
-}   //- extern "C"
-
-
-//---------------------------------------------------------------------
 namespace utility
 {
 
@@ -59,11 +24,11 @@ namespace utility
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                            const ast_expr_list_sptr_t *args, int count
                           )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -74,7 +39,7 @@ void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -106,11 +71,11 @@ void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                            const ast_expr_list_sptr_t *args, int count
                           )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -121,7 +86,7 @@ void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -156,11 +121,11 @@ void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                        const ast_expr_list_sptr_t *args, int count
                       )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -173,7 +138,7 @@ void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -193,11 +158,11 @@ void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                       const ast_expr_list_sptr_t *args, int count
                      )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -210,7 +175,7 @@ void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -230,11 +195,11 @@ void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                                    const ast_expr_list_sptr_t *args, int count
                                   )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -249,7 +214,7 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = lctx.result_type;
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -272,11 +237,11 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                                      const ast_expr_list_sptr_t *args, int count
                                     )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -291,7 +256,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = lctx.result_type;
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -318,11 +283,11 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                                    const ast_expr_list_sptr_t *args, int count
                                   )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -338,7 +303,7 @@ void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_dict,
         values[i] = lctx.result_value;
     }
 
-    const char *fun = dict.at(lctx.result_type).c_str();
+    const char *fun = gctx.function_dict.at({quark, lctx.result_type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -354,11 +319,11 @@ void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                                      const ast_expr_list_sptr_t *args, int count
                                     )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -376,7 +341,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -392,11 +357,11 @@ void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                            const ast_expr_list_sptr_t *args, int count
                           )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -407,7 +372,7 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f = nullptr;
     v_type_t    *t = nullptr;
@@ -450,11 +415,11 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                              const ast_expr_list_sptr_t *args, int count
                             )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -465,7 +430,7 @@ void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -501,11 +466,11 @@ void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                                const ast_expr_list_sptr_t *args, int count
                               )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -518,7 +483,7 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -538,11 +503,11 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
 //---------------------------------------------------------------------
 static
-void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_dict,
+void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
                                 const ast_expr_list_sptr_t *args, int count
                                )
 {
-    auto &dict = *reinterpret_cast<v_util_function_dict_t *>(void_dict);
+    auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -553,7 +518,7 @@ void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_dict,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = dict.at(type).c_str();
+    const char *fun = gctx.function_dict.at({quark, type}).c_str();
 
     LLVMValueRef f  = nullptr;
     v_type_t    *ft = nullptr;
@@ -595,7 +560,7 @@ void static_initialize(void)
     auto &gctx = *voidc_global_ctx_t::voidc;
 
 #define DEF2(name, fname) \
-    gctx.decls.intrinsics_insert({"v_" #name, {(void *)fname, &v_util_##name##_dict}});
+    gctx.decls.intrinsics_insert({"v_" #name, {(void *)fname, (void *)uintptr_t(v_quark_from_string("v_" #name))}});
 
 #define DEF(name) DEF2(name, v_##name##_intrinsic)
 
@@ -643,7 +608,6 @@ void static_initialize(void)
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)
-    DEF(v_util_function_dict_t, function_dict_t)
 
 #undef DEF
 }
@@ -669,21 +633,13 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------
-VOIDC_DEFINE_INITIALIZE_IMPL(v_util_function_dict_t, v_util_initialize_function_dict_impl)
-VOIDC_DEFINE_TERMINATE_IMPL(v_util_function_dict_t, v_util_terminate_function_dict_impl)
-VOIDC_DEFINE_COPY_IMPL(v_util_function_dict_t, v_util_copy_function_dict_impl)
-VOIDC_DEFINE_MOVE_IMPL(v_util_function_dict_t, v_util_move_function_dict_impl)
-
-bool v_util_empty_function_dict_impl(const v_util_function_dict_t *ptr)
+const char *v_util_function_dict_get(v_quark_t quark, v_type_t *type)
 {
-    return ptr->empty();
-}
+    auto &gctx = *voidc_global_ctx_t::target;
 
-const char *v_util_function_dict_get(const v_util_function_dict_t *ptr, v_type_t *type)
-{
-    auto it = ptr->find(type);
+    auto it = gctx.function_dict.find({quark, type});
 
-    if (it != ptr->end())
+    if (it != gctx.function_dict.end())
     {
         return it->second.c_str();
     }
@@ -691,9 +647,11 @@ const char *v_util_function_dict_get(const v_util_function_dict_t *ptr, v_type_t
     return nullptr;
 }
 
-void v_util_function_dict_set(v_util_function_dict_t *ptr, v_type_t *type, const char *fun_name)
+void v_util_function_dict_set(v_quark_t quark, v_type_t *type, const char *fun_name)
 {
-    (*ptr)[type] = fun_name;
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    gctx.function_dict[{quark, type}] = fun_name;
 }
 
 //---------------------------------------------------------------------

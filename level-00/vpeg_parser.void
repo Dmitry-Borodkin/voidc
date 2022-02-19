@@ -7,6 +7,7 @@
     v_import("voidc_target.void");
     v_import("voidc_types.void");
     v_import("voidc_util.void");
+    v_import("voidc_quark.void");
 }
 
 
@@ -52,9 +53,11 @@
 
     v_export_symbol_type("v_peg_argument_get_kind", fun_t);
 
-    v_util_function_dict_set(v_util_kind_dict, v_peg_opaque_parser_sptr,   "v_peg_parser_get_kind");
-    v_util_function_dict_set(v_util_kind_dict, v_peg_opaque_action_sptr,   "v_peg_action_get_kind");
-    v_util_function_dict_set(v_util_kind_dict, v_peg_opaque_argument_sptr, "v_peg_argument_get_kind");
+    q = v_quark_from_string("v_kind");
+
+    v_util_function_dict_set(q, v_peg_opaque_parser_sptr,   "v_peg_parser_get_kind");
+    v_util_function_dict_set(q, v_peg_opaque_action_sptr,   "v_peg_action_get_kind");
+    v_util_function_dict_set(q, v_peg_opaque_argument_sptr, "v_peg_argument_get_kind");
 }
 
 {   typ0 = v_alloca(v_type_ptr, 4);

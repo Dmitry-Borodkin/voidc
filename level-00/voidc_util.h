@@ -7,19 +7,24 @@
 
 #include <memory>
 #include <algorithm>
+#include <utility>
+#include <map>
 #include <any>
+
+#include "voidc_quark.h"
+#include "voidc_types.h"
 
 
 //---------------------------------------------------------------------
 namespace utility
 {
+using function_dict_t = std::map<std::pair<v_quark_t, v_type_t *>, std::string>;
 
 void static_initialize(void);
 void static_terminate(void);
 
 //---------------------------------------------------------------------
 }   //- namespace utility
-
 
 
 //-----------------------------------------------------------------

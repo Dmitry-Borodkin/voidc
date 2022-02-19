@@ -7,6 +7,7 @@
 
 #include "voidc_ast.h"
 #include "voidc_types.h"
+#include "voidc_util.h"
 
 #include <string>
 #include <vector>
@@ -119,6 +120,9 @@ public:
     static int debug_print_module;
 
     static void verify_module(LLVMModuleRef module);
+
+public:
+    utility::function_dict_t function_dict;
 
 public:
     base_local_ctx_t *local_ctx = nullptr;
