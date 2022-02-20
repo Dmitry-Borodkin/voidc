@@ -21,6 +21,50 @@ namespace utility
 {
 
 //---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+static
+bool lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *type,
+                          void *&void_fun, void *&aux,
+                          LLVMValueRef &f, v_type_t *&ft)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    auto it = gctx.function_dict.find({quark, type});
+
+    if (it == gctx.function_dict.end()) return false;
+
+    auto &fun_name = it->second;
+
+    for (auto &intrs : {lctx.decls.intrinsics, (*vis)->intrinsics})
+    {
+        if (auto p = intrs.find(fun_name))
+        {
+            void_fun = p->first;
+            aux      = p->second;
+
+            return true;
+        }
+    }
+
+    void_fun = nullptr;
+
+    if (!lctx.obtain_identifier(fun_name.c_str(), ft, f))
+    {
+        throw std::runtime_error("Intrinsic function not found: " + fun_name);
+    }
+
+    return true;
+}
+
+//---------------------------------------------------------------------
+typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux,
+                            const ast_expr_list_sptr_t *args, int count,
+                            v_type_t *type, LLVMValueRef value);
+
+
+//---------------------------------------------------------------------
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
@@ -39,15 +83,23 @@ void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     LLVMValueRef values[2];
 
@@ -86,15 +138,23 @@ void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     LLVMValueRef values[3];
 
@@ -138,15 +198,23 @@ void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
 
@@ -175,15 +243,23 @@ void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
 
@@ -214,15 +290,23 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = lctx.result_type;
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     lctx.result_type = UNREFERENCE_TAG;
 
@@ -256,15 +340,23 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 
     auto type = lctx.result_type;
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     lctx.result_type = UNREFERENCE_TAG;
 
@@ -292,26 +384,39 @@ void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
+    lctx.result_type = UNREFERENCE_TAG;
+
+    (*args)->data[1]->accept(*vis);         //- Second argument
+
+    auto type = lctx.result_type;
+
+    void *void_fun;
+    void *aux;
+
+    LLVMValueRef f;
+    v_type_t    *ft;
+
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
+    {
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
+    }
+
+    //- Function call
+
     LLVMValueRef values[2];
 
-    for (int i=0; i<2; ++i)
-    {
-        lctx.result_type = UNREFERENCE_TAG;
+    values[1] = lctx.result_value;
 
-        (*args)->data[i]->accept(*vis);
+    lctx.result_type = UNREFERENCE_TAG;
 
-        values[i] = lctx.result_value;
-    }
+    (*args)->data[0]->accept(*vis);         //- First argument
 
-    const char *fun = gctx.function_dict.at({quark, lctx.result_type}).c_str();
-
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
-
-    if (!lctx.obtain_identifier(fun, ft, f))
-    {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
-    }
+    values[0] = lctx.result_value;
 
     LLVMBuildCall(gctx.builder, f, values, 2, "");
 }
@@ -328,28 +433,39 @@ void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    LLVMValueRef values[2];
+    lctx.result_type = UNREFERENCE_TAG;
 
-    for (int i=0; i<2; ++i)
-    {
-        lctx.result_type = UNREFERENCE_TAG;
-
-        (*args)->data[i]->accept(*vis);
-
-        values[i] = lctx.result_value;
-    }
+    (*args)->data[1]->accept(*vis);         //- Second argument
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
+
+    LLVMValueRef values[2];
+
+    values[1] = lctx.result_value;
+
+    lctx.result_type = UNREFERENCE_TAG;
+
+    (*args)->data[0]->accept(*vis);         //- First argument
+
+    values[0] = lctx.result_value;
 
     LLVMBuildCall(gctx.builder, f, values, 2, "");
 }
@@ -372,15 +488,23 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f = nullptr;
-    v_type_t    *t = nullptr;
+    LLVMValueRef f;
+    v_type_t    *t;
 
-    if (!lctx.obtain_identifier(fun, t, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, t);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     if (auto pt = dynamic_cast<v_type_pointer_t *>(t))
     {
@@ -430,15 +554,23 @@ void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     LLVMValueRef values[4];
 
@@ -483,15 +615,23 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
 
@@ -518,15 +658,23 @@ void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    const char *fun = gctx.function_dict.at({quark, type}).c_str();
+    void *void_fun;
+    void *aux;
 
-    LLVMValueRef f  = nullptr;
-    v_type_t    *ft = nullptr;
+    LLVMValueRef f;
+    v_type_t    *ft;
 
-    if (!lctx.obtain_identifier(fun, ft, f))
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    assert(ok);
+
+    if (void_fun)       //- Compile-time intrinsic?
     {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + fun);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+
+        return;
     }
+
+    //- Function call
 
     LLVMValueRef values[4];
 
