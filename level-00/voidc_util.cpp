@@ -50,7 +50,7 @@ bool lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *
 
     void_fun = nullptr;
 
-    if (!lctx.obtain_identifier(fun_name.c_str(), ft, f))
+    if (!lctx.obtain_identifier(fun_name, ft, f))
     {
         throw std::runtime_error("Intrinsic function not found: " + fun_name);
     }
@@ -59,6 +59,7 @@ bool lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *
 }
 
 //---------------------------------------------------------------------
+extern "C"
 typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux,
                             const ast_expr_list_sptr_t *args, int count,
                             v_type_t *type, LLVMValueRef value);
