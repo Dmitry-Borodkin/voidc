@@ -178,7 +178,16 @@ mk_dec_numdigit(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_string(std::any *ret, const std::any *args, size_t)
+mk_string_str(std::any *ret, const std::any *args, size_t)
+{
+    auto s0 = std::any_cast<const std::string>(args[0]);
+    auto s1 = std::any_cast<const std::string>(args[1]);
+
+    *ret = s0 + s1;
+}
+
+static void
+mk_string_chr(std::any *ret, const std::any *args, size_t)
 {
     auto s = std::any_cast<const std::string>(args[0]);
 
@@ -268,7 +277,8 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(mk_neg_integer)
     DEF(mk_dec_integer)
     DEF(mk_dec_numdigit)
-    DEF(mk_string)
+    DEF(mk_string_str)
+    DEF(mk_string_chr)
     DEF(mk_EOF)
     DEF(is_SOF)
 
@@ -296,7 +306,6 @@ vpeg::grammar_t make_voidc_grammar(void)
     DEF(char)
     DEF(str_body)
     DEF(str_char)
-    DEF(character)
     DEF(esc_sequence)
 
     DEF(_)
@@ -768,8 +777,11 @@ vpeg::grammar_t make_voidc_grammar(void)
     }));
 
     //-------------------------------------------------------------
-    //- str_body <- s:str_body c:str_char   { mk_string(s, c) }
-    //-           / c:str_char              { mk_string("", c) }
+    //- str_body <- s:str_body <(![\n\r\t'"\\] .)+>     { mk_string_str(s, $1) }
+    //-           / s:str_body '\\' c:esc_sequence      { mk_string_chr(s, c) }
+    //-           / (![\n\r\t'"\\] .)+                  { $0 }
+    //-           / '\\' c:esc_sequence                 { mk_string_chr("", c) }
+
 
     gr = gr.set_parser("str_body",
     mk_choice_parser(
@@ -777,59 +789,94 @@ vpeg::grammar_t make_voidc_grammar(void)
         mk_sequence_parser(
         {
             mk_catch_variable_parser("s", ip_str_body),
-            mk_catch_variable_parser("c", ip_str_char),
+
+            mk_catch_string_parser(
+                mk_plus_parser(
+                    mk_sequence_parser(
+                    {
+                        mk_not_parser(
+                            mk_class_parser({{'\n','\n'},{'\r','\r'},{'\t','\t'},{'\'','\''},{'\"','\"'},{'\\','\\'}})
+                        ),
+                        mk_dot_parser()
+                    })
+                )
+            ),
 
             mk_action_parser(
-                mk_call_action("mk_string",
+                mk_call_action("mk_string_str",
                 {
                     mk_identifier_argument("s"),
-                    mk_identifier_argument("c")
+                    mk_backref_argument(1, backref_argument_t::bk_string)
                 })
             )
         }),
         mk_sequence_parser(
         {
-            mk_catch_variable_parser("c", ip_str_char),
+            mk_catch_variable_parser("s", ip_str_body),
+            mk_character_parser('\\'),
+            mk_catch_variable_parser("c", ip_esc_sequence),
 
             mk_action_parser(
-                mk_call_action("mk_string",
+                mk_call_action("mk_string_chr",
+                {
+                    mk_identifier_argument("s"),
+                    mk_identifier_argument("c"),
+                })
+            )
+        }),
+
+        mk_sequence_parser(
+        {
+            mk_plus_parser(
+                mk_sequence_parser(
+                {
+                    mk_not_parser(
+                        mk_class_parser({{'\n','\n'},{'\r','\r'},{'\t','\t'},{'\'','\''},{'\"','\"'},{'\\','\\'}})
+                    ),
+                    mk_dot_parser()
+                })
+            ),
+
+            mk_action_parser(
+                mk_return_action(
+                    mk_backref_argument(0, backref_argument_t::bk_string)
+                )
+            )
+        }),
+        mk_sequence_parser(
+        {
+            mk_character_parser('\\'),
+            mk_catch_variable_parser("c", ip_esc_sequence),
+
+            mk_action_parser(
+                mk_call_action("mk_string_chr",
                 {
                     mk_literal_argument(""),
                     mk_identifier_argument("c")
                 })
             )
-        })
+        }),
     }), true);      //- Left recursion!
 
     //-------------------------------------------------------------
-    //- str_char <- ![\n\r\t\'\"] character
+    //- str_char <- ![\n\r\t'"\\] .
+    //-           / '\\' esc_sequence
 
     gr = gr.set_parser("str_char",
-    mk_sequence_parser(
-    {
-        mk_not_parser(
-            mk_class_parser({{'\n','\n'},{'\r','\r'},{'\t','\t'},{'\'','\''},{'\"','\"'}})
-        ),
-        ip_character
-    }));
-
-    //-------------------------------------------------------------
-    //- character <- '\\' esc_sequence
-    //-            / !'\\' .
-
-    gr = gr.set_parser("character",
     mk_choice_parser(
     {
         mk_sequence_parser(
         {
-            mk_character_parser('\\'),
-            ip_esc_sequence
+            mk_not_parser(
+                mk_class_parser({{'\n','\n'},{'\r','\r'},{'\t','\t'},{'\'','\''},{'\"','\"'},{'\\','\\'}})
+            ),
+            mk_dot_parser()
         }),
         mk_sequence_parser(
         {
-            mk_not_parser(mk_character_parser('\\')),
-            mk_dot_parser()
-        }),
+            mk_character_parser('\\'),
+            ip_esc_sequence
+        })
     }));
 
     //-------------------------------------------------------------
