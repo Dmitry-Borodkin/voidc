@@ -78,8 +78,8 @@ typedef std::shared_ptr<const ast_expr_base_t> ast_expr_sptr_t;
 
 
 //---------------------------------------------------------------------
-template<typename Self, typename T>
-struct ast_list_t : public virtual ast_base_t, public std::enable_shared_from_this<Self>
+template<typename T, v_quark_t &Tag>
+struct ast_list_t : public virtual ast_base_t, public std::enable_shared_from_this<ast_list_t<T, Tag>>
 {
     using item_t = T;
 
@@ -91,18 +91,19 @@ struct ast_list_t : public virtual ast_base_t, public std::enable_shared_from_th
       : data(items, items+count)
     {}
 
-    ast_list_t(const std::shared_ptr<const ast_list_t<Self, T>> &list,
+    ast_list_t(const std::shared_ptr<const ast_list_t<T, Tag>> &list,
                const std::shared_ptr<const T> &item)
       : data(list->data.push_back(item))
     {}
 
-    ast_list_t(const std::shared_ptr<const ast_list_t<Self, T>> &list,
+    ast_list_t(const std::shared_ptr<const ast_list_t<T, Tag>> &list,
                const std::shared_ptr<const T> *items, size_t count)
       : data(list->do_append(items, count))
     {}
 
 public:
-    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux, const std::shared_ptr<const Self> *self);
+    typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
+                                     const std::shared_ptr<const ast_list_t<T, Tag>> *self);
 
     void accept(const visitor_sptr_t &visitor) const override
     {
@@ -110,6 +111,8 @@ public:
 
         visitor->visit<visitor_method_t>(method_tag(), &self);
     }
+
+    v_quark_t method_tag(void) const override { return Tag; }
 
 private:
     immer::vector<std::shared_ptr<const T>>
@@ -124,55 +127,10 @@ private:
 };
 
 //---------------------------------------------------------------------
-struct ast_stmt_list_t : public ast_list_t<ast_stmt_list_t, ast_stmt_base_t>
-{
-    using base_t = ast_list_t<ast_stmt_list_t, ast_stmt_base_t>;
-
-    ast_stmt_list_t() = default;
-
-    ast_stmt_list_t(const std::shared_ptr<const ast_stmt_base_t> *items, size_t count)
-      : base_t(items, count)
-    {}
-
-    ast_stmt_list_t(const std::shared_ptr<const ast_stmt_list_t> &list,
-                    const std::shared_ptr<const ast_stmt_base_t> &item)
-      : base_t(list, item)
-    {}
-
-    ast_stmt_list_t(const std::shared_ptr<const ast_stmt_list_t> &list,
-                    const std::shared_ptr<const ast_stmt_base_t> *items, size_t count)
-      : base_t(list, items, count)
-    {}
-
-    AST_VISITOR_TAG(ast_stmt_list_t)
-};
+using ast_stmt_list_t = ast_list_t<ast_stmt_base_t, v_ast_stmt_list_t_visitor_method_tag>;
+using ast_expr_list_t = ast_list_t<ast_expr_base_t, v_ast_expr_list_t_visitor_method_tag>;
 
 typedef std::shared_ptr<const ast_stmt_list_t> ast_stmt_list_sptr_t;
-
-//---------------------------------------------------------------------
-struct ast_expr_list_t : public ast_list_t<ast_expr_list_t, ast_expr_base_t>
-{
-    using base_t = ast_list_t<ast_expr_list_t, ast_expr_base_t>;
-
-    ast_expr_list_t() = default;
-
-    ast_expr_list_t(const std::shared_ptr<const ast_expr_base_t> *items, size_t count)
-      : base_t(items, count)
-    {}
-
-    ast_expr_list_t(const std::shared_ptr<const ast_expr_list_t> &list,
-                    const std::shared_ptr<const ast_expr_base_t> &item)
-      : base_t(list, item)
-    {}
-
-    ast_expr_list_t(const std::shared_ptr<const ast_expr_list_t> &list,
-                    const std::shared_ptr<const ast_expr_base_t> *items, size_t count)
-      : base_t(list, items, count)
-    {}
-
-    AST_VISITOR_TAG(ast_expr_list_t)
-};
-
 typedef std::shared_ptr<const ast_expr_list_t> ast_expr_list_sptr_t;
 
 
@@ -397,32 +355,25 @@ public:
 typedef std::shared_ptr<const ast_generic_t>  ast_generic_sptr_t;
 
 //---------------------------------------------------------------------
-struct ast_unit_generic_t : public ast_unit_base_t, public ast_generic_t
+template <typename T>
+struct ast_template_generic_t : public T, public ast_generic_t
 {
-    explicit ast_unit_generic_t(const ast_generic_vtable *vtab, size_t size)
+    explicit ast_template_generic_t(const ast_generic_vtable *vtab, size_t size)
       : ast_generic_t(vtab, size)
     {}
 };
 
-struct ast_stmt_generic_t : public ast_stmt_base_t, public ast_generic_t
-{
-    explicit ast_stmt_generic_t(const ast_generic_vtable *vtab, size_t size)
-      : ast_generic_t(vtab, size)
-    {}
-};
-
-struct ast_expr_generic_t : public ast_expr_base_t, public ast_generic_t
-{
-    explicit ast_expr_generic_t(const ast_generic_vtable *vtab, size_t size)
-      : ast_generic_t(vtab, size)
-    {}
-};
+using ast_unit_generic_t = ast_template_generic_t<ast_unit_base_t>;
+using ast_stmt_generic_t = ast_template_generic_t<ast_stmt_base_t>;
+using ast_expr_generic_t = ast_template_generic_t<ast_expr_base_t>;
 
 
 //---------------------------------------------------------------------
-struct ast_generic_list_t : public ast_list_t<ast_generic_list_t, ast_base_t>
+extern v_quark_t v_ast_generic_list_t_dummy_method_tag;     //- WTF?
+
+struct ast_generic_list_t : public ast_list_t<ast_base_t, v_ast_generic_list_t_dummy_method_tag>
 {
-    using base_t = ast_list_t<ast_generic_list_t, ast_base_t>;
+    using base_t = ast_list_t<ast_base_t, v_ast_generic_list_t_dummy_method_tag>;
 
     explicit ast_generic_list_t(v_quark_t tag)
       : visitor_method_tag(tag)
