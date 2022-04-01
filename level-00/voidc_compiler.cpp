@@ -565,7 +565,11 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
 
             auto et = static_cast<v_type_array_t *>(pst->element_type())->element_type();
 
+#if LLVM_VERSION_MAJOR < 14
+            src_value = LLVMConstGEP(src_value, val, 2);
+#else
             src_value = LLVMConstGEP2(et->llvm_type(), src_value, val, 2);
+#endif
 
             src_type  = gctx.make_pointer_type(et, pst->address_space());
         }
@@ -606,7 +610,11 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
 
             LLVMValueRef val[2] = { n0, n0 };
 
+#if LLVM_VERSION_MAJOR < 14
+            v = LLVMConstGEP(v1, val, 2);
+#else
             v = LLVMConstGEP2(src_type->llvm_type(), v1, val, 2);
+#endif
         }
         else
         {

@@ -700,7 +700,11 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 
             LLVMValueRef val[2] = { n0, n0 };
 
+#if LLVM_VERSION_MAJOR < 14
+            return  LLVMConstGEP(v1, val, 2);
+#else
             return  LLVMConstGEP2(t->llvm_type(), v1, val, 2);
+#endif
         }
     }
 
