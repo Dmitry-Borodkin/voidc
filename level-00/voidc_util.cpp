@@ -50,10 +50,14 @@ bool lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *
 
     void_fun = nullptr;
 
-    if (!lctx.obtain_identifier(fun_name, ft, f))
+    v_type_t *t;
+
+    if (!lctx.obtain_identifier(fun_name, t, f))
     {
         throw std::runtime_error("Intrinsic function not found: " + fun_name);
     }
+
+    ft = static_cast<v_type_pointer_t *>(t)->element_type();
 
     return true;
 }
@@ -119,7 +123,7 @@ void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
         values[1] = lctx.result_value;
     }
 
-    LLVMBuildCall(gctx.builder, f, values, 2, "");
+    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
 }
 
 //---------------------------------------------------------------------
@@ -177,7 +181,7 @@ void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
         }
     }
 
-    LLVMBuildCall(gctx.builder, f, values, 3, "");
+    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 3, "");
 }
 
 //---------------------------------------------------------------------
@@ -217,7 +221,7 @@ void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     //- Function call
 
-    auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
     lctx.result_type = tt;
 
@@ -262,7 +266,7 @@ void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     //- Function call
 
-    auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
     lctx.result_type = tt;
 
@@ -313,7 +317,7 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     (*args)->data[1]->accept(*vis);
 
-    auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
     lctx.result_type = tt;
 
@@ -363,7 +367,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 
     (*args)->data[1]->accept(*vis);
 
-    auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
     auto adsp = LLVMGetPointerAddressSpace(LLVMTypeOf(v));
 
@@ -419,7 +423,7 @@ void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     values[0] = lctx.result_value;
 
-    LLVMBuildCall(gctx.builder, f, values, 2, "");
+    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
 }
 
 
@@ -468,7 +472,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 
     values[0] = lctx.result_value;
 
-    LLVMBuildCall(gctx.builder, f, values, 2, "");
+    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
 }
 
 
@@ -507,11 +511,6 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     //- Function call
 
-    if (auto pt = dynamic_cast<v_type_pointer_t *>(t))
-    {
-        t = pt->element_type();
-    }
-
     auto ft = static_cast<v_type_function_t *>(t);
 
     auto par_count = ft->param_count();
@@ -534,7 +533,7 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
         values[i] = lctx.result_value;
     }
 
-    LLVMBuildCall(gctx.builder, f, values.get(), arg_count, "");
+    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), arg_count, "");
 }
 
 
@@ -593,7 +592,7 @@ void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
         }
     }
 
-    LLVMBuildCall(gctx.builder, f, values, 4, "");
+    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 4, "");
 }
 
 
@@ -634,7 +633,7 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     //- Function call
 
-    auto v = LLVMBuildCall(gctx.builder, f, &lctx.result_value, 1, "");
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
     lctx.result_type = tt;
 
@@ -697,7 +696,7 @@ void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
         }
     }
 
-    LLVMBuildCall(gctx.builder, f, values, 4, "");
+    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 4, "");
 }
 
 

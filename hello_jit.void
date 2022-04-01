@@ -29,7 +29,7 @@
 
     v_store(str, arg);
 
-    LLVMBuildCall(builder, printf_f, arg, 1, "");
+    LLVMBuildCall2(builder, printf_ft_, printf_f, arg, 1, "");
 
 
     LLVMBuildRetVoid(builder);

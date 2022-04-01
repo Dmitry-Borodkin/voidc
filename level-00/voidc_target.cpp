@@ -475,7 +475,8 @@ base_local_ctx_t::finish_function(void)
     else
     {
         auto ret_var_v = vars["voidc.internal_return_value"].second;
-        auto ret_value = LLVMBuildLoad(global_ctx.builder, ret_var_v, "ret_value");
+//      auto ret_value = LLVMBuildLoad(global_ctx.builder, ret_var_v, "ret_value");
+        auto ret_value = LLVMBuildLoad2(global_ctx.builder, ret_type->llvm_type(), ret_var_v, "ret_value");
 
         LLVMBuildRet(global_ctx.builder, ret_value);
     }
@@ -509,7 +510,7 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 
             result_type = et;
 
-            value = LLVMBuildLoad(global_ctx.builder, value, "tmp");
+            value = LLVMBuildLoad2(global_ctx.builder, et->llvm_type(), value, "tmp");
 
             break;
         }
@@ -551,7 +552,7 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
         {
             src_typ = static_cast<v_type_reference_t *>(src_typ)->element_type();
 
-            value = LLVMBuildLoad(global_ctx.builder, value, "tmp");
+            value = LLVMBuildLoad2(global_ctx.builder, src_typ->llvm_type(), value, "tmp");
         }
 
         if (src_typ != dst_typ)
@@ -600,12 +601,14 @@ base_local_ctx_t::make_temporary(v_type_t *type, LLVMValueRef value)
 {
     if (!temporaries_stack.front())
     {
-        v_type_t    *llvm_stacksave_ft;
-        LLVMValueRef llvm_stacksave_f;
+        v_type_t    *t;
+        LLVMValueRef f;
 
-        obtain_identifier("llvm.stacksave", llvm_stacksave_ft, llvm_stacksave_f);
+        obtain_identifier("llvm.stacksave", t, f);
 
-        temporaries_stack.front() = LLVMBuildCall(global_ctx.builder, llvm_stacksave_f, nullptr, 0, "tmp_stack_ptr");
+        t = static_cast<v_type_pointer_t *>(t)->element_type();
+
+        temporaries_stack.front() = LLVMBuildCall2(global_ctx.builder, t->llvm_type(), f, nullptr, 0, "tmp_stack_ptr");
     }
 
     auto tmp = LLVMBuildAlloca(global_ctx.builder, type->llvm_type(), "tmp");
@@ -632,12 +635,14 @@ base_local_ctx_t::pop_temporaries(void)
 
     if (!stack_ptr) return;
 
-    v_type_t    *llvm_stackrestore_ft;
-    LLVMValueRef llvm_stackrestore_f;
+    v_type_t    *t;
+    LLVMValueRef f;
 
-    obtain_identifier("llvm.stackrestore", llvm_stackrestore_ft, llvm_stackrestore_f);
+    obtain_identifier("llvm.stackrestore", t, f);
 
-    LLVMBuildCall(global_ctx.builder, llvm_stackrestore_f, &stack_ptr, 1, "");
+    t = static_cast<v_type_pointer_t *>(t)->element_type();
+
+    LLVMBuildCall2(global_ctx.builder, t->llvm_type(), f, &stack_ptr, 1, "");
 }
 
 //---------------------------------------------------------------------
@@ -656,13 +661,17 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
     {
         LLVMValueRef v1 = 0;
 
+        v_type_t *t;
+
         if (auto tr = dynamic_cast<v_type_reference_t *>(t0))
         {
-            if (tr->element_type()->kind() == v_type_t::k_array)
+            if (auto ta = dynamic_cast<v_type_array_t *>(tr->element_type()))
             {
                 //- C-like array-to-pointer "promotion" (from reference)...
 
                 v1 = v0;
+
+                t = ta;
             }
         }
         else if (t0->kind() == v_type_t::k_array)
@@ -681,6 +690,8 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
             {
                 v1 = lctx.make_temporary(t0, v0);
             }
+
+            t = t0;
         }
 
         if (v1)
@@ -689,7 +700,7 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 
             LLVMValueRef val[2] = { n0, n0 };
 
-            return  LLVMConstGEP(v1, val, 2);
+            return  LLVMConstGEP2(t->llvm_type(), v1, val, 2);
         }
     }
 
@@ -1676,7 +1687,7 @@ voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local)
     val[0] = LLVMConstInt(gctx.int_type->llvm_type(), 0, 0);
     val[1] = val[0];
 
-    auto membuf_const_ptr = LLVMBuildGEP(gctx.builder, membuf_glob, val, 2, "membuf_const_ptr");
+    auto membuf_const_ptr = LLVMBuildGEP2(gctx.builder, membuf_const_type, membuf_glob, val, 2, "membuf_const_ptr");
 
     v_type_t    *t;
     LLVMValueRef f;
@@ -1688,7 +1699,9 @@ voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local)
     val[1] = LLVMConstInt(gctx.size_t_type->llvm_type(), membuf_size, 0);
     val[2] = LLVMConstInt(gctx.bool_type->llvm_type(), is_local, 0);
 
-    LLVMBuildCall(gctx.builder, f, val, 3, "");
+    t = static_cast<v_type_pointer_t *>(t)->element_type();
+
+    LLVMBuildCall2(gctx.builder, t->llvm_type(), f, val, 3, "");
 }
 
 void

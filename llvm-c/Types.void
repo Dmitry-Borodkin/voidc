@@ -10,21 +10,21 @@
 
 //- Types --------------------------------------------------
 {
-    v0 = v_struct_type_named("struct.LLVMOpaqueDiagnosticInfo");
+    v0 = v_struct_type_named("struct.LLVMOpaqueBinary");
     v1 = v_pointer_type(v0, 0);
-    v_export_type("LLVMDiagnosticInfoRef", v1);
+    v_export_type("LLVMBinaryRef", v1);
 
-    v2 = v_struct_type_named("struct.LLVMComdat");
+    v2 = v_struct_type_named("struct.LLVMOpaquePassManager");
     v3 = v_pointer_type(v2, 0);
-    v_export_type("LLVMComdatRef", v3);
+    v_export_type("LLVMPassManagerRef", v3);
 
-    v4 = v_struct_type_named("struct.LLVMOpaquePassManager");
+    v4 = v_struct_type_named("struct.LLVMOpaqueBasicBlock");
     v5 = v_pointer_type(v4, 0);
-    v_export_type("LLVMPassManagerRef", v5);
+    v_export_type("LLVMBasicBlockRef", v5);
 
-    v6 = v_struct_type_named("struct.LLVMOpaqueBasicBlock");
+    v6 = v_struct_type_named("struct.LLVMComdat");
     v7 = v_pointer_type(v6, 0);
-    v_export_type("LLVMBasicBlockRef", v7);
+    v_export_type("LLVMComdatRef", v7);
 
     v8 = v_struct_type_named("struct.LLVMOpaqueType");
     v9 = v_pointer_type(v8, 0);
@@ -60,24 +60,24 @@
     v23 = v_pointer_type(v22, 0);
     v_export_type("LLVMValueRef", v23);
 
-    v24 = v_struct_type_named("struct.LLVMOpaqueModuleFlagEntry");
-    v_export_type("LLVMModuleFlagEntry", v24);
+    v24 = v_struct_type_named("struct.LLVMOpaqueBuilder");
+    v25 = v_pointer_type(v24, 0);
+    v_export_type("LLVMBuilderRef", v25);
 
-    v25 = v_struct_type_named("struct.LLVMOpaqueBinary");
-    v26 = v_pointer_type(v25, 0);
-    v_export_type("LLVMBinaryRef", v26);
+    v26 = v_struct_type_named("struct.LLVMOpaqueAttributeRef");
+    v27 = v_pointer_type(v26, 0);
+    v_export_type("LLVMAttributeRef", v27);
 
-    v27 = v_struct_type_named("struct.LLVMOpaqueAttributeRef");
-    v28 = v_pointer_type(v27, 0);
-    v_export_type("LLVMAttributeRef", v28);
+    v28 = v_struct_type_named("struct.LLVMOpaqueDIBuilder");
+    v29 = v_pointer_type(v28, 0);
+    v_export_type("LLVMDIBuilderRef", v29);
 
-    v29 = v_struct_type_named("struct.LLVMOpaqueDIBuilder");
-    v30 = v_pointer_type(v29, 0);
-    v_export_type("LLVMDIBuilderRef", v30);
+    v30 = v_struct_type_named("struct.LLVMOpaqueDiagnosticInfo");
+    v31 = v_pointer_type(v30, 0);
+    v_export_type("LLVMDiagnosticInfoRef", v31);
 
-    v31 = v_struct_type_named("struct.LLVMOpaqueBuilder");
-    v32 = v_pointer_type(v31, 0);
-    v_export_type("LLVMBuilderRef", v32);
+    v32 = v_struct_type_named("struct.LLVMOpaqueModuleFlagEntry");
+    v_export_type("LLVMModuleFlagEntry", v32);
 
     v33 = v_struct_type_named("struct.LLVMOpaqueContext");
     v34 = v_pointer_type(v33, 0);

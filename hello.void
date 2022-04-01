@@ -27,7 +27,10 @@
             cpu_name,
             cpu_features,
             LLVMCodeGenLevelAggressive,
-            LLVMRelocDefault,
+
+//          LLVMRelocDefault,
+            LLVMRelocPIC,               //- WTF ?
+
             LLVMCodeModelDefault
         );
 
@@ -59,7 +62,7 @@
 
     v_store(str, val);
 
-    LLVMBuildCall(builder, printf_f, val, 1, "");
+    LLVMBuildCall2(builder, printf_ft_, printf_f, val, 1, "");
 
 
     LLVMBuildRetVoid(builder);

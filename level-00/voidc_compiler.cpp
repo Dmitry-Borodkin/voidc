@@ -214,7 +214,7 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *,
             values[j] = lctx.result_value;
         }
 
-        auto v = LLVMBuildCall(gctx.builder, f, values.get(), arg_count, "");
+        auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), arg_count, "");
 
 
         lctx.result_type = (i < count-1 ? UNREFERENCE_TAG : tt);
@@ -419,11 +419,11 @@ v_getelementptr(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *a
         values[i] = lctx.result_value;
     }
 
-    auto v = LLVMBuildGEP(gctx.builder, values[0], &values[1], arg_count-1, "");
-
     auto *p = static_cast<v_type_pointer_t *>(v_type_get_scalar_type(types[0]));
 
     v_type_t *t = p->element_type();
+
+    auto v = LLVMBuildGEP2(gctx.builder, t->llvm_type(), values[0], &values[1], arg_count-1, "");
 
     for (int i=2; i<arg_count; ++i)
     {
@@ -508,9 +508,9 @@ v_load(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
 
     (*args)->data[0]->accept(*vis);
 
-    auto v = LLVMBuildLoad(gctx.builder, lctx.result_value, "");
-
     auto t = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
+
+    auto v = LLVMBuildLoad2(gctx.builder, t->llvm_type(), lctx.result_value, "");
 
     lctx.result_type = tt;
 
@@ -563,17 +563,17 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
 
             LLVMValueRef val[2] = { n0, n0 };
 
-            src_value = LLVMConstGEP(src_value, val, 2);
-
             auto et = static_cast<v_type_array_t *>(pst->element_type())->element_type();
+
+            src_value = LLVMConstGEP2(et->llvm_type(), src_value, val, 2);
 
             src_type  = gctx.make_pointer_type(et, pst->address_space());
         }
         else
         {
-            src_value = LLVMBuildLoad(gctx.builder, src_value, "tmp");
-
             src_type  = pst->element_type();
+
+            src_value = LLVMBuildLoad2(gctx.builder, src_type->llvm_type(), src_value, "tmp");
         }
     }
 
@@ -606,7 +606,7 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
 
             LLVMValueRef val[2] = { n0, n0 };
 
-            v = LLVMConstGEP(v1, val, 2);
+            v = LLVMConstGEP2(src_type->llvm_type(), v1, val, 2);
         }
         else
         {
