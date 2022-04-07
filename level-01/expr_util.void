@@ -2797,10 +2797,12 @@
         {
             //- Difference between two pointers
 
-            st0 = v_type_get_scalar_type(t0);
-            et0 = v_type_refptr_get_element_type(st0);
+//          st0 = v_type_get_scalar_type(t0);
+//          et0 = v_type_refptr_get_element_type(st0);
+//
+//          v_assign(v, LLVMBuildPtrDiff2(builder, v_type_get_llvm_type(et0), v0, v1, ""));
 
-            v_assign(v, LLVMBuildPtrDiff2(builder, v_type_get_llvm_type(et0), v0, v1, ""));
+            v_assign(v, LLVMBuildPtrDiff(builder, v0, v1, ""));
 
             //- Compute result type...
 
