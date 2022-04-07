@@ -949,7 +949,9 @@
 
         v_store(v1, val);
 
-        v_return(LLVMBuildGEP(builder, v0, val, 1, ""));
+        et = v_type_refptr_get_element_type(st);
+
+        v_return(LLVMBuildGEP2(builder, v_type_get_llvm_type(et), v0, val, 1, ""));
     }
 
     //- Just numeric arithmetics...
@@ -990,7 +992,9 @@
 
         v_store(LLVMBuildNeg(builder, v1, ""), val);
 
-        v_return(LLVMBuildGEP(builder, v0, val, 1, ""));
+        et = v_type_refptr_get_element_type(st);
+
+        v_return(LLVMBuildGEP2(builder, v_type_get_llvm_type(et), v0, val, 1, ""));
     }
 
     //- Just numeric arithmetics...
@@ -1301,7 +1305,7 @@
 
     e0 = v_type_refptr_get_element_type(t0);
 
-    v = LLVMBuildLoad(builder, v0, "");
+    v = LLVMBuildLoad2(builder, v_type_get_llvm_type(e0), v0, "");
 
     v = compile(e0, v, v1);
 
@@ -1685,7 +1689,7 @@
     v_mfree(ast);
 
 
-    v = LLVMBuildLoad(builder, and_result_v, "");
+    v = LLVMBuildLoad2(builder, bool_, and_result_v, "");
 
 
     v_set_result_type(tt);
@@ -1885,7 +1889,7 @@
     v_mfree(ast);
 
 
-    v = LLVMBuildLoad(builder, or_result_v, "");
+    v = LLVMBuildLoad2(builder, bool_, or_result_v, "");
 
 
     v_set_result_type(tt);
@@ -2343,7 +2347,7 @@
 
                 LLVMPositionBuilderAtEnd(builder, branch_if_false_b);
 
-                v_assign(r, LLVMBuildLoad(builder, cmp_result_v, ""));
+                v_assign(r, LLVMBuildLoad2(builder, v_type_get_llvm_type(LLVMValueRef), cmp_result_v, ""));
             }
         }
     }
@@ -2673,7 +2677,10 @@
                 v_assign(var_v, step_v);
             }
 
-            v = LLVMBuildGEP(builder, ptr_v, v_pointer(var_v), 1, "");
+            st = v_type_get_scalar_type(ptr_t);
+            et = v_type_refptr_get_element_type(st);
+
+            v = LLVMBuildGEP2(builder, v_type_get_llvm_type(et), ptr_v, v_pointer(var_v), 1, "");
 
             v_set_result_type(tt);
 
@@ -2790,7 +2797,10 @@
         {
             //- Difference between two pointers
 
-            v_assign(v, LLVMBuildPtrDiff(builder, v0, v1, ""));
+            st0 = v_type_get_scalar_type(t0);
+            et0 = v_type_refptr_get_element_type(st0);
+
+            v_assign(v, LLVMBuildPtrDiff2(builder, v_type_get_llvm_type(et0), v0, v1, ""));
 
             //- Compute result type...
 
@@ -2821,7 +2831,10 @@
         {
             v_assign(v1, LLVMBuildNeg(builder, v1, ""));
 
-            v_assign(v, LLVMBuildGEP(builder, v0, v_pointer(v1), 1, ""));
+            st = v_type_get_scalar_type(t0);
+            et = v_type_refptr_get_element_type(st);
+
+            v_assign(v, LLVMBuildGEP2(builder, v_type_get_llvm_type(et), v0, v_pointer(v1), 1, ""));
         }
     }
     else    //- Just numeric arithmetics...
@@ -3050,11 +3063,13 @@
 
     builder = v_target_get_builder();
 
-    ev = LLVMBuildLoad(builder, v, "");
+    ev = LLVMBuildLoad2(builder, v_type_get_llvm_type(et), v, "");
 
     if (pf)
     {
-        v_assign(var_v, LLVMBuildGEP(builder, ev, v_pointer(var_v), 1, ""));
+        est = v_type_refptr_get_element_type(st);
+
+        v_assign(var_v, LLVMBuildGEP2(builder, v_type_get_llvm_type(est), ev, v_pointer(var_v), 1, ""));
     }
     else if (v_type_is_floating_point(st))
     {
@@ -3234,7 +3249,7 @@
 
             builder = v_target_get_builder();
 
-            v_assign(v, LLVMBuildLoad(builder, v, ""));
+            v_assign(v, LLVMBuildLoad2(builder, v_type_get_llvm_type(t), v, ""));
         }
 
         e = v_type_refptr_get_element_type(t);
@@ -3556,7 +3571,7 @@
         {
             v_assign(agg_t, e);
 
-            v_assign(agg_v, LLVMBuildLoad(builder, agg_v, "agg"));
+            v_assign(agg_v, LLVMBuildLoad2(builder, v_type_get_llvm_type(agg_t), agg_v, "agg"));
         }
     }
 
@@ -3567,9 +3582,10 @@
     {
         v_assign(v, idx_v);     //- Sic...
 
-        v_assign(v, LLVMBuildGEP(builder, agg_v, v_pointer(v), 1, ""));
-
         e = v_type_refptr_get_element_type(agg_t);
+
+        v_assign(v, LLVMBuildGEP2(builder, v_type_get_llvm_type(e), agg_v, v_pointer(v), 1, ""));
+
         a = v_type_refptr_get_address_space(agg_t);
 
         v_assign(t, v_reference_type(e, a));
@@ -3583,9 +3599,10 @@
         v_store(n0,    idxx);
         v_store(idx_v, v_getelementptr(idxx, 1));
 
-        v_assign(v, LLVMBuildGEP(builder, agg_v, idxx, 2, ""));
-
         e = v_type_refptr_get_element_type(agg_t);
+
+        v_assign(v, LLVMBuildGEP2(builder, v_type_get_llvm_type(e), agg_v, idxx, 2, ""));
+
         a = v_type_refptr_get_address_space(agg_t);
 
         if (v_type_is_struct(e))

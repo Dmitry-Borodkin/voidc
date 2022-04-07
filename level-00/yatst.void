@@ -127,13 +127,14 @@
     entry = LLVMAppendBasicBlock(init_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    printf_f = v_obtain_function("printf");
+    printf_ft_ = v_type_get_llvm_type(v_find_symbol_type("printf"));
+    printf_f   = v_obtain_function("printf");
 
     str = LLVMBuildGlobalStringPtr(builder, "init!\n", "str");
 
     v_store(str, val0);
 
-    LLVMBuildCall(builder, printf_f, val0, 1, "");
+    LLVMBuildCall2(builder, printf_ft_, printf_f, val0, 1, "");
 
     LLVMBuildRetVoid(builder);
 
@@ -150,7 +151,7 @@
 
     v_store(str, val0);
 
-    LLVMBuildCall(builder, printf_f, val0, 1, "");
+    LLVMBuildCall2(builder, printf_ft_, printf_f, val0, 1, "");
 
     LLVMBuildRetVoid(builder);
 
@@ -165,7 +166,7 @@
 
     v_store(str, val0);
 
-    LLVMBuildCall(builder, printf_f, val0, 1, "");
+    LLVMBuildCall2(builder, printf_ft_, printf_f, val0, 1, "");
 
     LLVMBuildRetVoid(builder);
 

@@ -475,7 +475,6 @@ base_local_ctx_t::finish_function(void)
     else
     {
         auto ret_var_v = vars["voidc.internal_return_value"].second;
-//      auto ret_value = LLVMBuildLoad(global_ctx.builder, ret_var_v, "ret_value");
         auto ret_value = LLVMBuildLoad2(global_ctx.builder, ret_type->llvm_type(), ret_var_v, "ret_value");
 
         LLVMBuildRet(global_ctx.builder, ret_value);

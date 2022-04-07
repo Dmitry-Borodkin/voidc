@@ -1313,7 +1313,10 @@
 
             if (len < 32)       //- ?
             {
-                stksv := LLVMBuildCall(builder, v_obtain_function("llvm.stacksave"), 0, 0, "stksv");
+                llvm_stacksave_ft_ = v_type_get_llvm_type(v_find_symbol_type("llvm.stacksave"));
+                llvm_stacksave_f = v_obtain_function("llvm.stacksave");
+
+                stksv := LLVMBuildCall2(builder, llvm_stacksave_ft_, llvm_stacksave_f, 0, 0, "stksv");
 
                 ctx_stack := LLVMBuildArrayAlloca(builder, v_type_ptr_, len_v, "stk");
             }
@@ -1329,9 +1332,11 @@
 
         val = v_alloca(LLVMValueRef, 6);
 
-        llvm_const_int_f = v_obtain_function("LLVMConstInt");
+        llvm_const_int_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMConstInt"));
+        llvm_const_int_f   = v_obtain_function("LLVMConstInt");
 
-        get_llvm_type_f = v_obtain_function("v_type_get_llvm_type");
+        get_llvm_type_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_type_get_llvm_type"));
+        get_llvm_type_f   = v_obtain_function("v_type_get_llvm_type");
 
         long_long_ = v_type_get_llvm_type(long_long);
 
@@ -1339,11 +1344,17 @@
 
         true_ = LLVMConstInt(int_, true, false);
 
-        export_const_f = v_obtain_function("v_export_constant");
-        add_const_f    = v_obtain_function("v_add_constant");
+        export_const_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_export_constant"));
+        export_const_f   = v_obtain_function("v_export_constant");
 
-        export_type_f = v_obtain_function("v_export_type");
-        add_type_f    = v_obtain_function("v_add_type");
+        add_const_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_add_constant"));
+        add_const_f   = v_obtain_function("v_add_constant");
+
+        export_type_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_export_type"));
+        export_type_f   = v_obtain_function("v_export_type");
+
+        add_type_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_add_type"));
+        add_type_f   = v_obtain_function("v_add_type");
 
         i := 0;
 
@@ -1367,12 +1378,12 @@
 
             if (v_empty(expr+2))        //- Type
             {
-                if (export) LLVMBuildCall(builder, export_type_f, val, 2, "");
-                else        LLVMBuildCall(builder, add_type_f, val, 2, "");
+                if (export) LLVMBuildCall2(builder, export_type_ft_, export_type_f, val, 2, "");
+                else        LLVMBuildCall2(builder, add_type_ft_, add_type_f, val, 2, "");
             }
             else        //- Constant
             {
-                val[3] := LLVMBuildCall(builder, get_llvm_type_f, val+1, 1, "");
+                val[3] := LLVMBuildCall2(builder, get_llvm_type_ft_, get_llvm_type_f, val+1, 1, "");
 
                 number = v_ast_expr_integer_get_number(expr+2);
 
@@ -1380,17 +1391,20 @@
 
                 val[5] := true_;
 
-                val[2] := LLVMBuildCall(builder, llvm_const_int_f, val+3, 3, "");
+                val[2] := LLVMBuildCall2(builder, llvm_const_int_ft_, llvm_const_int_f, val+3, 3, "");
 
-                if (export) LLVMBuildCall(builder, export_const_f, val, 3, "");
-                else        LLVMBuildCall(builder, add_const_f, val, 3, "");
+                if (export) LLVMBuildCall2(builder, export_const_ft_, export_const_f, val, 3, "");
+                else        LLVMBuildCall2(builder, add_const_ft_, add_const_f, val, 3, "");
             }
 
             ++i;
         }
 
-        export_sym_f = v_obtain_function("v_export_symbol");
-        add_sym_f    = v_obtain_function("v_add_symbol");
+        export_sym_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_export_symbol"));
+        export_sym_f   = v_obtain_function("v_export_symbol");
+
+        add_sym_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_add_symbol"));
+        add_sym_f   = v_obtain_function("v_add_symbol");
 
         val[2] := LLVMConstNull(v_type_get_llvm_type(void_ptr));
 
@@ -1414,8 +1428,8 @@
 
             export = v_ast_expr_integer_get_number(expr+1);
 
-            if (export) LLVMBuildCall(builder, export_sym_f, val, 3, "");
-            else        LLVMBuildCall(builder, add_sym_f, val, 3, "");
+            if (export) LLVMBuildCall2(builder, export_sym_ft_, export_sym_f, val, 3, "");
+            else        LLVMBuildCall2(builder, add_sym_ft_, add_sym_f, val, 3, "");
 
             ++i;
         }
@@ -1424,7 +1438,10 @@
 
         if (stksv)
         {
-            LLVMBuildCall(builder, v_obtain_function("llvm.stackrestore"), &stksv, 1, "");
+            llvm_stackrestore_ft_ = v_type_get_llvm_type(v_find_symbol_type("llvm.stackrestore"));
+            llvm_stackrestore_f   = v_obtain_function("llvm.stackrestore");
+
+            LLVMBuildCall2(builder, llvm_stackrestore_ft_, llvm_stackrestore_f, &stksv, 1, "");
         }
         else if (ctx_stack)
         {

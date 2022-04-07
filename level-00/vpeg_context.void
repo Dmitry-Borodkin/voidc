@@ -129,29 +129,33 @@
 
     grm = LLVMBuildAlloca(builder, v_peg_opaque_grammar_sptr_, "grm");
 
-    grammar_init_f = v_obtain_function("v_peg_initialize_grammar_impl");
+    grammar_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_initialize_grammar_impl"));
+    grammar_init_f   = v_obtain_function("v_peg_initialize_grammar_impl");
 
     v_store(grm, val0);
     v_store(n1,  val1);
 
-    LLVMBuildCall(builder, grammar_init_f, val0, 2, "");
+    LLVMBuildCall2(builder, grammar_init_ft_, grammar_init_f, val0, 2, "");
 
-    get_grammar_f = v_obtain_function("v_peg_get_grammar");
+    get_grammar_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_get_grammar"));
+    get_grammar_f   = v_obtain_function("v_peg_get_grammar");
 
-    LLVMBuildCall(builder, get_grammar_f, val0, 1, "");
+    LLVMBuildCall2(builder, get_grammar_ft_, get_grammar_f, val0, 1, "");
 
-    grammar_empty_f = v_obtain_function("v_peg_empty_grammar_impl");
+    grammar_empty_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_empty_grammar_impl"));
+    grammar_empty_f   = v_obtain_function("v_peg_empty_grammar_impl");
 
-    nok = LLVMBuildCall(builder, grammar_empty_f, val0, 1, "nok");
+    nok = LLVMBuildCall2(builder, grammar_empty_ft_, grammar_empty_f, val0, 1, "nok");
 
     ok = LLVMBuildNot(builder, nok, "ok");
 
-    grammar_term_f = v_obtain_function("v_peg_terminate_grammar_impl");
+    grammar_term_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_terminate_grammar_impl"));
+    grammar_term_f   = v_obtain_function("v_peg_terminate_grammar_impl");
 
 //  v_store(grm, val0);
 //  v_store(n1,  val1);
 
-    LLVMBuildCall(builder, grammar_term_f, val0, 2, "");
+    LLVMBuildCall2(builder, grammar_term_ft_, grammar_term_f, val0, 2, "");
 
     LLVMBuildRet(builder, ok);
 
@@ -172,22 +176,24 @@
     v_store(gr0, val0);
     v_store(n1,  val1);
 
-    LLVMBuildCall(builder, grammar_init_f, val0, 2, "");
+    LLVMBuildCall2(builder, grammar_init_ft_, grammar_init_f, val0, 2, "");
 
-    LLVMBuildCall(builder, get_grammar_f, val0, 1, "");
+    LLVMBuildCall2(builder, get_grammar_ft_, get_grammar_f, val0, 1, "");
 
 
     pr0 = LLVMBuildAlloca(builder, v_peg_opaque_parser_sptr_, "pr0");
 
-    parser_init_f = v_obtain_function("v_peg_initialize_parser_impl");
+    parser_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_initialize_parser_impl"));
+    parser_init_f   = v_obtain_function("v_peg_initialize_parser_impl");
 
     v_store(pr0, val0);
 //  v_store(n1,  val1);
 
-    LLVMBuildCall(builder, parser_init_f, val0, 2, "");
+    LLVMBuildCall2(builder, parser_init_ft_, parser_init_f, val0, 2, "");
 
 
-    get_parser_f = v_obtain_function("v_peg_grammar_get_parser");
+    get_parser_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_grammar_get_parser"));
+    get_parser_f   = v_obtain_function("v_peg_grammar_get_parser");
 
     ip0 = LLVMConstNull(int_ptr_);
 
@@ -196,30 +202,32 @@
     v_store(pr0,  val2);
     v_store(ip0,  val3);
 
-    LLVMBuildCall(builder, get_parser_f, val0, 4, "");
+    LLVMBuildCall2(builder, get_parser_ft_, get_parser_f, val0, 4, "");
 
 
-    parser_empty_f = v_obtain_function("v_peg_empty_parser_impl");
+    parser_empty_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_empty_parser_impl"));
+    parser_empty_f   = v_obtain_function("v_peg_empty_parser_impl");
 
     v_store(pr0, val0);
 
-    nok = LLVMBuildCall(builder, parser_empty_f, val0, 1, "nok");
+    nok = LLVMBuildCall2(builder, parser_empty_ft_, parser_empty_f, val0, 1, "nok");
 
     ok = LLVMBuildNot(builder, nok, "ok");
 
 
-    parser_term_f = v_obtain_function("v_peg_terminate_parser_impl");
+    parser_term_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_terminate_parser_impl"));
+    parser_term_f   = v_obtain_function("v_peg_terminate_parser_impl");
 
 //  v_store(pr0, val0);
     v_store(n1,  val1);
 
-    LLVMBuildCall(builder, parser_term_f, val0, 2, "");
+    LLVMBuildCall2(builder, parser_term_ft_, parser_term_f, val0, 2, "");
 
 
     v_store(gr0, val0);
 //  v_store(n1,  val1);
 
-    LLVMBuildCall(builder, grammar_term_f, val0, 2, "");
+    LLVMBuildCall2(builder, grammar_term_ft_, grammar_term_f, val0, 2, "");
 
 
     LLVMBuildRet(builder, ok);

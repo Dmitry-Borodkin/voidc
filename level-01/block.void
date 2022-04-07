@@ -397,14 +397,16 @@
 
     builder = v_target_get_builder();
 
+    llvm_stacksave_ft_ = v_type_get_llvm_type(v_find_symbol_type("llvm.stacksave"));
     llvm_stacksave_f = v_obtain_function("llvm.stacksave");
 
-    blk = LLVMBuildCall(builder, llvm_stacksave_f, 0, 0, "blk");
+    blk = LLVMBuildCall2(builder, llvm_stacksave_ft_, llvm_stacksave_f, 0, 0, "blk");
 
 
-    i8_ptr = v_pointer_type(v_int_type(8), 0);
+    i8_ptr  = v_pointer_type(v_int_type(8), 0);
+    i8_ptr_ = v_type_get_llvm_type(i8_ptr);
 
-    blk_leave_var_v = LLVMBuildAlloca(builder, v_type_get_llvm_type(i8_ptr), "blk_leave_var_v");
+    blk_leave_var_v = LLVMBuildAlloca(builder, i8_ptr_, "blk_leave_var_v");
 
     leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
     leave_b  = LLVMValueAsBasicBlock(leave_bv);
@@ -448,16 +450,17 @@
     LLVMPositionBuilderAtEnd(builder, blk_leave_b);
 
 
-    leave_addr = LLVMBuildLoad(builder, blk_leave_var_v, "leave_addr");
+    leave_addr = LLVMBuildLoad2(builder, i8_ptr_, blk_leave_var_v, "leave_addr");
 
 
     val0 = v_alloca(LLVMValueRef);
 
     v_store(blk, val0);
 
-    llvm_stackrestore_f = v_obtain_function("llvm.stackrestore");
+    llvm_stackrestore_ft_ = v_type_get_llvm_type(v_find_symbol_type("llvm.stackrestore"));
+    llvm_stackrestore_f   = v_obtain_function("llvm.stackrestore");
 
-    LLVMBuildCall(builder, llvm_stackrestore_f, val0, 1, "");
+    LLVMBuildCall2(builder, llvm_stackrestore_ft_, llvm_stackrestore_f, val0, 1, "");
 
 
     ibr_insn = LLVMBuildIndirectBr(builder, leave_addr, 2);

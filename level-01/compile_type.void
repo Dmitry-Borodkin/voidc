@@ -515,7 +515,8 @@
     case v_type_kind_svector:   fn := "v_svector_type";     v_break();
     }
 
-    f = v_obtain_function(fn);
+    ft_ = v_type_get_llvm_type(v_find_symbol_type(fn));
+    f   = v_obtain_function(fn);
 
     builder = v_target_get_builder();
 
@@ -529,7 +530,7 @@
     case v_type_kind_f64:
     case v_type_kind_f128:
 
-        ret := LLVMBuildCall(builder, f, 0, 0, "");
+        ret := LLVMBuildCall2(builder, ft_, f, 0, 0, "");
 
         v_break();
 
@@ -540,7 +541,7 @@
 
             val = LLVMConstInt(unsigned_, w, 0);
 
-            ret := LLVMBuildCall(builder, f, &val, 1, "");
+            ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
 
             v_break();
         }
@@ -590,7 +591,7 @@
 
                     i_v = LLVMConstInt(int_, i, 0);
 
-                    val_i_v = LLVMBuildGEP(builder, val[1], &i_v, 1, "");
+                    val_i_v = LLVMBuildGEP2(builder, v_type_ptr_, val[1], &i_v, 1, "");
 
                     LLVMBuildStore(builder, a_v[i], val_i_v);
 
@@ -608,7 +609,7 @@
 
             val[3] := LLVMConstInt(bool_, v, 0);
 
-            ret := LLVMBuildCall(builder, f, val, 4, "");
+            ret := LLVMBuildCall2(builder, ft_, f, val, 4, "");
 
             v_break();
         }
@@ -627,7 +628,7 @@
 
             val[1] := LLVMConstInt(unsigned_, v_type_refptr_get_address_space(type), 0);
 
-            ret := LLVMBuildCall(builder, f, val, 2, "");
+            ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
 
             v_break();
         }
@@ -640,7 +641,10 @@
             {
                 name_v = LLVMBuildGlobalStringPtr(builder, name, "");
 
-                ret := LLVMBuildCall(builder, v_obtain_function("v_struct_type_named"), &name_v, 1, "");
+                struct_type_named_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_struct_type_named"));
+                struct_type_named_f   = v_obtain_function("v_struct_type_named");
+
+                ret := LLVMBuildCall2(builder, struct_type_named_ft_, struct_type_named_f, &name_v, 1, "");
 
                 dict_insert(&ctx[stk_dict], type, ret);     //- Sic!
             }
@@ -687,7 +691,7 @@
 
                         i_v = LLVMConstInt(int_, i, 0);
 
-                        elt_i_v = LLVMBuildGEP(builder, elts_v, &i_v, 1, "");
+                        elt_i_v = LLVMBuildGEP2(builder, v_type_ptr_, elts_v, &i_v, 1, "");
 
                         LLVMBuildStore(builder, a_v[i], elt_i_v);
 
@@ -717,7 +721,10 @@
                     val[2] := count_v;
                     val[3] := packed_v;
 
-                    LLVMBuildCall(builder, v_obtain_function("v_type_struct_set_body"), val, 4, "");
+                    set_body_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_type_struct_set_body"));
+                    set_body_f   = v_obtain_function("v_type_struct_set_body");
+
+                    LLVMBuildCall2(builder, set_body_ft_, set_body_f, val, 4, "");
                 }
 
                 v_return(ret);      //- Sic!
@@ -732,7 +739,7 @@
                 val[1] := count_v;
                 val[2] := packed_v;
 
-                ret := LLVMBuildCall(builder, f, val, 3, "");
+                ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
             }
 
             v_break();
@@ -751,7 +758,7 @@
 
             val[1] := LLVMConstInt(uint64_t_, v_type_array_get_length(type), 0);
 
-            ret := LLVMBuildCall(builder, f, val, 2, "");
+            ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
 
             v_break();
         }
@@ -770,7 +777,7 @@
 
             val[1] := LLVMConstInt(unsigned_, v_type_vector_get_size(type), 0);
 
-            ret := LLVMBuildCall(builder, f, val, 2, "");
+            ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
 
             v_break();
         }
