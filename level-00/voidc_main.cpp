@@ -696,6 +696,27 @@ v_fopen(const char *filename, const char *prop)
 
 }
 
+//--------------------------------------------------------------------
+int
+v_fclose(std::FILE *f)
+{
+    return std::fclose(f);
+}
+
+//--------------------------------------------------------------------
+std::FILE *
+v_popen(const char *command, const char *prop)
+{
+    return ::popen(command, prop);
+}
+
+//--------------------------------------------------------------------
+int
+v_pclose(std::FILE *p)
+{
+    return ::pclose(p);
+}
+
 
 VOIDC_DLLEXPORT_END
 
