@@ -2222,10 +2222,10 @@
 
     _bool = v_find_type("bool");
 
+    bool_ = v_type_get_llvm_type(_bool);
+
     if (v_icmp(LLVMIntNE, N, 2))
     {
-        bool_ = v_type_get_llvm_type(_bool);
-
         v_assign(cmp_result_v, LLVMBuildAlloca(builder, bool_, ""));
 
         LLVMBuildStore(builder, LLVMConstNull(bool_), cmp_result_v);
@@ -2347,7 +2347,7 @@
 
                 LLVMPositionBuilderAtEnd(builder, branch_if_false_b);
 
-                v_assign(r, LLVMBuildLoad2(builder, v_type_get_llvm_type(LLVMValueRef), cmp_result_v, ""));
+                v_assign(r, LLVMBuildLoad2(builder, bool_, cmp_result_v, ""));
             }
         }
     }
