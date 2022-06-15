@@ -622,8 +622,8 @@
     switch_exit_b_addr = LLVMBlockAddress(cur_f, switch_exit_b);
 
 
-    v_add_variable("voidc.internal_branch_target_variable", 0, switch_leave_var_v);
-    v_add_variable("voidc.internal_branch_target_break",    0, switch_exit_b_addr);
+    v_add_variable("voidc.internal_branch_target_break_variable", 0, switch_leave_var_v);
+    v_add_variable("voidc.internal_branch_target_break",          0, switch_exit_b_addr);
 
 
     //- Generate llvm's switch statement...
