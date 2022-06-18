@@ -214,15 +214,22 @@
     v_add_parameter_name(f, 1, "stmt", v_ast_stmt_ptr);
 }
 {
-    v_ast_make_stmt_generic(ret, voidc_ast_stmt_defer_vtable, ast_stmt_defer_t_size);
+    stmp = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(stmp);
 
-    void_obj = v_ast_generic_get_object(v_cast(ret, v_ast_base_ptr));
+    v_ast_make_stmt_generic(stmp, voidc_ast_stmt_defer_vtable, ast_stmt_defer_t_size);
+
+    void_obj = v_ast_generic_get_object(v_cast(stmp, v_ast_base_ptr));
 
     obj = v_cast(void_obj, ast_stmt_defer_ptr);
 
     obj_stmt = v_getelementptr(obj, 0, 0);
 
     v_copy(obj_stmt, stmt);
+
+    v_copy(ret, stmp);
+
+    v_terminate(stmp);
 }
 
 
