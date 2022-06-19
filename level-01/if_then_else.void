@@ -737,8 +737,8 @@
     v_return_if(voidc_grammar_has_parser("stmt_if_then_else"));
 
 
-    pp0 = v_alloca(v_peg_opaque_parser_sptr, 16);
-    v_initialize(pp0, 16);
+    pp0 = v_alloca(v_peg_opaque_parser_sptr, 14);
+    v_initialize(pp0, 14);
 
     pp1 = v_getelementptr(pp0, 1);
     pp2 = v_getelementptr(pp0, 2);
@@ -753,40 +753,40 @@
     pp11 = v_getelementptr(pp0, 11);
     pp12 = v_getelementptr(pp0, 12);
     pp13 = v_getelementptr(pp0, 13);
-    pp14 = v_getelementptr(pp0, 14);
-    pp15 = v_getelementptr(pp0, 15);
 
 
     //-----------------------------------------------------------------
-    //- stmt_if_then_else <- "if" _ '(' _ cond:expr _ ')' _ then:stmt _
-    //-                      "else" !ident_cont _ else:stmt             { mk_stmt_if_then_else(cond, then, else) }
-    //-                    / "if" _ '(' _ cond:expr _ ')' _ then:stmt   { mk_stmt_if_then_else(cond, then, 0) }
+    //- stmt_if_then_else <- "if" _ '(' _ c:expr _ ')' _ t:stmt
+    //-                      e:(_ "else" !ident_cont _ stmt)?           { mk_stmt_if_then_else(c, t, e) }
 
-    v_peg_make_literal_parser(pp1, "if");
+    v_peg_make_literal_parser(pp0, "if");
 
-    v_peg_make_identifier_parser(pp2, "_");
-    v_peg_make_character_parser(pp3, '(');
-    v_peg_make_identifier_parser(pp4, "_");
+    v_peg_make_identifier_parser(pp1, "_");
+    v_peg_make_character_parser(pp2, '(');
+    v_peg_make_identifier_parser(pp3, "_");
 
-    v_peg_make_identifier_parser(pp5, "expr");
-    v_peg_make_catch_variable_parser(pp5, "cond", pp5);
+    v_peg_make_identifier_parser(pp4, "expr");
+    v_peg_make_catch_variable_parser(pp4, "c", pp4);
 
-    v_peg_make_identifier_parser(pp6, "_");
-    v_peg_make_character_parser(pp7, ')');
-    v_peg_make_identifier_parser(pp8, "_");
+    v_peg_make_identifier_parser(pp5, "_");
+    v_peg_make_character_parser(pp6, ')');
+    v_peg_make_identifier_parser(pp7, "_");
 
-    v_peg_make_identifier_parser(pp9, "stmt");
-    v_peg_make_catch_variable_parser(pp9, "then", pp9);
+    v_peg_make_identifier_parser(pp8, "stmt");
+    v_peg_make_catch_variable_parser(pp8, "t", pp8);
 
 
-    v_peg_make_identifier_parser(pp10, "_");
-    v_peg_make_literal_parser(pp11, "else");
-    v_peg_make_identifier_parser(pp12, "ident_cont");
-    v_peg_make_not_parser(pp12, pp12);
-    v_peg_make_identifier_parser(pp13, "_");
+    v_peg_make_identifier_parser(pp9, "_");
+    v_peg_make_literal_parser(pp10, "else");
+    v_peg_make_identifier_parser(pp11, "ident_cont");
+    v_peg_make_not_parser(pp11, pp11);
+    v_peg_make_identifier_parser(pp12, "_");
 
-    v_peg_make_identifier_parser(pp14, "stmt");
-    v_peg_make_catch_variable_parser(pp14, "else", pp14);
+    v_peg_make_identifier_parser(pp13, "stmt");
+
+    v_peg_make_sequence_parser(pp9, pp9, 5);
+    v_peg_make_question_parser(pp9, pp9);
+    v_peg_make_catch_variable_parser(pp9, "e", pp9);
 
 
     ar0 = v_alloca(v_peg_opaque_argument_sptr, 3);
@@ -795,9 +795,9 @@
     ar1 = v_getelementptr(ar0, 1);
     ar2 = v_getelementptr(ar0, 2);
 
-    v_peg_make_identifier_argument(ar0, "cond");
-    v_peg_make_identifier_argument(ar1, "then");
-    v_peg_make_identifier_argument(ar2, "else");
+    v_peg_make_identifier_argument(ar0, "c");
+    v_peg_make_identifier_argument(ar1, "t");
+    v_peg_make_identifier_argument(ar2, "e");
 
 
     act = v_alloca(v_peg_opaque_action_sptr);
@@ -805,23 +805,10 @@
 
     v_peg_make_call_action(act, "mk_stmt_if_then_else", ar0, 3);
 
-    v_peg_make_action_parser(pp15, act);
-
-
-    v_peg_make_sequence_parser(pp0, pp1, 15);
-
-
-    v_peg_make_integer_argument(ar2, 0);
-
-    v_peg_make_call_action(act, "mk_stmt_if_then_else", ar0, 3);
-
     v_peg_make_action_parser(pp10, act);
 
 
-    v_peg_make_sequence_parser(pp1, pp1, 10);
-
-
-    v_peg_make_choice_parser(pp0, pp0, 2);
+    v_peg_make_sequence_parser(pp0, pp0, 11);
 
 
     gr0 = v_alloca(v_peg_opaque_grammar_sptr);
@@ -851,7 +838,7 @@
     v_terminate(gr0);
     v_terminate(act);
     v_terminate(ar0, 3);
-    v_terminate(pp0, 16);
+    v_terminate(pp0, 14);
 }
 
 
