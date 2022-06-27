@@ -1,0 +1,150 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("loops_etc.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_loops_etc();
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    p: & *char := "Hello world!";
+
+    printf("/-\\\n");
+
+//  while(c: &char := *p++)  printf("[%c]\n", c);
+//  while(c: &char = *p++)   printf("[%c]\n", c);
+//  while(c: char = *p++)    printf("[%c]\n", c);
+//  while(c = *p++)          printf("[%c]\n", c);
+
+//  c: &char := v_undef();
+//  while(c := *p++)         printf("[%c]\n", c);
+
+    while(c = *p++)
+    {
+        if (c == '!')
+        {
+            printf(" ! \n");
+
+            v_break();
+        }
+
+        if (c == ' ')
+        {
+            printf("   \n");
+
+            v_continue();
+        }
+
+        printf("[%c]\n", c);
+    }
+
+    printf("\\-/\n");
+}
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    buf: &char[100] := v_undef();
+
+    src: &*char := "Hello world!";
+    dst: &*char := &buf[0];
+
+    while(*dst++ := *src++);
+
+    printf("\n%s\n", &buf[0]);
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+
+{
+    printf("/-\\\n");
+
+
+//    for(i: &int := 0; i < 10; ++i)
+//    {
+//        printf("[%d]\n", i);
+//    }
+
+
+//    for(i: &int := 0; ; ++i)
+//    {
+//        if (i >= 10) v_break();
+//
+//        printf("[%d]\n", i);
+//    }
+
+
+//    for(i: &int := 0; i < 10; ++i)
+//    {
+//        if (i == 9)
+//        {
+//            printf(" ! \n");
+//
+//            v_break();
+//        }
+//
+//        if (i % 3 == 0)
+//        {
+//            printf(" %d \n", i);
+//
+//            v_continue();
+//        }
+//
+//        printf("[%d]\n", i);
+//    }
+
+
+    for(i: &int := 0, F: &int := 1; c = i < 10; F*=++i)
+    {
+        printf("[%d] %d, %d\n", i, (c: int), F);
+    }
+
+
+    printf("\\-/\n");
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    for (i: &int := 0; i < 10; ++i)
+    {
+        if (v: int = i < 5) printf("T %d %d\n", v, i);
+        else                printf("F %d %d\n", v, i);
+    }
+
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    for (i: &int := 0; i < 20; ++i)
+    {
+        switch(f3: int = i%3==0, f5: int = i%5==0; ff = f3+f5)
+        {
+        case 0:     printf("%d\n", i);  v_break();
+
+        case 1:     if (f3) printf("Fiz\n"); else printf("Buz\n"); v_break();
+
+        case 2:     printf("FizBuz\n"); v_break();
+        }
+    }
+
+}
+
+

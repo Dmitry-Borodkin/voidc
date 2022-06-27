@@ -1,0 +1,314 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2022 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("literals.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("unit_module.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01(); }
+
+
+//---------------------------------------------------------------------
+{   voidc_unit_begin_module("literals_module"); }
+
+
+//---------------------------------------------------------------------
+v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
+                              args: v_ast_expr_list_ptr, count: int) -> void
+{
+    arg = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(arg, 2);
+    defer v_terminate(arg, 2);
+
+    v_list_get_items(args, 0, arg, 2);
+
+    t_str = v_ast_expr_string_get_string(arg + 1);      //- Suffix string
+
+    t: &v_type_ptr := v_undef();
+
+    if (t_str[0] == 0)      //- Empty suffix
+    {
+        t := v_get_result_type();
+
+        if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
+        {
+            t := v_find_type("int");
+        }
+    }
+    else    //- Suffix determine type (kinda)
+    {
+        signed = (t_str[0] == 'i'  ||  t_str[0] == 'I');
+
+        if (t_str[1])       //- Got bit width
+        {
+            width_v = LLVMConstIntOfString(v_type_get_llvm_type(unsigned), t_str+1, 10);
+
+            width = (LLVMConstIntGetZExtValue(width_v) : unsigned);
+
+            if (signed) t := v_int_type(width);
+            else        t := v_uint_type(width);
+        }
+        else
+        {
+            if (signed) t := v_find_type("int");
+            else        t := v_find_type("unsigned");
+        }
+    }
+
+    radix: &uint(8) := 10;
+
+    src: &*const char := v_ast_expr_string_get_string(arg + 0);         //- Value string (source)
+
+    dst = v_alloca(v_util_opaque_std_string);
+    v_initialize(dst);
+    defer v_terminate(dst);
+
+    if (src[0] == '-')
+    {
+        ++src;
+
+        v_std_string_set(dst, "-");
+    }
+    else
+    {
+        v_std_string_set(dst, "");
+
+        if (src[0] == '+')  ++src;
+    }
+
+    radix: &uint(8) := 10;
+
+    if (src[0] == '0')
+    {
+        switch((src[1] : char32_t))
+        {
+        case 0: v_break();
+
+        case 'x': case 'X':     radix := 16;  src += 2;   v_break();
+        case 'b': case 'B':     radix :=  2;  src += 2;   v_break();
+
+        default:                radix :=  8;  src += 1;   v_break();
+        }
+    }
+
+    loop
+    {
+        if (!*src)  v_break();
+
+        if (*src != '\'')   v_std_string_append_char(dst, *src);
+
+        ++src;
+    }
+
+    v = LLVMConstIntOfString(v_type_get_llvm_type(t), v_std_string_get(dst), radix);
+
+    v_adopt_result(t, v);
+}
+
+
+//---------------------------------------------------------------------
+v_literal_real_intrinsic: (vis: voidc_visitor_ptr, *void,
+                           args: v_ast_expr_list_ptr, count: int) -> void
+{
+    arg = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(arg, 2);
+    defer v_terminate(arg, 2);
+
+    v_list_get_items(args, 0, arg, 2);
+
+    t_str = v_ast_expr_string_get_string(arg + 1);      //- Suffix string
+
+    t: &v_type_ptr := 0;    //- Sic!
+
+    if (t_str[0] == 0)      //- Empty suffix
+    {
+        t := v_get_result_type();
+
+        if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
+        {
+            t := v_f64_type();      //- "double"
+        }
+    }
+    else    //- Suffix determine type (kinda)
+    {
+        if (t_str[1])       //- Got bit width
+        {
+            width_v = LLVMConstIntOfString(v_type_get_llvm_type(unsigned), t_str+1, 10);
+
+            width = (LLVMConstIntGetZExtValue(width_v) : unsigned);
+
+            switch(width)
+            {
+            case  16:   t := v_f16_type();  v_break();
+            case  32:   t := v_f32_type();  v_break();
+            case  64:   t := v_f64_type();  v_break();
+            case 128:   t := v_f128_type(); v_break();
+            }
+        }
+        else
+        {
+            t := v_f32_type();      //- "float"
+        }
+    }
+
+    src: &*const char := v_ast_expr_string_get_string(arg + 0);         //- Value string (source)
+
+    dst = v_alloca(v_util_opaque_std_string);
+    v_initialize(dst);
+    defer v_terminate(dst);
+
+    loop
+    {
+        if (!*src)  v_break();
+
+        if (*src != '\'')   v_std_string_append_char(dst, *src);
+
+        ++src;
+    }
+
+    v = LLVMConstRealOfString(v_type_get_llvm_type(t), v_std_string_get(dst));
+
+    v_adopt_result(t, v);
+}
+
+
+//---------------------------------------------------------------------
+//- mk_numeric_literal - grammar action
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+mk_numeric_literal_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, size_t) -> void
+{
+//    printf("mk_numeric_literal_grammar_action\n");
+//    defer printf("mk_numeric_literal_grammar_action leave\n");
+
+    str0 = v_std_string_get(v_std_any_get_pointer(v_util_opaque_std_string, any+0));
+    str1 = v_std_string_get(v_std_any_get_pointer(v_util_opaque_std_string, any+1));
+    name = v_std_string_get(v_std_any_get_pointer(v_util_opaque_std_string, any+2));
+
+    expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(expr, 2);
+    defer v_terminate(expr, 2);
+
+    v_ast_make_expr_string(expr+0, str0);
+    v_ast_make_expr_string(expr+1, str1);
+
+    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_make_list(lst, expr, 2);
+
+    v_ast_make_expr_identifier(expr, name);
+
+    v_ast_make_expr_call(expr, expr, lst);
+
+    v_std_any_set_pointer(ret, expr);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable literals
+//---------------------------------------------------------------------
+export
+voidc_enable_literals_compiler: () -> void
+{
+    vis = voidc_compiler;
+
+    v_return_if(voidc_visitor_get_intrinsic(vis, "v.literal.real", 0));
+
+    voidc_visitor_set_intrinsic(vis, vis, "v.literal.integer", v_literal_integer_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "v.literal.real",    v_literal_real_intrinsic,    0);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable literals
+//---------------------------------------------------------------------
+export
+voidc_enable_literals: () -> void
+{
+    voidc_enable_literals_compiler();
+
+
+    v_return_if_not(voidc_has_grammar());
+    v_return_if(voidc_grammar_has_parser("real_literal"));
+
+
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    v_initialize(gr0);
+    defer v_terminate(gr0);
+
+    v_peg_get_grammar(gr0);
+
+    grammar gr0
+    {
+    actions:
+        mk_numeric_literal = mk_numeric_literal_grammar_action;
+
+    parsers:
+        string += "\"\"\"" <(!"\"\"\"" .)*> "\"\"\"" { $1 };
+
+
+        big_integer = <[-+]? big_number> <integer_suffix?> !ident_cont  { mk_numeric_literal($1, $2, "v.literal.integer") };
+
+        big_number = '0' ([xX] hex_digits / [bB] bin_digits / oct_digits)?
+                   / nzdec_digits
+                   ;
+
+
+        hex_digits = hex_digit ('\''? hex_digit)*;
+
+        hex_digit = [0-9a-fA-F];
+
+        dec_digits = dec_digit ('\''? dec_digit)*;
+
+        bin_digits = bin_digit ('\''? bin_digit)*;
+
+        bin_digit = [01];
+
+        oct_digits = oct_digit ('\''? oct_digit)*;
+
+        oct_digit = [0-7];
+
+
+        integer_suffix = [iIuU] nzdec_digits?;
+
+        nzdec_digits = [1-9] ('\''? dec_digit)*;
+
+        prim =+ big_integer;
+
+
+        real_literal = <[-+]? real_number> <real_suffix?> !ident_cont   { mk_numeric_literal($1, $2, "v.literal.real") };
+
+        real_number = dec_digits? '.' dec_digits dec_exponent?
+                    / dec_digits  '.' dec_exponent?
+                    / dec_digits dec_exponent
+                    / '0' [xX] (hex_digits? '.' hex_digits / hex_digits '.'?) hex_exponent
+                    ;
+
+        dec_exponent = [eE] [-+]? dec_digits;
+
+        hex_exponent = [pP] [-+]? dec_digits;
+
+        real_suffix = [fF] nzdec_digits?;
+
+        prim += real_literal;
+    }
+
+    v_peg_set_grammar(gr0);
+}
+
+
+//---------------------------------------------------------------------
+{   voidc_unit_end_module(); }
+
+

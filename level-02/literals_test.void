@@ -1,0 +1,78 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("literals.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("0x%X\n", 0xDEADBEEF);
+
+    printf("0x%X\n", 0b10101010);
+
+    printf("0%o\n", 0777);
+
+
+    vv = 0xDEADBEEF'DEADBEEF'DEADBEEF'DEADBEEF'DEADBEEF'DEADBEEF'DEADBEEF'DEADBEEFu256;
+
+    v: &int(256) := vv;
+
+    p = (&v : *uint(32));
+
+    printf("p: 0x%08X%08X%08X%08X%08X%08X%08X%08X\n", p[7], p[6], p[5], p[4], p[3], p[2], p[1], p[0]);
+
+}
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    vv = 3.14'15'92'65'358979323846264338327950288419716939937510582f128;
+
+    v: &float(128) := vv;
+
+    printf("v: %.99g\n", (v : float(64)));
+
+    p = (&v : *uint(32));
+
+    printf("p: %8X%8X%8X%8X\n", p[3], p[2], p[1], p[0]);
+
+
+    printf("w: %.99g\n", 0x0.1p0);
+}
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    vv = -020i1024;
+
+    v: &int(1024) := vv;
+
+    p = (&v : *uint(32));
+
+    printf("p: 0x");
+
+    i: &int := 1024/32 - 1;
+
+    loop
+    {
+        if (i < 0)  v_return();
+
+        printf("%08X", p[i]);
+
+        --i;
+    }
+
+    printf("\n");
+}
+
+
+

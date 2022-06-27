@@ -1,0 +1,70 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2022 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("unit_module.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+//  v_import("printf.void");
+}
+
+{   v_enable_level_01(); }
+
+
+//---------------------------------------------------------------------
+{   module = LLVMModuleCreateWithName("unit_module_module");
+
+    v_set_module(module);
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+
+//---------------------------------------------------------------------
+export
+voidc_unit_begin_module: (name: *const char) -> LLVMModuleRef
+{
+    module = LLVMModuleCreateWithName(name);
+
+    v_set_module(module);
+
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+
+    v_return(module);
+}
+
+//---------------------------------------------------------------------
+export
+voidc_unit_end_module: () -> void
+{
+    module = v_get_module();
+
+    voidc_unit_load_module_to_jit(module);
+    voidc_add_module_to_jit(module);
+
+    LLVMDisposeModule(module);
+    v_set_module(0);
+}
+
+
+//---------------------------------------------------------------------
+{   module = v_get_module();
+
+    //-----------------------------------------------------------------
+//  v_debug_print_module(1);
+
+    voidc_unit_load_module_to_jit(module);
+    voidc_add_module_to_jit(module);
+
+    LLVMDisposeModule(module);
+    v_set_module(0);
+}
+
+
