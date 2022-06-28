@@ -1,0 +1,136 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+}
+
+
+//---------------------------------------------------------------------
+w: &int := 30;
+
+//{ v_debug_print_module(1); }
+{
+    v: vec(int, 10) = {0, 1, 2, 3, 4, 5, w+6, w+7, w+8};
+
+    for(i: &int := 0; i < 10; ++i)
+    {
+        printf("v[%d]: %d\n", i, v[i]);
+    }
+
+    printf("\n");
+}
+
+//---------------------------------------------------------------------
+c: &int := 10;
+
+C: int = 20;
+
+VV: int[10] = {  0,   1,   2,   3, C+4, C+5, C+6, C+7, C+8};
+
+//{ v_debug_print_module(1); }
+{
+    vv: int[10] = {  0,   1,   2,   3, c+4, c+5, c+6, c+7, c+8};
+
+//  v: &int[10] := vv;
+    v: &int[10] := VV;
+
+    for(i: &int := 0; i < 10; ++i)
+    {
+        printf("v[%d]: %d\n", i, v[i]);
+    }
+
+    printf("\n");
+}
+
+
+//---------------------------------------------------------------------
+{ v_debug_print_module(1); }
+
+p: &*int := &c;
+
+
+sss = v_struct("qwerty", packed)(int, bool, long);
+
+sv: sss = {777, true, 999999};
+
+s: &sss := sv;
+
+
+qqq = v_struct("struct.asdfgh")(int, sss);
+
+qv: qqq = {999, sv};
+
+q: &qqq := qv;
+
+
+r: &(*char)[5] := {"zero", "one", "two", "three", "four"};
+
+
+rr: &char[2][5] := {"a", "b", "c"};
+
+rrr = v_typed(char[2][5], {"A", "B", "C", "D", "E"});
+
+
+{
+    vs = (&s : intptr_t);
+
+    vs_0 = (&s[0] : intptr_t) - vs;
+    vs_1 = (&s[1] : intptr_t) - vs;
+    vs_2 = (&s[2] : intptr_t) - vs;
+
+    printf("(%ld, %ld, %ld) %ld\n", vs_0, vs_1, vs_2, (&s+1 : intptr_t) - vs);
+
+
+    rr[3] := "d";
+    rr[4] := "e";
+
+    printf("%s%s%s%s%s\n", rr[0], rr[1], rr[2], rr[3], rr[4]);
+
+    rr := rrr;
+
+    printf("%s%s%s%s%s\n", rr[0], rr[1], rr[2], rr[3], rr[4]);
+
+    printf("\n");
+}
+
+
+//---------------------------------------------------------------------
+{ v_debug_print_module(1); }
+
+node_t = v_struct("struct.node_t");
+
+node_t = v_struct("struct.node_t")(int, *node_t);
+
+
+{   n0: &node_t := {0,   0};
+    n1: &node_t := {1, &n0};
+    n2: &node_t := {2, &n1};
+    n3: &node_t := {3, &n2};
+    n4: &node_t := {4, &n3};
+    n5: &node_t := {5, &n4};
+    n6: &node_t := {6, &n5};
+
+    p: &*node_t := &n6;
+
+    while(p)
+    {
+        n = *p;
+
+        printf("%d ", n[0]);
+
+        p := n[1];
+    }
+
+    printf("\n");
+}
+
+

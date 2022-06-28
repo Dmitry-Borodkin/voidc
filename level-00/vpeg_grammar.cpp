@@ -251,7 +251,14 @@ void v_peg_grammar_erase_action(grammar_sptr_t *dst, const grammar_sptr_t *src, 
 //-----------------------------------------------------------------
 void v_peg_grammar_get_value(const grammar_sptr_t *ptr, const char *name, std::any *value)
 {
-    *value = (*ptr)->values.find(v_quark_from_string(name));
+    if (auto val = (*ptr)->values.find(v_quark_from_string(name)))
+    {
+        *value = val;
+    }
+    else
+    {
+        value->reset();
+    }
 }
 
 void v_peg_grammar_set_value(grammar_sptr_t *dst, const grammar_sptr_t *src, const char *name, const std::any *value)

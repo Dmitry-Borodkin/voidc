@@ -1,0 +1,37 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2022 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("level-02  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_export_import("unit_module.void");
+    v_export_import("literals.void");
+    v_export_import("loops_etc.void");
+    v_export_import("aggregates.void");
+}
+
+{   v_enable_level_01();
+}
+
+
+//---------------------------------------------------------------------
+{   voidc_unit_begin_module("level-02_module"); }
+
+
+//---------------------------------------------------------------------
+export
+v_enable_level_02: () -> void
+{
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+}
+
+
+//---------------------------------------------------------------------
+{   voidc_unit_end_module(); }
+
+

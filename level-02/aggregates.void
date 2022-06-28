@@ -1,0 +1,316 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2022 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("aggregatesc.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("unit_module.void");
+    v_import("loops_etc.void");
+
+//  v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_loops_etc();
+}
+
+
+//---------------------------------------------------------------------
+{   voidc_unit_begin_module("aggregates_module"); }
+
+
+//---------------------------------------------------------------------
+v_op_braces: &v_ast_opaque_expr_sptr := v_undef();
+
+voidc_aggregates_internal_gloabls_cleaner: (*void) -> void
+{
+    v_terminate(&v_op_braces);
+}
+
+
+//---------------------------------------------------------------------
+v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
+                        args: v_ast_expr_list_ptr, count: int) -> void
+{
+    N = v_list_get_size(args);
+
+    expr = v_malloc(v_ast_opaque_expr_sptr, N);
+    v_initialize(expr, N);
+    defer
+    {
+        v_terminate(expr, N);
+        v_mfree(expr);
+    }
+
+    v_list_get_items(args, 0, expr, N);
+
+
+    t = v_get_result_type();
+
+    v: &LLVMValueRef := LLVMGetUndef(v_type_get_llvm_type(t));
+
+
+    builder = v_target_get_builder();
+
+    i: &int := 0;
+
+    if (v_type_is_vector(t))
+    {
+        et = v_type_vector_get_element_type(t);
+
+        int_ = v_type_get_llvm_type(v_find_type("int"));
+
+        for (i: &int := 0; i < N; ++i)
+        {
+            v_set_result_type(et);
+
+            v_ast_accept_visitor((expr+i : v_ast_base_ptr), vis);
+
+            ev = v_get_result_value();
+
+            iv = LLVMConstInt(int_, i, 0);
+
+            v := LLVMBuildInsertElement(builder, v, ev, iv, "");
+        }
+    }
+    else
+    {
+        ets: &*v_type_ptr := 0;
+
+        et: &v_type_ptr := v_undef();
+
+        if (v_type_is_struct(t))  ets := v_type_struct_get_element_types(t);
+        else                      et  := v_type_array_get_element_type(t);
+
+        for (i: &int := 0; i < N; ++i)
+        {
+            if (ets)  et := ets[i];
+
+            v_set_result_type(et);
+
+            v_ast_accept_visitor((expr+i : v_ast_base_ptr), vis);
+
+            ev = v_get_result_value();
+
+            v := LLVMBuildInsertValue(builder, v, ev, i, "");
+        }
+    }
+
+    v_set_result_type(t);
+    v_set_result_value(v);
+}
+
+
+//---------------------------------------------------------------------
+strcmp: (*const char, *const char) -> int;
+
+
+//---------------------------------------------------------------------
+//- v_struct ...
+//---------------------------------------------------------------------
+v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
+                     args: v_ast_expr_list_ptr, count: int) -> void
+{
+    packed: &bool := false;
+
+    type: &v_type_ptr := 0;
+
+    n1 = v_list_get_size(args);
+
+    if (n1)
+    block
+    {
+        expr = v_alloca(v_ast_opaque_expr_sptr);
+        v_initialize(expr);
+        defer v_terminate(expr);
+
+        v_list_get_items(args, 0, expr);
+
+        i: &int := 0;
+
+        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_string_t_visitor_method_tag)
+        {
+            name = v_ast_expr_string_get_string(expr);
+
+            type := v_struct_type_named(name);
+
+            if (n1 == 1) v_break();
+
+            i := 1;
+        }
+
+        if (i)  v_list_get_items(args, 1, expr);
+
+        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_identifier_t_visitor_method_tag)
+        {
+            ident = v_ast_expr_identifier_get_name(expr);
+
+            if (strcmp(ident, "packed") == 0) packed := true;
+        }
+    }
+
+    if (count == 1)
+    {
+        v_set_result_type(type);
+        v_set_result_value(0);
+
+        v_return();
+    }
+
+    N = v_list_get_size(args+1);
+
+    expr = v_malloc(v_ast_opaque_expr_sptr, N);
+    v_initialize(expr, N);
+    defer
+    {
+        v_terminate(expr, N);
+        v_mfree(expr);
+    }
+
+    v_list_get_items(args+1, 0, expr, N);
+
+    typs = v_malloc(v_type_ptr, N);
+    defer v_mfree(typs);
+
+    i: &int := 0;
+
+    loop
+    {
+        if (i >= N) v_break();
+
+        v_set_result_type(INVIOLABLE_TAG);
+
+        v_ast_accept_visitor((expr+i : v_ast_base_ptr), vis);
+
+        typs[i] := v_get_result_type();
+
+        ++i;
+    }
+
+    if (type) v_type_struct_set_body(type, typs, N, packed);
+    else      type := v_struct_type(typs, N, packed);
+
+    v_set_result_type(type);
+    v_set_result_value(0);
+}
+
+
+//---------------------------------------------------------------------
+//- v_typed ...
+//---------------------------------------------------------------------
+v_typed_intrinsic: (vis: voidc_visitor_ptr, *void,
+                    args: v_ast_expr_list_ptr, count: int) -> void
+{
+    expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(expr, 2);
+    defer v_terminate(expr, 2);
+
+    v_list_get_items(args, 0, expr, 2);
+
+    tt = v_get_result_type();
+
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor((expr+0 : v_ast_base_ptr), vis);       //- Type
+
+    t = v_get_result_type();        //- ?
+
+    v_ast_accept_visitor((expr+1 : v_ast_base_ptr), vis);       //- Value
+
+    v = v_get_result_value();
+
+    v_set_result_type(tt);
+
+    v_adopt_result(t, v);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable aggregates
+//---------------------------------------------------------------------
+export
+voidc_enable_aggregates_compiler: () -> void
+{
+    vis = voidc_compiler;
+
+    v_return_if(voidc_visitor_get_intrinsic(vis, "v.op_braces", 0));
+
+    voidc_visitor_set_intrinsic(vis, vis, "v.op_braces", v_op_braces_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "v_struct",    v_struct_intrinsic,    0);
+    voidc_visitor_set_intrinsic(vis, vis, "v_typed",     v_typed_intrinsic,     0);
+
+    voidc_enable_definitions_compiler();        //- Sic!
+}
+
+
+//---------------------------------------------------------------------
+//- Enable aggregates
+//---------------------------------------------------------------------
+export
+voidc_enable_aggregates: () -> void
+{
+    voidc_enable_aggregates_compiler();
+
+
+    v_return_if_not(voidc_has_grammar());
+
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    v_initialize(gr0);
+    defer v_terminate(gr0);
+
+    v_peg_get_grammar(gr0);
+
+    any = v_alloca(v_util_opaque_std_any);
+    v_initialize(any);
+    defer v_terminate(any);
+
+    v_peg_grammar_get_value(gr0, "v_op_braces", any);
+
+    if (!v_empty(any))  v_return();
+
+
+    voidc_enable_definitions();         //- Sic!
+
+    v_peg_get_grammar(gr0);
+
+
+    any_braces = any + 0;
+
+    v_std_any_set_pointer(any_braces, &v_op_braces);
+
+
+    grammar gr0
+    {
+    values:
+        v_op_braces = any_braces;
+
+    parsers:
+        bracketed =+ '{'_ l:expr_list _'}'      { mk_expr_call(v_op_braces, l) };
+    }
+
+    v_peg_set_grammar(gr0);
+}
+
+
+//---------------------------------------------------------------------
+{   voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    v_initialize(&v_op_braces);
+
+    v_ast_make_expr_identifier(&v_op_braces, "v.op_braces");
+
+    v_add_cleaner(voidc_aggregates_internal_gloabls_cleaner, 0);
+}
+
+
