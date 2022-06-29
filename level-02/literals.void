@@ -258,6 +258,11 @@ voidc_enable_literals: () -> void
         string += "\"\"\"" <(!"\"\"\"" .)*> "\"\"\"" { $1 };
 
 
+        integer = '+'? n:dec_natural !(ident_cont / '\'')  { mk_pos_integer(n) }        //- Sic !?!?!
+                / '-'  n:dec_natural !(ident_cont / '\'')  { mk_neg_integer(n) }        //- Sic !?!?!
+                ;
+
+
         big_integer = <[-+]? big_number> <integer_suffix?> !ident_cont  { mk_numeric_literal($1, $2, "v.literal.integer") };
 
         big_number = '0' ([xX] hex_digits / [bB] bin_digits / oct_digits)?
