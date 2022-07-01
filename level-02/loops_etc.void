@@ -348,7 +348,11 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std
     //- stmp_cstm+0 - if
 
 
-    v_ast_make_stmt_if_then_else(stmp_cstm+0, etmp, tstm, estm);
+    else_stmt = stmp_cstm+0;    //- Temporary...
+
+    if (estm)   v_copy(else_stmt, estm);
+
+    v_ast_make_stmt_if_then_else(stmp_cstm+0, etmp, tstm, else_stmt);
 
 
     slst = v_alloca(v_ast_opaque_stmt_list_sptr);
