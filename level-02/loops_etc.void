@@ -24,54 +24,87 @@
 //---------------------------------------------------------------------
 mk_stmt_while_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, size_t) -> void
 {
-    cond = v_std_any_get_pointer(v_ast_opaque_stmt_sptr, any+0);
-    stmt = v_std_any_get_pointer(v_ast_opaque_stmt_sptr, any+1);
+    cond = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+0);
+    stmt = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+1);
+
+    //- loop
+    //- {
+    //-     <cond>...
+    //-
+    //-     if (<cond>)     //- Kinda...
+    //-     <stmt>
+    //-     else  v_break();
+    //- }
+
+
+    cond_len: &int := v_list_get_size(cond);
+
+    cstm = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(cstm);
+    defer v_terminate(cstm);
+
+    v_list_get_items(cond, cond_len-1, cstm);
+
 
     cexp = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(cexp);
     defer v_terminate(cexp);
 
-    stmp = v_alloca(v_ast_opaque_stmt_sptr, 3);
-    v_initialize(stmp, 3);
-    defer v_terminate(stmp, 3);
-
-    brk = stmp+0;
-    stm = stmp+1;
-    lps = stmp+2;
-
-    v_ast_make_stmt_call(brk, "", "v_break", 0, 0);
-
-    name = v_ast_stmt_get_name(cond);
+    name = v_ast_stmt_get_name(cstm);
 
     if (name[0])
     {
-        cnd = stmp+1;
-        ifs = stmp+2;
-
-        v_copy(cnd, cond);
-
         v_ast_make_expr_identifier(cexp, name);
+    }
+    else
+    {
+        v_ast_stmt_get_expr(cstm, cexp);
 
-        v_ast_make_stmt_if_then_else(ifs, cexp, stmt, brk);
+        --cond_len;
+    }
+
+
+    //- cstm - break
+
+    v_ast_make_stmt_call(cstm, "", "v_break", 0, 0);
+
+
+    stmp_len = cond_len + 1;
+
+
+    stmp = v_alloca(v_ast_opaque_stmt_sptr, stmp_len);
+    v_initialize(stmp, stmp_len);
+    defer v_terminate(stmp, stmp_len);
+
+
+    stmp_cond = stmp + cond_len;
+
+    //- stmp_cond - if
+
+    v_ast_make_stmt_if_then_else(stmp_cond, cexp, stmt, cstm);
+
+
+    //- stmp+0 - loop
+
+    if (cond_len)
+    {
+        //- stmp+0 - block
+
+        v_list_get_items(cond, 0, stmp+0, cond_len);
 
         slst = v_alloca(v_ast_opaque_stmt_list_sptr);
         v_initialize(slst);
         defer v_terminate(slst);
 
-        v_make_list(slst, stmp+1, 2);
+        v_make_list(slst, stmp+0, cond_len+1);
 
-        v_ast_make_stmt_block(stm, slst, false);
-    }
-    else
-    {
-        v_ast_stmt_get_expr(cond, cexp);
-
-        v_ast_make_stmt_if_then_else(stm, cexp, stmt, brk);
+        v_ast_make_stmt_block(stmp+0, slst, false);
     }
 
-    v_ast_make_stmt_loop(lps, stm);
 
-    v_std_any_set_pointer(ret, lps);
+    v_ast_make_stmt_loop(stmp+0, stmp+0);
+
+    v_std_any_set_pointer(ret, stmp+0);
 }
 
 
@@ -98,7 +131,7 @@ v_internal_copy_variable_intrinsic: (vis: voidc_visitor_ptr, *void,
 mk_stmt_for_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, size_t) -> void
 {
     init = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+0);
-    cond = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+1);
+    cond = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+1);
     incr = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+2);
     stmt = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+3);
 
@@ -111,6 +144,8 @@ mk_stmt_for_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, s
     //-
     //-         v.internal.copy_variable("voidc.internal_branch_target_break_for",
     //-                                  "voidc.internal_branch_target_break");
+    //-
+    //-         <cond>...
     //-
     //-         if (<cond>)     //- Kinda...
     //-         block
@@ -157,22 +192,53 @@ mk_stmt_for_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, s
 
     init_len = v_list_get_size(init);
 
-    cond_len: &int := 0;
+    cond_len: &int := v_list_get_size(cond);
 
-    if (cond)
+    cstm = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(cstm);
+    defer v_terminate(cstm);
+
+    if (cond_len)
     {
-        name = v_ast_stmt_get_name(cond);
+        v_list_get_items(cond, cond_len-1, cstm);
 
-        if (name[0])  cond_len := 1;
+        name = v_ast_stmt_get_name(cstm);
+
+        if (name[0])
+        {
+            v_ast_make_expr_identifier(e_cond, name);
+        }
+        else
+        {
+            v_ast_stmt_get_expr(cstm, e_cond);
+
+            --cond_len;
+        }
     }
+    else
+    {
+        v_ast_make_expr_identifier(e_cond, "true");
+    }
+
+
+    //- cstm - break
+
+    v_ast_make_stmt_call(cstm, "", "v_break", 0, 0);
+
 
     incr_len = v_list_get_size(incr);
 
 
-    stmp_len: &int := 1 + init_len + 4 + cond_len + 1;
+    stmp_len: &int := 4 + 1;        //- Inner block ("if then")
 
-    if (incr_len > 6)   stmp_len += incr_len;
-    else                stmp_len += 6;
+    {   l = 2 + cond_len + 1 + incr_len;
+
+        if (stmp_len < l)   stmp_len := l;      //- Loop's block
+
+        l = init_len + 1;
+
+        if (stmp_len < l)   stmp_len := l;      //- Outer block
+    }
 
 
     stmp = v_alloca(v_ast_opaque_stmt_sptr, stmp_len);
@@ -180,100 +246,79 @@ mk_stmt_for_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, s
     defer v_terminate(stmp, stmp_len);
 
 
-    //- stmp+0 - block
-
-
-    v_list_get_items(init, 0, stmp+1, init_len);
-
-
-    stmp_init = stmp + 1 + init_len;
-
-    //- stmp_init+0 - loop
-    //- stmp_init+1 - block
-
-
-    v_copy(etmp+0, e_break_for_var);
-    v_copy(etmp+1, e_break_var);
-
-    v_ast_make_stmt_call(stmp_init+2, "", "v.internal.copy_variable", etmp+0, 2);
-
-    v_copy(etmp+0, e_break_for);
-    v_copy(etmp+1, e_break);
-
-    v_ast_make_stmt_call(stmp_init+3, "", "v.internal.copy_variable", etmp+0, 2);
-
-
-    if (cond_len)
-    {
-        v_copy(stmp_init+4, cond);
-
-        name = v_ast_stmt_get_name(cond);
-
-        v_ast_make_expr_identifier(e_cond, name);
-    }
-    else
-    {
-        if (cond)   v_ast_stmt_get_expr(cond, e_cond);
-        else        v_ast_make_expr_identifier(e_cond, "true");
-    }
-
-
-    stmp_cond = stmp_init + 4 + cond_len;
-
     //- stmp_cond+0 - if
-    //- stmp_cond+1 - block
+
+    stmp_cond = stmp + 2 + cond_len;
 
 
     v_copy(etmp+0, e_continue_var);
     v_copy(etmp+1, e_break_var);
 
-    v_ast_make_stmt_call(stmp_cond+2, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+0, "", "v.internal.copy_variable", etmp+0, 2);
 
     v_copy(etmp+0, e_continue);
     v_copy(etmp+1, e_break);
 
-    v_ast_make_stmt_call(stmp_cond+3, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+1, "", "v.internal.copy_variable", etmp+0, 2);
 
     v_copy(etmp+0, e_break_var);
     v_copy(etmp+1, e_break_for_var);
 
-    v_ast_make_stmt_call(stmp_cond+4, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+2, "", "v.internal.copy_variable", etmp+0, 2);
 
     v_copy(etmp+0, e_break);
     v_copy(etmp+1, e_break_for);
 
-    v_ast_make_stmt_call(stmp_cond+5, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+3, "", "v.internal.copy_variable", etmp+0, 2);
 
 
-    v_copy(stmp_cond+6, stmt);
+    v_copy(stmp+4, stmt);
 
 
     slst = v_alloca(v_ast_opaque_stmt_list_sptr);
     v_initialize(slst);
     defer v_terminate(slst);
 
-    v_make_list(slst, stmp_cond+2, 5);
+    v_make_list(slst, stmp+0, 5);
 
-    v_ast_make_stmt_block(stmp_cond+1, slst, true);
+    v_ast_make_stmt_block(stmp+0, slst, true);
 
-
-    v_ast_make_stmt_call(stmp_cond+2, "", "v_break", 0, 0);
-
-
-    v_ast_make_stmt_if_then_else(stmp_cond+0, e_cond, stmp_cond+1, stmp_cond+2);
+    v_ast_make_stmt_if_then_else(stmp_cond+0, e_cond, stmp+0, cstm);
 
 
-    v_list_get_items(incr, 0, stmp_cond+1, incr_len);
+    //- stmp_init+0 - loop
+
+    stmp_init = stmp + init_len;
 
 
-    v_make_list(slst, stmp_init+2, 2+cond_len+1+incr_len);
+    v_copy(etmp+0, e_break_for_var);
+    v_copy(etmp+1, e_break_var);
 
-    v_ast_make_stmt_block(stmp_init+1, slst, false);
+    v_ast_make_stmt_call(stmp+0, "", "v.internal.copy_variable", etmp+0, 2);
 
-    v_ast_make_stmt_loop(stmp_init+0, stmp_init+1);
+    v_copy(etmp+0, e_break_for);
+    v_copy(etmp+1, e_break);
+
+    v_ast_make_stmt_call(stmp+1, "", "v.internal.copy_variable", etmp+0, 2);
 
 
-    v_make_list(slst, stmp+1, init_len+1);
+    if (cond_len) v_list_get_items(cond, 0, stmp+2, cond_len);
+
+
+    if (incr_len) v_list_get_items(incr, 0, stmp_cond+1, incr_len);
+
+
+    v_make_list(slst, stmp+0, 2+cond_len+1+incr_len);
+
+    v_ast_make_stmt_block(stmp+0, slst, false);
+
+    v_ast_make_stmt_loop(stmp_init+0, stmp+0);
+
+
+    if (init_len) v_list_get_items(init, 0, stmp+0, init_len);
+
+
+    v_make_list(slst, stmp+0, init_len+1);
 
     v_ast_make_stmt_block(stmp+0, slst, false);
 
@@ -285,31 +330,46 @@ mk_stmt_for_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, s
 //---------------------------------------------------------------------
 mk_stmt_if_then_else_2_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, size_t) -> void
 {
-    init = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr,    any+0);
-    cstm = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,         any+1);
-    tstm = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,         any+2);
-    estm = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,         any+3);
+    cond = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+0);
+    tstm = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+1);
+    estm = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+2);
 
-    //- {   <init>...
+    //- {   <cond>...
     //-
-    //-     if (<cstm>)     //- Kinda...
+    //-     if (<cond>)     //- Kinda...
     //-     <tstm>
     //-     else <estm>
     //- }
 
 
-    init_len: &int := 0;
+    cond_len: &int := v_list_get_size(cond);
 
-    if (init) init_len := v_list_get_size(init);
+    cstm = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(cstm);
+    defer v_terminate(cstm);
 
-    cstm_len: &int := 0;
+    v_list_get_items(cond, cond_len-1, cstm);
+
+
+    cexp = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(cexp);
+    defer v_terminate(cexp);
 
     name = v_ast_stmt_get_name(cstm);
 
-    if (name[0])  cstm_len := 1;
+    if (name[0])
+    {
+        v_ast_make_expr_identifier(cexp, name);
+    }
+    else
+    {
+        v_ast_stmt_get_expr(cstm, cexp);
+
+        --cond_len;
+    }
 
 
-    stmp_len: &int := 1 + init_len + cstm_len + 1;
+    stmp_len = cond_len + 1;
 
 
     stmp = v_alloca(v_ast_opaque_stmt_sptr, stmp_len);
@@ -317,49 +377,25 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std
     defer v_terminate(stmp, stmp_len);
 
 
-    //- stmp+0 - block
+    //- stmp_cond+0 - if
+
+    stmp_cond = stmp + cond_len;
 
 
-    if (init_len)   v_list_get_items(init, 0, stmp+1, init_len);
-
-
-    stmp_init = stmp + 1 + init_len;
-
-
-    etmp = v_alloca(v_ast_opaque_expr_sptr);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
-
-    if (cstm_len)
-    {
-        v_copy(stmp_init+0, cstm);
-
-        v_ast_make_expr_identifier(etmp, name);
-    }
-    else
-    {
-        v_ast_stmt_get_expr(cstm, etmp);
-    }
-
-
-    stmp_cstm = stmp_init + cstm_len;
-
-
-    //- stmp_cstm+0 - if
-
-
-    else_stmt = stmp_cstm+0;    //- Temporary...
+    else_stmt = stmp_cond+0;    //- Temporary...
 
     if (estm)   v_copy(else_stmt, estm);
 
-    v_ast_make_stmt_if_then_else(stmp_cstm+0, etmp, tstm, else_stmt);
+    v_ast_make_stmt_if_then_else(stmp_cond+0, cexp, tstm, else_stmt);
 
+
+    v_list_get_items(cond, 0, stmp+0, cond_len);
 
     slst = v_alloca(v_ast_opaque_stmt_list_sptr);
     v_initialize(slst);
     defer v_terminate(slst);
 
-    v_make_list(slst, stmp+1, init_len+cstm_len+1);
+    v_make_list(slst, stmp+0, cond_len+1);
 
     v_ast_make_stmt_block(stmp+0, slst, false);
 
@@ -371,29 +407,44 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std
 //---------------------------------------------------------------------
 mk_stmt_switch_2_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, size_t) -> void
 {
-    init = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr,    any+0);
-    estm = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,         any+1);
-    glst = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+2);
+    estm = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr,    any+0);
+    glst = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+1);
 
-    //- {   <init>...
+    //- {   <estm>...
     //-
     //-     switch (<estm>)     //- Kinda...
     //-     <glst>
     //- }
 
 
-    init_len: &int := 0;
+    estm_len: &int := v_list_get_size(estm);
 
-    if (init) init_len := v_list_get_size(init);
+    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(etmp);
+    defer v_terminate(etmp);
 
-    estm_len: &int := 0;
+    {   stmt = v_alloca(v_ast_opaque_stmt_sptr);
+        v_initialize(stmt);
+        defer v_terminate(stmt);
 
-    name = v_ast_stmt_get_name(estm);
+        v_list_get_items(estm, estm_len-1, stmt);
 
-    if (name[0])  estm_len := 1;
+        name = v_ast_stmt_get_name(stmt);
+
+        if (name[0])
+        {
+            v_ast_make_expr_identifier(etmp, name);
+        }
+        else
+        {
+            v_ast_stmt_get_expr(stmt, etmp);
+
+            --estm_len;
+        }
+    }
 
 
-    stmp_len: &int := 1 + init_len + estm_len + 1;
+    stmp_len = estm_len + 1;
 
 
     stmp = v_alloca(v_ast_opaque_stmt_sptr, stmp_len);
@@ -401,52 +452,28 @@ mk_stmt_switch_2_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_p
     defer v_terminate(stmp, stmp_len);
 
 
-    //- stmp+0 - block
-
-
-    if (init_len)   v_list_get_items(init, 0, stmp+1, init_len);
-
-
-    stmp_init = stmp + 1 + init_len;
-
-
-    etmp = v_alloca(v_ast_opaque_expr_sptr);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
-
-    if (estm_len)
-    {
-        v_copy(stmp_init+0, estm);
-
-        v_ast_make_expr_identifier(etmp, name);
-    }
-    else
-    {
-        v_ast_stmt_get_expr(estm, etmp);
-    }
-
-
-    stmp_estm = stmp_init + estm_len;
-
-
     //- stmp_estm+0 - switch
+
+    stmp_estm = stmp + estm_len;
 
 
     v_ast_make_stmt_switch(stmp_estm+0, etmp, glst);
+
+
+    if (estm_len)   v_list_get_items(estm, 0, stmp+0, estm_len);        //- if?
 
 
     slst = v_alloca(v_ast_opaque_stmt_list_sptr);
     v_initialize(slst);
     defer v_terminate(slst);
 
-    v_make_list(slst, stmp+1, init_len+estm_len+1);
+    v_make_list(slst, stmp+0, stmp_len);
 
     v_ast_make_stmt_block(stmp+0, slst, false);
 
 
     v_std_any_set_pointer(ret, stmp+0);
 }
-
 
 
 //---------------------------------------------------------------------
@@ -522,11 +549,11 @@ voidc_enable_loops_etc: () -> void
                          ;
 
 
-        stmt_while = "while" _ '(' _ c:simple_stmt _ ')' _ s:stmt   { mk_stmt_while(c, s) };
+        stmt_while = "while" _'('_ c:simple_stmt_list_lr _')'_ s:stmt   { mk_stmt_while(c, s) };
 
 
         stmt_for = "for" _'('_ i:simple_stmt_list _';'_
-                               c:simple_stmt?     _';'_
+                               c:simple_stmt_list _';'_
                                r:simple_stmt_list
                          _')'_ s:stmt                       { mk_stmt_for(i, c, r, s) }
                  ;
@@ -534,15 +561,12 @@ voidc_enable_loops_etc: () -> void
         stmt += stmt_while / stmt_for;
 
 
-        init_stmt_list = i:simple_stmt_list _ ';'   { i };
+        stmt_if_then_else =+ "if" _'('_ c:simple_stmt_list_lr _')'_ t:stmt
+                             e:(_ "else" !ident_cont _ stmt)?           { mk_stmt_if_then_else_2(c, t, e) };
 
 
-        stmt_if_then_else =+ "if" _ '(' _ i:init_stmt_list? _ c:simple_stmt _ ')' _ t:stmt
-                             e:(_ "else" !ident_cont _ stmt)?           { mk_stmt_if_then_else_2(i, c, t, e) };
-
-
-        stmt_switch =+ "switch" _'('_ i:init_stmt_list? _ e:simple_stmt _')'_
-                       '{'_ l:case_list _'}'    { mk_stmt_switch_2(i, e, l) };
+        stmt_switch =+ "switch" _'('_ e:simple_stmt_list_lr _')'_
+                       '{'_ l:case_list _'}'    { mk_stmt_switch_2(e, l) };
     }
 
     v_peg_set_grammar(gr0);

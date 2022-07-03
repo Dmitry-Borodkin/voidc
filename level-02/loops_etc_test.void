@@ -62,12 +62,24 @@
     printf("\n%s\n", &buf[0]);
 }
 
+//---------------------------------------------------------------------
+{
+    buf: &char[100] := v_undef();
+
+    src: &*char := "Hello world!";
+    dst: &*char := &buf[0];
+
+    while(d = *dst++, s = *src++)   d := s;
+
+    printf("\n%s\n", &buf[0]);
+}
+
 
 //---------------------------------------------------------------------
 //{ v_debug_print_module(1); }
 
 {
-    printf("/-\\\n");
+    printf("\n/-\\\n");
 
 
 //    for(i: &int := 0; i < 10; ++i)
@@ -104,7 +116,7 @@
 //    }
 
 
-    for(i: &int := 0, F: &int := 1; c = i < 10; F*=++i)
+    for(i: &int := 0, F: &int := 1; c = i < 5, i < 10; F*=++i)
     {
         printf("[%d] %d, %d\n", i, (c: int), F);
     }
@@ -135,7 +147,7 @@
 
     for (i: &int := 0; i < 20; ++i)
     {
-        switch(f3: int = i%3==0, f5: int = i%5==0; ff = f3+f5)
+        switch(f3: int = i%3==0, f5: int = i%5==0, ff = f3+f5)
         {
         case 0:     printf("%d\n", i);  v_break();
 
