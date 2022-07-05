@@ -632,8 +632,8 @@ vpeg::grammar_t make_voidc_grammar(void)
 
 
     //-------------------------------------------------------------
-    //- integer <- '+'? n:dec_natural !ident_cont   { mk_pos_integer(n) }
-    //-          / '-'  n:dec_natural !ident_cont   { mk_neg_integer(n) }
+    //- integer <- '+'? n:dec_natural       { mk_pos_integer(n) }
+    //-          / '-'  n:dec_natural       { mk_neg_integer(n) }
 
     gr = gr.set_parser("integer",
     mk_choice_parser(
@@ -642,8 +642,6 @@ vpeg::grammar_t make_voidc_grammar(void)
         {
             mk_question_parser(mk_character_parser('+')),
             mk_catch_variable_parser("n", ip_dec_natural),
-
-            mk_not_parser(ip_ident_cont),
 
             mk_action_parser(
                 mk_call_action("mk_pos_integer",
@@ -657,8 +655,6 @@ vpeg::grammar_t make_voidc_grammar(void)
         {
             mk_character_parser('-'),
             mk_catch_variable_parser("n", ip_dec_natural),
-
-            mk_not_parser(ip_ident_cont),
 
             mk_action_parser(
                 mk_call_action("mk_neg_integer",
