@@ -618,6 +618,8 @@
 
     ft = v_function_type(void, typ0, 4, false);
 
+    v_add_type("convert_to_common_type_ft", ft);
+
     //-----------------------------------------------------------------
     f = v_function_hack("convert_to_common_type", ft);
 
@@ -2566,56 +2568,37 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_add - compiler intrinsic
+//- compile_infix_add - utility
 //---------------------------------------------------------------------
 {
+    typ0 = v_alloca(v_type_ptr, 4);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+
+    type_ref  = v_reference_type(v_type_ptr, 0);
+    value_ref = v_reference_type(LLVMValueRef, 0);
+
+    v_store(type_ref,     typ0);
+    v_store(value_ref,    typ1);
+    v_store(type_ref,     typ2);
+    v_store(value_ref,    typ3);
+
+    ft = v_function_type(LLVMValueRef, typ0, 4, false);
+
+    v_add_type("compile_infix_ft", ft);
+
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_add", voidc_intrinsic_t);
+    f = v_function_hack("compile_infix_add", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
-    v_add_parameter_name(f, 3, "count",    int);
+    v_add_parameter_name(f, 0, "t0", type_ref);
+    v_add_parameter_name(f, 1, "v0", value_ref);
+    v_add_parameter_name(f, 2, "t1", type_ref);
+    v_add_parameter_name(f, 3, "v1", value_ref);
 }
 {
-    ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
-    v_initialize(ast0, 2);
-
-    ast1 = v_getelementptr(ast0, 1);
-
-    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
-
-
-    tt = v_get_result_type();
-
-
-    t0 = v_reference(v_alloca(v_type_ptr));
-    v0 = v_reference(v_alloca(LLVMValueRef));
-
-    v_set_result_type(UNREFERENCE_TAG);
-
-    v_ast_accept_visitor(ast0, visitor);
-
-    v_assign(t0, v_get_result_type());
-    v_assign(v0, v_get_result_value());
-
-
-    t1 = v_reference(v_alloca(v_type_ptr));
-    v1 = v_reference(v_alloca(LLVMValueRef));
-
-    v_set_result_type(UNREFERENCE_TAG);
-
-    v_ast_accept_visitor(ast1, visitor);
-
-    v_assign(t1, v_get_result_type());
-    v_assign(v1, v_get_result_value());
-
-
-    v_terminate(ast0, 2);
-
-
     builder = v_target_get_builder();
 
     {   ptr_t  = v_reference(v_alloca(v_type_ptr));
@@ -2676,11 +2659,7 @@
 
             v = LLVMBuildGEP2(builder, v_type_get_llvm_type(et), ptr_v, v_pointer(var_v), 1, "");
 
-            v_set_result_type(tt);
-
-            v_adopt_result(ptr_t, v);
-
-            v_return();
+            v_return(v);
         }
     }
 
@@ -2688,28 +2667,22 @@
 
     convert_to_common_type(t0, v0, t1, v1);
 
-    v = v_reference(v_alloca(LLVMValueRef));
-
     if (v_type_is_floating_point(v_type_get_scalar_type(t0)))
     {
-        v_assign(v, LLVMBuildFAdd(builder, v0, v1, ""));
+        v_return(LLVMBuildFAdd(builder, v0, v1, ""));
     }
     else
     {
-        v_assign(v, LLVMBuildAdd(builder, v0, v1, ""));
+        v_return(LLVMBuildAdd(builder, v0, v1, ""));
     }
-
-    v_set_result_type(tt);
-
-    v_adopt_result(t0, v);
 }
 
 //---------------------------------------------------------------------
-//- op_infix_sub - compiler intrinsic
+//- op_infix_add - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_sub", voidc_intrinsic_t);
+    f = v_function_hack("op_infix_add", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -2752,9 +2725,35 @@
     v_assign(v1, v_get_result_value());
 
 
+    v = compile_infix_add(t0, v0, t1, v1);
+
+
+    v_set_result_type(tt);
+
+    v_adopt_result(t0, v);
+
+
     v_terminate(ast0, 2);
+}
 
+//---------------------------------------------------------------------
+//- compile_infix_sub - utility
+//---------------------------------------------------------------------
+{
+    type_ref  = v_reference_type(v_type_ptr, 0);
+    value_ref = v_reference_type(LLVMValueRef, 0);
 
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_infix_sub", compile_infix_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t0", type_ref);
+    v_add_parameter_name(f, 1, "v0", value_ref);
+    v_add_parameter_name(f, 2, "t1", type_ref);
+    v_add_parameter_name(f, 3, "v1", value_ref);
+}
+{
     builder = v_target_get_builder();
 
     v = v_reference(v_alloca(LLVMValueRef));
@@ -2847,9 +2846,66 @@
         }
     }
 
+    v_return(v);
+}
+
+//---------------------------------------------------------------------
+//- op_infix_sub - compiler intrinsic
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("op_infix_sub", voidc_intrinsic_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 3, "count",    int);
+}
+{
+    ast0 = v_alloca(v_ast_opaque_base_sptr, 2);
+    v_initialize(ast0, 2);
+
+    ast1 = v_getelementptr(ast0, 1);
+
+    v_list_get_items(arg_list, 0, v_cast(ast0, v_ast_expr_ptr), 2);
+
+
+    tt = v_get_result_type();
+
+
+    t0 = v_reference(v_alloca(v_type_ptr));
+    v0 = v_reference(v_alloca(LLVMValueRef));
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    v_ast_accept_visitor(ast0, visitor);
+
+    v_assign(t0, v_get_result_type());
+    v_assign(v0, v_get_result_value());
+
+
+    t1 = v_reference(v_alloca(v_type_ptr));
+    v1 = v_reference(v_alloca(LLVMValueRef));
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    v_ast_accept_visitor(ast1, visitor);
+
+    v_assign(t1, v_get_result_type());
+    v_assign(v1, v_get_result_value());
+
+
+    v = compile_infix_sub(t0, v0, t1, v1);
+
+
     v_set_result_type(tt);
 
     v_adopt_result(t0, v);
+
+
+    v_terminate(ast0, 2);
 }
 
 //---------------------------------------------------------------------
@@ -4040,6 +4096,23 @@
 
     voidc_visitor_set_intrinsic(vis, vis, "vec",   voidc_vec_type_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "svec",  voidc_svec_type_intrinsic, 0);
+
+    //-------------------------------------------------------------
+    v_export_symbol("voidc_internal_compile_add_helper", compile_op_ft, compile_add);
+    v_export_symbol("voidc_internal_compile_sub_helper", compile_op_ft, compile_sub);
+    v_export_symbol("voidc_internal_compile_mul_helper", compile_op_ft, compile_mul);
+    v_export_symbol("voidc_internal_compile_div_helper", compile_op_ft, compile_div);
+    v_export_symbol("voidc_internal_compile_rem_helper", compile_op_ft, compile_rem);
+    v_export_symbol("voidc_internal_compile_shl_helper", compile_op_ft, compile_shl);
+    v_export_symbol("voidc_internal_compile_shr_helper", compile_op_ft, compile_shr);
+    v_export_symbol("voidc_internal_compile_and_helper", compile_op_ft, compile_and);
+    v_export_symbol("voidc_internal_compile_xor_helper", compile_op_ft, compile_xor);
+    v_export_symbol("voidc_internal_compile_or_helper",  compile_op_ft, compile_or);
+
+    v_export_symbol("voidc_internal_compile_infix_add_helper", compile_infix_ft, compile_infix_add);
+    v_export_symbol("voidc_internal_compile_infix_sub_helper", compile_infix_ft, compile_infix_sub);
+
+    v_export_symbol("voidc_internal_convert_to_common_type_helper", convert_to_common_type_ft, convert_to_common_type);
 }
 
 
