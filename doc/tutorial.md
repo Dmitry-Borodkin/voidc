@@ -214,6 +214,15 @@ Please note, in contrast to C, in the Starter Language:
 In fact, the semantics of `=` in Void is almost the same as in LLVM IR (with respect to "shadowing").
 
 
+#### Identifiers. "What's in a name?"(c)...
+
+
+
+
+
+
+
+
 #### Not all functions are the same...
 
 Let's look at [The extended "Hello, world" example](#the-extended-hello-world-example).
@@ -243,6 +252,68 @@ This means that the identifier to the left of the `=` takes the type
 This type does not change during identifier's "lifetime" (with respect to "shadowing").
 
 The Void has it's own type system, which is "mapped" to LLVM's one and can be seen as an *extension* of it...
+
+The Starter Language *has no* specific syntax for types.
+Therefore, we'll describe Void's type system "through the lens" of the compiler's types API.
+This API is designed to be similar (in spirit) to the LLVM-C API associated with LLVM's types.
+The implementation of Void's types is also very similar to LLVM's.
+
+<details open>
+  <summary>Some technical details (click to expand)...</summary>
+
+>
+> It is important to understand that in Starter Language we have to work with types in two different contexts (roles):
+>   1. Like in "routine programming" - to create "local variables" and to make "conversions of values".
+>   2. When we work with types as with data - to build new types and to analyze existing ones.
+>
+> It's about different occurencies of "write program" in "write program to write program"...
+> Also, these roles are distinguished by their "show-time": the first "acts" at the *compilation* stage,
+> and the second -  at the *execution* stage.
+>
+> In the first role (in the Starter Language) types can only be used with the help of identifiers (names).
+>
+>
+>
+>
+>
+>
+
+
+
+
+
+
+
+</details>
+
+
+
+
+
+As you can probably guessed, the name of the type of the Void's types representation is `v_type_ptr`.
+Like `LLVMTypeRef`, `v_type_ptr` looks like a pointer to some opaque structure
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #### Integer types.
