@@ -1545,7 +1545,7 @@
 
 
     argtypes = *v_alloca(* v_type_ptr) := 0;
-    defer if (argtypes) v_mfree(argtypes);
+    defer if (argtypes) v_free(argtypes);
 
     is_vararg = *v_alloca(bool) := false;
 

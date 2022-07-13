@@ -260,11 +260,11 @@
 
 
 //---------------------------------------------------------------------
-//- v_mfree
+//- v_free
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_memory_mfree_intrinsic", voidc_intrinsic_t);
+    f = v_function_hack("voidc_memory_free_intrinsic", voidc_intrinsic_t);
 
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
@@ -310,7 +310,7 @@
 }
 
 {   v_export_intrinsic("v_malloc", voidc_memory_malloc_intrinsic, 0);
-    v_export_intrinsic("v_mfree",  voidc_memory_mfree_intrinsic, 0);
+    v_export_intrinsic("v_free",   voidc_memory_free_intrinsic,   0);
 }
 
 

@@ -499,7 +499,7 @@
 {
     ctx = v_cast(void_ctx, convert_to_type_ctx_ptr);
 
-    v_mfree(ctx);
+    v_free(ctx);
 }
 
 //---------------------------------------------------------------------
@@ -1682,7 +1682,7 @@
     }
 
     v_terminate(ast, N);
-    v_mfree(ast);
+    v_free(ast);
 
 
     v = LLVMBuildLoad2(builder, bool_, and_result_v, "");
@@ -1882,7 +1882,7 @@
     }
 
     v_terminate(ast, N);
-    v_mfree(ast);
+    v_free(ast);
 
 
     v = LLVMBuildLoad2(builder, bool_, or_result_v, "");
@@ -2349,8 +2349,8 @@
     }
 
     v_terminate(ast, N);
-    v_mfree(ast);
-    v_mfree(rel);
+    v_free(ast);
+    v_free(rel);
 
 
     if (v_type_is_vector(t0))
@@ -3805,7 +3805,7 @@
     v_terminate(arg);
     v_terminate(op);
 
-    v_mfree(val0);
+    v_free(val0);
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
