@@ -264,7 +264,9 @@ public:
     static void add_module_to_jit(LLVMModuleRef module);
 
 public:
+    v_type_t * const static_type_type;
     v_type_t * const opaque_type_type;
+
     v_type_t * const type_ptr_type;
 
 public:

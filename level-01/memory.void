@@ -244,7 +244,7 @@
 
     v_ast_accept_visitor(arg_base, visitor);
 
-    type  = v_get_result_type();
+    type  = v_cast(v_get_result_value(), v_type_ptr);
     type_ = v_type_get_llvm_type(type);
 
     ret = LLVMBuildArrayMalloc(builder, type_, number, "ret");

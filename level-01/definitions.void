@@ -695,7 +695,7 @@
 
     v_ast_accept_visitor(v_cast(arg+0, v_ast_base_ptr), visitor);           //- Type
 
-    var_type = v_get_result_type();
+    var_type = v_cast(v_get_result_value(), v_type_ptr);
 
     t = v_type_refptr_get_element_type(var_type);       //- Sic!
 
@@ -741,6 +741,10 @@
     v_set_result_type(INVIOLABLE_TAG);
 
     v_ast_accept_visitor(v_cast(arg+1, v_ast_base_ptr), visitor);           //- Type
+
+    t = v_cast(v_get_result_value(), v_type_ptr);
+
+    v_set_result_type(t);
 
     v_ast_accept_visitor(v_cast(arg+0, v_ast_base_ptr), visitor);           //- Value
 }
@@ -868,7 +872,7 @@
 
     v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor);
 
-    fun_type = v_get_result_type();
+    fun_type = v_cast(v_get_result_value(), v_type_ptr);
 
     if (export) v_export_symbol_type(name, fun_type);
     else        v_add_symbol(name, fun_type, 0);
@@ -979,7 +983,7 @@
 
     v_ast_accept_visitor(type, visitor);
 
-    var_type = v_get_result_type();
+    var_type = v_cast(v_get_result_value(), v_type_ptr);
 
     if (export) v_export_symbol_type(name, var_type);
     else        v_add_symbol(name, var_type, 0);
@@ -1069,6 +1073,9 @@
     if (!v_empty(type))
     {
         v_ast_accept_visitor(type, visitor);
+
+        v_set_result_type(v_cast(v_get_result_value(), v_type_ptr));
+
     }
 
     v_ast_accept_visitor(value, visitor);
@@ -1078,13 +1085,13 @@
 
     if (export)
     {
-        if (v)  v_export_constant(name, t, v);
-        else    v_export_type(name, t);
+        if (t == voidc_static_type) v_export_type(name, v_cast(v, v_type_ptr));
+        else                        v_export_constant(name, t, v);
     }
     else
     {
-        if (v)  v_add_constant(name, t, v);
-        else    v_add_type(name, t);
+        if (t == voidc_static_type) v_add_type(name, v_cast(v, v_type_ptr));
+        else                        v_add_constant(name, t, v);
     }
 
     //-------------------------------------------------------------
@@ -1098,7 +1105,7 @@
 
         v_ast_make_expr_integer(expr+1, export);
 
-        if (v)
+        if (t != voidc_static_type)
         {
             cv = *v_alloca(intptr_t);
 
@@ -1260,7 +1267,12 @@
 
             name = v_ast_expr_identifier_get_name(expr+0);
 
-            type = v_find_constant_type(name);
+            type = *v_alloca(v_type_ptr) := v_find_constant_type(name);
+
+            if (type == voidc_static_type)
+            {
+                type := v_cast(v_find_constant_value(name), v_type_ptr);
+            }
 
             voidc_compile_type_compute_stack_length(type, ctx);
 
@@ -1362,7 +1374,12 @@
 
             val[0] := LLVMBuildGlobalStringPtr(builder, name, "name");
 
-            type = v_find_constant_type(name);
+            type = *v_alloca(v_type_ptr) := v_find_constant_type(name);
+
+            if (type == voidc_static_type)
+            {
+                type := v_cast(v_find_constant_value(name), v_type_ptr);
+            }
 
             val[1] := voidc_compile_type(type, ctx);
 
@@ -1582,7 +1599,7 @@
 
             v_ast_accept_visitor(item, visitor);
 
-            argtypes[i] := v_get_result_type();
+            argtypes[i] := v_cast(v_get_result_value(), v_type_ptr);
 
             ++i;
         }
@@ -1592,10 +1609,12 @@
 
     v_ast_accept_visitor(ast+1, visitor);
 
-    ft = v_function_type(v_get_result_type(), argtypes, count, is_vararg);
+    rtyp = v_cast(v_get_result_value(), v_type_ptr);
 
-    v_set_result_type(ft);
-//  v_set_result_value(0);      //- ?
+    ft = v_function_type(rtyp, argtypes, count, is_vararg);
+
+    v_set_result_type(voidc_static_type);
+    v_set_result_value(v_cast(ft, LLVMValueRef));
 }
 
 
@@ -1634,6 +1653,8 @@
     v_initialize(arg);
     defer v_terminate(arg);
 
+    t = *v_alloca(v_type_ptr) := v_get_result_type();
+
     if (v_list_get_size(arg_list))
     {
         v_list_get_items(arg_list, 0, arg);
@@ -1641,9 +1662,11 @@
         v_set_result_type(INVIOLABLE_TAG);
 
         v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
-    }
 
-    t = v_get_result_type();
+        t := v_cast(v_get_result_value(), v_type_ptr);
+
+        v_set_result_type(t);
+    }
 
     v = LLVMGetUndef(v_type_get_llvm_type(t));
 

@@ -291,9 +291,9 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     (*args)->data[0]->accept(*vis);            //- Type
 
-    assert(lctx.result_value == nullptr);
+    assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
 
-    auto type = lctx.result_type;
+    auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 
     void *void_fun;
     void *aux;
@@ -341,9 +341,9 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 
     (*args)->data[0]->accept(*vis);            //- Type
 
-    assert(lctx.result_value == nullptr);
+    assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
 
-    auto type = lctx.result_type;
+    auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 
     void *void_fun;
     void *aux;
@@ -740,7 +740,9 @@ void static_initialize(void)
     //-----------------------------------------------------------------
     auto add_type = [&gctx](const char *raw_name, v_type_t *type)
     {
-        gctx.decls.constants_insert({raw_name, type});
+        gctx.decls.constants_insert({raw_name, gctx.static_type_type});
+
+        gctx.constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
 
         gctx.decls.symbols_insert({raw_name, gctx.opaque_type_type});
 

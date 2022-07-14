@@ -92,7 +92,7 @@ void compile_ast_stmt_t(const visitor_sptr_t *vis, void *,
 
     if (ret_name[0])
     {
-        if (lctx.result_value)
+        if (lctx.result_type != voidc_global_ctx_t::voidc->static_type_type)
         {
             size_t len = 0;
 
@@ -242,7 +242,9 @@ void compile_ast_expr_identifier_t(const visitor_sptr_t *vis, void *,
         throw std::runtime_error("Identifier not found: " + *name);
     }
 
-    if (!v  &&  lctx.result_type == voidc_global_ctx_t::voidc->type_ptr_type)
+    auto &vctx = *voidc_global_ctx_t::voidc;
+
+    if (t == vctx.static_type_type  &&  lctx.result_type == vctx.type_ptr_type)
     {
         auto raw_name = lctx.check_alias(*name);
 
@@ -250,7 +252,7 @@ void compile_ast_expr_identifier_t(const visitor_sptr_t *vis, void *,
 
         t = lctx.get_symbol_type(cname);
 
-        assert(t == voidc_global_ctx_t::voidc->opaque_type_type);
+        assert(t == vctx.opaque_type_type);
 
         v = LLVMGetNamedGlobal(lctx.module, cname);
 
@@ -368,9 +370,10 @@ v_alloca(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, in
 
     (*args)->data[0]->accept(*vis);             //- Element type
 
-    assert(lctx.result_value == nullptr);
+    assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
 
-    auto type = lctx.result_type;
+    auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
+
     auto llvm_type = type->llvm_type();
 
     LLVMValueRef v;
@@ -538,9 +541,9 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
 
     (*args)->data[1]->accept(*vis);             //- Type
 
-    assert(lctx.result_value == nullptr);
+    assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
 
-    auto dst_type = lctx.result_type;
+    auto dst_type = reinterpret_cast<v_type_t *>(lctx.result_value);
 
     auto opcode = LLVMOpcode(0);
 

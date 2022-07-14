@@ -157,8 +157,8 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 
     if (count == 1)
     {
-        v_set_result_type(type);
-        v_set_result_value(0);
+        v_set_result_type(voidc_static_type);
+        v_set_result_value((type: LLVMValueRef));
 
         v_return();
     }
@@ -188,7 +188,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 
         v_ast_accept_visitor((expr+i : v_ast_base_ptr), vis);
 
-        typs[i] := v_get_result_type();
+        typs[i] := (v_get_result_value() : v_type_ptr);
 
         ++i;
     }
@@ -196,8 +196,8 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
     if (type) v_type_struct_set_body(type, typs, N, packed);
     else      type := v_struct_type(typs, N, packed);
 
-    v_set_result_type(type);
-    v_set_result_value(0);
+    v_set_result_type(voidc_static_type);
+    v_set_result_value((type: LLVMValueRef));
 }
 
 
@@ -219,7 +219,9 @@ v_typed_intrinsic: (vis: voidc_visitor_ptr, *void,
 
     v_ast_accept_visitor((expr+0 : v_ast_base_ptr), vis);       //- Type
 
-    t = v_get_result_type();        //- ?
+    t = (v_get_result_value() : v_type_ptr);
+
+    v_set_result_type(t);
 
     v_ast_accept_visitor((expr+1 : v_ast_base_ptr), vis);       //- Value
 
