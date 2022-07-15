@@ -389,6 +389,8 @@
 
     ft = v_function_type(void, typ0, 4, false);
 
+    v_add_type("vectorize_scalar_ft", ft);
+
     //-----------------------------------------------------------------
     f = v_function_hack("vectorize_scalar", ft);
 
@@ -4103,6 +4105,8 @@
     voidc_visitor_set_intrinsic(vis, vis, "svec",  voidc_svec_type_intrinsic, 0);
 
     //-------------------------------------------------------------
+    v_export_symbol("voidc_internal_vectorize_scalar", vectorize_scalar_ft, vectorize_scalar);
+
     v_export_symbol("voidc_internal_compile_add_helper", compile_op_ft, compile_add);
     v_export_symbol("voidc_internal_compile_sub_helper", compile_op_ft, compile_sub);
     v_export_symbol("voidc_internal_compile_mul_helper", compile_op_ft, compile_mul);
