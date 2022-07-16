@@ -1,0 +1,288 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+}
+
+
+//=====================================================================
+double = float(64);
+
+complex = v_struct("struct.complex")
+(
+    double,     //- real
+    double      //- imag
+);
+
+
+//---------------------------------------------------------------------
+complex_add_assign: (a: &complex, b: complex) -> &complex
+{
+    a := { a[0]+b[0], a[1]+b[1] };
+
+    v_return(a);
+}
+
+complex_sub_assign: (a: &complex, b: complex) -> &complex
+{
+    a := { a[0]-b[0], a[1]-b[1] };
+
+    v_return(a);
+}
+
+complex_mul_assign: (a: &complex, b: complex) -> &complex
+{
+    a := { a[0]*b[0] - a[1]*b[1], a[0]*b[1] + a[1]*b[0] };
+
+    v_return(a);
+}
+
+complex_div_assign: (a: &complex, b: complex) -> &complex
+{
+    d = b[0]*b[0] + b[1]*b[1];
+
+    a := { (a[0]*b[0] + a[1]*b[1])/d, (a[1]*b[0] - a[0]*b[1])/d };
+
+    v_return(a);
+}
+
+//---------------------------------------------------------------------
+{
+    complex_ref = v_reference_type(complex, 0);
+
+    v_util_function_dict_set(v_quark_from_string("op_infix_add_assign"), complex_ref, "complex_add_assign");
+    v_util_function_dict_set(v_quark_from_string("op_infix_sub_assign"), complex_ref, "complex_sub_assign");
+    v_util_function_dict_set(v_quark_from_string("op_infix_mul_assign"), complex_ref, "complex_mul_assign");
+    v_util_function_dict_set(v_quark_from_string("op_infix_div_assign"), complex_ref, "complex_div_assign");
+}
+
+
+//---------------------------------------------------------------------
+complex_add: (a: complex, b: complex) -> complex
+{
+    v_return({ a[0]+b[0], a[1]+b[1] });
+}
+
+complex_sub: (a: complex, b: complex) -> complex
+{
+    v_return({ a[0]-b[0], a[1]-b[1] });
+}
+
+complex_mul: (a: complex, b: complex) -> complex
+{
+    v_return({ a[0]*b[0] - a[1]*b[1], a[0]*b[1] + a[1]*b[0] });
+}
+
+complex_div: (a: complex, b: complex) -> complex
+{
+    d = b[0]*b[0] + b[1]*b[1];
+
+    v_return({ (a[0]*b[0] + a[1]*b[1])/d, (a[1]*b[0] - a[0]*b[1])/d });
+}
+
+//---------------------------------------------------------------------
+{
+    v_util_function_dict_set(v_quark_from_string("op_infix_add"), complex, "complex_add");
+    v_util_function_dict_set(v_quark_from_string("op_infix_sub"), complex, "complex_sub");
+    v_util_function_dict_set(v_quark_from_string("op_infix_mul"), complex, "complex_mul");
+    v_util_function_dict_set(v_quark_from_string("op_infix_div"), complex, "complex_div");
+
+    complex_ref = v_reference_type(complex, 0);
+
+    v_util_function_dict_set(v_quark_from_string("op_infix_add"), complex_ref, "complex_add");
+    v_util_function_dict_set(v_quark_from_string("op_infix_sub"), complex_ref, "complex_sub");
+    v_util_function_dict_set(v_quark_from_string("op_infix_mul"), complex_ref, "complex_mul");
+    v_util_function_dict_set(v_quark_from_string("op_infix_div"), complex_ref, "complex_div");
+}
+
+
+//---------------------------------------------------------------------
+sin: (double) -> double;
+cos: (double) -> double;
+
+M_PI = 3.14159265358979323846264338327950288419716939937510582;
+
+
+//---------------------------------------------------------------------
+U: complex = { 1, 0 };
+I: complex = { 0, 1 };
+
+//{ v_debug_print_module(1); }
+{
+    alpha = M_PI / 180;
+
+    a: complex = {cos(alpha), sin(alpha)};
+
+    z: &complex := U;
+
+    for (i: &int := 0; i <= 360; ++i)
+    {
+        if (i%30 == 0)  printf("(%g, %g)\n", z[0], z[1]);
+
+        z *= a;
+    }
+}
+
+
+//=====================================================================
+number = v_struct("struct.number")
+(
+    double
+);
+
+
+//---------------------------------------------------------------------
+number_add_assign: (a: &number, b: number) -> &number
+{
+    v_return(a := {a[0] + b[0]});
+}
+
+number_sub_assign: (a: &number, b: number) -> &number
+{
+    v_return(a := {a[0] - b[0]});
+}
+
+number_mul_assign: (a: &number, b: number) -> &number
+{
+    v_return(a := {a[0] * b[0]});
+}
+
+number_div_assign: (a: &number, b: number) -> &number
+{
+    v_return(a := {a[0] / b[0]});
+}
+
+//---------------------------------------------------------------------
+{
+    number_ref = v_reference_type(number, 0);
+
+    v_util_function_dict_set(v_quark_from_string("op_infix_add_assign"), number_ref, "number_add_assign");
+    v_util_function_dict_set(v_quark_from_string("op_infix_sub_assign"), number_ref, "number_sub_assign");
+    v_util_function_dict_set(v_quark_from_string("op_infix_mul_assign"), number_ref, "number_mul_assign");
+    v_util_function_dict_set(v_quark_from_string("op_infix_div_assign"), number_ref, "number_div_assign");
+}
+
+
+//---------------------------------------------------------------------
+number_add: (a: number, b: number) -> number
+{
+    v_return({a[0] + b[0]});
+}
+
+number_sub: (a: number, b: number) -> number
+{
+    v_return({a[0] - b[0]});
+}
+
+number_mul: (a: number, b: number) -> number
+{
+    v_return({a[0] * b[0]});
+}
+
+number_div: (a: number, b: number) -> number
+{
+    v_return({a[0] / b[0]});
+}
+
+//---------------------------------------------------------------------
+{
+    v_util_function_dict_set(v_quark_from_string("op_infix_add"), number, "number_add");
+    v_util_function_dict_set(v_quark_from_string("op_infix_sub"), number, "number_sub");
+    v_util_function_dict_set(v_quark_from_string("op_infix_mul"), number, "number_mul");
+    v_util_function_dict_set(v_quark_from_string("op_infix_div"), number, "number_div");
+
+    number_ref = v_reference_type(number, 0);
+
+    v_util_function_dict_set(v_quark_from_string("op_infix_add"), number_ref, "number_add");
+    v_util_function_dict_set(v_quark_from_string("op_infix_sub"), number_ref, "number_sub");
+    v_util_function_dict_set(v_quark_from_string("op_infix_mul"), number_ref, "number_mul");
+    v_util_function_dict_set(v_quark_from_string("op_infix_div"), number_ref, "number_div");
+}
+
+
+//---------------------------------------------------------------------
+number_eq: (a: number, b: number) -> bool   { v_return(a[0] == b[0]); }
+number_ne: (a: number, b: number) -> bool   { v_return(a[0] != b[0]); }
+number_lt: (a: number, b: number) -> bool   { v_return(a[0] <  b[0]); }
+number_le: (a: number, b: number) -> bool   { v_return(a[0] <= b[0]); }
+number_gt: (a: number, b: number) -> bool   { v_return(a[0] >  b[0]); }
+number_ge: (a: number, b: number) -> bool   { v_return(a[0] >= b[0]); }
+
+//---------------------------------------------------------------------
+{
+    v_util_function_dict_set(v_quark_from_string("op_infix_eq"), number, "number_eq");
+    v_util_function_dict_set(v_quark_from_string("op_infix_ne"), number, "number_ne");
+    v_util_function_dict_set(v_quark_from_string("op_infix_lt"), number, "number_lt");
+    v_util_function_dict_set(v_quark_from_string("op_infix_le"), number, "number_le");
+    v_util_function_dict_set(v_quark_from_string("op_infix_gt"), number, "number_gt");
+    v_util_function_dict_set(v_quark_from_string("op_infix_ge"), number, "number_ge");
+
+    number_ref = v_reference_type(number, 0);
+
+    v_util_function_dict_set(v_quark_from_string("op_infix_eq"), number_ref, "number_eq");
+    v_util_function_dict_set(v_quark_from_string("op_infix_ne"), number_ref, "number_ne");
+    v_util_function_dict_set(v_quark_from_string("op_infix_lt"), number_ref, "number_lt");
+    v_util_function_dict_set(v_quark_from_string("op_infix_le"), number_ref, "number_le");
+    v_util_function_dict_set(v_quark_from_string("op_infix_gt"), number_ref, "number_gt");
+    v_util_function_dict_set(v_quark_from_string("op_infix_ge"), number_ref, "number_ge");
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    a: number = { 0.1 };
+    b: number = { 0.9 };
+
+    printf("a == b : %d\n", (a == b : int));
+    printf("a != b : %d\n", (a != b : int));
+    printf("a <  b : %d\n", (a <  b : int));
+    printf("a <= b : %d\n", (a <= b : int));
+    printf("a >  b : %d\n", (a >  b : int));
+    printf("a >= b : %d\n", (a >= b : int));
+
+    v: &number := { 0 };
+
+    for (i: &int := 0; i < 12; ++i)
+    {
+        r = a < v < b;
+
+        printf("a < { %g } < b : %d\n", v[0], (r : int));
+
+        v += a;
+    }
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+
+tt = int[8];
+
+vv: &tt := {0, 1, 2};
+
+{
+    printf("\n%d\n", vv[2]);
+
+
+
+}
+
+
+
+
