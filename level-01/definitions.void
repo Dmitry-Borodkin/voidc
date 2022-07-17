@@ -1908,7 +1908,7 @@
     v_initialize(op_prefix_const);
     v_initialize(op_prefix_volatile);
 
-    v_ast_make_operator_binary(op_infix_to,        "op_infix_to",        30000, 1);     //- "Postfix" priority, left-assoc
+    v_ast_make_operator_binary(op_infix_to,        "op_infix_to",         2000, 1);     //- "Lowest" priority, left-assoc
     v_ast_make_operator_unary( op_prefix_const,    "op_prefix_const",    20000);        //- "Prefix" priority
     v_ast_make_operator_unary( op_prefix_volatile, "op_prefix_volatile", 20000);        //- "Prefix" priority
 

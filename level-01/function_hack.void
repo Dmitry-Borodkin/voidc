@@ -732,13 +732,9 @@
     //-
     //-         v_set_result_type(ret_type);
     //-
-    //-         v_push_temporaries();
-    //-
     //-         base_arg0 = v_cast(arg0, v_ast_base_ptr);
     //-
     //-         v_ast_accept_visitor(base_arg0, visitor);
-    //-
-    //-         v_pop_temporaries();
     //-
     //-         ret = v_get_result_value();
     //-
@@ -821,24 +817,12 @@
     LLVMBuildCall2(builder, set_res_type_ft_, set_res_type_f, val0, 1, "");
 
 
-    push_temps_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_push_temporaries"));
-    push_temps_f   = v_obtain_function("v_push_temporaries");
-
-    LLVMBuildCall2(builder, push_temps_ft_, push_temps_f, 0, 0, "");
-
-
     base_arg0 = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg0");
 
     v_store(base_arg0, val0);
     v_store(visitor,   val1);
 
     LLVMBuildCall2(builder, accept_visitor_ft_, accept_visitor_f, val0, 2, "");
-
-
-    pop_temps_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_pop_temporaries"));
-    pop_temps_f   = v_obtain_function("v_pop_temporaries");
-
-    LLVMBuildCall2(builder, pop_temps_ft_, pop_temps_f, 0, 0, "");
 
 
     ret_v = LLVMBuildCall2(builder, get_res_val_ft_, get_res_val_f, 0, 0, "ret_v");

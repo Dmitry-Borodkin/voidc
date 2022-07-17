@@ -1215,6 +1215,8 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     case id_postfix_dec:    compile := compile_postfix_dec_helper;   v_break();
     }
 
+    t0: &v_type_ptr := t0;          //- Sic!
+
     v = compile(vis, t0, v0);
 
     v_set_result_type(tt);
