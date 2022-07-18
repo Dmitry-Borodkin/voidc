@@ -149,10 +149,10 @@
     ft = v_function_type(void, typ, 1, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_definitions_internal_gloabls_cleaner", ft);
+    f = v_function_hack("voidc_definitions_internal_globals_cleaner", ft);
 }
 {
-//  printf("voidc_definitions_internal_gloabls_cleaner\n");
+//  printf("voidc_definitions_internal_globals_cleaner\n");
 
     v_terminate(op_infix_to);
     v_terminate(op_prefix_const);
@@ -1912,7 +1912,7 @@
     v_ast_make_operator_unary( op_prefix_const,    "op_prefix_const",    20000);        //- "Prefix" priority
     v_ast_make_operator_unary( op_prefix_volatile, "op_prefix_volatile", 20000);        //- "Prefix" priority
 
-    v_add_cleaner(voidc_definitions_internal_gloabls_cleaner, 0);
+    v_add_cleaner(voidc_definitions_internal_globals_cleaner, 0);
 }
 
 
