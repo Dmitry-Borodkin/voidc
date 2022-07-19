@@ -29,6 +29,8 @@
 {   v_import("compile_type.void");
 }
 
+//{ v_import("printf.void"); }
+
 
 //---------------------------------------------------------------------
 {   v_add_type("void_ptr", v_pointer_type(void, 0));
@@ -131,9 +133,9 @@
     v_make_global("decl_list",    lst_ref);
     v_make_global("const_list",   lst_ref);
 
-    v_make_global("op_infix_to",        v_ast_opaque_generic_list_sptr);
-    v_make_global("op_prefix_const",    v_ast_opaque_generic_list_sptr);
-    v_make_global("op_prefix_volatile", v_ast_opaque_generic_list_sptr);
+    v_make_global("op_infix_to",        v_ast_opaque_expr_sptr);
+    v_make_global("op_prefix_const",    v_ast_opaque_expr_sptr);
+    v_make_global("op_prefix_volatile", v_ast_opaque_expr_sptr);
 
     intptr_t_ = v_type_get_llvm_type(intptr_t);
 
@@ -369,8 +371,8 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-//    printf("mk_unit_var_defn_grammar_action\n");
-//    defer printf("mk_unit_var_defn_grammar_action leave\n");
+//  printf("mk_unit_var_defn_grammar_action\n");
+//  defer printf("mk_unit_var_defn_grammar_action leave\n");
 
     q_id = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
 
@@ -411,7 +413,7 @@
 
         v_ast_expr_call_get_arg_list(ast2, arg_list);
 
-        v_list_get_items(arg_list, 0, ast2, 2);
+        v_list_get_items(arg_list, 1, ast2, 2);
     }
 
     v_list_get_items(q_id, 0, ast, 2);
@@ -597,7 +599,7 @@
 
         v_ast_expr_call_get_arg_list(ast0, arg_list);
 
-        v_list_get_items(arg_list, 0, ast0, 2);
+        v_list_get_items(arg_list, 1, ast0, 2);
     }
 
     lst = v_alloca(v_ast_opaque_expr_list_sptr);
@@ -684,6 +686,7 @@
 }
 {
 //  printf("v_internal_var_defn_intrinsic\n");
+//  defer printf("v_internal_var_defn_intrinsic leave\n");
 
     arg = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg, 2);
@@ -731,6 +734,7 @@
 }
 {
 //  printf("v_internal_val_defn_intrinsic\n");
+//  defer printf("v_internal_val_defn_intrinsic leave\n");
 
     arg = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(arg, 2);
@@ -765,6 +769,7 @@
 }
 {
 //  printf("compile_br_item_list\n");
+//  defer printf("compile_br_item_list leave\n");
 
     lst = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(lst);
@@ -829,8 +834,8 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-//    printf("compile_unit_fun_defn\n");
-//    defer printf("compile_unit_fun_defn leave\n");
+//  printf("compile_unit_fun_defn\n");
+//  defer printf("compile_unit_fun_defn leave\n");
 
     ast = v_alloca(v_ast_opaque_base_sptr, 9);
     v_initialize(ast, 9);
@@ -855,7 +860,7 @@
 
     v_ast_expr_call_get_arg_list(v_cast(params, v_ast_expr_ptr), args);
 
-    v_list_get_items(args, 0, v_cast(ast+5, v_ast_expr_ptr));
+    v_list_get_items(args, 1, v_cast(ast+5, v_ast_expr_ptr));
 
     args = v_cast(ast+5, v_ast_generic_list_ptr);
 
@@ -959,8 +964,8 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-//    printf("compile_unit_var_defn\n");
-//    defer printf("compile_unit_var_defn leave\n");
+//  printf("compile_unit_var_defn\n");
+//  defer printf("compile_unit_var_defn leave\n");
 
     ast = v_alloca(v_ast_opaque_base_sptr, 4);
     v_initialize(ast, 4);
@@ -1050,6 +1055,7 @@
 }
 {
 //  printf("compile_unit_val_defn\n");
+//  defer printf("compile_unit_val_defn leave\n");
 
     ast = v_alloca(v_ast_opaque_base_sptr, 4);
     v_initialize(ast, 4);
@@ -1150,8 +1156,8 @@
     v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
 }
 {
-//    printf("compile_defn_list_unit\n");
-//    defer printf("compile_defn_list_unit leave\n");
+//  printf("compile_defn_list_unit\n");
+//  defer printf("compile_defn_list_unit leave\n");
 
     //- Definitions (i.e. "values of things") ---------------------
 
@@ -1513,17 +1519,17 @@
 {
 //  printf("compile_op_prefix_cv\n");
 
-    ast = v_alloca(v_ast_opaque_base_sptr);
+    ast = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(ast);
     defer v_terminate(ast);
 
-    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr));
+    v_list_get_items(arg_list, 1, ast);
 
     //-----------------------------------------------------------------
     //- Just "ignore" it...
     //-----------------------------------------------------------------
 
-    v_ast_accept_visitor(ast, visitor);
+    v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 }
 
 
@@ -1539,24 +1545,24 @@
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
     v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
-    v_add_parameter_name(f, 3, "count",    int);
+//  v_add_parameter_name(f, 3, "count",    int);
 }
 {
-//    printf("compile_op_infix_to\n");
-//    defer printf("compile_op_infix_to leave\n");
+//  printf("compile_op_infix_to\n");
+//  defer printf("compile_op_infix_to leave\n");
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 2);
+    ast = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
-    v_list_get_items(arg_list, 0, v_cast(ast, v_ast_expr_ptr), 2);
+    v_list_get_items(arg_list, 1, ast, 2);
 
 
     args = v_cast(ast+0, v_ast_expr_list_ptr);
 
     v_ast_expr_call_get_arg_list(v_cast(ast+0, v_ast_expr_ptr), args);
 
-    v_list_get_items(args, 0, v_cast(ast+0, v_ast_expr_ptr));
+    v_list_get_items(args, 1, v_cast(ast+0, v_ast_expr_ptr));
 
     args = v_cast(ast+0, v_ast_generic_list_ptr);
 
@@ -1584,7 +1590,7 @@
 
             v_list_get_items(args, i, item);
 
-            v_list_get_items(v_cast(item, v_ast_generic_list_ptr), 1, item);
+            v_list_get_items(v_cast(item, v_ast_expr_list_ptr), 1, v_cast(item, v_ast_expr_ptr));
 
             if (v_empty(item))
             {
@@ -1607,7 +1613,7 @@
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(ast+1, visitor);
+    v_ast_accept_visitor(v_cast(ast+1, v_ast_base_ptr), visitor);
 
     rtyp = v_cast(v_get_result_value(), v_type_ptr);
 
@@ -1908,9 +1914,15 @@
     v_initialize(op_prefix_const);
     v_initialize(op_prefix_volatile);
 
-    v_ast_make_operator_binary(op_infix_to,        "op_infix_to",         2000, 1);     //- "Lowest" priority, left-assoc
-    v_ast_make_operator_unary( op_prefix_const,    "op_prefix_const",    20000);        //- "Prefix" priority
-    v_ast_make_operator_unary( op_prefix_volatile, "op_prefix_volatile", 20000);        //- "Prefix" priority
+    op_binary = v_ast_make_operator_binary;
+    op_unary  = v_ast_make_operator_unary;
+
+    q = v_quark_from_string;
+
+    op_binary(op_infix_to, q("op_infix_to"), 2000, 1, 0);               //- "Lowest" priority, left-assoc
+
+    op_unary(op_prefix_const,    q("op_prefix_const"),    20000, 0);    //- "Prefix" priority
+    op_unary(op_prefix_volatile, q("op_prefix_volatile"), 20000, 0);    //- "Prefix" priority
 
     v_add_cleaner(voidc_definitions_internal_globals_cleaner, 0);
 }

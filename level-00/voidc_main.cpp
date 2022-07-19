@@ -825,9 +825,9 @@ main(int argc, char *argv[])
 
     voidc_grammar = make_voidc_grammar();
 
-    vpeg::grammar_t current_grammar = voidc_grammar;
+    {   vpeg::grammar_t current_grammar = voidc_grammar;
 
-    {   voidc_local_ctx_t lctx(gctx);
+        voidc_local_ctx_t lctx(gctx);
 
         for (auto &src : sources)
         {

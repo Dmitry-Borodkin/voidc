@@ -69,7 +69,7 @@
     src: &*char := "Hello world!";
     dst: &*char := &buf[0];
 
-    while(d = *dst++, s = *src++)   d := s;
+    while(s = *src++, *dst++ := s);
 
     printf("\n%s\n", &buf[0]);
 }
