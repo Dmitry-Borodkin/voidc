@@ -710,11 +710,7 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 
             LLVMValueRef val[2] = { n0, n0 };
 
-#if LLVM_VERSION_MAJOR < 14
-            return  LLVMConstGEP(v1, val, 2);
-#else
-            return  LLVMConstGEP2(t->llvm_type(), v1, val, 2);
-#endif
+            return  LLVMBuildInBoundsGEP2(gctx.builder, t->llvm_type(), v1, val, 2, "");
         }
     }
 
@@ -1709,7 +1705,7 @@ voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local)
     val[0] = LLVMConstInt(gctx.int_type->llvm_type(), 0, 0);
     val[1] = val[0];
 
-    auto membuf_const_ptr = LLVMBuildGEP2(gctx.builder, membuf_const_type, membuf_glob, val, 2, "membuf_const_ptr");
+    auto membuf_const_ptr = LLVMBuildInBoundsGEP2(gctx.builder, membuf_const_type, membuf_glob, val, 2, "membuf_const_ptr");
 
     v_type_t    *t;
     LLVMValueRef f;
