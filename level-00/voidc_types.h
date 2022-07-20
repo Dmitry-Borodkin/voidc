@@ -211,7 +211,7 @@ public:
 
     unsigned param_count(void) const { return unsigned(key.first.size() - 1); }
 
-    v_type_t * const *param_types(void) { return key.first.data() + 1; }
+    v_type_t * const *param_types(void) const { return key.first.data() + 1; }
 };
 
 

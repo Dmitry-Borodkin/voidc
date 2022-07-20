@@ -150,38 +150,6 @@ op_table_ctor: () -> void
 
 
 //---------------------------------------------------------------------
-private
-lookup_function_dict: (vis: voidc_visitor_ptr, q: v_quark_t, t: v_type_ptr,
-                       void_fun: &*void, void_aux: &*void,
-                       ft: &v_type_ptr, fv: &LLVMValueRef
-                      ) -> bool
-{
-    fname = v_util_function_dict_get(q, t);
-    if (!fname) v_return(false);
-
-    if (void_fun := v_get_intrinsic(fname, &void_aux))  v_return(true);
-
-    if (void_fun := voidc_visitor_get_intrinsic(vis, fname, &void_aux)) v_return(true);
-
-    ft := v_find_symbol_type(fname);
-
-    if (!ft)  v_return(false);
-
-    module = v_get_module();
-
-    fv := LLVMGetNamedFunction(module, fname);
-
-    if (fv) v_return(true);
-
-    ft_ = v_type_get_llvm_type(ft);
-
-    fv := LLVMAddFunction(module, fname, ft_);
-
-    v_return(true);
-}
-
-
-//---------------------------------------------------------------------
 intrinsic_p1_t = (vis: voidc_visitor_ptr, aux: *void,
                   ast: v_ast_expr_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef
@@ -224,7 +192,7 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -364,7 +332,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     builder = v_target_get_builder();
 
-    if (lookup_function_dict(vis, q0, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, q0, t0, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -415,7 +383,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     q1 = op_table[(aux: int)][3];       //- Quark (right)
 
-    if (lookup_function_dict(vis, q1, t1, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, q1, t1, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -685,7 +653,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         ft: &v_type_ptr   := 0;
         fv: &LLVMValueRef := 0;
 
-        if (lookup_function_dict(vis, q0, typ, void_fun, void_aux, ft, fv))
+        if (v_util_lookup_function_dict(vis, q0, typ, void_fun, void_aux, ft, fv))
         {
             //- Got overloading!
 
@@ -746,7 +714,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             q1 = op_table[(aux: int)][3];       //- Quark (right)
 
-            if (lookup_function_dict(vis, q1, t1, void_fun, void_aux, ft, fv))
+            if (v_util_lookup_function_dict(vis, q1, t1, void_fun, void_aux, ft, fv))
             {
                 //- Got overloading!
 
@@ -921,7 +889,7 @@ inc_dec_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef, delta:
 
     v_ast_make_expr_integer(step, delta);
 
-    step_base = v_cast(step, v_ast_base_ptr);
+    step_base = (step: v_ast_base_ptr);
 
 
     pf = v_type_is_pointer(st);
@@ -1163,7 +1131,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -1340,7 +1308,7 @@ compile_ast_expr_call_t: (vis: voidc_visitor_ptr, *void,
         ft: &v_type_ptr   := 0;
         fv: &LLVMValueRef := 0;
 
-        if (lookup_function_dict(vis, q, t, void_fun, void_aux, ft, fv))
+        if (v_util_lookup_function_dict(vis, q, t, void_fun, void_aux, ft, fv))
         {
             //- Got overloading!
 
@@ -1459,7 +1427,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -1474,13 +1442,11 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             par_count = v_type_function_get_param_count(ft);
             par_types = v_type_function_get_param_types(ft);
 
-            void_obj = v_ast_generic_get_object(v_cast(ast+0, v_ast_base_ptr));
+            void_obj = v_ast_generic_get_object((ast+0 : v_ast_base_ptr));
 
-            obj = v_cast(void_obj, v_ast_operator_unary_ptr);
+            obj = *(void_obj: v_ast_operator_unary_ptr);
 
-            pay = v_getelementptr(obj, 0, 2);
-
-            idx_list = v_cast(pay, v_ast_expr_list_ptr);
+            idx_list = (&obj[2] : v_ast_expr_list_ptr);
 
             arg_count = 1 + v_list_get_size(idx_list);
 
@@ -1530,13 +1496,11 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     agg_t: &v_type_ptr   := t0;
     agg_v: &LLVMValueRef := v0;
 
-    void_obj = v_ast_generic_get_object(v_cast(ast+0, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object((ast+0 : v_ast_base_ptr));
 
-    obj = v_cast(void_obj, v_ast_operator_unary_ptr);
+    obj = *(void_obj: v_ast_operator_unary_ptr);
 
-    pay = v_getelementptr(obj, 0, 2);
-
-    idx_list = v_cast(pay, v_ast_expr_list_ptr);
+    idx_list = (&obj[2] : v_ast_expr_list_ptr);
 
     etmp = ast + 0;     //- Sic!
 
@@ -1652,13 +1616,11 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     v_initialize(expr);
     defer v_terminate(expr);
 
-    void_obj = v_ast_generic_get_object(v_cast(ast+0, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object((ast+0 : v_ast_base_ptr));
 
-    obj = v_cast(void_obj, v_ast_operator_unary_ptr);
+    obj = *(void_obj: v_ast_operator_unary_ptr);
 
-    pay = v_getelementptr(obj, 0, 2);
-
-    idx_list = v_cast(pay, v_ast_expr_list_ptr);
+    idx_list = (&obj[2] : v_ast_expr_list_ptr);
 
     v_list_get_items(idx_list, 0, expr);            //- Just one!
 
@@ -1668,7 +1630,7 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     idx_v = v_get_result_value();
 
-    n = v_cast(LLVMConstIntGetZExtValue(idx_v), uint64_t);
+    n = (LLVMConstIntGetZExtValue(idx_v) : uint64_t);
 
     typ = (v: v_type_ptr);
 

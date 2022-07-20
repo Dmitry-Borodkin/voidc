@@ -507,9 +507,15 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 
             if (et->kind() == v_type_t::k_array)
             {
+                //- Special case for C-like array-to-pointer "promotion"...
+
+                et = static_cast<v_type_array_t *>(et)->element_type();
+
                 result_type = global_ctx.make_pointer_type(et, 0);
 
-                break;      //- value unchanged...
+                value = convert_to_type(type, value, result_type);
+
+                break;
             }
 
             result_type = et;

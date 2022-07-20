@@ -1,0 +1,411 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2022 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("projections.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("unit_module.void");
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("projections_module"); }
+
+
+//---------------------------------------------------------------------
+op_postfix_dot:     &v_ast_opaque_expr_sptr := v_undef();
+op_postfix_tildato: &v_ast_opaque_expr_sptr := v_undef();
+
+voidc_projections_internal_globals_cleaner: (*void) -> void
+{
+    v_terminate(&op_postfix_dot);
+    v_terminate(&op_postfix_tildato);
+}
+
+
+//---------------------------------------------------------------------
+//- mk_projection - grammar action
+//---------------------------------------------------------------------
+private
+mk_projection_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, size_t) -> void
+{
+    op0  = v_std_any_get_pointer(v_ast_opaque_expr_sptr,      any+0);
+    name = v_std_any_get_pointer(v_util_opaque_std_string,    any+1);
+    args = v_std_any_get_pointer(v_ast_opaque_expr_list_sptr, any+2);
+
+    void_obj = v_ast_generic_get_object((op0: v_ast_base_ptr));
+
+    obj = *(void_obj: v_ast_operator_unary_ptr);
+
+    quark = obj[0];
+    prec  = obj[1];
+
+
+    pay = v_alloca(v_ast_opaque_generic_list_sptr);
+    v_initialize(pay);
+    defer v_terminate(pay);
+
+    id = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(id);
+    defer v_terminate(id);
+
+    v_ast_make_expr_identifier(id, v_std_string_get(name));
+
+    v_make_list(pay, 0, (id: v_ast_base_ptr), 1);
+
+    if (args) v_list_append(pay, pay, (args: v_ast_base_ptr));
+
+
+    op1 = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(op1);
+    defer v_terminate(op1);
+
+    v_ast_make_operator_unary(op1, quark, prec, (pay: v_ast_base_ptr));
+
+    v_std_any_set_pointer(ret, op1);
+}
+
+
+//---------------------------------------------------------------------
+private
+intrinsic_p1_t = (vis: voidc_visitor_ptr, aux: *void,
+                  ast: v_ast_expr_ptr,
+                  t0: v_type_ptr, v0: LLVMValueRef
+                 ) -> void;
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+op_postfix_dot_helper: (vis: voidc_visitor_ptr,
+                        ast: v_ast_expr_ptr,
+                        t0: v_type_ptr, v0: LLVMValueRef
+                       ) -> void
+{
+    void_obj = v_ast_generic_get_object(v_cast(ast+0, v_ast_base_ptr));
+
+    obj = *(void_obj: v_ast_operator_unary_ptr);
+
+    pay = (&obj[2] : v_ast_generic_list_ptr);
+
+
+    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(etmp);
+    defer v_terminate(etmp);
+
+    v_list_get_items(pay, 0, (etmp: v_ast_base_ptr));
+
+    name = v_ast_expr_identifier_get_name(etmp);
+
+    quark: &v_quark_t := v_undef();
+
+    {   sstr = v_alloca(v_util_opaque_std_string);
+        v_initialize(sstr);
+        defer v_terminate(sstr);
+
+        v_std_string_set(sstr, ".");
+
+        v_std_string_append(sstr, name);
+
+        if (v_list_get_size(pay) > 1)
+        {
+            v_std_string_append(sstr, "()");
+        }
+
+        quark := v_quark_from_string(v_std_string_get(sstr));
+    }
+
+    void_fun: &*void := 0;
+    void_aux: &*void := 0;
+
+    ft: &v_type_ptr   := 0;
+    fv: &LLVMValueRef := 0;
+
+    ok = v_util_lookup_function_dict(vis, quark, t0, void_fun, void_aux, ft, fv);
+
+    //- assert(ok);         //- Overloading only!
+
+    if (fun = (void_fun: *intrinsic_p1_t))
+    {
+        fun(vis, void_aux, ast, t0, v0);
+
+        v_return();
+    }
+
+    par_count = v_type_function_get_param_count(ft);
+    par_types = v_type_function_get_param_types(ft);
+
+    alst = v_alloca(v_ast_opaque_expr_list_sptr);
+    v_initialize(alst);
+    defer v_terminate(alst);
+
+    arg_count: &int := 1;
+
+    if (v_list_get_size(pay) > 1)
+    {
+        v_list_get_items(pay, 1, (alst: v_ast_base_ptr));
+
+        arg_count += (v_list_get_size(alst) : int);
+    }
+
+    values = v_malloc(LLVMValueRef, arg_count);
+    defer v_free(values);
+
+    tt = v_get_result_type();
+
+    for (j: &int := 0; j < arg_count; ++j)
+    {
+        if (j == 0)
+        {
+            v_set_result_type(par_types[0]);
+
+            v_adopt_result(t0, v0);
+        }
+        else
+        {
+            if (j < par_count)  v_set_result_type(par_types[j]);
+            else                v_set_result_type(UNREFERENCE_TAG);
+
+            v_list_get_items(alst, j-1, etmp);
+
+            v_ast_accept_visitor((etmp: v_ast_base_ptr), vis);
+        }
+
+        values[j] := v_get_result_value();
+    }
+
+    builder = v_target_get_builder();
+
+    ft_ = v_type_get_llvm_type(ft);
+
+    vr = LLVMBuildCall2(builder, ft_, fv, values, arg_count, "");
+
+
+    tr = v_type_function_get_return_type(ft);
+
+    v_set_result_type(tt);
+
+    v_adopt_result(tr, vr);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+op_postfix_dot_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+                           args: v_ast_expr_list_ptr, count: int) -> void
+{
+    ast = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(ast, 2);
+    defer v_terminate(ast, 2);
+
+    v_list_get_items(args, 0, ast, 2);
+
+
+    tt = v_get_result_type();
+
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor((ast+1: v_ast_base_ptr), vis);
+
+    t0 = v_get_result_type();
+    v0 = v_get_result_value();
+
+
+    v_set_result_type(tt);
+
+    op_postfix_dot_helper(vis, ast, t0, v0);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+                               args: v_ast_expr_list_ptr, count: int) -> void
+{
+    ast = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(ast, 2);
+    defer v_terminate(ast, 2);
+
+    v_list_get_items(args, 0, ast, 2);
+
+    tt = v_get_result_type();
+
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor((ast+1: v_ast_base_ptr), vis);
+
+    t0: &v_type_ptr   := v_get_result_type();
+    v0: &LLVMValueRef := v_get_result_value();
+
+    builder = v_target_get_builder();
+
+    q = v_quark_from_string("op_postfix_tildato");
+
+    void_fun: &*void := 0;
+    void_aux: &*void := 0;
+
+    ft: &v_type_ptr   := 0;
+    fv: &LLVMValueRef := 0;
+
+    if (v_util_lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
+    {
+        //- Got overloading!
+
+        if (fun = (void_fun: *intrinsic_p1_t))
+        {
+            v_set_result_type(INVIOLABLE_TAG);
+
+            fun(vis, void_aux, ast, t0, v0);
+
+            t0 := v_get_result_type();
+            v0 := v_get_result_value();
+        }
+        else
+        {
+            val: &LLVMValueRef := v_undef();
+
+            fpar = v_type_function_get_param_types(ft);
+
+            v_set_result_type(fpar[0]);
+
+            v_adopt_result(t0, v0);
+
+            val := v_get_result_value();
+
+            ft_ = v_type_get_llvm_type(ft);
+
+            v0 := LLVMBuildCall2(builder, ft_, fv, &val, 1, "");
+
+            t0 := v_type_function_get_return_type(ft);
+        }
+
+        if (v_type_is_reference(t0))
+        {
+            t0 := v_type_refptr_get_element_type(t0);
+
+            v0 := LLVMBuildLoad2(builder, v_type_get_llvm_type(t0), v0, "");
+        }
+    }
+
+    {   e = v_type_refptr_get_element_type(t0);
+        a = v_type_refptr_get_address_space(t0);
+
+        t0 := v_reference_type(e, a);
+    }
+
+
+    //- Default treatment...
+
+    v_set_result_type(tt);
+
+    op_postfix_dot_helper(vis, ast, t0, v0);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable projections
+//---------------------------------------------------------------------
+export
+voidc_enable_projections_compiler: () -> void
+{
+    vis = voidc_compiler;
+
+    v_return_if(voidc_visitor_get_intrinsic(vis, "v.op_postfix_dot", 0));
+
+    voidc_visitor_set_intrinsic(vis, vis, "v.op_postfix_dot",     op_postfix_dot_intrinsic,     0);
+    voidc_visitor_set_intrinsic(vis, vis, "v.op_postfix_tildato", op_postfix_tildato_intrinsic, 0);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable projections
+//---------------------------------------------------------------------
+export
+voidc_enable_projections: () -> void
+{
+    voidc_enable_projections_compiler();
+
+
+    v_return_if_not(voidc_has_grammar());
+
+    any = v_alloca(v_util_opaque_std_any, 2);
+    v_initialize(any, 2);
+    defer v_terminate(any, 2);
+
+    any_dot     = any + 0;
+    any_tildato = any + 1;
+
+    v_std_any_set_pointer(any_dot,     &op_postfix_dot);
+    v_std_any_set_pointer(any_tildato, &op_postfix_tildato);
+
+    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    v_initialize(gr0);
+    defer v_terminate(gr0);
+
+    v_peg_get_grammar(gr0);
+
+    grammar gr0
+    {
+    values:
+        op_postfix_dot     = any_dot;
+        op_postfix_tildato = any_tildato;
+
+    actions:
+        mk_projection = mk_projection_grammar_action;
+
+    parsers:
+        postfix += '.' _ i:identifier _'('_ al:expr_list _')'   { mk_projection(op_postfix_dot,     i, al) }
+                 / '.' _ i:identifier                           { mk_projection(op_postfix_dot,     i,  0) }
+                 / "~>"_ i:identifier _'('_ al:expr_list _')'   { mk_projection(op_postfix_tildato, i, al) }
+                 / "~>"_ i:identifier                           { mk_projection(op_postfix_tildato, i,  0) }
+                 ;
+    }
+
+    v_peg_set_grammar(gr0);
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{
+    v_initialize(&op_postfix_dot);
+    v_initialize(&op_postfix_tildato);
+
+    q = v_quark_from_string;
+
+    v_ast_make_operator_unary(&op_postfix_dot,     q("op_postfix_dot"),     30000, 0);      //- "Postfix" priority
+    v_ast_make_operator_unary(&op_postfix_tildato, q("op_postfix_tildato"), 30000, 0);      //- "Postfix" priority
+
+    v_add_cleaner(voidc_projections_internal_globals_cleaner, 0);
+}
+
+

@@ -42,9 +42,13 @@
 //- Function dict utility
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 3);
+    typ0 = v_alloca(v_type_ptr, 7);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
+    typ5 = v_getelementptr(typ0, 5);
+    typ6 = v_getelementptr(typ0, 6);
 
     char_ptr = v_pointer_type(char, 0);
 
@@ -58,6 +62,26 @@
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_util_function_dict_set", ft);
+
+
+    visitor_ptr = v_pointer_type(voidc_opaque_visitor_sptr, 0);     //- Sic!
+
+    void_ptr     = v_pointer_type(void, 0);
+    void_ptr_ref = v_reference_type(void_ptr, 0);
+
+    v_type_ptr_ref   = v_reference_type(v_type_ptr,   0);
+    LLVMValueRef_ref = v_reference_type(LLVMValueRef, 0);
+
+    v_store(visitor_ptr,      typ0);
+    v_store(v_quark_t,        typ1);
+    v_store(v_type_ptr,       typ2);
+    v_store(void_ptr_ref,     typ3);
+    v_store(void_ptr_ref,     typ4);
+    v_store(v_type_ptr_ref,   typ5);
+    v_store(LLVMValueRef_ref, typ6);
+
+    ft = v_function_type(bool, typ0, 7, false);
+    v_export_symbol_type("v_util_lookup_function_dict", ft);
 }
 
 

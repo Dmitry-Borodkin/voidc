@@ -1,0 +1,160 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+    v_import("projections.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+    voidc_enable_projections();
+}
+
+
+//=====================================================================
+double = float(64);
+
+Vector = v_struct("struct.my_vector_2d")( double[2] );
+
+vector_x_ref: (v: &Vector) -> &double
+{
+    v_return(v[0][0]);
+}
+
+vector_y_ref: (v: &Vector) -> &double
+{
+    v_return(v[0][1]);
+}
+
+vector_x: (v: Vector) -> double
+{
+    v_return(v[0][0]);
+}
+
+vector_y: (v: Vector) -> double
+{
+    v_return(v[0][1]);
+}
+
+
+{   vector_ref = v_reference_type(Vector, 0);
+
+    q = v_quark_from_string;
+
+    v_util_function_dict_set(q(".x"), vector_ref, "vector_x_ref");
+    v_util_function_dict_set(q(".y"), vector_ref, "vector_y_ref");
+    v_util_function_dict_set(q(".x"), Vector,     "vector_x");
+    v_util_function_dict_set(q(".y"), Vector,     "vector_y");
+}
+
+
+//---------------------------------------------------------------------
+{
+    v: &Vector := {{1.7, 2.3}};
+
+    printf("v: (%g, %g)\n", v.x, v.y);
+
+    v.x += 5.3;
+
+    printf("v: (%g, %g)\n", v.x, v.y);
+
+
+    w: Vector = {{1.1, 2.2}};
+
+    printf("w: (%g, %g)\n", w.x, w.y);
+}
+
+
+//---------------------------------------------------------------------
+vector_add_ref: (v: &Vector, x: double, y: double) -> &Vector
+{
+    v.x += x;
+    v.y += y;
+
+    v_return(v);
+}
+
+vector_add: (v: Vector, x: double, y: double) -> Vector
+{
+    v_return({{v.x+x, v.y+y}});
+}
+
+
+{   vector_ref = v_reference_type(Vector, 0);
+
+    q = v_quark_from_string;
+
+    v_util_function_dict_set(q(".add()"), vector_ref, "vector_add_ref");
+    v_util_function_dict_set(q(".add()"), Vector,     "vector_add");
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    v: &Vector := {{1.7, 2.3}};
+
+    v.add(0.1, 0.2);
+
+    printf("v: (%g, %g)\n", v.x, v.y);
+
+    w = v_load(&v).add(-0.1, -0.2);
+
+    printf("w: (%g, %g)\n", w.x, w.y);
+
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    v: &Vector := {{1.7, 2.3}};
+
+    p = &v;
+
+    p~>add(0.3, 0.4);
+
+    printf("p: (%g, %g)\n", p~>x, p~>y);
+
+    w = v_load(p).add(-0.3, -0.4);
+
+    printf("w: (%g, %g)\n", w.x, w.y);
+
+    printf("p: (%g, %g)\n", p~>x, p~>y);
+
+}
+
+
+//---------------------------------------------------------------------
+{   char_ptr     = v_pointer_type(char, 0);
+    char_ptr_ref = v_reference_type(char_ptr, 0);
+
+    q = v_quark_from_string(".my_printf()");
+
+    v_util_function_dict_set(q, char_ptr,     "printf");
+    v_util_function_dict_set(q, char_ptr_ref, "printf");
+}
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    ("Hello %s!\n" : *char).my_printf("World");         //- WTF?
+
+}
+
+

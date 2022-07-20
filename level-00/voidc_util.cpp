@@ -804,6 +804,13 @@ void v_util_function_dict_set(v_quark_t quark, v_type_t *type, const char *fun_n
     gctx.function_dict[{quark, type}] = fun_name;
 }
 
+bool v_util_lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *type,
+                                 void **void_fun, void **void_aux,
+                                 v_type_t **ft, LLVMValueRef *fv)
+{
+    return utility::lookup_function_dict(vis, quark, type, *void_fun, *void_aux, *fv, *ft);
+}
+
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(std::any, v_util_initialize_std_any_impl)
 VOIDC_DEFINE_TERMINATE_IMPL(std::any, v_util_terminate_std_any_impl)
