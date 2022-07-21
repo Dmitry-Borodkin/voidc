@@ -34,13 +34,13 @@ opk_relation = 2;
 opk_binary   = 3;
 opk_unary    = 4;
 
-op_table_item_t = v_struct("struct.op_table_item")
-(
+op_table_item_t = v_struct("struct.op_table_item",
+{
     *const char,    //- 0 - Name
     int,            //- 1 - Kind
     v_quark_t,      //- 2 - Quark (left)
     v_quark_t       //- 3 - Quark (right)
-);
+});
 
 OP_TABLE_SIZE = 39;
 

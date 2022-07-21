@@ -121,18 +121,19 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 
     type: &v_type_ptr := 0;
 
-    n1 = v_list_get_size(args);
+    n = v_list_get_size(args);
 
-    if (n1)
+    if (n)
     block
     {
         expr = v_alloca(v_ast_opaque_expr_sptr);
         v_initialize(expr);
         defer v_terminate(expr);
 
-        v_list_get_items(args, 0, expr);
+        i0: &int :=  0;
+        i1: &int := i0;
 
-        i: &int := 0;
+        v_list_get_items(args, i0, expr);
 
         if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_string_t_visitor_method_tag)
         {
@@ -140,61 +141,60 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 
             type := v_struct_type_named(name);
 
-            if (n1 == 1) v_break();
-
-            i := 1;
+            if (n == ++i0) v_break();
         }
 
-        if (i)  v_list_get_items(args, 1, expr);
+        if (i1 != i0)
+        {
+            i1 := i0;
+
+            v_list_get_items(args, i0, expr);
+        }
 
         if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_identifier_t_visitor_method_tag)
         {
             ident = v_ast_expr_identifier_get_name(expr);
 
             if (strcmp(ident, "packed") == 0) packed := true;
+
+            if (n == ++i0) v_break();
+        }
+
+        if (i1 != i0)
+        {
+            i1 := i0;
+
+            v_list_get_items(args, i0, expr);
+        }
+
+        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_call_t_visitor_method_tag)
+        {
+            alst = v_alloca(v_ast_opaque_expr_list_sptr);
+            v_initialize(alst);
+            defer v_terminate(alst);
+
+            v_ast_expr_call_get_arg_list(expr, alst);
+
+            N = v_list_get_size(alst);
+
+            types = v_malloc(v_type_ptr, N);
+            defer v_free(types);
+
+            for (i: &int := 0; i < N; ++i)
+            {
+                v_list_get_items(alst, i, expr);
+
+                v_set_result_type(INVIOLABLE_TAG);
+
+                v_ast_accept_visitor((expr : v_ast_base_ptr), vis);
+
+                types[i] := (v_get_result_value() : v_type_ptr);
+            }
+
+            if (type) v_type_struct_set_body(type, types, N, packed);
+            else      type := v_struct_type(types, N, packed);
         }
     }
-
-    if (count == 1)
-    {
-        v_set_result_type(voidc_static_type);
-        v_set_result_value((type: LLVMValueRef));
-
-        v_return();
-    }
-
-    N = v_list_get_size(args+1);
-
-    expr = v_malloc(v_ast_opaque_expr_sptr, N);
-    v_initialize(expr, N);
-    defer
-    {
-        v_terminate(expr, N);
-        v_free(expr);
-    }
-
-    v_list_get_items(args+1, 0, expr, N);
-
-    typs = v_malloc(v_type_ptr, N);
-    defer v_free(typs);
-
-    i: &int := 0;
-
-    loop
-    {
-        if (i >= N) v_break();
-
-        v_set_result_type(INVIOLABLE_TAG);
-
-        v_ast_accept_visitor((expr+i : v_ast_base_ptr), vis);
-
-        typs[i] := (v_get_result_value() : v_type_ptr);
-
-        ++i;
-    }
-
-    if (type) v_type_struct_set_body(type, typs, N, packed);
-    else      type := v_struct_type(typs, N, packed);
 
     v_set_result_type(voidc_static_type);
     v_set_result_value((type: LLVMValueRef));

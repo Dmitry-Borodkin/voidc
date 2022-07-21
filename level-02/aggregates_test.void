@@ -58,14 +58,14 @@ VV: int[10] = {  0,   1,   2,   3, C+4, C+5, C+6, C+7, C+8};
 p: &*int := &c;
 
 
-sss = v_struct("qwerty", packed)(int, bool, long);
+sss = v_struct("qwerty", packed, {int, bool, long});
 
 sv: sss = {777, true, 999999};
 
 s: &sss := sv;
 
 
-qqq = v_struct("struct.asdfgh")(int, sss);
+qqq = v_struct("struct.asdfgh", {int, sss});
 
 qv: qqq = {999, sv};
 
@@ -108,7 +108,7 @@ rrr = v_typed(char[2][5], {"A", "B", "C", "D", "E"});
 
 node_t = v_struct("struct.node_t");
 
-node_t = v_struct("struct.node_t")(int, *node_t);
+node_t = v_struct("struct.node_t", {int, *node_t});
 
 
 {   n0: &node_t := {0,   0};
