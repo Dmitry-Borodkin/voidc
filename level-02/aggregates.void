@@ -36,7 +36,7 @@ voidc_aggregates_internal_gloabls_cleaner: (*void) -> void
 
 //---------------------------------------------------------------------
 v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
-                        args: v_ast_expr_list_ptr, count: int) -> void
+                        args: v_ast_expr_list_ptr) -> void
 {
     N = v_list_get_size(args);
 
@@ -115,7 +115,7 @@ strcmp: (*const char, *const char) -> int;
 //- v_struct ...
 //---------------------------------------------------------------------
 v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
-                     args: v_ast_expr_list_ptr, count: int) -> void
+                     args: v_ast_expr_list_ptr) -> void
 {
     packed: &bool := false;
 

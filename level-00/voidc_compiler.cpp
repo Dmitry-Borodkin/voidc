@@ -121,21 +121,10 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *,
     auto &lctx = *gctx.local_ctx;
 
 
-    const ast_expr_sptr_t *_fexpr = fexpr;
-
-    int count = 1;
-
-    while(auto ecall = std::dynamic_pointer_cast<const ast_expr_call_t>(*_fexpr))
-    {
-        _fexpr = &ecall->fun_expr;
-
-        count += 1;
-    }
-
     void *void_fun = nullptr;
-    void *aux;
+    void *void_aux;
 
-    if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_t>(*_fexpr))
+    if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_t>(*fexpr))
     {
         auto &fun_name = fname->name;
 
@@ -144,33 +133,18 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *,
             if (auto p = intrs.find(fun_name))
             {
                 void_fun = p->first;
-                aux      = p->second;
+                void_aux = p->second;
 
                 break;
             }
         }
     }
 
-    auto _args = std::make_unique<ast_expr_list_sptr_t[]>(count);
-
-    _args[count-1] = *args;
-
-    _fexpr = fexpr;
-
-    for (int i=count-2; i>=0; --i)
-    {
-        auto ecall = std::dynamic_pointer_cast<const ast_expr_call_t>(*_fexpr);
-
-        _fexpr = &ecall->fun_expr;
-
-        _args[i] = ecall->arg_list;
-    }
-
     if (void_fun)       //- Compile-time intrinsic?
     {
-        typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args, int count);
+        typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_sptr_t *args);
 
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, _args.get(), count);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, void_aux, args);
 
         return;
     }
@@ -181,46 +155,43 @@ void compile_ast_expr_call_t(const visitor_sptr_t *vis, void *,
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*_fexpr)->accept(*vis);
+    (*fexpr)->accept(*vis);
 
-    for (int i=0; i<count; ++i)
+    v_type_t    *t = lctx.result_type;
+    LLVMValueRef f = lctx.result_value;
+
+
+    if (auto *ft = dynamic_cast<v_type_pointer_t *>(t))
     {
-        v_type_t    *t = lctx.result_type;
-        LLVMValueRef f = lctx.result_value;
-
-
-        if (auto *ft = dynamic_cast<v_type_pointer_t *>(t))
-        {
-            t = ft->element_type();
-        }
-
-        auto ft = static_cast<v_type_function_t *>(t);
-
-        auto par_count = ft->param_count();
-        auto par_types = ft->param_types();
-
-        auto arg_count = _args[i]->data.size();
-
-
-        auto values = std::make_unique<LLVMValueRef[]>(arg_count);      //- TODO(?)
-
-        for (int j=0; j<arg_count; ++j)
-        {
-            if (j < par_count)  lctx.result_type = par_types[j];
-            else                lctx.result_type = UNREFERENCE_TAG;
-
-            _args[i]->data[j]->accept(*vis);
-
-            values[j] = lctx.result_value;
-        }
-
-        auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), arg_count, "");
-
-
-        lctx.result_type = (i < count-1 ? UNREFERENCE_TAG : tt);
-
-        lctx.adopt_result(ft->return_type(), v);
+        t = ft->element_type();
     }
+
+    auto ft = static_cast<v_type_function_t *>(t);
+
+    auto par_count = ft->param_count();
+    auto par_types = ft->param_types();
+
+    auto arg_count = (*args)->data.size();
+
+
+    auto values = std::make_unique<LLVMValueRef[]>(arg_count);      //- TODO(?)
+
+    for (int i=0; i<arg_count; ++i)
+    {
+        if (i < par_count)  lctx.result_type = par_types[i];
+        else                lctx.result_type = UNREFERENCE_TAG;
+
+        (*args)->data[i]->accept(*vis);
+
+        values[i] = lctx.result_value;
+    }
+
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), arg_count, "");
+
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(ft->return_type(), v);
 }
 
 
@@ -359,7 +330,7 @@ void compile_ast_expr_char_t(const visitor_sptr_t *vis, void *,
 //- Intrinsics (true)
 //=====================================================================
 static void
-v_alloca(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_alloca(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -400,7 +371,7 @@ v_alloca(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, in
 
 //---------------------------------------------------------------------
 static void
-v_getelementptr(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_getelementptr(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -480,7 +451,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *a
 
 //---------------------------------------------------------------------
 static void
-v_store(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_store(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -500,7 +471,7 @@ v_store(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int
 
 //---------------------------------------------------------------------
 static void
-v_load(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_load(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -522,7 +493,7 @@ v_load(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
 
 //---------------------------------------------------------------------
 static void
-v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -698,7 +669,7 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int 
 
 //---------------------------------------------------------------------
 static void
-v_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -745,7 +716,7 @@ v_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, i
 
 //---------------------------------------------------------------------
 static void
-v_reference(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_reference(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -768,7 +739,7 @@ v_reference(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args,
 
 //---------------------------------------------------------------------
 static void
-v_assign(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_assign(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;

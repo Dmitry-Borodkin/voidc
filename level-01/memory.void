@@ -37,7 +37,7 @@
 //- v_malloc
 //---------------------------------------------------------------------
 //- voidc_memory_malloc_intrinsic: (visitor: voidc_visitor_t, aux: void_ptr,
-//-                                 arg_list: v_ast_expr_list_ptr, count: int
+//-                                 arg_list: v_ast_expr_list_ptr
 //-                                ) -> void
 //- {
 //-     args_count = v_list_get_size(arg_list);
@@ -84,7 +84,6 @@
     visitor  = v_add_parameter_name(malloc_f, 0, "visitor",  voidc_visitor_ptr);
     aux      = v_add_parameter_name(malloc_f, 1, "aux",      void_ptr);
     arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", v_ast_expr_list_ptr);
-    count    = v_add_parameter_name(malloc_f, 3, "count",    int);
 
 
     val0 = v_alloca(LLVMValueRef, 4);
@@ -269,7 +268,6 @@
     v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",      void_ptr);
     v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
-    v_add_parameter_name(f, 3, "count",    int);
 }
 {
     builder = v_target_get_builder();

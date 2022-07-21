@@ -65,7 +65,7 @@ bool lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *
 //---------------------------------------------------------------------
 extern "C"
 typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux,
-                            const ast_expr_list_sptr_t *args, int count,
+                            const ast_expr_list_sptr_t *args,
                             v_type_t *type, LLVMValueRef value);
 
 
@@ -74,7 +74,7 @@ typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux,
 //---------------------------------------------------------------------
 static
 void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                           const ast_expr_list_sptr_t *args, int count
+                           const ast_expr_list_sptr_t *args
                           )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -99,7 +99,7 @@ void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -129,7 +129,7 @@ void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                           const ast_expr_list_sptr_t *args, int count
+                           const ast_expr_list_sptr_t *args
                           )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -154,7 +154,7 @@ void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -187,7 +187,7 @@ void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                       const ast_expr_list_sptr_t *args, int count
+                       const ast_expr_list_sptr_t *args
                       )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -214,7 +214,7 @@ void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -232,7 +232,7 @@ void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                      const ast_expr_list_sptr_t *args, int count
+                      const ast_expr_list_sptr_t *args
                      )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -259,7 +259,7 @@ void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -277,7 +277,7 @@ void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                   const ast_expr_list_sptr_t *args, int count
+                                   const ast_expr_list_sptr_t *args
                                   )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -306,7 +306,7 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -327,7 +327,7 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                     const ast_expr_list_sptr_t *args, int count
+                                     const ast_expr_list_sptr_t *args
                                     )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -356,7 +356,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -381,7 +381,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 //---------------------------------------------------------------------
 static
 void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                   const ast_expr_list_sptr_t *args, int count
+                                   const ast_expr_list_sptr_t *args
                                   )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -406,7 +406,7 @@ void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -430,7 +430,7 @@ void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                     const ast_expr_list_sptr_t *args, int count
+                                     const ast_expr_list_sptr_t *args
                                     )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -455,7 +455,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -479,7 +479,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 //---------------------------------------------------------------------
 static
 void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                           const ast_expr_list_sptr_t *args, int count
+                           const ast_expr_list_sptr_t *args
                           )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -504,7 +504,7 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -540,7 +540,7 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                             const ast_expr_list_sptr_t *args, int count
+                             const ast_expr_list_sptr_t *args
                             )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -565,7 +565,7 @@ void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -599,7 +599,7 @@ void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                               const ast_expr_list_sptr_t *args, int count
+                               const ast_expr_list_sptr_t *args
                               )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -626,7 +626,7 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -644,7 +644,7 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                const ast_expr_list_sptr_t *args, int count
+                                const ast_expr_list_sptr_t *args
                                )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -669,7 +669,7 @@ void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, count, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, args, lctx.result_type, lctx.result_value);
 
         return;
     }

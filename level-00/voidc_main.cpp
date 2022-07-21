@@ -606,7 +606,7 @@ voidc_import_helper(const char *name, bool _export)
 
 //---------------------------------------------------------------------
 static void
-v_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args, int count)
+v_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
 {
     auto target = voidc_global_ctx_t::target;
 

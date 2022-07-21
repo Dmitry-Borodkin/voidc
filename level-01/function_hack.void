@@ -391,7 +391,7 @@
     //- "Function hack" intrinsic
     //-----------------------------------------------------------------
     //- voidc_function_hack_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
-    //-                                 arg_list: v_ast_expr_list_ptr, count: int
+    //-                                 arg_list: v_ast_expr_list_ptr
     //-                                ) -> void
     //- {
     //-     builder = v_target_get_builder();
@@ -463,7 +463,6 @@
     visitor  = LLVMGetParam(intrinsic_f, 0);
     aux      = LLVMGetParam(intrinsic_f, 1);
     arg_list = LLVMGetParam(intrinsic_f, 2);
-    count    = LLVMGetParam(intrinsic_f, 3);
 
     entry = LLVMAppendBasicBlock(intrinsic_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -714,7 +713,7 @@
     //- "Return" intrinsic
     //-----------------------------------------------------------------
     //- voidc_function_hack_return_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
-    //-                                        arg_list: v_ast_expr_list_ptr, count: int
+    //-                                        arg_list: v_ast_expr_list_ptr
     //-                                       ) -> void
     //- {
     //-     builder = v_target_get_builder();
@@ -756,7 +755,6 @@
     visitor  = LLVMGetParam(return_f, 0);
     aux      = LLVMGetParam(return_f, 1);
     arg_list = LLVMGetParam(return_f, 2);
-    count    = LLVMGetParam(return_f, 3);
 
     entry = LLVMAppendBasicBlock(return_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
@@ -927,7 +925,6 @@
     p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
     p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
     p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
-    p3 = LLVMGetParam(f, 3);    v_add_variable("count",    int,                 p3);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr);
@@ -976,7 +973,6 @@
     p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
     p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
     p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
-    p3 = LLVMGetParam(f, 3);    v_add_variable("count",    int,                 p3);
 }
 {
     arg0 = v_alloca(v_ast_opaque_expr_sptr);

@@ -7,6 +7,8 @@
     v_import("overloading.void");
     v_import("projections.void");
 
+    v_import("llvm-c/Core.void");
+
     v_import("printf.void");
 }
 
@@ -156,5 +158,94 @@ vector_add: (v: Vector, x: double, y: double) -> Vector
     ("Hello %s!\n" : *char).my_printf("World");         //- WTF?
 
 }
+
+
+//---------------------------------------------------------------------
+foo_t = v_struct("struct.foo_t", { *((*const char, ...) -> int) });
+
+foo_ref = &foo_t;
+
+foo_bar: (f: foo_t) -> *((*const char, ...) -> int)
+{
+    v_return(f[0]);
+}
+
+foo: &foo_t := { printf };
+
+{
+    q = v_quark_from_string(".fun");
+
+    v_util_function_dict_set(q, foo_t,   "foo_bar");
+    v_util_function_dict_set(q, foo_ref, "foo_bar");
+}
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    foo.fun("Hello %s!\n", "world");
+
+}
+
+
+//---------------------------------------------------------------------
+static_type_sizeof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+                               ast: v_ast_expr_ptr,
+                               t0: v_type_ptr, v0: LLVMValueRef
+                               ) -> void
+{
+    type  = (v0: v_type_ptr);
+    type_ = v_type_get_llvm_type(type);
+
+    v = LLVMSizeOf(type_);
+
+    v_adopt_result(size_t, v);
+}
+
+//---------------------------------------------------------------------
+static_type_alignof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+                                ast: v_ast_expr_ptr,
+                                t0: v_type_ptr, v0: LLVMValueRef
+                                ) -> void
+{
+    type  = (v0: v_type_ptr);
+    type_ = v_type_get_llvm_type(type);
+
+    v = LLVMAlignOf(type_);
+
+    v_adopt_result(size_t, v);
+}
+
+{
+    v_util_function_dict_set(v_quark_from_string(".size"),  voidc_static_type, "v.static_type_sizeof");
+    v_util_function_dict_set(v_quark_from_string(".align"), voidc_static_type, "v.static_type_alignof");
+
+    v_add_intrinsic("v.static_type_sizeof",  static_type_sizeof_intrinsic,  0);
+    v_add_intrinsic("v.static_type_alignof", static_type_alignof_intrinsic, 0);
+}
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+
+    t0 = vec(int(5), 5);
+
+    t1 = t0[2];
+
+    printf("t1.size:  %d\n", (t1.size : int));
+    printf("t1.align: %d\n", (t1.align : int));
+
+
+    v: &t1 := {{0, 1, 2, 3, 4}};
+
+    v[1] := v[0] + 5i5;
+
+    printf("v12: %d\n", (v_load(&v[1])[2] : int));          //- Sic!
+
+
+}
+
 
 
