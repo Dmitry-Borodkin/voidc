@@ -1335,8 +1335,12 @@ compile_ast_expr_call_t: (vis: voidc_visitor_ptr, *void,
         }
         else        //- "Normal"...
         {
-            ft := t;
-            fv := v;
+            v_set_result_type(UNREFERENCE_TAG);
+
+            v_adopt_result(t, v);
+
+            ft := v_get_result_type();
+            fv := v_get_result_value();
         }
 
         if (v_type_is_pointer(ft))  ft := v_type_refptr_get_element_type(ft);
