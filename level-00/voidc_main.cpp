@@ -410,7 +410,8 @@ v_import_helper(const char *name, bool _export)
         throw std::runtime_error(std::string("Import file not found: ") + name);
     }
 
-    base_compile_ctx_t::declarations_t *export_decls = nullptr;
+    base_compile_ctx_t::declarations_t *export_decls     = nullptr;
+    base_compile_ctx_t::typenames_t    *export_typenames = nullptr;
 
     auto &tctx = *voidc_global_ctx_t::target;
 
@@ -422,12 +423,30 @@ v_import_helper(const char *name, bool _export)
         {
             target_lctx->decls.insert(it->second);
 
-            if (_export  &&  target_lctx->export_decls) target_lctx->export_decls->insert(it->second);
+            if (_export  &&  target_lctx->export_decls)
+            {
+                target_lctx->export_decls->insert(it->second);
+
+                if (&tctx == &vctx)
+                {
+                    auto &tns = static_cast<voidc_local_ctx_t *>(target_lctx)->typenames;
+
+                    for (auto tni : vctx.imported_typenames[src_filename_str])
+                    {
+                        tns = tns.insert(tni);
+                    }
+                }
+            }
 
             return;     //- Sic!
         }
 
         export_decls = &it->second;
+
+        if (&tctx == &vctx)
+        {
+            export_typenames = &vctx.imported_typenames[src_filename_str];
+        }
     }
 
     fs::path bin_filename = src_filename;
@@ -442,7 +461,11 @@ v_import_helper(const char *name, bool _export)
 
     lctx.filename = src_filename_str;
 
-    if (&tctx == &vctx) lctx.export_decls = export_decls;
+    if (&tctx == &vctx)
+    {
+        lctx.export_decls     = export_decls;
+        lctx.export_typenames = export_typenames;
+    }
 
     auto saved_compiler = make_voidc_compiler();
 

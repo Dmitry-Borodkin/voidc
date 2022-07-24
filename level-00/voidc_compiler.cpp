@@ -229,7 +229,7 @@ void compile_ast_expr_identifier_t(const visitor_sptr_t *vis, void *,
 
         if (!v) v = LLVMAddGlobal(lctx.module, t->llvm_type(), cname);
 
-        t = voidc_global_ctx_t::voidc->type_ptr_type;
+        t = vctx.type_ptr_type;
     }
 
     lctx.adopt_result(t, v);

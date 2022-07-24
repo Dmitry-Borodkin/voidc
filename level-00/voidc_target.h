@@ -64,6 +64,8 @@ public:
 
     declarations_t decls;
 
+    using typenames_t = immer::map<v_type_t *, std::string>;
+
 public:
     std::map<std::string, LLVMValueRef> constant_values;
 
@@ -161,8 +163,8 @@ public:
     void export_intrinsic(const char *fun_name, void *fun, void *aux=nullptr);
     void add_intrinsic(const char *fun_name, void *fun, void *aux=nullptr);
 
-    void export_type(const char *raw_name, v_type_t *type);
-    void add_type(const char *raw_name, v_type_t *type);
+    virtual void export_type(const char *raw_name, v_type_t *type);
+    virtual void add_type(const char *raw_name, v_type_t *type);
 
 public:
     const std::string check_alias(const std::string &name);
@@ -205,7 +207,7 @@ public:
     v_type_t    *result_type  = nullptr;
     LLVMValueRef result_value = nullptr;
 
-    void adopt_result(v_type_t *type, LLVMValueRef value);
+    virtual void adopt_result(v_type_t *type, LLVMValueRef value);
 
 public:
     LLVMValueRef convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
@@ -244,6 +246,9 @@ public:
     ~voidc_global_ctx_t() = default;
 
 public:
+    std::map<std::string, typenames_t> imported_typenames;
+
+public:
     static void static_initialize(void);
     static void static_terminate(void);
 
@@ -273,6 +278,9 @@ public:
     void add_symbol_value(const char *raw_name, void *value) override;
 
 public:
+    immer::map<v_type_t *, std::string> typenames;
+
+public:
     llvm::orc::SymbolMap unit_symbols;
 
     void flush_unit_symbols(void);
@@ -296,10 +304,20 @@ public:
     std::set<std::string> imports;
 
 public:
+    typenames_t *export_typenames = nullptr;
+    typenames_t  typenames;
+
+    void export_type(const char *raw_name, v_type_t *type) override;
+    void add_type(const char *raw_name, v_type_t *type) override;
+
+public:
     void add_symbol_value(const char *raw_name, void *value) override;
 
 public:
     void *find_symbol_value(const char *raw_name) override;         //- No check alias!
+
+public:
+    void adopt_result(v_type_t *type, LLVMValueRef value) override;
 
 public:
     LLVMOrcJITDylibRef local_jd = nullptr;

@@ -35,6 +35,8 @@
     v_add_type("quark_ptr", v_pointer_type(v_quark_t, 0));
 
     v_add_type("type_ptr_ptr", v_pointer_type(v_type_ptr, 0));
+
+    v_add_type("incomplete_array_type_tag", v_struct_type_named("voidc.incomplete_array_type_tag"));
 }
 
 
@@ -107,6 +109,16 @@
 
     ft = v_function_type(int, typ0, 3, false);
     v_add_symbol("strncmp", ft, 0);
+
+//  v_store(char_ptr, typ0);
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_add_symbol("free", ft, 0);
+
+    v_store(void_ptr, typ0);
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_add_type("cleaner_ft_ptr", v_pointer_type(ft, 0));
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
@@ -721,25 +733,6 @@
 
     v_add_type("convert_to_type_ctx_t",   convert_to_type_ctx_t);
     v_add_type("convert_to_type_ctx_ptr", convert_to_type_ctx_ptr);
-}
-
-//---------------------------------------------------------------------
-{
-    typ = v_alloca(v_type_ptr);
-
-    v_store(void_ptr, typ);
-
-    ft = v_function_type(void, typ, 1, false);
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("convert_to_type_cleaner", ft);
-
-    v_add_parameter_name(f, 0, "void_ctx", void_ptr);
-}
-{
-    ctx = v_cast(void_ctx, convert_to_type_ctx_ptr);
-
-    v_free(ctx);
 }
 
 //---------------------------------------------------------------------
@@ -3773,7 +3766,12 @@
     idx = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(idx);
 
-    v_list_get_items(idx_list, 0, idx);         //- Just one!
+    idx_count = v_list_get_size(idx_list);
+
+    if (idx_count)
+    {
+        v_list_get_items(idx_list, 0, idx);         //- Just one!
+    }
 
 
     tt = v_get_result_type();
@@ -3789,12 +3787,18 @@
     v_assign(agg_t, v_get_result_type());
     v_assign(agg_v, v_get_result_value());
 
-    v_set_result_type(UNREFERENCE_TAG);
+    idx_t = v_reference(v_alloca(v_type_ptr));
+    idx_v = v_reference(v_alloca(LLVMValueRef));
 
-    v_ast_accept_visitor(v_cast(idx, v_ast_base_ptr), visitor);
+    if (idx_count)
+    {
+        v_set_result_type(UNREFERENCE_TAG);
 
-    idx_t = v_get_result_type();
-    idx_v = v_get_result_value();
+        v_ast_accept_visitor(v_cast(idx, v_ast_base_ptr), visitor);
+
+        v_assign(idx_t, v_get_result_type());
+        v_assign(idx_v, v_get_result_value());
+    }
 
 
     v_terminate(idx);
@@ -3803,14 +3807,30 @@
 
     if (v_icmp(LLVMIntEQ, agg_t, voidc_static_type))        //- Type
     {
-        n = v_cast(LLVMConstIntGetZExtValue(idx_v), uint64_t);
+        if (idx_count)
+        {
+            n = v_cast(LLVMConstIntGetZExtValue(idx_v), uint64_t);
 
-        typ = v_cast(agg_v, v_type_ptr);
+            typ = v_cast(agg_v, v_type_ptr);
 
-        typ = v_array_type(typ, n);
+            typ = v_array_type(typ, n);
+
+            v_set_result_value(v_cast(typ, LLVMValueRef));
+        }
+        else    //- No indices!
+        {
+            typ0 = v_alloca(v_type_ptr, 2);
+            typ1 = v_getelementptr(typ0, 1);
+
+            v_store(incomplete_array_type_tag, typ0);
+            v_store(v_cast(agg_v, v_type_ptr), typ1);
+
+            typ = v_struct_type(typ0, 2, false);
+
+            v_set_result_value(v_cast(typ, LLVMValueRef));
+        }
 
         v_set_result_type(voidc_static_type);
-        v_set_result_value(v_cast(typ, LLVMValueRef));
 
         v_return();
     }
@@ -4116,6 +4136,92 @@
 }
 
 //---------------------------------------------------------------------
+//- v_ptr - type intrinsic
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ptr_type_intrinsic", voidc_intrinsic_t);
+
+    v_add_parameter_name(f, 0, "vis",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",  void_ptr);
+    v_add_parameter_name(f, 2, "args", v_ast_expr_list_ptr);
+}
+{
+    ast0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(ast0, 2);
+
+    ast1 = v_getelementptr(ast0, 1);
+
+    v_list_get_items(args, 0, ast0, 2);
+
+
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor(v_cast(ast0, v_ast_base_ptr), vis);
+
+    et = v_cast(v_get_result_value(), v_type_ptr);
+
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    v_ast_accept_visitor(v_cast(ast1, v_ast_base_ptr), vis);
+
+    as_v = v_get_result_value();
+
+    as = v_cast(LLVMConstIntGetZExtValue(as_v), unsigned);
+
+    typ = v_pointer_type(et, as);
+
+    v_set_result_type(voidc_static_type);
+    v_set_result_value(v_cast(typ, LLVMValueRef));
+
+    v_terminate(ast0, 2);
+}
+
+//---------------------------------------------------------------------
+//- v_ref - type intrinsic
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_ref_type_intrinsic", voidc_intrinsic_t);
+
+    v_add_parameter_name(f, 0, "vis",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",  void_ptr);
+    v_add_parameter_name(f, 2, "args", v_ast_expr_list_ptr);
+}
+{
+    ast0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(ast0, 2);
+
+    ast1 = v_getelementptr(ast0, 1);
+
+    v_list_get_items(args, 0, ast0, 2);
+
+
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor(v_cast(ast0, v_ast_base_ptr), vis);
+
+    et = v_cast(v_get_result_value(), v_type_ptr);
+
+
+    v_set_result_type(UNREFERENCE_TAG);
+
+    v_ast_accept_visitor(v_cast(ast1, v_ast_base_ptr), vis);
+
+    as_v = v_get_result_value();
+
+    as = v_cast(LLVMConstIntGetZExtValue(as_v), unsigned);
+
+    typ = v_reference_type(et, as);
+
+    v_set_result_type(voidc_static_type);
+    v_set_result_value(v_cast(typ, LLVMValueRef));
+
+    v_terminate(ast0, 2);
+}
+
+//---------------------------------------------------------------------
 //- vec - type intrinsic
 //---------------------------------------------------------------------
 {
@@ -4268,7 +4374,7 @@
 
     v_set_convert_to_type(convert_to_type, saved_ctx);
 
-    v_add_local_cleaner(convert_to_type_cleaner, saved_ctx);
+    v_add_local_cleaner(v_cast(free, cleaner_ft_ptr), saved_ctx);
 
 
     //-------------------------------------------------------------
@@ -4276,6 +4382,9 @@
     voidc_visitor_set_intrinsic(vis, vis, "uint",  voidc_uint_type_intrinsic, 0);
 
     voidc_visitor_set_intrinsic(vis, vis, "float", voidc_float_type_intrinsic, 0);
+
+    voidc_visitor_set_intrinsic(vis, vis, "v_ptr", voidc_ptr_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "v_ref", voidc_ref_type_intrinsic, 0);
 
     voidc_visitor_set_intrinsic(vis, vis, "vec",   voidc_vec_type_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "svec",  voidc_svec_type_intrinsic, 0);

@@ -42,9 +42,7 @@ op_table_item_t = v_struct("struct.op_table_item",
     v_quark_t       //- 3 - Quark (right)
 });
 
-OP_TABLE_SIZE = 39;
-
-op_table: &op_table_item_t[OP_TABLE_SIZE] :=
+op_table: &op_table_item_t[] :=
 {
     {"op_infix_assign",      opk_assign   },
     {"op_infix_add_assign",  opk_assign   },
@@ -90,7 +88,9 @@ op_table: &op_table_item_t[OP_TABLE_SIZE] :=
     {"op_prefix_tilda",      opk_unary    },
 
     {"op_postfix_inc",       opk_unary    },
-    {"op_postfix_dec",       opk_unary    }
+    {"op_postfix_dec",       opk_unary    },
+
+    {0}     //- Sic...
 };
 
 
@@ -103,13 +103,13 @@ op_table_ctor: () -> void
 
     int_ = v_type_get_llvm_type(int);
 
-    for (i: &int := 0; i < OP_TABLE_SIZE; ++i)
+    for (i: &int := 0; name = op_table[i][0]; ++i)
     {
-        op_table[i][2] := v_quark_from_string(op_table[i][0]);
+        op_table[i][2] := v_quark_from_string(name);
 
         if (k = op_table[i][1],  k == opk_binary  ||  k == opk_relation)
         {
-            v_std_string_set(sstr, op_table[i][0]);
+            v_std_string_set(sstr, name);
 
             v_std_string_append(sstr, ".right");
 
@@ -118,7 +118,7 @@ op_table_ctor: () -> void
 
         v_std_string_set(sstr, "id");
 
-        v_std_string_append(sstr, op_table[i][0]+2);
+        v_std_string_append(sstr, name+2);
 
         v_add_constant(v_std_string_get(sstr), int, LLVMConstInt(int_, i, 0));
     }
@@ -1582,6 +1582,8 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 
 //---------------------------------------------------------------------
+incomplete_array_type_tag = v_struct("voidc.incomplete_array_type_tag");
+
 private
 static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                                       ast: v_ast_expr_ptr,
@@ -1598,22 +1600,39 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     idx_list = (&obj[2] : v_ast_expr_list_ptr);
 
-    v_list_get_items(idx_list, 0, expr);            //- Just one!
+    idx_count = v_list_get_size(idx_list);
 
-    v_set_result_type(UNREFERENCE_TAG);
+    if (idx_count)
+    {
+        v_list_get_items(idx_list, 0, expr);        //- Just one!
 
-    v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
+        v_set_result_type(UNREFERENCE_TAG);
 
-    idx_v = v_get_result_value();
+        v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
 
-    n = (LLVMConstIntGetZExtValue(idx_v) : uint64_t);
+        idx_v = v_get_result_value();
 
-    typ = (v: v_type_ptr);
+        n = (LLVMConstIntGetZExtValue(idx_v) : uint64_t);
 
-    typ = v_array_type(typ, n);
+        typ = (v: v_type_ptr);
+
+        typ = v_array_type(typ, n);
+
+        v_set_result_value((typ: LLVMValueRef));
+    }
+    else    //- No indices!
+    {
+        typs = v_alloca(v_type_ptr, 2);
+
+        typs[0] := incomplete_array_type_tag;
+        typs[1] := (v: v_type_ptr);
+
+        typ = v_struct_type(typs, 2, false);
+
+        v_set_result_value((typ: LLVMValueRef));
+    }
 
     v_set_result_type(voidc_static_type);
-    v_set_result_value((typ: LLVMValueRef));
 }
 
 
@@ -1631,7 +1650,7 @@ voidc_enable_overloading_compiler: () -> void
         v_initialize(sstr);
         defer v_terminate(sstr);
 
-        for (id: &int := 0; id < OP_TABLE_SIZE; ++id)
+        for (id: &int := 0; name = op_table[id][0]; ++id)
         {
             void_fun: & *void := v_undef();
 
@@ -1648,7 +1667,7 @@ voidc_enable_overloading_compiler: () -> void
 
             v_std_string_set(sstr, "v.");
 
-            v_std_string_append(sstr, op_table[id][0]);
+            v_std_string_append(sstr, name);
 
             voidc_visitor_set_intrinsic(vis, vis, v_std_string_get(sstr), void_fun, (id: *void));
         }

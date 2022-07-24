@@ -25,6 +25,12 @@
 {   voidc_unit_begin_module("aggregates_module"); }
 
 
+
+//---------------------------------------------------------------------
+{   v_add_type("incomplete_array_type_tag", v_struct_type_named("voidc.incomplete_array_type_tag"));
+}
+
+
 //---------------------------------------------------------------------
 v_op_braces: &v_ast_opaque_expr_sptr := v_undef();
 
@@ -40,25 +46,29 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
 {
     N = v_list_get_size(args);
 
-    expr = v_malloc(v_ast_opaque_expr_sptr, N);
-    v_initialize(expr, N);
-    defer
+    expr = v_alloca(v_ast_opaque_expr_sptr);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+
+    t: &v_type_ptr := v_get_result_type();
+
+    block
     {
-        v_terminate(expr, N);
-        v_free(expr);
+        if (!v_type_is_struct(t))  v_break();
+
+        typs = v_type_struct_get_element_types(t);
+
+        if (typs[0] != incomplete_array_type_tag)  v_break();
+
+        t := v_array_type(typs[1], N);
     }
 
-    v_list_get_items(args, 0, expr, N);
-
-
-    t = v_get_result_type();
 
     v: &LLVMValueRef := LLVMGetUndef(v_type_get_llvm_type(t));
 
 
     builder = v_target_get_builder();
-
-    i: &int := 0;
 
     if (v_type_is_vector(t))
     {
@@ -68,9 +78,11 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
 
         for (i: &int := 0; i < N; ++i)
         {
+            v_list_get_items(args, i, expr);
+
             v_set_result_type(et);
 
-            v_ast_accept_visitor((expr+i : v_ast_base_ptr), vis);
+            v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
 
             ev = v_get_result_value();
 
@@ -90,11 +102,13 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
 
         for (i: &int := 0; i < N; ++i)
         {
+            v_list_get_items(args, i, expr);
+
             if (ets)  et := ets[i];
 
             v_set_result_type(et);
 
-            v_ast_accept_visitor((expr+i : v_ast_base_ptr), vis);
+            v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
 
             ev = v_get_result_value();
 
