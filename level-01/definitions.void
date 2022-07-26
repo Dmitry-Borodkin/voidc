@@ -608,9 +608,9 @@
 
         if (tag != v_ast_expr_identifier_t_visitor_method_tag) v_break();
 
-        name = v_ast_expr_identifier_get_name(etmp);
+        opnm = v_ast_expr_identifier_get_name(etmp);
 
-        if (strcmp(name, "v.op_infix_assign"))  v_break();
+        if (strcmp(opnm, "v.op_infix_assign"))  v_break();
 
         arg_list = v_cast(etmp, v_ast_expr_list_ptr);
 
@@ -619,25 +619,42 @@
         v_list_get_items(arg_list, 1, ast0, 2);
     }
 
+    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    v_initialize(stmt);
+    defer v_terminate(stmt);
+
     lst = v_alloca(v_ast_opaque_expr_list_sptr);
     v_initialize(lst);
     defer v_terminate(lst);
-
-    v_make_list(lst, type, 2);
 
     etmp = v_alloca(v_ast_opaque_expr_sptr);
     v_initialize(etmp);
     defer v_terminate(etmp);
 
-    v_ast_make_expr_identifier(etmp, "v.internal.var_defn");
+    if (v_empty(value))     //- Declaration
+    {
+        v_ast_make_expr_identifier(etmp, v_std_string_get(name));
 
-    v_ast_make_expr_call(etmp, etmp, lst);
+        v_make_list(lst, etmp, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+        v_list_append(lst, lst, type, 1);
 
-    v_ast_make_stmt(stmt, v_std_string_get(name), etmp);
+        v_ast_make_expr_identifier(etmp, "v.internal.var_decl");
+
+        v_ast_make_expr_call(etmp, etmp, lst);
+
+        v_ast_make_stmt(stmt, "", etmp);
+    }
+    else                    //- Definition
+    {
+        v_make_list(lst, type, 2);
+
+        v_ast_make_expr_identifier(etmp, "v.internal.var_defn");
+
+        v_ast_make_expr_call(etmp, etmp, lst);
+
+        v_ast_make_stmt(stmt, v_std_string_get(name), etmp);
+    }
 
     v_std_any_set_pointer(ret, stmt);
 }
@@ -739,6 +756,43 @@
     v_return(saved_fun(saved_ctx, type, value, to_type));         //- Sic!!!
 }
 
+
+//---------------------------------------------------------------------
+//- v.internal.var_decl - compiler intrinsic
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_internal_var_decl_intrinsic", voidc_intrinsic_t);
+
+    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",      void_ptr);
+    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+}
+{
+//  printf("v_internal_var_decl_intrinsic\n");
+//  defer printf("v_internal_var_decl_intrinsic leave\n");
+
+    arg = v_alloca(v_ast_opaque_expr_sptr, 2);
+    v_initialize(arg, 2);
+    defer v_terminate(arg, 2);
+
+    v_list_get_items(arg_list, 0, arg, 2);
+
+    name = v_ast_expr_identifier_get_name(arg+0);                           //- Name
+
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor(v_cast(arg+1, v_ast_base_ptr), visitor);           //- Type
+
+    type = *v_alloca(v_type_ptr) := v_cast(v_get_result_value(), v_type_ptr);
+
+    if (v_type_is_pointer(type))
+    {
+        type := v_type_refptr_get_element_type(type);       //- Sic!
+    }
+
+    v_add_symbol(name, type, 0);
+}
 
 //---------------------------------------------------------------------
 //- v.internal.var_defn - compiler intrinsic
@@ -1798,6 +1852,7 @@
     voidc_visitor_set_intrinsic(vis, vis, "v.op_prefix_const",    compile_op_prefix_cv, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.op_prefix_volatile", compile_op_prefix_cv, 0);
 
+    voidc_visitor_set_intrinsic(vis, vis, "v.internal.var_decl", v_internal_var_decl_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.internal.var_defn", v_internal_var_defn_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.internal.val_defn", v_internal_val_defn_intrinsic, 0);
 

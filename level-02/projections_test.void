@@ -245,6 +245,15 @@ static_type_alignof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     printf("v12: %d\n", (v_load(&v[1])[2] : int));          //- Sic!
 
 
+    t2 = vec(bool, 32*8)[5];
+
+    printf("t2.size:  %d\n", (t2.size : int));
+    printf("t2.align: %d\n", (t2.align : int));
+
+    t3 = int(33*8);
+
+    printf("t3.size:  %d\n", (t3.size : int));
+    printf("t3.align: %d\n", (t3.align : int));
 }
 
 
