@@ -976,6 +976,14 @@ compile_prefix_plus_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValu
 private
 compile_prefix_minus_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
 {
+    v_set_result_type(UNREFERENCE_TAG);
+
+    v_adopt_result(t, v);
+
+    t := v_get_result_type();
+
+    v = v_get_result_value();
+
     builder = v_target_get_builder();
 
     if (v_type_is_floating_point(v_type_get_scalar_type(t)))
