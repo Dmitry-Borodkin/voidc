@@ -663,6 +663,14 @@ base_local_ctx_t::pop_temporaries(void)
 
     if (!stack_ptr) return;
 
+    {   auto cur_b = LLVMGetInsertBlock(global_ctx.builder);
+
+        if (auto trm_v = LLVMGetBasicBlockTerminator(cur_b))
+        {
+            LLVMPositionBuilderBefore(global_ctx.builder, trm_v);
+        }
+    }
+
     v_type_t    *t;
     LLVMValueRef f;
 
