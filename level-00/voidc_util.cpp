@@ -752,9 +752,9 @@ void static_initialize(void)
 #define DEF(ctype, name) \
     static_assert((sizeof(ctype) % sizeof(intptr_t)) == 0); \
     v_type_t *name##_content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
-    auto opaque_##name##_type = gctx.make_struct_type("struct.v_util_opaque_" #name); \
+    auto opaque_##name##_type = gctx.make_struct_type("v_" #name "_t"); \
     opaque_##name##_type->set_body(&name##_content_type, 1, false); \
-    add_type("v_util_opaque_" #name, opaque_##name##_type);
+    add_type("v_" #name "_t", opaque_##name##_type);
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)

@@ -70,7 +70,7 @@
     v_add_parameter_name(f, 2, "args",  v_ast_expr_list_ptr);
 }
 {
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_std_string_set(sstr, "v.");
@@ -325,8 +325,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -346,8 +346,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -367,8 +367,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -389,8 +389,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -426,8 +426,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -470,8 +470,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -531,8 +531,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -561,8 +561,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -595,8 +595,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -627,8 +627,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -704,7 +704,7 @@
     {   op = v_alloca(v_ast_opaque_expr_sptr);
         v_initialize(op);
 
-        any = v_alloca(v_util_opaque_std_any);
+        any = v_alloca(v_std_any_t);
         v_initialize(any);
 
 

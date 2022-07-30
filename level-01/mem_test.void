@@ -9,15 +9,15 @@
 
 //---------------------------------------------------------------------
 {
-    str0 = v_malloc(v_util_opaque_std_string, 3);
+    str0 = v_malloc(v_std_string_t, 3);
     str1 = v_getelementptr(str0, 1);
     str2 = v_getelementptr(str0, 2);
 
     v_initialize(str0, 3);
 
-    v_add_symbol("str0", v_util_opaque_std_string, str0);
-    v_add_symbol("str1", v_util_opaque_std_string, str1);
-    v_add_symbol("str2", v_util_opaque_std_string, str2);
+    v_add_symbol("str0", v_std_string_t, str0);
+    v_add_symbol("str1", v_std_string_t, str1);
+    v_add_symbol("str2", v_std_string_t, str2);
 }
 
 {

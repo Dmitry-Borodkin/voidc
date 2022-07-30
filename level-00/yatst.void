@@ -27,7 +27,7 @@
     v_terminate(pp0);
 }
 
-{   a = v_alloca(v_util_opaque_std_any);
+{   a = v_alloca(v_std_any_t);
     v_initialize(a);
 
     v_std_any_set_value(a, 13);
@@ -52,7 +52,7 @@
     v_terminate(a);
 }
 
-{   a = v_alloca(v_util_opaque_std_any);
+{   a = v_alloca(v_std_any_t);
     v_initialize(a);
 
     p = v_alloca(char32_t);
@@ -63,7 +63,7 @@
     v_terminate(a);
 }
 
-{   str0 = v_alloca(v_util_opaque_std_string, 2);
+{   str0 = v_alloca(v_std_string_t, 2);
     v_initialize(str0, 2);
 
     str1 = v_getelementptr(str0, 1);

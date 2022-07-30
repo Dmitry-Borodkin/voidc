@@ -95,8 +95,8 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_export_type("v_util_std_any_ptr",    v_pointer_type(v_util_opaque_std_any, 0));
-    v_export_type("v_util_std_string_ptr", v_pointer_type(v_util_opaque_std_string, 0));
+{   v_export_type("v_std_any_ptr",    v_pointer_type(v_std_any_t, 0));
+    v_export_type("v_std_string_ptr", v_pointer_type(v_std_string_t, 0));
 }
 
 
@@ -106,7 +106,7 @@
 {   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
-    v_store(v_util_std_string_ptr, typ0);
+    v_store(v_std_string_ptr, typ0);
 
     char_ptr = v_pointer_type(char, 0);
 
@@ -497,7 +497,7 @@
 
     register_batch_wtyp_ft = v_function_type(void, typ0, 4, false);
 
-    v_store(v_util_std_string_ptr, typ0);
+    v_store(v_std_string_ptr, typ0);
     v_store(int,                   typ1);
 
     sstr_i_d_ft  = v_function_type(void, typ0, 2, false);
@@ -563,7 +563,7 @@
 
     v_type_ptr_ = v_type_get_llvm_type(v_type_ptr);
 
-    v_util_opaque_std_string_ = v_type_get_llvm_type(v_util_opaque_std_string);
+    v_std_string_t_ = v_type_get_llvm_type(v_std_string_t);
 
     bool_ = v_type_get_llvm_type(bool);
 
@@ -955,12 +955,12 @@
     //-------------------------------------------------------------
     //- Init/Term/Copy/Move/Empty batch registering
     //-------------------------------------------------------------
-    //- v_util_initialize_std_string_impl: (s: v_util_std_string_ptr, n: int) -> void;
-    //- v_util_terminate_std_string_impl: (s: v_util_std_string_ptr, n: int) -> void;
+    //- v_util_initialize_std_string_impl: (s: v_std_string_ptr, n: int) -> void;
+    //- v_util_terminate_std_string_impl: (s: v_std_string_ptr, n: int) -> void;
     //-
     //- v_util_register_itcme_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
     //- {
-    //-     sstr = v_alloca(v_util_opaque_std_string);
+    //-     sstr = v_alloca(v_std_string_t);
     //-
     //-     v_util_initialize_std_string_impl(sstr, 1);
     //-
@@ -1023,7 +1023,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_std_string_t_, "sstr");
 
 
     sstr_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_util_initialize_std_string_impl"));
@@ -1172,7 +1172,7 @@
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
-    //-     v_store(v_util_std_any_ptr, arg0);
+    //-     v_store(v_std_any_ptr, arg0);
     //-
     //-     fun_type = v_function_type(val_t_type, arg0, 1, false);
     //-
@@ -1189,7 +1189,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    std_any_ptr_type = v_obtain_global("v_util_std_any_ptr");
+    std_any_ptr_type = v_obtain_global("v_std_any_ptr");
 
 
     arg0 = LLVMBuildAlloca(builder, v_type_ptr_, "arg0");
@@ -1227,7 +1227,7 @@
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
-    //-     v_store(v_util_std_any_ptr, arg0);
+    //-     v_store(v_std_any_ptr, arg0);
     //-
     //-     fun_type = v_function_type(val_t_ptr, arg0, 1, false);
     //-
@@ -1285,7 +1285,7 @@
     //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
-    //-     v_store(v_util_std_any_ptr, arg0);
+    //-     v_store(v_std_any_ptr, arg0);
     //-     v_store(val_t_type,         arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
@@ -1346,7 +1346,7 @@
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
-    //-     v_store(v_util_std_any_ptr, arg0);
+    //-     v_store(v_std_any_ptr, arg0);
     //-     v_store(val_t_ptr,          arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
@@ -1408,7 +1408,7 @@
     //-------------------------------------------------------------
     //- v_util_register_std_any_gs_value_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
     //- {
-    //-     sstr = v_alloca(v_util_opaque_std_string);
+    //-     sstr = v_alloca(v_std_string_t);
     //-
     //-     v_util_initialize_std_string_impl(sstr, 1);
     //-
@@ -1444,7 +1444,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_std_string_t_, "sstr");
 
     v_store(sstr, val0);
     v_store(n1,   val1);
@@ -1505,7 +1505,7 @@
     //-------------------------------------------------------------
     //- v_util_register_std_any_gs_pointer_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
     //- {
-    //-     sstr = v_alloca(v_util_opaque_std_string);
+    //-     sstr = v_alloca(v_std_string_t);
     //-
     //-     v_util_initialize_std_string_impl(sstr, 1);
     //-
@@ -1541,7 +1541,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_std_string_t_, "sstr");
 
     v_store(sstr, val0);
     v_store(n1,   val1);
@@ -1962,7 +1962,7 @@
     //- v_util_register_list_agsgi_impl: (val_t_type: v_type_ptr, item_type: v_type_ptr,
     //-                                   prefix: char_ptr, typename: char_ptr) -> void
     //- {
-    //-     sstr = v_alloca(v_util_opaque_std_string);
+    //-     sstr = v_alloca(v_std_string_t);
     //-
     //-     v_util_initialize_std_string_impl(sstr, 1);
     //-
@@ -2007,7 +2007,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    sstr = LLVMBuildAlloca(builder, v_util_opaque_std_string_, "sstr");
+    sstr = LLVMBuildAlloca(builder, v_std_string_t_, "sstr");
 
     v_store(sstr, val0);
     v_store(n1,   val1);
@@ -2103,8 +2103,8 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_util_register_itcme_impl(v_util_opaque_std_any,    "v_util", "std_any");
-    v_util_register_itcme_impl(v_util_opaque_std_string, "v_util", "std_string");
+{   v_util_register_itcme_impl(v_std_any_t,    "v_util", "std_any");
+    v_util_register_itcme_impl(v_std_string_t, "v_util", "std_string");
 }
 
 
@@ -2127,7 +2127,7 @@
     type = v_uint_type(64);     v_util_register_std_any_gs_vp_impl(type, "v_util", "uint64_t");
 
     //-----------------------------------------------------------------
-    v_util_register_std_any_gs_pointer_impl(v_util_opaque_std_string, "v_util", "std_string");
+    v_util_register_std_any_gs_pointer_impl(v_std_string_t, "v_util", "std_string");
 }
 
 

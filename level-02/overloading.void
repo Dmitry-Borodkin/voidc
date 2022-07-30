@@ -97,7 +97,7 @@ op_table: &op_table_item_t[] :=
 //---------------------------------------------------------------------
 op_table_ctor: () -> void
 {
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
     defer v_terminate(sstr);
 
@@ -1654,7 +1654,7 @@ voidc_enable_overloading_compiler: () -> void
 
     v_return_if(voidc_visitor_get_intrinsic(vis, "v.static_type_prefix_star", 0));
 
-    {   sstr = v_alloca(v_util_opaque_std_string);
+    {   sstr = v_alloca(v_std_string_t);
         v_initialize(sstr);
         defer v_terminate(sstr);
 

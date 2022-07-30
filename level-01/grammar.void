@@ -270,7 +270,7 @@
 
     arg1 = v_getelementptr(arg0, 1);
 
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_ast_make_expr_identifier(arg0, type);
@@ -355,12 +355,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    gr_name = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    gr_name = v_std_any_get_pointer(v_std_string_t, any0);
 
     gr_str = v_std_string_get(gr_name);
 
@@ -395,8 +395,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -574,18 +574,18 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
 
-    pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    pr_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     pr_str = v_std_string_get(pr_sstr);
 
-    as_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any1);
+    as_sstr = v_std_any_get_pointer(v_std_string_t, any1);
 
     as_0 = v_std_string_get(as_sstr);
     as_1 = v_getelementptr(as_0, 1);
@@ -737,12 +737,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    pr_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    pr_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     pr_str = v_std_string_get(pr_sstr);
 
@@ -796,8 +796,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -815,7 +815,7 @@
     v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
     v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
 
-    act_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    act_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     act_str = v_std_string_get(act_sstr);
 
@@ -824,7 +824,7 @@
 
     any1 = v_getelementptr(any0, 1);
 
-    fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any1);
+    fun_sstr = v_std_any_get_pointer(v_std_string_t, any1);
 
     if (fun_sstr)
     {
@@ -859,8 +859,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -878,7 +878,7 @@
     v_copy(arg0, voidc_ast_stmt_grammar_grammar_arg);
     v_copy(arg1, voidc_ast_stmt_grammar_grammar_arg);
 
-    grv_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    grv_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     grv_str = v_std_string_get(grv_sstr);
 
@@ -887,7 +887,7 @@
 
     any1 = v_getelementptr(any0, 1);
 
-    exv_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any1);
+    exv_sstr = v_std_any_get_pointer(v_std_string_t, any1);
 
     if (exv_sstr)
     {
@@ -922,14 +922,14 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
     //- assert(voidc_ast_stmt_grammar_parser_number == 0);
 
-    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    arg_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     arg_str = v_std_string_get(arg_sstr);
 
@@ -990,8 +990,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1012,7 +1012,7 @@
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
 
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1060,8 +1060,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1082,7 +1082,7 @@
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
 
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1130,12 +1130,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    arg_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     arg_str = v_std_string_get(arg_sstr);
 
@@ -1157,7 +1157,7 @@
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
 
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1218,7 +1218,7 @@
     pr_num = v_binop(LLVMSub, pr_num, n1);          //- pr_int - 1
 
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1249,8 +1249,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1268,8 +1268,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1287,8 +1287,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1306,8 +1306,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1325,8 +1325,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1344,12 +1344,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    id_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     id_str = v_std_string_get(id_sstr);
 
@@ -1365,7 +1365,7 @@
 
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1402,12 +1402,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    id_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     id_str = v_std_string_get(id_sstr);
 
@@ -1423,7 +1423,7 @@
 
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1460,8 +1460,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1481,7 +1481,7 @@
 
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1518,8 +1518,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1537,8 +1537,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1553,7 +1553,7 @@
 
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1590,8 +1590,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1609,7 +1609,7 @@
     v_initialize(stmt);
 
 
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_std_string_set(sstr, "v.pr");
@@ -1649,12 +1649,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    lit_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     lit_str = v_std_string_get(lit_sstr);
 
@@ -1670,7 +1670,7 @@
 
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1707,8 +1707,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1726,7 +1726,7 @@
 
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1763,8 +1763,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1777,7 +1777,7 @@
 
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
-    pr_sstr = v_alloca(v_util_opaque_std_string);
+    pr_sstr = v_alloca(v_std_string_t);
     v_initialize(pr_sstr);
 
     v_std_string_set(pr_sstr, "v.pr");
@@ -1812,8 +1812,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1829,7 +1829,7 @@
 
     rn_num = v_cast(voidc_ast_stmt_grammar_range_number, intptr_t);
 
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_std_string_set(sstr, "v.rn");
@@ -1899,12 +1899,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    fun_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    fun_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     fun_str = v_std_string_get(fun_sstr);
 
@@ -1954,8 +1954,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -1995,12 +1995,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    id_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    id_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     id_str = v_std_string_get(id_sstr);
 
@@ -2016,7 +2016,7 @@
 
     ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_std_string_set(sstr, "v.ar");
@@ -2053,8 +2053,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -2100,7 +2100,7 @@
 
     ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_std_string_set(sstr, "v.ar");
@@ -2138,8 +2138,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -2157,7 +2157,7 @@
 
     ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_std_string_set(sstr, "v.ar");
@@ -2194,12 +2194,12 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    lit_sstr = v_std_any_get_pointer(v_util_opaque_std_string, any0);
+    lit_sstr = v_std_any_get_pointer(v_std_string_t, any0);
 
     lit_str = v_std_string_get(lit_sstr);
 
@@ -2215,7 +2215,7 @@
 
     ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_std_string_set(sstr, "v.ar");
@@ -2252,8 +2252,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "ret",       v_util_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_util_std_any_ptr);
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
@@ -2271,7 +2271,7 @@
 
     ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
-    sstr = v_alloca(v_util_opaque_std_string);
+    sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
 
     v_std_string_set(sstr, "v.ar");

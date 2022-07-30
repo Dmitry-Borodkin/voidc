@@ -68,7 +68,7 @@ v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
 
     src: &*const char := v_ast_expr_string_get_string(arg + 0);         //- Value string (source)
 
-    dst = v_alloca(v_util_opaque_std_string);
+    dst = v_alloca(v_std_string_t);
     v_initialize(dst);
     defer v_terminate(dst);
 
@@ -162,7 +162,7 @@ v_literal_real_intrinsic: (vis: voidc_visitor_ptr, *void,
 
     src: &*const char := v_ast_expr_string_get_string(arg + 0);         //- Value string (source)
 
-    dst = v_alloca(v_util_opaque_std_string);
+    dst = v_alloca(v_std_string_t);
     v_initialize(dst);
     defer v_terminate(dst);
 
@@ -185,14 +185,14 @@ v_literal_real_intrinsic: (vis: voidc_visitor_ptr, *void,
 //- mk_numeric_literal - grammar action
 //---------------------------------------------------------------------
 //{ v_debug_print_module(1); }
-mk_numeric_literal_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, size_t) -> void
+mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
 {
 //    printf("mk_numeric_literal_grammar_action\n");
 //    defer printf("mk_numeric_literal_grammar_action leave\n");
 
-    str0 = v_std_string_get(v_std_any_get_pointer(v_util_opaque_std_string, any+0));
-    str1 = v_std_string_get(v_std_any_get_pointer(v_util_opaque_std_string, any+1));
-    name = v_std_string_get(v_std_any_get_pointer(v_util_opaque_std_string, any+2));
+    str0 = v_std_string_get(v_std_any_get_pointer(v_std_string_t, any+0));
+    str1 = v_std_string_get(v_std_any_get_pointer(v_std_string_t, any+1));
+    name = v_std_string_get(v_std_any_get_pointer(v_std_string_t, any+2));
 
     expr = v_alloca(v_ast_opaque_expr_sptr, 2);
     v_initialize(expr, 2);

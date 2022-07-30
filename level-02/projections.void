@@ -46,10 +46,10 @@ voidc_projections_internal_globals_cleaner: (*void) -> void
 //- mk_projection - grammar action
 //---------------------------------------------------------------------
 private
-mk_projection_grammar_action: (ret: v_util_std_any_ptr, any: v_util_std_any_ptr, size_t) -> void
+mk_projection_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
 {
     op0  = v_std_any_get_pointer(v_ast_opaque_expr_sptr,      any+0);
-    name = v_std_any_get_pointer(v_util_opaque_std_string,    any+1);
+    name = v_std_any_get_pointer(v_std_string_t,              any+1);
     args = v_std_any_get_pointer(v_ast_opaque_expr_list_sptr, any+2);
 
     void_obj = v_ast_generic_get_object((op0: v_ast_base_ptr));
@@ -129,7 +129,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     quark: &v_quark_t := v_undef();
 
-    {   sstr = v_alloca(v_util_opaque_std_string);
+    {   sstr = v_alloca(v_std_string_t);
         v_initialize(sstr);
         defer v_terminate(sstr);
 
@@ -152,7 +152,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
     {
         spc_flag := true;       //- assert(got_args);
 
-        sstr = v_alloca(v_util_opaque_std_string);
+        sstr = v_alloca(v_std_string_t);
         v_initialize(sstr);
         defer v_terminate(sstr);
 
@@ -375,7 +375,7 @@ voidc_enable_projections: () -> void
 
     v_return_if_not(voidc_has_grammar());
 
-    any = v_alloca(v_util_opaque_std_any, 2);
+    any = v_alloca(v_std_any_t, 2);
     v_initialize(any, 2);
     defer v_terminate(any, 2);
 
