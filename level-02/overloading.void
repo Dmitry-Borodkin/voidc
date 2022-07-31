@@ -128,8 +128,8 @@ op_table_ctor: () -> void
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("expr_call_tag",       q_ref, q("ast_expr_call_t"));
-    v_add_symbol("expr_identifier_tag", q_ref, q("ast_expr_identifier_t"));
+    v_add_symbol("expr_call_tag",       q_ref, q("expr_call"));
+    v_add_symbol("expr_identifier_tag", q_ref, q("expr_identifier"));
 
     v_add_symbol("op_postfix_call_tag",  q_ref, q("op_postfix_call"));
     v_add_symbol("op_postfix_index_tag", q_ref, q("op_postfix_index"));
@@ -167,7 +167,7 @@ private
 op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                       args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_opaque_expr_sptr, 3);
+    ast = v_alloca(v_ast_expr_t, 3);
     v_initialize(ast, 3);
     defer v_terminate(ast, 3);
 
@@ -305,7 +305,7 @@ private
 op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                       args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_opaque_expr_sptr, 3);
+    ast = v_alloca(v_ast_expr_t, 3);
     v_initialize(ast, 3);
     defer v_terminate(ast, 3);
 
@@ -496,7 +496,7 @@ check_relation: (arg: v_ast_base_ptr, lhs: v_ast_base_ptr, rhs: v_ast_base_ptr) 
 
     arg = (arg: v_ast_expr_ptr);
 
-    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
     defer v_terminate(etmp);
 
@@ -531,7 +531,7 @@ check_relation: (arg: v_ast_base_ptr, lhs: v_ast_base_ptr, rhs: v_ast_base_ptr) 
         v_return(rk);
     }
 
-    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    lst = v_alloca(v_ast_expr_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -550,7 +550,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 {
     N: &int := 2;
 
-    {   ast = v_alloca(v_ast_opaque_base_sptr);
+    {   ast = v_alloca(v_ast_base_t);
         v_initialize(ast);
         defer v_terminate(ast);
 
@@ -559,7 +559,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         while(check_relation(ast, ast, 0)) ++N;
     }
 
-    ast = v_malloc(v_ast_opaque_base_sptr, N);
+    ast = v_malloc(v_ast_base_t, N);
     v_initialize(ast, N);
     defer
     {
@@ -883,7 +883,7 @@ inc_dec_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef, delta:
     st = v_type_get_scalar_type(et);
 
 
-    step = v_alloca(v_ast_opaque_expr_sptr);
+    step = v_alloca(v_ast_expr_t);
     v_initialize(step);
     defer v_terminate(step);
 
@@ -1114,7 +1114,7 @@ private
 op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                      args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_opaque_expr_sptr, 2);
+    ast = v_alloca(v_ast_expr_t, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
@@ -1238,10 +1238,10 @@ static_type_prefix_amp_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 export
-voidc_internal_compile_ast_expr_call_t_helper: (vis: voidc_visitor_ptr,
-                                                args: v_ast_expr_list_ptr,
-                                                t: v_type_ptr, v: LLVMValueRef
-                                               ) -> void
+voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
+                                          args: v_ast_expr_list_ptr,
+                                          t: v_type_ptr, v: LLVMValueRef
+                                         ) -> void
 {
     tt = v_get_result_type();
 
@@ -1300,7 +1300,7 @@ voidc_internal_compile_ast_expr_call_t_helper: (vis: voidc_visitor_ptr,
     values = v_malloc(LLVMValueRef, arg_count);
     defer v_free(values);
 
-    expr = v_alloca(v_ast_opaque_expr_sptr);
+    expr = v_alloca(v_ast_expr_t);
     v_initialize(expr);
     defer v_terminate(expr);
 
@@ -1339,14 +1339,14 @@ voidc_internal_compile_ast_expr_call_t_helper: (vis: voidc_visitor_ptr,
 
 //---------------------------------------------------------------------
 private
-compile_ast_expr_call_t: (vis: voidc_visitor_ptr, *void,
-                          fexpr: v_ast_expr_ptr, args: v_ast_expr_list_ptr
-                         ) -> void
+compile_expr_call: (vis: voidc_visitor_ptr, *void,
+                    fexpr: v_ast_expr_ptr, args: v_ast_expr_list_ptr
+                   ) -> void
 {
     void_fun: &*void := 0;
     void_aux: &*void := v_undef();
 
-    if (v_ast_base_get_visitor_method_tag((fexpr: v_ast_base_ptr)) == v_ast_expr_identifier_t_visitor_method_tag)
+    if (v_ast_base_get_visitor_method_tag((fexpr: v_ast_base_ptr)) == v_ast_expr_identifier_visitor_method_tag)
     block
     {
         fname = v_ast_expr_identifier_get_name(fexpr);
@@ -1376,7 +1376,7 @@ compile_ast_expr_call_t: (vis: voidc_visitor_ptr, *void,
 
     v_set_result_type(tt);
 
-    voidc_internal_compile_ast_expr_call_t_helper(vis, args, t, v);
+    voidc_internal_compile_expr_call_helper(vis, args, t, v);
 }
 
 
@@ -1385,7 +1385,7 @@ private
 op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                              args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_opaque_expr_sptr, 2);
+    ast = v_alloca(v_ast_expr_t, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
@@ -1598,7 +1598,7 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                                       t: v_type_ptr, v: LLVMValueRef
                                      ) -> void
 {
-    expr = v_alloca(v_ast_opaque_expr_sptr);
+    expr = v_alloca(v_ast_expr_t);
     v_initialize(expr);
     defer v_terminate(expr);
 
@@ -1687,7 +1687,7 @@ voidc_enable_overloading_compiler: () -> void
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_star", static_type_prefix_star_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_amp",  static_type_prefix_amp_intrinsic,  0);
 
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("ast_expr_call_t"), compile_ast_expr_call_t, 0);
+    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("expr_call"), compile_expr_call, 0);
 
     voidc_visitor_set_intrinsic(vis, vis, "v.op_postfix_index", op_postfix_index_intrinsic, 0);
 

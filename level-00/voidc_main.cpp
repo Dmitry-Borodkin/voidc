@@ -34,7 +34,7 @@
 //---------------------------------------------------------------------
 static vpeg::grammar_t voidc_grammar;
 
-static ast_unit_sptr_t
+static ast_unit_t
 parse_unit(void)
 {
     auto &pctx = *vpeg::context_t::current_ctx;
@@ -45,7 +45,7 @@ parse_unit(void)
 
     pctx.memo.clear();
 
-    if (auto unit = std::any_cast<ast_unit_sptr_t>(&ret))  return *unit;
+    if (auto unit = std::any_cast<ast_unit_t>(&ret))  return *unit;
 
     size_t line, column;
 
@@ -629,7 +629,7 @@ voidc_import_helper(const char *name, bool _export)
 
 //---------------------------------------------------------------------
 static void
-v_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *args)
+v_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 {
     auto target = voidc_global_ctx_t::target;
 
@@ -637,7 +637,7 @@ v_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_sptr_t *ar
 
     target->builder = LLVMCreateBuilderInContext(target->llvm_ctx);
 
-    auto &r = dynamic_cast<const ast_expr_string_t &>(*(*args)->data[0]);
+    auto &r = dynamic_cast<const ast_expr_string_data_t &>(*(*args)->data[0]);
 
     v_import_helper(r.string.c_str(), false);
 

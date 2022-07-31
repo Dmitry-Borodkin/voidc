@@ -25,7 +25,7 @@
 v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
                               args: v_ast_expr_list_ptr) -> void
 {
-    arg = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg, 2);
     defer v_terminate(arg, 2);
 
@@ -119,7 +119,7 @@ v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
 v_literal_real_intrinsic: (vis: voidc_visitor_ptr, *void,
                            args: v_ast_expr_list_ptr) -> void
 {
-    arg = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg, 2);
     defer v_terminate(arg, 2);
 
@@ -194,14 +194,14 @@ mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size
     str1 = v_std_string_get(v_std_any_get_pointer(v_std_string_t, any+1));
     name = v_std_string_get(v_std_any_get_pointer(v_std_string_t, any+2));
 
-    expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+    expr = v_alloca(v_ast_expr_t, 2);
     v_initialize(expr, 2);
     defer v_terminate(expr, 2);
 
     v_ast_make_expr_string(expr+0, str0);
     v_ast_make_expr_string(expr+1, str1);
 
-    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    lst = v_alloca(v_ast_expr_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 

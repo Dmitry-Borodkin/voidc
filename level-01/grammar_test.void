@@ -89,12 +89,12 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 

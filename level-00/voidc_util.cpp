@@ -65,7 +65,7 @@ bool lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *
 //---------------------------------------------------------------------
 extern "C"
 typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux,
-                            const ast_expr_list_sptr_t *args,
+                            const ast_expr_list_t *args,
                             v_type_t *type, LLVMValueRef value);
 
 
@@ -74,7 +74,7 @@ typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux,
 //---------------------------------------------------------------------
 static
 void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                           const ast_expr_list_sptr_t *args
+                           const ast_expr_list_t *args
                           )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -129,7 +129,7 @@ void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                           const ast_expr_list_sptr_t *args
+                           const ast_expr_list_t *args
                           )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -187,7 +187,7 @@ void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                       const ast_expr_list_sptr_t *args
+                       const ast_expr_list_t *args
                       )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -232,7 +232,7 @@ void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                      const ast_expr_list_sptr_t *args
+                      const ast_expr_list_t *args
                      )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -277,7 +277,7 @@ void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                   const ast_expr_list_sptr_t *args
+                                   const ast_expr_list_t *args
                                   )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -327,7 +327,7 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                     const ast_expr_list_sptr_t *args
+                                     const ast_expr_list_t *args
                                     )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -381,7 +381,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 //---------------------------------------------------------------------
 static
 void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                   const ast_expr_list_sptr_t *args
+                                   const ast_expr_list_t *args
                                   )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -430,7 +430,7 @@ void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                     const ast_expr_list_sptr_t *args
+                                     const ast_expr_list_t *args
                                     )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -479,7 +479,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 //---------------------------------------------------------------------
 static
 void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                           const ast_expr_list_sptr_t *args
+                           const ast_expr_list_t *args
                           )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -540,7 +540,7 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                             const ast_expr_list_sptr_t *args
+                             const ast_expr_list_t *args
                             )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -599,7 +599,7 @@ void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                               const ast_expr_list_sptr_t *args
+                               const ast_expr_list_t *args
                               )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
@@ -644,7 +644,7 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 static
 void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                const ast_expr_list_sptr_t *args
+                                const ast_expr_list_t *args
                                )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));

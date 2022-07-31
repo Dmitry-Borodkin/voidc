@@ -55,8 +55,8 @@
     //-----------------------------------------------------------------
     ast_stmt_switch_t = v_struct_type_named("struct.ast_stmt_switch_t");
 
-    v_store(v_ast_opaque_expr_sptr,         typ0);
-    v_store(v_ast_opaque_generic_list_sptr, typ1);
+    v_store(v_ast_expr_t,         typ0);
+    v_store(v_ast_generic_list_t, typ1);
 
     v_type_struct_set_body(ast_stmt_switch_t, typ0, 2, false);
 
@@ -75,8 +75,8 @@
     //-----------------------------------------------------------------
     ast_case_block_t = v_struct_type_named("struct.ast_case_block_t");
 
-    v_store(v_ast_opaque_expr_list_sptr, typ0);
-    v_store(v_ast_opaque_stmt_list_sptr, typ1);
+    v_store(v_ast_expr_list_t, typ0);
+    v_store(v_ast_stmt_list_t, typ1);
 
     v_type_struct_set_body(ast_case_block_t, typ0, 2, false);
 
@@ -250,7 +250,7 @@
     v_add_parameter_name(f, 2, "list", v_ast_generic_list_ptr);
 }
 {
-    stmp = v_alloca(v_ast_opaque_stmt_sptr);
+    stmp = v_alloca(v_ast_stmt_t);
     v_initialize(stmp);
 
     v_ast_make_stmt_generic(stmp, voidc_ast_stmt_switch_vtable, ast_stmt_switch_t_size);
@@ -383,7 +383,7 @@
     v_add_parameter_name(f, 2, "stmt_list", v_ast_stmt_list_ptr);
 }
 {
-    otmp = v_alloca(v_ast_opaque_base_sptr);
+    otmp = v_alloca(v_ast_base_t);
     v_initialize(otmp);
 
     v_ast_make_generic(otmp, voidc_ast_case_block_vtable, ast_case_block_t_size);
@@ -416,7 +416,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any0);
+    arg = v_std_any_get_pointer(v_ast_expr_t, any0);
 
     if (arg)
     {
@@ -424,7 +424,7 @@
     }
     else
     {
-        arg = v_alloca(v_ast_opaque_expr_sptr);
+        arg = v_alloca(v_ast_expr_t);
         v_initialize(arg);
 
         v_std_any_set_pointer(ret, arg);    //- Empty - "default"
@@ -448,10 +448,10 @@
 {
     any1 = v_getelementptr(any0, 1);
 
-    case_list = v_std_any_get_pointer(v_ast_opaque_expr_list_sptr, any0);
-    stmt_list = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any1);
+    case_list = v_std_any_get_pointer(v_ast_expr_list_t, any0);
+    stmt_list = v_std_any_get_pointer(v_ast_stmt_list_t, any1);
 
-    case_block = v_alloca(v_ast_opaque_base_sptr);
+    case_block = v_alloca(v_ast_base_t);
     v_initialize(case_block);
 
     v_ast_make_case_block(case_block, case_list, stmt_list);
@@ -475,10 +475,10 @@
 {
     any1 = v_getelementptr(any0, 1);
 
-    list = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any0);
-    item = v_std_any_get_pointer(v_ast_opaque_base_sptr,         any1);
+    list = v_std_any_get_pointer(v_ast_generic_list_t, any0);
+    item = v_std_any_get_pointer(v_ast_base_t,         any1);
 
-    ret_list = v_alloca(v_ast_opaque_generic_list_sptr);
+    ret_list = v_alloca(v_ast_generic_list_t);
     v_initialize(ret_list);
 
     if (list)   v_list_append(ret_list, list, item);
@@ -504,10 +504,10 @@
 {
     any1 = v_getelementptr(any0, 1);
 
-    arg  = v_std_any_get_pointer(v_ast_opaque_expr_sptr,         any0);
-    list = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any1);
+    arg  = v_std_any_get_pointer(v_ast_expr_t,         any0);
+    list = v_std_any_get_pointer(v_ast_generic_list_t, any1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
     v_ast_make_stmt_switch(stmt, arg, list);
@@ -549,7 +549,7 @@
 
     //- Count switch cases
 
-    ast_base = v_alloca(v_ast_opaque_base_sptr);
+    ast_base = v_alloca(v_ast_base_t);
     v_initialize(ast_base);
 
     case_num = v_alloca(int);   case_num = v_reference(case_num);
@@ -641,7 +641,7 @@
 
     //- Compile case blocks...
 
-    case_args = v_malloc(v_ast_opaque_expr_sptr, case_max);
+    case_args = v_malloc(v_ast_expr_t, case_max);
     v_initialize(case_args, case_max);
 
     case_i = v_alloca(int);                 case_i = v_reference(case_i);

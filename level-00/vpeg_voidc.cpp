@@ -16,13 +16,13 @@ namespace vpeg
 extern "C"
 {
 
-static const ast_stmt_list_sptr_t stmt_list_nil = std::make_shared<const ast_stmt_list_t>();
-static const ast_expr_list_sptr_t expr_list_nil = std::make_shared<const ast_expr_list_t>();
+static const ast_stmt_list_t stmt_list_nil = std::make_shared<const ast_stmt_list_data_t>();
+static const ast_expr_list_t expr_list_nil = std::make_shared<const ast_expr_list_data_t>();
 
 static void
 mk_unit(std::any *ret, const std::any *args, size_t)
 {
-    auto p = std::any_cast<ast_stmt_list_sptr_t>(args+0);
+    auto p = std::any_cast<ast_stmt_list_t>(args+0);
 
     if (!p) p = &stmt_list_nil;
 
@@ -33,7 +33,7 @@ mk_unit(std::any *ret, const std::any *args, size_t)
 
     context_t::current_ctx->get_line_column(pos, line, column);
 
-    ast_unit_sptr_t ptr = std::make_shared<const ast_unit_t>(*p, line+1, column+1);
+    ast_unit_t ptr = std::make_shared<const ast_unit_data_t>(*p, line+1, column+1);
 
     *ret = ptr;
 }
@@ -41,13 +41,13 @@ mk_unit(std::any *ret, const std::any *args, size_t)
 static void
 mk_stmt_list(std::any *ret, const std::any *args, size_t)
 {
-    auto plst = std::any_cast<ast_stmt_list_sptr_t>(args+0);
+    auto plst = std::any_cast<ast_stmt_list_t>(args+0);
 
     if (!plst)  plst = &stmt_list_nil;
 
-    auto item = std::any_cast<ast_stmt_sptr_t>(args+1);
+    auto item = std::any_cast<ast_stmt_t>(args+1);
 
-    if (item)   *ret = std::make_shared<const ast_stmt_list_t>(*plst, *item);
+    if (item)   *ret = std::make_shared<const ast_stmt_list_data_t>(*plst, *item);
     else        *ret = *plst;
 }
 
@@ -58,11 +58,11 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
 
     if (auto p = std::any_cast<const std::string>(args+0))  { s = *p; }
 
-    ast_expr_sptr_t e;
+    ast_expr_t e;
 
-    if (auto p = std::any_cast<ast_expr_sptr_t>(args+1))    { e = *p; }
+    if (auto p = std::any_cast<ast_expr_t>(args+1))    { e = *p; }
 
-    ast_stmt_sptr_t ptr = std::make_shared<const ast_stmt_t>(s, e);
+    ast_stmt_t ptr = std::make_shared<const ast_stmt_data_t>(s, e);
 
     *ret = ptr;
 }
@@ -70,11 +70,11 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
 static void
 mk_expr_call(std::any *ret, const std::any *args, size_t)
 {
-    auto f = std::any_cast<ast_expr_sptr_t>(args[0]);
+    auto f = std::any_cast<ast_expr_t>(args[0]);
 
-    auto a = std::any_cast<ast_expr_list_sptr_t>(args[1]);
+    auto a = std::any_cast<ast_expr_list_t>(args[1]);
 
-    ast_expr_sptr_t ptr = std::make_shared<const ast_expr_call_t>(f, a);
+    ast_expr_t ptr = std::make_shared<const ast_expr_call_data_t>(f, a);
 
     *ret = ptr;
 }
@@ -82,13 +82,13 @@ mk_expr_call(std::any *ret, const std::any *args, size_t)
 static void
 mk_expr_list(std::any *ret, const std::any *args, size_t)
 {
-    auto plst = std::any_cast<ast_expr_list_sptr_t>(args+0);
+    auto plst = std::any_cast<ast_expr_list_t>(args+0);
 
     if (!plst) plst = &expr_list_nil;
 
-    auto item = std::any_cast<ast_expr_sptr_t>(args+1);
+    auto item = std::any_cast<ast_expr_t>(args+1);
 
-    if (item)   *ret = std::make_shared<const ast_expr_list_t>(*plst, *item);
+    if (item)   *ret = std::make_shared<const ast_expr_list_data_t>(*plst, *item);
     else        *ret = *plst;
 }
 
@@ -97,7 +97,7 @@ mk_expr_identifier(std::any *ret, const std::any *args, size_t)
 {
     auto n = std::any_cast<const std::string>(args[0]);
 
-    ast_expr_sptr_t ptr = std::make_shared<const ast_expr_identifier_t>(n);
+    ast_expr_t ptr = std::make_shared<const ast_expr_identifier_data_t>(n);
 
     *ret = ptr;
 }
@@ -107,7 +107,7 @@ mk_expr_integer(std::any *ret, const std::any *args, size_t)
 {
     auto n = std::any_cast<intptr_t>(args[0]);
 
-    ast_expr_sptr_t ptr = std::make_shared<const ast_expr_integer_t>(n);
+    ast_expr_t ptr = std::make_shared<const ast_expr_integer_data_t>(n);
 
     *ret = ptr;
 }
@@ -117,7 +117,7 @@ mk_expr_string(std::any *ret, const std::any *args, size_t)
 {
     auto s = std::any_cast<const std::string>(args[0]);
 
-    ast_expr_sptr_t ptr = std::make_shared<const ast_expr_string_t>(s);
+    ast_expr_t ptr = std::make_shared<const ast_expr_string_data_t>(s);
 
     *ret = ptr;
 }
@@ -128,7 +128,7 @@ mk_expr_char(std::any *ret, const std::any *args, size_t)
 //  auto c = std::any_cast<char32_t>(args[0]);
     auto c = (char32_t)std::any_cast<uint32_t>(args[0]);
 
-    ast_expr_sptr_t ptr = std::make_shared<const ast_expr_char_t>(c);
+    ast_expr_t ptr = std::make_shared<const ast_expr_char_data_t>(c);
 
     *ret = ptr;
 }
@@ -234,7 +234,7 @@ mk_EOF(std::any *ret, const std::any *args, size_t)
 {
     //- Just a placeholder...
 
-    ast_unit_sptr_t ptr = nullptr;
+    ast_unit_t ptr = nullptr;
 
     *ret = ptr;
 }

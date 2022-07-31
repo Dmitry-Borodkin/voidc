@@ -257,7 +257,7 @@
     //-
     //-     v_copy(saved_compiler_g, voidc_compiler);
     //-
-    //-     v_visitor_set_method_ast_unit_t(voidc_compiler, voidc_compiler, voidc_function_hack_visitor_method, 0);
+    //-     v_visitor_set_method_unit(voidc_compiler, voidc_compiler, voidc_function_hack_visitor_method, 0);
     //-
     //-     v_return(fun_value);
     //- }
@@ -378,8 +378,8 @@
     v_store(method_f,         val2);
     v_store(null_void_ptr_v,  val3);
 
-    set_method_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_visitor_set_method_ast_unit_t"));
-    set_method_f   = v_obtain_function("v_visitor_set_method_ast_unit_t");
+    set_method_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_visitor_set_method_unit"));
+    set_method_f   = v_obtain_function("v_visitor_set_method_unit");
 
     LLVMBuildCall2(builder, set_method_ft_, set_method_f, val0, 4, "");
 
@@ -398,7 +398,7 @@
     //-
     //-     tt = v_get_result_type();
     //-
-    //-     arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    //-     arg0 = v_alloca(v_ast_expr_t, 2);
     //-     v_initialize(arg0, 2);
     //-
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -480,9 +480,9 @@
     tt_v = LLVMBuildCall2(builder, get_res_type_ft_, get_res_type_f, 0, 0, "tt_v");
 
 
-    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_sptr);
+    v_ast_expr_t_ = v_type_get_llvm_type(v_ast_expr_t);
 
-    arg0_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_expr_sptr_, n2, "arg0_v");
+    arg0_v = LLVMBuildArrayAlloca(builder, v_ast_expr_t_, n2, "arg0_v");
 
 
     v_store(arg0_v, val0);
@@ -496,7 +496,7 @@
 
     v_store(n1, val0);
 
-    arg1_v = LLVMBuildGEP2(builder, v_ast_opaque_expr_sptr_, arg0_v, val0, 1, "arg1");
+    arg1_v = LLVMBuildGEP2(builder, v_ast_expr_t_, arg0_v, val0, 1, "arg1");
 
 
     v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
@@ -718,7 +718,7 @@
     //- {
     //-     builder = v_target_get_builder();
     //-
-    //-     arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    //-     arg0 = v_alloca(v_ast_expr_t);
     //-     v_initialize(arg0);
     //-
     //-     args_count = v_list_get_size(arg_list);
@@ -763,7 +763,7 @@
     builder_v = LLVMBuildCall2(builder, get_builder_ft_, get_builder_f, val0, 0, "builder_v");
 
 
-    arg0_v = LLVMBuildAlloca(builder, v_ast_opaque_expr_sptr_, "arg0_v");
+    arg0_v = LLVMBuildAlloca(builder, v_ast_expr_t_, "arg0_v");
 
 
     v_store(arg0_v, val0);
@@ -927,7 +927,7 @@
     p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    arg0 = v_alloca(v_ast_expr_t);
     v_initialize(arg0);
 
     base_arg = v_cast(arg0, v_ast_base_ptr);
@@ -975,7 +975,7 @@
     p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    arg0 = v_alloca(v_ast_expr_t);
     v_initialize(arg0);
 
     base_arg = v_cast(arg0, v_ast_base_ptr);

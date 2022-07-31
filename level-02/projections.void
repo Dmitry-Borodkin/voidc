@@ -32,8 +32,8 @@
 
 
 //---------------------------------------------------------------------
-op_postfix_dot:     &v_ast_opaque_expr_sptr := v_undef();
-op_postfix_tildato: &v_ast_opaque_expr_sptr := v_undef();
+op_postfix_dot:     &v_ast_expr_t := v_undef();
+op_postfix_tildato: &v_ast_expr_t := v_undef();
 
 voidc_projections_internal_globals_cleaner: (*void) -> void
 {
@@ -48,9 +48,9 @@ voidc_projections_internal_globals_cleaner: (*void) -> void
 private
 mk_projection_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
 {
-    op0  = v_std_any_get_pointer(v_ast_opaque_expr_sptr,      any+0);
-    name = v_std_any_get_pointer(v_std_string_t,              any+1);
-    args = v_std_any_get_pointer(v_ast_opaque_expr_list_sptr, any+2);
+    op0  = v_std_any_get_pointer(v_ast_expr_t,      any+0);
+    name = v_std_any_get_pointer(v_std_string_t,    any+1);
+    args = v_std_any_get_pointer(v_ast_expr_list_t, any+2);
 
     void_obj = v_ast_generic_get_object((op0: v_ast_base_ptr));
 
@@ -60,11 +60,11 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
     prec  = obj[1];
 
 
-    pay = v_alloca(v_ast_opaque_generic_list_sptr);
+    pay = v_alloca(v_ast_generic_list_t);
     v_initialize(pay);
     defer v_terminate(pay);
 
-    id = v_alloca(v_ast_opaque_expr_sptr);
+    id = v_alloca(v_ast_expr_t);
     v_initialize(id);
     defer v_terminate(id);
 
@@ -75,7 +75,7 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
     if (args) v_list_append(pay, pay, (args: v_ast_base_ptr));
 
 
-    op1 = v_alloca(v_ast_opaque_expr_sptr);
+    op1 = v_alloca(v_ast_expr_t);
     v_initialize(op1);
     defer v_terminate(op1);
 
@@ -109,7 +109,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
     pay = (&obj[2] : v_ast_generic_list_ptr);
 
 
-    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
     defer v_terminate(etmp);
 
@@ -117,7 +117,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     name = v_ast_expr_identifier_get_name(etmp);
 
-    alst = v_alloca(v_ast_opaque_expr_list_sptr);
+    alst = v_alloca(v_ast_expr_list_t);
     v_initialize(alst);
     defer v_terminate(alst);
 
@@ -227,7 +227,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     v_set_result_type(tt);
 
-    if (spc_flag)  voidc_internal_compile_ast_expr_call_t_helper(vis, alst, tr, vr);
+    if (spc_flag)  voidc_internal_compile_expr_call_helper(vis, alst, tr, vr);
     else           v_adopt_result(tr, vr);
 }
 
@@ -239,7 +239,7 @@ private
 op_postfix_dot_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                            args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_opaque_expr_sptr, 2);
+    ast = v_alloca(v_ast_expr_t, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
@@ -269,7 +269,7 @@ private
 op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                                args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_opaque_expr_sptr, 2);
+    ast = v_alloca(v_ast_expr_t, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 

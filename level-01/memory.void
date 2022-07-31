@@ -42,7 +42,7 @@
 //- {
 //-     args_count = v_list_get_size(arg_list);
 //-
-//-     args = v_alloca(v_ast_opaque_expr_sptr, args_count);
+//-     args = v_alloca(v_ast_expr_t, args_count);
 //-     v_initialize(args, args_count);
 //-
 //-     v_list_get_items(arg_list, 0, arg0, args_count);
@@ -107,9 +107,9 @@
     args_count_v = LLVMBuildCall2(builder, list_get_size_ft_, list_get_size_f, val0, 1, "args_count_v");
 
 
-    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_sptr);
+    v_ast_expr_t_ = v_type_get_llvm_type(v_ast_expr_t);
 
-    args_v = LLVMBuildArrayAlloca(builder, v_ast_opaque_expr_sptr_, args_count_v, "args_v");
+    args_v = LLVMBuildArrayAlloca(builder, v_ast_expr_t_, args_count_v, "args_v");
 
 
     v_store(args_v,       val0);
@@ -193,7 +193,7 @@
 
     v_store(n1, val0);
 
-    args_v_1 = LLVMBuildGEP2(builder, v_ast_opaque_expr_sptr_, args_v, val0, 1, "args_v_1");
+    args_v_1 = LLVMBuildGEP2(builder, v_ast_expr_t_, args_v, val0, 1, "args_v_1");
 
 
     v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
@@ -274,7 +274,7 @@
 
     v_set_result_type(UNREFERENCE_TAG);
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    arg0 = v_alloca(v_ast_expr_t);
     v_initialize(arg0);
 
     v_list_get_items(arg_list, 0, arg0);

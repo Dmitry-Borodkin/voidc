@@ -13,36 +13,36 @@
 
 
 //---------------------------------------------------------------------
-{   v_util_register_itcmep_impl(v_ast_opaque_base_sptr,         "v_ast", "base");
+{   v_util_register_itcmep_impl(v_ast_base_t,         "v_ast", "base");
 
-    v_util_register_itcmep_impl(v_ast_opaque_unit_sptr,         "v_ast", "unit");
-    v_util_register_itcmep_impl(v_ast_opaque_stmt_list_sptr,    "v_ast", "stmt_list");
-    v_util_register_itcmep_impl(v_ast_opaque_stmt_sptr,         "v_ast", "stmt");
-    v_util_register_itcmep_impl(v_ast_opaque_expr_list_sptr,    "v_ast", "expr_list");
-    v_util_register_itcmep_impl(v_ast_opaque_expr_sptr,         "v_ast", "expr");
-    v_util_register_itcmep_impl(v_ast_opaque_generic_list_sptr, "v_ast", "generic_list");
+    v_util_register_itcmep_impl(v_ast_unit_t,         "v_ast", "unit");
+    v_util_register_itcmep_impl(v_ast_stmt_list_t,    "v_ast", "stmt_list");
+    v_util_register_itcmep_impl(v_ast_stmt_t,         "v_ast", "stmt");
+    v_util_register_itcmep_impl(v_ast_expr_list_t,    "v_ast", "expr_list");
+    v_util_register_itcmep_impl(v_ast_expr_t,         "v_ast", "expr");
+    v_util_register_itcmep_impl(v_ast_generic_list_t, "v_ast", "generic_list");
 }
 
 //---------------------------------------------------------------------
-{   base_ptr = v_pointer_type(v_ast_opaque_base_sptr, 0);
+{   base_ptr = v_pointer_type(v_ast_base_t, 0);
     v_export_type("v_ast_base_ptr", base_ptr);
 
-    unit_ptr = v_pointer_type(v_ast_opaque_unit_sptr, 0);
+    unit_ptr = v_pointer_type(v_ast_unit_t, 0);
     v_export_type("v_ast_unit_ptr", unit_ptr);
 
-    stmt_list_ptr = v_pointer_type(v_ast_opaque_stmt_list_sptr, 0);
+    stmt_list_ptr = v_pointer_type(v_ast_stmt_list_t, 0);
     v_export_type("v_ast_stmt_list_ptr", stmt_list_ptr);
 
-    stmt_ptr = v_pointer_type(v_ast_opaque_stmt_sptr, 0);
+    stmt_ptr = v_pointer_type(v_ast_stmt_t, 0);
     v_export_type("v_ast_stmt_ptr", stmt_ptr);
 
-    expr_list_ptr = v_pointer_type(v_ast_opaque_expr_list_sptr, 0);
+    expr_list_ptr = v_pointer_type(v_ast_expr_list_t, 0);
     v_export_type("v_ast_expr_list_ptr", expr_list_ptr);
 
-    expr_ptr = v_pointer_type(v_ast_opaque_expr_sptr, 0);
+    expr_ptr = v_pointer_type(v_ast_expr_t, 0);
     v_export_type("v_ast_expr_ptr", expr_ptr);
 
-    generic_list_ptr = v_pointer_type(v_ast_opaque_generic_list_sptr, 0);
+    generic_list_ptr = v_pointer_type(v_ast_generic_list_t, 0);
     v_export_type("v_ast_generic_list_ptr", generic_list_ptr);
 }
 
@@ -58,7 +58,7 @@
 
     ft = v_function_type(void, typ0, 1, false);
 
-    v_util_register_make_list_nil_impl(v_ast_opaque_stmt_list_sptr, "v_ast_make_list_nil_stmt_list_impl", ft);
+    v_util_register_make_list_nil_impl(v_ast_stmt_list_t, "v_ast_make_list_nil_stmt_list_impl", ft);
 
 //  v_store(v_ast_stmt_list_ptr, typ0);
     v_store(v_ast_stmt_ptr,      typ1);
@@ -66,9 +66,9 @@
 
     ft = v_function_type(void, typ0, 3, false);
 
-    v_util_register_make_list_impl(v_ast_opaque_stmt_list_sptr, "v_ast_make_list_stmt_list_impl", ft);
+    v_util_register_make_list_impl(v_ast_stmt_list_t, "v_ast_make_list_stmt_list_impl", ft);
 
-    v_util_register_list_agsgi_impl(v_ast_opaque_stmt_list_sptr, v_ast_opaque_stmt_sptr, "v_ast", "stmt_list");
+    v_util_register_list_agsgi_impl(v_ast_stmt_list_t, v_ast_stmt_t, "v_ast", "stmt_list");
 
 
     //-----------------------------------------------------------------
@@ -76,7 +76,7 @@
 
     ft = v_function_type(void, typ0, 1, false);
 
-    v_util_register_make_list_nil_impl(v_ast_opaque_expr_list_sptr, "v_ast_make_list_nil_expr_list_impl", ft);
+    v_util_register_make_list_nil_impl(v_ast_expr_list_t, "v_ast_make_list_nil_expr_list_impl", ft);
 
 //  v_store(v_ast_expr_list_ptr, typ0);
     v_store(v_ast_expr_ptr,      typ1);
@@ -84,9 +84,9 @@
 
     ft = v_function_type(void, typ0, 3, false);
 
-    v_util_register_make_list_impl(v_ast_opaque_expr_list_sptr, "v_ast_make_list_expr_list_impl", ft);
+    v_util_register_make_list_impl(v_ast_expr_list_t, "v_ast_make_list_expr_list_impl", ft);
 
-    v_util_register_list_agsgi_impl(v_ast_opaque_expr_list_sptr, v_ast_opaque_expr_sptr, "v_ast", "expr_list");
+    v_util_register_list_agsgi_impl(v_ast_expr_list_t, v_ast_expr_t, "v_ast", "expr_list");
 
 
     //-----------------------------------------------------------------
@@ -95,7 +95,7 @@
 
     ft = v_function_type(void, typ0, 2, false);
 
-    v_util_register_make_list_nil_impl(v_ast_opaque_generic_list_sptr, "v_ast_make_list_nil_generic_list_impl", ft);
+    v_util_register_make_list_nil_impl(v_ast_generic_list_t, "v_ast_make_list_nil_generic_list_impl", ft);
 
 //  v_store(v_ast_generic_list_ptr, typ0);
 //  v_store(v_quark_t,              typ1);
@@ -104,9 +104,9 @@
 
     ft = v_function_type(void, typ0, 4, false);
 
-    v_util_register_make_list_impl(v_ast_opaque_generic_list_sptr, "v_ast_make_list_generic_list_impl", ft);
+    v_util_register_make_list_impl(v_ast_generic_list_t, "v_ast_make_list_generic_list_impl", ft);
 
-    v_util_register_list_agsgi_impl(v_ast_opaque_generic_list_sptr, v_ast_opaque_base_sptr, "v_ast", "generic_list");
+    v_util_register_list_agsgi_impl(v_ast_generic_list_t, v_ast_base_t, "v_ast", "generic_list");
 }
 
 
@@ -347,7 +347,7 @@
     v_store(void_ptr,          typ3);               //- aux
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("v_visitor_set_method_ast_stmt_list_t", ft);
+    v_export_symbol_type("v_visitor_set_method_stmt_list", ft);
 
     expr_fun_ptr = v_pointer_type(expr_ft, 0);
 
@@ -357,10 +357,10 @@
 //  v_store(void_ptr,          typ3);               //- aux
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("v_visitor_set_method_ast_expr_list_t", ft);
+    v_export_symbol_type("v_visitor_set_method_expr_list", ft);
 
-    v_export_symbol_type("v_ast_stmt_list_t_visitor_method_tag", quark_ref);
-    v_export_symbol_type("v_ast_expr_list_t_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_stmt_list_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_expr_list_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr,   typ0);             //-
@@ -380,9 +380,9 @@
     v_store(void_ptr,          typ3);               //- aux
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("v_visitor_set_method_ast_unit_t", ft);
+    v_export_symbol_type("v_visitor_set_method_unit", ft);
 
-    v_export_symbol_type("v_ast_unit_t_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_unit_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr, typ0);               //-
@@ -400,9 +400,9 @@
     v_store(fun_ptr,           typ2);               //-
 
     ft = v_function_type(void, typ0, 3, false);
-    v_export_symbol_type("v_visitor_set_method_ast_stmt_t", ft);
+    v_export_symbol_type("v_visitor_set_method_stmt", ft);
 
-    v_export_symbol_type("v_ast_stmt_t_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_stmt_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr,   typ0);             //-
@@ -421,9 +421,9 @@
     v_store(void_ptr,          typ3);               //- aux
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("v_visitor_set_method_ast_expr_call_t", ft);
+    v_export_symbol_type("v_visitor_set_method_expr_call", ft);
 
-    v_export_symbol_type("v_ast_expr_call_t_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_expr_call_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr, typ0);               //-
@@ -441,9 +441,9 @@
 //  v_store(void_ptr,          typ3);               //- aux
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("v_visitor_set_method_ast_expr_identifier_t", ft);
+    v_export_symbol_type("v_visitor_set_method_expr_identifier", ft);
 
-    v_export_symbol_type("v_ast_expr_identifier_t_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_expr_identifier_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr, typ0);               //-
@@ -461,9 +461,9 @@
 //  v_store(void_ptr,          typ3);               //- aux
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("v_visitor_set_method_ast_expr_integer_t", ft);
+    v_export_symbol_type("v_visitor_set_method_expr_integer", ft);
 
-    v_export_symbol_type("v_ast_expr_integer_t_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_expr_integer_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr, typ0);               //-
@@ -481,9 +481,9 @@
 //  v_store(void_ptr,          typ3);               //- aux
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("v_visitor_set_method_ast_expr_string_t", ft);
+    v_export_symbol_type("v_visitor_set_method_expr_string", ft);
 
-    v_export_symbol_type("v_ast_expr_string_t_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_expr_string_visitor_method_tag", quark_ref);
 
     //-------------------------------------------------------------
 //  v_store(voidc_visitor_ptr, typ0);               //-
@@ -501,9 +501,9 @@
 //  v_store(void_ptr,          typ3);               //- aux
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("v_visitor_set_method_ast_expr_char_t", ft);
+    v_export_symbol_type("v_visitor_set_method_expr_char", ft);
 
-    v_export_symbol_type("v_ast_expr_char_t_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_expr_char_visitor_method_tag", quark_ref);
 
 
     //-------------------------------------------------------------

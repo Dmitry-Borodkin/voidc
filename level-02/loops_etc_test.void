@@ -145,15 +145,14 @@
 {
     printf("\n");
 
-    for (i: &int := 0; i < 20; ++i)
+    for (i: &int := 0; i < 100; ++i)
     {
-        switch(f3: int = i%3==0, f5: int = i%5==0, ff = f3+f5)
+        switch(f3: int = i%3==0, f5: int = i%5==0, ff = f3+(f5<<1))
         {
-        case 0:     printf("%d\n", i);  v_break();
-
-        case 1:     if (f3) printf("Fiz\n"); else printf("Buz\n"); v_break();
-
-        case 2:     printf("FizBuz\n"); v_break();
+        case 0: printf("%d\n", i);    v_break();
+        case 1: printf("Fizz\n");     v_break();
+        case 2: printf("Buzz\n");     v_break();
+        case 3: printf("FizzBuzz\n"); v_break();
         }
     }
 

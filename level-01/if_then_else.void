@@ -45,9 +45,9 @@
     //-----------------------------------------------------------------
     ast_stmt_if_then_else_t = v_struct_type_named("struct.ast_stmt_if_then_else_t");
 
-    v_store(v_ast_opaque_expr_sptr, typ0);
-    v_store(v_ast_opaque_stmt_sptr, typ1);
-    v_store(v_ast_opaque_stmt_sptr, typ2);
+    v_store(v_ast_expr_t, typ0);
+    v_store(v_ast_stmt_t, typ1);
+    v_store(v_ast_stmt_t, typ2);
 
     v_type_struct_set_body(ast_stmt_if_then_else_t, typ0, 3, false);
 
@@ -229,7 +229,7 @@
     v_add_parameter_name(f, 3, "stmt_else", v_ast_stmt_ptr);
 }
 {
-    stmp = v_alloca(v_ast_opaque_stmt_sptr);
+    stmp = v_alloca(v_ast_stmt_t);
     v_initialize(stmp);
 
     v_ast_make_stmt_generic(stmp, voidc_ast_stmt_if_then_else_vtable, ast_stmt_if_then_else_t_size);
@@ -262,11 +262,11 @@
 //- {
 //-     par_else = v_getelementptr(any0, 2);
 //-
-//-     stmt_else_ptr = v_util_std_any_get_pointer(v_ast_opaque_stmt_sptr, par_else);
+//-     stmt_else_ptr = v_util_std_any_get_pointer(v_ast_stmt_t, par_else);
 //-
 //-     stmt_else_v = v_alloca(v_ast_stmt_ptr);
 //-
-//-     stmt = v_alloca(v_ast_opaque_stmt_sptr);
+//-     stmt = v_alloca(v_ast_stmt_t);
 //-     v_initialize(stmt);
 //-
 //-     if (stmt_else_ptr)
@@ -322,9 +322,9 @@
     stmt_else_v = LLVMBuildAlloca(builder, v_ast_stmt_ptr_, "stmt_else_v");
 
 
-    v_ast_opaque_stmt_sptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_sptr);
+    v_ast_stmt_t_ = v_type_get_llvm_type(v_ast_stmt_t);
 
-    stmt = LLVMBuildAlloca(builder, v_ast_opaque_stmt_sptr_, "stmt");
+    stmt = LLVMBuildAlloca(builder, v_ast_stmt_t_, "stmt");
 
     stmt_sptr_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_initialize_stmt_impl"));
     stmt_sptr_init_f   = v_obtain_function("v_ast_initialize_stmt_impl");
@@ -370,8 +370,8 @@
 {
     par_then = v_getelementptr(any0, 1);
 
-    condition = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any0);
-    stmt_then = v_std_any_get_pointer(v_ast_opaque_stmt_sptr, par_then);
+    condition = v_std_any_get_pointer(v_ast_expr_t, any0);
+    stmt_then = v_std_any_get_pointer(v_ast_stmt_t, par_then);
     stmt_else = v_load(stmt_else_v);
 
     v_ast_make_stmt_if_then_else(stmt, condition, stmt_then, stmt_else);

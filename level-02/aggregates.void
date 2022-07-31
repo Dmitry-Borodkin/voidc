@@ -32,7 +32,7 @@
 
 
 //---------------------------------------------------------------------
-v_op_braces: &v_ast_opaque_expr_sptr := v_undef();
+v_op_braces: &v_ast_expr_t := v_undef();
 
 voidc_aggregates_internal_gloabls_cleaner: (*void) -> void
 {
@@ -46,7 +46,7 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
 {
     N = v_list_get_size(args);
 
-    expr = v_alloca(v_ast_opaque_expr_sptr);
+    expr = v_alloca(v_ast_expr_t);
     v_initialize(expr);
     defer v_terminate(expr);
 
@@ -140,7 +140,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
     if (n)
     block
     {
-        expr = v_alloca(v_ast_opaque_expr_sptr);
+        expr = v_alloca(v_ast_expr_t);
         v_initialize(expr);
         defer v_terminate(expr);
 
@@ -149,7 +149,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 
         v_list_get_items(args, i0, expr);
 
-        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_string_t_visitor_method_tag)
+        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_string_visitor_method_tag)
         {
             name = v_ast_expr_string_get_string(expr);
 
@@ -165,7 +165,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
             v_list_get_items(args, i0, expr);
         }
 
-        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_identifier_t_visitor_method_tag)
+        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_identifier_visitor_method_tag)
         {
             ident = v_ast_expr_identifier_get_name(expr);
 
@@ -181,9 +181,9 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
             v_list_get_items(args, i0, expr);
         }
 
-        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_call_t_visitor_method_tag)
+        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_call_visitor_method_tag)
         {
-            alst = v_alloca(v_ast_opaque_expr_list_sptr);
+            alst = v_alloca(v_ast_expr_list_t);
             v_initialize(alst);
             defer v_terminate(alst);
 
@@ -221,7 +221,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 v_typed_intrinsic: (vis: voidc_visitor_ptr, *void,
                     args: v_ast_expr_list_ptr, count: int) -> void
 {
-    expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+    expr = v_alloca(v_ast_expr_t, 2);
     v_initialize(expr, 2);
     defer v_terminate(expr, 2);
 

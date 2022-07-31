@@ -150,9 +150,9 @@
     v_make_global("decl_list",    lst_ref);
     v_make_global("const_list",   lst_ref);
 
-    v_make_global("op_infix_to",        v_ast_opaque_expr_sptr);
-    v_make_global("op_prefix_const",    v_ast_opaque_expr_sptr);
-    v_make_global("op_prefix_volatile", v_ast_opaque_expr_sptr);
+    v_make_global("op_infix_to",        v_ast_expr_t);
+    v_make_global("op_prefix_const",    v_ast_expr_t);
+    v_make_global("op_prefix_volatile", v_ast_expr_t);
 
     intptr_t_ = v_type_get_llvm_type(intptr_t);
 
@@ -208,17 +208,17 @@
 {
 //  printf("mk_br_item_grammar_action\n");
 
-    key  = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+0);
-    type = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+1);
+    key  = v_std_any_get_pointer(v_ast_expr_t, any+0);
+    type = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
-    expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+    expr = v_alloca(v_ast_expr_t, 2);
     v_initialize(expr, 2);
     defer v_terminate(expr, 2);
 
     if (key)    v_copy(expr+0, key);
     if (type)   v_copy(expr+1, type);
 
-    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    lst = v_alloca(v_ast_expr_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -243,12 +243,12 @@
 {
 //  printf("mk_br_item_list_grammar_action\n");
 
-    list = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+0);
+    list = v_std_any_get_pointer(v_ast_expr_t, any+0);
     list = v_cast(list, v_ast_generic_list_ptr);                    //- Sic!!!
 
-    item = v_std_any_get_pointer(v_ast_opaque_expr_list_sptr, any+1);
+    item = v_std_any_get_pointer(v_ast_expr_list_t, any+1);
 
-    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -283,7 +283,7 @@
 
     name = v_std_any_get_pointer(v_std_string_t,    any+1);
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 2);
+    ast = v_alloca(v_ast_base_t, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
@@ -291,7 +291,7 @@
 
     v_ast_make_expr_identifier(v_cast(&ast[1], v_ast_expr_ptr), v_std_string_get(name));
 
-    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -317,12 +317,12 @@
 {
 //  printf("mk_unit_fun_defn_hdr_grammar_action\n");
 
-    q_id = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
+    q_id = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
-    args = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+1);
-    type = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+2);
+    args = v_std_any_get_pointer(v_ast_expr_t, any+1);
+    type = v_std_any_get_pointer(v_ast_expr_t, any+2);
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 4);
+    ast = v_alloca(v_ast_base_t, 4);
     v_initialize(ast, 4);
     defer v_terminate(ast, 4);
 
@@ -331,7 +331,7 @@
     v_copy(ast+2, v_cast(args, v_ast_base_ptr));
     v_copy(ast+3, v_cast(type, v_ast_base_ptr));
 
-    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -356,16 +356,16 @@
 {
 //  printf("mk_unit_fun_defn_grammar_action\n");
 
-    head = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
-    body = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr,    any+1);
+    head = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+    body = v_std_any_get_pointer(v_ast_stmt_list_t,    any+1);
 
-    ast = v_alloca(v_ast_opaque_base_sptr);
+    ast = v_alloca(v_ast_base_t);
     v_initialize(ast);
     defer v_terminate(ast);
 
     if (body)   v_copy(ast, v_cast(body, v_ast_base_ptr));
 
-    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -391,11 +391,11 @@
 //  printf("mk_unit_var_defn_grammar_action\n");
 //  defer printf("mk_unit_var_defn_grammar_action leave\n");
 
-    q_id = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
+    q_id = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
-    expr = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+1);
+    expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 4);
+    ast = v_alloca(v_ast_base_t, 4);
     v_initialize(ast, 4);
     defer v_terminate(ast, 4);
 
@@ -408,11 +408,11 @@
     {
         tag = v_ast_base_get_visitor_method_tag(ast+2);
 
-        if (tag != v_ast_expr_call_t_visitor_method_tag) v_break();
+        if (tag != v_ast_expr_call_visitor_method_tag) v_break();
 
         ast2 = v_cast(ast+2, v_ast_expr_ptr);
 
-        etmp = v_alloca(v_ast_opaque_expr_sptr);
+        etmp = v_alloca(v_ast_expr_t);
         v_initialize(etmp);
         defer v_terminate(etmp);
 
@@ -420,7 +420,7 @@
 
         tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
-        if (tag != v_ast_expr_identifier_t_visitor_method_tag) v_break();
+        if (tag != v_ast_expr_identifier_visitor_method_tag) v_break();
 
         name = v_ast_expr_identifier_get_name(etmp);
 
@@ -435,7 +435,7 @@
 
     v_list_get_items(q_id, 0, ast, 2);
 
-    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -460,12 +460,12 @@
 {
 //  printf("mk_unit_var_defn_grammar_action\n");
 
-    q_id = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
+    q_id = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
-    type  = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+1);
-    value = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+2);
+    type  = v_std_any_get_pointer(v_ast_expr_t, any+1);
+    value = v_std_any_get_pointer(v_ast_expr_t, any+2);
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 4);
+    ast = v_alloca(v_ast_base_t, 4);
     v_initialize(ast, 4);
     defer v_terminate(ast, 4);
 
@@ -475,7 +475,7 @@
 
     v_copy(ast+3, v_cast(value, v_ast_base_ptr));
 
-    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -501,10 +501,10 @@
 {
 //  printf("mk_unit_defn_list_grammar_action\n");
 
-    list = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
-    item = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+1);
+    list = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+    item = v_std_any_get_pointer(v_ast_generic_list_t, any+1);
 
-    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -533,7 +533,7 @@
 {
 //  printf("mk_defn_list_unit_grammar_action\n");
 
-    list = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+0);
+    list = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
     pos = v_std_any_get_value(size_t, any+1);
 
@@ -542,7 +542,7 @@
 
     v_peg_get_line_column(pos, line, column);
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 3);
+    ast = v_alloca(v_ast_base_t, 3);
     v_initialize(ast, 3);
     defer v_terminate(ast, 3);
 
@@ -551,7 +551,7 @@
     v_ast_make_expr_integer(v_cast(&ast[1], v_ast_expr_ptr), v_cast(line,   intptr_t));
     v_ast_make_expr_integer(v_cast(&ast[2], v_ast_expr_ptr), v_cast(column, intptr_t));
 
-    lst = v_alloca(v_ast_opaque_generic_list_sptr);
+    lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -579,9 +579,9 @@
 
     name = v_std_any_get_pointer(v_std_string_t, any+0);
 
-    expr = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+1);
+    expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 2);
+    ast = v_alloca(v_ast_base_t, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
@@ -594,11 +594,11 @@
     {
         tag = v_ast_base_get_visitor_method_tag(ast+0);
 
-        if (tag != v_ast_expr_call_t_visitor_method_tag) v_break();
+        if (tag != v_ast_expr_call_visitor_method_tag) v_break();
 
         ast0 = v_cast(ast+0, v_ast_expr_ptr);
 
-        etmp = v_alloca(v_ast_opaque_expr_sptr);
+        etmp = v_alloca(v_ast_expr_t);
         v_initialize(etmp);
         defer v_terminate(etmp);
 
@@ -606,7 +606,7 @@
 
         tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
-        if (tag != v_ast_expr_identifier_t_visitor_method_tag) v_break();
+        if (tag != v_ast_expr_identifier_visitor_method_tag) v_break();
 
         opnm = v_ast_expr_identifier_get_name(etmp);
 
@@ -619,15 +619,15 @@
         v_list_get_items(arg_list, 1, ast0, 2);
     }
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
     defer v_terminate(stmt);
 
-    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    lst = v_alloca(v_ast_expr_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
-    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
     defer v_terminate(etmp);
 
@@ -677,10 +677,10 @@
 
     name = v_std_any_get_pointer(v_std_string_t, any+0);
 
-    type = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+1);
-    expr = v_std_any_get_pointer(v_ast_opaque_expr_sptr, any+2);
+    type = v_std_any_get_pointer(v_ast_expr_t, any+1);
+    expr = v_std_any_get_pointer(v_ast_expr_t, any+2);
 
-    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    lst = v_alloca(v_ast_expr_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
@@ -688,7 +688,7 @@
 
     v_list_append(lst, lst, type, 1);
 
-    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
     defer v_terminate(etmp);
 
@@ -696,7 +696,7 @@
 
     v_ast_make_expr_call(etmp, etmp, lst);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
     defer v_terminate(stmt);
 
@@ -772,7 +772,7 @@
 //  printf("v_internal_var_decl_intrinsic\n");
 //  defer printf("v_internal_var_decl_intrinsic leave\n");
 
-    arg = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg, 2);
     defer v_terminate(arg, 2);
 
@@ -809,7 +809,7 @@
 //  printf("v_internal_var_defn_intrinsic\n");
 //  defer printf("v_internal_var_defn_intrinsic leave\n");
 
-    arg = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg, 2);
     defer v_terminate(arg, 2);
 
@@ -858,7 +858,7 @@
 //  printf("v_internal_val_defn_intrinsic\n");
 //  defer printf("v_internal_val_defn_intrinsic leave\n");
 
-    arg = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg, 2);
     defer v_terminate(arg, 2);
 
@@ -893,13 +893,13 @@
 //  printf("compile_br_item_list\n");
 //  defer printf("compile_br_item_list leave\n");
 
-    lst = v_alloca(v_ast_opaque_expr_list_sptr);
+    lst = v_alloca(v_ast_expr_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
     v_list_get_items(list, 0, v_cast(lst, v_ast_base_ptr));     //- Just first one
 
-    expr = v_alloca(v_ast_opaque_expr_sptr);
+    expr = v_alloca(v_ast_expr_t);
     v_initialize(expr);
     defer v_terminate(expr);
 
@@ -959,7 +959,7 @@
 //  printf("compile_unit_fun_defn\n");
 //  defer printf("compile_unit_fun_defn leave\n");
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 9);
+    ast = v_alloca(v_ast_base_t, 9);
     v_initialize(ast, 9);
     defer v_terminate(ast, 9);
 
@@ -988,7 +988,7 @@
 
 
     //-------------------------------------------------------------
-    expr = v_alloca(v_ast_opaque_expr_sptr);
+    expr = v_alloca(v_ast_expr_t);
     v_initialize(expr);
     defer v_terminate(expr);
 
@@ -1007,7 +1007,7 @@
     //-------------------------------------------------------------
     if (decl_list)      //- Importing
     {
-        item = v_alloca(v_ast_opaque_expr_list_sptr);
+        item = v_alloca(v_ast_expr_list_t);
         v_initialize(item);
         defer v_terminate(item);
 
@@ -1038,7 +1038,7 @@
 
         if (count)
         {
-            item = v_alloca(v_ast_opaque_generic_list_sptr);
+            item = v_alloca(v_ast_generic_list_t);
             v_initialize(item);
             defer v_terminate(item);
 
@@ -1089,7 +1089,7 @@
 //  printf("compile_unit_var_defn\n");
 //  defer printf("compile_unit_var_defn leave\n");
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 4);
+    ast = v_alloca(v_ast_base_t, 4);
     v_initialize(ast, 4);
     defer v_terminate(ast, 4);
 
@@ -1150,7 +1150,7 @@
     //-------------------------------------------------------------
     if (decl_list)      //- Importing
     {
-        expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+        expr = v_alloca(v_ast_expr_t, 2);
         v_initialize(expr, 2);
         defer v_terminate(expr, 2);
 
@@ -1158,7 +1158,7 @@
 
         v_ast_make_expr_integer(expr+1, export);
 
-        item = v_alloca(v_ast_opaque_expr_list_sptr);
+        item = v_alloca(v_ast_expr_list_t);
         v_initialize(item);
         defer v_terminate(item);
 
@@ -1186,7 +1186,7 @@
 //  printf("compile_unit_val_defn\n");
 //  defer printf("compile_unit_val_defn leave\n");
 
-    ast = v_alloca(v_ast_opaque_base_sptr, 4);
+    ast = v_alloca(v_ast_base_t, 4);
     v_initialize(ast, 4);
     defer v_terminate(ast, 4);
 
@@ -1232,7 +1232,7 @@
     //-------------------------------------------------------------
     if (const_list)     //- Importing
     {
-        expr = v_alloca(v_ast_opaque_expr_sptr, 3);
+        expr = v_alloca(v_ast_expr_t, 3);
         v_initialize(expr, 3);
         defer v_terminate(expr, 3);
 
@@ -1260,7 +1260,7 @@
             v_ast_make_expr_integer(expr+2, cv);
         }
 
-        item = v_alloca(v_ast_opaque_expr_list_sptr);
+        item = v_alloca(v_ast_expr_list_t);
         v_initialize(item);
         defer v_terminate(item);
 
@@ -1296,8 +1296,8 @@
 
     //- Declarations (i.e. "types of things") ---------------------
 
-    symbol_list   = v_alloca(v_ast_opaque_generic_list_sptr);
-    constant_list = v_alloca(v_ast_opaque_generic_list_sptr);
+    symbol_list   = v_alloca(v_ast_generic_list_t);
+    constant_list = v_alloca(v_ast_generic_list_t);
 
     if (v_target_local_ctx_has_parent())
     {
@@ -1331,7 +1331,7 @@
 
 
     //-------------------------------------------------------------
-    lst = v_alloca(v_ast_opaque_generic_list_sptr, 2);
+    lst = v_alloca(v_ast_generic_list_t, 2);
     v_initialize(lst, 2);
     defer v_terminate(lst, 2);
 
@@ -1362,7 +1362,7 @@
 
         saved_voidc_module = v_get_module();
 
-        expr = v_alloca(v_ast_opaque_expr_sptr, 3);
+        expr = v_alloca(v_ast_expr_t, 3);
         v_initialize(expr, 3);
         defer v_terminate(expr, 3);
 
@@ -1380,7 +1380,7 @@
         v_import("llvm-c/Core.void");
 
         //---------------------------------------------------------
-        item = v_alloca(v_ast_opaque_expr_list_sptr);
+        item = v_alloca(v_ast_expr_list_t);
         v_initialize(item);
         defer v_terminate(item);
 
@@ -1647,7 +1647,7 @@
 {
 //  printf("compile_op_prefix_cv\n");
 
-    ast = v_alloca(v_ast_opaque_expr_sptr);
+    ast = v_alloca(v_ast_expr_t);
     v_initialize(ast);
     defer v_terminate(ast);
 
@@ -1678,7 +1678,7 @@
 //  printf("compile_op_infix_to\n");
 //  defer printf("compile_op_infix_to leave\n");
 
-    ast = v_alloca(v_ast_opaque_expr_sptr, 2);
+    ast = v_alloca(v_ast_expr_t, 2);
     v_initialize(ast, 2);
     defer v_terminate(ast, 2);
 
@@ -1705,7 +1705,7 @@
     {
         argtypes := v_malloc(v_type_ptr, count);
 
-        item = v_alloca(v_ast_opaque_base_sptr);
+        item = v_alloca(v_ast_base_t);
         v_initialize(item);
         defer v_terminate(item);
 
@@ -1781,7 +1781,7 @@
     v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
 }
 {
-    arg = v_alloca(v_ast_opaque_expr_sptr);
+    arg = v_alloca(v_ast_expr_t);
     v_initialize(arg);
     defer v_terminate(arg);
 

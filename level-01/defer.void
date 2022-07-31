@@ -44,7 +44,7 @@
     //-----------------------------------------------------------------
     ast_stmt_defer_t = v_struct_type_named("struct.ast_stmt_defer_t");
 
-    typ[0] := v_ast_opaque_stmt_sptr;
+    typ[0] := v_ast_stmt_t;
 
     v_type_struct_set_body(ast_stmt_defer_t, typ, 1, false);
 
@@ -206,7 +206,7 @@
     v_add_parameter_name(f, 1, "stmt", v_ast_stmt_ptr);
 }
 {
-    stmp = v_alloca(v_ast_opaque_stmt_sptr);
+    stmp = v_alloca(v_ast_stmt_t);
     v_initialize(stmp);
 
     v_ast_make_stmt_generic(stmp, voidc_ast_stmt_defer_vtable, ast_stmt_defer_t_size);
@@ -239,9 +239,9 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    stmt = v_std_any_get_pointer(v_ast_opaque_stmt_sptr, any0);
+    stmt = v_std_any_get_pointer(v_ast_stmt_t, any0);
 
-    stmt_ret = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt_ret = v_alloca(v_ast_stmt_t);
     v_initialize(stmt_ret);
 
     v_ast_make_stmt_defer(stmt_ret, stmt);

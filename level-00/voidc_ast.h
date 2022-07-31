@@ -21,18 +21,18 @@
 //- Visitor tags...
 //---------------------------------------------------------------------
 #define DEFINE_AST_VISITOR_METHOD_TAGS(DEF) \
-    DEF(ast_stmt_list_t) \
-    DEF(ast_expr_list_t) \
-    DEF(ast_unit_t) \
-    DEF(ast_stmt_t) \
-    DEF(ast_expr_call_t) \
-    DEF(ast_expr_identifier_t) \
-    DEF(ast_expr_integer_t) \
-    DEF(ast_expr_string_t) \
-    DEF(ast_expr_char_t)
+    DEF(stmt_list) \
+    DEF(expr_list) \
+    DEF(unit) \
+    DEF(stmt) \
+    DEF(expr_call) \
+    DEF(expr_identifier) \
+    DEF(expr_integer) \
+    DEF(expr_string) \
+    DEF(expr_char)
 
-#define DEF(type) \
-extern v_quark_t v_##type##_visitor_method_tag;
+#define DEF(name) \
+extern v_quark_t v_ast_##name##_visitor_method_tag;
 
 extern "C"
 {
@@ -49,9 +49,9 @@ VOIDC_DLLEXPORT_END
 //---------------------------------------------------------------------
 //- AST classes
 //---------------------------------------------------------------------
-struct ast_base_t
+struct ast_base_data_t
 {
-    virtual ~ast_base_t() = default;
+    virtual ~ast_base_data_t() = default;
 
 public:
     virtual void accept(const visitor_sptr_t &visitor) const = 0;
@@ -60,50 +60,50 @@ public:
     virtual v_quark_t method_tag(void) const = 0;
 };
 
-typedef std::shared_ptr<const ast_base_t> ast_base_sptr_t;
+typedef std::shared_ptr<const ast_base_data_t> ast_base_t;
 
 //---------------------------------------------------------------------
-#define AST_VISITOR_TAG(type) \
-    v_quark_t method_tag(void) const override { return v_##type##_visitor_method_tag; }
+#define AST_VISITOR_TAG(name) \
+    v_quark_t method_tag(void) const override { return v_ast_##name##_visitor_method_tag; }
 
 
 //---------------------------------------------------------------------
-struct ast_unit_base_t : public virtual ast_base_t {};
-struct ast_stmt_base_t : public virtual ast_base_t {};
-struct ast_expr_base_t : public virtual ast_base_t {};
+struct ast_unit_base_data_t : public virtual ast_base_data_t {};
+struct ast_stmt_base_data_t : public virtual ast_base_data_t {};
+struct ast_expr_base_data_t : public virtual ast_base_data_t {};
 
-typedef std::shared_ptr<const ast_unit_base_t> ast_unit_sptr_t;
-typedef std::shared_ptr<const ast_stmt_base_t> ast_stmt_sptr_t;
-typedef std::shared_ptr<const ast_expr_base_t> ast_expr_sptr_t;
+typedef std::shared_ptr<const ast_unit_base_data_t> ast_unit_t;
+typedef std::shared_ptr<const ast_stmt_base_data_t> ast_stmt_t;
+typedef std::shared_ptr<const ast_expr_base_data_t> ast_expr_t;
 
 
 //---------------------------------------------------------------------
 template<typename T, v_quark_t &Tag>
-struct ast_list_t : public virtual ast_base_t, public std::enable_shared_from_this<ast_list_t<T, Tag>>
+struct ast_list_data_t : public virtual ast_base_data_t, public std::enable_shared_from_this<ast_list_data_t<T, Tag>>
 {
     using item_t = T;
 
     const immer::vector<std::shared_ptr<const T>> data;
 
-    ast_list_t() : data{} {}
+    ast_list_data_t() : data{} {}
 
-    ast_list_t(const std::shared_ptr<const T> *items, size_t count)
+    ast_list_data_t(const std::shared_ptr<const T> *items, size_t count)
       : data(items, items+count)
     {}
 
-    ast_list_t(const std::shared_ptr<const ast_list_t<T, Tag>> &list,
-               const std::shared_ptr<const T> &item)
+    ast_list_data_t(const std::shared_ptr<const ast_list_data_t<T, Tag>> &list,
+                    const std::shared_ptr<const T> &item)
       : data(list->data.push_back(item))
     {}
 
-    ast_list_t(const std::shared_ptr<const ast_list_t<T, Tag>> &list,
-               const std::shared_ptr<const T> *items, size_t count)
+    ast_list_data_t(const std::shared_ptr<const ast_list_data_t<T, Tag>> &list,
+                    const std::shared_ptr<const T> *items, size_t count)
       : data(list->do_append(items, count))
     {}
 
 public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
-                                     const std::shared_ptr<const ast_list_t<T, Tag>> *self);
+                                     const std::shared_ptr<const ast_list_data_t<T, Tag>> *self);
 
     void accept(const visitor_sptr_t &visitor) const override
     {
@@ -127,23 +127,23 @@ private:
 };
 
 //---------------------------------------------------------------------
-using ast_stmt_list_t = ast_list_t<ast_stmt_base_t, v_ast_stmt_list_t_visitor_method_tag>;
-using ast_expr_list_t = ast_list_t<ast_expr_base_t, v_ast_expr_list_t_visitor_method_tag>;
+using ast_stmt_list_data_t = ast_list_data_t<ast_stmt_base_data_t, v_ast_stmt_list_visitor_method_tag>;
+using ast_expr_list_data_t = ast_list_data_t<ast_expr_base_data_t, v_ast_expr_list_visitor_method_tag>;
 
-typedef std::shared_ptr<const ast_stmt_list_t> ast_stmt_list_sptr_t;
-typedef std::shared_ptr<const ast_expr_list_t> ast_expr_list_sptr_t;
+typedef std::shared_ptr<const ast_stmt_list_data_t> ast_stmt_list_t;
+typedef std::shared_ptr<const ast_expr_list_data_t> ast_expr_list_t;
 
 
 //---------------------------------------------------------------------
-struct ast_unit_t : public ast_unit_base_t
+struct ast_unit_data_t : public ast_unit_base_data_t
 {
-    const ast_stmt_list_sptr_t stmt_list;
+    const ast_stmt_list_t stmt_list;
 
     const int line;
     const int column;
 
-    explicit ast_unit_t(const ast_stmt_list_sptr_t &_stmt_list,
-                        int _line, int _column)
+    explicit ast_unit_data_t(const ast_stmt_list_t &_stmt_list,
+                             int _line, int _column)
       : stmt_list(_stmt_list),
         line(_line),
         column(_column)
@@ -151,74 +151,74 @@ struct ast_unit_t : public ast_unit_base_t
 
 public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
-                                     const ast_stmt_list_sptr_t *stmts, int l, int col);
+                                     const ast_stmt_list_t *stmts, int l, int col);
 
     void accept(const visitor_sptr_t &visitor) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), &stmt_list, line, column);
     }
 
-    AST_VISITOR_TAG(ast_unit_t)
+    AST_VISITOR_TAG(unit)
 };
 
 
 //---------------------------------------------------------------------
-struct ast_stmt_t : public ast_stmt_base_t
+struct ast_stmt_data_t : public ast_stmt_base_data_t
 {
-    const std::string     name;
-    const ast_expr_sptr_t expr;
+    const std::string name;
+    const ast_expr_t  expr;
 
-    explicit ast_stmt_t(const std::string     &_name,
-                        const ast_expr_sptr_t &_expr)
+    explicit ast_stmt_data_t(const std::string &_name,
+                             const ast_expr_t  &_expr)
       : name(_name),
         expr(_expr)
     {}
 
 public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
-                                     const std::string *name, const ast_expr_sptr_t *expr);
+                                     const std::string *name, const ast_expr_t *expr);
 
     void accept(const visitor_sptr_t &visitor) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), &name, &expr);
     }
 
-    AST_VISITOR_TAG(ast_stmt_t)
+    AST_VISITOR_TAG(stmt)
 };
 
 
 //---------------------------------------------------------------------
-struct ast_expr_call_t : public ast_expr_base_t
+struct ast_expr_call_data_t : public ast_expr_base_data_t
 {
-    const ast_expr_sptr_t      fun_expr;
-    const ast_expr_list_sptr_t arg_list;
+    const ast_expr_t      fun_expr;
+    const ast_expr_list_t arg_list;
 
-    explicit ast_expr_call_t(const ast_expr_sptr_t      &_fun_expr,
-                             const ast_expr_list_sptr_t &_arg_list)
+    explicit ast_expr_call_data_t(const ast_expr_t      &_fun_expr,
+                                  const ast_expr_list_t &_arg_list)
       : fun_expr(_fun_expr),
         arg_list(_arg_list)
     {}
 
 public:
     typedef void (*visitor_method_t)(const visitor_sptr_t *vis, void *aux,
-                                     const ast_expr_sptr_t      *fexpr,
-                                     const ast_expr_list_sptr_t *args);
+                                     const ast_expr_t      *fexpr,
+                                     const ast_expr_list_t *args);
 
     void accept(const visitor_sptr_t &visitor) const override
     {
         visitor->visit<visitor_method_t>(method_tag(), &fun_expr, &arg_list);
     }
 
-    AST_VISITOR_TAG(ast_expr_call_t)
+    AST_VISITOR_TAG(expr_call)
 };
 
 
 //---------------------------------------------------------------------
-struct ast_expr_identifier_t : public ast_expr_base_t
+struct ast_expr_identifier_data_t : public ast_expr_base_data_t
 {
     const std::string name;
 
-    explicit ast_expr_identifier_t(const std::string &_name)
+    explicit ast_expr_identifier_data_t(const std::string &_name)
       : name(_name)
     {}
 
@@ -231,15 +231,15 @@ public:
         visitor->visit<visitor_method_t>(method_tag(), &name);
     }
 
-    AST_VISITOR_TAG(ast_expr_identifier_t)
+    AST_VISITOR_TAG(expr_identifier)
 };
 
 //---------------------------------------------------------------------
-struct ast_expr_integer_t : public ast_expr_base_t
+struct ast_expr_integer_data_t : public ast_expr_base_data_t
 {
     const intptr_t number;
 
-    explicit ast_expr_integer_t(intptr_t _number)
+    explicit ast_expr_integer_data_t(intptr_t _number)
       : number(_number)
     {}
 
@@ -252,15 +252,15 @@ public:
         visitor->visit<visitor_method_t>(method_tag(), number);
     }
 
-    AST_VISITOR_TAG(ast_expr_integer_t)
+    AST_VISITOR_TAG(expr_integer)
 };
 
 //---------------------------------------------------------------------
-struct ast_expr_string_t : public ast_expr_base_t
+struct ast_expr_string_data_t : public ast_expr_base_data_t
 {
     const std::string string;
 
-    explicit ast_expr_string_t(const std::string &_string)
+    explicit ast_expr_string_data_t(const std::string &_string)
       : string(_string)
     {}
 
@@ -273,15 +273,15 @@ public:
         visitor->visit<visitor_method_t>(method_tag(), &string);
     }
 
-    AST_VISITOR_TAG(ast_expr_string_t)
+    AST_VISITOR_TAG(expr_string)
 };
 
 //---------------------------------------------------------------------
-struct ast_expr_char_t : public ast_expr_base_t
+struct ast_expr_char_data_t : public ast_expr_base_data_t
 {
     const char32_t char_;
 
-    explicit ast_expr_char_t(char32_t _char_)
+    explicit ast_expr_char_data_t(char32_t _char_)
       : char_(_char_)
     {}
 
@@ -294,7 +294,7 @@ public:
         visitor->visit<visitor_method_t>(method_tag(), char_);
     }
 
-    AST_VISITOR_TAG(ast_expr_char_t)
+    AST_VISITOR_TAG(expr_char)
 };
 
 
@@ -304,7 +304,7 @@ public:
 extern "C"
 {
 
-struct ast_generic_vtable
+struct ast_generic_vtable_t
 {
     void (*init)(void *object);
     void (*term)(void *object);
@@ -319,16 +319,16 @@ struct ast_generic_vtable
 
 
 //---------------------------------------------------------------------
-struct ast_generic_t : public virtual ast_base_t
+struct ast_generic_data_t : public virtual ast_base_data_t
 {
-    ast_generic_t(const ast_generic_vtable *vtab, size_t size)
+    ast_generic_data_t(const ast_generic_vtable_t *vtab, size_t size)
       : vtable(vtab),
         object(std::malloc(size))
     {
         vtable->init(object);
     }
 
-    ~ast_generic_t() override
+    ~ast_generic_data_t() override
     {
         vtable->term(object);
 
@@ -341,7 +341,7 @@ public:
         vtable->accept(object, &visitor);
     }
 
-    const ast_generic_vtable * const vtable;
+    const ast_generic_vtable_t * const vtable;
 
     void * const object;
 
@@ -352,46 +352,46 @@ public:
     }
 };
 
-typedef std::shared_ptr<const ast_generic_t>  ast_generic_sptr_t;
+typedef std::shared_ptr<const ast_generic_data_t>  ast_generic_t;
 
 //---------------------------------------------------------------------
 template <typename T>
-struct ast_template_generic_t : public T, public ast_generic_t
+struct ast_template_generic_data_t : public T, public ast_generic_data_t
 {
-    explicit ast_template_generic_t(const ast_generic_vtable *vtab, size_t size)
-      : ast_generic_t(vtab, size)
+    explicit ast_template_generic_data_t(const ast_generic_vtable_t *vtab, size_t size)
+      : ast_generic_data_t(vtab, size)
     {}
 };
 
-using ast_unit_generic_t = ast_template_generic_t<ast_unit_base_t>;
-using ast_stmt_generic_t = ast_template_generic_t<ast_stmt_base_t>;
-using ast_expr_generic_t = ast_template_generic_t<ast_expr_base_t>;
+using ast_unit_generic_data_t = ast_template_generic_data_t<ast_unit_base_data_t>;
+using ast_stmt_generic_data_t = ast_template_generic_data_t<ast_stmt_base_data_t>;
+using ast_expr_generic_data_t = ast_template_generic_data_t<ast_expr_base_data_t>;
 
 
 //---------------------------------------------------------------------
-extern v_quark_t v_ast_generic_list_t_dummy_method_tag;     //- WTF?
+extern v_quark_t v_ast_generic_list_dummy_method_tag;       //- WTF?
 
-struct ast_generic_list_t : public ast_list_t<ast_base_t, v_ast_generic_list_t_dummy_method_tag>
+struct ast_generic_list_data_t : public ast_list_data_t<ast_base_data_t, v_ast_generic_list_dummy_method_tag>
 {
-    using base_t = ast_list_t<ast_base_t, v_ast_generic_list_t_dummy_method_tag>;
+    using base_t = ast_list_data_t<ast_base_data_t, v_ast_generic_list_dummy_method_tag>;
 
-    explicit ast_generic_list_t(v_quark_t tag)
+    explicit ast_generic_list_data_t(v_quark_t tag)
       : visitor_method_tag(tag)
     {}
 
-    ast_generic_list_t(v_quark_t tag, const ast_base_sptr_t *items, size_t count)
+    ast_generic_list_data_t(v_quark_t tag, const ast_base_t *items, size_t count)
       : base_t(items, count),
         visitor_method_tag(tag)
     {}
 
-    ast_generic_list_t(const std::shared_ptr<const ast_generic_list_t> &list,
-                       const ast_base_sptr_t &item)
+    ast_generic_list_data_t(const std::shared_ptr<const ast_generic_list_data_t> &list,
+                            const ast_base_t &item)
       : base_t(list, item),
         visitor_method_tag(list->visitor_method_tag)
     {}
 
-    ast_generic_list_t(const std::shared_ptr<const ast_generic_list_t> &list,
-                       const ast_base_sptr_t *items, size_t count)
+    ast_generic_list_data_t(const std::shared_ptr<const ast_generic_list_data_t> &list,
+                            const ast_base_t *items, size_t count)
       : base_t(list, items, count),
         visitor_method_tag(list->visitor_method_tag)
     {}
@@ -406,7 +406,7 @@ private:
     const v_quark_t visitor_method_tag;
 };
 
-typedef std::shared_ptr<const ast_generic_list_t> ast_generic_list_sptr_t;
+typedef std::shared_ptr<const ast_generic_list_data_t> ast_generic_list_t;
 
 
 //---------------------------------------------------------------------

@@ -44,23 +44,23 @@
 {
     module = v_get_module();
 
-    v_ast_opaque_expr_sptr_ = v_type_get_llvm_type(v_ast_opaque_expr_sptr);
+    v_ast_expr_t_ = v_type_get_llvm_type(v_ast_expr_t);
 
-    gr_arg = LLVMAddGlobal(module, v_ast_opaque_expr_sptr_, "voidc_ast_stmt_grammar_grammar_arg");
+    gr_arg = LLVMAddGlobal(module, v_ast_expr_t_, "voidc_ast_stmt_grammar_grammar_arg");
 
     LLVMSetLinkage(gr_arg, LLVMPrivateLinkage);
 
-    gr_arg_u = LLVMGetUndef(v_ast_opaque_expr_sptr_);
+    gr_arg_u = LLVMGetUndef(v_ast_expr_t_);
 
     LLVMSetInitializer(gr_arg, gr_arg_u);
 
-    v_ast_opaque_stmt_list_sptr_ = v_type_get_llvm_type(v_ast_opaque_stmt_list_sptr);
+    v_ast_stmt_list_t_ = v_type_get_llvm_type(v_ast_stmt_list_t);
 
-    stmt_list = LLVMAddGlobal(module, v_ast_opaque_stmt_list_sptr_, "voidc_ast_stmt_grammar_stmt_list");
+    stmt_list = LLVMAddGlobal(module, v_ast_stmt_list_t_, "voidc_ast_stmt_grammar_stmt_list");
 
     LLVMSetLinkage(stmt_list, LLVMPrivateLinkage);
 
-    stmt_list_u = LLVMGetUndef(v_ast_opaque_stmt_list_sptr_);
+    stmt_list_u = LLVMGetUndef(v_ast_stmt_list_t_);
 
     LLVMSetInitializer(stmt_list, stmt_list_u);
 
@@ -95,8 +95,8 @@
     LLVMSetInitializer(rn_count, int_u);
     LLVMSetInitializer(rn_num,   int_u);
 
-    v_add_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_opaque_expr_sptr,      0);    //- Sic!
-    v_add_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_opaque_stmt_list_sptr, 0);    //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_grammar_arg", v_ast_expr_t,      0);    //- Sic!
+    v_add_symbol("voidc_ast_stmt_grammar_stmt_list",   v_ast_stmt_list_t, 0);    //- Sic!
 
     int_ref = v_reference_type(int, 0);
 
@@ -143,10 +143,10 @@
     v_add_parameter_name(f, 4, "count", int);
 }
 {
-    ar_l = v_alloca(v_ast_opaque_expr_list_sptr);
+    ar_l = v_alloca(v_ast_expr_list_t);
     v_initialize(ar_l);
 
-    expr = v_alloca(v_ast_opaque_expr_sptr);
+    expr = v_alloca(v_ast_expr_t);
     v_initialize(expr);
 
     v_ast_make_expr_identifier(expr, fun);
@@ -265,7 +265,7 @@
     v_add_parameter_name(f, 4, "do_init",   bool);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -279,7 +279,7 @@
 
     v_ast_make_expr_integer(arg1, num);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -400,7 +400,7 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    gr_stmt_list = v_alloca(v_ast_opaque_stmt_list_sptr);
+    gr_stmt_list = v_alloca(v_ast_stmt_list_t);
     v_initialize(gr_stmt_list);
 
     v_make_list_nil(gr_stmt_list);
@@ -409,12 +409,12 @@
     //-----------------------------------------------------------------
     //- ...
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -591,7 +591,7 @@
     as_1 = v_getelementptr(as_0, 1);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 5);
+    arg0 = v_alloca(v_ast_expr_t, 5);
     v_initialize(arg0, 5);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -599,10 +599,10 @@
     arg3 = v_getelementptr(arg0, 3);
     arg4 = v_getelementptr(arg0, 4);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
-    stmt_list = v_alloca(v_ast_opaque_stmt_list_sptr);
+    stmt_list = v_alloca(v_ast_stmt_list_t);
     v_initialize(stmt_list);
 
     v_copy(stmt_list, voidc_ast_stmt_grammar_stmt_list);
@@ -747,7 +747,7 @@
     pr_str = v_std_string_get(pr_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 5);
+    arg0 = v_alloca(v_ast_expr_t, 5);
     v_initialize(arg0, 5);
 
     arg1 = v_getelementptr(arg0, 1);
@@ -755,7 +755,7 @@
     arg3 = v_getelementptr(arg0, 3);
     arg4 = v_getelementptr(arg0, 4);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -801,14 +801,14 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 4);
+    arg0 = v_alloca(v_ast_expr_t, 4);
     v_initialize(arg0, 4);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -864,14 +864,14 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 4);
+    arg0 = v_alloca(v_ast_expr_t, 4);
     v_initialize(arg0, 4);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -939,13 +939,13 @@
 
     if (c1)     //- "(/)" or "()"
     {
-        arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+        arg0 = v_alloca(v_ast_expr_t, 3);
         v_initialize(arg0, 3);
 
         arg1 = v_getelementptr(arg0, 1);
         arg2 = v_getelementptr(arg0, 2);
 
-        stmt = v_alloca(v_ast_opaque_stmt_sptr);
+        stmt = v_alloca(v_ast_stmt_t);
         v_initialize(stmt);
 
         v_ast_make_expr_identifier(arg0, "v.pr0");
@@ -995,13 +995,13 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    arg0 = v_alloca(v_ast_expr_t, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1065,13 +1065,13 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    arg0 = v_alloca(v_ast_expr_t, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1140,13 +1140,13 @@
     arg_str = v_std_string_get(arg_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    arg0 = v_alloca(v_ast_expr_t, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1202,12 +1202,12 @@
     v_add_parameter_name(f, 0, "fun", char_ptr);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1354,12 +1354,12 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1412,12 +1412,12 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1470,12 +1470,12 @@
     br_num = v_cast(br_num, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1542,12 +1542,12 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1599,13 +1599,13 @@
     pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    arg0 = v_alloca(v_ast_expr_t, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1659,12 +1659,12 @@
     lit_str = v_std_string_get(lit_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1715,12 +1715,12 @@
     ch = v_std_any_get_value(char32_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1768,10 +1768,10 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr);
+    arg0 = v_alloca(v_ast_expr_t);
     v_initialize(arg0);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1817,13 +1817,13 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    arg0 = v_alloca(v_ast_expr_t, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1912,14 +1912,14 @@
     ar_num = v_cast(voidc_ast_stmt_grammar_argument_number, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 4);
+    arg0 = v_alloca(v_ast_expr_t, 4);
     v_initialize(arg0, 4);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -1959,12 +1959,12 @@
     v_add_parameter_name(f, 2, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -2005,12 +2005,12 @@
     id_str = v_std_string_get(id_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -2088,13 +2088,13 @@
     bk_num = v_cast(bk_int, intptr_t);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 3);
+    arg0 = v_alloca(v_ast_expr_t, 3);
     v_initialize(arg0, 3);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -2146,12 +2146,12 @@
     num = v_std_any_get_value(intptr_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -2204,12 +2204,12 @@
     lit_str = v_std_string_get(lit_sstr);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 
@@ -2260,12 +2260,12 @@
     ch = v_std_any_get_value(char32_t, any0);
 
 
-    arg0 = v_alloca(v_ast_opaque_expr_sptr, 2);
+    arg0 = v_alloca(v_ast_expr_t, 2);
     v_initialize(arg0, 2);
 
     arg1 = v_getelementptr(arg0, 1);
 
-    stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
 
 

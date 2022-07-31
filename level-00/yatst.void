@@ -210,7 +210,7 @@
 
 {   printf("\n");
 
-    gen = v_alloca(v_ast_opaque_base_sptr);
+    gen = v_alloca(v_ast_base_t);
     v_initialize(gen);
 
     v_ast_make_generic(gen, vtable_g, 0);
@@ -274,7 +274,7 @@
 
 {   printf("\n");
 
-    q = v_cast(v_ast_expr_identifier_t_visitor_method_tag, v_quark_t);
+    q = v_cast(v_ast_expr_identifier_visitor_method_tag, v_quark_t);
 
     s = v_quark_to_string(q);
 

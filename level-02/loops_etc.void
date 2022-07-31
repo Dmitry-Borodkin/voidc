@@ -24,8 +24,8 @@
 //---------------------------------------------------------------------
 mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
 {
-    cond = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+0);
-    stmt = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+1);
+    cond = v_std_any_get_pointer(v_ast_stmt_list_t, any+0);
+    stmt = v_std_any_get_pointer(v_ast_stmt_t,      any+1);
 
     //- loop
     //- {
@@ -39,14 +39,14 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 
     cond_len: &int := v_list_get_size(cond);
 
-    cstm = v_alloca(v_ast_opaque_stmt_sptr);
+    cstm = v_alloca(v_ast_stmt_t);
     v_initialize(cstm);
     defer v_terminate(cstm);
 
     v_list_get_items(cond, cond_len-1, cstm);
 
 
-    cexp = v_alloca(v_ast_opaque_expr_sptr);
+    cexp = v_alloca(v_ast_expr_t);
     v_initialize(cexp);
     defer v_terminate(cexp);
 
@@ -72,7 +72,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
     stmp_len = cond_len + 1;
 
 
-    stmp = v_alloca(v_ast_opaque_stmt_sptr, stmp_len);
+    stmp = v_alloca(v_ast_stmt_t, stmp_len);
     v_initialize(stmp, stmp_len);
     defer v_terminate(stmp, stmp_len);
 
@@ -92,7 +92,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 
         v_list_get_items(cond, 0, stmp+0, cond_len);
 
-        slst = v_alloca(v_ast_opaque_stmt_list_sptr);
+        slst = v_alloca(v_ast_stmt_list_t);
         v_initialize(slst);
         defer v_terminate(slst);
 
@@ -112,7 +112,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 v_internal_copy_variable_intrinsic: (vis: voidc_visitor_ptr, *void,
                                      args: v_ast_expr_list_ptr) -> void
 {
-    expr = v_alloca(v_ast_opaque_expr_sptr, 2);
+    expr = v_alloca(v_ast_expr_t, 2);
     v_initialize(expr, 2);
     defer v_terminate(expr, 2);
 
@@ -130,10 +130,10 @@ v_internal_copy_variable_intrinsic: (vis: voidc_visitor_ptr, *void,
 //---------------------------------------------------------------------
 mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
 {
-    init = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+0);
-    cond = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+1);
-    incr = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+2);
-    stmt = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+3);
+    init = v_std_any_get_pointer(v_ast_stmt_list_t, any+0);
+    cond = v_std_any_get_pointer(v_ast_stmt_list_t, any+1);
+    incr = v_std_any_get_pointer(v_ast_stmt_list_t, any+2);
+    stmt = v_std_any_get_pointer(v_ast_stmt_t,      any+3);
 
     //- {   <init>...
     //-
@@ -170,7 +170,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     //-     }
     //- }
 
-    etmp = v_alloca(v_ast_opaque_expr_sptr, 9);
+    etmp = v_alloca(v_ast_expr_t, 9);
     v_initialize(etmp, 9);
     defer v_terminate(etmp, 9);
 
@@ -194,7 +194,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
 
     cond_len: &int := v_list_get_size(cond);
 
-    cstm = v_alloca(v_ast_opaque_stmt_sptr);
+    cstm = v_alloca(v_ast_stmt_t);
     v_initialize(cstm);
     defer v_terminate(cstm);
 
@@ -241,7 +241,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     }
 
 
-    stmp = v_alloca(v_ast_opaque_stmt_sptr, stmp_len);
+    stmp = v_alloca(v_ast_stmt_t, stmp_len);
     v_initialize(stmp, stmp_len);
     defer v_terminate(stmp, stmp_len);
 
@@ -275,7 +275,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     v_copy(stmp+4, stmt);
 
 
-    slst = v_alloca(v_ast_opaque_stmt_list_sptr);
+    slst = v_alloca(v_ast_stmt_list_t);
     v_initialize(slst);
     defer v_terminate(slst);
 
@@ -330,9 +330,9 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
 //---------------------------------------------------------------------
 mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
 {
-    cond = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr, any+0);
-    tstm = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+1);
-    estm = v_std_any_get_pointer(v_ast_opaque_stmt_sptr,      any+2);
+    cond = v_std_any_get_pointer(v_ast_stmt_list_t, any+0);
+    tstm = v_std_any_get_pointer(v_ast_stmt_t,      any+1);
+    estm = v_std_any_get_pointer(v_ast_stmt_t,      any+2);
 
     //- {   <cond>...
     //-
@@ -344,14 +344,14 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, 
 
     cond_len: &int := v_list_get_size(cond);
 
-    cstm = v_alloca(v_ast_opaque_stmt_sptr);
+    cstm = v_alloca(v_ast_stmt_t);
     v_initialize(cstm);
     defer v_terminate(cstm);
 
     v_list_get_items(cond, cond_len-1, cstm);
 
 
-    cexp = v_alloca(v_ast_opaque_expr_sptr);
+    cexp = v_alloca(v_ast_expr_t);
     v_initialize(cexp);
     defer v_terminate(cexp);
 
@@ -372,7 +372,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, 
     stmp_len = cond_len + 1;
 
 
-    stmp = v_alloca(v_ast_opaque_stmt_sptr, stmp_len);
+    stmp = v_alloca(v_ast_stmt_t, stmp_len);
     v_initialize(stmp, stmp_len);
     defer v_terminate(stmp, stmp_len);
 
@@ -391,7 +391,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, 
 
     v_list_get_items(cond, 0, stmp+0, cond_len);
 
-    slst = v_alloca(v_ast_opaque_stmt_list_sptr);
+    slst = v_alloca(v_ast_stmt_list_t);
     v_initialize(slst);
     defer v_terminate(slst);
 
@@ -407,8 +407,8 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, 
 //---------------------------------------------------------------------
 mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
 {
-    estm = v_std_any_get_pointer(v_ast_opaque_stmt_list_sptr,    any+0);
-    glst = v_std_any_get_pointer(v_ast_opaque_generic_list_sptr, any+1);
+    estm = v_std_any_get_pointer(v_ast_stmt_list_t,    any+0);
+    glst = v_std_any_get_pointer(v_ast_generic_list_t, any+1);
 
     //- {   <estm>...
     //-
@@ -419,11 +419,11 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t
 
     estm_len: &int := v_list_get_size(estm);
 
-    etmp = v_alloca(v_ast_opaque_expr_sptr);
+    etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
     defer v_terminate(etmp);
 
-    {   stmt = v_alloca(v_ast_opaque_stmt_sptr);
+    {   stmt = v_alloca(v_ast_stmt_t);
         v_initialize(stmt);
         defer v_terminate(stmt);
 
@@ -447,7 +447,7 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t
     stmp_len = estm_len + 1;
 
 
-    stmp = v_alloca(v_ast_opaque_stmt_sptr, stmp_len);
+    stmp = v_alloca(v_ast_stmt_t, stmp_len);
     v_initialize(stmp, stmp_len);
     defer v_terminate(stmp, stmp_len);
 
@@ -463,7 +463,7 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t
     if (estm_len)   v_list_get_items(estm, 0, stmp+0, estm_len);        //- if?
 
 
-    slst = v_alloca(v_ast_opaque_stmt_list_sptr);
+    slst = v_alloca(v_ast_stmt_list_t);
     v_initialize(slst);
     defer v_terminate(slst);
 
