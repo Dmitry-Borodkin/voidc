@@ -57,18 +57,18 @@ v_ast_make_unit(ast_unit_t *ret, const ast_stmt_list_t *stmt_list, int line, int
     *ret = std::make_shared<const ast_unit_data_t>(*stmt_list, line, column);
 }
 
-void
-v_ast_unit_get_stmt_list(const ast_unit_t *ptr, ast_stmt_list_t *list)
+const ast_stmt_list_t *
+v_ast_unit_get_stmt_list(const ast_unit_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_unit_data_t &>(**ptr);
+    auto &r = static_cast<const ast_unit_data_t &>(**ptr);
 
-    *list = r.stmt_list;
+    return &r.stmt_list;
 }
 
 int
 v_ast_unit_get_line(const ast_unit_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_unit_data_t &>(**ptr);
+    auto &r = static_cast<const ast_unit_data_t &>(**ptr);
 
     return r.line;
 }
@@ -76,7 +76,7 @@ v_ast_unit_get_line(const ast_unit_t *ptr)
 int
 v_ast_unit_get_column(const ast_unit_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_unit_data_t &>(**ptr);
+    auto &r = static_cast<const ast_unit_data_t &>(**ptr);
 
     return r.column;
 }
@@ -91,17 +91,17 @@ v_ast_make_stmt(ast_stmt_t *ret, const char *var, const ast_expr_t *expr)
 const char *
 v_ast_stmt_get_name(const ast_stmt_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_stmt_data_t &>(**ptr);
+    auto &r = static_cast<const ast_stmt_data_t &>(**ptr);
 
-    return  r.name.c_str();
+    return r.name.c_str();
 }
 
-void
-v_ast_stmt_get_expr(const ast_stmt_t *ptr, ast_expr_t *call)
+const ast_expr_t *
+v_ast_stmt_get_expr(const ast_stmt_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_stmt_data_t &>(**ptr);
+    auto &r = static_cast<const ast_stmt_data_t &>(**ptr);
 
-    *call = r.expr;
+    return &r.expr;
 }
 
 //---------------------------------------------------------------------
@@ -111,20 +111,20 @@ v_ast_make_expr_call(ast_expr_t *ret, const ast_expr_t *fun, const ast_expr_list
     *ret = std::make_shared<const ast_expr_call_data_t>(*fun, *list);
 }
 
-void
-v_ast_expr_call_get_fun_expr(const ast_expr_t *ptr, ast_expr_t *fun)
+const ast_expr_t *
+v_ast_expr_call_get_fun_expr(const ast_expr_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_expr_call_data_t &>(**ptr);
+    auto &r = static_cast<const ast_expr_call_data_t &>(**ptr);
 
-    *fun = r.fun_expr;
+    return &r.fun_expr;
 }
 
-void
-v_ast_expr_call_get_arg_list(const ast_expr_t *ptr, ast_expr_list_t *list)
+const ast_expr_list_t *
+v_ast_expr_call_get_arg_list(const ast_expr_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_expr_call_data_t &>(**ptr);
+    auto &r = static_cast<const ast_expr_call_data_t &>(**ptr);
 
-    *list = r.arg_list;
+    return &r.arg_list;
 }
 
 //---------------------------------------------------------------------
@@ -137,9 +137,9 @@ v_ast_make_expr_identifier(ast_expr_t *ret, const char *name)
 const char *
 v_ast_expr_identifier_get_name(const ast_expr_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_expr_identifier_data_t &>(**ptr);
+    auto &r = static_cast<const ast_expr_identifier_data_t &>(**ptr);
 
-    return  r.name.c_str();
+    return r.name.c_str();
 }
 
 //---------------------------------------------------------------------
@@ -152,9 +152,9 @@ v_ast_make_expr_integer(ast_expr_t *ret, intptr_t number)
 intptr_t
 v_ast_expr_integer_get_number(const ast_expr_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_expr_integer_data_t &>(**ptr);
+    auto &r = static_cast<const ast_expr_integer_data_t &>(**ptr);
 
-    return  r.number;
+    return r.number;
 }
 
 //---------------------------------------------------------------------
@@ -167,9 +167,9 @@ v_ast_make_expr_string(ast_expr_t *ret, const char *string)
 const char *
 v_ast_expr_string_get_string(const ast_expr_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_expr_string_data_t &>(**ptr);
+    auto &r = static_cast<const ast_expr_string_data_t &>(**ptr);
 
-    return  r.string.c_str();
+    return r.string.c_str();
 }
 
 //---------------------------------------------------------------------
@@ -182,9 +182,9 @@ v_ast_make_expr_char(ast_expr_t *ret, char32_t c)
 char32_t
 v_ast_expr_char_get_char(const ast_expr_t *ptr)
 {
-    auto &r = dynamic_cast<const ast_expr_char_data_t &>(**ptr);
+    auto &r = static_cast<const ast_expr_char_data_t &>(**ptr);
 
-    return  r.char_;
+    return r.char_;
 }
 
 
@@ -242,7 +242,7 @@ v_ast_generic_get_object(const ast_base_t *base_ptr)
 v_quark_t
 v_ast_base_get_visitor_method_tag(const ast_base_t *ptr)
 {
-    return  (*ptr)->method_tag();
+    return (*ptr)->method_tag();
 }
 
 

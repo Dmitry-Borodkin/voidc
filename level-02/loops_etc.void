@@ -54,7 +54,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
     }
     else
     {
-        v_ast_stmt_get_expr(cstm, cexp);
+        v_copy(cexp, v_ast_stmt_get_expr(cstm));
 
         --cond_len;
     }
@@ -204,7 +204,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
         }
         else
         {
-            v_ast_stmt_get_expr(cstm, e_cond);
+            v_copy(e_cond, v_ast_stmt_get_expr(cstm));
 
             --cond_len;
         }
@@ -385,7 +385,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, 
     }
     else
     {
-        v_ast_stmt_get_expr(cstm, cexp);
+        v_copy(cexp, v_ast_stmt_get_expr(cstm));
 
         --cond_len;
     }
@@ -465,7 +465,7 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t
         }
         else
         {
-            v_ast_stmt_get_expr(stmt, etmp);
+            v_copy(etmp, v_ast_stmt_get_expr(stmt));
 
             --estm_len;
         }

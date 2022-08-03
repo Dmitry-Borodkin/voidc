@@ -413,23 +413,17 @@
 
         ast2 = v_cast(ast+2, v_ast_expr_ptr);
 
-        etmp = v_alloca(v_ast_expr_t);
-        v_initialize(etmp);
-        defer v_terminate(etmp);
+        efun = v_ast_expr_call_get_fun_expr(ast2);
 
-        v_ast_expr_call_get_fun_expr(ast2, etmp);
-
-        tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
+        tag = v_ast_base_get_visitor_method_tag(v_cast(efun, v_ast_base_ptr));
 
         if (tag != v_ast_expr_identifier_visitor_method_tag) v_break();
 
-        name = v_ast_expr_identifier_get_name(etmp);
+        name = v_ast_expr_identifier_get_name(efun);
 
         if (strcmp(name, "v.op_infix_assign"))  v_break();
 
-        arg_list = v_cast(etmp, v_ast_expr_list_ptr);
-
-        v_ast_expr_call_get_arg_list(ast2, arg_list);
+        arg_list = v_ast_expr_call_get_arg_list(ast2);
 
         v_copy(ast2+0, v_list_get_item(arg_list, 1));
         v_copy(ast2+1, v_list_get_item(arg_list, 2));
@@ -602,23 +596,17 @@
 
         ast0 = v_cast(ast+0, v_ast_expr_ptr);
 
-        etmp = v_alloca(v_ast_expr_t);
-        v_initialize(etmp);
-        defer v_terminate(etmp);
+        efun = v_ast_expr_call_get_fun_expr(ast0);
 
-        v_ast_expr_call_get_fun_expr(ast0, etmp);
-
-        tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
+        tag = v_ast_base_get_visitor_method_tag(v_cast(efun, v_ast_base_ptr));
 
         if (tag != v_ast_expr_identifier_visitor_method_tag) v_break();
 
-        opnm = v_ast_expr_identifier_get_name(etmp);
+        opnm = v_ast_expr_identifier_get_name(efun);
 
         if (strcmp(opnm, "v.op_infix_assign"))  v_break();
 
-        arg_list = v_cast(etmp, v_ast_expr_list_ptr);
-
-        v_ast_expr_call_get_arg_list(ast0, arg_list);
+        arg_list = v_ast_expr_call_get_arg_list(ast0);
 
         v_copy(ast0+0, v_list_get_item(arg_list, 1));
         v_copy(ast0+1, v_list_get_item(arg_list, 2));
@@ -967,17 +955,9 @@
     body     = v_list_get_item(list, 4);
 
     //-------------------------------------------------------------
-    ast = v_alloca(v_ast_base_t);
-    v_initialize(ast);
-    defer v_terminate(ast);
+    args = v_ast_expr_call_get_arg_list(v_cast(params, v_ast_expr_ptr));
 
-    args = v_cast(ast, v_ast_expr_list_ptr);
-
-    v_ast_expr_call_get_arg_list(v_cast(params, v_ast_expr_ptr), args);
-
-    v_copy(v_cast(ast, v_ast_expr_ptr), v_list_get_item(args, 1));
-
-    args = v_cast(ast, v_ast_generic_list_ptr);
+    args = v_cast(v_list_get_item(args, 1), v_ast_generic_list_ptr);
 
 
     //-------------------------------------------------------------
@@ -1652,20 +1632,11 @@
 //  printf("compile_op_infix_to\n");
 //  defer printf("compile_op_infix_to leave\n");
 
-    ast0 = v_alloca(v_ast_expr_t);
-    v_initialize(ast0);
-    defer v_terminate(ast0);
+    ast0 = v_list_get_item(arg_list, 1);
 
-    v_copy(ast0, v_list_get_item(arg_list, 1));     //- Sic!
+    args = v_ast_expr_call_get_arg_list(v_cast(ast0, v_ast_expr_ptr));
 
-
-    args = v_cast(ast0, v_ast_expr_list_ptr);
-
-    v_ast_expr_call_get_arg_list(v_cast(ast0, v_ast_expr_ptr), args);
-
-    v_copy(v_cast(ast0, v_ast_expr_ptr), v_list_get_item(args, 1));
-
-    args = v_cast(ast0, v_ast_generic_list_ptr);
+    args = v_cast(v_list_get_item(args, 1), v_ast_generic_list_ptr);
 
 
     argtypes = *v_alloca(* v_type_ptr) := 0;

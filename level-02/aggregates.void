@@ -175,11 +175,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 
         if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_call_visitor_method_tag)
         {
-            alst = v_alloca(v_ast_expr_list_t);
-            v_initialize(alst);
-            defer v_terminate(alst);
-
-            v_ast_expr_call_get_arg_list(expr, alst);
+            alst = v_ast_expr_call_get_arg_list(expr);
 
             N = v_list_get_size(alst);
 

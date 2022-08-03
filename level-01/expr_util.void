@@ -1735,22 +1735,16 @@
 
     if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(false);
 
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-
-    v_ast_expr_call_get_fun_expr(arg, etmp);
+    etmp = v_ast_expr_call_get_fun_expr(arg);
 
     tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
     {
-        v_terminate(etmp);
         v_return(false);
     }
 
     name = v_ast_expr_identifier_get_name(etmp);
-
-    v_terminate(etmp);
 
     if (strcmp(name, "v.op_infix_logical_and"))
     {
@@ -1764,15 +1758,10 @@
         v_return(true);
     }
 
-    lst = v_alloca(v_ast_expr_list_t);
-    v_initialize(lst);
-
-    v_ast_expr_call_get_arg_list(arg, lst);
+    lst = v_ast_expr_call_get_arg_list(arg);
 
     if (lhs)  v_store(v_list_get_item(lst, 1), lhs);
     if (rhs)  v_store(v_list_get_item(lst, 2), rhs);
-
-    v_terminate(lst);
 
     v_return(true);
 }
@@ -1930,22 +1919,16 @@
 
     if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(false);
 
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-
-    v_ast_expr_call_get_fun_expr(arg, etmp);
+    etmp = v_ast_expr_call_get_fun_expr(arg);
 
     tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
     {
-        v_terminate(etmp);
         v_return(false);
     }
 
     name = v_ast_expr_identifier_get_name(etmp);
-
-    v_terminate(etmp);
 
     if (strcmp(name, "v.op_infix_logical_or"))
     {
@@ -1959,15 +1942,10 @@
         v_return(true);
     }
 
-    lst = v_alloca(v_ast_expr_list_t);
-    v_initialize(lst);
-
-    v_ast_expr_call_get_arg_list(arg, lst);
+    lst = v_ast_expr_call_get_arg_list(arg);
 
     if (lhs)  v_store(v_list_get_item(lst, 1), lhs);
     if (rhs)  v_store(v_list_get_item(lst, 2), rhs);
-
-    v_terminate(lst);
 
     v_return(true);
 }
@@ -2237,22 +2215,16 @@
 
     if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(0);
 
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-
-    v_ast_expr_call_get_fun_expr(arg, etmp);
+    etmp = v_ast_expr_call_get_fun_expr(arg);
 
     tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
     {
-        v_terminate(etmp);
         v_return(0);
     }
 
     name = v_ast_expr_identifier_get_name(etmp);
-
-    v_terminate(etmp);
 
     if (strncmp(name, "v.op_infix_", 11))
     {
@@ -2282,15 +2254,10 @@
         v_return(rk);
     }
 
-    lst = v_alloca(v_ast_expr_list_t);
-    v_initialize(lst);
-
-    v_ast_expr_call_get_arg_list(arg, lst);
+    lst = v_ast_expr_call_get_arg_list(arg);
 
     if (lhs)  v_store(v_list_get_item(lst, 1), lhs);
     if (rhs)  v_store(v_list_get_item(lst, 2), rhs);
-
-    v_terminate(lst);
 
     v_return(rk);
 }

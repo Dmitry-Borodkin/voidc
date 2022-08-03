@@ -128,10 +128,9 @@
     ft = v_function_type(void, typ0, 4, false);
     v_export_symbol_type("v_ast_make_unit", ft);
 
-//  v_store(v_ast_unit_ptr,      typ0);             //-
-//  v_store(v_ast_stmt_list_ptr, typ1);             //- (out)
+//  v_store(v_ast_unit_ptr, typ0);                  //-
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(v_ast_stmt_list_ptr, typ0, 1, false);
     v_export_symbol_type("v_ast_unit_get_stmt_list", ft);
 
 //  v_store(v_ast_unit_ptr, typ0);                  //-
@@ -154,9 +153,8 @@
     v_export_symbol_type("v_ast_stmt_get_name", ft);
 
 //  v_store(v_ast_stmt_ptr, typ0);                  //-
-    v_store(v_ast_expr_ptr, typ1);                  //- (out)
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(v_ast_expr_ptr, typ0, 1, false);
     v_export_symbol_type("v_ast_stmt_get_expr", ft);
 
     //-------------------------------------------------------------
@@ -167,16 +165,14 @@
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_ast_make_expr_call", ft);
 
-//  v_store(v_ast_expr_ptr,      typ0);             //-
-//  v_store(v_ast_expr_ptr,      typ1);             //- (out)
+//  v_store(v_ast_expr_ptr, typ0);                  //-
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(v_ast_expr_ptr, typ0, 1, false);
     v_export_symbol_type("v_ast_expr_call_get_fun_expr", ft);
 
-//  v_store(v_ast_expr_ptr,      typ0);             //-
-    v_store(v_ast_expr_list_ptr, typ1);             //- (out)
+//  v_store(v_ast_expr_ptr, typ0);                  //-
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(v_ast_expr_list_ptr, typ0, 1, false);
     v_export_symbol_type("v_ast_expr_call_get_arg_list", ft);
 
     //-------------------------------------------------------------
