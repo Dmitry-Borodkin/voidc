@@ -34,7 +34,7 @@
     v_add_symbol("q_make_list",           qt, qp("v_make_list"));
     v_add_symbol("q_list_append",         qt, qp("v_list_append"));
     v_add_symbol("q_list_get_size",       qt, qp("v_list_get_size"));
-    v_add_symbol("q_list_get_items",      qt, qp("v_list_get_items"));
+    v_add_symbol("q_list_get_item",       qt, qp("v_list_get_item"));
 }
 
 
@@ -498,9 +498,9 @@
     register_batch_wtyp_ft = v_function_type(void, typ0, 4, false);
 
     v_store(v_std_string_ptr, typ0);
-    v_store(int,                   typ1);
+    v_store(int,              typ1);
 
-    sstr_i_d_ft  = v_function_type(void, typ0, 2, false);
+    sstr_i_d_ft = v_function_type(void, typ0, 2, false);
 
     //-----------------------------------------------------------------
     v_add_symbol("init_term_helper", register_helper_ft, 0);
@@ -535,7 +535,7 @@
     v_export_symbol_type("v_util_register_make_list_impl",      register_wtyp_ft);
     v_export_symbol_type("v_util_register_list_append_impl",    register_wtyp_ft);
     v_export_symbol_type("v_util_register_list_get_size_impl",  register_ft);
-    v_export_symbol_type("v_util_register_list_get_items_impl", register_wtyp_ft);
+    v_export_symbol_type("v_util_register_list_get_item_impl",  register_wtyp_ft);
 
     v_export_symbol_type("v_util_register_list_agsgi_impl", register_batch_wtyp_ft);
 }
@@ -1866,52 +1866,40 @@
 
 
     //-------------------------------------------------------------
-    //- list_get_items registering
+    //- list_get_item registering
     //-------------------------------------------------------------
-    //- v_util_register_list_get_items_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) -> void
+    //- v_util_register_list_get_item_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) -> void
     //- {
-    //-     arg0 = v_alloca(v_type_ptr, 4);
+    //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
-    //-     arg2 = v_getelementptr(arg0, 2);
-    //-     arg3 = v_getelementptr(arg0, 3);
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-     item_ptr  = v_pointer_type(item_type,  0);
     //-
     //-     v_store(val_t_ptr, arg0);
     //-     v_store(int,       arg1);
-    //-     v_store(item_ptr,  arg2);
-    //-     v_store(int,       arg3);
     //-
-    //-     fun_type = v_function_type(void, arg0, 4, false);
+    //-     fun_type = v_function_type(item_ptr, arg0, 2, false);
     //-
-    //-     v_util_registering_helper(q_list_get_items, val_t_type, fun_name, fun_type);
+    //-     v_util_registering_helper(q_list_get_item, val_t_type, fun_name, fun_type);
     //- }
     //-------------------------------------------------------------
-    list_get_items_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_util_register_list_get_items_impl"));
-    list_get_items_f   = v_obtain_function("v_util_register_list_get_items_impl");
+    list_get_item_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_util_register_list_get_item_impl"));
+    list_get_item_f   = v_obtain_function("v_util_register_list_get_item_impl");
 
-    val_t_type = LLVMGetParam(list_get_items_f, 0);
-    fun_name   = LLVMGetParam(list_get_items_f, 1);
-    item_type  = LLVMGetParam(list_get_items_f, 2);
+    val_t_type = LLVMGetParam(list_get_item_f, 0);
+    fun_name   = LLVMGetParam(list_get_item_f, 1);
+    item_type  = LLVMGetParam(list_get_item_f, 2);
 
-    entry = LLVMAppendBasicBlock(list_get_items_f, "entry");
+    entry = LLVMAppendBasicBlock(list_get_item_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n4, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n2, "arg0");
 
     v_store(n1, val0);
 
     arg1 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg1");
-
-    v_store(n2, val0);
-
-    arg2 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg2");
-
-    v_store(n3, val0);
-
-    arg3 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg3");
 
 
     v_store(val_t_type, val0);
@@ -1930,20 +1918,16 @@
 
     LLVMBuildStore(builder, int_type,  arg1);
 
-    LLVMBuildStore(builder, item_ptr,  arg2);
 
-    LLVMBuildStore(builder, int_type,  arg3);
-
-
-    v_store(void_type, val0);
-    v_store(arg0,      val1);
-    v_store(n4,        val2);
-    v_store(false_v,   val3);
+    v_store(item_ptr, val0);
+    v_store(arg0,     val1);
+    v_store(n2,       val2);
+    v_store(false_v,  val3);
 
     fun_type = LLVMBuildCall2(builder, function_type_ft_, function_type_f, val0, 4, "fun_type");
 
 
-    dict_qp = v_obtain_global("q_list_get_items");
+    dict_qp = v_obtain_global("q_list_get_item");
     dict_q  = LLVMBuildLoad2(builder, v_quark_t_, dict_qp, "");
 
     v_store(dict_q,     val0);
@@ -1957,7 +1941,7 @@
 
 
     //-------------------------------------------------------------
-    //- list append/get_size/get_items batch registering
+    //- list append/get_size/get_items/get_item batch registering
     //-------------------------------------------------------------
     //- v_util_register_list_agsgi_impl: (val_t_type: v_type_ptr, item_type: v_type_ptr,
     //-                                   prefix: char_ptr, typename: char_ptr) -> void
@@ -1985,13 +1969,13 @@
     //-     v_util_register_list_get_size_impl(val_t_type, fun_name);
     //-
     //-     v_std_string_set(sstr, prefix);
-    //-     v_std_string_append(sstr, "_list_get_items_");
+    //-     v_std_string_append(sstr, "_list_get_item_");
     //-     v_std_string_append(sstr, typename);
     //-     v_std_string_append(sstr, "_impl");
     //-
     //-     fun_name = v_std_string_get(sstr);
     //-
-    //-     v_util_register_list_get_items_impl(val_t_type, fun_name, item_type);
+    //-     v_util_register_list_get_item_impl(val_t_type, fun_name, item_type);
     //-
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
@@ -2060,8 +2044,8 @@
     v_store(prefix, val1);
     LLVMBuildCall2(builder, sstr_set_ft_, sstr_set_f, val0, 2, "");
 
-    str_get_items = LLVMBuildGlobalStringPtr(builder, "_list_get_items_", "str_list_append");
-    v_store(str_get_items, val1);
+    str_get_item = LLVMBuildGlobalStringPtr(builder, "_list_get_item_", "str_get_item");
+    v_store(str_get_item, val1);
     LLVMBuildCall2(builder, sstr_append_ft_, sstr_append_f, val0, 2, "");
 
     v_store(typename, val1);
@@ -2075,7 +2059,7 @@
     v_store(val_t_type, val0);
     v_store(fun_name,   val1);
     v_store(item_type,  val2);
-    LLVMBuildCall2(builder, list_get_items_ft_, list_get_items_f, val0, 3, "");
+    LLVMBuildCall2(builder, list_get_item_ft_, list_get_item_f, val0, 3, "");
 
 
     v_store(sstr, val0);

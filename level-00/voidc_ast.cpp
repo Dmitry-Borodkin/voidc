@@ -293,11 +293,11 @@ int fun_name(const std::shared_ptr<const list_data_t> *list) \
     return int((*list)->data.size()); \
 }
 
-#define AST_DEFINE_LIST_GET_ITEMS_IMPL(list_data_t, fun_name) \
-void fun_name(const std::shared_ptr<const list_data_t> *list, int idx, \
-                    std::shared_ptr<const list_data_t::item_t> *items, int count) \
+#define AST_DEFINE_LIST_GET_ITEM_IMPL(list_data_t, fun_name) \
+const std::shared_ptr<const list_data_t::item_t> * \
+fun_name(const std::shared_ptr<const list_data_t> *list, int idx) \
 { \
-    std::copy_n((*list)->data.begin() + idx, size_t(count), items); \
+    return &(*list)->data[idx]; \
 }
 
 
@@ -305,7 +305,7 @@ void fun_name(const std::shared_ptr<const list_data_t> *list, int idx, \
 \
     AST_DEFINE_LIST_APPEND_IMPL(list_data_t, v_ast_list_append_##name##_impl) \
     AST_DEFINE_LIST_GET_SIZE_IMPL(list_data_t, v_ast_list_get_size_##name##_impl) \
-    AST_DEFINE_LIST_GET_ITEMS_IMPL(list_data_t, v_ast_list_get_items_##name##_impl)
+    AST_DEFINE_LIST_GET_ITEM_IMPL(list_data_t, v_ast_list_get_item_##name##_impl)
 
 
 //---------------------------------------------------------------------

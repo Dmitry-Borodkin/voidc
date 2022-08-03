@@ -191,7 +191,7 @@ foo: &foo_t := { printf };
 
 //---------------------------------------------------------------------
 static_type_sizeof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                               ast: v_ast_expr_ptr,
+                               args: v_ast_expr_list_ptr,
                                t0: v_type_ptr, v0: LLVMValueRef
                                ) -> void
 {
@@ -205,7 +205,7 @@ static_type_sizeof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 static_type_alignof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                                ast: v_ast_expr_ptr,
+                                args: v_ast_expr_list_ptr,
                                 t0: v_type_ptr, v0: LLVMValueRef
                                 ) -> void
 {

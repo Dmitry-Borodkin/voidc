@@ -398,14 +398,10 @@
     //-
     //-     tt = v_get_result_type();
     //-
-    //-     arg0 = v_alloca(v_ast_expr_t, 2);
-    //-     v_initialize(arg0, 2);
-    //-
-    //-     arg1 = v_getelementptr(arg0, 1);
+    //-     arg0 = v_list_get_item(arg_list, 0);
+    //-     arg1 = v_list_get_item(arg_list, 1);
     //-
     //-     base_arg = v_cast(arg0, v_ast_base_ptr);
-    //-
-    //-     v_list_get_items(arg_list, 0, arg0, 2);
     //-
     //-     v_set_result_type(char_ptr);
     //-
@@ -420,8 +416,6 @@
     //-     v_ast_accept_visitor(base_arg, visitor);
     //-
     //-     fun_type = v_get_result_value();        //- :v_type_ptr
-    //-
-    //-     v_terminate(arg0, 2);
     //-
     //-
     //-     arg0 = v_alloca(LLVMValueRef, 2);
@@ -480,39 +474,23 @@
     tt_v = LLVMBuildCall2(builder, get_res_type_ft_, get_res_type_f, 0, 0, "tt_v");
 
 
-    v_ast_expr_t_ = v_type_get_llvm_type(v_ast_expr_t);
+    v_store(arg_list, val0);
+    v_store(n0,       val1);
 
-    arg0_v = LLVMBuildArrayAlloca(builder, v_ast_expr_t_, n2, "arg0_v");
+    expr_list_get_item_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_list_get_item_expr_list_impl"));
+    expr_list_get_item_f   = v_obtain_function("v_ast_list_get_item_expr_list_impl");
 
+    arg0_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "arg0");
 
-    v_store(arg0_v, val0);
-    v_store(n2,     val1);
+//  v_store(arg_list, val0);
+    v_store(n1,       val1);
 
-    expr_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_initialize_expr_impl"));
-    expr_init_f   = v_obtain_function("v_ast_initialize_expr_impl");
-
-    LLVMBuildCall2(builder, expr_init_ft_, expr_init_f, val0, 2, "");
-
-
-    v_store(n1, val0);
-
-    arg1_v = LLVMBuildGEP2(builder, v_ast_expr_t_, arg0_v, val0, 1, "arg1");
+    arg1_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "arg1");
 
 
     v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
 
     base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
-
-
-    v_store(arg_list, val0);
-    v_store(n0,       val1);
-    v_store(arg0_v,   val2);
-    v_store(n2,       val3);
-
-    expr_list_get_items_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_list_get_items_expr_list_impl"));
-    expr_list_get_items_f   = v_obtain_function("v_ast_list_get_items_expr_list_impl");
-
-    LLVMBuildCall2(builder, expr_list_get_items_ft_, expr_list_get_items_f, val0, 4, "");
 
 
     char_ptr_v = v_obtain_global("char_ptr");
@@ -553,15 +531,6 @@
 
 
     fun_type = LLVMBuildCall2(builder, get_res_val_ft_, get_res_val_f, 0, 0, "fun_type");
-
-
-    v_store(arg0_v, val0);
-    v_store(n2,     val1);
-
-    expr_term_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_terminate_expr_impl"));
-    expr_term_f   = v_obtain_function("v_ast_terminate_expr_impl");
-
-    LLVMBuildCall2(builder, expr_term_ft_, expr_term_f, val0, 2, "");
 
 
     LLVMValueRef_ = v_type_get_llvm_type(LLVMValueRef);
@@ -718,14 +687,11 @@
     //- {
     //-     builder = v_target_get_builder();
     //-
-    //-     arg0 = v_alloca(v_ast_expr_t);
-    //-     v_initialize(arg0);
-    //-
     //-     args_count = v_list_get_size(arg_list);
     //-
     //-     if (args_count)
     //-     {
-    //-         v_list_get_items(arg_list, 0, arg0, 1);
+    //-         arg0 = v_list_get_item(arg_list, 0);
     //-
     //-         ret_type = v_get_variable_type("voidc.internal_return_type");
     //-
@@ -741,8 +707,6 @@
     //-
     //-         LLVMBuildStore(builder, ret, ret_var_v);
     //-     }
-    //-
-    //-     v_terminate(arg0);
     //-
     //-     leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
     //-     leave_b  = LLVMValueAsBasicBlock(leave_bv);
@@ -761,15 +725,6 @@
 
 
     builder_v = LLVMBuildCall2(builder, get_builder_ft_, get_builder_f, val0, 0, "builder_v");
-
-
-    arg0_v = LLVMBuildAlloca(builder, v_ast_expr_t_, "arg0_v");
-
-
-    v_store(arg0_v, val0);
-    v_store(n1,     val1);
-
-    LLVMBuildCall2(builder, expr_init_ft_, expr_init_f, val0, 2, "");
 
 
     v_store(arg_list, val0);
@@ -794,10 +749,8 @@
 
     v_store(arg_list, val0);
     v_store(n0,       val1);
-    v_store(arg0_v,   val2);
-    v_store(n1,       val3);
 
-    LLVMBuildCall2(builder, expr_list_get_items_ft_, expr_list_get_items_f, val0, 4, "");
+    arg0_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "");
 
 
     ret_type_var_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_return_type", "ret_type_var_n");
@@ -850,12 +803,6 @@
 
 
     LLVMPositionBuilderAtEnd(builder, else_b);
-
-
-    v_store(arg0_v, val0);
-    v_store(n1,     val1);
-
-    LLVMBuildCall2(builder, expr_term_ft_, expr_term_f, val0, 2, "");
 
 
     leave_bv_v_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_branch_target_leave", "leave_bv_v_n");
@@ -927,18 +874,13 @@
     p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
 }
 {
-    arg0 = v_alloca(v_ast_expr_t);
-    v_initialize(arg0);
+    arg = v_list_get_item(arg_list, 0);
 
-    base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(arg_list, 0, arg0);
+    base_arg = v_cast(arg, v_ast_base_ptr);
 
     v_set_result_type(UNREFERENCE_TAG);
 
     v_ast_accept_visitor(base_arg, visitor);
-
-    v_terminate(arg0);
 
     cond_a = v_get_result_value();
 
@@ -975,18 +917,13 @@
     p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
 }
 {
-    arg0 = v_alloca(v_ast_expr_t);
-    v_initialize(arg0);
+    arg = v_list_get_item(arg_list, 0);
 
-    base_arg = v_cast(arg0, v_ast_base_ptr);
-
-    v_list_get_items(arg_list, 0, arg0);
+    base_arg = v_cast(arg, v_ast_base_ptr);
 
     v_set_result_type(UNREFERENCE_TAG);
 
     v_ast_accept_visitor(base_arg, visitor);
-
-    v_terminate(arg0);
 
     cond_a = v_get_result_value();
 

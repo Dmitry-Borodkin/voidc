@@ -701,10 +701,7 @@
 
     v_peg_get_grammar(gr0);
 
-    {   op = v_alloca(v_ast_expr_t);
-        v_initialize(op);
-
-        any = v_alloca(v_std_any_t);
+    {   any = v_alloca(v_std_any_t);
         v_initialize(any);
 
 
@@ -720,7 +717,7 @@
             if (v_icmp(LLVMIntEQ, i, count))  v_break();
 
 
-            v_list_get_items(voidc_ast_expression_operator_list, i, op);
+            op = v_list_get_item(voidc_ast_expression_operator_list, i);
 
             void_obj = v_ast_generic_get_object(v_cast(op, v_ast_base_ptr));
 
@@ -738,7 +735,6 @@
         }
 
         v_terminate(any);
-        v_terminate(op);
     }
 
     grammar gr0

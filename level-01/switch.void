@@ -549,14 +549,8 @@
 
     //- Count switch cases
 
-    ast_base = v_alloca(v_ast_base_t);
-    v_initialize(ast_base);
-
     case_num = v_alloca(int);   case_num = v_reference(case_num);
     v_assign(case_num, 0);
-
-    case_max = v_alloca(int);   case_max = v_reference(case_max);
-    v_assign(case_max, 0);
 
     list_count = v_list_get_size(list);
 
@@ -568,7 +562,7 @@
         fin = v_icmp(LLVMIntEQ, case_idx, list_count);
         if (fin)  v_break();
 
-        v_list_get_items(list, case_idx, ast_base);
+        ast_base = v_list_get_item(list, case_idx);
 
         obj = v_ast_generic_get_object(ast_base);
 
@@ -581,10 +575,6 @@
         num = v_binop(LLVMAdd, case_num, n);
 
         v_assign(case_num, num);
-
-        cmp = v_icmp(LLVMIntUGT, n, case_max);
-
-        if (cmp)  v_assign(case_max, n);
 
         idx = v_binop(LLVMAdd, case_idx, 1);
 
@@ -641,9 +631,6 @@
 
     //- Compile case blocks...
 
-    case_args = v_malloc(v_ast_expr_t, case_max);
-    v_initialize(case_args, case_max);
-
     case_i = v_alloca(int);                 case_i = v_reference(case_i);
 
     case_b = v_alloca(LLVMBasicBlockRef);   case_b = v_reference(case_b);
@@ -655,7 +642,7 @@
         fin = v_icmp(LLVMIntEQ, case_idx, list_count);
         if (fin)  v_break();
 
-        v_list_get_items(list, case_idx, ast_base);
+        ast_base = v_list_get_item(list, case_idx);
 
         obj = v_ast_generic_get_object(ast_base);
 
@@ -664,8 +651,6 @@
         case_list = v_getelementptr(case_block, 0, 0);
 
         n = v_list_get_size(case_list);
-
-        v_list_get_items(case_list, 0, case_args, n);
 
         v_assign(case_b, 0);
 
@@ -678,7 +663,7 @@
             fin = v_icmp(LLVMIntEQ, case_i, n);
             if (fin)  v_break();
 
-            case_arg_i = v_getelementptr(case_args, case_i);
+            case_arg_i = v_list_get_item(case_list, case_i);
 
             emp = v_empty(case_arg_i);
 
@@ -726,7 +711,7 @@
             fin = v_icmp(LLVMIntEQ, case_i, n);
             if (fin)  v_break();
 
-            case_arg_i = v_getelementptr(case_args, case_i);
+            case_arg_i = v_list_get_item(case_list, case_i);
 
             i = v_binop(LLVMAdd, case_i, 1);
 
@@ -804,11 +789,6 @@
 
     LLVMPositionBuilderAtEnd(builder, switch_exit_b);
 
-
-    v_terminate(case_args, case_max);
-    v_free(case_args);
-
-    v_terminate(ast_base);
 
     v_restore_variables();
 }

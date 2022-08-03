@@ -643,14 +643,16 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
-                                const ast_expr_list_t *args
-                               )
+void v_list_get_item_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+                               const ast_expr_list_t *args
+                              )
 {
     auto quark = v_quark_t(uintptr_t(void_quark));
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+
+    auto tt = lctx.result_type;
 
     lctx.result_type = UNREFERENCE_TAG;
 
@@ -662,9 +664,9 @@ void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
     void *aux;
 
     LLVMValueRef f;
-    v_type_t    *ft;
+    v_type_t    *t;
 
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, t);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -676,27 +678,23 @@ void v_list_get_items_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
     //- Function call
 
-    LLVMValueRef values[4];
+    auto ft = static_cast<v_type_function_t *>(t);
+
+    LLVMValueRef values[2];
 
     values[0] = lctx.result_value;
 
-    for (int i=1; i<4; ++i)
-    {
-        if ((*args)->data.size() <= i)
-        {
-            values[i] = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
-        }
-        else
-        {
-            lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type = UNREFERENCE_TAG;
 
-            (*args)->data[i]->accept(*vis);
+    (*args)->data[1]->accept(*vis);
 
-            values[i] = lctx.result_value;
-        }
-    }
+    values[1] = lctx.result_value;
 
-    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 4, "");
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
+
+    lctx.result_type = tt;
+
+    lctx.adopt_result(ft->return_type(), v);
 }
 
 
@@ -732,7 +730,7 @@ void static_initialize(void)
 
     DEF(list_append)
     DEF(list_get_size)
-    DEF(list_get_items)
+    DEF(list_get_item)
 
 #undef DEF
 #undef DEF2

@@ -88,7 +88,7 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 //---------------------------------------------------------------------
 private
 intrinsic_p1_t = (vis: voidc_visitor_ptr, aux: *void,
-                  ast: v_ast_expr_ptr,
+                  args: v_ast_expr_list_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef
                  ) -> void;
 
@@ -98,32 +98,38 @@ intrinsic_p1_t = (vis: voidc_visitor_ptr, aux: *void,
 //---------------------------------------------------------------------
 private
 op_postfix_dot_helper: (vis: voidc_visitor_ptr,
-                        ast: v_ast_expr_ptr,
+                        args: v_ast_expr_list_ptr,
                         t0: v_type_ptr, v0: LLVMValueRef
                        ) -> void
 {
-    void_obj = v_ast_generic_get_object(v_cast(ast+0, v_ast_base_ptr));
+    op = v_list_get_item(args, 0);
+
+    void_obj = v_ast_generic_get_object((op: v_ast_base_ptr));
 
     obj = *(void_obj: v_ast_operator_unary_ptr);
 
     pay = (&obj[2] : v_ast_generic_list_ptr);
 
 
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
+//    etmp = v_alloca(v_ast_expr_t);
+//    v_initialize(etmp);
+//    defer v_terminate(etmp);
+//
+//    v_list_get_items(pay, 0, (etmp: v_ast_base_ptr));
 
-    v_list_get_items(pay, 0, (etmp: v_ast_base_ptr));
+    etmp = (v_list_get_item(pay, 0) : v_ast_expr_ptr);
 
     name = v_ast_expr_identifier_get_name(etmp);
 
-    alst = v_alloca(v_ast_expr_list_t);
-    v_initialize(alst);
-    defer v_terminate(alst);
+//    alst = v_alloca(v_ast_expr_list_t);
+//    v_initialize(alst);
+//    defer v_terminate(alst);
+
+    alst: &v_ast_expr_list_ptr := v_undef();
 
     got_args = v_list_get_size(pay) > 1;
 
-    if (got_args)  v_list_get_items(pay, 1, (alst: v_ast_base_ptr));
+    if (got_args)  alst := (v_list_get_item(pay, 1) : v_ast_expr_list_ptr);
 
     spc_flag: &bool := false;
 
@@ -176,7 +182,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     if (fun = (void_fun: *intrinsic_p1_t))
     {
-        fun(vis, void_aux, ast, t0, v0);
+        fun(vis, void_aux, args, t0, v0);
 
         if (!spc_flag)  v_return();
 
@@ -208,7 +214,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
                 if (i < par_count)  v_set_result_type(par_types[i]);
                 else                v_set_result_type(UNREFERENCE_TAG);
 
-                v_list_get_items(alst, i-1, etmp);
+                etmp = v_list_get_item(alst, i-1);
 
                 v_ast_accept_visitor((etmp: v_ast_base_ptr), vis);
             }
@@ -239,18 +245,13 @@ private
 op_postfix_dot_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                            args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_expr_t, 2);
-    v_initialize(ast, 2);
-    defer v_terminate(ast, 2);
-
-    v_list_get_items(args, 0, ast, 2);
-
-
     tt = v_get_result_type();
+
+    arg = v_list_get_item(args, 1);
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor((ast+1: v_ast_base_ptr), vis);
+    v_ast_accept_visitor((arg: v_ast_base_ptr), vis);
 
     t0 = v_get_result_type();
     v0 = v_get_result_value();
@@ -258,7 +259,7 @@ op_postfix_dot_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     v_set_result_type(tt);
 
-    op_postfix_dot_helper(vis, ast, t0, v0);
+    op_postfix_dot_helper(vis, args, t0, v0);
 }
 
 
@@ -269,17 +270,13 @@ private
 op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                                args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_expr_t, 2);
-    v_initialize(ast, 2);
-    defer v_terminate(ast, 2);
-
-    v_list_get_items(args, 0, ast, 2);
-
     tt = v_get_result_type();
+
+    arg = v_list_get_item(args, 1);
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor((ast+1: v_ast_base_ptr), vis);
+    v_ast_accept_visitor((arg: v_ast_base_ptr), vis);
 
     t0: &v_type_ptr   := v_get_result_type();
     v0: &LLVMValueRef := v_get_result_value();
@@ -302,7 +299,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(INVIOLABLE_TAG);
 
-            fun(vis, void_aux, ast, t0, v0);
+            fun(vis, void_aux, args, t0, v0);
 
             t0 := v_get_result_type();
             v0 := v_get_result_value();
@@ -345,7 +342,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     v_set_result_type(tt);
 
-    op_postfix_dot_helper(vis, ast, t0, v0);
+    op_postfix_dot_helper(vis, args, t0, v0);
 }
 
 

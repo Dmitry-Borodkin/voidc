@@ -25,13 +25,10 @@
 v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
                               args: v_ast_expr_list_ptr) -> void
 {
-    arg = v_alloca(v_ast_expr_t, 2);
-    v_initialize(arg, 2);
-    defer v_terminate(arg, 2);
+    arg0 = v_list_get_item(args, 0);
+    arg1 = v_list_get_item(args, 1);
 
-    v_list_get_items(args, 0, arg, 2);
-
-    t_str = v_ast_expr_string_get_string(arg + 1);      //- Suffix string
+    t_str = v_ast_expr_string_get_string(arg1);         //- Suffix string
 
     t: &v_type_ptr := v_undef();
 
@@ -66,7 +63,7 @@ v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
 
     radix: &uint(8) := 10;
 
-    src: &*const char := v_ast_expr_string_get_string(arg + 0);         //- Value string (source)
+    src: &*const char := v_ast_expr_string_get_string(arg0);        //- Value string (source)
 
     dst = v_alloca(v_std_string_t);
     v_initialize(dst);
@@ -119,13 +116,10 @@ v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
 v_literal_real_intrinsic: (vis: voidc_visitor_ptr, *void,
                            args: v_ast_expr_list_ptr) -> void
 {
-    arg = v_alloca(v_ast_expr_t, 2);
-    v_initialize(arg, 2);
-    defer v_terminate(arg, 2);
+    arg0 = v_list_get_item(args, 0);
+    arg1 = v_list_get_item(args, 1);
 
-    v_list_get_items(args, 0, arg, 2);
-
-    t_str = v_ast_expr_string_get_string(arg + 1);      //- Suffix string
+    t_str = v_ast_expr_string_get_string(arg1);         //- Suffix string
 
     t: &v_type_ptr := 0;    //- Sic!
 
@@ -160,7 +154,7 @@ v_literal_real_intrinsic: (vis: voidc_visitor_ptr, *void,
         }
     }
 
-    src: &*const char := v_ast_expr_string_get_string(arg + 0);         //- Value string (source)
+    src: &*const char := v_ast_expr_string_get_string(arg0);        //- Value string (source)
 
     dst = v_alloca(v_std_string_t);
     v_initialize(dst);

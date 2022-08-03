@@ -151,12 +151,12 @@ op_table_ctor: () -> void
 
 //---------------------------------------------------------------------
 intrinsic_p1_t = (vis: voidc_visitor_ptr, aux: *void,
-                  ast: v_ast_expr_ptr,
+                  args: v_ast_expr_list_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef
                  ) -> void;
 
 intrinsic_p2_t = (vis: voidc_visitor_ptr, aux: *void,
-                  ast: v_ast_expr_ptr,
+                  args: v_ast_expr_list_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef,
                   t1: v_type_ptr, v1: LLVMValueRef
                  ) -> void;
@@ -167,17 +167,13 @@ private
 op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                       args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_expr_t, 3);
-    v_initialize(ast, 3);
-    defer v_terminate(ast, 3);
-
-    v_list_get_items(args, 0, ast, 3);
-
     tt = v_get_result_type();
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor((ast+1 : v_ast_base_ptr), vis);
+    lhs = v_list_get_item(args, 1);             //- "Place"
+
+    v_ast_accept_visitor((lhs : v_ast_base_ptr), vis);
 
     t0 = v_get_result_type();
     v0 = v_get_result_value();
@@ -200,7 +196,7 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, ast, t0, v0);
+            fun(vis, void_aux, args, t0, v0);
         }
         else
         {
@@ -216,7 +212,9 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             v_set_result_type(fpar[1]);
 
-            v_ast_accept_visitor((ast+2 : v_ast_base_ptr), vis);
+            rhs = v_list_get_item(args, 2);             //- "Value"
+
+            v_ast_accept_visitor((rhs : v_ast_base_ptr), vis);
 
             val[1] := v_get_result_value();
 
@@ -231,6 +229,8 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         v_return();
     }
+
+    //- Default treatment...
 
     e0 = v_type_refptr_get_element_type(t0);
 
@@ -253,7 +253,9 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         v_set_result_type(e0);
     }
 
-    v_ast_accept_visitor((ast+2 : v_ast_base_ptr), vis);
+    rhs = v_list_get_item(args, 2);             //- "Value"
+
+    v_ast_accept_visitor((rhs : v_ast_base_ptr), vis);
 
     t1 = v_get_result_type();
     v1 = v_get_result_value();
@@ -305,19 +307,15 @@ private
 op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                       args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_expr_t, 3);
-    v_initialize(ast, 3);
-    defer v_terminate(ast, 3);
-
-    v_list_get_items(args, 0, ast, 3);
-
     tt = v_get_result_type();
 
     //- First argument
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor((ast+1 : v_ast_base_ptr), vis);
+    lhs = v_list_get_item(args, 1);
+
+    v_ast_accept_visitor((lhs : v_ast_base_ptr), vis);
 
     t0 = v_get_result_type();
     v0 = v_get_result_value();
@@ -340,7 +338,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, ast, t0, v0);
+            fun(vis, void_aux, args, t0, v0);
         }
         else
         {
@@ -356,7 +354,9 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             v_set_result_type(fpar[1]);
 
-            v_ast_accept_visitor((ast+2 : v_ast_base_ptr), vis);
+            rhs = v_list_get_item(args, 2);
+
+            v_ast_accept_visitor((rhs : v_ast_base_ptr), vis);
 
             val[1] := v_get_result_value();
 
@@ -376,7 +376,9 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor((ast+2 : v_ast_base_ptr), vis);
+    rhs = v_list_get_item(args, 2);
+
+    v_ast_accept_visitor((rhs : v_ast_base_ptr), vis);
 
     t1 = v_get_result_type();
     v1 = v_get_result_value();
@@ -391,7 +393,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, ast, t0, v0, t1, v1);
+            fun(vis, void_aux, args, t0, v0, t1, v1);
         }
         else
         {
@@ -488,13 +490,11 @@ strcmp: (*const char, *const char) -> int;
 strncmp: (*const char, *const char, size_t) -> int;
 
 private
-check_relation: (arg: v_ast_base_ptr, lhs: v_ast_base_ptr, rhs: v_ast_base_ptr) -> int
+check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr) -> int
 {
     get_tag = v_ast_base_get_visitor_method_tag;
 
-    if (get_tag(arg) != expr_call_tag)  v_return(0);
-
-    arg = (arg: v_ast_expr_ptr);
+    if (get_tag((arg: v_ast_base_ptr)) != expr_call_tag)  v_return(0);
 
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
@@ -537,8 +537,8 @@ check_relation: (arg: v_ast_base_ptr, lhs: v_ast_base_ptr, rhs: v_ast_base_ptr) 
 
     v_ast_expr_call_get_arg_list(arg, lst);
 
-    if (lhs)  v_list_get_items(lst, 1, (lhs: v_ast_expr_ptr));
-    if (rhs)  v_list_get_items(lst, 2, (rhs: v_ast_expr_ptr));
+    if (lhs)  *lhs := v_list_get_item(lst, 1);
+    if (rhs)  *rhs := v_list_get_item(lst, 2);
 
     v_return(rk);
 }
@@ -550,22 +550,13 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 {
     N: &int := 2;
 
-    {   ast = v_alloca(v_ast_base_t);
-        v_initialize(ast);
-        defer v_terminate(ast);
+    {   ast: &v_ast_expr_ptr := v_list_get_item(args, 1);
 
-        v_list_get_items(args, 1, (ast: v_ast_expr_ptr));
-
-        while(check_relation(ast, ast, 0)) ++N;
+        while(check_relation(ast, &ast, 0)) ++N;
     }
 
-    ast = v_malloc(v_ast_base_t, N);
-    v_initialize(ast, N);
-    defer
-    {
-        v_terminate(ast, N);
-        v_free(ast);
-    }
+    ast = v_malloc(v_ast_expr_ptr, N);
+    defer v_free(ast);
 
     Nm1 = N - 1;
 
@@ -574,14 +565,15 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     {   i = N - 2;
 
-        ast_i: &v_ast_base_ptr := ast + i;
-        rel_i: &*int           := rel + i;
+        ast_i: &*v_ast_expr_ptr := ast + i;
+        rel_i: &*int            := rel + i;
 
-        v_list_get_items(args, 1, (ast_i: v_ast_expr_ptr), 2);
+        ast_i[0] := v_list_get_item(args, 1);
+        ast_i[1] := v_list_get_item(args, 2);
 
         *rel_i := (aux: int);
 
-        while(ast_i1 = ast_i-1, rk = check_relation(ast_i, ast_i1, ast_i))
+        while(ast_i1 = ast_i-1, rk = check_relation(*ast_i, ast_i1, ast_i))
         {
             ast_i := ast_i1;
             rel_i := rel_i - 1;
@@ -619,7 +611,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor(ast+0, vis);
+    v_ast_accept_visitor((ast[0] : v_ast_base_ptr), vis);
 
     typ: &v_type_ptr   := v_get_result_type();
     val: &LLVMValueRef := v_get_result_value();
@@ -637,15 +629,12 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         rel_i = rel[i];
 
-        ast_i  = ast + i;
-        ast_i1 = ast_i + 1;
-
         //- First argument
 
         t0 := typ;
         v0 := val;
 
-        q0 = op_table[(aux: int)][2];       //- Quark (left)
+        q0 = op_table[rel_i][2];            //- Quark (left)
 
         void_fun: &*void := 0;
         void_aux: &*void := 0;
@@ -658,7 +647,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             //- Got overloading!
 
             intrinsic_p12_t = (vis: voidc_visitor_ptr, aux: *void,
-                               ast: v_ast_expr_ptr,
+                               ast: *v_ast_expr_ptr,
                                t0:  v_type_ptr, v0:  LLVMValueRef,
                                t1: &v_type_ptr, v1: &LLVMValueRef
                               ) -> void;
@@ -667,7 +656,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             {
                 v_set_result_type(tt);      //- Sic !?!
 
-                fun(vis, void_aux, (ast_i: v_ast_expr_ptr), t0, v0, t1, v1);
+                fun(vis, void_aux, ast+i, t0, v0, t1, v1);
             }
             else
             {
@@ -683,7 +672,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
                 v_set_result_type(fpar[1]);
 
-                v_ast_accept_visitor(ast_i1, vis);
+                v_ast_accept_visitor((ast[i+1] : v_ast_base_ptr), vis);
 
                 t1 := v_get_result_type();
                 v1 := v_get_result_value();
@@ -707,22 +696,28 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             v_set_result_type(INVIOLABLE_TAG);
 
-            v_ast_accept_visitor(ast_i1, vis);
+            v_ast_accept_visitor((ast[i+1] : v_ast_base_ptr), vis);
 
             t1 := v_get_result_type();
             v1 := v_get_result_value();
 
-            q1 = op_table[(aux: int)][3];       //- Quark (right)
+            q1 = op_table[rel_i][3];            //- Quark (right)
 
             if (v_util_lookup_function_dict(vis, q1, t1, void_fun, void_aux, ft, fv))
             {
                 //- Got overloading!
 
-                if (fun = (void_fun: *intrinsic_p2_t))
+                intrinsic_p22_t = (vis: voidc_visitor_ptr, aux: *void,
+                                   ast: *v_ast_expr_ptr,
+                                   t0: v_type_ptr, v0: LLVMValueRef,
+                                   t1: v_type_ptr, v1: LLVMValueRef
+                                  ) -> void;
+
+                if (fun = (void_fun: *intrinsic_p22_t))
                 {
                     v_set_result_type(tt);      //- Sic !?!
 
-                    fun(vis, void_aux, (ast_i: v_ast_expr_ptr), t0, v0, t1, v1);
+                    fun(vis, void_aux, ast+i, t0, v0, t1, v1);
                 }
                 else
                 {
@@ -1114,17 +1109,13 @@ private
 op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                      args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_expr_t, 2);
-    v_initialize(ast, 2);
-    defer v_terminate(ast, 2);
-
-    v_list_get_items(args, 0, ast, 2);
-
     tt = v_get_result_type();
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor((ast+1: v_ast_base_ptr), vis);
+    arg = v_list_get_item(args, 1);
+
+    v_ast_accept_visitor((arg: v_ast_base_ptr), vis);
 
     t0 = v_get_result_type();
     v0 = v_get_result_value();
@@ -1147,7 +1138,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, ast, t0, v0);
+            fun(vis, void_aux, args, t0, v0);
         }
         else
         {
@@ -1259,12 +1250,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
     {
         //- Got overloading!
 
-        intrinsic_ft = (vis: voidc_visitor_ptr, aux: *void,
-                        args: v_ast_expr_list_ptr,
-                        t: v_type_ptr, v: LLVMValueRef
-                       ) -> void;
-
-        if (fun = (void_fun: *intrinsic_ft))
+        if (fun = (void_fun: *intrinsic_p1_t))
         {
             v_set_result_type(tt);
 
@@ -1300,10 +1286,6 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
     values = v_malloc(LLVMValueRef, arg_count);
     defer v_free(values);
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
-
     for (i: &int := 0; i < arg_count; ++i)
     {
         if (i == 0  &&  i0 == 1)
@@ -1317,7 +1299,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
             if (i < par_count)  v_set_result_type(par_types[i]);
             else                v_set_result_type(UNREFERENCE_TAG);
 
-            v_list_get_items(args, i-i0, expr);
+            expr = v_list_get_item(args, i-i0);
 
             v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
         }
@@ -1385,18 +1367,13 @@ private
 op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                              args: v_ast_expr_list_ptr) -> void
 {
-    ast = v_alloca(v_ast_expr_t, 2);
-    v_initialize(ast, 2);
-    defer v_terminate(ast, 2);
-
-    v_list_get_items(args, 0, ast, 2);
-
-
     tt = v_get_result_type();
 
     v_set_result_type(INVIOLABLE_TAG);
 
-    v_ast_accept_visitor((ast+1: v_ast_base_ptr), vis);
+    arg = v_list_get_item(args, 1);
+
+    v_ast_accept_visitor((arg: v_ast_base_ptr), vis);
 
     t0 = v_get_result_type();
     v0 = v_get_result_value();
@@ -1419,14 +1396,16 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, ast, t0, v0);
+            fun(vis, void_aux, args, t0, v0);
         }
         else
         {
             par_count = v_type_function_get_param_count(ft);
             par_types = v_type_function_get_param_types(ft);
 
-            void_obj = v_ast_generic_get_object((ast+0 : v_ast_base_ptr));
+            op = v_list_get_item(args, 0);
+
+            void_obj = v_ast_generic_get_object((op: v_ast_base_ptr));
 
             obj = *(void_obj: v_ast_operator_unary_ptr);
 
@@ -1450,9 +1429,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                     if (j < par_count)  v_set_result_type(par_types[j]);
                     else                v_set_result_type(UNREFERENCE_TAG);
 
-                    etmp = ast + 0;     //- Sic!
-
-                    v_list_get_items(idx_list, j-1, etmp);
+                    etmp = v_list_get_item(idx_list, j-1);
 
                     v_ast_accept_visitor((etmp: v_ast_base_ptr), vis);
                 }
@@ -1480,15 +1457,15 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     agg_t: &v_type_ptr   := t0;
     agg_v: &LLVMValueRef := v0;
 
-    void_obj = v_ast_generic_get_object((ast+0 : v_ast_base_ptr));
+    op = v_list_get_item(args, 0);
+
+    void_obj = v_ast_generic_get_object((op : v_ast_base_ptr));
 
     obj = *(void_obj: v_ast_operator_unary_ptr);
 
     idx_list = (&obj[2] : v_ast_expr_list_ptr);
 
-    etmp = ast + 0;     //- Sic!
-
-    v_list_get_items(idx_list, 0, etmp);            //- Just one!
+    etmp = v_list_get_item(idx_list, 0);            //- Just one!
 
     v_set_result_type(UNREFERENCE_TAG);
 
@@ -1594,15 +1571,13 @@ incomplete_array_type_tag = v_struct("voidc.incomplete_array_type_tag");
 
 private
 static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                                      ast: v_ast_expr_ptr,
+                                      args: v_ast_expr_list_ptr,
                                       t: v_type_ptr, v: LLVMValueRef
                                      ) -> void
 {
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    op = v_list_get_item(args, 0);
 
-    void_obj = v_ast_generic_get_object((ast+0 : v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object((op : v_ast_base_ptr));
 
     obj = *(void_obj: v_ast_operator_unary_ptr);
 
@@ -1612,7 +1587,7 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     if (idx_count)
     {
-        v_list_get_items(idx_list, 0, expr);        //- Just one!
+        expr = v_list_get_item(idx_list, 0);        //- Just one!
 
         v_set_result_type(UNREFERENCE_TAG);
 

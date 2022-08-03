@@ -39,11 +39,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 
     cond_len: &int := v_list_get_size(cond);
 
-    cstm = v_alloca(v_ast_stmt_t);
-    v_initialize(cstm);
-    defer v_terminate(cstm);
-
-    v_list_get_items(cond, cond_len-1, cstm);
+    cstm = v_list_get_item(cond, cond_len-1);
 
 
     cexp = v_alloca(v_ast_expr_t);
@@ -64,24 +60,20 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
     }
 
 
-    //- cstm - break
-
-    v_ast_make_stmt_call(cstm, "", "v_break", 0, 0);
-
-
     stmp_len = cond_len + 1;
-
 
     stmp = v_alloca(v_ast_stmt_t, stmp_len);
     v_initialize(stmp, stmp_len);
     defer v_terminate(stmp, stmp_len);
 
 
-    stmp_cond = stmp + cond_len;
-
     //- stmp_cond - if
 
-    v_ast_make_stmt_if_then_else(stmp_cond, cexp, stmt, cstm);
+    stmp_cond = stmp + cond_len;
+
+    v_ast_make_stmt_call(stmp_cond, "", "v_break", 0, 0);
+
+    v_ast_make_stmt_if_then_else(stmp_cond, cexp, stmt, stmp_cond);
 
 
     //- stmp+0 - loop
@@ -90,13 +82,22 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
     {
         //- stmp+0 - block
 
-        v_list_get_items(cond, 0, stmp+0, cond_len);
+        i: &int := 0;
+
+        loop
+        {
+            if (i == cond_len)  v_break();
+
+            v_copy(stmp+i, v_list_get_item(cond, i));
+
+            ++i;
+        }
 
         slst = v_alloca(v_ast_stmt_list_t);
         v_initialize(slst);
         defer v_terminate(slst);
 
-        v_make_list(slst, stmp+0, cond_len+1);
+        v_make_list(slst, stmp+0, stmp_len);
 
         v_ast_make_stmt_block(stmp+0, slst, false);
     }
@@ -112,14 +113,11 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 v_internal_copy_variable_intrinsic: (vis: voidc_visitor_ptr, *void,
                                      args: v_ast_expr_list_ptr) -> void
 {
-    expr = v_alloca(v_ast_expr_t, 2);
-    v_initialize(expr, 2);
-    defer v_terminate(expr, 2);
+    expr0 = v_list_get_item(args, 0);
+    expr1 = v_list_get_item(args, 1);
 
-    v_list_get_items(args, 0, expr, 2);
-
-    name_dst = v_ast_expr_string_get_string(expr+0);
-    name_src = v_ast_expr_string_get_string(expr+1);
+    name_dst = v_ast_expr_string_get_string(expr0);
+    name_src = v_ast_expr_string_get_string(expr1);
 
     src_type  = v_get_variable_type(name_src);
     src_value = v_get_variable_value(name_src);
@@ -194,13 +192,9 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
 
     cond_len: &int := v_list_get_size(cond);
 
-    cstm = v_alloca(v_ast_stmt_t);
-    v_initialize(cstm);
-    defer v_terminate(cstm);
-
     if (cond_len)
     {
-        v_list_get_items(cond, cond_len-1, cstm);
+        cstm = v_list_get_item(cond, cond_len-1);
 
         name = v_ast_stmt_get_name(cstm);
 
@@ -219,11 +213,6 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     {
         v_ast_make_expr_identifier(e_cond, "true");
     }
-
-
-    //- cstm - break
-
-    v_ast_make_stmt_call(cstm, "", "v_break", 0, 0);
 
 
     incr_len = v_list_get_size(incr);
@@ -283,7 +272,9 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
 
     v_ast_make_stmt_block(stmp+0, slst, true);
 
-    v_ast_make_stmt_if_then_else(stmp_cond+0, e_cond, stmp+0, cstm);
+    v_ast_make_stmt_call(stmp_cond, "", "v_break", 0, 0);
+
+    v_ast_make_stmt_if_then_else(stmp_cond+0, e_cond, stmp+0, stmp_cond);
 
 
     //- stmp_init+0 - loop
@@ -302,10 +293,33 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     v_ast_make_stmt_call(stmp+1, "", "v.internal.copy_variable", etmp+0, 2);
 
 
-    if (cond_len) v_list_get_items(cond, 0, stmp+2, cond_len);
+    if (cond_len)
+    {
+        i: &int := 0;
 
+        loop
+        {
+            if (i == cond_len)  v_break();
 
-    if (incr_len) v_list_get_items(incr, 0, stmp_cond+1, incr_len);
+            v_copy(stmp+2+i, v_list_get_item(cond, i));
+
+            ++i;
+        }
+    }
+
+    if (incr_len)
+    {
+        i: &int := 0;
+
+        loop
+        {
+            if (i == incr_len)  v_break();
+
+            v_copy(stmp_cond+1+i, v_list_get_item(incr, i));
+
+            ++i;
+        }
+    }
 
 
     v_make_list(slst, stmp+0, 2+cond_len+1+incr_len);
@@ -315,7 +329,19 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     v_ast_make_stmt_loop(stmp_init+0, stmp+0);
 
 
-    if (init_len) v_list_get_items(init, 0, stmp+0, init_len);
+    if (init_len)
+    {
+        i: &int := 0;
+
+        loop
+        {
+            if (i == init_len)  v_break();
+
+            v_copy(stmp+i, v_list_get_item(init, i));
+
+            ++i;
+        }
+    }
 
 
     v_make_list(slst, stmp+0, init_len+1);
@@ -344,11 +370,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, 
 
     cond_len: &int := v_list_get_size(cond);
 
-    cstm = v_alloca(v_ast_stmt_t);
-    v_initialize(cstm);
-    defer v_terminate(cstm);
-
-    v_list_get_items(cond, cond_len-1, cstm);
+    cstm = v_list_get_item(cond, cond_len-1);
 
 
     cexp = v_alloca(v_ast_expr_t);
@@ -389,7 +411,17 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, 
     v_ast_make_stmt_if_then_else(stmp_cond+0, cexp, tstm, else_stmt);
 
 
-    v_list_get_items(cond, 0, stmp+0, cond_len);
+    {   i: &int := 0;
+
+        loop
+        {
+            if (i == cond_len)  v_break();
+
+            v_copy(stmp+i, v_list_get_item(cond, i));
+
+            ++i;
+        }
+    }
 
     slst = v_alloca(v_ast_stmt_list_t);
     v_initialize(slst);
@@ -423,11 +455,7 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t
     v_initialize(etmp);
     defer v_terminate(etmp);
 
-    {   stmt = v_alloca(v_ast_stmt_t);
-        v_initialize(stmt);
-        defer v_terminate(stmt);
-
-        v_list_get_items(estm, estm_len-1, stmt);
+    {   stmt = v_list_get_item(estm, estm_len-1);
 
         name = v_ast_stmt_get_name(stmt);
 
@@ -460,7 +488,19 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t
     v_ast_make_stmt_switch(stmp_estm+0, etmp, glst);
 
 
-    if (estm_len)   v_list_get_items(estm, 0, stmp+0, estm_len);        //- if?
+    if (estm_len)       //- if?
+    {
+        i: &int := 0;
+
+        loop
+        {
+            if (i == estm_len)  v_break();
+
+            v_copy(stmp+i, v_list_get_item(estm, i));
+
+            ++i;
+        }
+    }
 
 
     slst = v_alloca(v_ast_stmt_list_t);
