@@ -198,7 +198,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
         }
     }
 
-    v_set_result_type(voidc_static_type);
+    v_set_result_type(v_static_type_t);
     v_set_result_value((type: LLVMValueRef));
 }
 
@@ -261,7 +261,7 @@ voidc_enable_aggregates: () -> void
 
     v_return_if_not(voidc_has_grammar());
 
-    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
     defer v_terminate(gr0);
 

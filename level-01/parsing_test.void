@@ -44,7 +44,7 @@ fgetc_fun: (void_data: *void) -> int
 
 
 //---------------------------------------------------------------------
-{   grm = v_alloca(v_peg_opaque_grammar_sptr);
+{   grm = v_alloca(v_peg_grammar_t);
     v_initialize(grm);
     defer v_terminate(grm);
 
@@ -62,7 +62,7 @@ fgetc_fun: (void_data: *void) -> int
     my_q = v_quark_from_string("my_unit");
 
     //-----------------------------------------------------------------
-    ctx = v_alloca(v_peg_opaque_context_sptr, 2);
+    ctx = v_alloca(v_peg_context_t, 2);
     v_initialize(ctx, 2);
     defer v_terminate(ctx, 2);
 

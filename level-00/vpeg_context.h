@@ -28,32 +28,32 @@ extern "C" typedef int (*context_fgetc_fun_t)(void *data);
 //---------------------------------------------------------------------
 //- Parsing context
 //---------------------------------------------------------------------
-class context_t
+class context_data_t
 {
 public:
-    context_t(context_fgetc_fun_t fun, void *data, const grammar_t &_grammar);
+    context_data_t(context_fgetc_fun_t fun, void *data, const grammar_data_t &_grammar);
 
-    context_t(std::FILE *_input, const grammar_t &_grammar);
+    context_data_t(std::FILE *_input, const grammar_data_t &_grammar);
 
 public:
     static void static_initialize(void);
     static void static_terminate(void);
 
 public:
-    static std::shared_ptr<context_t> current_ctx;
+    static std::shared_ptr<context_data_t> current_ctx;
 
 public:
     struct variables_t
     {
-        grammar_t::values_map_t             values;
+        grammar_data_t::values_map_t        values;
         immer::vector<std::array<size_t,2>> strings;
     };
 
     struct state_t
     {
-        size_t      position;
-        variables_t variables;
-        grammar_t   grammar;
+        size_t         position;
+        variables_t    variables;
+        grammar_data_t grammar;
     };
 
 public:
@@ -110,8 +110,8 @@ public:
     }
 
 public:
-    variables_t variables;
-    grammar_t   grammar;        //- ?...
+    variables_t    variables;
+    grammar_data_t grammar;         //- ?...
 
 public:     //- ?...
     std::map<std::tuple<size_t, size_t, v_quark_t>, std::pair<std::any, state_t>> memo;
@@ -142,7 +142,7 @@ private:
     size_t current_line = 1;
 };
 
-typedef std::shared_ptr<context_t> context_sptr_t;
+typedef std::shared_ptr<context_data_t> context_t;
 
 
 //---------------------------------------------------------------------

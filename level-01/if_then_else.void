@@ -326,13 +326,13 @@
 
     stmt = LLVMBuildAlloca(builder, v_ast_stmt_t_, "stmt");
 
-    stmt_sptr_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_initialize_stmt_impl"));
-    stmt_sptr_init_f   = v_obtain_function("v_ast_initialize_stmt_impl");
+    stmt_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_initialize_stmt_impl"));
+    stmt_init_f   = v_obtain_function("v_ast_initialize_stmt_impl");
 
     v_store(stmt, val0);
     v_store(n1,   val1);
 
-    LLVMBuildCall2(builder, stmt_sptr_init_ft_, stmt_sptr_init_f, val0, 2, "");
+    LLVMBuildCall2(builder, stmt_init_ft_, stmt_init_f, val0, 2, "");
 
 
     then_b = LLVMAppendBasicBlock(f, "then_b");
@@ -728,7 +728,7 @@
     v_return_if(voidc_grammar_has_parser("stmt_if_then_else"));
 
 
-    pp0 = v_alloca(v_peg_opaque_parser_sptr, 14);
+    pp0 = v_alloca(v_peg_parser_t, 14);
     v_initialize(pp0, 14);
 
     pp1 = v_getelementptr(pp0, 1);
@@ -780,7 +780,7 @@
     v_peg_make_catch_variable_parser(pp9, "e", pp9);
 
 
-    ar0 = v_alloca(v_peg_opaque_argument_sptr, 3);
+    ar0 = v_alloca(v_peg_argument_t, 3);
     v_initialize(ar0, 3);
 
     ar1 = v_getelementptr(ar0, 1);
@@ -791,7 +791,7 @@
     v_peg_make_identifier_argument(ar2, "e");
 
 
-    act = v_alloca(v_peg_opaque_action_sptr);
+    act = v_alloca(v_peg_action_t);
     v_initialize(act);
 
     v_peg_make_call_action(act, "mk_stmt_if_then_else", ar0, 3);
@@ -802,7 +802,7 @@
     v_peg_make_sequence_parser(pp0, pp0, 11);
 
 
-    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);

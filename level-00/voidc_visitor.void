@@ -12,10 +12,10 @@
 
 
 //---------------------------------------------------------------------
-{   v_util_register_itcmep_impl(voidc_opaque_visitor_sptr, "voidc", "visitor");
+{   v_util_register_itcmep_impl(voidc_visitor_t, "voidc", "visitor");
 }
 
-{   visitor_ptr = v_pointer_type(voidc_opaque_visitor_sptr, 0);
+{   visitor_ptr = v_pointer_type(voidc_visitor_t, 0);
 
     v_export_type("voidc_visitor_ptr", visitor_ptr);
 }

@@ -44,12 +44,12 @@
 {
     gctx = v_target_create_global_ctx(int_sz, long_sz, ptr_sz);
 
-    v_add_symbol("my_gctx", v_target_opaque_global_ctx, gctx);
+    v_add_symbol("my_gctx", v_target_global_ctx_t, gctx);
 
 
     lctx = v_target_create_local_ctx("<target test>", gctx);
 
-    v_add_symbol("my_lctx", v_target_opaque_local_ctx, lctx);
+    v_add_symbol("my_lctx", v_target_local_ctx_t, lctx);
 
 
     v_target_set_global_ctx(gctx);

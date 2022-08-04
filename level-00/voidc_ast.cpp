@@ -257,10 +257,10 @@ v_quark_t v_ast_##name##_visitor_method_tag;
 
 #define DEF(name) \
 void \
-v_visitor_set_method_##name(visitor_sptr_t *dst, const visitor_sptr_t *src, ast_##name##_data_t::visitor_method_t method, void *aux) \
+v_visitor_set_method_##name(visitor_t *dst, const visitor_t *src, ast_##name##_data_t::visitor_method_t method, void *aux) \
 { \
     auto visitor = (*src)->set_void_method(v_ast_##name##_visitor_method_tag, (void *)method, aux); \
-    *dst = std::make_shared<const voidc_visitor_t>(visitor); \
+    *dst = std::make_shared<const voidc_visitor_data_t>(visitor); \
 }
 
     DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
@@ -270,7 +270,7 @@ v_visitor_set_method_##name(visitor_sptr_t *dst, const visitor_sptr_t *src, ast_
 
 //---------------------------------------------------------------------
 void
-v_ast_accept_visitor(const ast_base_t *object, const visitor_sptr_t *visitor)
+v_ast_accept_visitor(const ast_base_t *object, const visitor_t *visitor)
 {
     (*object)->accept(*visitor);
 }
@@ -375,26 +375,15 @@ v_ast_static_initialize(void)
 {
     static_assert((sizeof(ast_base_t) % sizeof(intptr_t)) == 0);
 
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
-    v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(ast_base_t)/sizeof(intptr_t));
-
-    auto add_type = [&gctx](const char *raw_name, v_type_t *type)
-    {
-        gctx.decls.constants_insert({raw_name, gctx.static_type_type});
-
-        gctx.constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
-
-        gctx.decls.symbols_insert({raw_name, gctx.opaque_type_type});
-
-        gctx.add_symbol_value(raw_name, type);
-    };
+    v_type_t *content_type = vctx.make_array_type(vctx.intptr_t_type, sizeof(ast_base_t)/sizeof(intptr_t));
 
 #define DEF(name) \
     static_assert(sizeof(ast_base_t) == sizeof(ast_##name##_t)); \
-    auto opaque_##name##_type = gctx.make_struct_type("v_ast_" #name "_t"); \
-    opaque_##name##_type->set_body(&content_type, 1, false); \
-    add_type("v_ast_" #name "_t", opaque_##name##_type);
+    auto name##_type = vctx.make_struct_type("v_ast_" #name "_t"); \
+    name##_type->set_body(&content_type, 1, false); \
+    vctx.initialize_type("v_ast_" #name "_t", name##_type);
 
     DEF(base)
 

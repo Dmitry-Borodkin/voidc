@@ -444,7 +444,7 @@
     //- Parsers "stack"
 
     voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
-                                      "v_peg_opaque_parser_sptr",
+                                      "v_peg_parser_t",
                                       "v.pr",
                                       voidc_ast_stmt_grammar_parsers_count,
                                       1
@@ -455,7 +455,7 @@
     //- Arguments "stack"
 
     voidc_ast_stmt_grammar_stack_init(gr_stmt_list,
-                                      "v_peg_opaque_argument_sptr",
+                                      "v_peg_argument_t",
                                       "v.ar",
                                       voidc_ast_stmt_grammar_arguments_count,
                                       1
@@ -476,7 +476,7 @@
     //-----------------------------------------------------------------
     //- ...
 
-    v_ast_make_expr_identifier(arg0, "v_peg_opaque_action_sptr");
+    v_ast_make_expr_identifier(arg0, "v_peg_action_t");
 
     v_ast_make_stmt_call(stmt, "v.act", "v_alloca", arg0, 1);
 
@@ -2317,7 +2317,7 @@
     v_return_if(voidc_grammar_has_parser("stmt_grammar"));
 
 
-    pp0 = v_alloca(v_peg_opaque_parser_sptr, 13);
+    pp0 = v_alloca(v_peg_parser_t, 13);
     v_initialize(pp0, 13);
 
     pp1 = v_getelementptr(pp0, 1);
@@ -2333,16 +2333,16 @@
     pp11 = v_getelementptr(pp0, 11);
     pp12 = v_getelementptr(pp0, 12);
 
-    ar0 = v_alloca(v_peg_opaque_argument_sptr, 3);
+    ar0 = v_alloca(v_peg_argument_t, 3);
     v_initialize(ar0, 3);
 
     ar1 = v_getelementptr(ar0, 1);
     ar2 = v_getelementptr(ar0, 2);
 
-    act = v_alloca(v_peg_opaque_action_sptr);
+    act = v_alloca(v_peg_action_t);
     v_initialize(act);
 
-    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
 
 

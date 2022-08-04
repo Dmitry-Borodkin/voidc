@@ -14,15 +14,15 @@
 
 
 //---------------------------------------------------------------------
-class voidc_visitor_t;
+class voidc_visitor_data_t;
 
-typedef std::shared_ptr<const voidc_visitor_t> visitor_sptr_t;
+typedef std::shared_ptr<const voidc_visitor_data_t> visitor_t;
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-class voidc_visitor_t : public std::enable_shared_from_this<voidc_visitor_t>
+class voidc_visitor_data_t : public std::enable_shared_from_this<voidc_visitor_data_t>
 {
 public:
     using void_methods_map_t = immer::map<v_quark_t, std::pair<void *, void *>>;
@@ -30,16 +30,16 @@ public:
     using intrinsics_map_t = immer::map<std::string, std::pair<void *, void *>>;
 
 public:
-    voidc_visitor_t()  = default;
-    ~voidc_visitor_t() = default;
+    voidc_visitor_data_t()  = default;
+    ~voidc_visitor_data_t() = default;
 
 public:
-    voidc_visitor_t(const voidc_visitor_t &vis)
+    voidc_visitor_data_t(const voidc_visitor_data_t &vis)
       : _void_methods(vis.void_methods),
         _intrinsics(vis.intrinsics)
     {}
 
-    voidc_visitor_t &operator=(const voidc_visitor_t &vis)
+    voidc_visitor_data_t &operator=(const voidc_visitor_data_t &vis)
     {
         _void_methods = vis.void_methods;
         _intrinsics   = vis.intrinsics;
@@ -52,14 +52,14 @@ public:
     static void static_terminate(void);
 
 public:
-    voidc_visitor_t set_void_method(v_quark_t q, void *void_fun, void *aux=nullptr) const
+    voidc_visitor_data_t set_void_method(v_quark_t q, void *void_fun, void *aux=nullptr) const
     {
-        return  voidc_visitor_t(void_methods.set(q, {void_fun, aux}), intrinsics);
+        return  voidc_visitor_data_t(void_methods.set(q, {void_fun, aux}), intrinsics);
     }
 
-    voidc_visitor_t set_intrinsic(const std::string &name, void *void_fun, void *aux=nullptr) const
+    voidc_visitor_data_t set_intrinsic(const std::string &name, void *void_fun, void *aux=nullptr) const
     {
-        return  voidc_visitor_t(void_methods, intrinsics.set(name, {void_fun, aux}));
+        return  voidc_visitor_data_t(void_methods, intrinsics.set(name, {void_fun, aux}));
     }
 
 public:
@@ -84,7 +84,7 @@ private:
     intrinsics_map_t   _intrinsics;
 
 private:
-    explicit voidc_visitor_t(const void_methods_map_t &vm, const intrinsics_map_t &im)
+    explicit voidc_visitor_data_t(const void_methods_map_t &vm, const intrinsics_map_t &im)
       : _void_methods(vm),
         _intrinsics(im)
     {}

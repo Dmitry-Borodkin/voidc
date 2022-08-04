@@ -17,11 +17,11 @@ namespace vpeg
 
 
 //-----------------------------------------------------------------
-context_sptr_t context_t::current_ctx;
+context_t context_data_t::current_ctx;
 
 
 //-----------------------------------------------------------------
-context_t::context_t(context_fgetc_fun_t fun, void *data, const grammar_t &_grammar)
+context_data_t::context_data_t(context_fgetc_fun_t fun, void *data, const grammar_data_t &_grammar)
   : grammar(_grammar),
     fgetc_fun(fun),
     fgetc_fun_data(data)
@@ -31,34 +31,23 @@ context_t::context_t(context_fgetc_fun_t fun, void *data, const grammar_t &_gram
 
 
 //-----------------------------------------------------------------
-context_t::context_t(FILE *input, const grammar_t &_grammar)
-  : context_t(reinterpret_cast<context_fgetc_fun_t>(std::fgetc), input, _grammar)
+context_data_t::context_data_t(FILE *input, const grammar_data_t &_grammar)
+  : context_data_t(reinterpret_cast<context_fgetc_fun_t>(std::fgetc), input, _grammar)
 {}
 
 
 //-----------------------------------------------------------------
-void context_t::static_initialize(void)
+void context_data_t::static_initialize(void)
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
-    v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(parser_sptr_t)/sizeof(intptr_t));
-
-    auto add_type = [&gctx](const char *raw_name, v_type_t *type)
-    {
-        gctx.decls.constants_insert({raw_name, gctx.static_type_type});
-
-        gctx.constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
-
-        gctx.decls.symbols_insert({raw_name, gctx.opaque_type_type});
-
-        gctx.add_symbol_value(raw_name, type);
-    };
+    v_type_t *content_type = vctx.make_array_type(vctx.intptr_t_type, sizeof(parser_t)/sizeof(intptr_t));
 
 #define DEF(name) \
-    static_assert(sizeof(parser_sptr_t) == sizeof(name##_sptr_t)); \
-    auto name##_sptr_type = gctx.make_struct_type("struct.v_peg_opaque_" #name "_sptr"); \
-    name##_sptr_type->set_body(&content_type, 1, false); \
-    add_type("v_peg_opaque_" #name "_sptr", name##_sptr_type);
+    static_assert(sizeof(parser_t) == sizeof(name##_t)); \
+    auto name##_type = vctx.make_struct_type("v_peg_" #name "_t"); \
+    name##_type->set_body(&content_type, 1, false); \
+    vctx.initialize_type("v_peg_" #name "_t", name##_type);
 
     DEF(context)
 
@@ -66,13 +55,13 @@ void context_t::static_initialize(void)
 }
 
 //-----------------------------------------------------------------
-void context_t::static_terminate(void)
+void context_data_t::static_terminate(void)
 {
 }
 
 
 //-----------------------------------------------------------------
-std::string context_t::take_string(size_t from, size_t to) const
+std::string context_data_t::take_string(size_t from, size_t to) const
 {
     auto src = buffer.begin() + from;
 
@@ -145,7 +134,7 @@ std::string context_t::take_string(size_t from, size_t to) const
 
 
 //-----------------------------------------------------------------
-void context_t::get_line_column(size_t pos, size_t &line, size_t &column) const
+void context_data_t::get_line_column(size_t pos, size_t &line, size_t &column) const
 {
     auto it = newlines.upper_bound(pos);
 
@@ -162,7 +151,7 @@ void context_t::get_line_column(size_t pos, size_t &line, size_t &column) const
 
 
 //-----------------------------------------------------------------
-char32_t context_t::read_character(void)
+char32_t context_data_t::read_character(void)
 {
     //- First, obtain a utf-8 codepoint
 
@@ -235,13 +224,13 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //-----------------------------------------------------------------
 #define DEF(name) \
-    VOIDC_DEFINE_INITIALIZE_IMPL(name##_sptr_t, v_peg_initialize_##name##_impl) \
-    VOIDC_DEFINE_TERMINATE_IMPL(name##_sptr_t, v_peg_terminate_##name##_impl) \
-    VOIDC_DEFINE_COPY_IMPL(name##_sptr_t, v_peg_copy_##name##_impl) \
-    VOIDC_DEFINE_MOVE_IMPL(name##_sptr_t, v_peg_move_##name##_impl) \
-    VOIDC_DEFINE_EMPTY_IMPL(name##_sptr_t, v_peg_empty_##name##_impl) \
-    VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(name##_sptr_t, v_peg_std_any_get_pointer_##name##_impl) \
-    VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(name##_sptr_t, v_peg_std_any_set_pointer_##name##_impl)
+    VOIDC_DEFINE_INITIALIZE_IMPL(name##_t, v_peg_initialize_##name##_impl) \
+    VOIDC_DEFINE_TERMINATE_IMPL(name##_t, v_peg_terminate_##name##_impl) \
+    VOIDC_DEFINE_COPY_IMPL(name##_t, v_peg_copy_##name##_impl) \
+    VOIDC_DEFINE_MOVE_IMPL(name##_t, v_peg_move_##name##_impl) \
+    VOIDC_DEFINE_EMPTY_IMPL(name##_t, v_peg_empty_##name##_impl) \
+    VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(name##_t, v_peg_std_any_get_pointer_##name##_impl) \
+    VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(name##_t, v_peg_std_any_set_pointer_##name##_impl)
 
     DEF(context)
 
@@ -249,28 +238,28 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //-----------------------------------------------------------------
-void v_peg_get_context(context_sptr_t *ret)
+void v_peg_get_context(context_t *ret)
 {
-    *ret = context_t::current_ctx;
+    *ret = context_data_t::current_ctx;
 }
 
-void v_peg_set_context(context_sptr_t *ctx)
+void v_peg_set_context(context_t *ctx)
 {
-    context_t::current_ctx = *ctx;
+    context_data_t::current_ctx = *ctx;
 }
 
 
 //-----------------------------------------------------------------
-void v_peg_make_context(context_sptr_t *ret, context_fgetc_fun_t fun, void *data, const grammar_sptr_t *grm)
+void v_peg_make_context(context_t *ret, context_fgetc_fun_t fun, void *data, const grammar_t *grm)
 {
-    *ret = std::make_shared<context_t>(fun, data, **grm);
+    *ret = std::make_shared<context_data_t>(fun, data, **grm);
 }
 
 
 //-----------------------------------------------------------------
 void v_peg_parse(std::any *ret, v_quark_t q)
 {
-    auto &pctx = *context_t::current_ctx;
+    auto &pctx = *context_data_t::current_ctx;
 
     *ret = pctx.grammar.parse(q, pctx);
 
@@ -279,11 +268,11 @@ void v_peg_parse(std::any *ret, v_quark_t q)
 
 
 //---------------------------------------------------------------------
-void v_peg_get_grammar(grammar_sptr_t *ptr)
+void v_peg_get_grammar(grammar_t *ptr)
 {
-    if (context_t::current_ctx)
+    if (context_data_t::current_ctx)
     {
-        *ptr = std::make_shared<const grammar_t>(context_t::current_ctx->grammar);
+        *ptr = std::make_shared<const grammar_data_t>(context_data_t::current_ctx->grammar);
     }
     else
     {
@@ -291,11 +280,11 @@ void v_peg_get_grammar(grammar_sptr_t *ptr)
     }
 }
 
-void v_peg_set_grammar(const grammar_sptr_t *ptr)
+void v_peg_set_grammar(const grammar_t *ptr)
 {
-    if (context_t::current_ctx)
+    if (context_data_t::current_ctx)
     {
-        auto &grammar = context_t::current_ctx->grammar;
+        auto &grammar = context_data_t::current_ctx->grammar;
 
         grammar = **ptr;
 
@@ -305,9 +294,9 @@ void v_peg_set_grammar(const grammar_sptr_t *ptr)
 
 void v_peg_get_line_column(size_t pos, size_t *line, size_t *column)
 {
-    if (context_t::current_ctx)
+    if (context_data_t::current_ctx)
     {
-        context_t::current_ctx->get_line_column(pos, *line, *column);
+        context_data_t::current_ctx->get_line_column(pos, *line, *column);
     }
 }
 

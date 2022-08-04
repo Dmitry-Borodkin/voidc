@@ -12,19 +12,19 @@
 
 
 //---------------------------------------------------------------------
-{   v_util_register_itcmep_impl(v_peg_opaque_parser_sptr,   "v_peg", "parser");
-    v_util_register_itcmep_impl(v_peg_opaque_action_sptr,   "v_peg", "action");
-    v_util_register_itcmep_impl(v_peg_opaque_argument_sptr, "v_peg", "argument");
+{   v_util_register_itcmep_impl(v_peg_parser_t,   "v_peg", "parser");
+    v_util_register_itcmep_impl(v_peg_action_t,   "v_peg", "action");
+    v_util_register_itcmep_impl(v_peg_argument_t, "v_peg", "argument");
 }
 
 //---------------------------------------------------------------------
-{   parser_ptr = v_pointer_type(v_peg_opaque_parser_sptr, 0);
+{   parser_ptr = v_pointer_type(v_peg_parser_t, 0);
     v_export_type("v_peg_parser_ptr", parser_ptr);
 
-    action_ptr = v_pointer_type(v_peg_opaque_action_sptr, 0);
+    action_ptr = v_pointer_type(v_peg_action_t, 0);
     v_export_type("v_peg_action_ptr", action_ptr);
 
-    argument_ptr = v_pointer_type(v_peg_opaque_argument_sptr, 0);
+    argument_ptr = v_pointer_type(v_peg_argument_t, 0);
     v_export_type("v_peg_argument_ptr", argument_ptr);
 }
 
@@ -55,9 +55,9 @@
 
     q = v_quark_from_string("v_kind");
 
-    v_util_function_dict_set(q, v_peg_opaque_parser_sptr,   "v_peg_parser_get_kind");
-    v_util_function_dict_set(q, v_peg_opaque_action_sptr,   "v_peg_action_get_kind");
-    v_util_function_dict_set(q, v_peg_opaque_argument_sptr, "v_peg_argument_get_kind");
+    v_util_function_dict_set(q, v_peg_parser_t,   "v_peg_parser_get_kind");
+    v_util_function_dict_set(q, v_peg_action_t,   "v_peg_action_get_kind");
+    v_util_function_dict_set(q, v_peg_argument_t, "v_peg_argument_get_kind");
 }
 
 {   typ0 = v_alloca(v_type_ptr, 4);

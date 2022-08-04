@@ -31,7 +31,7 @@ mk_unit(std::any *ret, const std::any *args, size_t)
     size_t line;
     size_t column;
 
-    context_t::current_ctx->get_line_column(pos, line, column);
+    context_data_t::current_ctx->get_line_column(pos, line, column);
 
     ast_unit_t ptr = std::make_shared<const ast_unit_data_t>(*p, line+1, column+1);
 
@@ -256,11 +256,11 @@ is_SOF(std::any *ret, const std::any *args, size_t)
 
 
 //---------------------------------------------------------------------
-vpeg::grammar_t make_voidc_grammar(void)
+vpeg::grammar_data_t make_voidc_grammar(void)
 {
     using namespace vpeg;
 
-    grammar_t gr;
+    grammar_data_t gr;
 
 #define DEF(name) gr = gr.set_action(#name, name);
 
@@ -336,7 +336,7 @@ vpeg::grammar_t make_voidc_grammar(void)
                 mk_call_action("mk_unit",
                 {
                     mk_identifier_argument("l"),
-                    mk_backref_argument(1, backref_argument_t::bk_start)
+                    mk_backref_argument(1, backref_argument_data_t::bk_start)
                 })
             )
         }),
@@ -802,7 +802,7 @@ vpeg::grammar_t make_voidc_grammar(void)
                 mk_call_action("mk_string_str",
                 {
                     mk_identifier_argument("s"),
-                    mk_backref_argument(1, backref_argument_t::bk_string)
+                    mk_backref_argument(1, backref_argument_data_t::bk_string)
                 })
             )
         }),
@@ -835,7 +835,7 @@ vpeg::grammar_t make_voidc_grammar(void)
 
             mk_action_parser(
                 mk_return_action(
-                    mk_backref_argument(0, backref_argument_t::bk_string)
+                    mk_backref_argument(0, backref_argument_data_t::bk_string)
                 )
             )
         }),
@@ -931,7 +931,7 @@ vpeg::grammar_t make_voidc_grammar(void)
             mk_action_parser(
                 mk_call_action("is_SOF",
                 {
-                    mk_backref_argument(0, backref_argument_t::bk_start)
+                    mk_backref_argument(0, backref_argument_data_t::bk_start)
                 })
             ),
 

@@ -74,7 +74,7 @@
     //- Saved global variables
     //-----------------------------------------------------------------
     //- saved_module_g:   LLVMModuleRef;
-    //- saved_compiler_g: voidc_opaque_visitor_sptr;
+    //- saved_compiler_g: voidc_visitor_t;
     //-----------------------------------------------------------------
     LLVMModuleRef_ = v_type_get_llvm_type(LLVMModuleRef);
 
@@ -86,12 +86,12 @@
     LLVMSetInitializer(saved_module_g, saved_module_u);
 
 
-    voidc_opaque_visitor_sptr_ = v_type_get_llvm_type(voidc_opaque_visitor_sptr);
+    voidc_visitor_t_ = v_type_get_llvm_type(voidc_visitor_t);
 
-    saved_compiler_g = LLVMAddGlobal(module, voidc_opaque_visitor_sptr_, "saved_compiler_g");
+    saved_compiler_g = LLVMAddGlobal(module, voidc_visitor_t_, "saved_compiler_g");
     LLVMSetLinkage(saved_compiler_g, LLVMPrivateLinkage);
 
-    saved_compiler_u = LLVMGetUndef(voidc_opaque_visitor_sptr_);
+    saved_compiler_u = LLVMGetUndef(voidc_visitor_t_);
 
     LLVMSetInitializer(saved_compiler_g, saved_compiler_u);
 

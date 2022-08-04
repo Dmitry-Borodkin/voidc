@@ -115,6 +115,9 @@ public:
 public:
     LLVMBuilderRef builder;         //- Sic !?!
 
+public:
+    void initialize_type(const char *raw_name, v_type_t *type);
+
     v_type_t * const char_ptr_type;
     v_type_t * const void_ptr_type;
 
@@ -270,7 +273,7 @@ public:
 
 public:
     v_type_t * const static_type_type;
-    v_type_t * const opaque_type_type;
+    v_type_t * const type_type;
 
     v_type_t * const type_ptr_type;
 

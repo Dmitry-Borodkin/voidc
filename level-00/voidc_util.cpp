@@ -24,7 +24,7 @@ namespace utility
 //- ...
 //---------------------------------------------------------------------
 static
-bool lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *type,
+bool lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,
                           void *&void_fun, void *&aux,
                           LLVMValueRef &f, v_type_t *&ft)
 {
@@ -64,7 +64,7 @@ bool lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *
 
 //---------------------------------------------------------------------
 extern "C"
-typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux,
+typedef void (*intrinsic_t)(const visitor_t *vis, void *aux,
                             const ast_expr_list_t *args,
                             v_type_t *type, LLVMValueRef value);
 
@@ -73,7 +73,7 @@ typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux,
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_init_term_intrinsic(const visitor_t *vis, void *void_quark,
                            const ast_expr_list_t *args
                           )
 {
@@ -128,7 +128,7 @@ void v_init_term_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_copy_move_intrinsic(const visitor_t *vis, void *void_quark,
                            const ast_expr_list_t *args
                           )
 {
@@ -186,7 +186,7 @@ void v_copy_move_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_empty_intrinsic(const visitor_t *vis, void *void_quark,
                        const ast_expr_list_t *args
                       )
 {
@@ -231,7 +231,7 @@ void v_empty_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_kind_intrinsic(const visitor_t *vis, void *void_quark,
                       const ast_expr_list_t *args
                      )
 {
@@ -276,7 +276,7 @@ void v_kind_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark,
                                    const ast_expr_list_t *args
                                   )
 {
@@ -326,7 +326,7 @@ void v_std_any_get_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark,
                                      const ast_expr_list_t *args
                                     )
 {
@@ -380,7 +380,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark,
                                    const ast_expr_list_t *args
                                   )
 {
@@ -429,7 +429,7 @@ void v_std_any_set_value_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark,
                                      const ast_expr_list_t *args
                                     )
 {
@@ -478,7 +478,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_sptr_t *vis, void *void_quark
 
 //---------------------------------------------------------------------
 static
-void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_make_list_intrinsic(const visitor_t *vis, void *void_quark,
                            const ast_expr_list_t *args
                           )
 {
@@ -539,7 +539,7 @@ void v_make_list_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_list_append_intrinsic(const visitor_t *vis, void *void_quark,
                              const ast_expr_list_t *args
                             )
 {
@@ -598,7 +598,7 @@ void v_list_append_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_list_get_size_intrinsic(const visitor_t *vis, void *void_quark,
                                const ast_expr_list_t *args
                               )
 {
@@ -643,7 +643,7 @@ void v_list_get_size_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 
 //---------------------------------------------------------------------
 static
-void v_list_get_item_intrinsic(const visitor_sptr_t *vis, void *void_quark,
+void v_list_get_item_intrinsic(const visitor_t *vis, void *void_quark,
                                const ast_expr_list_t *args
                               )
 {
@@ -703,10 +703,10 @@ void v_list_get_item_intrinsic(const visitor_sptr_t *vis, void *void_quark,
 //---------------------------------------------------------------------
 void static_initialize(void)
 {
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
 #define DEF2(name, fname) \
-    gctx.decls.intrinsics_insert({"v_" #name, {(void *)fname, (void *)uintptr_t(v_quark_from_string("v_" #name))}});
+    vctx.decls.intrinsics_insert({"v_" #name, {(void *)fname, (void *)uintptr_t(v_quark_from_string("v_" #name))}});
 
 #define DEF(name) DEF2(name, v_##name##_intrinsic)
 
@@ -736,23 +736,12 @@ void static_initialize(void)
 #undef DEF2
 
     //-----------------------------------------------------------------
-    auto add_type = [&gctx](const char *raw_name, v_type_t *type)
-    {
-        gctx.decls.constants_insert({raw_name, gctx.static_type_type});
-
-        gctx.constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
-
-        gctx.decls.symbols_insert({raw_name, gctx.opaque_type_type});
-
-        gctx.add_symbol_value(raw_name, type);
-    };
-
 #define DEF(ctype, name) \
     static_assert((sizeof(ctype) % sizeof(intptr_t)) == 0); \
-    v_type_t *name##_content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
-    auto opaque_##name##_type = gctx.make_struct_type("v_" #name "_t"); \
-    opaque_##name##_type->set_body(&name##_content_type, 1, false); \
-    add_type("v_" #name "_t", opaque_##name##_type);
+    v_type_t *name##_content_type = vctx.make_array_type(vctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
+    auto name##_type = vctx.make_struct_type("v_" #name "_t"); \
+    name##_type->set_body(&name##_content_type, 1, false); \
+    vctx.initialize_type("v_" #name "_t", name##_type);
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)
@@ -802,7 +791,7 @@ void v_util_function_dict_set(v_quark_t quark, v_type_t *type, const char *fun_n
     gctx.function_dict[{quark, type}] = fun_name;
 }
 
-bool v_util_lookup_function_dict(const visitor_sptr_t *vis, v_quark_t quark, v_type_t *type,
+bool v_util_lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,
                                  void **void_fun, void **void_aux,
                                  v_type_t **ft, LLVMValueRef *fv)
 {

@@ -32,12 +32,12 @@
 //---------------------------------------------------------------------
 //- Some utility...
 //---------------------------------------------------------------------
-static vpeg::grammar_t voidc_grammar;
+static vpeg::grammar_data_t voidc_grammar;
 
 static ast_unit_t
 parse_unit(void)
 {
-    auto &pctx = *vpeg::context_t::current_ctx;
+    auto &pctx = *vpeg::context_data_t::current_ctx;
 
     static const auto unit_q = v_quark_from_string("unit");
 
@@ -486,9 +486,9 @@ v_import_helper(const char *name, bool _export)
 
         std::fseek(infs, sizeof(size_t), SEEK_CUR);         //- Skip pointer to imports
 
-        auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
+        auto parent_vpeg_ctx = vpeg::context_data_t::current_ctx;
 
-        vpeg::context_t::current_ctx = nullptr;
+        vpeg::context_data_t::current_ctx = nullptr;
 
         while(!std::feof(infs))
         {
@@ -518,7 +518,7 @@ v_import_helper(const char *name, bool _export)
             lctx.unit_buffer = nullptr;
         }
 
-        vpeg::context_t::current_ctx = parent_vpeg_ctx;
+        vpeg::context_data_t::current_ctx = parent_vpeg_ctx;
     }
     else        //- !use_binary
     {
@@ -537,9 +537,9 @@ v_import_helper(const char *name, bool _export)
             std::fwrite(buf, sizeof(size_t), 1, outfs);         //- Pointer to imports...
         }
 
-        {   auto parent_vpeg_ctx = vpeg::context_t::current_ctx;
+        {   auto parent_vpeg_ctx = vpeg::context_data_t::current_ctx;
 
-            vpeg::context_t::current_ctx = std::make_shared<vpeg::context_t>(infs, voidc_grammar);
+            vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(infs, voidc_grammar);
 
             while(auto unit = parse_unit())
             {
@@ -563,7 +563,7 @@ v_import_helper(const char *name, bool _export)
                 }
             }
 
-            vpeg::context_t::current_ctx = parent_vpeg_ctx;
+            vpeg::context_data_t::current_ctx = parent_vpeg_ctx;
         }
 
         size_t len = 0;
@@ -629,7 +629,7 @@ voidc_import_helper(const char *name, bool _export)
 
 //---------------------------------------------------------------------
 static void
-v_local_import(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_local_import(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto target = voidc_global_ctx_t::target;
 
@@ -840,15 +840,15 @@ main(int argc, char *argv[])
     }
 
     v_ast_static_initialize();
-    voidc_visitor_t::static_initialize();
-    vpeg::grammar_t::static_initialize();
-    vpeg::context_t::static_initialize();
+    voidc_visitor_data_t::static_initialize();
+    vpeg::grammar_data_t::static_initialize();
+    vpeg::context_data_t::static_initialize();
 
     voidc_global_ctx_t::voidc->flush_unit_symbols();
 
     voidc_grammar = make_voidc_grammar();
 
-    {   vpeg::grammar_t current_grammar = voidc_grammar;
+    {   vpeg::grammar_data_t current_grammar = voidc_grammar;
 
         voidc_local_ctx_t lctx(gctx);
 
@@ -878,9 +878,9 @@ main(int argc, char *argv[])
 
             lctx.filename = src_name;
 
-            vpeg::context_t::current_ctx = std::make_shared<vpeg::context_t>(istr, current_grammar);
+            vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(istr, current_grammar);
 
-            {   auto &pctx = *vpeg::context_t::current_ctx;
+            {   auto &pctx = *vpeg::context_data_t::current_ctx;
 
                 static const auto shebang_q = v_quark_from_string("shebang");
 
@@ -902,9 +902,9 @@ main(int argc, char *argv[])
                 lctx.unit_buffer = nullptr;
             }
 
-            current_grammar = vpeg::context_t::current_ctx->grammar;
+            current_grammar = vpeg::context_data_t::current_ctx->grammar;
 
-            vpeg::context_t::current_ctx = nullptr;     //- ?
+            vpeg::context_data_t::current_ctx = nullptr;     //- ?
 
             if (src != "-")   std::fclose(istr);
         }
@@ -922,9 +922,9 @@ main(int argc, char *argv[])
     }
 #endif
 
-    vpeg::context_t::static_terminate();
-    vpeg::grammar_t::static_terminate();
-    voidc_visitor_t::static_terminate();
+    vpeg::context_data_t::static_terminate();
+    vpeg::grammar_data_t::static_terminate();
+    voidc_visitor_data_t::static_terminate();
     v_ast_static_terminate();
 
     utility::static_terminate();

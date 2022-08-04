@@ -218,8 +218,8 @@ static_type_alignof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 }
 
 {
-    v_util_function_dict_set(v_quark_from_string(".size"),  voidc_static_type, "v.static_type_sizeof");
-    v_util_function_dict_set(v_quark_from_string(".align"), voidc_static_type, "v.static_type_alignof");
+    v_util_function_dict_set(v_quark_from_string(".size"),  v_static_type_t, "v.static_type_sizeof");
+    v_util_function_dict_set(v_quark_from_string(".align"), v_static_type_t, "v.static_type_alignof");
 
     v_add_intrinsic("v.static_type_sizeof",  static_type_sizeof_intrinsic,  0);
     v_add_intrinsic("v.static_type_alignof", static_type_alignof_intrinsic, 0);

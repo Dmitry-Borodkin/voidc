@@ -532,7 +532,7 @@
     v_return_if(voidc_grammar_has_parser("stmt_block"));
 
 
-    pp0 = v_alloca(v_peg_opaque_parser_sptr, 8);
+    pp0 = v_alloca(v_peg_parser_t, 8);
     v_initialize(pp0, 8);
 
     pp1 = v_getelementptr(pp0, 1);
@@ -563,7 +563,7 @@
     v_peg_make_character_parser(pp6, '}');
 
 
-    ar0 = v_alloca(v_peg_opaque_argument_sptr, 2);
+    ar0 = v_alloca(v_peg_argument_t, 2);
     v_initialize(ar0, 2);
 
     ar1 = v_getelementptr(ar0, 1);
@@ -574,7 +574,7 @@
     v_peg_make_integer_argument(ar1, 1);
 
 
-    act = v_alloca(v_peg_opaque_action_sptr);
+    act = v_alloca(v_peg_action_t);
     v_initialize(act);
 
     v_peg_make_call_action(act, "mk_stmt_block", ar0, 2);
@@ -598,7 +598,7 @@
     v_peg_make_choice_parser(pp0, pp0, 2);
 
 
-    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);

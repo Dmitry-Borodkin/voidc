@@ -12,7 +12,7 @@
 }
 
 {
-    pp0 = v_alloca(v_peg_opaque_parser_sptr, 2);
+    pp0 = v_alloca(v_peg_parser_t, 2);
     v_initialize(pp0, 2);
 
     pp1 = v_getelementptr(pp0, 1);
@@ -216,7 +216,7 @@
     v_ast_make_generic(gen, vtable_g, 0);
 
 
-    vis = v_alloca(voidc_opaque_visitor_sptr);
+    vis = v_alloca(voidc_visitor_t);
     v_initialize(vis);
 
 

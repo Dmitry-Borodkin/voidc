@@ -23,13 +23,13 @@
 //---------------------------------------------------------------------
 //{   v_debug_print_module(1); }
 {
-    qwe = v_alloca(v_peg_opaque_grammar_sptr);
+    qwe = v_alloca(v_peg_grammar_t);
     v_initialize(qwe);
 
     v_peg_make_grammar(qwe);
 
 
-    dot = v_alloca(v_peg_opaque_parser_sptr);
+    dot = v_alloca(v_peg_parser_t);
     v_initialize(dot);
 
     v_peg_make_dot_parser(dot);
@@ -133,7 +133,7 @@
     v_std_any_set_pointer(any0, str0);
 
 
-    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);

@@ -226,7 +226,7 @@ v_type_svector_t::obtain_llvm_type(void) const
 //---------------------------------------------------------------------
 voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
   : llvm_ctx(ctx),
-    opaque_void_type(LLVMStructCreateNamed(ctx, "struct.v_target_opaque_void")),
+    opaque_void_type(LLVMStructCreateNamed(ctx, "v_type_opaque_void_t")),
 
     _void_type(new v_type_void_t(*this)),
 

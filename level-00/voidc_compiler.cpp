@@ -11,14 +11,14 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-visitor_sptr_t voidc_compiler;
+visitor_t voidc_compiler;
 
 
 //=====================================================================
 //- AST Visitor - Compiler (level 0) ...
 //=====================================================================
 static
-void compile_stmt_list(const visitor_sptr_t *vis, void *,
+void compile_stmt_list(const visitor_t *vis, void *,
                        const ast_stmt_list_t *list)
 {
     for (auto &it : (*list)->data)
@@ -28,7 +28,7 @@ void compile_stmt_list(const visitor_sptr_t *vis, void *,
 }
 
 static
-void compile_expr_list(const visitor_sptr_t *vis, void *,
+void compile_expr_list(const visitor_t *vis, void *,
                        const ast_expr_list_t *list)
 {
     for (auto &it : (*list)->data)
@@ -42,7 +42,7 @@ void compile_expr_list(const visitor_sptr_t *vis, void *,
 //- unit
 //---------------------------------------------------------------------
 static
-void compile_unit(const visitor_sptr_t *vis, void *,
+void compile_unit(const visitor_t *vis, void *,
                   const ast_stmt_list_t *stmt_list, int line, int column)
 {
     if (!*stmt_list)  return;
@@ -72,7 +72,7 @@ void compile_unit(const visitor_sptr_t *vis, void *,
 //- stmt
 //---------------------------------------------------------------------
 static
-void compile_stmt(const visitor_sptr_t *vis, void *,
+void compile_stmt(const visitor_t *vis, void *,
                   const std::string *vname, const ast_expr_t *expr)
 {
     if (!*expr) return;
@@ -113,7 +113,7 @@ void compile_stmt(const visitor_sptr_t *vis, void *,
 //- expr_call
 //---------------------------------------------------------------------
 static
-void compile_expr_call(const visitor_sptr_t *vis, void *,
+void compile_expr_call(const visitor_t *vis, void *,
                        const ast_expr_t      *fexpr,
                        const ast_expr_list_t *args)
 {
@@ -142,7 +142,7 @@ void compile_expr_call(const visitor_sptr_t *vis, void *,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        typedef void (*intrinsic_t)(const visitor_sptr_t *vis, void *aux, const ast_expr_list_t *args);
+        typedef void (*intrinsic_t)(const visitor_t *vis, void *aux, const ast_expr_list_t *args);
 
         reinterpret_cast<intrinsic_t>(void_fun)(vis, void_aux, args);
 
@@ -199,7 +199,7 @@ void compile_expr_call(const visitor_sptr_t *vis, void *,
 //- expr_identifier
 //---------------------------------------------------------------------
 static
-void compile_expr_identifier(const visitor_sptr_t *vis, void *,
+void compile_expr_identifier(const visitor_t *vis, void *,
                              const std::string *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -223,7 +223,7 @@ void compile_expr_identifier(const visitor_sptr_t *vis, void *,
 
         t = lctx.get_symbol_type(cname);
 
-        assert(t == vctx.opaque_type_type);
+        assert(t == vctx.type_type);
 
         v = LLVMGetNamedGlobal(lctx.module, cname);
 
@@ -240,7 +240,7 @@ void compile_expr_identifier(const visitor_sptr_t *vis, void *,
 //- expr_integer
 //---------------------------------------------------------------------
 static
-void compile_expr_integer(const visitor_sptr_t *vis, void *,
+void compile_expr_integer(const visitor_t *vis, void *,
                           intptr_t num)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -291,7 +291,7 @@ void compile_expr_integer(const visitor_sptr_t *vis, void *,
 //- expr_string
 //---------------------------------------------------------------------
 static
-void compile_expr_string(const visitor_sptr_t *vis, void *,
+void compile_expr_string(const visitor_t *vis, void *,
                          const std::string *str)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -312,7 +312,7 @@ void compile_expr_string(const visitor_sptr_t *vis, void *,
 //- expr_char
 //---------------------------------------------------------------------
 static
-void compile_expr_char(const visitor_sptr_t *vis, void *,
+void compile_expr_char(const visitor_t *vis, void *,
                        char32_t c)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -330,7 +330,7 @@ void compile_expr_char(const visitor_sptr_t *vis, void *,
 //- Intrinsics (true)
 //=====================================================================
 static void
-v_alloca(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_alloca(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -371,7 +371,7 @@ v_alloca(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_getelementptr(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_getelementptr(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -451,7 +451,7 @@ v_getelementptr(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_store(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_store(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -471,7 +471,7 @@ v_store(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_load(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_load(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -493,7 +493,7 @@ v_load(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_cast(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -669,7 +669,7 @@ v_cast(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_pointer(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -716,7 +716,7 @@ v_pointer(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_reference(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_reference(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -739,7 +739,7 @@ v_reference(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_assign(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
+v_assign(const visitor_t *vis, void *, const ast_expr_list_t *args)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -769,14 +769,14 @@ v_assign(const visitor_sptr_t *vis, void *, const ast_expr_list_t *args)
 //- Compiler visitor
 //=====================================================================
 static
-visitor_sptr_t compile_visitor_level_zero;
+visitor_t compile_visitor_level_zero;
 
-visitor_sptr_t
+visitor_t
 make_voidc_compiler(void)
 {
     if (!compile_visitor_level_zero)
     {
-        voidc_visitor_t vis;
+        voidc_visitor_data_t vis;
 
 #define DEF(name) \
         vis = vis.set_void_method(v_ast_##name##_visitor_method_tag, (void *)compile_##name);
@@ -799,7 +799,7 @@ make_voidc_compiler(void)
 
 #undef DEF
 
-        compile_visitor_level_zero = std::make_shared<const voidc_visitor_t>(vis);
+        compile_visitor_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
     }
 
     assert(compile_visitor_level_zero);

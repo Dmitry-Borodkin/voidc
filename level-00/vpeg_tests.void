@@ -105,7 +105,7 @@
     v_set_module(0);
 }
 
-{   gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+{   gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);
@@ -114,7 +114,7 @@
     v_peg_grammar_set_action(gr0, gr0, "my_echo", my_echo_grammar_action);
 
 
-    pp0 = v_alloca(v_peg_opaque_parser_sptr, 2);
+    pp0 = v_alloca(v_peg_parser_t, 2);
     v_initialize(pp0, 2);
 
     pp1 = v_getelementptr(pp0, 1);
@@ -122,13 +122,13 @@
     v_peg_grammar_get_parser(gr0, "comment", pp0, 0);
 
 
-    arg = v_alloca(v_peg_opaque_argument_sptr);
+    arg = v_alloca(v_peg_argument_t);
     v_initialize(arg);
 
     v_peg_make_backref_argument(arg, 0, v_peg_backref_argument_kind_string);
 
 
-    act = v_alloca(v_peg_opaque_action_sptr);
+    act = v_alloca(v_peg_action_t);
     v_initialize(act);
 
     v_peg_make_call_action(act, "my_echo", arg, 1);

@@ -441,7 +441,7 @@
     v_return_if(voidc_grammar_has_parser("stmt_loop"));
 
 
-    pp0 = v_alloca(v_peg_opaque_parser_sptr, 5);
+    pp0 = v_alloca(v_peg_parser_t, 5);
     v_initialize(pp0, 5);
 
     pp1 = v_getelementptr(pp0, 1);
@@ -463,13 +463,13 @@
     v_peg_make_catch_variable_parser(pp3, "s", pp3);
 
 
-    ar0 = v_alloca(v_peg_opaque_argument_sptr);
+    ar0 = v_alloca(v_peg_argument_t);
     v_initialize(ar0);
 
     v_peg_make_identifier_argument(ar0, "s");
 
 
-    act = v_alloca(v_peg_opaque_action_sptr);
+    act = v_alloca(v_peg_action_t);
     v_initialize(act);
 
     v_peg_make_call_action(act, "mk_stmt_loop", ar0, 1);
@@ -480,7 +480,7 @@
     v_peg_make_sequence_parser(pp0, pp0, 5);
 
 
-    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
 
     v_peg_get_grammar(gr0);

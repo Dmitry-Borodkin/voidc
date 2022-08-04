@@ -17,11 +17,11 @@
 
 
 //---------------------------------------------------------------------
-{   v_util_register_itcmep_impl(v_peg_opaque_context_sptr, "v_peg", "context");
+{   v_util_register_itcmep_impl(v_peg_context_t, "v_peg", "context");
 }
 
 //---------------------------------------------------------------------
-{   context_ptr = v_pointer_type(v_peg_opaque_context_sptr, 0);
+{   context_ptr = v_pointer_type(v_peg_context_t, 0);
     v_export_type("v_peg_context_ptr", context_ptr);
 }
 
@@ -112,8 +112,8 @@
 
     int_ptr_ = v_type_get_llvm_type(int_ptr);
 
-    v_peg_opaque_grammar_sptr_ = v_type_get_llvm_type(v_peg_opaque_grammar_sptr);
-    v_peg_opaque_parser_sptr_  = v_type_get_llvm_type(v_peg_opaque_parser_sptr);
+    v_peg_grammar_t_ = v_type_get_llvm_type(v_peg_grammar_t);
+    v_peg_parser_t_  = v_type_get_llvm_type(v_peg_parser_t);
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
@@ -127,7 +127,7 @@
     entry = LLVMAppendBasicBlock(has_grammar_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    grm = LLVMBuildAlloca(builder, v_peg_opaque_grammar_sptr_, "grm");
+    grm = LLVMBuildAlloca(builder, v_peg_grammar_t_, "grm");
 
     grammar_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_initialize_grammar_impl"));
     grammar_init_f   = v_obtain_function("v_peg_initialize_grammar_impl");
@@ -171,7 +171,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    gr0 = LLVMBuildAlloca(builder, v_peg_opaque_grammar_sptr_, "gr0");
+    gr0 = LLVMBuildAlloca(builder, v_peg_grammar_t_, "gr0");
 
     v_store(gr0, val0);
     v_store(n1,  val1);
@@ -181,7 +181,7 @@
     LLVMBuildCall2(builder, get_grammar_ft_, get_grammar_f, val0, 1, "");
 
 
-    pr0 = LLVMBuildAlloca(builder, v_peg_opaque_parser_sptr_, "pr0");
+    pr0 = LLVMBuildAlloca(builder, v_peg_parser_t_, "pr0");
 
     parser_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_initialize_parser_impl"));
     parser_init_f   = v_obtain_function("v_peg_initialize_parser_impl");

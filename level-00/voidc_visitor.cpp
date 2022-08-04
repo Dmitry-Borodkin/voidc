@@ -17,30 +17,19 @@
 //- ...
 //-----------------------------------------------------------------
 void
-voidc_visitor_t::static_initialize(void)
+voidc_visitor_data_t::static_initialize(void)
 {
-    static_assert((sizeof(visitor_sptr_t) % sizeof(intptr_t)) == 0);
+    static_assert((sizeof(visitor_t) % sizeof(intptr_t)) == 0);
 
-    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
-    v_type_t *content_type = gctx.make_array_type(gctx.intptr_t_type, sizeof(visitor_sptr_t)/sizeof(intptr_t));
+    v_type_t *content_type = vctx.make_array_type(vctx.intptr_t_type, sizeof(visitor_t)/sizeof(intptr_t));
 
-    auto visitor_sptr_type = gctx.make_struct_type("struct.voidc_opaque_visitor_sptr");
+    auto visitor_type = vctx.make_struct_type("voidc_visitor_t");
 
-    visitor_sptr_type->set_body(&content_type, 1, false);
+    visitor_type->set_body(&content_type, 1, false);
 
-    auto add_type = [&gctx](const char *raw_name, v_type_t *type)
-    {
-        gctx.decls.constants_insert({raw_name, gctx.static_type_type});
-
-        gctx.constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
-
-        gctx.decls.symbols_insert({raw_name, gctx.opaque_type_type});
-
-        gctx.add_symbol_value(raw_name, type);
-    };
-
-    add_type("voidc_opaque_visitor_sptr", visitor_sptr_type);
+    vctx.initialize_type("voidc_visitor_t", visitor_type);
 
 
     voidc_compiler = make_voidc_compiler();
@@ -48,7 +37,7 @@ voidc_visitor_t::static_initialize(void)
 
 //-----------------------------------------------------------------
 void
-voidc_visitor_t::static_terminate(void)
+voidc_visitor_data_t::static_terminate(void)
 {
     voidc_compiler.reset();
 }
@@ -63,26 +52,26 @@ extern "C"
 VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //---------------------------------------------------------------------
-VOIDC_DEFINE_INITIALIZE_IMPL(visitor_sptr_t, voidc_initialize_visitor_impl)
-VOIDC_DEFINE_TERMINATE_IMPL(visitor_sptr_t, voidc_terminate_visitor_impl)
-VOIDC_DEFINE_COPY_IMPL(visitor_sptr_t, voidc_copy_visitor_impl)
-VOIDC_DEFINE_MOVE_IMPL(visitor_sptr_t, voidc_move_visitor_impl)
-VOIDC_DEFINE_EMPTY_IMPL(visitor_sptr_t, voidc_empty_visitor_impl)
-VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(visitor_sptr_t, voidc_std_any_get_pointer_visitor_impl)
-VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(visitor_sptr_t, voidc_std_any_set_pointer_visitor_impl)
+VOIDC_DEFINE_INITIALIZE_IMPL(visitor_t, voidc_initialize_visitor_impl)
+VOIDC_DEFINE_TERMINATE_IMPL(visitor_t, voidc_terminate_visitor_impl)
+VOIDC_DEFINE_COPY_IMPL(visitor_t, voidc_copy_visitor_impl)
+VOIDC_DEFINE_MOVE_IMPL(visitor_t, voidc_move_visitor_impl)
+VOIDC_DEFINE_EMPTY_IMPL(visitor_t, voidc_empty_visitor_impl)
+VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(visitor_t, voidc_std_any_get_pointer_visitor_impl)
+VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(visitor_t, voidc_std_any_set_pointer_visitor_impl)
 
 
 //---------------------------------------------------------------------
 void
-voidc_make_visitor(visitor_sptr_t *ret)
+voidc_make_visitor(visitor_t *ret)
 {
-    *ret = std::make_shared<const voidc_visitor_t>();
+    *ret = std::make_shared<const voidc_visitor_data_t>();
 }
 
 
 //---------------------------------------------------------------------
 void *
-voidc_visitor_get_void_method(const visitor_sptr_t *ptr, v_quark_t quark, void **aux_ptr)
+voidc_visitor_get_void_method(const visitor_t *ptr, v_quark_t quark, void **aux_ptr)
 {
     if (auto *vm = (*ptr)->void_methods.find(quark))
     {
@@ -99,17 +88,17 @@ voidc_visitor_get_void_method(const visitor_sptr_t *ptr, v_quark_t quark, void *
 }
 
 void
-voidc_visitor_set_void_method(visitor_sptr_t *dst, const visitor_sptr_t *src, v_quark_t quark, void *void_fun, void *aux)
+voidc_visitor_set_void_method(visitor_t *dst, const visitor_t *src, v_quark_t quark, void *void_fun, void *aux)
 {
     auto visitor = (*src)->set_void_method(quark, void_fun, aux);
 
-    *dst = std::make_shared<const voidc_visitor_t>(visitor);
+    *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }
 
 
 //---------------------------------------------------------------------
 void *
-voidc_visitor_get_intrinsic(const visitor_sptr_t *ptr, const char *name, void **aux_ptr)
+voidc_visitor_get_intrinsic(const visitor_t *ptr, const char *name, void **aux_ptr)
 {
     if (auto *vm = (*ptr)->intrinsics.find(name))
     {
@@ -126,11 +115,11 @@ voidc_visitor_get_intrinsic(const visitor_sptr_t *ptr, const char *name, void **
 }
 
 void
-voidc_visitor_set_intrinsic(visitor_sptr_t *dst, const visitor_sptr_t *src, const char *name, void *void_fun, void *aux)
+voidc_visitor_set_intrinsic(visitor_t *dst, const visitor_t *src, const char *name, void *void_fun, void *aux)
 {
     auto visitor = (*src)->set_intrinsic(name, void_fun, aux);
 
-    *dst = std::make_shared<const voidc_visitor_t>(visitor);
+    *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }
 
 

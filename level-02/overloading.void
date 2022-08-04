@@ -1191,13 +1191,13 @@ static_type_prefix_star_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                                     t0: v_type_ptr, v0: LLVMValueRef
                                    ) -> void
 {
-    //- assert(t0 == voidc_static_type);
+    //- assert(t0 == v_static_type_t);
 
     typ = (v0: v_type_ptr);
 
     typ = v_pointer_type(typ, 0);           //- ...
 
-    v_set_result_type(voidc_static_type);
+    v_set_result_type(v_static_type_t);
     v_set_result_value((typ: LLVMValueRef));
 }
 
@@ -1208,13 +1208,13 @@ static_type_prefix_amp_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                                    t0: v_type_ptr, v0: LLVMValueRef
                                   ) -> void
 {
-    //- assert(t0 == voidc_static_type);
+    //- assert(t0 == v_static_type_t);
 
     typ = (v0: v_type_ptr);
 
     typ = v_reference_type(typ, 0);         //- ...
 
-    v_set_result_type(voidc_static_type);
+    v_set_result_type(v_static_type_t);
     v_set_result_value((typ: LLVMValueRef));
 }
 
@@ -1607,7 +1607,7 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         v_set_result_value((typ: LLVMValueRef));
     }
 
-    v_set_result_type(voidc_static_type);
+    v_set_result_type(v_static_type_t);
 }
 
 
@@ -1648,8 +1648,8 @@ voidc_enable_overloading_compiler: () -> void
         }
     }
 
-    v_util_function_dict_set(v_quark_from_string("op_prefix_star"), voidc_static_type, "v.static_type_prefix_star");
-    v_util_function_dict_set(v_quark_from_string("op_prefix_amp"),  voidc_static_type, "v.static_type_prefix_amp");
+    v_util_function_dict_set(v_quark_from_string("op_prefix_star"), v_static_type_t, "v.static_type_prefix_star");
+    v_util_function_dict_set(v_quark_from_string("op_prefix_amp"),  v_static_type_t, "v.static_type_prefix_amp");
 
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_star", static_type_prefix_star_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_amp",  static_type_prefix_amp_intrinsic,  0);
@@ -1658,7 +1658,7 @@ voidc_enable_overloading_compiler: () -> void
 
     voidc_visitor_set_intrinsic(vis, vis, "v.op_postfix_index", op_postfix_index_intrinsic, 0);
 
-    v_util_function_dict_set(v_quark_from_string("op_postfix_index"), voidc_static_type, "v.static_type_postfix_index");
+    v_util_function_dict_set(v_quark_from_string("op_postfix_index"), v_static_type_t, "v.static_type_postfix_index");
 
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_postfix_index", static_type_postfix_index_intrinsic, 0);
 }

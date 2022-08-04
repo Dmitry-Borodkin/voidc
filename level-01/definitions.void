@@ -1183,13 +1183,13 @@
 
     if (export)
     {
-        if (t == voidc_static_type) v_export_type(name, v_cast(v, v_type_ptr));
-        else                        v_export_constant(name, t, v);
+        if (t == v_static_type_t) v_export_type(name, v_cast(v, v_type_ptr));
+        else                      v_export_constant(name, t, v);
     }
     else
     {
-        if (t == voidc_static_type) v_add_type(name, v_cast(v, v_type_ptr));
-        else                        v_add_constant(name, t, v);
+        if (t == v_static_type_t) v_add_type(name, v_cast(v, v_type_ptr));
+        else                      v_add_constant(name, t, v);
     }
 
     //-------------------------------------------------------------
@@ -1203,7 +1203,7 @@
 
         v_ast_make_expr_integer(expr+1, export);
 
-        if (t != voidc_static_type)
+        if (t != v_static_type_t)
         {
             cv = *v_alloca(intptr_t);
 
@@ -1356,7 +1356,7 @@
 
             type = *v_alloca(v_type_ptr) := v_find_constant_type(name);
 
-            if (type == voidc_static_type)
+            if (type == v_static_type_t)
             {
                 type := v_cast(v_find_constant_value(name), v_type_ptr);
             }
@@ -1463,7 +1463,7 @@
 
             type = *v_alloca(v_type_ptr) := v_find_constant_type(name);
 
-            if (type == voidc_static_type)
+            if (type == v_static_type_t)
             {
                 type := v_cast(v_find_constant_value(name), v_type_ptr);
             }
@@ -1689,7 +1689,7 @@
 
     ft = v_function_type(rtyp, argtypes, count, is_vararg);
 
-    v_set_result_type(voidc_static_type);
+    v_set_result_type(v_static_type_t);
     v_set_result_value(v_cast(ft, LLVMValueRef));
 }
 
@@ -1843,7 +1843,7 @@
     v_std_any_set_value(any_qf_private, qf_private);
 
 
-    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
     defer v_terminate(gr0);
 

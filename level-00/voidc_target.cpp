@@ -61,6 +61,22 @@ base_global_ctx_t::~base_global_ctx_t()
 
 
 //---------------------------------------------------------------------
+void
+base_global_ctx_t::initialize_type(const char *raw_name, v_type_t *type)
+{
+    auto &vctx = *voidc_global_ctx_t::voidc;
+
+    decls.constants_insert({raw_name, vctx.static_type_type});
+
+    constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
+
+    decls.symbols_insert({raw_name, vctx.type_type});
+
+    add_symbol_value(raw_name, type);
+};
+
+
+//---------------------------------------------------------------------
 int base_global_ctx_t::debug_print_module = 0;
 
 void
@@ -96,21 +112,8 @@ base_global_ctx_t::initialize(void)
     assert(voidc_global_ctx_t::voidc);
 
     //-----------------------------------------------------------------
-    auto &vctx = *voidc_global_ctx_t::voidc;
-
-    auto add_type = [this, &vctx](const char *raw_name, v_type_t *type)
-    {
-        decls.constants_insert({raw_name, vctx.static_type_type});
-
-        constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
-
-        decls.symbols_insert({raw_name, vctx.opaque_type_type});
-
-        add_symbol_value(raw_name, type);
-    };
-
 #define DEF(name) \
-    add_type(#name, name##_type);
+    initialize_type(#name, name##_type);
 
     DEF(void)
 
@@ -255,18 +258,22 @@ base_local_ctx_t::add_intrinsic(const char *fun_name, void *fun, void *aux)
 void
 base_local_ctx_t::export_type(const char *raw_name, v_type_t *type)
 {
-    export_constant(raw_name, voidc_global_ctx_t::voidc->static_type_type, reinterpret_cast<LLVMValueRef>(type));
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
-    export_symbol(raw_name, voidc_global_ctx_t::voidc->opaque_type_type, type);
+    export_constant(raw_name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
+
+    export_symbol(raw_name, vctx.type_type, type);
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::add_type(const char *raw_name, v_type_t *type)
 {
-    add_constant(raw_name, voidc_global_ctx_t::voidc->static_type_type, reinterpret_cast<LLVMValueRef>(type));
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
-    add_symbol(raw_name, voidc_global_ctx_t::voidc->opaque_type_type, type);
+    add_constant(raw_name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
+
+    add_symbol(raw_name, vctx.type_type, type);
 }
 
 
@@ -283,9 +290,11 @@ base_local_ctx_t::check_alias(const std::string &name)
 v_type_t *
 base_local_ctx_t::find_type(const char *type_name)
 {
+    auto &vctx = *voidc_global_ctx_t::voidc;
+
     if (auto *p = vars.find(type_name))
     {
-        if (p->first == voidc_global_ctx_t::voidc->static_type_type)
+        if (p->first == vctx.static_type_type)
         {
             return reinterpret_cast<v_type_t *>(p->second);
         }
@@ -298,7 +307,7 @@ base_local_ctx_t::find_type(const char *type_name)
     {   v_type_t    *t = nullptr;
         LLVMValueRef v = nullptr;
 
-        if (find_constant(cname, t, v)  &&  t == voidc_global_ctx_t::voidc->static_type_type)
+        if (find_constant(cname, t, v)  &&  t == vctx.static_type_type)
         {
             return reinterpret_cast<v_type_t *>(v);
         }
@@ -795,35 +804,23 @@ LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
   : base_global_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
-    static_type_type(make_struct_type("struct.voidc_static_type")),
-    opaque_type_type(make_struct_type("struct.voidc_opaque_type")),
-    type_ptr_type(make_pointer_type(opaque_type_type, 0))
+    static_type_type(make_struct_type("v_static_type_t")),
+    type_type(make_struct_type("v_type_t")),
+    type_ptr_type(make_pointer_type(type_type, 0))
 {
     assert(voidc_global_ctx == nullptr);
 
     voidc_global_ctx = this;
 
-    {   decls.symbols_insert({"voidc_static_type", opaque_type_type});      //- Sic!
+    {   decls.symbols_insert({"v_static_type_t", type_type});           //- Sic!
 
-        add_symbol_value("voidc_static_type", static_type_type);            //- Sic!
+        add_symbol_value("v_static_type_t", static_type_type);          //- Sic!
     };
 
-    auto add_type = [this](const char *raw_name, v_type_t *type)
-    {
-        decls.constants_insert({raw_name, static_type_type});
+    initialize_type("v_type_t",   type_type);
+    initialize_type("v_type_ptr", type_ptr_type);
 
-        constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
-
-        decls.symbols_insert({raw_name, opaque_type_type});
-
-        add_symbol_value(raw_name, type);
-    };
-
-    add_type("voidc_opaque_type", opaque_type_type);        //- Sic!
-
-    {   add_type("v_type_ptr", type_ptr_type);
-
-        v_type_t *types[] =
+    {   v_type_t *types[] =
         {
             type_ptr_type,
             make_pointer_type(type_ptr_type, 0),
@@ -1249,7 +1246,7 @@ voidc_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 
             auto t = get_symbol_type(cname);
 
-            assert(t == vctx.opaque_type_type);
+            assert(t == vctx.type_type);
 
             auto v = LLVMGetNamedGlobal(module, cname);
 

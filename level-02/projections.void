@@ -382,7 +382,7 @@ voidc_enable_projections: () -> void
     v_std_any_set_pointer(any_dot,     &op_postfix_dot);
     v_std_any_set_pointer(any_tildato, &op_postfix_tildato);
 
-    gr0 = v_alloca(v_peg_opaque_grammar_sptr);
+    gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
     defer v_terminate(gr0);
 
