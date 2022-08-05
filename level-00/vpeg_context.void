@@ -181,17 +181,6 @@
     LLVMBuildCall2(builder, get_grammar_ft_, get_grammar_f, val0, 1, "");
 
 
-    pr0 = LLVMBuildAlloca(builder, v_peg_parser_t_, "pr0");
-
-    parser_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_initialize_parser_impl"));
-    parser_init_f   = v_obtain_function("v_peg_initialize_parser_impl");
-
-    v_store(pr0, val0);
-//  v_store(n1,  val1);
-
-    LLVMBuildCall2(builder, parser_init_ft_, parser_init_f, val0, 2, "");
-
-
     get_parser_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_grammar_get_parser"));
     get_parser_f   = v_obtain_function("v_peg_grammar_get_parser");
 
@@ -199,33 +188,17 @@
 
     v_store(gr0,  val0);
     v_store(name, val1);
-    v_store(pr0,  val2);
-    v_store(ip0,  val3);
-
-    LLVMBuildCall2(builder, get_parser_ft_, get_parser_f, val0, 4, "");
+    v_store(ip0,  val2);
 
 
-    parser_empty_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_empty_parser_impl"));
-    parser_empty_f   = v_obtain_function("v_peg_empty_parser_impl");
-
-    v_store(pr0, val0);
-
-    nok = LLVMBuildCall2(builder, parser_empty_ft_, parser_empty_f, val0, 1, "nok");
-
-    ok = LLVMBuildNot(builder, nok, "ok");
+    pp = LLVMBuildCall2(builder, get_parser_ft_, get_parser_f, val0, 3, "");
 
 
-    parser_term_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_terminate_parser_impl"));
-    parser_term_f   = v_obtain_function("v_peg_terminate_parser_impl");
-
-//  v_store(pr0, val0);
-    v_store(n1,  val1);
-
-    LLVMBuildCall2(builder, parser_term_ft_, parser_term_f, val0, 2, "");
+    ok = LLVMBuildIsNotNull(builder, pp, "ok");
 
 
     v_store(gr0, val0);
-//  v_store(n1,  val1);
+    v_store(n1,  val1);
 
     LLVMBuildCall2(builder, grammar_term_ft_, grammar_term_f, val0, 2, "");
 

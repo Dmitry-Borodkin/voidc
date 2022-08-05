@@ -23,23 +23,23 @@ class context_data_t;
 
 
 //---------------------------------------------------------------------
-//- "Node" base class...
+//- "Data" base class...
 //---------------------------------------------------------------------
 template<typename K>
-struct node_t : public K
+struct data_t : public K
 {
-    virtual ~node_t() = default;
+    virtual ~data_t() = default;
 
     virtual typename K::kind_t kind(void) const = 0;
 };
 
 //---------------------------------------------------------------------
-template<typename N, typename N::kind_t tag>
-struct node_tag_t : public N
+template<typename T, typename T::kind_t tag>
+struct data_tag_t : public T
 {
     enum { kind_tag = tag };
 
-    typename N::kind_t kind(void) const override
+    typename T::kind_t kind(void) const override
     {
         return tag;
     }
@@ -75,20 +75,20 @@ struct parser_kind_t
 };
 
 //---------------------------------------------------------------------
-struct parser_data_t : public node_t<parser_kind_t>
+struct parser_data_t : public data_t<parser_kind_t>
 {
     virtual std::any parse(context_data_t &ctx) const = 0;
 
 public:
     virtual size_t parsers_count(void) const { return 0; }
 
-    virtual void get_parsers(std::shared_ptr<const parser_data_t> *p) const {}
+    virtual const std::shared_ptr<const parser_data_t> *get_parsers(void) const { return nullptr; }
 };
 
 typedef std::shared_ptr<const parser_data_t> parser_t;
 
 template<parser_data_t::kind_t tag>
-using parser_tag_t = node_tag_t<parser_data_t, tag>;
+using parser_tag_t = data_tag_t<parser_data_t, tag>;
 
 
 //---------------------------------------------------------------------
@@ -104,7 +104,7 @@ struct action_kind_t
 };
 
 //---------------------------------------------------------------------
-struct action_data_t : public node_t<action_kind_t>
+struct action_data_t : public data_t<action_kind_t>
 {
     virtual std::any act(context_data_t &ctx) const = 0;
 };
@@ -112,7 +112,7 @@ struct action_data_t : public node_t<action_kind_t>
 typedef std::shared_ptr<const action_data_t> action_t;
 
 template<action_data_t::kind_t tag>
-using action_tag_t = node_tag_t<action_data_t, tag>;
+using action_tag_t = data_tag_t<action_data_t, tag>;
 
 
 //---------------------------------------------------------------------
@@ -131,7 +131,7 @@ struct argument_kind_t
 };
 
 //---------------------------------------------------------------------
-struct argument_data_t : public node_t<argument_kind_t>
+struct argument_data_t : public data_t<argument_kind_t>
 {
     virtual std::any value(context_data_t &ctx) const = 0;
 };
@@ -139,7 +139,7 @@ struct argument_data_t : public node_t<argument_kind_t>
 typedef std::shared_ptr<const argument_data_t> argument_t;
 
 template<argument_data_t::kind_t tag>
-using argument_tag_t = node_tag_t<argument_data_t, tag>;
+using argument_tag_t = data_tag_t<argument_data_t, tag>;
 
 
 //---------------------------------------------------------------------
@@ -170,9 +170,9 @@ public:
         return array.size();
     }
 
-    void get_parsers(parser_t *p) const override
+    const parser_t *get_parsers(void) const override
     {
-        std::copy(array.begin(), array.end(), p);
+        return array.data();
     }
 };
 
@@ -276,7 +276,7 @@ public:
 public:
     size_t parsers_count(void) const override { return 1; }
 
-    void get_parsers(parser_t *p) const override { *p = parser; }
+    const parser_t *get_parsers(void) const override { return &parser; }
 };
 
 

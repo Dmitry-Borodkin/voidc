@@ -613,9 +613,9 @@
     v_peg_make_identifier_parser(pp0, "stmt_block");
 
 
-    v_peg_grammar_get_parser(gr0, "stmt", pp1, 0);
+    pp_ = v_peg_grammar_get_parser(gr0, "stmt", 0);
 
-    v_peg_choice_parser_concat(pp0, pp0, pp1);
+    v_peg_choice_parser_concat(pp0, pp0, pp_);
 
     v_peg_grammar_set_parser(gr0, gr0, "stmt", pp0, 0);
 

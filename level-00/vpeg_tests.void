@@ -119,7 +119,7 @@
 
     pp1 = v_getelementptr(pp0, 1);
 
-    v_peg_grammar_get_parser(gr0, "comment", pp0, 0);
+    v_copy(pp0, v_peg_grammar_get_parser(gr0, "comment", 0));
 
 
     arg = v_alloca(v_peg_argument_t);

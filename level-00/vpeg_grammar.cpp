@@ -175,34 +175,39 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //-----------------------------------------------------------------
-void v_peg_make_grammar(grammar_t *ret)
+void
+v_peg_make_grammar(grammar_t *ret)
 {
     *ret = std::make_shared<const grammar_data_t>();
 }
 
 
 //-----------------------------------------------------------------
-void v_peg_grammar_get_parser(const grammar_t *ptr, const char *name, parser_t *parser, int *leftrec)
+const parser_t *
+v_peg_grammar_get_parser(const grammar_t *ptr, const char *name, int *leftrec)
 {
     if (auto *pair = (*ptr)->parsers.find(v_quark_from_string(name)))
     {
-        if (parser)   *parser  = pair->first;
         if (leftrec)  *leftrec = pair->second;
+
+        return &pair->first;
     }
     else
     {
-        if (parser)   *parser  = nullptr;
+        return nullptr;
     }
 }
 
-void v_peg_grammar_set_parser(grammar_t *dst, const grammar_t *src, const char *name, const parser_t *parser, int leftrec)
+void
+v_peg_grammar_set_parser(grammar_t *dst, const grammar_t *src, const char *name, const parser_t *parser, int leftrec)
 {
     auto grammar = (*src)->set_parser(name, *parser, leftrec);
 
     *dst = std::make_shared<const grammar_data_t>(grammar);
 }
 
-void v_peg_grammar_erase_parser(grammar_t *dst, const grammar_t *src, const char *name)
+void
+v_peg_grammar_erase_parser(grammar_t *dst, const grammar_t *src, const char *name)
 {
     auto grammar = (*src)->erase_parser(name);
 
@@ -224,14 +229,16 @@ v_peg_grammar_get_action(const grammar_t *ptr, const char *name)
     }
 }
 
-void v_peg_grammar_set_action(grammar_t *dst, const grammar_t *src, const char *name, grammar_action_fun_t fun)
+void
+v_peg_grammar_set_action(grammar_t *dst, const grammar_t *src, const char *name, grammar_action_fun_t fun)
 {
     auto grammar = (*src)->set_action(name, fun);
 
     *dst = std::make_shared<const grammar_data_t>(grammar);
 }
 
-void v_peg_grammar_erase_action(grammar_t *dst, const grammar_t *src, const char *name)
+void
+v_peg_grammar_erase_action(grammar_t *dst, const grammar_t *src, const char *name)
 {
     auto grammar = (*src)->erase_action(name);
 
@@ -240,26 +247,22 @@ void v_peg_grammar_erase_action(grammar_t *dst, const grammar_t *src, const char
 
 
 //-----------------------------------------------------------------
-void v_peg_grammar_get_value(const grammar_t *ptr, const char *name, std::any *value)
+const std::any *
+v_peg_grammar_get_value(const grammar_t *ptr, const char *name)
 {
-    if (auto val = (*ptr)->values.find(v_quark_from_string(name)))
-    {
-        *value = val;
-    }
-    else
-    {
-        value->reset();
-    }
+    return (*ptr)->values.find(v_quark_from_string(name));
 }
 
-void v_peg_grammar_set_value(grammar_t *dst, const grammar_t *src, const char *name, const std::any *value)
+void
+v_peg_grammar_set_value(grammar_t *dst, const grammar_t *src, const char *name, const std::any *value)
 {
     auto grammar = (*src)->set_value(name, *value);
 
     *dst = std::make_shared<const grammar_data_t>(grammar);
 }
 
-void v_peg_grammar_erase_value(grammar_t *dst, const grammar_t *src, const char *name)
+void
+v_peg_grammar_erase_value(grammar_t *dst, const grammar_t *src, const char *name)
 {
     auto grammar = (*src)->erase_value(name);
 

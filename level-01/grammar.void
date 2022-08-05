@@ -645,11 +645,9 @@
 
         v_ast_make_expr_string(arg1, pr_str);
 
-        v_ast_make_expr_identifier(arg2, "v.pr1");
+        v_ast_make_expr_identifier(arg2, "v.int");       //- "leftrec" !
 
-        v_ast_make_expr_identifier(arg3, "v.int");       //- "leftrec" !
-
-        v_ast_make_stmt_call(stmt, "", "v_peg_grammar_get_parser", arg0, 4);
+        v_ast_make_stmt_call(stmt, "v.pr_", "v_peg_grammar_get_parser", arg0, 3);
 
         v_list_append(stmt_list, stmt_list, stmt);
 
@@ -669,7 +667,7 @@
         {
             v_store(c1, c_k);
 
-            v_ast_make_expr_identifier(arg1, "v.pr1");       //- From grammar
+            v_ast_make_expr_identifier(arg1, "v.pr_");       //- From grammar
             v_ast_make_expr_identifier(arg2, "v.pr0");       //- Built
         }
         else            //- Append to front
@@ -677,7 +675,7 @@
             v_store(c0, c_k);
 
             v_ast_make_expr_identifier(arg1, "v.pr0");       //- Built
-            v_ast_make_expr_identifier(arg2, "v.pr1");       //- From grammar
+            v_ast_make_expr_identifier(arg2, "v.pr_");       //- From grammar
         }
 
 
@@ -764,14 +762,14 @@
 
     v_ast_make_expr_string(arg2, pr_str);
 
-    v_ast_make_expr_identifier(arg3, "v.pr0");
+    v_ast_make_expr_integer(arg3, 0);        //- "leftrec" ?
 
-    v_ast_make_expr_integer(arg4, 0);        //- "leftrec" ?
-
-    v_ast_make_stmt_call(stmt, "", "v_peg_grammar_get_parser", arg1, 4);
+    v_ast_make_stmt_call(stmt, "v.pr_", "v_peg_grammar_get_parser", arg1, 3);
 
     v_list_append(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
 
+
+    v_ast_make_expr_identifier(arg3, "v.pr_");
 
     v_ast_make_expr_integer(arg4, 1);        //- "leftrec" !
 
@@ -2425,9 +2423,9 @@
 
     v_peg_grammar_set_parser(gr0, gr0, "stmt_grammar", pp0, 0);
 
-    v_peg_grammar_get_parser(gr0, "stmt", pp1, 0);
+    pp_ = v_peg_grammar_get_parser(gr0, "stmt", 0);
 
-    v_peg_choice_parser_concat(pp0, pp0, pp1);
+    v_peg_choice_parser_concat(pp0, pp0, pp_);
 
     v_peg_grammar_set_parser(gr0, gr0, "stmt", pp0, 0);
 

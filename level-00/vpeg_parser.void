@@ -144,7 +144,10 @@
 
     fun_t = v_function_type(void, typ0, 2, false);
 
-    v_export_symbol_type("v_peg_make_action_parser",       fun_t);
+    v_export_symbol_type("v_peg_make_action_parser", fun_t);
+
+    fun_t = v_function_type(v_peg_action_ptr, typ0, 1, false);
+
     v_export_symbol_type("v_peg_action_parser_get_action", fun_t);
 
     v_store(char_ptr, typ1);
@@ -184,7 +187,7 @@
 
     v_export_symbol_type("v_peg_class_parser_get_ranges_count", fun_t);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    fun_t = v_function_type(range_ptr_t, typ0, 1, false);
 
     v_export_symbol_type("v_peg_class_parser_get_ranges", fun_t);
 
@@ -209,15 +212,18 @@
 
     v_export_symbol_type("v_peg_call_action_get_arguments_count", fun_t);
 
-    v_store(v_peg_argument_ptr, typ1);
-
-    fun_t = v_function_type(int, typ0, 2, false);
+    fun_t = v_function_type(v_peg_argument_ptr, typ0, 1, false);
 
     v_export_symbol_type("v_peg_call_action_get_arguments", fun_t);
 
+    v_store(v_peg_argument_ptr, typ1);
+
     fun_t = v_function_type(void, typ0, 2, false);
 
-    v_export_symbol_type("v_peg_make_return_action",         fun_t);
+    v_export_symbol_type("v_peg_make_return_action", fun_t);
+
+    fun_t = v_function_type(v_peg_argument_ptr, typ0, 1, false);
+
     v_export_symbol_type("v_peg_return_action_get_argument", fun_t);
 
     v_store(v_peg_argument_ptr, typ0);

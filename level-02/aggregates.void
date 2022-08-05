@@ -271,9 +271,9 @@ voidc_enable_aggregates: () -> void
     v_initialize(any);
     defer v_terminate(any);
 
-    v_peg_grammar_get_value(gr0, "v_op_braces", any);
+    any_ = v_peg_grammar_get_value(gr0, "v_op_braces");
 
-    if (!v_empty(any))  v_return();
+    if (any_)  v_return();
 
 
     voidc_enable_definitions();         //- Sic!

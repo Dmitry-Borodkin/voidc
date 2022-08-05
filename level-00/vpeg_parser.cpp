@@ -544,45 +544,52 @@ int fun_name(const ptr_t *ptr) \
 
 
 //-----------------------------------------------------------------
-int v_peg_parser_get_parsers_count(const parser_t *ptr)
+int
+v_peg_parser_get_parsers_count(const parser_t *ptr)
 {
     return int((*ptr)->parsers_count());
 }
 
-void v_peg_parser_get_parsers(const parser_t *ptr, parser_t *list)
+const parser_t *
+v_peg_parser_get_parsers(const parser_t *ptr)
 {
-    (*ptr)->get_parsers(list);
+    return (*ptr)->get_parsers();
 }
 
 //-----------------------------------------------------------------
-void v_peg_make_choice_parser(parser_t *ret, const parser_t *list, int count)
+void
+v_peg_make_choice_parser(parser_t *ret, const parser_t *list, int count)
 {
     *ret = mk_choice_parser(list, size_t(count));
 }
 
-void v_peg_choice_parser_append(parser_t *ret, const parser_t *head, const parser_t *tail)
+void
+v_peg_choice_parser_append(parser_t *ret, const parser_t *head, const parser_t *tail)
 {
-    auto &h = dynamic_cast<const choice_parser_data_t &>(**head);
+    auto &h = static_cast<const choice_parser_data_t &>(**head);
 
     *ret = mk_choice_parser(h, *tail);
 }
 
 
-void v_peg_make_sequence_parser(parser_t *ret, const parser_t *list, int count)
+void
+v_peg_make_sequence_parser(parser_t *ret, const parser_t *list, int count)
 {
     *ret = mk_sequence_parser(list, size_t(count));
 }
 
-void v_peg_sequence_parser_append(parser_t *ret, const parser_t *head, const parser_t *tail)
+void
+v_peg_sequence_parser_append(parser_t *ret, const parser_t *head, const parser_t *tail)
 {
-    auto &h = dynamic_cast<const sequence_parser_data_t &>(**head);
+    auto &h = static_cast<const sequence_parser_data_t &>(**head);
 
     *ret = mk_sequence_parser(h, *tail);
 }
 
 
 //-----------------------------------------------------------------
-void v_peg_choice_parser_concat(parser_t *ret, const parser_t *head, const parser_t *tail)
+void
+v_peg_choice_parser_concat(parser_t *ret, const parser_t *head, const parser_t *tail)
 {
     int count = 0;
 
@@ -601,7 +608,8 @@ void v_peg_choice_parser_concat(parser_t *ret, const parser_t *head, const parse
     *ret = mk_choice_parser(list.get(), count);
 }
 
-void v_peg_sequence_parser_concat(parser_t *ret, const parser_t *head, const parser_t *tail)
+void
+v_peg_sequence_parser_concat(parser_t *ret, const parser_t *head, const parser_t *tail)
 {
     int count = 0;
 
@@ -621,135 +629,151 @@ void v_peg_sequence_parser_concat(parser_t *ret, const parser_t *head, const par
 }
 
 
-void v_peg_make_and_parser(parser_t *ret, const parser_t *ptr)
+void
+v_peg_make_and_parser(parser_t *ret, const parser_t *ptr)
 {
     *ret = mk_and_parser(*ptr);
 }
 
-void v_peg_make_not_parser(parser_t *ret, const parser_t *ptr)
+void
+v_peg_make_not_parser(parser_t *ret, const parser_t *ptr)
 {
     *ret = mk_not_parser(*ptr);
 }
 
-void v_peg_make_question_parser(parser_t *ret, const parser_t *ptr)
+void
+v_peg_make_question_parser(parser_t *ret, const parser_t *ptr)
 {
     *ret = mk_question_parser(*ptr);
 }
 
-void v_peg_make_star_parser(parser_t *ret, const parser_t *ptr)
+void
+v_peg_make_star_parser(parser_t *ret, const parser_t *ptr)
 {
     *ret = mk_star_parser(*ptr);
 }
 
-void v_peg_make_plus_parser(parser_t *ret, const parser_t *ptr)
+void
+v_peg_make_plus_parser(parser_t *ret, const parser_t *ptr)
 {
     *ret = mk_plus_parser(*ptr);
 }
 
-void v_peg_make_catch_variable_parser(parser_t *ret, const char *name, const parser_t *ptr)
+void
+v_peg_make_catch_variable_parser(parser_t *ret, const char *name, const parser_t *ptr)
 {
     *ret = mk_catch_variable_parser(name, *ptr);
 }
 
-const char *v_peg_catch_variable_parser_get_name(const parser_t *ptr)
+const char *
+v_peg_catch_variable_parser_get_name(const parser_t *ptr)
 {
-    auto &r = dynamic_cast<const catch_variable_parser_data_t &>(**ptr);
+    auto &r = static_cast<const catch_variable_parser_data_t &>(**ptr);
 
     return  v_quark_to_string(r.q_name);
 }
 
-void v_peg_make_catch_string_parser(parser_t *ret, const parser_t *ptr)
+void
+v_peg_make_catch_string_parser(parser_t *ret, const parser_t *ptr)
 {
     *ret = mk_catch_string_parser(*ptr);
 }
 
 
-void v_peg_make_identifier_parser(parser_t *ret, const char *ident)
+void
+v_peg_make_identifier_parser(parser_t *ret, const char *ident)
 {
     *ret = mk_identifier_parser(ident);
 }
 
-const char *v_peg_identifier_parser_get_identifier(const parser_t *ptr)
+const char *
+v_peg_identifier_parser_get_identifier(const parser_t *ptr)
 {
-    auto &r = dynamic_cast<const identifier_parser_data_t &>(**ptr);
+    auto &r = static_cast<const identifier_parser_data_t &>(**ptr);
 
     return  v_quark_to_string(r.q_ident);
 }
 
-void v_peg_make_backref_parser(parser_t *ret, int number)
+void
+v_peg_make_backref_parser(parser_t *ret, int number)
 {
     *ret = mk_backref_parser(size_t(number));
 }
 
-int v_peg_backref_parser_get_number(const parser_t *ptr)
+int
+v_peg_backref_parser_get_number(const parser_t *ptr)
 {
-    auto &r = dynamic_cast<const backref_parser_data_t &>(**ptr);
+    auto &r = static_cast<const backref_parser_data_t &>(**ptr);
 
     return int(r.number);
 }
 
-void v_peg_make_action_parser(parser_t *ret, const action_t *ptr)
+void
+v_peg_make_action_parser(parser_t *ret, const action_t *ptr)
 {
     *ret = mk_action_parser(*ptr);
 }
 
-void v_peg_action_parser_get_action(const parser_t *ptr, action_t *action)
+const action_t *
+v_peg_action_parser_get_action(const parser_t *ptr)
 {
-    auto &r = dynamic_cast<const action_parser_data_t &>(**ptr);
+    auto &r = static_cast<const action_parser_data_t &>(**ptr);
 
-    *action = r.action;
+    return &r.action;
 }
 
-void v_peg_make_literal_parser(parser_t *ret, const char *utf8)
+void
+v_peg_make_literal_parser(parser_t *ret, const char *utf8)
 {
     *ret = mk_literal_parser(utf8);
 }
 
-const char *v_peg_literal_parser_get_literal(const parser_t *ptr)
+const char *
+v_peg_literal_parser_get_literal(const parser_t *ptr)
 {
-    auto &r = dynamic_cast<const literal_parser_data_t &>(**ptr);
+    auto &r = static_cast<const literal_parser_data_t &>(**ptr);
 
     return r.utf8.c_str();
 }
 
-void v_peg_make_character_parser(parser_t *ret, char32_t ucs4)
+void
+v_peg_make_character_parser(parser_t *ret, char32_t ucs4)
 {
     *ret = mk_character_parser(ucs4);
 }
 
-char32_t v_peg_character_parser_get_character(const parser_t *ptr)
+char32_t
+v_peg_character_parser_get_character(const parser_t *ptr)
 {
-    auto &r = dynamic_cast<const character_parser_data_t &>(**ptr);
+    auto &r = static_cast<const character_parser_data_t &>(**ptr);
 
     return r.ucs4;
 }
 
-void v_peg_make_class_parser(parser_t *ret, const char32_t (*ranges)[2], int count)
+void
+v_peg_make_class_parser(parser_t *ret, const char32_t (*ranges)[2], int count)
 {
     *ret = mk_class_parser(ranges, size_t(count));
 }
 
-int v_peg_class_parser_get_ranges_count(const parser_t *ptr)
+int
+v_peg_class_parser_get_ranges_count(const parser_t *ptr)
 {
-    auto &r = dynamic_cast<const class_parser_data_t &>(**ptr);
+    auto &r = static_cast<const class_parser_data_t &>(**ptr);
 
-    return  int(r.ranges.size());
+    return int(r.ranges.size());
 }
 
-void v_peg_class_parser_get_ranges(const parser_t *ptr, char32_t (*ranges)[2])
+const std::array<char32_t, 2> *
+v_peg_class_parser_get_ranges(const parser_t *ptr)
 {
-    auto &r = dynamic_cast<const class_parser_data_t &>(**ptr);
+    auto &r = static_cast<const class_parser_data_t &>(**ptr);
 
-    size_t count = r.ranges.size();
-
-    for (size_t i=0; i<count; ++i)
-    {
-        ranges[i][0] = r.ranges[i][0];
-        ranges[i][1] = r.ranges[i][1];
-    }
+    return r.ranges.data();
 }
 
-void v_peg_make_dot_parser(parser_t *ret)
+void
+v_peg_make_dot_parser(parser_t *ret)
 {
     static const auto p = mk_dot_parser();
 
@@ -758,114 +782,126 @@ void v_peg_make_dot_parser(parser_t *ret)
 
 
 //-----------------------------------------------------------------
-void v_peg_make_call_action(action_t *ret, const char *fun, const argument_t *args, int count)
+void
+v_peg_make_call_action(action_t *ret, const char *fun, const argument_t *args, int count)
 {
     *ret = mk_call_action(fun, args, size_t(count));
 }
 
-const char *v_peg_call_action_get_function_name(const action_t *ptr)
+const char *
+v_peg_call_action_get_function_name(const action_t *ptr)
 {
-    auto &r = dynamic_cast<const call_action_data_t &>(**ptr);
+    auto &r = static_cast<const call_action_data_t &>(**ptr);
 
     return  v_quark_to_string(r.q_fun);
 }
 
-int v_peg_call_action_get_arguments_count(const action_t *ptr)
+int
+v_peg_call_action_get_arguments_count(const action_t *ptr)
 {
-    auto &r = dynamic_cast<const call_action_data_t &>(**ptr);
+    auto &r = static_cast<const call_action_data_t &>(**ptr);
 
     return  int(r.args.size());
 }
 
-void v_peg_call_action_get_arguments(const action_t *ptr, argument_t *args)
+const argument_t *
+v_peg_call_action_get_arguments(const action_t *ptr)
 {
-    auto &r = dynamic_cast<const call_action_data_t &>(**ptr);
+    auto &r = static_cast<const call_action_data_t &>(**ptr);
 
-    size_t count = r.args.size();
-
-    for (size_t i=0; i<count; ++i)
-    {
-        args[i] = r.args[i];
-    }
+    return r.args.data();
 }
 
-void v_peg_make_return_action(action_t *ret, const argument_t *arg)
+void
+v_peg_make_return_action(action_t *ret, const argument_t *arg)
 {
     *ret = mk_return_action(*arg);
 }
 
-void v_peg_return_action_get_argument(const action_t *ptr, argument_t *arg)
+const argument_t *
+v_peg_return_action_get_argument(const action_t *ptr, argument_t *arg)
 {
-    auto &r = dynamic_cast<const return_action_data_t &>(**ptr);
+    auto &r = static_cast<const return_action_data_t &>(**ptr);
 
-    *arg = r.arg;
+    return &r.arg;
 }
 
 
 //-----------------------------------------------------------------
-void v_peg_make_identifier_argument(argument_t *ret, const char *ident)
+void
+v_peg_make_identifier_argument(argument_t *ret, const char *ident)
 {
     *ret = mk_identifier_argument(ident);
 }
 
-const char *v_peg_identifier_argument_get_identifier(const argument_t *ptr)
+const char *
+v_peg_identifier_argument_get_identifier(const argument_t *ptr)
 {
-    auto &r = dynamic_cast<const identifier_argument_data_t &>(**ptr);
+    auto &r = static_cast<const identifier_argument_data_t &>(**ptr);
 
     return  v_quark_to_string(r.q_ident);
 }
 
-void v_peg_make_backref_argument(argument_t *ret, int number, int kind)
+void
+v_peg_make_backref_argument(argument_t *ret, int number, int kind)
 {
     *ret = mk_backref_argument(size_t(number), backref_argument_data_t::b_kind_t(kind));
 }
 
-int v_peg_backref_argument_get_number(const argument_t *ptr)
+int
+v_peg_backref_argument_get_number(const argument_t *ptr)
 {
-    auto &r = dynamic_cast<const backref_argument_data_t &>(**ptr);
+    auto &r = static_cast<const backref_argument_data_t &>(**ptr);
 
     return int(r.number);
 }
 
-int v_peg_backref_argument_get_kind(const argument_t *ptr)
+int
+v_peg_backref_argument_get_kind(const argument_t *ptr)
 {
-    auto &r = dynamic_cast<const backref_argument_data_t &>(**ptr);
+    auto &r = static_cast<const backref_argument_data_t &>(**ptr);
 
     return int(r.b_kind);
 }
 
-void v_peg_make_integer_argument(argument_t *ret, intptr_t number)
+void
+v_peg_make_integer_argument(argument_t *ret, intptr_t number)
 {
     *ret = mk_integer_argument(number);
 }
 
-intptr_t v_peg_integer_argument_get_number(const argument_t *ptr)
+intptr_t
+v_peg_integer_argument_get_number(const argument_t *ptr)
 {
-    auto &r = dynamic_cast<const integer_argument_data_t &>(**ptr);
+    auto &r = static_cast<const integer_argument_data_t &>(**ptr);
 
     return r.number;
 }
 
-void v_peg_make_literal_argument(argument_t *ret, const char *utf8)
+void
+v_peg_make_literal_argument(argument_t *ret, const char *utf8)
 {
     *ret = mk_literal_argument(utf8);
 }
 
-const char *v_peg_literal_argument_get_literal(const argument_t *ptr)
+const char *
+v_peg_literal_argument_get_literal(const argument_t *ptr)
 {
-    auto &r = dynamic_cast<const literal_argument_data_t &>(**ptr);
+    auto &r = static_cast<const literal_argument_data_t &>(**ptr);
 
     return r.utf8.c_str();
 }
 
-void v_peg_make_character_argument(argument_t *ret, char32_t ucs4)
+void
+v_peg_make_character_argument(argument_t *ret, char32_t ucs4)
 {
     *ret = mk_character_argument(ucs4);
 }
 
-char32_t v_peg_character_argument_get_character(const argument_t *ptr)
+char32_t
+v_peg_character_argument_get_character(const argument_t *ptr)
 {
-    auto &r = dynamic_cast<const character_argument_data_t &>(**ptr);
+    auto &r = static_cast<const character_argument_data_t &>(**ptr);
 
     return r.ucs4;
 }
