@@ -544,6 +544,7 @@
 
     v_ast_accept_visitor(arg_base, visitor);
 
+    typ0 = v_get_result_type();         //- switch argument...
     arg0 = v_get_result_value();        //- switch argument...
 
 
@@ -723,7 +724,7 @@
 
             //- "Normal" case
 
-            v_set_result_type(UNREFERENCE_TAG);             //- ???
+            v_set_result_type(typ0);
 
             base_ast = v_cast(case_arg_i, v_ast_base_ptr);
 

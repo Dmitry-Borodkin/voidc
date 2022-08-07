@@ -292,7 +292,7 @@ voidc_enable_aggregates: () -> void
         v_op_braces = any_braces;
 
     parsers:
-        bracketed =+ '{'_ l:expr_list _'}'      { mk_expr_call(v_op_braces, l) };
+        bracketed =+ '{'_ l:expr_list _ (','_)? '}'     { mk_expr_call(v_op_braces, l) };
     }
 
     v_peg_set_grammar(gr0);
