@@ -77,7 +77,7 @@ base_global_ctx_t::initialize_type(const char *raw_name, v_type_t *type)
 
 
 //---------------------------------------------------------------------
-int base_global_ctx_t::debug_print_module = 0;
+static int debug_print_module = 0;
 
 void
 base_global_ctx_t::verify_module(LLVMModuleRef module)
@@ -812,10 +812,8 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     voidc_global_ctx = this;
 
-    {   decls.symbols_insert({"v_static_type_t", type_type});           //- Sic!
-
-        add_symbol_value("v_static_type_t", static_type_type);          //- Sic!
-    };
+    decls.symbols_insert({"v_static_type_t", type_type});           //- Sic!
+    add_symbol_value("v_static_type_t", static_type_type);          //- Sic!
 
     initialize_type("v_type_t",   type_type);
     initialize_type("v_type_ptr", type_ptr_type);
@@ -996,6 +994,8 @@ voidc_global_ctx_t::static_terminate(void)
 
 
 //---------------------------------------------------------------------
+static bool verify_jit_module_optimized = false;
+
 void
 voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 {
@@ -1009,7 +1009,7 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 
     LLVMRunPassManager(pass_manager, module);
 
-//  verify_module(module);
+    if (verify_jit_module_optimized)  verify_module(module);
 }
 
 
@@ -1646,13 +1646,19 @@ v_set_module(LLVMModuleRef mod)
 void
 v_debug_print_module(int n)
 {
-    base_global_ctx_t::debug_print_module = n;
+    debug_print_module = n;
 }
 
 void
 v_verify_module(LLVMModuleRef module)
 {
     base_global_ctx_t::verify_module(module);
+}
+
+void
+voidc_verify_jit_module_optimized(bool f)
+{
+    verify_jit_module_optimized = f;
 }
 
 void

@@ -122,8 +122,6 @@ public:
     v_type_t * const void_ptr_type;
 
 public:
-    static int debug_print_module;
-
     static void verify_module(LLVMModuleRef module);
 
 public:

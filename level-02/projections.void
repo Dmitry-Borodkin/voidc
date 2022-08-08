@@ -111,19 +111,9 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
     pay = (&obj[2] : v_ast_generic_list_ptr);
 
 
-//    etmp = v_alloca(v_ast_expr_t);
-//    v_initialize(etmp);
-//    defer v_terminate(etmp);
-//
-//    v_list_get_items(pay, 0, (etmp: v_ast_base_ptr));
-
     etmp = (v_list_get_item(pay, 0) : v_ast_expr_ptr);
 
     name = v_ast_expr_identifier_get_name(etmp);
-
-//    alst = v_alloca(v_ast_expr_list_t);
-//    v_initialize(alst);
-//    defer v_terminate(alst);
 
     alst: &v_ast_expr_list_ptr := v_undef();
 

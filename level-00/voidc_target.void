@@ -192,7 +192,12 @@
     ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("v_debug_print_module", ft);
 
-//  v_store(int, typ0);                     //- line
+    v_store(bool, typ0);                    //- ...
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_export_symbol_type("voidc_verify_jit_module_optimized", ft);
+
+    v_store(int, typ0);                     //- line
     v_store(int, typ1);                     //- column
 
     ft = v_function_type(void, typ0, 2, false);
