@@ -901,7 +901,9 @@
 //- ...
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(LLVMModuleRef, 0, 0, false);
+    typ = *v_alloca(v_type_ptr) := void_ptr;
+
+    ft = v_function_type(LLVMModuleRef, &typ, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("check_defn_module", ft);
@@ -983,7 +985,7 @@
 
         //- assert(v_get_module() == 0);
 
-        v_set_module(check_defn_module());
+        v_set_module(check_defn_module(0));
 
         f = v_prepare_function(name, fun_type);
 
@@ -1109,7 +1111,7 @@
     {
         //- assert(v_get_module() == 0);
 
-        module = check_defn_module();
+        module = check_defn_module(0);
 
         v_set_module(module);
 
@@ -1123,10 +1125,16 @@
         t = v_get_result_type();
 
         var_type := v_reference_type(t, a);
+    }
 
-        t_ = v_type_get_llvm_type(t);
+    if (export) v_export_symbol_type(name, var_type);
+    else        v_add_symbol(name, var_type, 0);
 
-        value_g = LLVMAddGlobal(module, t_, name);
+    if (!v_empty(value))
+    {
+        value_g = *v_alloca(LLVMValueRef);
+
+        v_obtain_identifier(name, 0, &value_g);         //- Sic!
 
         if (private)  LLVMSetLinkage(value_g, LLVMPrivateLinkage);
 
@@ -1134,9 +1142,6 @@
 
         v_set_module(0);
     }
-
-    if (export) v_export_symbol_type(name, var_type);
-    else        v_add_symbol(name, var_type, 0);
 
     //-------------------------------------------------------------
     stmt_list = voidc_visitor_get_intrinsic(visitor, "voidc.decl_stmt_list", 0);
@@ -1389,6 +1394,11 @@
 
     defn_module := saved_module;
 
+    saved_obtain_module_ctx = *v_alloca(*void);
+    saved_obtain_module_fun = v_get_obtain_module(&saved_obtain_module_ctx);
+
+    v_set_obtain_module(check_defn_module, 0);
+
     //- Declarations (i.e. "types of things") ---------------------
 
     stmt_list = *v_alloca(v_ast_stmt_list_ptr);
@@ -1540,6 +1550,8 @@
 
 
     //-------------------------------------------------------------
+    v_set_obtain_module(saved_obtain_module_fun, saved_obtain_module_ctx);
+
     v_set_module(saved_module);
 }
 
@@ -1666,6 +1678,19 @@
     export_flag := flag;
 }
 
+//---------------------------------------------------------------------
+//- Get "export_flag"
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(bool, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_get_export_flag", ft);
+}
+{
+    v_return(export_flag);
+}
+
 
 //---------------------------------------------------------------------
 //- v_undef intrinsic
@@ -1754,6 +1779,10 @@
     ft = v_function_type(void, &typ, 1, false);
 
     v_add_symbol("v_set_export_flag", ft, 0);
+
+    ft = v_function_type(bool, 0, 0, false);
+
+    v_add_symbol("v_get_export_flag", ft, 0);
 }
 
 

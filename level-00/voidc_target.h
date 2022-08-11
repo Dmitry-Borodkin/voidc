@@ -29,6 +29,8 @@ class base_local_ctx_t;
 
 extern "C" typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
 
+extern "C" typedef LLVMModuleRef (*obtain_module_t)(void *ctx);
+
 
 //---------------------------------------------------------------------
 //- Base Compilation Context
@@ -183,6 +185,9 @@ public:
 
 public:
     LLVMModuleRef module = nullptr;
+
+    obtain_module_t obtain_module_fun = nullptr;
+    void           *obtain_module_ctx = nullptr;
 
     bool obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value);
 

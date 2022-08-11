@@ -312,13 +312,13 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             t0 := v_type_function_get_return_type(ft);
         }
+    }
 
-        if (v_type_is_reference(t0))
-        {
-            t0 := v_type_refptr_get_element_type(t0);
+    if (v_type_is_reference(t0))
+    {
+        t0 := v_type_refptr_get_element_type(t0);
 
-            v0 := LLVMBuildLoad2(builder, v_type_get_llvm_type(t0), v0, "");
-        }
+        v0 := LLVMBuildLoad2(builder, v_type_get_llvm_type(t0), v0, "");
     }
 
     {   e = v_type_refptr_get_element_type(t0);

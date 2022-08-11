@@ -393,6 +393,15 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
 
             if (!t)  return false;
 
+            if (!module)
+            {
+                if (!obtain_module_fun)  return false;
+
+                module = obtain_module_fun(obtain_module_ctx);
+
+                if (!module)  return false;
+            }
+
             if (auto *ft = dynamic_cast<v_type_function_t *>(t))
             {
                 v = LLVMGetNamedFunction(module, cname);
@@ -1931,6 +1940,49 @@ void
 voidc_unit_load_module_to_jit(LLVMModuleRef module)
 {
     load_module_helper(module, false);
+}
+
+
+//---------------------------------------------------------------------
+obtain_module_t
+v_get_obtain_module(void **pctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (pctx) *pctx = lctx.obtain_module_ctx;
+
+    return lctx.obtain_module_fun;
+}
+
+void
+v_set_obtain_module(obtain_module_t fun, void *ctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.obtain_module_fun = fun;
+    lctx.obtain_module_ctx = ctx;
+}
+
+bool
+v_obtain_identifier(const char *name, v_type_t * *type, LLVMValueRef *value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    v_type_t    *t;
+    LLVMValueRef v;
+
+    bool ok = lctx.obtain_identifier(name, t, v);
+
+    if (ok)
+    {
+        if (type)   *type  = t;
+        if (value)  *value = v;
+    }
+
+    return  ok;
 }
 
 

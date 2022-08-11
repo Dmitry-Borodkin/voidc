@@ -226,6 +226,8 @@ check_import_state(const fs::path &src_filename)
 
     bool use_binary = true;
 
+    fs::file_time_type bin_time;
+
     //- First, check bin_filename itself
 
     if (!fs::exists(bin_filename))
@@ -234,10 +236,10 @@ check_import_state(const fs::path &src_filename)
     }
     else
     {
-        auto st = fs::last_write_time(src_filename);
-        auto bt = fs::last_write_time(bin_filename);
+        auto st  = fs::last_write_time(src_filename);
+        bin_time = fs::last_write_time(bin_filename);
 
-        if (st > bt)  use_binary = false;
+        if (st > bin_time)  use_binary = false;
     }
 
     if (!use_binary)
@@ -306,6 +308,17 @@ check_import_state(const fs::path &src_filename)
         }
 
         use_binary = check_import_state(imp_filename);
+
+        if (use_binary)
+        {
+            fs::path bin_impfile = imp_filename;
+
+            bin_impfile += "c";
+
+            auto bt = fs::last_write_time(bin_impfile);
+
+            if (bt > bin_time)  use_binary = false;
+        }
     }
 
     std::fclose(infs);
