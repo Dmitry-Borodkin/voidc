@@ -314,6 +314,8 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         }
     }
 
+    //- Default treatment...
+
     if (v_type_is_reference(t0))
     {
         t0 := v_type_refptr_get_element_type(t0);
@@ -326,9 +328,6 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         t0 := v_reference_type(e, a);
     }
-
-
-    //- Default treatment...
 
     v_set_result_type(tt);
 

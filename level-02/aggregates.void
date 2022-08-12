@@ -49,6 +49,16 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
 
     t: &v_type_ptr := v_get_result_type();
 
+    is_reference = v_type_is_reference(t);
+
+    addr_sp: &unsigned := v_undef();
+
+    if (is_reference)
+    {
+        addr_sp := v_type_refptr_get_address_space(t);      //- Sic!
+        t       := v_type_refptr_get_element_type(t);       //- Sic!
+    }
+
     block
     {
         if (!v_type_is_struct(t))  v_break();
@@ -112,8 +122,17 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
         }
     }
 
-    v_set_result_type(t);
-    v_set_result_value(v);
+    if (is_reference)
+    {
+        v_set_result_type(v_reference_type(t, addr_sp));
+
+        v_adopt_result(t, v);
+    }
+    else
+    {
+        v_set_result_type(t);
+        v_set_result_value(v);
+    }
 }
 
 

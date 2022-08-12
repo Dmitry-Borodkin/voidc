@@ -661,7 +661,11 @@
 
     base_cond = v_cast(condition, v_ast_base_ptr);
 
+    v_push_temporaries();
+
     v_ast_accept_visitor(base_cond, visitor);
+
+    v_pop_temporaries();
 
     cond_a = v_get_result_value();
 

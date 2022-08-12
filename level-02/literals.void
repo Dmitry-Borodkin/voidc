@@ -30,12 +30,19 @@ v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
 
     t_str = v_ast_expr_string_get_string(arg1);         //- Suffix string
 
-    t: &v_type_ptr := v_undef();
+    tt = v_get_result_type();
+
+    t: &v_type_ptr := tt;
+
+    is_reference: &bool := false;
+
+    if (t != INVIOLABLE_TAG  &&  t != UNREFERENCE_TAG  &&  (is_reference := v_type_is_reference(t)))
+    {
+        t := v_type_refptr_get_element_type(t);         //- Sic!
+    }
 
     if (t_str[0] == 0)      //- Empty suffix
     {
-        t := v_get_result_type();
-
         if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
         {
             t := v_find_type("int");
@@ -107,6 +114,8 @@ v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
     }
 
     v = LLVMConstIntOfString(v_type_get_llvm_type(t), v_std_string_get(dst), radix);
+
+    v_set_result_type(tt);
 
     v_adopt_result(t, v);
 }

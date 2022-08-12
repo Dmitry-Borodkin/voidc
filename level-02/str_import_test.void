@@ -1,0 +1,68 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("unit_module.void");
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+    v_import("projections.void");
+    v_import("structures.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+    voidc_enable_projections();
+    voidc_enable_structures();
+}
+
+//=====================================================================
+{   voidc_unit_begin_module("str_import_test_module"); }
+
+
+//---------------------------------------------------------------------
+double = float(64);
+
+{   sqrt: (double) -> double;
+
+    phi = (1 + sqrt(5)) / 2;
+
+    v_add_constant("PHI", double, LLVMConstReal(v_type_get_llvm_type(double), phi));
+
+    pi = 3.14159265358979323846264338327950288419716939937510582;
+
+    v_add_constant("M_PI", double, LLVMConstReal(v_type_get_llvm_type(double), pi));
+}
+
+
+//---------------------------------------------------------------------
+{ v_set_export_flag(true); }
+
+//---------------------------------------------------------------------
+struct asdfg_t
+{
+    d: double;
+
+    p: *asdfg_t;
+};
+
+
+a: &asdfg_t;
+
+b: &asdfg_t := { M_PI, &a };
+
+a: &asdfg_t := { PHI, &b };
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

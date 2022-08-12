@@ -542,7 +542,11 @@
 
     arg_base = v_cast(arg, v_ast_base_ptr);
 
+    v_push_temporaries();
+
     v_ast_accept_visitor(arg_base, visitor);
+
+    v_pop_temporaries();
 
     typ0 = v_get_result_type();         //- switch argument...
     arg0 = v_get_result_value();        //- switch argument...
