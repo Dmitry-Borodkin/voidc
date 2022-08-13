@@ -1284,7 +1284,9 @@
 
     if (t != v_static_type_t)
     {
-        //- assert(v_type_is_integer(t));       //- Sic!    ?!?!?!?!?!?!?!?!?
+        //- assert(v_type_is_integer(t));
+        //-
+        //- assert(v_type_integer_get_width(t) <= v_type_integer_get_width(intptr_t));
 
         cv = *v_alloca(intptr_t);
 
@@ -1409,6 +1411,8 @@
     v_initialize(inner_visitor);
     defer v_terminate(inner_visitor);
 
+    v_copy(inner_visitor, visitor);
+
 
     if (v_target_local_ctx_has_parent())
     {
@@ -1418,15 +1422,13 @@
 
         v_make_list_nil(decl_stmt_list);
 
-        voidc_visitor_set_intrinsic(inner_visitor, visitor, "voidc.decl_stmt_list", decl_stmt_list, 0);
+        voidc_visitor_set_intrinsic(inner_visitor, inner_visitor, "voidc.decl_stmt_list", decl_stmt_list, 0);
 
         stmt_list := decl_stmt_list;
     }
     else
     {
         //- We'll do "direct declaration" ...
-
-        v_copy(inner_visitor, visitor);
 
         stmt_list := 0;
     }
@@ -1496,10 +1498,12 @@
         voidc_compile_type_ctx_set_stack(ctx, ctx_stack);
 
 
-        voidc_visitor_set_intrinsic(inner_visitor, visitor, "voidc.compile_type", voidc_compile_type_intrinsic, &ctx);
+        vis = inner_visitor;
+
+        voidc_visitor_set_intrinsic(vis, vis, "voidc.compile_type", voidc_compile_type_intrinsic, &ctx);
 
 
-        v_ast_accept_visitor(v_cast(stmt_list, v_ast_base_ptr), inner_visitor);
+        v_ast_accept_visitor(v_cast(stmt_list, v_ast_base_ptr), vis);
 
 
         LLVMBuildFree(builder, ctx_stack);

@@ -429,7 +429,7 @@
 
             {   r = dict_find(&ctx[stk_dict], type);
 
-                if (r)  v_return(r);
+                if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
             }
 
             n = v_type_function_get_param_count(type);
@@ -454,7 +454,7 @@
 
                 {   r = dict_find(&ctx[stk_dict], type);
 
-                    if (r)  v_return(r);
+                    if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
                 }
 
                 val[1] := ctx[stk_stack];
@@ -553,11 +553,6 @@
                         a_v[i] := voidc_compile_type(a_t[i], ctx);
 
                         ++i;
-                    }
-
-                    {   r = dict_find(&ctx[stk_dict], type);
-
-                        if (r)  v_return(r);
                     }
 
                     elts_v := ctx[stk_stack];

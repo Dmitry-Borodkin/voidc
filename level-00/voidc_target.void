@@ -94,6 +94,10 @@
     opaque_membuf_t = v_struct_type_named("struct.LLVMOpaqueMemoryBuffer");
     membuf_ref = v_pointer_type(opaque_membuf_t, 0);
     v_export_type("LLVMMemoryBufferRef", membuf_ref);
+
+    opaque_layout_t = v_struct_type_named("struct.LLVMOpaqueTargetData");
+    layout_ref = v_pointer_type(opaque_layout_t, 0);
+    v_export_type("LLVMTargetDataRef", layout_ref);
 }
 
 {   typ0 = v_alloca(v_type_ptr, 4);
@@ -419,6 +423,15 @@
     ft = v_function_type(LLVMBuilderRef, 0, 0, false);
     v_export_symbol_type("v_target_get_voidc_builder", ft);
     v_export_symbol_type("v_target_get_builder", ft);
+
+    ft = v_function_type(LLVMTargetDataRef, 0, 0, false);
+    v_export_symbol_type("v_target_get_voidc_data_layout", ft);
+    v_export_symbol_type("v_target_get_data_layout", ft);
+
+    v_store(LLVMTargetDataRef, typ0);               //-
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_export_symbol_type("v_target_set_data_layout", ft);
 
     ft = v_function_type(bool, 0, 0, false);
     v_export_symbol_type("v_target_local_ctx_has_parent", ft);

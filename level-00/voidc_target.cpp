@@ -851,9 +851,7 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
 #ifdef _WIN32
 
-    decls.constants_insert({"_WIN32", bool_type});
-
-    constant_values.insert({"_WIN32", LLVMConstInt(bool_type->llvm_type(), true, false)});      //- ?
+    decls.constants_insert({"_WIN32", void_type});          //- Sic!!!
 
 #endif
 }
@@ -861,7 +859,6 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
 //---------------------------------------------------------------------
 static char *voidc_triple = nullptr;
-static LLVMTargetDataRef voidc_target_data_layout = nullptr;
 
 //---------------------------------------------------------------------
 void
@@ -883,6 +880,13 @@ voidc_global_ctx_t::static_initialize(void)
 
         LLVMOrcJITDylibAddGenerator(main_jd, gen);
     }
+
+    //-------------------------------------------------------------
+    target = new voidc_global_ctx_t();      //- Sic!
+
+    voidc_types_static_initialize();        //- Sic!
+
+    static_cast<voidc_global_ctx_t *>(target)->initialize();    //- Sic!
 
     //-------------------------------------------------------------
     {   char *triple = LLVMGetDefaultTargetTriple();
@@ -924,8 +928,8 @@ voidc_global_ctx_t::static_initialize(void)
         LLVMDisposeMessage(triple);
     }
 
-    voidc_target_data_layout = LLVMCreateTargetDataLayout(target_machine);
-    voidc_triple             = LLVMGetTargetMachineTriple(target_machine);
+    voidc->data_layout = LLVMCreateTargetDataLayout(target_machine);
+    voidc_triple       = LLVMGetTargetMachineTriple(target_machine);
 
     //-------------------------------------------------------------
     pass_manager = LLVMCreatePassManager();
@@ -941,13 +945,6 @@ voidc_global_ctx_t::static_initialize(void)
     }
 
     LLVMAddAlwaysInlinerPass(pass_manager);
-
-    //-------------------------------------------------------------
-    target = new voidc_global_ctx_t();      //- Sic!
-
-    voidc_types_static_initialize();        //- Sic!
-
-    static_cast<voidc_global_ctx_t *>(target)->initialize();    //- Sic!
 
     //-------------------------------------------------------------
 #define DEF(name) \
@@ -992,7 +989,7 @@ voidc_global_ctx_t::static_terminate(void)
     LLVMDisposePassManager(pass_manager);
 
     LLVMDisposeMessage(voidc_triple);
-    LLVMDisposeTargetData(voidc_target_data_layout);
+    LLVMDisposeTargetData(voidc->data_layout);
 
     LLVMOrcDisposeLLJIT(jit);
 
@@ -1013,7 +1010,7 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
     verify_module(module);
 
     //-------------------------------------------------------------
-    LLVMSetModuleDataLayout(module, voidc_target_data_layout);
+    LLVMSetModuleDataLayout(module, voidc->data_layout);
     LLVMSetTarget(module, voidc_triple);
 
     LLVMRunPassManager(pass_manager, module);
@@ -2342,6 +2339,26 @@ LLVMBuilderRef
 v_target_get_builder(void)
 {
     return voidc_global_ctx_t::target->builder;
+}
+
+
+//---------------------------------------------------------------------
+LLVMTargetDataRef
+v_target_get_voidc_data_layout(void)
+{
+    return voidc_global_ctx_t::voidc->data_layout;
+}
+
+LLVMTargetDataRef
+v_target_get_data_layout(void)
+{
+    return voidc_global_ctx_t::target->data_layout;
+}
+
+void
+v_target_set_data_layout(LLVMTargetDataRef layout)
+{
+    voidc_global_ctx_t::target->data_layout = layout;
 }
 
 

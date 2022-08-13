@@ -115,7 +115,9 @@ public:
     std::map<std::string, declarations_t> imported;
 
 public:
-    LLVMBuilderRef builder;         //- Sic !?!
+    LLVMBuilderRef builder;
+
+    LLVMTargetDataRef data_layout = nullptr;
 
 public:
     void initialize_type(const char *raw_name, v_type_t *type);
