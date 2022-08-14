@@ -35,16 +35,17 @@ double = float(64);
 
     phi = (1 + sqrt(5)) / 2;
 
-    v_add_constant("PHI", double, LLVMConstReal(v_type_get_llvm_type(double), phi));
-
-    pi = 3.14159265358979323846264338327950288419716939937510582;
-
-    v_add_constant("M_PI", double, LLVMConstReal(v_type_get_llvm_type(double), pi));
+    v_add_constant("phi", double, LLVMConstReal(v_type_get_llvm_type(double), phi));
 }
 
 
 //---------------------------------------------------------------------
 { v_set_export_flag(true); }
+
+M_PI = 3.14159265358979323846264338327950288419716939937510582;
+
+PHI = phi;
+
 
 //---------------------------------------------------------------------
 struct asdfg_t

@@ -54,6 +54,9 @@
     ft = v_function_type(int, typ, 2, false);
     v_add_symbol("strcmp", ft, 0);
 
+    ft = v_function_type(int, typ, 2, true);
+    v_add_symbol("sprintf", ft, 0);
+
 //  typ[0] := char_ptr;
 
     ft = v_function_type(void, typ, 1, false);
@@ -1284,25 +1287,6 @@
 
     if (t != v_static_type_t)
     {
-        //- assert(v_type_is_integer(t));
-        //-
-        //- assert(v_type_integer_get_width(t) <= v_type_integer_get_width(intptr_t));
-
-        cv = *v_alloca(intptr_t);
-
-        if (v_type_integer_is_signed(t))
-        {
-            llv = LLVMConstIntGetSExtValue(v);
-
-            cv := v_cast(llv, intptr_t);
-        }
-        else
-        {
-            ullv = LLVMConstIntGetZExtValue(v);
-
-            cv := v_cast(ullv, intptr_t);
-        }
-
         v_make_list(elst, expr+1, 1);
 
         v_ast_make_expr_identifier(expr+0, "v_type_get_llvm_type");
@@ -1311,15 +1295,55 @@
 
         v_make_list(elst, expr+0, 1);
 
-        v_ast_make_expr_integer(expr+0, cv);
+        if (v_type_is_integer(t))
+        {
+            //- assert(v_type_integer_get_width(t) <= v_type_integer_get_width(intptr_t));
 
-        v_list_append(elst, elst, expr+0, 1);
+            cv = *v_alloca(intptr_t);
 
-        v_ast_make_expr_identifier(expr+0, "true");
+            if (v_type_integer_is_signed(t))
+            {
+                llv = LLVMConstIntGetSExtValue(v);
 
-        v_list_append(elst, elst, expr+0, 1);
+                cv := v_cast(llv, intptr_t);
+            }
+            else
+            {
+                ullv = LLVMConstIntGetZExtValue(v);
 
-        v_ast_make_expr_identifier(expr+0, "LLVMConstInt");
+                cv := v_cast(ullv, intptr_t);
+            }
+
+            v_ast_make_expr_integer(expr+0, cv);
+
+            v_list_append(elst, elst, expr+0, 1);
+
+            v_ast_make_expr_identifier(expr+0, "true");
+
+            v_list_append(elst, elst, expr+0, 1);
+
+            v_ast_make_expr_identifier(expr+0, "LLVMConstInt");
+        }
+        else if (v_type_is_floating_point(t))
+        {
+            fl = *v_alloca(LLVMBool);
+
+            cv = LLVMConstRealGetDouble(v, &fl);
+
+            str = v_alloca(char, 32);
+
+            sprintf(str, "%a", cv);
+
+            v_ast_make_expr_string(expr+0, str);
+
+            v_list_append(elst, elst, expr+0, 1);
+
+            v_ast_make_expr_identifier(expr+0, "LLVMConstRealOfString");
+        }
+        else    //- ?!?!?!?!?!?!?!?!?!?
+        {
+            v_ast_make_expr_identifier(expr+0, "<constant type not supported>");
+        }
 
         v_ast_make_expr_call(expr+2, expr+0, elst);
     }
