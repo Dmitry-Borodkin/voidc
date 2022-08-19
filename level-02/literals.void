@@ -23,8 +23,10 @@
 
 //---------------------------------------------------------------------
 v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
-                              args: v_ast_expr_list_ptr) -> void
+                              self: v_ast_base_ptr) -> void
 {
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     arg0 = v_list_get_item(args, 0);
     arg1 = v_list_get_item(args, 1);
 
@@ -123,8 +125,10 @@ v_literal_integer_intrinsic: (vis: voidc_visitor_ptr, *void,
 
 //---------------------------------------------------------------------
 v_literal_real_intrinsic: (vis: voidc_visitor_ptr, *void,
-                           args: v_ast_expr_list_ptr) -> void
+                           self: v_ast_base_ptr) -> void
 {
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     arg0 = v_list_get_item(args, 0);
     arg1 = v_list_get_item(args, 1);
 

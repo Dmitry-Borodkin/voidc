@@ -321,15 +321,16 @@
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    visitor_ptr   = v_pointer_type(voidc_visitor_t, 0);
-    expr_list_ptr = v_pointer_type(v_ast_expr_list_t, 0);
+    visitor_ptr = v_pointer_type(voidc_visitor_t, 0);
+    base_ptr    = v_pointer_type(v_ast_base_t, 0);
 
-    v_store(visitor_ptr,   typ0);           //- visitor
-    v_store(void_ptr,      typ1);           //- aux
-    v_store(expr_list_ptr, typ2);           //- args (AST)
+    v_store(visitor_ptr, typ0);             //- visitor
+    v_store(void_ptr,    typ1);             //- aux
+    v_store(base_ptr,    typ2);             //- self (AST)
 
     intrinsic_t = v_function_type(void, typ0, 3, false);
     v_export_type("voidc_intrinsic_t", intrinsic_t);
+    v_export_type("voidc_visitor_method_t", intrinsic_t);       //- Sic!?!
 
     v_store(char_ptr,      typ0);           //- Intrinsic name
     v_store(void_ptr,      typ1);           //- Intrinsic function
@@ -366,6 +367,7 @@
 
     v_export_symbol_type("v_add_cleaner", ft);
     v_export_symbol_type("v_add_local_cleaner", ft);
+    v_export_symbol_type("v_add_temporary_cleaner", ft);
 }
 
 

@@ -14,27 +14,26 @@
 visitor_t voidc_compiler;
 
 
+
 //=====================================================================
 //- AST Visitor - Compiler (level 0) ...
 //=====================================================================
 static
-void compile_stmt_list(const visitor_t *vis, void *,
-                       const ast_stmt_list_t *list)
+void compile_stmt_list(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    for (auto &it : (*list)->data)
+    auto list = std::dynamic_pointer_cast<const ast_stmt_list_data_t>(*self);
+    assert(list);
+
+    for (auto &it : list->data)
     {
-        it->accept(*vis);
+        (*vis)->visit(it);
     }
 }
 
 static
-void compile_expr_list(const visitor_t *vis, void *,
-                       const ast_expr_list_t *list)
+void compile_expr_list(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    for (auto &it : (*list)->data)
-    {
-        it->accept(*vis);
-    }
+    assert(false);      //- Sic!!!
 }
 
 
@@ -42,10 +41,12 @@ void compile_expr_list(const visitor_t *vis, void *,
 //- unit
 //---------------------------------------------------------------------
 static
-void compile_unit(const visitor_t *vis, void *,
-                  const ast_stmt_list_t *stmt_list, int line, int column)
+void compile_unit(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    if (!*stmt_list)  return;
+    auto unit = std::dynamic_pointer_cast<const ast_unit_data_t>(*self);
+    assert(unit);
+
+    if (!unit->stmt_list)  return;
 
     auto saved_target = voidc_global_ctx_t::target;
 
@@ -56,9 +57,9 @@ void compile_unit(const visitor_t *vis, void *,
 
     auto saved_module = lctx.module;
 
-    lctx.prepare_unit_action(line, column);
+    lctx.prepare_unit_action(unit->line, unit->column);
 
-    (*stmt_list)->accept(*vis);
+    (*vis)->visit(unit->stmt_list);
 
     lctx.finish_unit_action();
 
@@ -72,10 +73,12 @@ void compile_unit(const visitor_t *vis, void *,
 //- stmt
 //---------------------------------------------------------------------
 static
-void compile_stmt(const visitor_t *vis, void *,
-                  const std::string *vname, const ast_expr_t *expr)
+void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    if (!*expr) return;
+    auto stmt = std::dynamic_pointer_cast<const ast_stmt_data_t>(*self);
+    assert(stmt);
+
+    if (!stmt->expr) return;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -84,11 +87,11 @@ void compile_stmt(const visitor_t *vis, void *,
 
     lctx.push_temporaries();
 
-    (*expr)->accept(*vis);
+    (*vis)->visit(stmt->expr);
 
     lctx.pop_temporaries();
 
-    auto const &ret_name = vname->c_str();
+    auto const &ret_name = stmt->name.c_str();
 
     if (ret_name[0])
     {
@@ -100,11 +103,11 @@ void compile_stmt(const visitor_t *vis, void *,
 
             if (len == 0)
             {
-                LLVMSetValueName2(lctx.result_value, ret_name, vname->size());
+                LLVMSetValueName2(lctx.result_value, ret_name, stmt->name.size());
             }
         }
 
-        lctx.vars = lctx.vars.set(*vname, {lctx.result_type, lctx.result_value});
+        lctx.vars = lctx.vars.set(stmt->name, {lctx.result_type, lctx.result_value});
     }
 }
 
@@ -113,18 +116,18 @@ void compile_stmt(const visitor_t *vis, void *,
 //- expr_call
 //---------------------------------------------------------------------
 static
-void compile_expr_call(const visitor_t *vis, void *,
-                       const ast_expr_t      *fexpr,
-                       const ast_expr_list_t *args)
+void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
-
 
     void *void_fun = nullptr;
     void *void_aux;
 
-    if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(*fexpr))
+    if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(call->fun_expr))
     {
         auto &fun_name = fname->name;
 
@@ -142,9 +145,9 @@ void compile_expr_call(const visitor_t *vis, void *,
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        typedef void (*intrinsic_t)(const visitor_t *vis, void *aux, const ast_expr_list_t *args);
+        typedef void (*intrinsic_t)(const visitor_t *vis, void *aux, const ast_base_t *self);
 
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, void_aux, args);
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, void_aux, self);
 
         return;
     }
@@ -155,7 +158,7 @@ void compile_expr_call(const visitor_t *vis, void *,
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*fexpr)->accept(*vis);
+    (*vis)->visit(call->fun_expr);
 
     v_type_t    *t = lctx.result_type;
     LLVMValueRef f = lctx.result_value;
@@ -171,7 +174,8 @@ void compile_expr_call(const visitor_t *vis, void *,
     auto par_count = ft->param_count();
     auto par_types = ft->param_types();
 
-    auto arg_count = (*args)->data.size();
+    auto &args_data = call->arg_list->data;
+    auto  arg_count = args_data.size();
 
 
     auto values = std::make_unique<LLVMValueRef[]>(arg_count);      //- TODO(?)
@@ -181,7 +185,7 @@ void compile_expr_call(const visitor_t *vis, void *,
         if (i < par_count)  lctx.result_type = par_types[i];
         else                lctx.result_type = UNREFERENCE_TAG;
 
-        (*args)->data[i]->accept(*vis);
+        (*vis)->visit(args_data[i]);
 
         values[i] = lctx.result_value;
     }
@@ -199,25 +203,29 @@ void compile_expr_call(const visitor_t *vis, void *,
 //- expr_identifier
 //---------------------------------------------------------------------
 static
-void compile_expr_identifier(const visitor_t *vis, void *,
-                             const std::string *name)
+void compile_expr_identifier(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto ident = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(*self);
+    assert(ident);
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     LLVMValueRef v = nullptr;
     v_type_t    *t = nullptr;
 
-    if (!lctx.obtain_identifier(*name, t, v))
+    auto &name = ident->name;
+
+    if (!lctx.obtain_identifier(name, t, v))
     {
-        throw std::runtime_error("Identifier not found: " + *name);
+        throw std::runtime_error("Identifier not found: " + name);
     }
 
     auto &vctx = *voidc_global_ctx_t::voidc;
 
     if (t == vctx.static_type_type  &&  lctx.result_type == vctx.type_ptr_type)
     {
-        auto raw_name = lctx.check_alias(*name);
+        auto raw_name = lctx.check_alias(name);
 
         auto cname = raw_name.c_str();
 
@@ -240,15 +248,19 @@ void compile_expr_identifier(const visitor_t *vis, void *,
 //- expr_integer
 //---------------------------------------------------------------------
 static
-void compile_expr_integer(const visitor_t *vis, void *,
-                          intptr_t num)
+void compile_expr_integer(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto pnum = std::dynamic_pointer_cast<const ast_expr_integer_data_t>(*self);
+    assert(pnum);
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     auto t = lctx.result_type;
 
     LLVMValueRef v;
+
+    auto num = pnum->number;
 
     if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
     {
@@ -291,16 +303,19 @@ void compile_expr_integer(const visitor_t *vis, void *,
 //- expr_string
 //---------------------------------------------------------------------
 static
-void compile_expr_string(const visitor_t *vis, void *,
-                         const std::string *str)
+void compile_expr_string(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto pstr = std::dynamic_pointer_cast<const ast_expr_string_data_t>(*self);
+    assert(pstr);
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
+    auto &str = pstr->string;
 
-    auto len = str->size();
+    auto len = str.size();
 
-    auto val = LLVMConstStringInContext(gctx.llvm_ctx, str->c_str(), unsigned(len), 0);
+    auto val = LLVMConstStringInContext(gctx.llvm_ctx, str.c_str(), unsigned(len), 0);
 
     auto typ = gctx.make_array_type(gctx.char_type, len+1);
 
@@ -312,15 +327,17 @@ void compile_expr_string(const visitor_t *vis, void *,
 //- expr_char
 //---------------------------------------------------------------------
 static
-void compile_expr_char(const visitor_t *vis, void *,
-                       char32_t c)
+void compile_expr_char(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto pchr = std::dynamic_pointer_cast<const ast_expr_char_data_t>(*self);
+    assert(pchr);
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     auto t = gctx.char32_t_type;
 
-    auto v = LLVMConstInt(t->llvm_type(), c, false);
+    auto v = LLVMConstInt(t->llvm_type(), pchr->char_, false);
 
     lctx.adopt_result(t, v);
 }
@@ -330,8 +347,13 @@ void compile_expr_char(const visitor_t *vis, void *,
 //- Intrinsics (true)
 //=====================================================================
 static void
-v_alloca(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_alloca(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
@@ -339,7 +361,7 @@ v_alloca(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[0]->accept(*vis);             //- Element type
+    (*vis)->visit(args->data[0]);               //- Element type
 
     assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
 
@@ -349,7 +371,7 @@ v_alloca(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
     LLVMValueRef v;
 
-    if ((*args)->data.size() == 1)              //- Just one
+    if (args->data.size() == 1)                 //- Just one
     {
         v = LLVMBuildAlloca(gctx.builder, llvm_type, "");
     }
@@ -357,7 +379,7 @@ v_alloca(const visitor_t *vis, void *, const ast_expr_list_t *args)
     {
         lctx.result_type = UNREFERENCE_TAG;
 
-        (*args)->data[1]->accept(*vis);             //- Array size
+        (*vis)->visit(args->data[1]);               //- Array size
 
         v = LLVMBuildArrayAlloca(gctx.builder, llvm_type, lctx.result_value, "");
     }
@@ -371,14 +393,19 @@ v_alloca(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_getelementptr(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     auto tt = lctx.result_type;
 
-    auto arg_count = (*args)->data.size();
+    auto arg_count = args->data.size();
 
     auto types  = std::make_unique<v_type_t *[]>(arg_count);
     auto values = std::make_unique<LLVMValueRef[]>(arg_count);
@@ -387,7 +414,7 @@ v_getelementptr(const visitor_t *vis, void *, const ast_expr_list_t *args)
     {
         lctx.result_type = UNREFERENCE_TAG;
 
-        (*args)->data[i]->accept(*vis);
+        (*vis)->visit(args->data[i]);
 
         types[i]  = lctx.result_type;
         values[i] = lctx.result_value;
@@ -451,28 +478,38 @@ v_getelementptr(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_store(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_store(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*args)->data[1]->accept(*vis);             //- "Place"
+    (*vis)->visit(args->data[1]);               //- "Place"
 
     auto place = lctx.result_value;
 
     lctx.result_type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
-    (*args)->data[0]->accept(*vis);             //- "Value"
+    (*vis)->visit(args->data[0]);               //- "Value"
 
     LLVMBuildStore(gctx.builder, lctx.result_value, place);
 }
 
 //---------------------------------------------------------------------
 static void
-v_load(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_load(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
@@ -480,7 +517,7 @@ v_load(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*args)->data[0]->accept(*vis);
+    (*vis)->visit(args->data[0]);
 
     auto t = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
@@ -493,8 +530,13 @@ v_load(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_cast(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_cast(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
@@ -502,7 +544,7 @@ v_cast(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[0]->accept(*vis);             //- Value
+    (*vis)->visit(args->data[0]);               //- Value
 
     auto src_value = lctx.result_value;
 
@@ -510,7 +552,7 @@ v_cast(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[1]->accept(*vis);             //- Type
+    (*vis)->visit(args->data[1]);               //- Type
 
     assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
 
@@ -669,8 +711,13 @@ v_cast(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_pointer(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_pointer(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
@@ -678,7 +725,7 @@ v_pointer(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[0]->accept(*vis);
+    (*vis)->visit(args->data[0]);
 
     auto t = lctx.result_type;
     auto v = lctx.result_value;
@@ -716,8 +763,13 @@ v_pointer(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_reference(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_reference(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
@@ -725,7 +777,7 @@ v_reference(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*args)->data[0]->accept(*vis);
+    (*vis)->visit(args->data[0]);
 
     auto pt = static_cast<v_type_pointer_t *>(lctx.result_type);
 
@@ -739,8 +791,13 @@ v_reference(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
 //---------------------------------------------------------------------
 static void
-v_assign(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_assign(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
@@ -748,14 +805,14 @@ v_assign(const visitor_t *vis, void *, const ast_expr_list_t *args)
 
     lctx.result_type = INVIOLABLE_TAG;
 
-    (*args)->data[0]->accept(*vis);             //- "Place"
+    (*vis)->visit(args->data[0]);               //- "Place"
 
     auto type  = lctx.result_type;
     auto place = lctx.result_value;
 
     lctx.result_type = static_cast<v_type_reference_t *>(type)->element_type();
 
-    (*args)->data[1]->accept(*vis);             //- "Value"
+    (*vis)->visit(args->data[1]);               //- "Value"
 
     LLVMBuildStore(gctx.builder, lctx.result_value, place);
 

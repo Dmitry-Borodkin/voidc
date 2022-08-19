@@ -37,9 +37,13 @@
 //- v_malloc
 //---------------------------------------------------------------------
 //- voidc_memory_malloc_intrinsic: (visitor: voidc_visitor_t, aux: void_ptr,
-//-                                 arg_list: v_ast_expr_list_ptr
+//-                                 self: v_ast_base_ptr
 //-                                ) -> void
 //- {
+//-     call = v_cast(self, v_ast_expr_ptr);
+//-
+//-     arg_list = v_ast_expr_call_get_arg_list(call);
+//-
 //-     args_count = v_list_get_size(arg_list);
 //-
 //-     num_var = v_alloca(LLVMValueRef);
@@ -76,9 +80,9 @@
     //-----------------------------------------------------------------
     malloc_f = v_function_hack("voidc_memory_malloc_intrinsic", voidc_intrinsic_t);
 
-    visitor  = v_add_parameter_name(malloc_f, 0, "visitor",  voidc_visitor_ptr);
-    aux      = v_add_parameter_name(malloc_f, 1, "aux",      void_ptr);
-    arg_list = v_add_parameter_name(malloc_f, 2, "arg_list", v_ast_expr_list_ptr);
+    visitor = v_add_parameter_name(malloc_f, 0, "visitor", voidc_visitor_ptr);
+    aux     = v_add_parameter_name(malloc_f, 1, "aux",     void_ptr);
+    self    = v_add_parameter_name(malloc_f, 2, "self",    v_ast_base_ptr);
 
 
     val0 = v_alloca(LLVMValueRef, 4);
@@ -92,6 +96,18 @@
 
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
+
+
+    v_ast_expr_ptr_ = v_type_get_llvm_type(v_ast_expr_ptr);
+
+    call = LLVMBuildBitCast(builder, self, v_ast_expr_ptr_, "call");
+
+    v_store(call, val0);
+
+    get_arg_list_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_expr_call_get_arg_list"));
+    get_arg_list_f   = v_obtain_function("v_ast_expr_call_get_arg_list");
+
+    arg_list = LLVMBuildCall2(builder, get_arg_list_ft_, get_arg_list_f, val0, 1, "arg_list");
 
 
     v_store(arg_list, val0);
@@ -201,9 +217,10 @@
 
     num_var_t = v_pointer_type(LLVMValueRef, 0);
 
-    v_add_variable("args_count", int,        args_count_v);
-    v_add_variable("num_var",    num_var_t,  num_v);
-    v_add_variable("tt",         v_type_ptr, tt_v);
+    v_add_variable("arg_list",   v_ast_expr_list_ptr, arg_list);
+    v_add_variable("args_count", int,                 args_count_v);
+    v_add_variable("num_var",    num_var_t,           num_v);
+    v_add_variable("tt",         v_type_ptr,          tt_v);
 }
 {
     number = v_load(num_var);
@@ -238,11 +255,15 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_memory_free_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
+
     builder = v_target_get_builder();
 
     v_set_result_type(UNREFERENCE_TAG);

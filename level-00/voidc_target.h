@@ -84,6 +84,8 @@ public:
     }
 
 public:
+    using cleaners_t = std::forward_list<std::pair<void (*)(void *), void *>>;
+
     void add_cleaner(void (*fun)(void *data), void *data)
     {
         cleaners.push_front({fun, data});
@@ -98,7 +100,7 @@ protected:
     }
 
 private:
-    std::forward_list<std::pair<void (*)(void *), void *>> cleaners;
+    cleaners_t cleaners;
 };
 
 
@@ -229,6 +231,8 @@ public:
 public:
     LLVMValueRef make_temporary(v_type_t *type, LLVMValueRef value);
 
+    void add_temporary_cleaner(void (*fun)(void *data), void *data);
+
     void push_temporaries(void);
     void pop_temporaries(void);
 
@@ -236,7 +240,7 @@ public:
     bool has_parent(void) const { return bool(parent_ctx); }
 
 private:
-    std::forward_list<LLVMValueRef> temporaries_stack;
+    std::forward_list<std::pair<LLVMValueRef, cleaners_t>> temporaries_stack;
 
     friend class voidc_local_ctx_t;
 

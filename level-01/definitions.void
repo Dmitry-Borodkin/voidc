@@ -110,22 +110,6 @@
 
 
 //---------------------------------------------------------------------
-{   typ = v_alloca(v_type_ptr, 3);
-
-    //-----------------------------------------------------------------
-    //- method ...
-    //-----------------------------------------------------------------
-    typ[0] := voidc_visitor_ptr;
-    typ[1] := void_ptr;
-    typ[2] := v_ast_generic_list_ptr;
-
-    method_ft = v_function_type(void, typ, 3, false);
-
-    v_add_type("method_ft", method_ft);
-}
-
-
-//---------------------------------------------------------------------
 //- Module ...
 //---------------------------------------------------------------------
 {   module = LLVMModuleCreateWithName("voidc_definitions_internal_module");
@@ -757,13 +741,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_internal_var_decl_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("v_internal_var_decl_intrinsic\n");
 //  defer printf("v_internal_var_decl_intrinsic leave\n");
+
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
 
     arg0 = v_list_get_item(arg_list, 0);
     arg1 = v_list_get_item(arg_list, 1);
@@ -791,13 +779,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_internal_var_defn_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("v_internal_var_defn_intrinsic\n");
 //  defer printf("v_internal_var_defn_intrinsic leave\n");
+
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
 
     arg0 = v_list_get_item(arg_list, 0);
     arg1 = v_list_get_item(arg_list, 1);
@@ -837,13 +829,17 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_internal_val_defn_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("v_internal_val_defn_intrinsic\n");
 //  defer printf("v_internal_val_defn_intrinsic leave\n");
+
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
 
     arg0 = v_list_get_item(arg_list, 0);
     arg1 = v_list_get_item(arg_list, 1);
@@ -865,17 +861,19 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_br_item_list", method_ft);
+    f = v_function_hack("compile_br_item_list", voidc_visitor_method_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("compile_br_item_list\n");
 //  defer printf("compile_br_item_list leave\n");
+
+    list = v_cast(self, v_ast_generic_list_ptr);
 
     lst = v_cast(v_list_get_item(list, 0), v_ast_expr_list_ptr);
 
@@ -929,17 +927,19 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_unit_fun_defn", method_ft);
+    f = v_function_hack("compile_unit_fun_defn", voidc_visitor_method_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("compile_unit_fun_defn\n");
 //  defer printf("compile_unit_fun_defn leave\n");
+
+    list = v_cast(self, v_ast_generic_list_ptr);
 
     ast0 = v_list_get_item(list, 0);
     ast1 = v_list_get_item(list, 1);
@@ -1076,17 +1076,19 @@
 //{ v_debug_print_module(2); }
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_unit_var_defn", method_ft);
+    f = v_function_hack("compile_unit_var_defn", voidc_visitor_method_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("compile_unit_var_defn\n");
 //  defer printf("compile_unit_var_defn leave\n");
+
+    list = v_cast(self, v_ast_generic_list_ptr);
 
     ast0 = v_list_get_item(list, 0);
     ast1 = v_list_get_item(list, 1);
@@ -1198,17 +1200,19 @@
 //{ v_debug_print_module(2); }
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_unit_val_defn", method_ft);
+    f = v_function_hack("compile_unit_val_defn", voidc_visitor_method_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("compile_unit_val_defn\n");
 //  defer printf("compile_unit_val_defn leave\n");
+
+    list = v_cast(self, v_ast_generic_list_ptr);
 
     ast0 = v_list_get_item(list, 0);
     ast1 = v_list_get_item(list, 1);
@@ -1377,11 +1381,15 @@
 
     v_add_parameter_name(f, 0, "vis",  voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",  void_ptr);
-    v_add_parameter_name(f, 2, "args", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 2, "self", v_ast_base_ptr);
 }
 {
 //  printf("voidc_compile_type_intrinsic\n");
 //  defer printf("voidc_compile_type_intrinsic leave\n");
+
+    call = v_cast(self, v_ast_expr_ptr);
+
+    args = v_ast_expr_call_get_arg_list(call);
 
     ctx = *v_cast(aux, *voidc_compile_type_ctx_t);
 
@@ -1402,17 +1410,19 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_defn_list_unit", method_ft);
+    f = v_function_hack("compile_defn_list_unit", voidc_visitor_method_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("compile_defn_list_unit\n");
 //  defer printf("compile_defn_list_unit leave\n");
+
+    list = v_cast(self, v_ast_generic_list_ptr);
 
     //- Definitions (i.e. "values of things") ---------------------
 
@@ -1593,12 +1603,16 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("compile_op_prefix_cv\n");
+
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
 
     ast = v_list_get_item(arg_list, 1);
 
@@ -1619,13 +1633,17 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
 //  printf("compile_op_infix_to\n");
 //  defer printf("compile_op_infix_to leave\n");
+
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
 
     ast0 = v_list_get_item(arg_list, 1);
 
@@ -1727,11 +1745,15 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_undef_intrinsic", voidc_intrinsic_t);
 
-    v_add_parameter_name(f, 0, "visitor",  voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",      void_ptr);
-    v_add_parameter_name(f, 2, "arg_list", v_ast_expr_list_ptr);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
+
     t = *v_alloca(v_type_ptr) := v_get_result_type();
 
     if (v_list_get_size(arg_list))

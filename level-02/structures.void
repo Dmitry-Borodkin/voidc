@@ -79,31 +79,10 @@ ast_expr_struct_term: (void_obj: *void) -> void
 }
 
 //---------------------------------------------------------------------
-private
-ast_expr_struct_accept: (void_obj: *void, vis: *voidc_visitor_t) -> void
-{
-    obj = *(void_obj: *ast_expr_struct_t);
-
-    name   = &obj[0];
-    body   = &obj[1];
-    packed =  obj[2];
-    export =  obj[3];
-
-    aux: &*void := v_undef();
-
-    void_method = voidc_visitor_get_void_method(vis, expr_struct_q, &aux);
-
-    method = (void_method: *((*voidc_visitor_t, *void, *v_ast_expr_t, *v_ast_stmt_list_t, bool, bool) -> void));
-
-    method(vis, aux, name, body, packed, export);
-}
-
-//---------------------------------------------------------------------
 ast_expr_struct_vtable: &v_ast_generic_vtable :=
 {
     ast_expr_struct_init,
     ast_expr_struct_term,
-    ast_expr_struct_accept,
 };
 
 //---------------------------------------------------------------------
@@ -208,12 +187,18 @@ voidc_internal_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 //---------------------------------------------------------------------
 private
 compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
-                      name:   *v_ast_expr_t,
-                      body:   *v_ast_stmt_list_t,
-                      packed: bool,
-                      export: bool
+                      self: *v_ast_base_t
                       ) -> void
 {
+    void_obj = v_ast_generic_get_object(self);
+
+    obj = *(void_obj: *ast_expr_struct_t);
+
+    name   = &obj[0];
+    body   = &obj[1];
+    packed =  obj[2];
+    export =  obj[3];
+
     type_name: &*const char := 0;
 
     type: &v_type_ptr := 0;
@@ -448,9 +433,11 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 //---------------------------------------------------------------------
 private
 compile_unit_struct_defn: (vis: *voidc_visitor_t, aux: *void,
-                           list: *v_ast_generic_list_t
+                           self: *v_ast_base_t
                           ) -> void
 {
+    list = (self: *v_ast_generic_list_t);
+
     ast = v_list_get_item(list, 0);
 
     v_ast_accept_visitor(ast, vis);
@@ -544,7 +531,7 @@ voidc_enable_structures: () -> void
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   ast_expr_struct_vtable[3] := expr_struct_q;
+{   ast_expr_struct_vtable[2] := expr_struct_q;
 }
 
 

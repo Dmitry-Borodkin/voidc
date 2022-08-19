@@ -151,12 +151,12 @@ op_table_ctor: () -> void
 
 //---------------------------------------------------------------------
 intrinsic_p1_t = (vis: voidc_visitor_ptr, aux: *void,
-                  args: v_ast_expr_list_ptr,
+                  self: v_ast_base_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef
                  ) -> void;
 
 intrinsic_p2_t = (vis: voidc_visitor_ptr, aux: *void,
-                  args: v_ast_expr_list_ptr,
+                  self: v_ast_base_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef,
                   t1: v_type_ptr, v1: LLVMValueRef
                  ) -> void;
@@ -165,8 +165,10 @@ intrinsic_p2_t = (vis: voidc_visitor_ptr, aux: *void,
 //---------------------------------------------------------------------
 private
 op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                      args: v_ast_expr_list_ptr) -> void
+                      self: v_ast_base_ptr) -> void
 {
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     tt = v_get_result_type();
 
     v_set_result_type(INVIOLABLE_TAG);
@@ -196,7 +198,7 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, args, t0, v0);
+            fun(vis, void_aux, self, t0, v0);
         }
         else
         {
@@ -305,8 +307,10 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 //---------------------------------------------------------------------
 private
 op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                      args: v_ast_expr_list_ptr) -> void
+                      self: v_ast_base_ptr) -> void
 {
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     tt = v_get_result_type();
 
     //- First argument
@@ -338,7 +342,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, args, t0, v0);
+            fun(vis, void_aux, self, t0, v0);
         }
         else
         {
@@ -393,7 +397,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, args, t0, v0, t1, v1);
+            fun(vis, void_aux, self, t0, v0, t1, v1);
         }
         else
         {
@@ -538,8 +542,10 @@ check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr
 //---------------------------------------------------------------------
 private
 op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                        args: v_ast_expr_list_ptr) -> void
+                        self: v_ast_base_ptr) -> void
 {
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     N: &int := 2;
 
     {   ast: &v_ast_expr_ptr := v_list_get_item(args, 1);
@@ -1099,8 +1105,10 @@ compile_postfix_dec_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValu
 //---------------------------------------------------------------------
 private
 op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                     args: v_ast_expr_list_ptr) -> void
+                     self: v_ast_base_ptr) -> void
 {
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     tt = v_get_result_type();
 
     v_set_result_type(INVIOLABLE_TAG);
@@ -1130,7 +1138,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, args, t0, v0);
+            fun(vis, void_aux, self, t0, v0);
         }
         else
         {
@@ -1187,7 +1195,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 //---------------------------------------------------------------------
 private
 static_type_prefix_star_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                                    ast: v_ast_expr_ptr,
+                                    self: v_ast_base_ptr,
                                     t0: v_type_ptr, v0: LLVMValueRef
                                    ) -> void
 {
@@ -1204,7 +1212,7 @@ static_type_prefix_star_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 //---------------------------------------------------------------------
 private
 static_type_prefix_amp_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                                   ast: v_ast_expr_ptr,
+                                   self: v_ast_base_ptr,
                                    t0: v_type_ptr, v0: LLVMValueRef
                                   ) -> void
 {
@@ -1222,6 +1230,7 @@ static_type_prefix_amp_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 //---------------------------------------------------------------------
 export
 voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
+                                          self: v_ast_base_ptr,
                                           args: v_ast_expr_list_ptr,
                                           t: v_type_ptr, v: LLVMValueRef
                                          ) -> void
@@ -1242,11 +1251,17 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
     {
         //- Got overloading!
 
-        if (fun = (void_fun: *intrinsic_p1_t))
+        intrinsic_t = (vis: voidc_visitor_ptr, aux: *void,
+                       self: v_ast_base_ptr,
+                       args: v_ast_expr_list_ptr,
+                       t0: v_type_ptr, v0: LLVMValueRef
+                      ) -> void;
+
+        if (fun = (void_fun: *intrinsic_t))
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, args, t, v);
+            fun(vis, void_aux, self, args, t, v);
 
             v_return();
         }
@@ -1314,9 +1329,11 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
 //---------------------------------------------------------------------
 private
 compile_expr_call: (vis: voidc_visitor_ptr, *void,
-                    fexpr: v_ast_expr_ptr, args: v_ast_expr_list_ptr
-                   ) -> void
+                    self: v_ast_base_ptr) -> void
 {
+    fexpr = v_ast_expr_call_get_fun_expr((self: v_ast_expr_ptr));
+    args  = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     void_fun: &*void := 0;
     void_aux: &*void := v_undef();
 
@@ -1332,7 +1349,7 @@ compile_expr_call: (vis: voidc_visitor_ptr, *void,
 
     if (fun = (void_fun: *voidc_intrinsic_t))       //- Compile-time intrinsic?
     {
-        fun(vis, void_aux, args);
+        fun(vis, void_aux, self);
 
         v_return();
     }
@@ -1350,7 +1367,7 @@ compile_expr_call: (vis: voidc_visitor_ptr, *void,
 
     v_set_result_type(tt);
 
-    voidc_internal_compile_expr_call_helper(vis, args, t, v);
+    voidc_internal_compile_expr_call_helper(vis, self, args, t, v);
 }
 
 
@@ -1469,8 +1486,10 @@ voidc_internal_op_postfix_index_helper: (vis: voidc_visitor_ptr,
 //---------------------------------------------------------------------
 private
 op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                             args: v_ast_expr_list_ptr) -> void
+                             self: v_ast_base_ptr) -> void
 {
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     tt = v_get_result_type();
 
     v_set_result_type(INVIOLABLE_TAG);
@@ -1500,7 +1519,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v_set_result_type(tt);
 
-            fun(vis, void_aux, args, t0, v0);
+            fun(vis, void_aux, self, t0, v0);
         }
         else
         {
@@ -1579,10 +1598,12 @@ incomplete_array_type_tag = v_struct("voidc.incomplete_array_type_tag");
 
 private
 static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
-                                      args: v_ast_expr_list_ptr,
+                                      self: v_ast_base_ptr,
                                       t: v_type_ptr, v: LLVMValueRef
                                      ) -> void
 {
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
     op = v_list_get_item(args, 0);
 
     void_obj = v_ast_generic_get_object((op : v_ast_base_ptr));

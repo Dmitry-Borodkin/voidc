@@ -556,7 +556,7 @@ v_import_helper(const char *name, bool _export)
 
             while(auto unit = parse_unit())
             {
-                unit->accept(voidc_compiler);
+                voidc_compiler->visit(unit);
 
                 unit.reset();
 
@@ -642,15 +642,20 @@ voidc_import_helper(const char *name, bool _export)
 
 //---------------------------------------------------------------------
 static void
-v_local_import(const visitor_t *vis, void *, const ast_expr_list_t *args)
+v_local_import(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
+    assert(call);
+
+    auto &args = call->arg_list;
+
     auto target = voidc_global_ctx_t::target;
 
     auto saved_builder = target->builder;
 
     target->builder = LLVMCreateBuilderInContext(target->llvm_ctx);
 
-    auto &r = dynamic_cast<const ast_expr_string_data_t &>(*(*args)->data[0]);
+    auto &r = dynamic_cast<const ast_expr_string_data_t &>(*args->data[0]);
 
     v_import_helper(r.string.c_str(), false);
 
@@ -904,7 +909,7 @@ main(int argc, char *argv[])
 
             while(auto unit = parse_unit())
             {
-                unit->accept(voidc_compiler);
+                voidc_compiler->visit(unit);
 
                 unit.reset();
 

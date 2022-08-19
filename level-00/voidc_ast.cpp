@@ -6,12 +6,7 @@
 
 #include "voidc_util.h"
 #include "voidc_target.h"
-
-
-//---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
-v_quark_t v_ast_generic_list_dummy_method_tag = 0;
+#include "voidc_visitor.h"
 
 
 //---------------------------------------------------------------------
@@ -220,7 +215,7 @@ v_ast_make_expr_generic(ast_expr_t *ret, const ast_generic_vtable_t *vtab, size_
 const ast_generic_vtable_t *
 v_ast_generic_get_vtable(const ast_base_t *base_ptr)
 {
-    auto ptr = std::dynamic_pointer_cast<const ast_generic_data_t>(*base_ptr);
+    auto ptr = std::dynamic_pointer_cast<const ast_base_generic_data_t>(*base_ptr);
     assert(ptr);
 
     return ptr->vtable;
@@ -229,7 +224,7 @@ v_ast_generic_get_vtable(const ast_base_t *base_ptr)
 const void *
 v_ast_generic_get_object(const ast_base_t *base_ptr)
 {
-    auto ptr = std::dynamic_pointer_cast<const ast_generic_data_t>(*base_ptr);
+    auto ptr = std::dynamic_pointer_cast<const ast_base_generic_data_t>(*base_ptr);
     assert(ptr);
 
     return ptr->object;
@@ -255,24 +250,11 @@ v_quark_t v_ast_##name##_visitor_method_tag;
 #undef DEF
 
 
-#define DEF(name) \
-void \
-v_visitor_set_method_##name(visitor_t *dst, const visitor_t *src, ast_##name##_data_t::visitor_method_t method, void *aux) \
-{ \
-    auto visitor = (*src)->set_void_method(v_ast_##name##_visitor_method_tag, (void *)method, aux); \
-    *dst = std::make_shared<const voidc_visitor_data_t>(visitor); \
-}
-
-    DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
-
-#undef DEF
-
-
 //---------------------------------------------------------------------
 void
 v_ast_accept_visitor(const ast_base_t *object, const visitor_t *visitor)
 {
-    (*object)->accept(*visitor);
+    (*visitor)->visit(*object);             //- Sic!!!
 }
 
 

@@ -642,44 +642,69 @@ base_local_ctx_t::pop_variables(void)
 
 
 //---------------------------------------------------------------------
+using temporaries_stack_t = std::forward_list<std::pair<LLVMValueRef, base_compile_ctx_t::cleaners_t>>;
+
+static void
+initialize_temporaries_stack_front(base_local_ctx_t &lctx, temporaries_stack_t &temporaries_stack)
+{
+    assert(temporaries_stack.front().first == nullptr);
+
+    v_type_t    *t;
+    LLVMValueRef f;
+
+    lctx.obtain_identifier("llvm.stacksave", t, f);
+
+    t = static_cast<v_type_pointer_t *>(t)->element_type();
+
+    auto stack_ptr = LLVMBuildCall2(lctx.global_ctx.builder, t->llvm_type(), f, nullptr, 0, "tmp_stack_ptr");
+
+    temporaries_stack.front().first = stack_ptr;
+}
+
+//---------------------------------------------------------------------
 LLVMValueRef
 base_local_ctx_t::make_temporary(v_type_t *type, LLVMValueRef value)
 {
-    if (!temporaries_stack.front())
+    if (!temporaries_stack.front().first)
     {
-        v_type_t    *t;
-        LLVMValueRef f;
-
-        obtain_identifier("llvm.stacksave", t, f);
-
-        t = static_cast<v_type_pointer_t *>(t)->element_type();
-
-        temporaries_stack.front() = LLVMBuildCall2(global_ctx.builder, t->llvm_type(), f, nullptr, 0, "tmp_stack_ptr");
+        initialize_temporaries_stack_front(*this, temporaries_stack);
     }
 
     auto tmp = LLVMBuildAlloca(global_ctx.builder, type->llvm_type(), "tmp");
 
-    LLVMBuildStore(global_ctx.builder, value, tmp);
+    if (value)  LLVMBuildStore(global_ctx.builder, value, tmp);         //- Sic!
 
     return  tmp;
 }
 
 //---------------------------------------------------------------------
 void
+base_local_ctx_t::add_temporary_cleaner(void (*fun)(void *data), void *data)
+{
+    if (!temporaries_stack.front().first)
+    {
+        initialize_temporaries_stack_front(*this, temporaries_stack);
+    }
+
+    temporaries_stack.front().second.push_front({fun, data});
+}
+
+//---------------------------------------------------------------------
+void
 base_local_ctx_t::push_temporaries(void)
 {
-    temporaries_stack.push_front(nullptr);      //- Sic!
+    temporaries_stack.push_front({nullptr, {}});        //- Sic!
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::pop_temporaries(void)
 {
-    auto stack_ptr = temporaries_stack.front();
+    auto stack_front = temporaries_stack.front();
 
     temporaries_stack.pop_front();
 
-    if (!stack_ptr) return;
+    if (!stack_front.first)  return;
 
     {   auto cur_b = LLVMGetInsertBlock(global_ctx.builder);
 
@@ -689,6 +714,13 @@ base_local_ctx_t::pop_temporaries(void)
         }
     }
 
+    {   auto &cleaners = stack_front.second;
+
+        for (auto &it: cleaners) it.first(it.second);
+
+        cleaners.clear();       //- Sic!
+    }
+
     v_type_t    *t;
     LLVMValueRef f;
 
@@ -696,7 +728,7 @@ base_local_ctx_t::pop_temporaries(void)
 
     t = static_cast<v_type_pointer_t *>(t)->element_type();
 
-    LLVMBuildCall2(global_ctx.builder, t->llvm_type(), f, &stack_ptr, 1, "");
+    LLVMBuildCall2(global_ctx.builder, t->llvm_type(), f, &stack_front.first, 1, "");
 }
 
 //---------------------------------------------------------------------
@@ -2175,6 +2207,15 @@ v_make_temporary(v_type_t *type, LLVMValueRef value)
     auto &lctx = *gctx.local_ctx;
 
     return lctx.make_temporary(type, value);
+}
+
+void
+v_add_temporary_cleaner(void (*fun)(void *), void *data)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.add_temporary_cleaner(fun, data);
 }
 
 void

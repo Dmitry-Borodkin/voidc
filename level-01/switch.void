@@ -29,25 +29,8 @@
 }
 
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ptr, 4);
+{   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-    typ3 = v_getelementptr(typ0, 3);
-
-
-    //-----------------------------------------------------------------
-    //- stmt_switch method ...
-    //-----------------------------------------------------------------
-    v_store(voidc_visitor_ptr,      typ0);
-    v_store(void_ptr,               typ1);
-    v_store(v_ast_expr_ptr,         typ2);
-    v_store(v_ast_generic_list_ptr, typ3);
-
-    method_ft  = v_function_type(void, typ0, 4, false);
-    method_ptr = v_pointer_type(method_ft, 0);
-
-    v_add_type("method_ft",  method_ft);
-    v_add_type("method_ptr", method_ptr);
 
 
     //-----------------------------------------------------------------
@@ -160,58 +143,27 @@
 }
 
 
-//---------------------------------------------------------------------
-//- stmt_switch accept ...
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("voidc_ast_stmt_switch_accept", v_ast_generic_accept_fun_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "void_obj", void_ptr);
-    v_add_parameter_name(f, 1, "visitor",  voidc_visitor_ptr);
-}
-{
-    obj = v_cast(void_obj, ast_stmt_switch_ptr);
-
-    arg  = v_getelementptr(obj, 0, 0);
-    list = v_getelementptr(obj, 0, 1);
-
-    aux = v_reference(v_alloca(void_ptr));
-
-    void_method = voidc_visitor_get_void_method(visitor, quark, v_pointer(aux));
-
-    method = v_cast(void_method, method_ptr);
-
-    method(visitor, aux, arg, list);
-}
-
-
 //-----------------------------------------------------------------------
 //- stmt_switch vtable ...
 //-------------------------------------------------------------------
 {
     module = v_get_module();
 
-    val0 = v_alloca(LLVMValueRef, 4);
+    val0 = v_alloca(LLVMValueRef, 3);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
-    val3 = v_getelementptr(val0, 3);
 
     init_f   = v_obtain_function("voidc_ast_stmt_switch_init");
     term_f   = v_obtain_function("voidc_ast_stmt_switch_term");
-    accept_f = v_obtain_function("voidc_ast_stmt_switch_accept");
     quark_u  = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
 
     v_store(init_f,   val0);
     v_store(term_f,   val1);
-    v_store(accept_f, val2);
-    v_store(quark_u,  val3);
+    v_store(quark_u,  val2);
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 4);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_stmt_switch_vtable");
 
@@ -321,30 +273,24 @@
 {
     module = v_get_module();
 
-    val0 = v_alloca(LLVMValueRef, 4);
+    val0 = v_alloca(LLVMValueRef, 3);
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
-    val3 = v_getelementptr(val0, 3);
 
     init_f = v_obtain_function("voidc_ast_case_block_init");
     term_f = v_obtain_function("voidc_ast_case_block_term");
 
-    accept_p  = v_pointer_type(v_ast_generic_accept_fun_t, 0);
-    accept_p_ = v_type_get_llvm_type(accept_p);
-
     v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 
-    accept_u = LLVMGetUndef(accept_p_);
     quark_u  = LLVMGetUndef(v_quark_t_);
 
     v_store(init_f,   val0);
     v_store(term_f,   val1);
-    v_store(accept_u, val2);        //- Undef!
-    v_store(quark_u,  val3);        //- Undef!
+    v_store(quark_u,  val2);        //- Undef!
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 4);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
     vtable_g = LLVMAddGlobal(module, v_ast_generic_vtable_, "voidc_ast_case_block_vtable");
 
@@ -523,16 +469,23 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_ast_stmt_switch_t", method_ft);
+    f = v_function_hack("compile_ast_stmt_switch_t", voidc_visitor_method_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "arg",     v_ast_expr_ptr);
-    v_add_parameter_name(f, 3, "list",    v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
+    void_obj = v_ast_generic_get_object(self);
+
+    obj = v_cast(void_obj, ast_stmt_switch_ptr);
+
+    arg  = v_getelementptr(obj, 0, 0);
+    list = v_getelementptr(obj, 0, 1);
+
+
     v_save_variables();
 
 
@@ -815,7 +768,7 @@
     v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark, 0));
 
 
-    v_store(quark, v_getelementptr(voidc_ast_stmt_switch_vtable, 0, 3));
+    v_store(quark, v_getelementptr(voidc_ast_stmt_switch_vtable, 0, 2));
 
     vis = voidc_compiler;
 

@@ -104,7 +104,6 @@
 //---------------------------------------------------------------------
 {   v_add_symbol("init_f",   v_ast_generic_init_fun_t,   0);
     v_add_symbol("term_f",   v_ast_generic_term_fun_t,   0);
-    v_add_symbol("accept_f", v_ast_generic_accept_fun_t, 0);
     v_add_symbol("vtable_g", v_ast_generic_vtable,       0);
 }
 
@@ -156,21 +155,6 @@
     LLVMBuildRetVoid(builder);
 
 
-    accept_f = v_obtain_function("accept_f");
-    LLVMSetLinkage(accept_f, LLVMPrivateLinkage);
-
-    entry = LLVMAppendBasicBlock(accept_f, "entry");
-    LLVMPositionBuilderAtEnd(builder, entry);
-
-    str = LLVMBuildGlobalStringPtr(builder, "accept!\n", "str");
-
-    v_store(str, val0);
-
-    LLVMBuildCall2(builder, printf_ft_, printf_f, val0, 1, "");
-
-    LLVMBuildRetVoid(builder);
-
-
     //-------------------------------------------------------------
     LLVMClearInsertionPosition(builder);
 
@@ -182,12 +166,11 @@
 
     v_store(init_f,   val0);
     v_store(term_f,   val1);
-    v_store(accept_f, val2);
-    v_store(quark_v,  val3);
+    v_store(quark_v,  val2);
 
     v_ast_generic_vtable_ = v_type_get_llvm_type(v_ast_generic_vtable);
 
-    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 4);
+    vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
     vtable_g = v_obtain_global("vtable_g");
 
@@ -220,7 +203,7 @@
     v_initialize(vis);
 
 
-    v_ast_accept_visitor(gen, vis);
+//  v_ast_accept_visitor(gen, vis);
 
 
 

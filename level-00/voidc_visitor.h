@@ -5,7 +5,7 @@
 #ifndef VOIDC_VISITOR_H
 #define VOIDC_VISITOR_H
 
-#include "voidc_quark.h"
+#include "voidc_ast.h"
 
 #include <utility>
 #include <string>
@@ -67,16 +67,22 @@ public:
     const intrinsics_map_t   &intrinsics   = _intrinsics;
 
 public:
-    template<typename FunT, typename... Targs>
-    void visit(v_quark_t q, Targs... args) const
+    template<typename T>
+    void visit(const std::shared_ptr<const T> &object) const
     {
+        auto q = object->method_tag();
+
 //      printf("visit: %s\n", v_quark_to_string(q));
 
         auto &[void_fun, aux] = void_methods.at(q);
 
         auto self = shared_from_this();
 
-        reinterpret_cast<FunT>(void_fun)(&self, aux, args...);
+        auto obj = std::static_pointer_cast<const ast_base_data_t>(object);
+
+        typedef void (*FunT)(const visitor_t *, void *, const ast_base_t *);
+
+        reinterpret_cast<FunT>(void_fun)(&self, aux, &obj);
     }
 
 private:

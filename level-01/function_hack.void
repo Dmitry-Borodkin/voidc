@@ -42,9 +42,9 @@
 
     v_export_symbol_type("voidc_function_hack_intrinsic_helper",  helper_ft);
 
-    v_add_symbol("voidc_function_hack_visitor_method",   v_ast_unit_visitor_method_t, 0);
-    v_add_symbol("voidc_function_hack_intrinsic",        voidc_intrinsic_t,           0);
-    v_add_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t,           0);
+    v_add_symbol("voidc_function_hack_visitor_method",   voidc_visitor_method_t, 0);
+    v_add_symbol("voidc_function_hack_intrinsic",        voidc_intrinsic_t,      0);
+    v_add_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t,      0);
 }
 
 //---------------------------------------------------------------------
@@ -100,13 +100,15 @@
     //- "Function hack" compiler visitor method
     //-----------------------------------------------------------------
     //- private
-    //- voidc_function_hack_visitor_method: (visitor:   voidc_visitor_ptr,
-    //-                                      aux:       void_ptr,
-    //-                                      stmt_list: v_ast_stmt_list_ptr,
-    //-                                      line:      int,
-    //-                                      column:    int
+    //- voidc_function_hack_visitor_method: (visitor: voidc_visitor_ptr,
+    //-                                      aux:     void_ptr,
+    //-                                      self:    v_ast_base_ptr
     //-                                     ) -> void
     //- {
+    //-     unit = v_cast(self, v_ast_unit_ptr);
+    //-
+    //-     stmt_list = v_ast_unit_get_stmt_list(unit);
+    //-
     //-     base_ast = v_cast(stmt_list, v_ast_base_ptr);
     //-
     //-     v_ast_accept_visitor(base_ast, visitor);
@@ -131,14 +133,24 @@
     method_f = v_obtain_function("voidc_function_hack_visitor_method");
     LLVMSetLinkage(method_f, LLVMPrivateLinkage);
 
-    visitor   = LLVMGetParam(method_f, 0);
-    aux       = LLVMGetParam(method_f, 1);
-    stmt_list = LLVMGetParam(method_f, 2);
-    line      = LLVMGetParam(method_f, 3);
-    column    = LLVMGetParam(method_f, 4);
+    visitor = LLVMGetParam(method_f, 0);
+    aux     = LLVMGetParam(method_f, 1);
+    self    = LLVMGetParam(method_f, 2);
 
     entry = LLVMAppendBasicBlock(method_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
+
+
+    v_ast_unit_ptr_ = v_type_get_llvm_type(v_ast_unit_ptr);
+
+    unit = LLVMBuildBitCast(builder, self, v_ast_unit_ptr_, "unit");
+
+    v_store(unit, val0);
+
+    get_stmt_list_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_unit_get_stmt_list"));
+    get_stmt_list_f   = v_obtain_function("v_ast_unit_get_stmt_list");
+
+    stmt_list = LLVMBuildCall2(builder, get_stmt_list_ft_, get_stmt_list_f, val0, 1, "stmt_list");
 
 
     v_ast_base_ptr_ = v_type_get_llvm_type(v_ast_base_ptr);
@@ -257,7 +269,8 @@
     //-
     //-     v_copy(saved_compiler_g, voidc_compiler);
     //-
-    //-     v_visitor_set_method_unit(voidc_compiler, voidc_compiler, voidc_function_hack_visitor_method, 0);
+    //-     voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, v_ast_unit_visitor_method_tag,
+    //-                                   voidc_function_hack_visitor_method, 0);
     //-
     //-     v_return(fun_value);
     //- }
@@ -371,17 +384,27 @@
     LLVMBuildCall2(builder, vis_copy_ft_, vis_copy_f, val0, 3, "");
 
 
+    quark_t_ = v_type_get_llvm_type(v_quark_t);
+    quark_g  = v_obtain_global("v_ast_unit_visitor_method_tag");
+
+    quark_v = LLVMBuildLoad2(builder, quark_t_, quark_g, "quark_v");
+
+
+    void_method_f = LLVMBuildBitCast(builder, method_f, void_ptr_, "void_method_f");
+
+
     null_void_ptr_v = LLVMConstNull(void_ptr_);
 
     v_store(voidc_compiler_v, val0);
 //  v_store(voidc_compiler_v, val1);
-    v_store(method_f,         val2);
-    v_store(null_void_ptr_v,  val3);
+    v_store(quark_v,          val2);
+    v_store(void_method_f,    val3);
+    v_store(null_void_ptr_v,  val4);
 
-    set_method_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_visitor_set_method_unit"));
-    set_method_f   = v_obtain_function("v_visitor_set_method_unit");
+    set_void_method_ft_ = v_type_get_llvm_type(v_find_symbol_type("voidc_visitor_set_void_method"));
+    set_void_method_f   = v_obtain_function("voidc_visitor_set_void_method");
 
-    LLVMBuildCall2(builder, set_method_ft_, set_method_f, val0, 4, "");
+    LLVMBuildCall2(builder, set_void_method_ft_, set_void_method_f, val0, 5, "");
 
 
     LLVMBuildRet(builder, fun_value);
@@ -391,9 +414,13 @@
     //- "Function hack" intrinsic
     //-----------------------------------------------------------------
     //- voidc_function_hack_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
-    //-                                 arg_list: v_ast_expr_list_ptr
+    //-                                 self: v_ast_base_ptr
     //-                                ) -> void
     //- {
+    //-     call = v_cast(self, v_ast_expr_ptr);
+    //-
+    //-     arg_list = v_ast_expr_call_get_arg_list(call);
+    //-
     //-     builder = v_target_get_builder();
     //-
     //-     tt = v_get_result_type();
@@ -454,12 +481,24 @@
     //-----------------------------------------------------------------
     intrinsic_f = v_obtain_function("voidc_function_hack_intrinsic");
 
-    visitor  = LLVMGetParam(intrinsic_f, 0);
-    aux      = LLVMGetParam(intrinsic_f, 1);
-    arg_list = LLVMGetParam(intrinsic_f, 2);
+    visitor = LLVMGetParam(intrinsic_f, 0);
+    aux     = LLVMGetParam(intrinsic_f, 1);
+    self    = LLVMGetParam(intrinsic_f, 2);
 
     entry = LLVMAppendBasicBlock(intrinsic_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
+
+
+    v_ast_expr_ptr_ = v_type_get_llvm_type(v_ast_expr_ptr);
+
+    call = LLVMBuildBitCast(builder, self, v_ast_expr_ptr_, "call");
+
+    v_store(call, val0);
+
+    get_arg_list_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_expr_call_get_arg_list"));
+    get_arg_list_f   = v_obtain_function("v_ast_expr_call_get_arg_list");
+
+    arg_list = LLVMBuildCall2(builder, get_arg_list_ft_, get_arg_list_f, val0, 1, "arg_list");
 
 
     get_builder_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_target_get_builder"));
@@ -682,9 +721,13 @@
     //- "Return" intrinsic
     //-----------------------------------------------------------------
     //- voidc_function_hack_return_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
-    //-                                        arg_list: v_ast_expr_list_ptr
+    //-                                        self: v_ast_base_ptr
     //-                                       ) -> void
     //- {
+    //-     call = v_cast(self, v_ast_expr_ptr);
+    //-
+    //-     arg_list = v_ast_expr_call_get_arg_list(call);
+    //-
     //-     builder = v_target_get_builder();
     //-
     //-     args_count = v_list_get_size(arg_list);
@@ -716,12 +759,19 @@
     //-----------------------------------------------------------------
     return_f = v_obtain_function("voidc_function_hack_return_intrinsic");
 
-    visitor  = LLVMGetParam(return_f, 0);
-    aux      = LLVMGetParam(return_f, 1);
-    arg_list = LLVMGetParam(return_f, 2);
+    visitor = LLVMGetParam(return_f, 0);
+    aux     = LLVMGetParam(return_f, 1);
+    self    = LLVMGetParam(return_f, 2);
 
     entry = LLVMAppendBasicBlock(return_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
+
+
+    call = LLVMBuildBitCast(builder, self, v_ast_expr_ptr_, "call");
+
+    v_store(call, val0);
+
+    arg_list = LLVMBuildCall2(builder, get_arg_list_ft_, get_arg_list_f, val0, 1, "arg_list");
 
 
     builder_v = LLVMBuildCall2(builder, get_builder_ft_, get_builder_f, val0, 0, "builder_v");
@@ -869,11 +919,15 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_intrinsic", voidc_intrinsic_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", voidc_visitor_ptr, p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",     void_ptr,          p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("self",    v_ast_base_ptr,    p2);
 }
 {
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
+
     arg = v_list_get_item(arg_list, 0);
 
     base_arg = v_cast(arg, v_ast_base_ptr);
@@ -912,11 +966,15 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_not_intrinsic", voidc_intrinsic_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor",  voidc_visitor_ptr,   p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",      void_ptr,            p1);
-    p2 = LLVMGetParam(f, 2);    v_add_variable("arg_list", v_ast_expr_list_ptr, p2);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", voidc_visitor_ptr, p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",     void_ptr,          p1);
+    p2 = LLVMGetParam(f, 2);    v_add_variable("self",    v_ast_base_ptr,    p2);
 }
 {
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
+
     arg = v_list_get_item(arg_list, 0);
 
     base_arg = v_cast(arg, v_ast_base_ptr);
