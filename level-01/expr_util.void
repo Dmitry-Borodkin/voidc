@@ -243,9 +243,9 @@
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
 
-    v_ast_make_expr_generic(etmp, voidc_ast_operator_unary_vtable, ast_operator_unary_t_size);
+    v_ast_make_generic(etmp, voidc_ast_operator_unary_vtable, ast_operator_unary_t_size);
 
-    void_obj = v_ast_generic_get_object(v_cast(etmp, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(etmp);
 
     obj = v_cast(void_obj, v_ast_operator_unary_ptr);
 
@@ -371,9 +371,9 @@
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
 
-    v_ast_make_expr_generic(etmp, voidc_ast_operator_binary_vtable, ast_operator_binary_t_size);
+    v_ast_make_generic(etmp, voidc_ast_operator_binary_vtable, ast_operator_binary_t_size);
 
-    void_obj = v_ast_generic_get_object(v_cast(etmp, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(etmp);
 
     obj = v_cast(void_obj, v_ast_operator_binary_ptr);
 
@@ -3659,7 +3659,7 @@
     op  = v_list_get_item(arg_list, 0);
     agg = v_list_get_item(arg_list, 1);
 
-    void_obj = v_ast_generic_get_object(v_cast(op, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(op);
 
     obj = v_cast(void_obj, v_ast_operator_unary_ptr);
 
@@ -3880,7 +3880,7 @@
 
         op = v_list_get_item(expr_oplist, i);
 
-        void_obj = v_ast_generic_get_object(v_cast(op, v_ast_base_ptr));
+        void_obj = v_ast_generic_get_object(op);
 
         quark = v_load(v_cast(void_obj, quark_ptr));        //- Sic!!!
 
@@ -4221,7 +4221,7 @@
 
         op = v_list_get_item(expr_oplist, i);
 
-        void_obj = v_ast_generic_get_object(v_cast(op, v_ast_base_ptr));
+        void_obj = v_ast_generic_get_object(op);
 
         quark = v_load(v_cast(void_obj, quark_ptr));        //- Sic!!!
 

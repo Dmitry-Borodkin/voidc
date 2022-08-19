@@ -12,6 +12,8 @@
 #include <memory>
 #include <cstdio>
 #include <cstdlib>
+#include <any>
+#include <unordered_map>
 
 #include <immer/vector.hpp>
 #include <immer/vector_transient.hpp>
@@ -54,6 +56,9 @@ struct ast_base_data_t
     virtual ~ast_base_data_t() = default;
 
 public:
+    mutable std::unordered_map<v_quark_t, std::any> attributes;     //- Sic!!!
+
+public:
     virtual v_quark_t method_tag(void) const = 0;
 };
 
@@ -66,7 +71,7 @@ typedef std::shared_ptr<const ast_base_data_t> ast_base_t;
 
 //---------------------------------------------------------------------
 #define DEFINE_BASE_DATA_T(name) \
-struct ast_##name##_base_data_t : virtual ast_base_data_t {}; \
+struct ast_##name##_base_data_t : ast_base_data_t {}; \
 typedef std::shared_ptr<const ast_##name##_base_data_t> ast_##name##_t;
 
 DEFINE_BASE_DATA_T(unit)
@@ -78,7 +83,7 @@ DEFINE_BASE_DATA_T(expr)
 
 //---------------------------------------------------------------------
 template<typename T>
-struct ast_base_list_data_t : virtual ast_base_data_t
+struct ast_base_list_data_t : ast_base_data_t
 {
     using item_t = T;
 
@@ -267,7 +272,6 @@ struct ast_generic_vtable_t
     void (*term)(void *object);
 
     v_quark_t visitor_method_tag;
-
 };
 
 //---------------------------------------------------------------------
@@ -275,16 +279,17 @@ struct ast_generic_vtable_t
 
 
 //---------------------------------------------------------------------
-struct ast_base_generic_data_t : virtual ast_base_data_t
+template <typename T>
+struct ast_template_generic_data_t : T
 {
-    ast_base_generic_data_t(const ast_generic_vtable_t *vtab, size_t size)
+    ast_template_generic_data_t(const ast_generic_vtable_t *vtab, size_t size)
       : vtable(vtab),
         object(std::malloc(size))
     {
         vtable->init(object);
     }
 
-    ~ast_base_generic_data_t() override
+    ~ast_template_generic_data_t() override
     {
         vtable->term(object);
 
@@ -304,23 +309,7 @@ public:
 };
 
 //---------------------------------------------------------------------
-struct ast_generic_data_t : ast_base_generic_data_t
-{
-    explicit ast_generic_data_t(const ast_generic_vtable_t *vtab, size_t size)
-      : ast_base_generic_data_t(vtab, size)
-    {}
-};
-
-typedef std::shared_ptr<const ast_generic_data_t>  ast_generic_t;
-
-//---------------------------------------------------------------------
-template <typename T>
-struct ast_template_generic_data_t : T, ast_base_generic_data_t
-{
-    explicit ast_template_generic_data_t(const ast_generic_vtable_t *vtab, size_t size)
-      : ast_base_generic_data_t(vtab, size)
-    {}
-};
+using ast_generic_data_t = ast_template_generic_data_t<ast_base_data_t>;
 
 using ast_unit_generic_data_t = ast_template_generic_data_t<ast_unit_base_data_t>;
 using ast_stmt_generic_data_t = ast_template_generic_data_t<ast_stmt_base_data_t>;

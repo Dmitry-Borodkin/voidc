@@ -21,10 +21,9 @@ visitor_t voidc_compiler;
 static
 void compile_stmt_list(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto list = std::dynamic_pointer_cast<const ast_stmt_list_data_t>(*self);
-    assert(list);
+    auto &list = static_cast<const ast_stmt_list_data_t &>(**self);
 
-    for (auto &it : list->data)
+    for (auto &it : list.data)
     {
         (*vis)->visit(it);
     }
@@ -43,10 +42,9 @@ void compile_expr_list(const visitor_t *vis, void *, const ast_base_t *self)
 static
 void compile_unit(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto unit = std::dynamic_pointer_cast<const ast_unit_data_t>(*self);
-    assert(unit);
+    auto &unit = static_cast<const ast_unit_data_t &>(**self);
 
-    if (!unit->stmt_list)  return;
+    if (!unit.stmt_list)  return;
 
     auto saved_target = voidc_global_ctx_t::target;
 
@@ -57,9 +55,9 @@ void compile_unit(const visitor_t *vis, void *, const ast_base_t *self)
 
     auto saved_module = lctx.module;
 
-    lctx.prepare_unit_action(unit->line, unit->column);
+    lctx.prepare_unit_action(unit.line, unit.column);
 
-    (*vis)->visit(unit->stmt_list);
+    (*vis)->visit(unit.stmt_list);
 
     lctx.finish_unit_action();
 
@@ -75,10 +73,9 @@ void compile_unit(const visitor_t *vis, void *, const ast_base_t *self)
 static
 void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto stmt = std::dynamic_pointer_cast<const ast_stmt_data_t>(*self);
-    assert(stmt);
+    auto &stmt = static_cast<const ast_stmt_data_t &>(**self);
 
-    if (!stmt->expr) return;
+    if (!stmt.expr) return;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -87,11 +84,11 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 
     lctx.push_temporaries();
 
-    (*vis)->visit(stmt->expr);
+    (*vis)->visit(stmt.expr);
 
     lctx.pop_temporaries();
 
-    auto const &ret_name = stmt->name.c_str();
+    auto const &ret_name = stmt.name.c_str();
 
     if (ret_name[0])
     {
@@ -103,11 +100,11 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 
             if (len == 0)
             {
-                LLVMSetValueName2(lctx.result_value, ret_name, stmt->name.size());
+                LLVMSetValueName2(lctx.result_value, ret_name, stmt.name.size());
             }
         }
 
-        lctx.vars = lctx.vars.set(stmt->name, {lctx.result_type, lctx.result_value});
+        lctx.vars = lctx.vars.set(stmt.name, {lctx.result_type, lctx.result_value});
     }
 }
 
@@ -118,8 +115,7 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 static
 void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -127,7 +123,7 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
     void *void_fun = nullptr;
     void *void_aux;
 
-    if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(call->fun_expr))
+    if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(call.fun_expr))
     {
         auto &fun_name = fname->name;
 
@@ -158,7 +154,7 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 
     lctx.result_type = UNREFERENCE_TAG;
 
-    (*vis)->visit(call->fun_expr);
+    (*vis)->visit(call.fun_expr);
 
     v_type_t    *t = lctx.result_type;
     LLVMValueRef f = lctx.result_value;
@@ -174,7 +170,7 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
     auto par_count = ft->param_count();
     auto par_types = ft->param_types();
 
-    auto &args_data = call->arg_list->data;
+    auto &args_data = call.arg_list->data;
     auto  arg_count = args_data.size();
 
 
@@ -205,8 +201,7 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 static
 void compile_expr_identifier(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto ident = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(*self);
-    assert(ident);
+    auto &ident = static_cast<const ast_expr_identifier_data_t &>(**self);
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -214,7 +209,7 @@ void compile_expr_identifier(const visitor_t *vis, void *, const ast_base_t *sel
     LLVMValueRef v = nullptr;
     v_type_t    *t = nullptr;
 
-    auto &name = ident->name;
+    auto &name = ident.name;
 
     if (!lctx.obtain_identifier(name, t, v))
     {
@@ -250,8 +245,7 @@ void compile_expr_identifier(const visitor_t *vis, void *, const ast_base_t *sel
 static
 void compile_expr_integer(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto pnum = std::dynamic_pointer_cast<const ast_expr_integer_data_t>(*self);
-    assert(pnum);
+    auto &dnum = static_cast<const ast_expr_integer_data_t &>(**self);
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -260,7 +254,7 @@ void compile_expr_integer(const visitor_t *vis, void *, const ast_base_t *self)
 
     LLVMValueRef v;
 
-    auto num = pnum->number;
+    auto num = dnum.number;
 
     if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
     {
@@ -305,13 +299,12 @@ void compile_expr_integer(const visitor_t *vis, void *, const ast_base_t *self)
 static
 void compile_expr_string(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto pstr = std::dynamic_pointer_cast<const ast_expr_string_data_t>(*self);
-    assert(pstr);
+    auto &dstr = static_cast<const ast_expr_string_data_t &>(**self);
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto &str = pstr->string;
+    auto &str = dstr.string;
 
     auto len = str.size();
 
@@ -329,15 +322,14 @@ void compile_expr_string(const visitor_t *vis, void *, const ast_base_t *self)
 static
 void compile_expr_char(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto pchr = std::dynamic_pointer_cast<const ast_expr_char_data_t>(*self);
-    assert(pchr);
+    auto &dchr = static_cast<const ast_expr_char_data_t &>(**self);
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
     auto t = gctx.char32_t_type;
 
-    auto v = LLVMConstInt(t->llvm_type(), pchr->char_, false);
+    auto v = LLVMConstInt(t->llvm_type(), dchr.char_, false);
 
     lctx.adopt_result(t, v);
 }
@@ -349,10 +341,9 @@ void compile_expr_char(const visitor_t *vis, void *, const ast_base_t *self)
 static void
 v_alloca(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -395,10 +386,9 @@ v_alloca(const visitor_t *vis, void *, const ast_base_t *self)
 static void
 v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -480,10 +470,9 @@ v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
 static void
 v_store(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -505,10 +494,9 @@ v_store(const visitor_t *vis, void *, const ast_base_t *self)
 static void
 v_load(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -532,10 +520,9 @@ v_load(const visitor_t *vis, void *, const ast_base_t *self)
 static void
 v_cast(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -713,10 +700,9 @@ v_cast(const visitor_t *vis, void *, const ast_base_t *self)
 static void
 v_pointer(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -765,10 +751,9 @@ v_pointer(const visitor_t *vis, void *, const ast_base_t *self)
 static void
 v_reference(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -793,10 +778,9 @@ v_reference(const visitor_t *vis, void *, const ast_base_t *self)
 static void
 v_assign(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;

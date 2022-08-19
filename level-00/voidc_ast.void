@@ -21,6 +21,11 @@
     v_util_register_itcmep_impl(v_ast_expr_list_t,    "v_ast", "expr_list");
     v_util_register_itcmep_impl(v_ast_expr_t,         "v_ast", "expr");
     v_util_register_itcmep_impl(v_ast_generic_list_t, "v_ast", "generic_list");
+
+    v_util_register_ast_generic_mkgvgo_impl(v_ast_base_t, "v_ast_", "");
+    v_util_register_ast_generic_mkgvgo_impl(v_ast_unit_t, "v_ast_", "unit_");
+    v_util_register_ast_generic_mkgvgo_impl(v_ast_stmt_t, "v_ast_", "stmt_");
+    v_util_register_ast_generic_mkgvgo_impl(v_ast_expr_t, "v_ast_", "expr_");
 }
 
 //---------------------------------------------------------------------
@@ -119,6 +124,22 @@
     typ5 = v_getelementptr(typ0, 5);
 
     char_ptr = v_pointer_type(char, 0);
+
+
+    //-------------------------------------------------------------
+    v_store(v_ast_base_ptr, typ0);
+    v_store(v_quark_t,      typ1);
+    v_store(v_std_any_ptr,  typ2);
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_ast_set_attribute", ft);
+
+//  v_store(v_ast_base_ptr, typ0);
+//  v_store(v_quark_t,      typ1);
+
+    ft = v_function_type(v_std_any_ptr, typ0, 2, false);
+    v_export_symbol_type("v_ast_get_attribute", ft);
+
 
     //-------------------------------------------------------------
     v_store(v_ast_unit_ptr,      typ0);             //- (out)
@@ -248,49 +269,6 @@
 
     v_export_type("v_ast_generic_init_fun_t",   init_ft);
     v_export_type("v_ast_generic_term_fun_t",   init_ft);       //- Sic! (init_ft == "term_ft")
-
-    generic_vtable_ptr = v_pointer_type(generic_vtable, 0);
-
-    //-------------------------------------------------------------
-    v_store(v_ast_base_ptr,     typ0);              //- (out)
-    v_store(generic_vtable_ptr, typ1);              //-
-    v_store(size_t,             typ2);              //- object's size
-
-    ft = v_function_type(void, typ0, 3, false);
-    v_export_symbol_type("v_ast_make_generic", ft);
-
-    //-------------------------------------------------------------
-    v_store(v_ast_unit_ptr,     typ0);              //- (out)
-//  v_store(generic_vtable_ptr, typ1);              //-
-//  v_store(size_t,             typ2);              //- object's size
-
-    ft = v_function_type(void, typ0, 3, false);
-    v_export_symbol_type("v_ast_make_unit_generic", ft);
-
-    v_store(v_ast_stmt_ptr,     typ0);              //- (out)
-//  v_store(generic_vtable_ptr, typ1);              //-
-//  v_store(size_t,             typ2);              //- object's size
-
-    ft = v_function_type(void, typ0, 3, false);
-    v_export_symbol_type("v_ast_make_stmt_generic", ft);
-
-    v_store(v_ast_expr_ptr,     typ0);              //- (out)
-//  v_store(generic_vtable_ptr, typ1);              //-
-//  v_store(size_t,             typ2);              //- object's size
-
-    ft = v_function_type(void, typ0, 3, false);
-    v_export_symbol_type("v_ast_make_expr_generic", ft);
-
-    //-------------------------------------------------------------
-    v_store(v_ast_base_ptr, typ0);                  //-
-
-    ft = v_function_type(generic_vtable_ptr, typ0, 1, false);
-    v_export_symbol_type("v_ast_generic_get_vtable", ft);
-
-//  v_store(v_ast_base_ptr, typ0);                  //-
-
-    ft = v_function_type(void_ptr, typ0, 1, false);
-    v_export_symbol_type("v_ast_generic_get_object", ft);
 
 
     //-------------------------------------------------------------

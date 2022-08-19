@@ -98,9 +98,9 @@ ast_make_expr_struct: (ret: *v_ast_expr_t,
     v_initialize(etmp);
     defer v_terminate(etmp);
 
-    v_ast_make_expr_generic(etmp, &ast_expr_struct_vtable, ast_expr_struct_t_size);
+    v_ast_make_generic(etmp, &ast_expr_struct_vtable, ast_expr_struct_t_size);
 
-    void_obj = v_ast_generic_get_object((etmp: v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(etmp);
 
     obj = *(void_obj: *ast_expr_struct_t);
 
@@ -147,7 +147,7 @@ mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, siz
 
     if (export)
     {
-        void_obj = v_ast_generic_get_object((expr: v_ast_base_ptr));
+        void_obj = v_ast_generic_get_object(expr);
 
         obj = *(void_obj: *ast_expr_struct_t);
 
@@ -190,7 +190,7 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
                       self: *v_ast_base_t
                       ) -> void
 {
-    void_obj = v_ast_generic_get_object(self);
+    void_obj = v_ast_generic_get_object((self: v_ast_expr_ptr));
 
     obj = *(void_obj: *ast_expr_struct_t);
 

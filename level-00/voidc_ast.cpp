@@ -44,6 +44,27 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------
+//- Attributes ...
+//---------------------------------------------------------------------
+void
+v_ast_set_attribute(const ast_base_t *ast, v_quark_t key, const std::any *val)
+{
+    (*ast)->attributes[key] = *val;
+}
+
+const std::any *
+v_ast_get_attribute(const ast_base_t *ast, v_quark_t key)
+{
+    auto &attrs = (*ast)->attributes;
+
+    auto it = attrs.find(key);
+
+    if (it != attrs.end())  return &it->second;
+    else                    return nullptr;
+}
+
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 void
@@ -186,49 +207,40 @@ v_ast_expr_char_get_char(const ast_expr_t *ptr)
 //---------------------------------------------------------------------
 //- Generics ...
 //---------------------------------------------------------------------
-void
-v_ast_make_generic(ast_base_t *ret, const ast_generic_vtable_t *vtab, size_t size)
-{
-    *ret = std::make_shared<const ast_generic_data_t>(vtab, size);
+#define AST_DEFINE_MAKE_GENERIC_IMPL(ast_sptr_t, name_, fun_name) \
+void fun_name(ast_sptr_t *ret, const ast_generic_vtable_t *vtab, size_t size) \
+{ \
+    *ret = std::make_shared<const ast_##name_##generic_data_t>(vtab, size); \
 }
+
+#define AST_DEFINE_GENERIC_GET_VTABLE_IMPL(ast_sptr_t, name_, fun_name) \
+const ast_generic_vtable_t *fun_name(const ast_sptr_t *ptr) \
+{ \
+    auto &r = static_cast<const ast_##name_##generic_data_t &>(**ptr); \
+    return r.vtable; \
+}
+
+#define AST_DEFINE_GENERIC_GET_OBJECT_IMPL(ast_sptr_t, name_, fun_name) \
+void *fun_name(const ast_sptr_t *ptr) \
+{ \
+    auto &r = static_cast<const ast_##name_##generic_data_t &>(**ptr); \
+    return r.object; \
+}
+
+
+#define AST_DEFINE_GENERIC_MKGVGO_IMPL(ast_sptr_t, name_) \
+\
+    AST_DEFINE_MAKE_GENERIC_IMPL(ast_sptr_t, name_, v_ast_make_##name_##generic_impl) \
+    AST_DEFINE_GENERIC_GET_VTABLE_IMPL(ast_sptr_t, name_, v_ast_##name_##generic_get_vtable_impl) \
+    AST_DEFINE_GENERIC_GET_OBJECT_IMPL(ast_sptr_t, name_, v_ast_##name_##generic_get_object_impl)
+
 
 //---------------------------------------------------------------------
-void
-v_ast_make_unit_generic(ast_unit_t *ret, const ast_generic_vtable_t *vtab, size_t size)
-{
-    *ret = std::make_shared<const ast_unit_generic_data_t>(vtab, size);
-}
+AST_DEFINE_GENERIC_MKGVGO_IMPL(ast_base_t,)
 
-void
-v_ast_make_stmt_generic(ast_stmt_t *ret, const ast_generic_vtable_t *vtab, size_t size)
-{
-    *ret = std::make_shared<const ast_stmt_generic_data_t>(vtab, size);
-}
-
-void
-v_ast_make_expr_generic(ast_expr_t *ret, const ast_generic_vtable_t *vtab, size_t size)
-{
-    *ret = std::make_shared<const ast_expr_generic_data_t>(vtab, size);
-}
-
-//---------------------------------------------------------------------
-const ast_generic_vtable_t *
-v_ast_generic_get_vtable(const ast_base_t *base_ptr)
-{
-    auto ptr = std::dynamic_pointer_cast<const ast_base_generic_data_t>(*base_ptr);
-    assert(ptr);
-
-    return ptr->vtable;
-}
-
-const void *
-v_ast_generic_get_object(const ast_base_t *base_ptr)
-{
-    auto ptr = std::dynamic_pointer_cast<const ast_base_generic_data_t>(*base_ptr);
-    assert(ptr);
-
-    return ptr->object;
-}
+AST_DEFINE_GENERIC_MKGVGO_IMPL(ast_unit_t, unit_)
+AST_DEFINE_GENERIC_MKGVGO_IMPL(ast_stmt_t, stmt_)
+AST_DEFINE_GENERIC_MKGVGO_IMPL(ast_expr_t, expr_)
 
 
 //---------------------------------------------------------------------

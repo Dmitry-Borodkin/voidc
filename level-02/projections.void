@@ -52,7 +52,7 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
     name = v_std_any_get_pointer(v_std_string_t,    any+1);
     args = v_std_any_get_pointer(v_ast_expr_list_t, any+2);
 
-    void_obj = v_ast_generic_get_object((op0: v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(op0);
 
     obj = *(void_obj: v_ast_operator_unary_ptr);
 
@@ -106,7 +106,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     op = v_list_get_item(args, 0);
 
-    void_obj = v_ast_generic_get_object((op: v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(op);
 
     obj = *(void_obj: v_ast_operator_unary_ptr);
 

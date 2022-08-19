@@ -60,7 +60,17 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
 
     ast_expr_t e;
 
-    if (auto p = std::any_cast<ast_expr_t>(args+1))    { e = *p; }
+    if (auto p = std::any_cast<ast_expr_t>(args+1))
+    {
+        if (s.c_str()[0])
+        {
+            static const v_quark_t key = v_quark_from_string("name");       //- ?
+
+            (*p)->attributes[key] = s;
+        }
+
+        e = *p;
+    }
 
     ast_stmt_t ptr = std::make_shared<const ast_stmt_data_t>(s, e);
 

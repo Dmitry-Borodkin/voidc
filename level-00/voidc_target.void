@@ -250,6 +250,9 @@
     v_export_symbol_type("v_pop_temporaries", ft);
     v_export_symbol_type("v_finish_function", ft);
 
+    ft = v_function_type(LLVMValueRef, 0, 0, false);
+    v_export_symbol_type("v_get_temporaries_front", ft);
+
     ft = v_function_type(size_t, 0, 0, false);
     v_export_symbol_type("v_get_variables_size", ft);
 

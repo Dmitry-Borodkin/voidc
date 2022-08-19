@@ -1528,7 +1528,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             op = v_list_get_item(args, 0);
 
-            void_obj = v_ast_generic_get_object((op: v_ast_base_ptr));
+            void_obj = v_ast_generic_get_object(op);
 
             obj = *(void_obj: v_ast_operator_unary_ptr);
 
@@ -1579,7 +1579,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     op = v_list_get_item(args, 0);
 
-    void_obj = v_ast_generic_get_object((op : v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(op);
 
     obj = *(void_obj: v_ast_operator_unary_ptr);
 
@@ -1606,7 +1606,7 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     op = v_list_get_item(args, 0);
 
-    void_obj = v_ast_generic_get_object((op : v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(op);
 
     obj = *(void_obj: v_ast_operator_unary_ptr);
 

@@ -644,10 +644,9 @@ voidc_import_helper(const char *name, bool _export)
 static void
 v_local_import(const visitor_t *vis, void *, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto target = voidc_global_ctx_t::target;
 
@@ -655,7 +654,7 @@ v_local_import(const visitor_t *vis, void *, const ast_base_t *self)
 
     target->builder = LLVMCreateBuilderInContext(target->llvm_ctx);
 
-    auto &r = dynamic_cast<const ast_expr_string_data_t &>(*args->data[0]);
+    auto &r = static_cast<const ast_expr_string_data_t &>(*args->data[0]);
 
     v_import_helper(r.string.c_str(), false);
 

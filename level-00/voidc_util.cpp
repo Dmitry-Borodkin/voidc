@@ -75,10 +75,9 @@ typedef void (*intrinsic_t)(const visitor_t *vis, void *aux, const ast_base_t *s
 static
 void v_init_term_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -133,10 +132,9 @@ void v_init_term_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
 static
 void v_copy_move_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -190,14 +188,14 @@ void v_copy_move_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
     LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 3, "");
 }
 
+
 //---------------------------------------------------------------------
 static
-void v_empty_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
+void v_universal_get_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -216,9 +214,9 @@ void v_empty_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t 
     void *aux;
 
     LLVMValueRef f;
-    v_type_t    *ft;
+    v_type_t    *t;
 
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
+    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, t);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -230,59 +228,13 @@ void v_empty_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t 
 
     //- Function call
 
-    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
-
-    lctx.result_type = tt;
-
-    lctx.adopt_result(gctx.bool_type, v);
-}
-
-
-//---------------------------------------------------------------------
-static
-void v_kind_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
-{
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
-
-    auto &args = call->arg_list;
-
-    auto quark = v_quark_t(uintptr_t(void_quark));
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    auto tt = lctx.result_type;
-
-    lctx.result_type = UNREFERENCE_TAG;
-
-    (*vis)->visit(args->data[0]);
-
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
-
-    void *void_fun;
-    void *aux;
-
-    LLVMValueRef f;
-    v_type_t    *ft;
-
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
+    auto ft = static_cast<v_type_function_t *>(t);
 
     auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
     lctx.result_type = tt;
 
-    lctx.adopt_result(gctx.int_type, v);
+    lctx.adopt_result(ft->return_type(), v);
 }
 
 
@@ -290,10 +242,9 @@ void v_kind_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *
 static
 void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -343,10 +294,9 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
 static
 void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -400,10 +350,9 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 static
 void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -452,10 +401,9 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
 static
 void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -502,12 +450,11 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 
 //---------------------------------------------------------------------
 static
-void v_make_list_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
+void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -568,10 +515,9 @@ void v_make_list_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
 static
 void v_list_append_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -630,10 +576,9 @@ void v_list_append_intrinsic(const visitor_t *vis, void *void_quark, const ast_b
 static
 void v_list_get_size_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -678,10 +623,9 @@ void v_list_get_size_intrinsic(const visitor_t *vis, void *void_quark, const ast
 static
 void v_list_get_item_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto call = std::dynamic_pointer_cast<const ast_expr_call_data_t>(*self);
-    assert(call);
+    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
-    auto &args = call->arg_list;
+    auto &args = call.arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -752,21 +696,25 @@ void static_initialize(void)
     DEF2(copy, v_copy_move_intrinsic)
     DEF2(move, v_copy_move_intrinsic)
 
-    DEF(empty)
-
-    DEF(kind)
+    DEF2(empty, v_universal_get_intrinsic)
+    DEF2(kind,  v_universal_get_intrinsic)
 
     DEF(std_any_get_value)
     DEF(std_any_get_pointer)
     DEF(std_any_set_value)
     DEF(std_any_set_pointer)
 
-    DEF2(make_list_nil, v_make_list_intrinsic)
-    DEF2(make_list,     v_make_list_intrinsic)
+    DEF2(make_list_nil, v_universal_intrinsic)
+    DEF2(make_list,     v_universal_intrinsic)
 
     DEF(list_append)
     DEF(list_get_size)
     DEF(list_get_item)
+
+    DEF2(ast_make_generic, v_universal_intrinsic)
+
+    DEF2(ast_generic_get_vtable, v_universal_get_intrinsic)
+    DEF2(ast_generic_get_object, v_universal_get_intrinsic)
 
 #undef DEF
 #undef DEF2

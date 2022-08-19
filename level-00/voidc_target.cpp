@@ -2236,6 +2236,15 @@ v_pop_temporaries(void)
     lctx.pop_temporaries();
 }
 
+LLVMValueRef
+v_get_temporaries_front(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return lctx.get_temporaries_front();
+}
+
 
 //---------------------------------------------------------------------
 v_type_t *

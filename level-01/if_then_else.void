@@ -182,9 +182,9 @@
     stmp = v_alloca(v_ast_stmt_t);
     v_initialize(stmp);
 
-    v_ast_make_stmt_generic(stmp, voidc_ast_stmt_if_then_else_vtable, ast_stmt_if_then_else_t_size);
+    v_ast_make_generic(stmp, voidc_ast_stmt_if_then_else_vtable, ast_stmt_if_then_else_t_size);
 
-    void_obj = v_ast_generic_get_object(v_cast(stmp, v_ast_base_ptr));
+    void_obj = v_ast_generic_get_object(stmp);
 
     obj = v_cast(void_obj, ast_stmt_if_then_else_ptr);
 
@@ -599,7 +599,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    void_obj = v_ast_generic_get_object(self);
+    void_obj = v_ast_generic_get_object(v_cast(self, v_ast_stmt_ptr));
 
     obj = v_cast(void_obj, ast_stmt_if_then_else_ptr);
 
