@@ -644,23 +644,20 @@ voidc_import_helper(const char *name, bool _export)
 static void
 v_local_import(const visitor_t *vis, void *, const ast_base_t *self)
 {
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.push_builder_ip();
+
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
     auto &args = call.arg_list;
-
-    auto target = voidc_global_ctx_t::target;
-
-    auto saved_builder = target->builder;
-
-    target->builder = LLVMCreateBuilderInContext(target->llvm_ctx);
 
     auto &r = static_cast<const ast_expr_string_data_t &>(*args->data[0]);
 
     v_import_helper(r.string.c_str(), false);
 
-    LLVMDisposeBuilder(target->builder);
-
-    target->builder = saved_builder;
+    lctx.pop_builder_ip();
 }
 
 

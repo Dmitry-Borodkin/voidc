@@ -22,6 +22,7 @@
 #include <llvm-c/LLJIT.h>
 
 #include <llvm/ExecutionEngine/Orc/Core.h>
+#include <llvm/IR/IRBuilder.h>
 
 
 //---------------------------------------------------------------------
@@ -194,6 +195,13 @@ public:
     void           *obtain_module_ctx = nullptr;
 
     bool obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value);
+
+public:
+    void push_builder_ip(void);
+    void pop_builder_ip(void);
+
+private:
+    std::forward_list<llvm::IRBuilderBase::InsertPoint> builder_ip_stack;
 
 public:
     LLVMValueRef prepare_function(const char *name, v_type_t *type);

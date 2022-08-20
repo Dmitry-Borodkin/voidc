@@ -437,6 +437,25 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
 
 
 //---------------------------------------------------------------------
+void
+base_local_ctx_t::push_builder_ip(void)
+{
+    builder_ip_stack.push_front(unwrap(global_ctx.builder)->saveIP());
+}
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::pop_builder_ip(void)
+{
+    auto &top = builder_ip_stack.front();
+
+    unwrap(global_ctx.builder)->restoreIP(top);
+
+    builder_ip_stack.pop_front();
+}
+
+
+//---------------------------------------------------------------------
 LLVMValueRef
 base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
 {
@@ -2012,6 +2031,26 @@ v_obtain_identifier(const char *name, v_type_t * *type, LLVMValueRef *value)
     }
 
     return  ok;
+}
+
+
+//---------------------------------------------------------------------
+void
+v_save_builder_ip(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.push_builder_ip();
+}
+
+void
+v_restore_builder_ip(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.pop_builder_ip();
 }
 
 

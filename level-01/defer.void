@@ -240,6 +240,8 @@
     defer_bv = LLVMBasicBlockAsValue(defer_b);
 
 
+    v_save_builder_ip();
+
     LLVMPositionBuilderAtEnd(builder, defer_b);
 
 
@@ -257,7 +259,7 @@
     v_add_variable("voidc.internal_branch_target_leave", 0, defer_bv);      //- Sic!
 
 
-    LLVMPositionBuilderAtEnd(builder, cur_b);
+    v_restore_builder_ip();
 }
 
 
