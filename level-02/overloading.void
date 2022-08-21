@@ -23,6 +23,11 @@
 }
 
 
+//---------------------------------------------------------------------
+strcmp: (*const char, *const char) -> int;
+strncmp: (*const char, *const char, size_t) -> int;
+
+
 //=====================================================================
 {   voidc_unit_begin_module("op_table_module"); }
 
@@ -56,6 +61,8 @@ op_table: &op_table_item_t[] :=
     {"op_infix_xor_assign",  opk_assign   },
     {"op_infix_or_assign",   opk_assign   },
 
+//  {"op_infix_to",          opk_binary   },        //- ?!?!?!?!?!?!?!?
+
     {"op_infix_logical_or",  opk_logical  },
     {"op_infix_logical_and", opk_logical  },
 
@@ -86,6 +93,9 @@ op_table: &op_table_item_t[] :=
     {"op_prefix_amp",        opk_unary    },
     {"op_prefix_bang",       opk_unary    },
     {"op_prefix_tilda",      opk_unary    },
+
+    {"op_prefix_const",      opk_unary    },        //- ...
+    {"op_prefix_volatile",   opk_unary    },        //- ...
 
     {"op_postfix_inc",       opk_unary    },
     {"op_postfix_dec",       opk_unary    },
@@ -490,9 +500,6 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 
 //---------------------------------------------------------------------
-strcmp: (*const char, *const char) -> int;
-strncmp: (*const char, *const char, size_t) -> int;
-
 private
 check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr) -> int
 {
@@ -1226,6 +1233,25 @@ static_type_prefix_amp_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     v_set_result_value((typ: LLVMValueRef));
 }
 
+//---------------------------------------------------------------------
+private
+static_type_prefix_cv_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+                                  self: v_ast_base_ptr,
+                                  t0: v_type_ptr, v0: LLVMValueRef
+                                 ) -> void
+{
+    //- assert(t0 == v_static_type_t);
+
+    typ = (v0: v_type_ptr);
+
+    //-----------------------------------------------------------------
+    //- Just "ignore" it...
+    //-----------------------------------------------------------------
+
+    v_set_result_type(v_static_type_t);
+    v_set_result_value((typ: LLVMValueRef));
+}
+
 
 //---------------------------------------------------------------------
 export
@@ -1690,6 +1716,12 @@ voidc_enable_overloading_compiler: () -> void
 
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_star", static_type_prefix_star_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_amp",  static_type_prefix_amp_intrinsic,  0);
+
+    v_util_function_dict_set(v_quark_from_string("op_prefix_const"),    v_static_type_t, "v.static_type_prefix_const");
+    v_util_function_dict_set(v_quark_from_string("op_prefix_volatile"), v_static_type_t, "v.static_type_prefix_volatile");
+
+    voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_const",    static_type_prefix_cv_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_volatile", static_type_prefix_cv_intrinsic, 0);
 
     voidc_visitor_set_void_method(vis, vis, v_quark_from_string("expr_call"), compile_expr_call, 0);
 

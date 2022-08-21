@@ -64,7 +64,7 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
     {
         if (s.c_str()[0])
         {
-            static const v_quark_t key = v_quark_from_string("name");       //- ?
+            static const v_quark_t key = v_quark_from_string("root");       //- ?
 
             (*p)->attributes[key] = s;
         }
