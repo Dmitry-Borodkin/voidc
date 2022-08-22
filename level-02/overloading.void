@@ -1410,9 +1410,37 @@ voidc_internal_op_postfix_index_helper: (vis: voidc_visitor_ptr,
 
     v_ast_accept_visitor((eidx: v_ast_base_ptr), vis);
 
-    idx_t = v_get_result_type();
-    idx_v = v_get_result_value();
+    idx_t: &v_type_ptr   := v_get_result_type();
+    idx_v: &LLVMValueRef := v_get_result_value();
 
+    block
+    {
+        st = v_type_get_scalar_type(idx_t);
+
+        if (!v_type_is_integer(st))        v_break();
+        if (v_type_integer_is_signed(st))  v_break();
+
+        w = v_type_integer_get_width(st);
+
+        if (w >= 32)  v_break();
+
+        t1: &v_type_ptr := v_uint_type(32);
+
+        if (v_type_is_vector(idx_t))
+        {
+            count = v_type_vector_get_size(idx_t);
+
+            if (v_type_vector_is_scalable(idx_t))  t1 := v_svector_type(t1, count);
+            else                                   t1 := v_vector_type(t1, count);
+        }
+
+        v_set_result_type(t1);
+
+        v_adopt_result(idx_t, idx_v);
+
+        idx_t := v_get_result_type();
+        idx_v := v_get_result_value();
+    }
 
     agg_t: &v_type_ptr   := t0;
     agg_v: &LLVMValueRef := v0;

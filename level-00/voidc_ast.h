@@ -286,12 +286,12 @@ struct ast_template_generic_data_t : T
       : vtable(vtab),
         object(std::malloc(size))
     {
-        vtable->init(object);
+        if (vtable && vtable->init)  vtable->init(object);
     }
 
     ~ast_template_generic_data_t() override
     {
-        vtable->term(object);
+        if (vtable && vtable->term)  vtable->term(object);
 
         std::free(object);
     }
@@ -304,7 +304,7 @@ public:
 public:
     v_quark_t method_tag(void) const override
     {
-        return  vtable->visitor_method_tag;
+        return  (vtable ? vtable->visitor_method_tag : 0);
     }
 };
 

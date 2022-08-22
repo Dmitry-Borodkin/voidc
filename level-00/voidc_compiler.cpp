@@ -406,8 +406,34 @@ v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
 
         (*vis)->visit(args->data[i]);
 
-        types[i]  = lctx.result_type;
-        values[i] = lctx.result_value;
+        auto ti = lctx.result_type;
+        auto vi = lctx.result_value;
+
+        if (auto *sti = dynamic_cast<v_type_uint_t *>(v_type_get_scalar_type(ti)))
+        {
+            if (auto w = sti->width();  w < 32)
+            {
+                v_type_t *t1 = gctx.make_uint_type(32);
+
+                if (auto *vt = dynamic_cast<v_type_vector_t *>(ti))
+                {
+                    auto count = vt->size();
+
+                    if (vt->is_scalable())  t1 = gctx.make_svector_type(t1, count);
+                    else                    t1 = gctx.make_vector_type(t1, count);
+                }
+
+                lctx.result_type = t1;
+
+                lctx.adopt_result(ti, vi);
+
+                ti = lctx.result_type;
+                vi = lctx.result_value;
+            }
+        }
+
+        types[i]  = ti;
+        values[i] = vi;
     }
 
     auto *p = static_cast<v_type_pointer_t *>(v_type_get_scalar_type(types[0]));

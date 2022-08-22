@@ -276,10 +276,13 @@ tt = int[8];
 
 vv: &tt := {0, 1, 2};
 
+//{ v_debug_print_module(1); }
 {
     printf("\n%d\n", vv[2]);
 
+    ww: &*int := &vv[0]+1;
 
+    printf("\n%d\n", ww[true]);
 
 }
 
