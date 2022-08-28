@@ -123,7 +123,7 @@ public:
     LLVMTargetDataRef data_layout = nullptr;
 
 public:
-    void initialize_type(const char *raw_name, v_type_t *type);
+    virtual void initialize_type(const char *raw_name, v_type_t *type);
 
     v_type_t * const char_ptr_type;
     v_type_t * const void_ptr_type;
@@ -268,6 +268,10 @@ public:
     ~voidc_global_ctx_t() = default;
 
 public:
+    void initialize_type(const char *raw_name, v_type_t *type) override;
+
+    typenames_t typenames;
+
     std::map<std::string, typenames_t> imported_typenames;
 
 public:
@@ -298,9 +302,6 @@ public:
 
 public:
     void add_symbol_value(const char *raw_name, void *value) override;
-
-public:
-    immer::map<v_type_t *, std::string> typenames;
 
 public:
     llvm::orc::SymbolMap unit_symbols;

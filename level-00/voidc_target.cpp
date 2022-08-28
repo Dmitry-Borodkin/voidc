@@ -909,6 +909,16 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
 
 //---------------------------------------------------------------------
+void
+voidc_global_ctx_t::initialize_type(const char *raw_name, v_type_t *type)
+{
+    base_global_ctx_t::initialize_type(raw_name, type);
+
+    typenames = typenames.insert({type, raw_name});
+};
+
+
+//---------------------------------------------------------------------
 static char *voidc_triple = nullptr;
 
 //---------------------------------------------------------------------
@@ -1208,6 +1218,8 @@ voidc_global_ctx_t::flush_unit_symbols(void)
 voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
   : base_local_ctx_t(global)
 {
+    typenames = global.typenames;
+
     auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
 
     std::string jd_name("local_jd_" + std::to_string(global.local_jd_hash));
