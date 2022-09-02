@@ -2029,7 +2029,7 @@
 
     q = v_quark_from_string;
 
-    op_binary(op_infix_to, q("op_infix_to"), 2000, 1, 0);               //- "Lowest" priority, left-assoc
+    op_binary(op_infix_to, q("op_infix_to"), 2000, 0, 0);               //- "Lowest" priority, right-assoc
 
     op_unary(op_prefix_const,    q("op_prefix_const"),    20000, 0);    //- "Prefix" priority
     op_unary(op_prefix_volatile, q("op_prefix_volatile"), 20000, 0);    //- "Prefix" priority
