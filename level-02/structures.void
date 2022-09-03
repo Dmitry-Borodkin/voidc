@@ -240,8 +240,6 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 
     if (!v_empty(body))
     {
-        tref = v_reference_type(type, 0);
-
         N = v_list_get_size(body);
 
         {   types = v_malloc(v_type_ptr, N);
@@ -263,6 +261,8 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
             if (type) v_type_struct_set_body(type, types, N, packed);
             else      type := v_struct_type(types, N, packed);
         }
+
+        tref = v_reference_type(type, 0);
 
         sstr = v_alloca(v_std_string_t, 2);
         v_initialize(sstr, 2);
