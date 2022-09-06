@@ -809,6 +809,11 @@ char *v_std_string_get(std::string *ptr)
     return ptr->data();
 }
 
+size_t v_std_string_get_size(std::string *ptr)
+{
+    return ptr->size();
+}
+
 void v_std_string_set(std::string *ptr, const char *str)
 {
     *ptr = str;
