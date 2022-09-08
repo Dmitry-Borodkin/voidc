@@ -922,65 +922,40 @@
     v_return(defn_module);
 }
 
+
 //---------------------------------------------------------------------
-//- compile_unit_fun_defn - visitor method
+//- voidc_compile_unit_fun_defn_helper - ...
 //---------------------------------------------------------------------
 {
+    typ = v_alloca(v_type_ptr, 6);
+    typ[0] := voidc_visitor_ptr;
+    typ[1] := intptr_t;
+    typ[2] := char_ptr;
+    typ[3] := v_type_ptr;
+    typ[4] := v_ast_generic_list_ptr;
+    typ[5] := v_ast_base_ptr;
+
+    ft = v_function_type(void, typ, 6, false);
+
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_unit_fun_defn", voidc_visitor_method_t);
+    f = v_function_hack("voidc_compile_unit_fun_defn_helper", ft);
 
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
+    v_add_parameter_name(f, 0, "vis",      voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "qualif",   intptr_t);
+    v_add_parameter_name(f, 2, "fun_name", char_ptr);
+    v_add_parameter_name(f, 3, "fun_type", v_type_ptr);
+    v_add_parameter_name(f, 4, "fun_args", v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 5, "fun_body", v_ast_base_ptr);
 }
 {
-//  printf("compile_unit_fun_defn\n");
-//  defer printf("compile_unit_fun_defn leave\n");
-
-    list = v_cast(self, v_ast_generic_list_ptr);
-
-    ast0 = v_list_get_item(list, 0);
-    ast1 = v_list_get_item(list, 1);
-
-    //-------------------------------------------------------------
-    qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
-
     private = (qualif == qf_private);
     export  = (export_flag  ||  qualif == qf_export)  &&  !private;
 
-    name = v_ast_expr_identifier_get_name(v_cast(ast1, v_ast_expr_ptr));
-
-    params   = v_list_get_item(list, 2);
-    ret_type = v_list_get_item(list, 3);
-    body     = v_list_get_item(list, 4);
+    if (export) v_export_symbol_type(fun_name, fun_type);
+    else        v_add_symbol(fun_name, fun_type, 0);
 
     //-------------------------------------------------------------
-    args = v_ast_expr_call_get_arg_list(v_cast(params, v_ast_expr_ptr));
-
-    args = v_cast(v_list_get_item(args, 1), v_ast_generic_list_ptr);
-
-
-    //-------------------------------------------------------------
-    {   expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
-
-        v_ast_make_expr_op_binary(expr, op_infix_to, v_cast(params, v_ast_expr_ptr), v_cast(ret_type, v_ast_expr_ptr));
-
-        v_set_result_type(INVIOLABLE_TAG);
-
-        v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor);
-    }
-
-    fun_type = v_cast(v_get_result_value(), v_type_ptr);
-
-    if (export) v_export_symbol_type(name, fun_type);
-    else        v_add_symbol(name, fun_type, 0);
-
-    //-------------------------------------------------------------
-    if (!v_empty(body))
+    if (!v_empty(fun_body))
     {
         count = v_type_function_get_param_count(fun_type);
 
@@ -990,7 +965,7 @@
 
         v_set_module(check_defn_module(0));
 
-        f = v_prepare_function(name, fun_type);
+        f = v_prepare_function(fun_name, fun_type);
 
         if (private)  LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1002,7 +977,7 @@
             {
                 if (i >= count) v_break();
 
-                item = v_cast(v_list_get_item(args, i), v_ast_generic_list_ptr);
+                item = v_cast(v_list_get_item(fun_args, i), v_ast_generic_list_ptr);
 
                 etmp = v_cast(v_list_get_item(item, 0), v_ast_expr_ptr);
 
@@ -1017,7 +992,7 @@
             }
         }
 
-        v_ast_accept_visitor(body, visitor);
+        v_ast_accept_visitor(fun_body, vis);
 
         v_finish_function();
 
@@ -1025,7 +1000,7 @@
     }
 
     //-------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(visitor, "voidc.decl_stmt_list", 0);
+    stmt_list = voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
 
     if (!stmt_list)  v_return();
 
@@ -1053,7 +1028,7 @@
 
     v_ast_make_expr_call(expr+1, expr+0, elst);
 
-    v_ast_make_expr_string(expr+0, name);
+    v_ast_make_expr_string(expr+0, fun_name);
 
 
     if (export)
@@ -1068,6 +1043,59 @@
     }
 
     v_list_append(stmt_list, stmt_list, stmt);
+}
+
+//---------------------------------------------------------------------
+//- compile_unit_fun_defn - visitor method
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_unit_fun_defn", voidc_visitor_method_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
+}
+{
+//  printf("compile_unit_fun_defn\n");
+//  defer printf("compile_unit_fun_defn leave\n");
+
+    list = v_cast(self, v_ast_generic_list_ptr);
+
+    ast0 = v_list_get_item(list, 0);
+    ast1 = v_list_get_item(list, 1);
+
+    //-------------------------------------------------------------
+    qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
+
+    name = v_ast_expr_identifier_get_name(v_cast(ast1, v_ast_expr_ptr));
+
+    params   = v_list_get_item(list, 2);
+    ret_type = v_list_get_item(list, 3);
+    body     = v_list_get_item(list, 4);
+
+    //-------------------------------------------------------------
+    args = v_ast_expr_call_get_arg_list(v_cast(params, v_ast_expr_ptr));
+
+    args = v_cast(v_list_get_item(args, 1), v_ast_generic_list_ptr);
+
+    //-------------------------------------------------------------
+    {   expr = v_alloca(v_ast_expr_t);
+        v_initialize(expr);
+        defer v_terminate(expr);
+
+        v_ast_make_expr_op_binary(expr, op_infix_to, v_cast(params, v_ast_expr_ptr), v_cast(ret_type, v_ast_expr_ptr));
+
+        v_set_result_type(INVIOLABLE_TAG);
+
+        v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), visitor);
+    }
+
+    fun_type = v_cast(v_get_result_value(), v_type_ptr);
+
+    voidc_compile_unit_fun_defn_helper(visitor, qualif, name, fun_type, args, body);
 }
 
 //---------------------------------------------------------------------
@@ -2040,6 +2068,8 @@
 
 //---------------------------------------------------------------------
 {
+    v_make_export_symbol("voidc_compile_unit_fun_defn_helper");
+
     v_make_export_symbol("voidc_enable_definitions_compiler");
     v_make_export_symbol("voidc_enable_definitions");
 }
