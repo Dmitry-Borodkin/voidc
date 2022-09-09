@@ -1550,10 +1550,12 @@
         voidc_compile_type_ctx_initialize(ctx);
 
 
+        int_ = v_type_get_llvm_type(int);
+
         int_ptr_    = v_type_get_llvm_type(v_pointer_type(int, 0));
         v_type_ptr_ = v_type_get_llvm_type(v_type_ptr);
 
-        dummy_len_v = LLVMBuildLoad(builder, LLVMGetUndef(int_ptr_), "dummy_len");
+        dummy_len_v = LLVMBuildLoad2(builder, int_, LLVMGetUndef(int_ptr_), "dummy_len");
 
         ctx_stack = LLVMBuildArrayMalloc(builder, v_type_ptr_, dummy_len_v, "stk");
 
@@ -1574,8 +1576,6 @@
         len = voidc_compile_type_ctx_get_stack_length(ctx);
 
         voidc_compile_type_ctx_terminate(ctx);
-
-        int_ = v_type_get_llvm_type(int);
 
         LLVMReplaceAllUsesWith(dummy_len_v, LLVMConstInt(int_, len, 0));          //- Sic!!!
 
