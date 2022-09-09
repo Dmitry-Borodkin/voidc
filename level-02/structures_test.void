@@ -8,6 +8,8 @@
     v_import("projections.void");
     v_import("structures.void");
 
+    v_import("llvm-c/Core.void");
+
     v_import("printf.void");
 }
 
@@ -61,7 +63,45 @@ s: &qwerty_t := { 7, 19, &r };
     printf("a.d: %g, a.p~>d: %g\n", a.d, a.p~>d);
 
     printf("M_PI: %.99g\n", M_PI);
-    printf("M_PI: %a\n", M_PI);
+    printf("M_PI: %.13a\n", M_PI);
+}
+
+//---------------------------------------------------------------------
+{
+    t: &v_type_ptr   := v_undef();
+    v: &LLVMValueRef := v_undef();
+
+    name = "M_PI";
+
+    ok = v_find_constant(name, &t, &v);
+
+    if (ok)
+    {
+        printf("Found %s...  t: %p, v: %p\n", name, t, v);
+
+        s = LLVMPrintTypeToString(v_type_get_llvm_type(t));
+
+        printf("%s t: %s\n", name, s);
+
+        LLVMDisposeMessage(s);
+
+        s = LLVMPrintValueToString(v);
+
+        printf("%s v: %s\n", name, s);
+
+        LLVMDisposeMessage(s);
+    }
+    else
+    {
+        printf("%s not found!\n", name);
+    }
+}
+
+//---------------------------------------------------------------------
+{
+    pi: &float(64) := M_PI;
+
+    printf("pi: %llX !!!\n", *(&pi: *uint(64)));
 }
 
 
