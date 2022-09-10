@@ -459,7 +459,9 @@ base_local_ctx_t::pop_builder_ip(void)
 LLVMValueRef
 base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
 {
-    LLVMValueRef f = LLVMAddFunction(module, name, type->llvm_type());
+    LLVMValueRef f = LLVMGetNamedFunction(module, name);        //- Sic!
+
+    if (!f)  f = LLVMAddFunction(module, name, type->llvm_type());
 
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(f, "entry");
 
