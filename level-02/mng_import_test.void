@@ -1,0 +1,87 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("unit_module.void");
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+    v_import("projections.void");
+    v_import("structures.void");
+    v_import("mangling.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+    voidc_enable_projections();
+    voidc_enable_structures();
+    voidc_enable_mangling();
+}
+
+//=====================================================================
+{   voidc_unit_begin_module("mng_import_test_module"); }
+
+
+//---------------------------------------------------------------------
+{ v_set_export_flag(true); }
+
+
+//---------------------------------------------------------------------
+double = float(64);
+
+struct vec2
+{
+    x: double;
+    y: double;
+};
+
+
+//---------------------------------------------------------------------
+(_+_): (a: &vec2, b: &vec2) -> vec2
+{
+    v_return({a.x+b.x, a.y+b.y});
+}
+
+(_-_): (a: &vec2, b: &vec2) -> vec2
+{
+    v_return({a.x-b.x, a.y-b.y});
+}
+
+(+_): (a: &vec2) -> vec2
+{
+    v_return(a);
+}
+
+(-_): (a: &vec2) -> vec2
+{
+    v_return({-a.x, -a.y});
+}
+
+(_*__): (k: double, v: &vec2) -> vec2
+{
+    v_return({k*v.x, k*v.y});
+}
+
+(_*_): (v: &vec2, k: double) -> vec2
+{
+    v_return({v.x*k, v.y*k});
+}
+
+(_/_): (v: &vec2, k: double) -> vec2
+{
+    v_return({v.x/k, v.y/k});
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

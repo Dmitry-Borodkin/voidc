@@ -1,0 +1,518 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2022 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("compression.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("unit_module.void");
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+    v_import("projections.void");
+    v_import("structures.void");
+
+//  v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+    voidc_enable_projections();
+    voidc_enable_structures();
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("compression_module"); }
+
+
+//---------------------------------------------------------------------
+byte = uint(8);
+
+printf: (*const char, ...) -> int;
+
+exit: (int) -> void;
+
+
+//---------------------------------------------------------------------
+//- Compression/decompression context...
+//---------------------------------------------------------------------
+export
+struct v_myz_ctx_t
+{
+    next_in:    *const byte;        //- "next_in"
+    avail_in:   size_t;             //- "avail_in"
+
+    next_out:   *byte;              //- "next_out"
+    avail_out:  size_t;             //- "avail_out"
+
+    //-------------------------------------------------------------
+    remain_in:  uint(8);            //- Input bits remain (out of 8)
+    buffer_in:  uint(8);            //- Input bits buffer
+
+    remain_out: uint(8);            //- Output bits remain (out of 8)
+    buffer_out: uint(8);            //- Output bits buffer
+
+    //-------------------------------------------------------------
+    check_in: *((&v_myz_ctx_t) -> bool);
+    aux_in:   *void;
+
+    check_out: *((&v_myz_ctx_t) -> bool);
+    aux_out:   *void;
+
+    //- ...
+
+};
+
+
+//---------------------------------------------------------------------
+//- Get one byte
+//---------------------------------------------------------------------
+private
+myz_get_byte: (ctx: &v_myz_ctx_t) -> byte
+{
+    if (ctx.avail_in == 0  &&  !(ctx.check_in  &&  ctx.check_in(ctx)))
+    {
+        printf("\nError: myz_get_byte - input empty\n");
+
+        exit(-1);
+    }
+
+    //- assert(ctx.avail_in != 0);
+
+    ctx.avail_in--;
+
+    v_return(*ctx.next_in++);
+}
+
+//---------------------------------------------------------------------
+//- Get one bit
+//---------------------------------------------------------------------
+private
+myz_get_bit: (ctx: &v_myz_ctx_t) -> bool
+{
+    if (ctx.remain_in == 0)
+    {
+        ctx.buffer_in := myz_get_byte(ctx);
+        ctx.remain_in := 8;
+    }
+
+    b = ctx.buffer_in;
+
+    r = b & 1;
+
+    b >>= 1;
+
+    ctx.remain_in -= 1;
+
+    v_return((r: bool));
+}
+
+//---------------------------------------------------------------------
+//- Read bits
+//---------------------------------------------------------------------
+private
+myz_read_bits: (ctx: &v_myz_ctx_t, bits: int) -> unsigned
+{
+    code: &unsigned := 0;
+
+    for (i: &int := 0; i < bits; ++i)
+    {
+        b = myz_get_bit(ctx);
+
+        code |= (b: unsigned) << i;
+    }
+
+    v_return(code);
+}
+
+//---------------------------------------------------------------------
+//- Check "End Of Data"
+//---------------------------------------------------------------------
+private
+myz_check_eod: (ctx: &v_myz_ctx_t) -> bool
+{
+    if (ctx.avail_in != 0)  v_return(false);
+
+    if (ctx.check_in  &&  ctx.check_in(ctx))  v_return(false);
+
+    //- assert(ctx.avail_in == 0);
+
+    v_return(ctx.buffer_in == 1);
+}
+
+
+//---------------------------------------------------------------------
+//- Put one byte
+//---------------------------------------------------------------------
+private
+myz_put_byte: (ctx: &v_myz_ctx_t, b: byte) -> void
+{
+    if (ctx.avail_out == 0  &&  !(ctx.check_out  &&  ctx.check_out(ctx)))
+    {
+        printf("\nError: myz_put_byte - output full\n");
+
+        exit(-1);
+    }
+
+    //- assert(ctx.avail_out != 0);
+
+    ctx.avail_out--;
+
+    *ctx.next_out++ := b;
+}
+
+//---------------------------------------------------------------------
+//- Put one bit
+//---------------------------------------------------------------------
+private
+myz_put_bit: (ctx: &v_myz_ctx_t, bit: bool) -> void
+{
+    b = ctx.buffer_out;
+    n = ctx.remain_out;
+
+    b |= bit << n;
+
+    n += 1;
+
+    if (n == 8)
+    {
+        myz_put_byte(ctx, b);
+
+        b := 0;
+        n := 0;
+    }
+}
+
+//---------------------------------------------------------------------
+//- Write bits
+//---------------------------------------------------------------------
+private
+myz_write_bits: (ctx: &v_myz_ctx_t, code: unsigned, bits: int) -> void
+{
+    code: &unsigned := code;
+
+    for (i: &int := 0; i < bits; ++i)
+    {
+        myz_put_bit(ctx, (code & 1 : bool));
+
+        code >>= 1;
+    }
+}
+
+//---------------------------------------------------------------------
+//- Write "End Of Data"
+//---------------------------------------------------------------------
+private
+myz_write_eod: (ctx: &v_myz_ctx_t) -> void
+{
+    myz_write_bits(ctx, 1, 8);
+}
+
+
+//---------------------------------------------------------------------
+//- Encoding dictionary ...
+//---------------------------------------------------------------------
+private
+struct v_myz_enc_t
+{
+    next: unsigned[256];
+};
+
+private
+struct v_myz_dict_enc_t
+{
+    list: v_ast_generic_list_t;
+};
+
+//---------------------------------------------------------------------
+{   enc_size_v = LLVMSizeOf(v_type_get_llvm_type(v_myz_enc_t));
+
+    v_add_constant("myz_enc_t_size", size_t, enc_size_v);
+}
+
+//---------------------------------------------------------------------
+private
+dict_enc_init: (dict: &v_myz_dict_enc_t) -> void
+{
+    v_initialize(&dict.list);
+
+    v_make_list_nil(&dict.list, 0);
+}
+
+//---------------------------------------------------------------------
+private
+dict_enc_term: (dict: &v_myz_dict_enc_t) -> void
+{
+    v_terminate(&dict.list);
+}
+
+//---------------------------------------------------------------------
+private
+dict_enc_expand: (dict: &v_myz_dict_enc_t) -> &v_myz_enc_t
+{
+    item = v_alloca(v_ast_base_t);
+    v_initialize(item);
+    defer v_terminate(item);
+
+    v_ast_make_generic(item, 0, myz_enc_t_size);
+
+    v_list_append(&dict.list, &dict.list, item);
+
+    void_obj = v_ast_generic_get_object(item);
+
+    obj = (void_obj: *v_myz_enc_t);
+
+    *obj := 0;
+
+    v_return(*obj);
+}
+
+//---------------------------------------------------------------------
+private
+dict_enc_at: (dict: &v_myz_dict_enc_t, i: int) -> &v_myz_enc_t
+{
+    void_obj = v_ast_generic_get_object(v_list_get_item(&dict.list, i));
+
+    obj = (void_obj: *v_myz_enc_t);
+
+    v_return(*obj);
+}
+
+//---------------------------------------------------------------------
+{   dict_enc_ref = v_reference_type(v_myz_dict_enc_t, 0);
+
+    q = v_quark_from_string;
+
+    v_util_function_dict_set(q(".expand()"), dict_enc_ref, "dict_enc_expand");
+
+    v_util_function_dict_set(q("op_postfix_index"), dict_enc_ref, "dict_enc_at");
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+
+//---------------------------------------------------------------------
+//- Encoding ...
+//---------------------------------------------------------------------
+export
+v_myz_encode: (ctx: &v_myz_ctx_t) -> void
+{
+    bits: &unsigned := 9;
+
+    next_code:  &unsigned := 256;
+    next_shift: &unsigned := 512;
+
+
+    dict: &v_myz_dict_enc_t := v_undef();
+    dict_enc_init(dict);
+    defer dict_enc_term(dict);
+
+    for (i: &int := 0; i < 256; ++i)  dict.expand();
+
+
+    code: &unsigned := myz_get_byte(ctx);
+
+    for (i: &int := 1; ctx.avail_in || (ctx.check_in && ctx.check_in(ctx)); ++i)
+    {
+        c = myz_get_byte(ctx);
+
+        if (next = dict[code].next[c])
+        {
+            code := next;
+
+            v_continue();
+        }
+        else
+        {
+            myz_write_bits(ctx, code, bits);
+
+            dict.expand();
+
+            next := next_code++;
+
+            code := c;
+        }
+
+        if (next_code == next_shift)
+        {
+            bits++;
+
+            next_shift *= 2;
+        }
+    }
+
+    myz_write_bits(ctx, code, bits);
+    myz_write_eod(ctx);
+
+    if (ctx.check_out)  ctx.check_out(ctx);
+}
+
+
+//---------------------------------------------------------------------
+//- Decoding dictionary
+//---------------------------------------------------------------------
+private
+struct v_myz_dec_t
+{
+    prev: unsigned;
+    back: unsigned;
+    c: byte;
+};
+
+private
+struct v_myz_dict_dec_t
+{
+    list: v_ast_generic_list_t;
+};
+
+//---------------------------------------------------------------------
+{   dec_size_v = LLVMSizeOf(v_type_get_llvm_type(v_myz_dec_t));
+
+    v_add_constant("myz_dec_t_size", size_t, dec_size_v);
+}
+
+//---------------------------------------------------------------------
+private
+dict_dec_init: (dict: &v_myz_dict_dec_t) -> void
+{
+    v_initialize(&dict.list);
+
+    v_make_list_nil(&dict.list, 0);
+}
+
+//---------------------------------------------------------------------
+private
+dict_dec_term: (dict: &v_myz_dict_dec_t) -> void
+{
+    v_terminate(&dict.list);
+}
+
+//---------------------------------------------------------------------
+private
+dict_dec_expand: (dict: &v_myz_dict_dec_t) -> &v_myz_dec_t
+{
+    item = v_alloca(v_ast_base_t);
+    v_initialize(item);
+    defer v_terminate(item);
+
+    v_ast_make_generic(item, 0, myz_dec_t_size);
+
+    v_list_append(&dict.list, &dict.list, item);
+
+    void_obj = v_ast_generic_get_object(item);
+
+    obj = (void_obj: *v_myz_dec_t);
+
+    *obj := 0;
+
+    v_return(*obj);
+}
+
+//---------------------------------------------------------------------
+private
+dict_dec_at: (dict: &v_myz_dict_dec_t, i: int) -> &v_myz_dec_t
+{
+    void_obj = v_ast_generic_get_object(v_list_get_item(&dict.list, i));
+
+    obj = (void_obj: *v_myz_dec_t);
+
+    v_return(*obj);
+}
+
+//---------------------------------------------------------------------
+{   dict_dec_ref = v_reference_type(v_myz_dict_dec_t, 0);
+
+    q = v_quark_from_string;
+
+    v_util_function_dict_set(q(".expand()"), dict_dec_ref, "dict_dec_expand");
+
+    v_util_function_dict_set(q("op_postfix_index"), dict_dec_ref, "dict_dec_at");
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
+}
+
+
+//---------------------------------------------------------------------
+//- Decoding ...
+//---------------------------------------------------------------------
+export
+v_myz_decode: (ctx: &v_myz_ctx_t) -> void
+{
+    bits: &unsigned := 9;
+
+    next_code:  &unsigned := 256;
+    next_shift: &unsigned := 512;
+
+
+    dict: &v_myz_dict_dec_t := v_undef();
+    dict_dec_init(dict);
+    defer dict_dec_term(dict);
+
+    for (i: &int := 0; i < 256; ++i)  dict.expand().c := (i: byte);
+
+
+    while (!myz_check_eod(ctx))
+    {
+        c: &unsigned := myz_read_bits(ctx, bits);
+
+        if (c >= next_code)
+        {
+            printf("\nError: bad sequence\n");
+
+            exit(-1);
+        }
+
+        dict.expand().prev := c;
+
+        while (c > 255)
+        {
+            t = dict[c].prev;
+
+            dict[t].back := c;
+
+            c := t;
+        }
+
+        dict[next_code-1].c := (c: byte);
+
+        while (it = dict[c], it.back)
+        {
+            myz_put_byte(ctx, it.c);
+
+            c := it.back;
+
+            it.back := 0;
+        }
+
+        myz_put_byte(ctx, dict[c].c);
+
+        if (++next_code >= next_shift)
+        {
+            ++bits;
+
+            next_shift *= 2;
+        }
+    }
+
+    if (ctx.check_out)  ctx.check_out(ctx);
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

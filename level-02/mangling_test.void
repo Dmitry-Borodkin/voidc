@@ -1,0 +1,111 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+    v_import("projections.void");
+    v_import("structures.void");
+    v_import("mangling.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+    voidc_enable_projections();
+    voidc_enable_structures();
+    voidc_enable_mangling();
+}
+
+
+//---------------------------------------------------------------------
+{   v_import("mng_import_test.void");
+}
+
+
+//---------------------------------------------------------------------
+{
+    ux: &vec2 := {1, 0};
+    uy: &vec2 := {0, 1};
+
+    v = 4*((ux + uy)/2 - uy);
+
+    printf("v: (%g, %g)\n", v.x, v.y);
+
+}
+
+
+//---------------------------------------------------------------------
+(_()): (v: &vec2, s: *const char) -> void
+{
+    printf("%s: (%g, %g)\n", s, v.x, v.y);
+}
+
+{
+    v: vec2 = {2, 3};
+
+    (v/7)("qwe");
+}
+
+
+//---------------------------------------------------------------------
+(_[]): (v: &vec2, s: *const char, a: int) -> void
+{
+    printf("[%s, %d]: (%g, %g)\n", s, a, v.x, v.y);
+}
+
+{
+    v: vec2 = {5, 7};
+
+    (v/7)["asd", 8];        //- Sic!!!
+}
+
+
+//=====================================================================
+(_.rec()): (x: int, y: int) -> void
+{
+    printf("%d.rec(%d)\n", x, y);
+
+    if (y > 0)  x.rec(y - 1);
+}
+
+{
+    5.rec(3);
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(9); }
+
+//---------------------------------------------------------------------
+(_.rec_2()): (x: int, y: int) -> void;
+
+(_.rec_1()): (x: int, y: int) -> void
+{
+    printf("%d.rec_1(%d)\n", x, y);
+
+    if (y > 0)  x.rec_2(y - 1);
+}
+
+(_.rec_2()): (x: int, y: int) -> void
+{
+    printf("%d.rec_2(%d)\n", x, y);
+
+    if (y > 0)  x.rec_1(y - 1);
+}
+
+
+{
+    7.rec_1(3);
+}
+
+
+
