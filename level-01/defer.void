@@ -37,6 +37,8 @@
 
     ast_stmt_defer_ptr = v_pointer_type(ast_stmt_defer_t, 0);
 
+    v_export_type("v_ast_stmt_defer_t", ast_stmt_defer_t);
+
     v_add_type("ast_stmt_defer_t",   ast_stmt_defer_t);
     v_add_type("ast_stmt_defer_ptr", ast_stmt_defer_ptr);
 
@@ -61,13 +63,11 @@
 //- quark ...
 //---------------------------------------------------------------------
 {
-    quark_name = "v_ast_stmt_defer_t_visitor_method_tag";
+    quark_name = "stmt_defer";
 
     quark_p = v_quark_ptr_from_string(quark_name);
 
-    v_export_symbol(quark_name, v_reference_type(v_quark_t, 0), quark_p);
-
-    v_add_alias("quark", quark_name);
+    v_add_symbol("quark", v_reference_type(v_quark_t, 0), quark_p);
 }
 
 

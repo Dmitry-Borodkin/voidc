@@ -45,6 +45,8 @@
 
     ast_stmt_switch_ptr = v_pointer_type(ast_stmt_switch_t, 0);
 
+    v_export_type("v_ast_stmt_switch_t", ast_stmt_switch_t);
+
     v_add_type("ast_stmt_switch_t",   ast_stmt_switch_t);
     v_add_type("ast_stmt_switch_ptr", ast_stmt_switch_ptr);
 
@@ -64,6 +66,8 @@
     v_type_struct_set_body(ast_case_block_t, typ0, 2, false);
 
     ast_case_block_ptr = v_pointer_type(ast_case_block_t, 0);
+
+    v_export_type("v_ast_case_block_t", ast_case_block_t);
 
     v_add_type("ast_case_block_t",   ast_case_block_t);
     v_add_type("ast_case_block_ptr", ast_case_block_ptr);
@@ -89,13 +93,14 @@
 //- quark ...
 //---------------------------------------------------------------------
 {
-    quark_name = "v_ast_stmt_switch_t_visitor_method_tag";
+    q = v_quark_ptr_from_string;
 
-    quark_p = v_quark_ptr_from_string(quark_name);
+    quark_ref = v_reference_type(v_quark_t, 0);
 
-    v_export_symbol(quark_name, v_reference_type(v_quark_t, 0), quark_p);
+    v_add_symbol("quark", quark_ref, q("stmt_switch"));
 
-    v_add_alias("quark", quark_name);
+    v_add_symbol("case_block_q", quark_ref, q("case_block"));
+    v_add_symbol("case_list_q",  quark_ref, q("case_list"));
 }
 
 
@@ -428,7 +433,7 @@
     v_initialize(ret_list);
 
     if (list)   v_list_append(ret_list, list, item);
-    else        v_make_list(ret_list, 0, item, 1);          //- Quark == 0 (!)
+    else        v_make_list(ret_list, case_list_q, item, 1);
 
     v_std_any_set_pointer(ret, ret_list);
 
@@ -768,7 +773,8 @@
     v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark, 0));
 
 
-    v_store(quark, v_getelementptr(voidc_ast_stmt_switch_vtable, 0, 2));
+    v_store(quark,        v_getelementptr(voidc_ast_stmt_switch_vtable, 0, 2));
+    v_store(case_block_q, v_getelementptr(voidc_ast_case_block_vtable,  0, 2));
 
     vis = voidc_compiler;
 

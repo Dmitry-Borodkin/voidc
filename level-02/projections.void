@@ -41,6 +41,15 @@ voidc_projections_internal_globals_cleaner: (*void) -> void
     v_terminate(&op_postfix_tildato);
 }
 
+//---------------------------------------------------------------------
+{
+    quark_name = "projection_payload";
+
+    quark_p = v_quark_ptr_from_string(quark_name);
+
+    v_add_symbol("proj_q", v_reference_type(v_quark_t, 0), quark_p);
+}
+
 
 //---------------------------------------------------------------------
 //- mk_projection - grammar action
@@ -70,7 +79,7 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 
     v_ast_make_expr_identifier(id, v_std_string_get(name));
 
-    v_make_list(pay, 0, (id: v_ast_base_ptr), 1);
+    v_make_list(pay, proj_q, (id: v_ast_base_ptr), 1);
 
     if (args) v_list_append(pay, pay, (args: v_ast_base_ptr));
 

@@ -36,7 +36,8 @@
 //---------------------------------------------------------------------
 //- ast_expr_struct ...
 //---------------------------------------------------------------------
-ast_expr_struct_t = v_struct("struct.ast_expr_struct_t",
+export
+v_ast_expr_struct_t = v_struct("struct.ast_expr_struct_t",
 {
     v_ast_expr_t,           //- 0 - Name (identifier or string or empty)
     v_ast_stmt_list_t,      //- 1 - Fields list (or empty)
@@ -45,7 +46,7 @@ ast_expr_struct_t = v_struct("struct.ast_expr_struct_t",
 });
 
 //---------------------------------------------------------------------
-{   size_v = LLVMSizeOf(v_type_get_llvm_type(ast_expr_struct_t));
+{   size_v = LLVMSizeOf(v_type_get_llvm_type(v_ast_expr_struct_t));
 
     v_add_constant("ast_expr_struct_t_size", size_t, size_v);
 
@@ -54,7 +55,7 @@ ast_expr_struct_t = v_struct("struct.ast_expr_struct_t",
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("expr_struct_q",       quark_ref, q("v_ast_expr_struct_visitor_method_tag"));
+    v_add_symbol("expr_struct_q",       quark_ref, q("expr_struct"));
     v_add_symbol("unit_struct_defn_q",  quark_ref, q("unit_struct_defn"));
 }
 
@@ -62,7 +63,7 @@ ast_expr_struct_t = v_struct("struct.ast_expr_struct_t",
 private
 ast_expr_struct_init: (void_obj: *void) -> void
 {
-    obj = *(void_obj: *ast_expr_struct_t);
+    obj = *(void_obj: *v_ast_expr_struct_t);
 
     v_initialize(&obj[0]);
     v_initialize(&obj[1]);
@@ -72,7 +73,7 @@ ast_expr_struct_init: (void_obj: *void) -> void
 private
 ast_expr_struct_term: (void_obj: *void) -> void
 {
-    obj = *(void_obj: *ast_expr_struct_t);
+    obj = *(void_obj: *v_ast_expr_struct_t);
 
     v_terminate(&obj[0]);
     v_terminate(&obj[1]);
@@ -86,13 +87,13 @@ ast_expr_struct_vtable: &v_ast_generic_vtable :=
 };
 
 //---------------------------------------------------------------------
-private     //- ?
-ast_make_expr_struct: (ret: *v_ast_expr_t,
-                       name: *v_ast_expr_t,
-                       body: *v_ast_stmt_list_t,
-                       packed: bool,
-                       export: bool
-                      ) -> void
+export
+v_ast_make_expr_struct: (ret: *v_ast_expr_t,
+                         name: *v_ast_expr_t,
+                         body: *v_ast_stmt_list_t,
+                         packed: bool,
+                         export: bool
+                        ) -> void
 {
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
@@ -102,7 +103,7 @@ ast_make_expr_struct: (ret: *v_ast_expr_t,
 
     void_obj = v_ast_generic_get_object(etmp);
 
-    obj = *(void_obj: *ast_expr_struct_t);
+    obj = *(void_obj: *v_ast_expr_struct_t);
 
     if (name)  v_copy(&obj[0], name);
     if (body)  v_copy(&obj[1], body);
@@ -128,7 +129,7 @@ mk_expr_struct_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) 
     v_initialize(expr);
     defer v_terminate(expr);
 
-    ast_make_expr_struct(expr, name, body, (packed: bool), false);      //- NOT export!
+    v_ast_make_expr_struct(expr, name, body, (packed: bool), false);        //- NOT export!
 
     v_std_any_set_pointer(ret, expr);
 }
@@ -149,7 +150,7 @@ mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, siz
     {
         void_obj = v_ast_generic_get_object(expr);
 
-        obj = *(void_obj: *ast_expr_struct_t);
+        obj = *(void_obj: *v_ast_expr_struct_t);
 
         obj[3] := true;
     }
@@ -192,7 +193,7 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 {
     void_obj = v_ast_generic_get_object((self: v_ast_expr_ptr));
 
-    obj = *(void_obj: *ast_expr_struct_t);
+    obj = *(void_obj: *v_ast_expr_struct_t);
 
     name   = &obj[0];
     body   = &obj[1];

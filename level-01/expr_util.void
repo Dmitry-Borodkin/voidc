@@ -557,6 +557,12 @@
 
     v_add_symbol("expr_call_tag",       q_ref, q("expr_call"));
     v_add_symbol("expr_identifier_tag", q_ref, q("expr_identifier"));
+
+    //-------------------------------------------------------------
+    q = v_quark_from_string;
+
+    v_store(q("operator_unary"),  v_getelementptr(voidc_ast_operator_unary_vtable,  0, 2));
+    v_store(q("operator_binary"), v_getelementptr(voidc_ast_operator_binary_vtable, 0, 2));
 }
 
 //---------------------------------------------------------------------

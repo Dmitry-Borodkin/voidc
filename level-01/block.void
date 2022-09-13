@@ -38,6 +38,8 @@
 
     ast_stmt_block_ptr = v_pointer_type(ast_stmt_block_t, 0);
 
+    v_export_type("v_ast_stmt_block_t", ast_stmt_block_t);
+
     v_add_type("ast_stmt_block_t",   ast_stmt_block_t);
     v_add_type("ast_stmt_block_ptr", ast_stmt_block_ptr);
 
@@ -62,13 +64,11 @@
 //- quark ...
 //---------------------------------------------------------------------
 {
-    quark_name = "v_ast_stmt_block_t_visitor_method_tag";
+    quark_name = "stmt_block";
 
     quark_p = v_quark_ptr_from_string(quark_name);
 
-    v_export_symbol(quark_name, v_reference_type(v_quark_t, 0), quark_p);
-
-    v_add_alias("quark", quark_name);
+    v_add_symbol("quark", v_reference_type(v_quark_t, 0), quark_p);
 }
 
 
