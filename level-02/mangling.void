@@ -420,6 +420,7 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) -> void
     v_add_symbol("op_postfix_tildato_q", q_ref, q("op_postfix_tildato"));
 
     v_add_symbol("unit_spec_fun_defn_q", q_ref, q("unit_spec_fun_defn"));
+    v_add_symbol("unit_spec_fun_renm_q", q_ref, q("unit_spec_fun_renm"));
 }
 
 
@@ -589,6 +590,30 @@ mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, siz
 
 //---------------------------------------------------------------------
 private
+mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+{
+    quark = v_std_any_get_value(intptr_t, any+0);
+    fname = v_std_any_get_pointer(v_std_string_t, any+1);
+
+    ast = v_alloca(v_ast_base_t, 2);
+    v_initialize(ast, 2);
+    defer v_terminate(ast, 2);
+
+    v_ast_make_expr_integer((ast+0: v_ast_expr_ptr), quark);
+
+    v_ast_make_expr_identifier((ast+1: v_ast_expr_ptr), v_std_string_get(fname));
+
+    lst = v_alloca(v_ast_generic_list_t);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_make_list(lst, unit_spec_fun_renm_q, ast, 2);         //- Sic!!!
+
+    v_std_any_set_pointer(ret, lst);
+}
+
+//---------------------------------------------------------------------
+private
 mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
 {
     quark = v_std_any_get_value(intptr_t, any+0);
@@ -624,34 +649,47 @@ mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, siz
     v_std_any_set_pointer(ret, stmt);
 }
 
+//---------------------------------------------------------------------
+private
+mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+{
+    quark = v_std_any_get_value(intptr_t, any+0);
+
+    expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
+
+    etmp = v_alloca(v_ast_expr_t);
+    v_initialize(etmp);
+    defer v_terminate(etmp);
+
+    v_ast_make_expr_integer(etmp, quark);
+
+    lst = v_alloca(v_ast_expr_list_t);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_make_list(lst, etmp, 1);
+
+    v_list_append(lst, lst, expr, 1);
+
+    v_ast_make_expr_identifier(etmp, "v.internal.spec_fun_renm");
+
+    v_ast_make_expr_call(etmp, etmp, lst);
+
+    stmt = v_alloca(v_ast_stmt_t);
+    v_initialize(stmt);
+    defer v_terminate(stmt);
+
+    v_ast_make_stmt(stmt, "", etmp);
+
+    v_std_any_set_pointer(ret, stmt);
+}
+
 
 //---------------------------------------------------------------------
 private
-register_mangled_function_name: (vis: *voidc_visitor_t, sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) -> void
+register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_quark_t, t: *v_type_t) -> void
 {
-    q: &v_quark_t := v_undef();
-    t: &*v_type_t := v_undef();
-
-    types = v_type_function_get_param_types(ft);
-
-    if (iq < 0)     //- "Right" infix?
-    {
-        q := (-iq: v_quark_t);
-        t := types[1];
-    }
-    else            //- "Normal" operator
-    {
-        q := (iq: v_quark_t);
-        t := types[0];
-    }
-
-    v_std_string_set(sstr, "v__");
-
-    append_mangle(sstr, q, t);
-
-    fun_name = v_std_string_get(sstr);
-
-    v_util_function_dict_set(q, t, fun_name);
+    v_util_function_dict_set(q, t, fn);
 
     //-------------------------------------------------------------
     stmt_list: &*v_ast_stmt_list_t := 0;
@@ -689,7 +727,7 @@ register_mangled_function_name: (vis: *voidc_visitor_t, sstr: *v_std_string_t, i
 
         v_ast_make_expr_call(expr+1, expr+1, elst);
 
-        v_ast_make_expr_string(expr+2, fun_name);
+        v_ast_make_expr_string(expr+2, fn);
 
         v_ast_make_stmt_call(stmt, "", "v_util_function_dict_set", expr, 3);
 
@@ -701,7 +739,7 @@ register_mangled_function_name: (vis: *voidc_visitor_t, sstr: *v_std_string_t, i
     {
         et = v_type_refptr_get_element_type(t);
 
-        v_util_function_dict_set(q, et, fun_name);
+        v_util_function_dict_set(q, et, fn);
 
         if (stmt_list)
         {
@@ -725,6 +763,35 @@ register_mangled_function_name: (vis: *voidc_visitor_t, sstr: *v_std_string_t, i
         v_terminate(elst);
         v_terminate(expr, 3);
     }
+}
+
+//---------------------------------------------------------------------
+private
+register_mangled_function_name: (vis: *voidc_visitor_t, sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) -> void
+{
+    q: &v_quark_t := v_undef();
+    t: &*v_type_t := v_undef();
+
+    types = v_type_function_get_param_types(ft);
+
+    if (iq < 0)     //- "Right" infix?
+    {
+        q := (-iq: v_quark_t);
+        t := types[1];
+    }
+    else            //- "Normal" operator
+    {
+        q := (iq: v_quark_t);
+        t := types[0];
+    }
+
+    v_std_string_set(sstr, "v__");
+
+    append_mangle(sstr, q, t);
+
+    fun_name = v_std_string_get(sstr);
+
+    register_special_function_name(vis, fun_name, q, t);
 }
 
 //---------------------------------------------------------------------
@@ -778,6 +845,44 @@ compile_unit_spec_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_bas
     voidc_compile_unit_fun_defn_helper(vis, qualif, fun_name, fun_type, args, body);
 }
 
+//---------------------------------------------------------------------
+private
+compile_unit_spec_fun_renm: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    list = (self: v_ast_generic_list_ptr);
+
+    ast0 = v_list_get_item(list, 0);
+    ast1 = v_list_get_item(list, 1);
+
+    //-------------------------------------------------------------
+    iq = v_ast_expr_integer_get_number((ast0: v_ast_expr_ptr));
+
+    fun_name = v_ast_expr_identifier_get_name((ast1: v_ast_expr_ptr));
+
+    //-------------------------------------------------------------
+    ft: &*v_type_t := v_find_symbol_type(fun_name);
+
+    if (v_type_is_pointer(ft))  ft := v_type_refptr_get_element_type(ft);
+
+    q: &v_quark_t := v_undef();
+    t: &*v_type_t := v_undef();
+
+    types = v_type_function_get_param_types(ft);
+
+    if (iq < 0)     //- "Right" infix?
+    {
+        q := (-iq: v_quark_t);
+        t := types[1];
+    }
+    else            //- "Normal" operator
+    {
+        q := (iq: v_quark_t);
+        t := types[0];
+    }
+
+    register_special_function_name(vis, fun_name, q, t);
+}
+
 
 //---------------------------------------------------------------------
 private
@@ -824,6 +929,42 @@ v_internal_spec_fun_decl_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v
     v_add_symbol(fun_name, fun_type, 0);
 }
 
+//---------------------------------------------------------------------
+private
+v_internal_spec_fun_renm_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    call = v_cast(self, v_ast_expr_ptr);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
+
+    arg0 = v_list_get_item(arg_list, 0);
+
+    //-------------------------------------------------------------
+    quark = v_ast_expr_integer_get_number(arg0);
+
+    expr = v_list_get_item(arg_list, 1);
+
+    //-------------------------------------------------------------
+    v_set_result_type(INVIOLABLE_TAG);
+
+    v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
+
+    fun_type  = v_get_result_type();
+    fun_value = v_get_result_value();
+
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    register_mangled_function_name(0, sstr, quark, v_type_refptr_get_element_type(fun_type));       //- Sic!
+
+    fun_name = v_std_string_get(sstr);
+
+//printf("%s\n", fun_name);
+
+    v_add_variable(fun_name, fun_type, fun_value);
+}
+
 
 //---------------------------------------------------------------------
 //- Enable mangling
@@ -836,8 +977,10 @@ voidc_enable_mangling_compiler: () -> void
     v_return_if(voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, 0));
 
     voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn,  0);
+    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm,  0);
 
     voidc_visitor_set_intrinsic(vis, vis, "v.internal.spec_fun_decl", v_internal_spec_fun_decl_intrinsic,  0);
+    voidc_visitor_set_intrinsic(vis, vis, "v.internal.spec_fun_renm", v_internal_spec_fun_renm_intrinsic,  0);
 }
 
 //---------------------------------------------------------------------
@@ -867,7 +1010,9 @@ voidc_enable_mangling: () -> void
         mk_qlf_spec_ident         = mk_qlf_spec_ident_grammar_action;
         mk_unit_spec_fun_defn_hdr = mk_unit_spec_fun_defn_hdr_grammar_action;
         mk_unit_spec_fun_defn     = mk_unit_spec_fun_defn_grammar_action;
+        mk_unit_spec_fun_renm     = mk_unit_spec_fun_renm_grammar_action;
         mk_stmt_spec_fun_decl     = mk_stmt_spec_fun_decl_grammar_action;
+        mk_stmt_spec_fun_renm     = mk_stmt_spec_fun_renm_grammar_action;
 
     parsers:
 
@@ -888,10 +1033,14 @@ voidc_enable_mangling: () -> void
                            / h:unit_spec_fun_defn_hdr _'{'_ l:stmt_list _'}'    { mk_unit_spec_fun_defn(h, l) }
                            ;
 
-        unit_defn += unit_spec_fun_defn;
+        unit_defn += unit_spec_fun_defn
+                   / si:spec_ident _'='_ fn:identifier _';'                 { mk_unit_spec_fun_renm(si, fn) }
+                   ;
 
 
-        stmt_defn += si:spec_ident _':'_ a:bracketed _"->"_ r:expr _ ';'    { mk_stmt_spec_fun_decl(si, a, r) };
+        stmt_defn += si:spec_ident _':'_ a:bracketed _"->"_ r:expr _';'     { mk_stmt_spec_fun_decl(si, a, r) }
+                   / si:spec_ident _'='_ f:expr _';'                        { mk_stmt_spec_fun_renm(si, f) }
+                   ;
     }
 
     v_peg_set_grammar(gr0);
