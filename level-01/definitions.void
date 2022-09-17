@@ -67,6 +67,9 @@
     ft = v_function_type(void, typ, 1, false);
     v_add_type("cleaner_ft_ptr", v_pointer_type(ft, 0));
 
+    ft = v_function_type(void, 0, 0, false);
+    v_add_symbol("abort", ft, 0);
+
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
     voidc_set_unit_buffer(0);
@@ -850,9 +853,25 @@
 
     t = v_cast(v_get_result_value(), v_type_ptr);
 
-    v_set_result_type(t);
+    is_ref = v_type_is_reference(t);
+
+    if (is_ref)  v_set_result_type(INVIOLABLE_TAG);
+    else         v_set_result_type(t);
 
     v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);            //- Value
+
+    if (is_ref)
+    {
+        tr = v_get_result_type();
+
+        if (!v_type_is_reference(tr))  abort();         //- !?!?!?!?!?!
+
+        vr = v_get_result_value();
+
+        v_set_result_type(t);
+
+        v_adopt_result(tr, vr);
+    }
 }
 
 

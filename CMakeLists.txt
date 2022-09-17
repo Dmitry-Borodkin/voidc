@@ -57,7 +57,7 @@ if (UNIX)
 
     if (${uppercase_CMAKE_BUILD_TYPE} STREQUAL RELEASE)
 
-       set(MYFLAGS -O3 -Oz -DNDEBUG)
+       set(MYFLAGS -O3 -DNDEBUG)
 
     endif()
 
@@ -78,7 +78,7 @@ if (MINGW)
 
     if (${uppercase_CMAKE_BUILD_TYPE} STREQUAL RELEASE)
 
-       set(MYFLAGS -O3 -Oz -DNDEBUG)
+       set(MYFLAGS -O3 -DNDEBUG)
 
     endif()
 

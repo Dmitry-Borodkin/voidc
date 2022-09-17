@@ -1000,7 +1000,7 @@ voidc_global_ctx_t::static_initialize(void)
     {   auto pm_builder = LLVMPassManagerBuilderCreate();
 
         LLVMPassManagerBuilderSetOptLevel(pm_builder, 3);       //- -O3
-        LLVMPassManagerBuilderSetSizeLevel(pm_builder, 2);      //- -Oz
+//      LLVMPassManagerBuilderSetSizeLevel(pm_builder, 2);      //- -Oz
 
         LLVMPassManagerBuilderPopulateModulePassManager(pm_builder, pass_manager);
 
