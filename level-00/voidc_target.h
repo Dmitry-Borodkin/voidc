@@ -279,15 +279,15 @@ public:
     static void static_terminate(void);
 
 public:
-    static voidc_global_ctx_t * const & voidc;
-    static base_global_ctx_t  *         target;
+    VOIDC_DLLEXPORT static voidc_global_ctx_t * const & voidc;
+    VOIDC_DLLEXPORT static base_global_ctx_t  *         target;
 
 public:
-    static LLVMOrcLLJITRef      jit;
-    static LLVMOrcJITDylibRef   main_jd;
+    VOIDC_DLLEXPORT static LLVMOrcLLJITRef      jit;
+    VOIDC_DLLEXPORT static LLVMOrcJITDylibRef   main_jd;
 
-    static LLVMTargetMachineRef target_machine;
-    static LLVMPassManagerRef   pass_manager;
+    VOIDC_DLLEXPORT static LLVMTargetMachineRef target_machine;
+    VOIDC_DLLEXPORT static LLVMPassManagerRef   pass_manager;
 
 public:
     static void prepare_module_for_jit(LLVMModuleRef module);

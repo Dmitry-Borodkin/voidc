@@ -854,6 +854,8 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 static
 voidc_global_ctx_t *voidc_global_ctx = nullptr;
 
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
 voidc_global_ctx_t * const & voidc_global_ctx_t::voidc = voidc_global_ctx;
 base_global_ctx_t  *         voidc_global_ctx_t::target;
 
@@ -862,6 +864,8 @@ LLVMOrcJITDylibRef   voidc_global_ctx_t::main_jd;
 
 LLVMTargetMachineRef voidc_global_ctx_t::target_machine;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
+
+VOIDC_DLLEXPORT_END
 
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
