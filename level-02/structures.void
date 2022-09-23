@@ -144,7 +144,7 @@ mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, siz
     qf_export  = 1;         //- Sic!
     qf_private = 2;         //- Sic!
 
-    export = (v_get_export_flag()  ||  qualif == qf_export)  &&  (qualif != qf_private);
+    export = (v_get_export_flag()  ||  qualif & qf_export)  &&  !(qualif & qf_private);
 
     if (export)
     {
@@ -515,7 +515,7 @@ voidc_enable_structures: () -> void
         expr += expr_struct;
 
 
-        unit_struct_defn = q:qualif_flag _ e:expr_struct _';'   { mk_unit_struct_defn(q, e) }
+        unit_struct_defn = q:qualif_flags _ e:expr_struct _';'      { mk_unit_struct_defn(q, e) }
                          ;
 
         unit_defn += unit_struct_defn;

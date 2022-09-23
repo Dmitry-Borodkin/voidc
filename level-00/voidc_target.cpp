@@ -1410,6 +1410,8 @@ voidc_local_ctx_t::finish_unit_action(void)
 
     finish_function();
 
+    finish_module(module);
+
     //-------------------------------------------------------------
     voidc_global_ctx_t::prepare_module_for_jit(module);
 
@@ -1845,7 +1847,7 @@ voidc_object_file_load_to_jit_internal_helper(const char *buf, size_t len, bool 
 }
 
 void
-voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local)
+voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local, bool do_load)
 {
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
 
@@ -1884,10 +1886,17 @@ voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local)
     t = static_cast<v_type_pointer_t *>(t)->element_type();
 
     LLVMBuildCall2(gctx.builder, t->llvm_type(), f, val, 3, "");
+
+    //-----------------------------------------------------------------
+    if (do_load)
+    {
+        if (is_local) voidc_add_local_object_file_to_jit(membuf);
+        else          voidc_add_object_file_to_jit(membuf);
+    }
 }
 
 void
-voidc_compile_load_module_to_jit(LLVMModuleRef module, bool is_local)
+voidc_compile_load_module_to_jit(LLVMModuleRef module, bool is_local, bool do_load)
 {
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
 
@@ -1917,7 +1926,7 @@ voidc_compile_load_module_to_jit(LLVMModuleRef module, bool is_local)
 
     assert(membuf);
 
-    voidc_compile_load_object_file_to_jit(membuf, is_local);
+    voidc_compile_load_object_file_to_jit(membuf, is_local, do_load);
 
     LLVMDisposeMemoryBuffer(membuf);
 }
@@ -1927,7 +1936,7 @@ VOIDC_DLLEXPORT_END
 
 
 static void
-load_object_file_helper(LLVMMemoryBufferRef membuf, bool is_local)
+load_object_file_helper(LLVMMemoryBufferRef membuf, bool is_local, bool do_load)
 {
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
 
@@ -1944,7 +1953,7 @@ load_object_file_helper(LLVMMemoryBufferRef membuf, bool is_local)
 
     lctx.prepare_unit_action(0, 0);         //- line, column ?..
 
-    voidc_compile_load_object_file_to_jit(membuf, is_local);
+    voidc_compile_load_object_file_to_jit(membuf, is_local, do_load);
 
 //  base_global_ctx_t::debug_print_module = 1;
 
@@ -1955,12 +1964,14 @@ load_object_file_helper(LLVMMemoryBufferRef membuf, bool is_local)
 
 
 static void
-load_module_helper(LLVMModuleRef module, bool is_local)
+load_module_helper(LLVMModuleRef module, bool is_local, bool do_load)
 {
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);
 
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    lctx.finish_module(module);
 
     gctx.prepare_module_for_jit(module);
 
@@ -1974,7 +1985,7 @@ load_module_helper(LLVMModuleRef module, bool is_local)
 
     lctx.prepare_unit_action(0, 0);         //- line, column ?..
 
-    voidc_compile_load_module_to_jit(module, is_local);
+    voidc_compile_load_module_to_jit(module, is_local, do_load);
 
 //  base_global_ctx_t::debug_print_module = 1;
 
@@ -1989,31 +2000,31 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //---------------------------------------------------------------------
 void
-voidc_unit_load_local_object_file_to_jit(LLVMMemoryBufferRef membuf)
+voidc_unit_load_local_object_file_to_jit(LLVMMemoryBufferRef membuf, bool do_load)
 {
-    load_object_file_helper(membuf, true);
+    load_object_file_helper(membuf, true, do_load);
 }
 
 //---------------------------------------------------------------------
 void
-voidc_unit_load_object_file_to_jit(LLVMMemoryBufferRef membuf)
+voidc_unit_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool do_load)
 {
-    load_object_file_helper(membuf, false);
+    load_object_file_helper(membuf, false, do_load);
 }
 
 
 //---------------------------------------------------------------------
 void
-voidc_unit_load_local_module_to_jit(LLVMModuleRef module)
+voidc_unit_load_local_module_to_jit(LLVMModuleRef module, bool do_load)
 {
-    load_module_helper(module, true);
+    load_module_helper(module, true, do_load);
 }
 
 //---------------------------------------------------------------------
 void
-voidc_unit_load_module_to_jit(LLVMModuleRef module)
+voidc_unit_load_module_to_jit(LLVMModuleRef module, bool do_load)
 {
-    load_module_helper(module, false);
+    load_module_helper(module, false, do_load);
 }
 
 
@@ -2057,6 +2068,37 @@ v_obtain_identifier(const char *name, v_type_t * *type, LLVMValueRef *value)
     }
 
     return  ok;
+}
+
+//---------------------------------------------------------------------
+finish_module_t
+v_get_finish_module(void **pctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (pctx) *pctx = lctx.finish_module_ctx;
+
+    return lctx.finish_module_fun;
+}
+
+void
+v_set_finish_module(finish_module_t fun, void *ctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.finish_module_fun = fun;
+    lctx.finish_module_ctx = ctx;
+}
+
+void
+v_finish_module(LLVMModuleRef mod)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.finish_module(mod);
 }
 
 

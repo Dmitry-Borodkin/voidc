@@ -251,6 +251,29 @@
 
 
 //---------------------------------------------------------------------
+//- mk_qualif_flags - grammar action
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("mk_qualif_flags_grammar_action", v_peg_grammar_action_fun_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
+    v_add_parameter_name(f, 1, "any",       v_std_any_ptr);
+    v_add_parameter_name(f, 2, "any_count", size_t);
+}
+{
+//  printf("mk_qlf_ident_grammar_action\n");
+
+    flags = v_std_any_get_value(intptr_t, any+0);
+    flag  = v_std_any_get_value(intptr_t, any+1);
+
+    v_std_any_set_value(ret, flags|flag);
+}
+
+
+//---------------------------------------------------------------------
 //- mk_qlf_ident - grammar action
 //---------------------------------------------------------------------
 {
@@ -967,8 +990,8 @@
     v_add_parameter_name(f, 5, "fun_body", v_ast_base_ptr);
 }
 {
-    private = (qualif == qf_private);
-    export  = (export_flag  ||  qualif == qf_export)  &&  !private;
+    private = (qualif & qf_private);
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
     if (export) v_export_symbol_type(fun_name, fun_type);
     else        v_add_symbol(fun_name, fun_type, 0);
@@ -1143,8 +1166,8 @@
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
 
-    private = (qualif == qf_private);
-    export  = (export_flag  ||  qualif == qf_export)  &&  !private;
+    private = (qualif & qf_private);
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast1, v_ast_expr_ptr));
 
@@ -1267,8 +1290,8 @@
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
 
-    private = (qualif == qf_private);
-    export  = (export_flag  ||  qualif == qf_export)  &&  !private;
+    private = (qualif & qf_private);
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast1, v_ast_expr_ptr));
 
@@ -1604,9 +1627,11 @@
         //---------------------------------------------------------
         if (defn_module  &&  !saved_module)
         {
+            v_finish_module(defn_module);
+
             voidc_prepare_module_for_jit(defn_module);
 
-            voidc_compile_load_module_to_jit(defn_module, true);    //- local?  (TODO)
+            voidc_compile_load_module_to_jit(defn_module, true, false);     //- local?  (TODO)
 
             LLVMDisposeModule(defn_module);
         }
@@ -1624,6 +1649,8 @@
         if (defn_module  &&  !saved_module)
         {
             //- voidc_guard_target(...);
+
+            v_finish_module(defn_module);
 
             voidc_prepare_module_for_jit(defn_module);
 
@@ -1944,6 +1971,7 @@
     actions:
         mk_br_item_list      = mk_br_item_list_grammar_action;
         mk_br_item           = mk_br_item_grammar_action;
+        mk_qualif_flags      = mk_qualif_flags_grammar_action;
         mk_qlf_ident         = mk_qlf_ident_grammar_action;
         mk_unit_fun_defn_hdr = mk_unit_fun_defn_hdr_grammar_action;
         mk_unit_fun_defn     = mk_unit_fun_defn_grammar_action;
@@ -1987,9 +2015,19 @@
 
         qualif_flag = "export"  !ident_cont     {qf_export}
                     / "private" !ident_cont     {qf_private}
-                    /                           {qf_none};
+                    ;
 
-        qlf_ident = q:qualif_flag _ i:identifier    { mk_qlf_ident(q, i) };
+        qualif_flags_lr = qfs:qualif_flags_lr _ qf:qualif_flag      { mk_qualif_flags(qfs, qf) }
+                        / qualif_flag
+                        ;
+
+        qualif_flags_lr is left-recursive;
+
+        qualif_flags = qualif_flags_lr
+                     /                      {qf_none}
+                     ;
+
+        qlf_ident = q:qualif_flags _ i:identifier       { mk_qlf_ident(q, i) };
 
 
         unit_fun_defn_hdr = qf:qlf_ident _':'_ a:bracketed _"->"_ r:expr    { mk_unit_fun_defn_hdr(qf, a, r) };
@@ -2053,8 +2091,7 @@
     //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
-    voidc_unit_load_module_to_jit(module);
-    voidc_add_module_to_jit(module);
+    voidc_unit_load_module_to_jit(module, true);
 
     LLVMDisposeModule(module);
     v_set_module(0);

@@ -123,6 +123,29 @@
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_set_obtain_module", ft);
 
+    v_store(void_ptr,      typ0);           //- ctx
+    v_store(LLVMModuleRef, typ1);           //- module
+
+    fm_ft = v_function_type(void, typ0, 2, false);
+
+    fm_ft_ptr = v_pointer_type(fm_ft, 0);
+
+    v_store(void_ptr_ptr, typ0);            //- ctx
+
+    ft = v_function_type(fm_ft_ptr, typ0, 1, false);
+    v_export_symbol_type("v_get_finish_module", ft);
+
+    v_store(fm_ft_ptr, typ0);               //- fun
+    v_store(void_ptr,  typ1);               //- ctx
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_set_finish_module", ft);
+
+    v_store(LLVMModuleRef, typ0);           //- module
+
+    ft = v_function_type(void, typ0, 1, false);
+    v_export_symbol_type("v_finish_module", ft);
+
     v_type_ptr_ptr   = v_pointer_type(v_type_ptr, 0);
     LLVMValueRef_ptr = v_pointer_type(LLVMValueRef, 0);
 
@@ -269,13 +292,19 @@
     v_export_symbol_type("voidc_prepare_module_for_jit", ft);
     v_export_symbol_type("voidc_add_module_to_jit", ft);
     v_export_symbol_type("voidc_add_local_module_to_jit", ft);
+
+//  v_store(LLVMModuleRef, typ0);           //-
+    v_store(bool,          typ1);           //- do_load
+
+    ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("voidc_unit_load_module_to_jit", ft);
     v_export_symbol_type("voidc_unit_load_local_module_to_jit", ft);
 
 //  v_store(LLVMModuleRef, typ0);           //-
-    v_store(bool,          typ1);           //-
+//  v_store(bool,          typ1);           //- is_local
+    v_store(bool,          typ2);           //- do_load
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("voidc_compile_load_module_to_jit", ft);
 
     v_store(LLVMMemoryBufferRef, typ0);     //-
@@ -283,14 +312,20 @@
     ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("voidc_add_object_file_to_jit", ft);
     v_export_symbol_type("voidc_add_local_object_file_to_jit", ft);
-    v_export_symbol_type("voidc_unit_load_object_file_to_jit", ft);
-    v_export_symbol_type("voidc_unit_load_local_object_file_to_jit", ft);
     v_export_symbol_type("voidc_set_unit_buffer", ft);
 
 //  v_store(LLVMMemoryBufferRef, typ0);     //-
-//  v_store(bool,                typ1);     //-
+//  v_store(bool,                typ1);     //- do_load
 
     ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("voidc_unit_load_object_file_to_jit", ft);
+    v_export_symbol_type("voidc_unit_load_local_object_file_to_jit", ft);
+
+//  v_store(LLVMModuleRef, typ0);           //-
+//  v_store(bool,          typ1);           //- is_local
+//  v_store(bool,          typ2);           //- do_load
+
+    ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("voidc_compile_load_object_file_to_jit", ft);
 
 

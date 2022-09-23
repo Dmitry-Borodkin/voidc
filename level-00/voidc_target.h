@@ -32,6 +32,8 @@ extern "C" typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LL
 
 extern "C" typedef LLVMModuleRef (*obtain_module_t)(void *ctx);
 
+extern "C" typedef void (*finish_module_t)(void *ctx, LLVMModuleRef module);
+
 
 //---------------------------------------------------------------------
 //- Base Compilation Context
@@ -195,6 +197,14 @@ public:
     void           *obtain_module_ctx = nullptr;
 
     bool obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value);
+
+    finish_module_t finish_module_fun = nullptr;
+    void           *finish_module_ctx = nullptr;
+
+    void finish_module(LLVMModuleRef mod)
+    {
+        if (finish_module_fun)  finish_module_fun(finish_module_ctx, mod);
+    }
 
 public:
     void push_builder_ip(void);
