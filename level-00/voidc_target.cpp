@@ -393,14 +393,9 @@ base_local_ctx_t::obtain_identifier(const std::string &name, v_type_t * &type, L
 
             if (!t)  return false;
 
-            if (!module)
-            {
-                if (!obtain_module_fun)  return false;
+            if (!(module  ||  (module = obtain_module())))  return false;
 
-                module = obtain_module_fun(obtain_module_ctx);
-
-                if (!module)  return false;
-            }
+            assert(module);
 
             if (auto *ft = dynamic_cast<v_type_function_t *>(t))
             {
@@ -2048,6 +2043,15 @@ v_set_obtain_module(obtain_module_t fun, void *ctx)
 
     lctx.obtain_module_fun = fun;
     lctx.obtain_module_ctx = ctx;
+}
+
+LLVMModuleRef
+v_obtain_module(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return  lctx.obtain_module();
 }
 
 bool

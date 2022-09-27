@@ -106,8 +106,9 @@
 //---------------------------------------------------------------------
 //- std::string utility
 //---------------------------------------------------------------------
-{   typ0 = v_alloca(v_type_ptr, 2);
+{   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
     v_store(v_std_string_ptr, typ0);
 
@@ -116,21 +117,39 @@
     ft = v_function_type(char_ptr, typ0, 1, false);
     v_export_symbol_type("v_std_string_get", ft);
 
+    size_ptr = v_pointer_type(size_t, 0);
+
+//  v_store(v_std_string_ptr, typ0);
+    v_store(size_ptr,         typ1);
+
+    ft = v_function_type(char_ptr, typ0, 2, false);
+    v_export_symbol_type("v_std_string_get_data", ft);
+
     ft = v_function_type(size_t, typ0, 1, false);
     v_export_symbol_type("v_std_string_get_size", ft);
 
-    v_store(char_ptr, typ1);
+//  v_store(v_std_string_ptr, typ0);
+    v_store(char_ptr,         typ1);
 
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_std_string_set",    ft);
     v_export_symbol_type("v_std_string_append", ft);
 
-    v_store(char32_t, typ1);
+//  v_store(v_std_string_ptr, typ0);
+//  v_store(char_ptr,         typ1);
+    v_store(size_t,           typ2);
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_std_string_set_data", ft);
+
+//  v_store(v_std_string_ptr, typ0);
+    v_store(char32_t,         typ1);
 
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_std_string_append_char", ft);
 
-    v_store(intptr_t, typ1);
+//  v_store(v_std_string_ptr, typ0);
+    v_store(intptr_t,         typ1);
 
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_std_string_append_number", ft);

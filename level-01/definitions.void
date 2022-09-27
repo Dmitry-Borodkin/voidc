@@ -1005,7 +1005,7 @@
 
         //- assert(v_get_module() == 0);
 
-        v_set_module(check_defn_module(0));
+        v_set_module(v_obtain_module());
 
         f = v_prepare_function(fun_name, fun_type);
 
@@ -1186,9 +1186,7 @@
     {
         //- assert(v_get_module() == 0);
 
-        module = check_defn_module(0);
-
-        v_set_module(module);
+        v_set_module(v_obtain_module());
 
         t = v_type_refptr_get_element_type(var_type);       //- Sic!
         a = v_type_refptr_get_address_space(var_type);      //- Sic!

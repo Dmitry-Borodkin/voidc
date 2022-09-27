@@ -123,6 +123,9 @@
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_set_obtain_module", ft);
 
+    ft = v_function_type(LLVMModuleRef, typ0, 0, false);
+    v_export_symbol_type("v_obtain_module", ft);
+
     v_store(void_ptr,      typ0);           //- ctx
     v_store(LLVMModuleRef, typ1);           //- module
 

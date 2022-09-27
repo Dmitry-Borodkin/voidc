@@ -814,9 +814,21 @@ size_t v_std_string_get_size(std::string *ptr)
     return ptr->size();
 }
 
+char *v_std_string_get_data(std::string *ptr, size_t *len)
+{
+    *len = ptr->size();
+
+    return ptr->data();
+}
+
 void v_std_string_set(std::string *ptr, const char *str)
 {
     *ptr = str;
+}
+
+void v_std_string_set_data(std::string *ptr, const char *str, size_t len)
+{
+    *ptr = {str, len};
 }
 
 void v_std_string_append(std::string *ptr, const char *str)

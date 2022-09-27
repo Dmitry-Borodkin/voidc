@@ -196,6 +196,12 @@ public:
     obtain_module_t obtain_module_fun = nullptr;
     void           *obtain_module_ctx = nullptr;
 
+    LLVMModuleRef obtain_module(void)
+    {
+        if (obtain_module_fun)  return  obtain_module_fun(obtain_module_ctx);
+        else                    return  nullptr;        //- Sic!
+    }
+
     bool obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value);
 
     finish_module_t finish_module_fun = nullptr;
