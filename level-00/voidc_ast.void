@@ -125,6 +125,8 @@
 
     char_ptr = v_pointer_type(char, 0);
 
+    size_ptr = v_pointer_type(size_t, 0);
+
 
     //-------------------------------------------------------------
     v_store(v_ast_base_ptr, typ0);
@@ -228,10 +230,23 @@
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_ast_make_expr_string", ft);
 
-//  v_store(_v_ast_expr_ptr, typ0);                 //-
+//  v_store(v_ast_expr_ptr, typ0);                  //- (out)
+//  v_store(char_ptr,       typ1);                  //-
+    v_store(size_t,         typ2);                  //-
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_ast_make_expr_string_data", ft);
+
+//  v_store(v_ast_expr_ptr, typ0);                  //-
 
     ft = v_function_type(char_ptr, typ0, 1, false);
     v_export_symbol_type("v_ast_expr_string_get_string", ft);
+
+//  v_store(v_ast_expr_ptr, typ0);                  //-
+    v_store(size_ptr,       typ1);                  //-
+
+    ft = v_function_type(char_ptr, typ0, 2, false);
+    v_export_symbol_type("v_ast_expr_string_get_string_data", ft);
 
     //-------------------------------------------------------------
 //  v_store(v_ast_expr_ptr, typ0);                  //- (out)

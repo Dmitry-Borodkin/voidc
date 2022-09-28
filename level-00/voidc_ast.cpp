@@ -180,10 +180,26 @@ v_ast_make_expr_string(ast_expr_t *ret, const char *string)
     *ret = std::make_shared<const ast_expr_string_data_t>(string);
 }
 
+void
+v_ast_make_expr_string_data(ast_expr_t *ret, const char *string, size_t size)
+{
+    *ret = std::make_shared<const ast_expr_string_data_t>(std::string{string, size});
+}
+
 const char *
 v_ast_expr_string_get_string(const ast_expr_t *ptr)
 {
     auto &r = static_cast<const ast_expr_string_data_t &>(**ptr);
+
+    return r.string.c_str();
+}
+
+const char *
+v_ast_expr_string_get_string_data(const ast_expr_t *ptr, size_t *psize)
+{
+    auto &r = static_cast<const ast_expr_string_data_t &>(**ptr);
+
+    *psize = r.string.size();
 
     return r.string.c_str();
 }
