@@ -1076,6 +1076,7 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
     LLVMSetTarget(module, voidc_triple);
 
     LLVMRunPassManager(pass_manager, module);
+    LLVMRunPassManager(pass_manager, module);           //- WTF ?!?!?!?!?!?!?
 
     if (verify_jit_module_optimized)  verify_module(module);
 }

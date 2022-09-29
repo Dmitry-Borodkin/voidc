@@ -1,0 +1,491 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2022 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("inlining.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+    v_import("llvm-c/BitWriter.void");
+    v_import("llvm-c/BitReader.void");
+    v_import("llvm-c/Linker.void");
+
+    v_import("unit_module.void");
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+    v_import("projections.void");
+    v_import("structures.void");
+    v_import("mangling.void");
+
+//  v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+    voidc_enable_projections();
+    voidc_enable_structures();
+    voidc_enable_mangling();
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("inlining_module"); }
+
+
+//---------------------------------------------------------------------
+qf_none:    intptr_t = 0;                               //- Sic!?!
+qf_export:  intptr_t = 1 << 0;                          //- Sic!?!
+qf_private: intptr_t = 1 << 1;                          //- Sic!?!
+
+//---------------------------------------------------------------------
+qf_inlinehint:   intptr_t = 1 << 2;                     //- Sic!?!
+qf_alwaysinline: intptr_t = 1 << 3;                     //- Sic!?!
+
+private attr_inlinehint:   &LLVMAttributeRef := v_undef();
+private attr_alwaysinline: &LLVMAttributeRef := v_undef();
+
+
+//---------------------------------------------------------------------
+{
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("unit_fun_defn_q",      q_ref, q("unit_fun_defn"));
+    v_add_symbol("unit_spec_fun_defn_q", q_ref, q("unit_spec_fun_defn"));
+}
+
+
+//---------------------------------------------------------------------
+//- Method's context...
+//---------------------------------------------------------------------
+private
+struct inlining_aux_t
+{
+    fun: *voidc_visitor_method_t;
+    aux: *void;
+};
+
+
+//---------------------------------------------------------------------
+//- Inline function data...
+//---------------------------------------------------------------------
+private
+struct inline_function_data_t
+{
+    flags:  intptr_t;                   //- qf_...
+
+    module: LLVMModuleRef;              //- "Lazy" module with function ...
+
+    membuf: LLVMMemoryBufferRef;        //- Bitcode of the module ...
+
+    hack:   *inline_function_data_t;    //- Hack...
+
+    quark:  v_quark_t;                  //- "Name" ...
+};
+
+//---------------------------------------------------------------------
+private
+inline_function_data_cleaner: (void_data: *void) -> void
+{
+    data = *(void_data: *inline_function_data_t);
+
+    if (data.module)    LLVMDisposeModule(data.module);
+
+    if (data.membuf)    LLVMDisposeMemoryBuffer(data.membuf);
+
+    v_free(&data);
+}
+
+//---------------------------------------------------------------------
+export
+voidc_internal_create_inline_function_data: (flags: intptr_t, fun_name: *const char,
+                                             module: LLVMModuleRef,
+                                             buffer: *void, size: size_t
+                                            ) -> void
+{
+    data = *v_malloc(inline_function_data_t) := 0;
+
+    data.flags := flags;
+
+    if (module)  data.module := module;
+
+    if (buffer)
+    {
+        data.membuf := LLVMCreateMemoryBufferWithMemoryRangeCopy(buffer, size, "inline_function_data");
+    }
+
+    data.quark := v_quark_from_string(fun_name);
+
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    v_std_string_set(sstr, "v.inlining.");
+
+    v_std_string_append(sstr, fun_name);
+
+    iname = v_std_string_get(sstr);
+
+    if (flags & qf_export)
+    {
+        v_export_intrinsic(iname, &data, 0);
+
+        v_add_cleaner(inline_function_data_cleaner, &data);
+    }
+    else
+    {
+        v_add_intrinsic(iname, &data, 0);
+
+        v_add_local_cleaner(inline_function_data_cleaner, &data);
+    }
+}
+
+
+//---------------------------------------------------------------------
+//- Compiler method, etc...
+//---------------------------------------------------------------------
+private
+obtain_module_for_inlining: (void_mod: *void) -> LLVMModuleRef
+{
+    mod = *(void_mod: *LLVMModuleRef);
+
+    if (!mod)
+    {
+        mod := LLVMModuleCreateWithNameInContext("inline_function_module", v_target_get_llvm_ctx());
+    }
+
+    v_return(mod);
+}
+
+//---------------------------------------------------------------------
+private
+compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    ctx = *(aux: *inlining_aux_t);
+
+    list = (self: v_ast_generic_list_ptr);
+
+    ast0 = v_list_get_item(list, 0);
+
+    qualif = v_ast_expr_integer_get_number((ast0: v_ast_expr_ptr));
+
+    if (!(qualif & (qf_inlinehint | qf_alwaysinline)))
+    {
+        //- No inlining... --------------------------------------------
+
+        //--------------------------
+        ctx.fun(vis, ctx.aux, self);
+        //--------------------------
+
+        v_return();
+    }
+
+    //- Do inlining! --------------------------------------------------
+
+    saved_obtain_module_ctx: &*void := v_undef();
+    saved_obtain_module_fun = v_get_obtain_module(&saved_obtain_module_ctx);
+
+    mod: &LLVMModuleRef := 0;
+
+    v_set_obtain_module(obtain_module_for_inlining, &mod);
+
+
+    inner_stmt_list = v_alloca(v_ast_stmt_list_t);
+    v_initialize(inner_stmt_list);
+    defer v_terminate(inner_stmt_list);
+
+    inner_visitor = v_alloca(voidc_visitor_t);
+    v_initialize(inner_visitor);
+    defer v_terminate(inner_visitor);
+
+    stmt_list: &*v_ast_stmt_list_t := v_undef();
+
+    stmt_list := voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
+
+    if (stmt_list)
+    {
+        v_copy(inner_visitor, vis);
+    }
+    else
+    {
+        stmt_list := inner_stmt_list;
+
+        v_make_list_nil(stmt_list);
+
+        voidc_visitor_set_intrinsic(inner_visitor, vis, "voidc.decl_stmt_list", stmt_list, 0);
+    }
+
+    //--------------------------------------------------
+    ctx.fun(inner_visitor, ctx.aux, self);      //- Sic!
+    //--------------------------------------------------
+
+    v_set_obtain_module(saved_obtain_module_fun, saved_obtain_module_ctx);
+
+
+    fun_name: &*const char := v_undef();
+
+    {   stmt = v_list_get_item(stmt_list, v_list_get_size(stmt_list)-1);
+
+        expr = v_ast_stmt_get_expr(stmt);
+
+        args = v_ast_expr_call_get_arg_list(expr);
+
+        exnm = v_list_get_item(args, 0);
+
+        fun_name := v_ast_expr_identifier_get_name(exnm);
+    }
+
+    if (mod)
+    {
+        f = LLVMGetNamedFunction(mod, fun_name);
+
+        if (qualif & qf_inlinehint)
+        {
+             LLVMAddAttributeAtIndex(f, LLVMAttributeFunctionIndex, attr_inlinehint);
+        }
+
+        if (qualif & qf_alwaysinline)
+        {
+             LLVMAddAttributeAtIndex(f, LLVMAttributeFunctionIndex, attr_alwaysinline);
+        }
+    }
+
+    private = (qualif & qf_private);
+    export  = (v_get_export_flag()  ||  qualif & qf_export)  &&  !private;
+
+    flags: &intptr_t := qualif & (qf_inlinehint | qf_alwaysinline);
+
+    if (export)  flags |= qf_export;
+
+    voidc_internal_create_inline_function_data(flags, fun_name, mod, 0, 0);
+
+    //-----------------------------------------------------------------
+    stmt_list := voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
+
+    if (!stmt_list)  v_return();
+
+    expr = v_alloca(v_ast_expr_t, 5);
+    v_initialize(expr, 5);
+    defer v_terminate(expr, 5);
+
+    stmt = v_alloca(v_ast_stmt_t);
+    v_initialize(stmt);
+    defer v_terminate(stmt);
+
+    v_ast_make_expr_integer(expr+0, flags);
+
+    v_ast_make_expr_string(expr+1, fun_name);
+
+    v_ast_make_expr_integer(expr+2, 0);
+
+    if (mod)
+    {
+        m = LLVMWriteBitcodeToMemoryBuffer(mod);
+
+        sz = LLVMGetBufferSize(m);
+
+        v_ast_make_expr_string_data(expr+3, LLVMGetBufferStart(m), sz);
+
+        v_ast_make_expr_integer(expr+4, sz);
+
+        LLVMDisposeMemoryBuffer(m);
+    }
+    else
+    {
+        v_ast_make_expr_integer(expr+3, 0);
+        v_ast_make_expr_integer(expr+4, 0);
+    }
+
+    v_ast_make_stmt_call(stmt, "", "voidc_internal_create_inline_function_data", expr, 5);
+
+    v_list_append(stmt_list, stmt_list, stmt);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+struct finish_module_ctx_t
+{
+    fun: *((*void, LLVMModuleRef) -> void);
+    ctx: *void;
+};
+
+//---------------------------------------------------------------------
+private
+finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) -> void
+{
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    loop
+    {
+        //- Collect "unresolved" inline functions ...
+
+        hack: &*inline_function_data_t := 0;
+
+        for (f: &LLVMValueRef := LLVMGetFirstFunction(module);  f;  f := LLVMGetNextFunction(f))
+        {
+            if (LLVMCountBasicBlocks(f))  v_continue();
+
+            sz: &size_t := v_undef();
+
+            fun_name = LLVMGetValueName2(f, &sz);
+
+            v_std_string_set(sstr, "v.inlining.");
+
+            v_std_string_append(sstr, fun_name);
+
+            iname = v_std_string_get(sstr);
+
+            if (void_data = v_get_intrinsic(iname, 0))
+            {
+                data = *(void_data: *inline_function_data_t);
+
+                if (!(data.module  ||  data.membuf))  v_continue();         //- ???????
+
+                data.hack := hack;
+
+                hack := &data;
+            }
+        }
+
+        //- Link collected functions into module ...
+
+        if (!hack)  v_break();      //- Nothing to do ...
+
+        for (; hack; hack := hack~>hack)
+        {
+            if (!hack~>module)
+            {
+                //- assert(hack~>membuf);
+
+                ok = LLVMParseBitcodeInContext2(llvm_ctx, hack~>membuf, &hack~>module);
+
+                //- assert(ok == 0);        //- ?
+            }
+
+            //- assert(hack~>module);
+
+            m = LLVMCloneModule(hack~>module);
+
+            ok = LLVMLinkModules2(module, m);
+
+            //- assert(ok == 0);        //- ?
+
+            f = LLVMGetNamedFunction(module, v_quark_to_string(hack~>quark));
+
+            LLVMSetLinkage(f, LLVMPrivateLinkage);
+        }
+    }
+
+    ctx = (void_ctx: *finish_module_ctx_t);
+
+    if (ctx  &&  ctx~>fun)  ctx~>fun(ctx~>ctx, module);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable inlining
+//---------------------------------------------------------------------
+private
+inlining_aux: &inlining_aux_t[2] := v_undef();
+
+private
+finish_module_ctx: &finish_module_ctx_t := v_undef();
+
+//---------------------------------------------------------------------
+export
+voidc_enable_inlining_compiler: () -> void
+{
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    ak_inlinehint   = LLVMGetEnumAttributeKindForName("inlinehint", 10);
+    ak_alwaysinline = LLVMGetEnumAttributeKindForName("alwaysinline", 12);
+
+    attr_inlinehint   := LLVMCreateEnumAttribute(llvm_ctx, ak_inlinehint,   0);
+    attr_alwaysinline := LLVMCreateEnumAttribute(llvm_ctx, ak_alwaysinline, 0);
+
+
+    vis = voidc_compiler;
+
+    inlining_aux[0].fun := voidc_visitor_get_void_method(vis, unit_fun_defn_q, &inlining_aux[0].aux);
+
+    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q, compile_unit_inline_fun_defn, &inlining_aux[0]);
+
+    inlining_aux[1].fun := voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, &inlining_aux[1].aux);
+
+    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_inline_fun_defn, &inlining_aux[1]);
+
+
+    finish_module_ctx.fun := v_get_finish_module(&finish_module_ctx.ctx);
+
+    v_set_finish_module(finish_module_inlining, &finish_module_ctx);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable inlining
+//---------------------------------------------------------------------
+export
+voidc_enable_inlining: () -> void
+{
+    voidc_enable_inlining_compiler();
+
+    v_return_if_not(voidc_has_grammar());
+
+    gr0 = v_alloca(v_peg_grammar_t);
+    v_initialize(gr0);
+    defer v_terminate(gr0);
+
+    v_peg_get_grammar(gr0);
+
+    v_return_if(v_peg_grammar_get_value(gr0, "gf_alwaysinline"));
+
+
+    any = v_alloca(v_std_any_t, 2);
+    v_initialize(any, 2);
+    defer v_terminate(any, 2);
+
+    any_qf_inlinehint   = any + 0;
+    any_qf_alwaysinline = any + 1;
+
+    v_std_any_set_value(any_qf_inlinehint,   qf_inlinehint);
+    v_std_any_set_value(any_qf_alwaysinline, qf_alwaysinline);
+
+
+    grammar gr0
+    {
+    values:
+
+        qf_inlinehint   = any_qf_inlinehint;
+        qf_alwaysinline = any_qf_alwaysinline;
+
+    parsers:
+
+        qualif_flag += "inlinehint"   !ident_cont   {qf_inlinehint}
+                     / "alwaysinline" !ident_cont   {qf_alwaysinline}
+                     ;
+    }
+
+    v_peg_set_grammar(gr0);
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

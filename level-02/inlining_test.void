@@ -1,0 +1,79 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+    v_import("projections.void");
+    v_import("structures.void");
+    v_import("mangling.void");
+    v_import("inlining.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+    voidc_enable_projections();
+    voidc_enable_structures();
+    voidc_enable_mangling();
+    voidc_enable_inlining();
+}
+
+
+//---------------------------------------------------------------------
+alwaysinline
+(_.add()): (a: int, b: int) -> int
+{
+    v_return(a + b);
+}
+
+alwaysinline
+(_.ddd()): (a: int, b: int) -> int
+{
+    v_return(a.add(b));
+}
+
+
+//---------------------------------------------------------------------
+{ voidc_verify_jit_module_optimized(true); }
+{ v_debug_print_module(4); }
+{
+    v = 1.ddd(4);
+    v = v.ddd(4);
+
+    printf("v: %d\n", v);
+}
+
+{
+    u = 11.ddd(44);
+    u = u.ddd(44);
+
+    printf("u: %d\n", u);
+}
+
+
+//=====================================================================
+{   v_import("inl_import_test.void");
+}
+
+
+//---------------------------------------------------------------------
+{ v_debug_print_module(2); }
+{
+    dx: &ivec2 := {10,  0};
+    dy: &ivec2 := { 0, 10};
+
+    v = 4*((dx + dy)/2 - dy);
+
+    printf("v: (%d, %d)\n", v.x, v.y);
+
+}
+
+
+

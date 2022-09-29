@@ -9,6 +9,7 @@
     v_import("projections.void");
     v_import("structures.void");
     v_import("mangling.void");
+    v_import("inlining.void");
 
     v_import("printf.void");
 }
@@ -22,10 +23,11 @@
     voidc_enable_projections();
     voidc_enable_structures();
     voidc_enable_mangling();
+    voidc_enable_inlining();
 }
 
 //=====================================================================
-{   voidc_unit_begin_module("mng_import_test_module"); }
+{   voidc_unit_begin_module("inl_import_test_module"); }
 
 
 //---------------------------------------------------------------------
@@ -33,47 +35,52 @@
 
 
 //---------------------------------------------------------------------
-double = float(64);
-
-struct vec2
+struct ivec2
 {
-    x: double;
-    y: double;
+    x: int;
+    y: int;
 };
 
 
 //---------------------------------------------------------------------
-(_+_): (a: &vec2, b: &vec2) -> vec2
+alwaysinline
+(_+_): (a: &ivec2, b: &ivec2) -> ivec2
 {
     v_return({a.x+b.x, a.y+b.y});
 }
 
-(_-_): (a: &vec2, b: &vec2) -> vec2
+alwaysinline
+(_-_): (a: &ivec2, b: &ivec2) -> ivec2
 {
     v_return({a.x-b.x, a.y-b.y});
 }
 
-(+_): (a: &vec2) -> vec2
+alwaysinline
+(+_): (a: &ivec2) -> ivec2
 {
     v_return(a);
 }
 
-(-_): (a: &vec2) -> vec2
+alwaysinline
+(-_): (a: &ivec2) -> ivec2
 {
     v_return({-a.x, -a.y});
 }
 
-(_*__): (k: double, v: &vec2) -> vec2
+alwaysinline
+(_*__): (k: int, v: &ivec2) -> ivec2
 {
     v_return({k*v.x, k*v.y});
 }
 
-(_*_): (v: &vec2, k: double) -> vec2
+alwaysinline
+(_*_): (v: &ivec2, k: int) -> ivec2
 {
     v_return({v.x*k, v.y*k});
 }
 
-(_/_): (v: &vec2, k: double) -> vec2
+alwaysinline
+(_/_): (v: &ivec2, k: int) -> ivec2
 {
     v_return({v.x/k, v.y/k});
 }
