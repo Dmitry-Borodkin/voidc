@@ -85,18 +85,7 @@ v_type_function_t::obtain_llvm_type(void) const
 LLVMTypeRef
 v_type_refptr_t::obtain_llvm_type(void) const
 {
-    LLVMTypeRef et = nullptr;
-
-    if (key.first->kind() == v_type_t::k_void)
-    {
-        et = context.opaque_void_type;
-    }
-    else
-    {
-        et = key.first->llvm_type();
-    }
-
-    return  LLVMPointerType(et, key.second);
+    return  LLVMPointerTypeInContext(context.llvm_ctx, key.second);
 }
 
 
@@ -104,28 +93,8 @@ v_type_refptr_t::obtain_llvm_type(void) const
 LLVMTypeRef
 v_type_struct_t::obtain_llvm_type(void) const
 {
-    LLVMTypeRef t = nullptr;
-
-    if (name_key)
-    {
-        auto *c_name = name_key->c_str();
-
-        t = LLVMGetTypeByName2(context.llvm_ctx, c_name);
-
-        if (!t) t = LLVMStructCreateNamed(context.llvm_ctx, c_name);
-    }
-
     if (body_key)
     {
-        if (t)
-        {
-            if (!LLVMIsOpaqueStruct(t))   return t;
-
-            //- Create placeholder to prevent infinite recursion...
-
-            LLVMStructSetBody(t, nullptr, 0, body_key->second);     //- ???
-        }
-
         const std::size_t N = body_key->first.size();
 
         LLVMTypeRef elts[N];
@@ -135,19 +104,10 @@ v_type_struct_t::obtain_llvm_type(void) const
             elts[i] = body_key->first[i]->llvm_type();
         }
 
-        if (t)      //- Named opaque (so far) struct - set body...
-        {
-            LLVMStructSetBody(t, elts, N, body_key->second);
-        }
-        else        //- Unnamed...
-        {
-            t = LLVMStructTypeInContext(context.llvm_ctx, elts, N, body_key->second);
-        }
+        return  LLVMStructTypeInContext(context.llvm_ctx, elts, N, body_key->second);
     }
 
-    assert(t && "Unnamed struct without body");
-
-    return t;
+    return  context.opaque_struct_type;
 }
 
 void
@@ -181,7 +141,7 @@ v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
 
     body_key = st->body_key;
 
-    if (cached_llvm_type)   obtain_llvm_type();
+    _cached_llvm_type = nullptr;        //- Sic!!!
 }
 
 
@@ -226,7 +186,7 @@ v_type_svector_t::obtain_llvm_type(void) const
 //---------------------------------------------------------------------
 voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
   : llvm_ctx(ctx),
-    opaque_void_type(LLVMStructCreateNamed(ctx, "v_type_opaque_void_t")),
+    opaque_struct_type(LLVMStructCreateNamed(ctx, "v_type_opaque_struct_t")),
 
     _void_type(new v_type_void_t(*this)),
 

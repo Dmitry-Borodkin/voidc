@@ -19,13 +19,13 @@
 
 //- Types --------------------------------------------------
 {
-    v0_void = v_find_type("void");
-    v1 = v_pointer_type(v0_void, 0);
-    v_export_type("LLVMErrorTypeId", v1);
+    v0 = v_struct_type_named("struct.LLVMOpaqueError");
+    v1 = v_pointer_type(v0, 0);
+    v_export_type("LLVMErrorRef", v1);
 
-    v2 = v_struct_type_named("struct.LLVMOpaqueError");
-    v3 = v_pointer_type(v2, 0);
-    v_export_type("LLVMErrorRef", v3);
+    v2_void = v_find_type("void");
+    v3 = v_pointer_type(v2_void, 0);
+    v_export_type("LLVMErrorTypeId", v3);
 
 }
 
@@ -39,29 +39,29 @@
     v2 = v_function_type(v1_LLVMErrorTypeId, arg0, 1, false);
     v_export_symbol_type("LLVMGetErrorTypeId", v2);
 
-    v3_char = v_find_type("char");
-    v4 = v_pointer_type(v3_char, 0);
-    v_store(v4, arg0);
-    v5 = v_function_type(v0_LLVMErrorRef, arg0, 1, false);
-    v_export_symbol_type("LLVMCreateStringError", v5);
+    v_store(v0_LLVMErrorRef, arg0);
+    v3_void = v_find_type("void");
+    v4 = v_function_type(v3_void, arg0, 1, false);
+    v_export_symbol_type("LLVMConsumeError", v4);
 
-    v6 = v_pointer_type(v3_char, 0);
+    v5_char = v_find_type("char");
+    v6 = v_pointer_type(v5_char, 0);
     v_store(v0_LLVMErrorRef, arg0);
     v7 = v_function_type(v6, arg0, 1, false);
     v_export_symbol_type("LLVMGetErrorMessage", v7);
 
-    v8 = v_function_type(v1_LLVMErrorTypeId, arg0, 0, false);
-    v_export_symbol_type("LLVMGetStringErrorTypeId", v8);
+    v8 = v_pointer_type(v5_char, 0);
+    v_store(v8, arg0);
+    v9 = v_function_type(v3_void, arg0, 1, false);
+    v_export_symbol_type("LLVMDisposeErrorMessage", v9);
 
-    v_store(v0_LLVMErrorRef, arg0);
-    v9_void = v_find_type("void");
-    v10 = v_function_type(v9_void, arg0, 1, false);
-    v_export_symbol_type("LLVMConsumeError", v10);
+    v10 = v_function_type(v1_LLVMErrorTypeId, arg0, 0, false);
+    v_export_symbol_type("LLVMGetStringErrorTypeId", v10);
 
-    v11 = v_pointer_type(v3_char, 0);
+    v11 = v_pointer_type(v5_char, 0);
     v_store(v11, arg0);
-    v12 = v_function_type(v9_void, arg0, 1, false);
-    v_export_symbol_type("LLVMDisposeErrorMessage", v12);
+    v12 = v_function_type(v0_LLVMErrorRef, arg0, 1, false);
+    v_export_symbol_type("LLVMCreateStringError", v12);
 
 }
 

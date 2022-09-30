@@ -20,69 +20,60 @@
 
 //- Functions ----------------------------------------------
 {
-    arg0 = v_alloca(v_type_ptr, 4);
+    arg0 = v_alloca(v_type_ptr, 2);
     arg1 = v_getelementptr(arg0, 1);
-    arg2 = v_getelementptr(arg0, 2);
-    arg3 = v_getelementptr(arg0, 3);
 
     v0_LLVMPassManagerBuilderRef = v_find_type("LLVMPassManagerBuilderRef");
+    v1 = v_function_type(v0_LLVMPassManagerBuilderRef, arg0, 0, false);
+    v_export_symbol_type("LLVMPassManagerBuilderCreate", v1);
+
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v1_LLVMPassManagerRef = v_find_type("LLVMPassManagerRef");
-    v_store(v1_LLVMPassManagerRef, arg1);
     v2_void = v_find_type("void");
-    v3 = v_function_type(v2_void, arg0, 2, false);
-    v_export_symbol_type("LLVMPassManagerBuilderPopulateModulePassManager", v3);
+    v3 = v_function_type(v2_void, arg0, 1, false);
+    v_export_symbol_type("LLVMPassManagerBuilderDispose", v3);
 
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v4_LLVMBool = v_find_type("LLVMBool");
-    v_store(v4_LLVMBool, arg1);
+    v4_unsigned = v_find_type("unsigned");
+    v_store(v4_unsigned, arg1);
     v5 = v_function_type(v2_void, arg0, 2, false);
-    v_export_symbol_type("LLVMPassManagerBuilderSetDisableUnrollLoops", v5);
+    v_export_symbol_type("LLVMPassManagerBuilderSetOptLevel", v5);
 
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v_store(v1_LLVMPassManagerRef, arg1);
+    v_store(v4_unsigned, arg1);
     v6 = v_function_type(v2_void, arg0, 2, false);
-    v_export_symbol_type("LLVMPassManagerBuilderPopulateFunctionPassManager", v6);
+    v_export_symbol_type("LLVMPassManagerBuilderSetSizeLevel", v6);
 
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v7_unsigned = v_find_type("unsigned");
-    v_store(v7_unsigned, arg1);
+    v7_LLVMBool = v_find_type("LLVMBool");
+    v_store(v7_LLVMBool, arg1);
     v8 = v_function_type(v2_void, arg0, 2, false);
-    v_export_symbol_type("LLVMPassManagerBuilderUseInlinerWithThreshold", v8);
+    v_export_symbol_type("LLVMPassManagerBuilderSetDisableUnitAtATime", v8);
 
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v_store(v4_LLVMBool, arg1);
+    v_store(v7_LLVMBool, arg1);
     v9 = v_function_type(v2_void, arg0, 2, false);
-    v_export_symbol_type("LLVMPassManagerBuilderSetDisableUnitAtATime", v9);
+    v_export_symbol_type("LLVMPassManagerBuilderSetDisableUnrollLoops", v9);
 
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v_store(v7_unsigned, arg1);
+    v_store(v7_LLVMBool, arg1);
     v10 = v_function_type(v2_void, arg0, 2, false);
-    v_export_symbol_type("LLVMPassManagerBuilderSetSizeLevel", v10);
+    v_export_symbol_type("LLVMPassManagerBuilderSetDisableSimplifyLibCalls", v10);
 
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v11 = v_function_type(v2_void, arg0, 1, false);
-    v_export_symbol_type("LLVMPassManagerBuilderDispose", v11);
-
-    v12 = v_function_type(v0_LLVMPassManagerBuilderRef, arg0, 0, false);
-    v_export_symbol_type("LLVMPassManagerBuilderCreate", v12);
+    v_store(v4_unsigned, arg1);
+    v11 = v_function_type(v2_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassManagerBuilderUseInlinerWithThreshold", v11);
 
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v_store(v7_unsigned, arg1);
+    v12_LLVMPassManagerRef = v_find_type("LLVMPassManagerRef");
+    v_store(v12_LLVMPassManagerRef, arg1);
     v13 = v_function_type(v2_void, arg0, 2, false);
-    v_export_symbol_type("LLVMPassManagerBuilderSetOptLevel", v13);
+    v_export_symbol_type("LLVMPassManagerBuilderPopulateFunctionPassManager", v13);
 
     v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v_store(v4_LLVMBool, arg1);
+    v_store(v12_LLVMPassManagerRef, arg1);
     v14 = v_function_type(v2_void, arg0, 2, false);
-    v_export_symbol_type("LLVMPassManagerBuilderSetDisableSimplifyLibCalls", v14);
-
-    v_store(v0_LLVMPassManagerBuilderRef, arg0);
-    v_store(v1_LLVMPassManagerRef, arg1);
-    v_store(v4_LLVMBool, arg2);
-    v_store(v4_LLVMBool, arg3);
-    v15 = v_function_type(v2_void, arg0, 4, false);
-    v_export_symbol_type("LLVMPassManagerBuilderPopulateLTOPassManager", v15);
+    v_export_symbol_type("LLVMPassManagerBuilderPopulateModulePassManager", v14);
 
 }
 

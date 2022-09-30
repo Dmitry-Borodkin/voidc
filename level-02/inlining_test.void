@@ -66,12 +66,12 @@ alwaysinline
 //---------------------------------------------------------------------
 { v_debug_print_module(2); }
 {
-    dx: &ivec2 := {10,  0};
-    dy: &ivec2 := { 0, 10};
+    ux: &vec2 := {1, 0};
+    uy: &vec2 := {0, 1};
 
-    v = 4*((dx + dy)/2 - dy);
+    v = 4*((ux + uy)/2 - uy);
 
-    printf("v: (%d, %d)\n", v.x, v.y);
+    printf("v: (%g, %g)\n", v.x, v.y);
 
 }
 

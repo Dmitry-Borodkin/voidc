@@ -35,52 +35,54 @@
 
 
 //---------------------------------------------------------------------
-struct ivec2
+double = float(64);
+
+struct vec2
 {
-    x: int;
-    y: int;
+    x: double;
+    y: double;
 };
 
 
 //---------------------------------------------------------------------
 alwaysinline
-(_+_): (a: &ivec2, b: &ivec2) -> ivec2
+(_+_): (a: &vec2, b: &vec2) -> vec2
 {
     v_return({a.x+b.x, a.y+b.y});
 }
 
 alwaysinline
-(_-_): (a: &ivec2, b: &ivec2) -> ivec2
+(_-_): (a: &vec2, b: &vec2) -> vec2
 {
     v_return({a.x-b.x, a.y-b.y});
 }
 
 alwaysinline
-(+_): (a: &ivec2) -> ivec2
+(+_): (a: &vec2) -> vec2
 {
     v_return(a);
 }
 
 alwaysinline
-(-_): (a: &ivec2) -> ivec2
+(-_): (a: &vec2) -> vec2
 {
     v_return({-a.x, -a.y});
 }
 
 alwaysinline
-(_*__): (k: int, v: &ivec2) -> ivec2
+(_*__): (k: double, v: &vec2) -> vec2
 {
     v_return({k*v.x, k*v.y});
 }
 
 alwaysinline
-(_*_): (v: &ivec2, k: int) -> ivec2
+(_*_): (v: &vec2, k: double) -> vec2
 {
     v_return({v.x*k, v.y*k});
 }
 
 alwaysinline
-(_/_): (v: &ivec2, k: int) -> ivec2
+(_/_): (v: &vec2, k: double) -> vec2
 {
     v_return({v.x/k, v.y/k});
 }

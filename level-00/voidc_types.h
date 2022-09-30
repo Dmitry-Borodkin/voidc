@@ -72,6 +72,8 @@ protected:
 private:
     LLVMTypeRef _cached_llvm_type = nullptr;
 
+    friend class v_type_struct_t;
+
 public:
     LLVMTypeRef llvm_type(void)
     {
@@ -419,9 +421,9 @@ public:
     ~voidc_types_ctx_t();
 
 public:
-    const LLVMContextRef llvm_ctx;          //- Sic!
+    const LLVMContextRef llvm_ctx;
 
-    const LLVMTypeRef opaque_void_type;     //- For (void *) ...
+    const LLVMTypeRef opaque_struct_type;
 
 public:
     v_type_void_t      *make_void_type(void) { return void_type; }

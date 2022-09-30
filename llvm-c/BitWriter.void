@@ -27,21 +27,21 @@
     v_export_symbol_type("LLVMWriteBitcodeToFile", v4);
 
     v_store(v0_LLVMModuleRef, arg0);
-    v5_LLVMMemoryBufferRef = v_find_type("LLVMMemoryBufferRef");
-    v6 = v_function_type(v5_LLVMMemoryBufferRef, arg0, 1, false);
-    v_export_symbol_type("LLVMWriteBitcodeToMemoryBuffer", v6);
-
-    v_store(v0_LLVMModuleRef, arg0);
-    v_store(v3_int, arg1);
-    v7 = v_function_type(v3_int, arg0, 2, false);
-    v_export_symbol_type("LLVMWriteBitcodeToFileHandle", v7);
-
-    v_store(v0_LLVMModuleRef, arg0);
     v_store(v3_int, arg1);
     v_store(v3_int, arg2);
     v_store(v3_int, arg3);
-    v8 = v_function_type(v3_int, arg0, 4, false);
-    v_export_symbol_type("LLVMWriteBitcodeToFD", v8);
+    v5 = v_function_type(v3_int, arg0, 4, false);
+    v_export_symbol_type("LLVMWriteBitcodeToFD", v5);
+
+    v_store(v0_LLVMModuleRef, arg0);
+    v_store(v3_int, arg1);
+    v6 = v_function_type(v3_int, arg0, 2, false);
+    v_export_symbol_type("LLVMWriteBitcodeToFileHandle", v6);
+
+    v_store(v0_LLVMModuleRef, arg0);
+    v7_LLVMMemoryBufferRef = v_find_type("LLVMMemoryBufferRef");
+    v8 = v_function_type(v7_LLVMMemoryBufferRef, arg0, 1, false);
+    v_export_symbol_type("LLVMWriteBitcodeToMemoryBuffer", v8);
 
 }
 
