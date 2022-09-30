@@ -42,8 +42,10 @@ See more details in [tutorial](doc/tutorial.md).
     - C-like expressions (with some additional "twists");
     - Finally, some "normal" syntax for function's and variable's definitions/declarations.
 
+  - ...
 
-For the moment (Jan 2022), language seems to be ready just for some early experiments...
+
+For the moment (Sep 2022), language seems to be ready just for some early experiments...
 
 
 **Note:** Void is *not* intended to be seen as a complete/finished/whatever programming language in usual sense...
@@ -75,7 +77,7 @@ The `voidc` is "tested" (well, in some sense) under Linux and Windows (MSYS2/Min
 
 #### Dependencies:
 
-  - LLVM/Clang (v.12 or later);
+  - LLVM/Clang (v.15 or later);
   - C++ library [immer](https://github.com/arximboldi/immer) (should be "visible" for include...).
 
 #### Build:
@@ -91,7 +93,7 @@ $ ./mk_build
 
 ## Usage
 
-Currently (Jan 2022) `voidc` works mainly from it's source directory.
+Currently (Sep 2022) `voidc` works mainly from it's source directory.
 
 You can try some of:
 
@@ -108,7 +110,7 @@ BTW, first time it can take a while due to long (idk, 10-30 sec) compilation of 
 After that, try:
 
 ```bash
-$ build/voidc level-01/definitions_test.void
+$ build/voidc level-02/inlining_test.void
 ```
 
 This "script" (with imports) uses almost all language features developed so far.

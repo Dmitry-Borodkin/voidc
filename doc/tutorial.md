@@ -116,10 +116,11 @@ In fact, Void as a language *has no* fixed/constant/static syntax/semantics...
 Instead, it has a minimalist "starter language" and a set of "language development" tools.
 Then the language is *developed*, and this development is organized into so-called "levels".
 
-For the moment (Jan 2022) there are only two levels:
+For the moment (Sep 2022) there are only three levels:
 
   - Level 0.0 - "starter language" and compiler API.
   - Level 0.1 - control flow, grammars, expressions and declarations/definitions.
+  - Level 0.2 - ...
 
 Let's take a look of them closer.
 
@@ -216,7 +217,7 @@ In fact, the semantics of `=` in Void is almost the same as in LLVM IR (with res
 
 #### Identifiers. "What's in a name?"(c)...
 
-
+...
 
 
 
@@ -258,7 +259,7 @@ Therefore, we'll describe Void's type system "through the lens" of the compiler'
 This API is designed to be similar (in spirit) to the LLVM-C API associated with LLVM's types.
 The implementation of Void's types is also very similar to LLVM's.
 
-<details open>
+<details>
   <summary>Some technical details (click to expand)...</summary>
 
 >
