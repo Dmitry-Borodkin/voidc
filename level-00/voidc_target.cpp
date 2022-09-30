@@ -1124,11 +1124,7 @@ add_object_file_to_jit_with_rt(LLVMMemoryBufferRef membuf,
 
         if (auto sym = unwrap(jit)->lookup(*unwrap(jd), sname))
         {
-#if LLVM_VERSION_MAJOR < 15
-            auto addr = sym->getAddress();
-#else
             auto addr = sym->getValue();
-#endif
 
             if (search_action  &&  std::regex_match(sname, act_regex))
             {
@@ -1300,11 +1296,7 @@ voidc_local_ctx_t::find_symbol_value(const char *raw_name)
     {
         auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(jd), raw_name);
 
-#if LLVM_VERSION_MAJOR < 15
-        if (sym)  return (void *)sym->getAddress();
-#else
         if (sym)  return (void *)sym->getValue();
-#endif
     }
 
     return nullptr;
