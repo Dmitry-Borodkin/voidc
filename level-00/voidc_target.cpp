@@ -784,9 +784,13 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
             {
                 v1 = LLVMAddGlobal(lctx.module, t0->llvm_type(), "arr");
 
+                LLVMSetInitializer(v1, v0);
+
                 LLVMSetLinkage(v1, LLVMPrivateLinkage);
 
-                LLVMSetInitializer(v1, v0);
+                LLVMSetUnnamedAddress(v1, LLVMGlobalUnnamedAddr);
+
+                LLVMSetGlobalConstant(v1, true);
             }
             else
             {
