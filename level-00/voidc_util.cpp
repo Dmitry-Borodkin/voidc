@@ -32,15 +32,19 @@ bool lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto it = gctx.function_dict.find({quark, type});
+    const std::string *fun_name = nullptr;
 
-    if (it == gctx.function_dict.end()) return false;
+    {   auto it = gctx.function_dict.find({quark, type});
 
-    auto &fun_name = it->second;
+        if (it != gctx.function_dict.end())  fun_name = &it->second;
+        else                                 fun_name = (*vis)->function_dict.find({quark, type});
+
+        if (!fun_name)  return false;
+    }
 
     for (auto &intrs : {lctx.decls.intrinsics, (*vis)->intrinsics})
     {
-        if (auto p = intrs.find(fun_name))
+        if (auto p = intrs.find(*fun_name))
         {
             void_fun = p->first;
             aux      = p->second;
@@ -53,9 +57,9 @@ bool lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,
 
     v_type_t *t;
 
-    if (!lctx.obtain_identifier(fun_name, t, f))
+    if (!lctx.obtain_identifier(*fun_name, t, f))
     {
-        throw std::runtime_error("Intrinsic function not found: " + fun_name);
+        throw std::runtime_error("Intrinsic function not found: " + *fun_name);
     }
 
     ft = static_cast<v_type_pointer_t *>(t)->element_type();

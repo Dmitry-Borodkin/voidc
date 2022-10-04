@@ -124,6 +124,29 @@ voidc_visitor_set_intrinsic(visitor_t *dst, const visitor_t *src, const char *na
 
 
 //---------------------------------------------------------------------
+const char *
+voidc_visitor_function_dict_get(const visitor_t *ptr, v_quark_t quark, v_type_t *type)
+{
+    if (auto *it = (*ptr)->function_dict.find({quark, type}))
+    {
+        return it->c_str();
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+void
+voidc_visitor_function_dict_set(visitor_t *dst, const visitor_t *src, v_quark_t quark, v_type_t *type, const char *name)
+{
+    auto visitor = (*src)->function_dict_set(quark, type, name);
+
+    *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
+}
+
+
+//---------------------------------------------------------------------
 VOIDC_DLLEXPORT_END
 
 //---------------------------------------------------------------------

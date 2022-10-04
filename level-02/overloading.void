@@ -1739,14 +1739,16 @@ voidc_enable_overloading_compiler: () -> void
         }
     }
 
-    v_util_function_dict_set(v_quark_from_string("op_prefix_star"), v_static_type_t, "v.static_type_prefix_star");
-    v_util_function_dict_set(v_quark_from_string("op_prefix_amp"),  v_static_type_t, "v.static_type_prefix_amp");
+    q = v_quark_from_string;
+
+    voidc_visitor_function_dict_set(vis, vis, q("op_prefix_star"), v_static_type_t, "v.static_type_prefix_star");
+    voidc_visitor_function_dict_set(vis, vis, q("op_prefix_amp"),  v_static_type_t, "v.static_type_prefix_amp");
 
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_star", static_type_prefix_star_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_amp",  static_type_prefix_amp_intrinsic,  0);
 
-    v_util_function_dict_set(v_quark_from_string("op_prefix_const"),    v_static_type_t, "v.static_type_prefix_const");
-    v_util_function_dict_set(v_quark_from_string("op_prefix_volatile"), v_static_type_t, "v.static_type_prefix_volatile");
+    voidc_visitor_function_dict_set(vis, vis, q("op_prefix_const"),    v_static_type_t, "v.static_type_prefix_const");
+    voidc_visitor_function_dict_set(vis, vis, q("op_prefix_volatile"), v_static_type_t, "v.static_type_prefix_volatile");
 
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_const",    static_type_prefix_cv_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_volatile", static_type_prefix_cv_intrinsic, 0);
@@ -1755,7 +1757,7 @@ voidc_enable_overloading_compiler: () -> void
 
     voidc_visitor_set_intrinsic(vis, vis, "v.op_postfix_index", op_postfix_index_intrinsic, 0);
 
-    v_util_function_dict_set(v_quark_from_string("op_postfix_index"), v_static_type_t, "v.static_type_postfix_index");
+    voidc_visitor_function_dict_set(vis, vis, q("op_postfix_index"), v_static_type_t, "v.static_type_postfix_index");
 
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_postfix_index", static_type_postfix_index_intrinsic, 0);
 }

@@ -434,11 +434,12 @@ dict_dec_at: (dict: &v_myz_dict_dec_t, i: int) -> &v_myz_dec_t
 //---------------------------------------------------------------------
 {   dict_dec_ref = v_reference_type(v_myz_dict_dec_t, 0);
 
+    vis = voidc_compiler;
+
     q = v_quark_from_string;
 
-    v_util_function_dict_set(q(".expand()"), dict_dec_ref, "dict_dec_expand");
-
-    v_util_function_dict_set(q("op_postfix_index"), dict_dec_ref, "dict_dec_at");
+    voidc_visitor_function_dict_set(vis, vis, q(".expand()"),        dict_dec_ref, "dict_dec_expand");
+    voidc_visitor_function_dict_set(vis, vis, q("op_postfix_index"), dict_dec_ref, "dict_dec_at");
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
