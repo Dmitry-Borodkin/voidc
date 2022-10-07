@@ -25,12 +25,6 @@
 {   voidc_unit_begin_module("aggregates_module"); }
 
 
-
-//---------------------------------------------------------------------
-{   v_add_type("incomplete_array_type_tag", v_struct_type_named("voidc.incomplete_array_type_tag"));
-}
-
-
 //---------------------------------------------------------------------
 v_op_braces: &v_ast_expr_t := v_undef();
 
@@ -66,6 +60,8 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
         if (!v_type_is_struct(t))  v_break();
 
         typs = v_type_struct_get_element_types(t);
+
+        incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
 
         if (typs[0] != incomplete_array_type_tag)  v_break();
 

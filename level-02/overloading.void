@@ -1648,8 +1648,6 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 
 //---------------------------------------------------------------------
-incomplete_array_type_tag = v_struct("voidc.incomplete_array_type_tag");
-
 private
 static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                                       self: v_ast_base_ptr,
@@ -1689,6 +1687,8 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     else    //- No indices!
     {
         typs = v_alloca(v_type_ptr, 2);
+
+        incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
 
         typs[0] := incomplete_array_type_tag;
         typs[1] := (v: v_type_ptr);

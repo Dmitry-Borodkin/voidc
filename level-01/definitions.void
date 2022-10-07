@@ -40,8 +40,6 @@
 
     v_add_type("convert_to_type_ctx_t",   convert_to_type_ctx_t);
     v_add_type("convert_to_type_ctx_ptr", v_pointer_type(convert_to_type_ctx_t, 0));
-
-    v_add_type("incomplete_array_type_tag", v_struct_type_named("voidc.incomplete_array_type_tag"));
 }
 
 
@@ -743,6 +741,8 @@
         if (!v_type_is_struct(to_type))  v_break();
 
         typs = v_type_struct_get_element_types(to_type);
+
+        incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
 
         if (typs[0] != incomplete_array_type_tag)  v_break();
 

@@ -37,8 +37,6 @@
     v_add_type("type_ptr_ptr", v_pointer_type(v_type_ptr, 0));
 
     v_add_type("expr_ptr_ptr", v_pointer_type(v_ast_expr_ptr, 0));
-
-    v_add_type("incomplete_array_type_tag", v_struct_type_named("voidc.incomplete_array_type_tag"));
 }
 
 
@@ -3723,6 +3721,8 @@
         {
             typ0 = v_alloca(v_type_ptr, 2);
             typ1 = v_getelementptr(typ0, 1);
+
+            incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
 
             v_store(incomplete_array_type_tag, typ0);
             v_store(v_cast(agg_v, v_type_ptr), typ1);
