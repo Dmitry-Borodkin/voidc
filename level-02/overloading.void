@@ -1753,7 +1753,7 @@ voidc_enable_overloading_compiler: () -> void
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_const",    static_type_prefix_cv_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, "v.static_type_prefix_volatile", static_type_prefix_cv_intrinsic, 0);
 
-    voidc_visitor_set_void_method(vis, vis, v_quark_from_string("expr_call"), compile_expr_call, 0);
+    voidc_visitor_set_void_method(vis, vis, q("expr_call"), compile_expr_call, 0);
 
     voidc_visitor_set_intrinsic(vis, vis, "v.op_postfix_index", op_postfix_index_intrinsic, 0);
 

@@ -32,6 +32,18 @@
 //---------------------------------------------------------------------
 //- Some utility...
 //---------------------------------------------------------------------
+#ifndef NDEBUG
+
+extern "C"
+const char *__asan_default_options()
+{
+    return "handle_abort=1";
+}
+
+#endif
+
+
+//---------------------------------------------------------------------
 static vpeg::grammar_data_t voidc_grammar;
 
 static ast_unit_t
