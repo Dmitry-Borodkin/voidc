@@ -735,15 +735,28 @@ register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_qu
     }
 
     //-------------------------------------------------------------
-    if (v_type_is_reference(t))                     //- ?!?!?!?!?
+    block                               //- TODO !!!!!!!!!!!!!!!!!!
     {
-        et = v_type_refptr_get_element_type(t);
+        rt: &*v_type_t := v_undef();
 
-        v_util_function_dict_set(q, et, fn);
+        if (v_type_is_reference(t))
+        {
+            et = v_type_refptr_get_element_type(t);
+
+            if (v_type_is_struct(et)  &&  v_type_struct_is_opaque(et))  v_break();      //- !?!?!?!?!?!
+
+            rt := et;
+        }
+        else
+        {
+            rt := v_reference_type(t, 0);       //- ?!?!?!?
+        }
+
+        v_util_function_dict_set(q, rt, fn);
 
         if (stmt_list)
         {
-            v_ast_make_expr_integer(expr+1, (et: intptr_t));        //- Sic!!!
+            v_ast_make_expr_integer(expr+1, (rt: intptr_t));        //- Sic!!!
 
             v_make_list(elst, expr+1, 1);
 
