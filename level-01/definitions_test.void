@@ -153,7 +153,7 @@
 
 
 //---------------------------------------------------------------------
-utf8_symbols: &char[4][2][2] := v_undef();
+utf8_symbols: &char[2][2][4] := v_undef();
 
 strncpy: (dst: *char, src: *const char, count: size_t) -> *char;
 
@@ -175,7 +175,7 @@ strncpy: (dst: *char, src: *const char, count: size_t) -> *char;
 LLEN = 128;
 NUMS = 2 + 1*2*3*4*5*6;
 
-f_buf: &bool[2][LLEN] := v_undef();
+f_buf: &bool[LLEN][2] := v_undef();
 
 //---------------------------------------------------------------------
 //{ v_debug_print_module(1); }

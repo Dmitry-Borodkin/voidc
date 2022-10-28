@@ -3640,6 +3640,82 @@
 
 
 //---------------------------------------------------------------------
+//- check_index - utility
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    v_store(v_ast_expr_ptr, typ0);
+    v_store(expr_ptr_ptr,   typ1);
+    v_store(expr_ptr_ptr,   typ2);
+
+    ft = v_function_type(bool, typ0, 3, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("check_index", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "arg", v_ast_expr_ptr);
+    v_add_parameter_name(f, 1, "agg", expr_ptr_ptr);
+    v_add_parameter_name(f, 2, "idx", expr_ptr_ptr);
+}
+{
+    tag = v_ast_base_get_visitor_method_tag(v_cast(arg, v_ast_base_ptr));
+
+    if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(false);
+
+    etmp = v_ast_expr_call_get_fun_expr(arg);
+
+    tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
+
+    if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
+    {
+        v_return(false);
+    }
+
+    name = v_ast_expr_identifier_get_name(etmp);
+
+    if (strcmp(name, "v.op_postfix_index"))
+    {
+        v_return(false);
+    }
+
+    if (agg) ;
+    else if (idx) ;
+    else
+    {
+        v_return(true);
+    }
+
+    lst = v_ast_expr_call_get_arg_list(arg);
+
+    if (agg)  v_store(v_list_get_item(lst, 1), agg);
+
+    if (idx)
+    {
+        op = v_list_get_item(lst, 0);
+
+        void_obj = v_ast_generic_get_object(op);
+
+        obj = v_cast(void_obj, v_ast_operator_unary_ptr);
+
+        pay = v_getelementptr(obj, 0, 2);
+
+        idx_list = v_cast(pay, v_ast_expr_list_ptr);
+
+        idx_count = v_list_get_size(idx_list);
+
+        if (idx_count)  v_store(v_list_get_item(idx_list, 0), idx);         //- Just one!
+        else            v_store(0, idx);                                    //- Sic!
+    }
+
+    v_return(true);
+}
+
+//---------------------------------------------------------------------
 //- op_postfix_index - compiler intrinsic
 //---------------------------------------------------------------------
 {
@@ -3657,24 +3733,58 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    op  = v_list_get_item(arg_list, 0);
-    agg = v_list_get_item(arg_list, 1);
+    N = v_reference(v_alloca(int));
+    v_assign(N, 1);
 
-    void_obj = v_ast_generic_get_object(op);
+    {   ast = v_reference(v_alloca(v_ast_expr_ptr));
 
-    obj = v_cast(void_obj, v_ast_operator_unary_ptr);
+        v_assign(ast, v_list_get_item(arg_list, 1));
 
-    pay = v_getelementptr(obj, 0, 2);
+        loop
+        {
+            if (check_index(ast, v_pointer(ast), 0)) ;
+            else  v_break();
 
-    idx_list = v_cast(pay, v_ast_expr_list_ptr);
+            v_assign(N, v_binop(LLVMAdd, N, 1));
+        }
+    }
 
-    idx = v_reference(v_alloca(v_ast_expr_ptr));
+    agg = v_reference(v_alloca(v_ast_expr_ptr));
 
-    idx_count = v_list_get_size(idx_list);
+    v_assign(agg, v_list_get_item(arg_list, 1));
 
-    if (idx_count)
-    {
-        v_assign(idx, v_list_get_item(idx_list, 0));        //- Just one!
+    idx = v_malloc(v_ast_expr_ptr, N);
+
+    {   idx_i = v_reference(v_alloca(expr_ptr_ptr));
+
+        i = v_binop(LLVMSub, N, 1);
+
+        v_assign(idx_i, v_getelementptr(idx, i));
+
+        op = v_list_get_item(arg_list, 0);
+
+        void_obj = v_ast_generic_get_object(op);
+
+        obj = v_cast(void_obj, v_ast_operator_unary_ptr);
+
+        pay = v_getelementptr(obj, 0, 2);
+
+        idx_list = v_cast(pay, v_ast_expr_list_ptr);
+
+        idx_count = v_list_get_size(idx_list);
+
+        if (idx_count)  v_store(v_list_get_item(idx_list, 0), idx_i);       //- Just one!
+        else            v_store(0, idx_i);                                  //- Sic!
+
+        loop
+        {
+            idx_i1 = v_getelementptr(idx_i, -1);
+
+            if (check_index(agg, v_pointer(agg), idx_i1)) ;
+            else  v_break();
+
+            v_assign(idx_i, idx_i1);
+        }
     }
 
 
@@ -3691,48 +3801,57 @@
     v_assign(agg_t, v_get_result_type());
     v_assign(agg_v, v_get_result_value());
 
-    idx_t = v_reference(v_alloca(v_type_ptr));
-    idx_v = v_reference(v_alloca(LLVMValueRef));
-
-    if (idx_count)
-    {
-        v_set_result_type(UNREFERENCE_TAG);
-
-        v_ast_accept_visitor(v_cast(idx, v_ast_base_ptr), visitor);
-
-        v_assign(idx_t, v_get_result_type());
-        v_assign(idx_v, v_get_result_value());
-    }
-
 
     if (v_icmp(LLVMIntEQ, agg_t, v_static_type_t))          //- Type
     {
-        if (idx_count)
+        i = v_reference(v_alloca(int));
+
+        v_assign(i, v_binop(LLVMSub, N, 1));
+
+        loop
         {
-            n = v_cast(LLVMConstIntGetZExtValue(idx_v), uint64_t);
+            if (v_icmp(LLVMIntSLT, i, 0))  v_break();
 
-            typ = v_cast(agg_v, v_type_ptr);
+            idx_i = v_load(v_getelementptr(idx, i));
 
-            typ = v_array_type(typ, n);
+            if (idx_i)
+            {
+                v_set_result_type(UNREFERENCE_TAG);
 
-            v_set_result_value(v_cast(typ, LLVMValueRef));
-        }
-        else    //- No indices!
-        {
-            typ0 = v_alloca(v_type_ptr, 2);
-            typ1 = v_getelementptr(typ0, 1);
+                v_ast_accept_visitor(v_cast(idx_i, v_ast_base_ptr), visitor);
 
-            incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
+                idx_v = v_get_result_value();
 
-            v_store(incomplete_array_type_tag, typ0);
-            v_store(v_cast(agg_v, v_type_ptr), typ1);
+                n = v_cast(LLVMConstIntGetZExtValue(idx_v), uint64_t);
 
-            typ = v_struct_type(typ0, 2, false);
+                typ = v_cast(agg_v, v_type_ptr);
 
-            v_set_result_value(v_cast(typ, LLVMValueRef));
+                typ = v_array_type(typ, n);
+
+                v_assign(agg_v, v_cast(typ, LLVMValueRef));
+            }
+            else    //- No indices!
+            {
+                typ0 = v_alloca(v_type_ptr, 2);
+                typ1 = v_getelementptr(typ0, 1);
+
+                incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
+
+                v_store(incomplete_array_type_tag, typ0);
+                v_store(v_cast(agg_v, v_type_ptr), typ1);
+
+                typ = v_struct_type(typ0, 2, false);
+
+                v_assign(agg_v, v_cast(typ, LLVMValueRef));
+            }
+
+            v_assign(i, v_binop(LLVMSub, i, 1));
         }
 
         v_set_result_type(v_static_type_t);
+        v_set_result_value(agg_v);
+
+        v_free(idx);
 
         v_return();
     }
@@ -3740,130 +3859,158 @@
 
     //- Value
 
-    block
+    builder = v_target_get_builder();
+
+    i = v_reference(v_alloca(int));
+
+    v_assign(i, 0);
+
+    loop
     {
-        st = v_type_get_scalar_type(idx_t);
+        if (v_icmp(LLVMIntEQ, i, N))  v_break();
 
-        if (v_type_is_integer(st))         ;   else  v_break();
-        if (v_type_integer_is_signed(st))  v_break();
+        idx_i = v_load(v_getelementptr(idx, i));
 
-        w = v_type_integer_get_width(st);
+        v_set_result_type(UNREFERENCE_TAG);
 
-        if (v_icmp(LLVMIntUGE, w, 32))  v_break();
+        v_ast_accept_visitor(v_cast(idx_i, v_ast_base_ptr), visitor);
 
-        t1 = v_reference(v_alloca(v_type_ptr));
-
-        v_assign(t1, v_uint_type(32));
-
-        if (v_type_is_vector(idx_t))
-        {
-            count = v_type_vector_get_size(idx_t);
-
-            if (v_type_vector_is_scalable(idx_t))  v_assign(t1, v_svector_type(t1, count));
-            else                                   v_assign(t1, v_vector_type(t1, count));
-        }
-
-        v_set_result_type(t1);
-
-        v_adopt_result(idx_t, idx_v);
+        idx_t = v_reference(v_alloca(v_type_ptr));
+        idx_v = v_reference(v_alloca(LLVMValueRef));
 
         v_assign(idx_t, v_get_result_type());
         v_assign(idx_v, v_get_result_value());
-    }
 
-    builder = v_target_get_builder();
-
-    if (v_type_is_reference(agg_t))
-    {
-        e = v_type_refptr_get_element_type(agg_t);
-
-        if (v_type_is_pointer(e))
+        block
         {
-            v_assign(agg_t, e);
+            st = v_type_get_scalar_type(idx_t);
 
-            v_assign(agg_v, LLVMBuildLoad2(builder, v_type_get_llvm_type(agg_t), agg_v, "agg"));
-        }
-    }
+            if (v_type_is_integer(st))         ;   else  v_break();
+            if (v_type_integer_is_signed(st))  v_break();
 
-    t = v_reference(v_alloca(v_type_ptr));
-    v = v_reference(v_alloca(LLVMValueRef));
+            w = v_type_integer_get_width(st);
 
-    if (v_type_is_pointer(agg_t))
-    {
-        v_assign(v, idx_v);     //- Sic...
+            if (v_icmp(LLVMIntUGE, w, 32))  v_break();
 
-        e = v_type_refptr_get_element_type(agg_t);
+            t1 = v_reference(v_alloca(v_type_ptr));
 
-        v_assign(v, LLVMBuildGEP2(builder, v_type_get_llvm_type(e), agg_v, v_pointer(v), 1, ""));
+            v_assign(t1, v_uint_type(32));
 
-        a = v_type_refptr_get_address_space(agg_t);
-
-        v_assign(t, v_reference_type(e, a));
-    }
-    else if (v_type_is_reference(agg_t))
-    {
-        idxx = v_alloca(LLVMValueRef, 2);
-
-        n0 = LLVMConstInt(v_type_get_llvm_type(int), 0, 0);
-
-        v_store(n0,    idxx);
-        v_store(idx_v, v_getelementptr(idxx, 1));
-
-        e = v_type_refptr_get_element_type(agg_t);
-
-        v_assign(v, LLVMBuildGEP2(builder, v_type_get_llvm_type(e), agg_v, idxx, 2, ""));
-
-        a = v_type_refptr_get_address_space(agg_t);
-
-        if (v_type_is_struct(e))
-        {
-            i = v_cast(LLVMConstIntGetZExtValue(idx_v), unsigned);
-
-            e = v_load(v_getelementptr(v_type_struct_get_element_types(e), i));
-
-            v_assign(t, v_reference_type(e, a));
-        }
-        else if (v_type_is_array(e))
-        {
-            e = v_type_array_get_element_type(e);
-
-            v_assign(t, v_reference_type(e, a));
-        }
-        else    //- assert(v_type_is_vector(e)); ...
-        {
-            e = v_type_vector_get_element_type(e);
-
-            v_assign(t, v_reference_type(e, a));
-        }
-    }
-    else    //- Just aggregate value
-    {
-        if (v_type_is_vector(agg_t))
-        {
-            v_assign(v, LLVMBuildExtractElement(builder, agg_v, idx_v, ""));
-
-            v_assign(t, v_type_vector_get_element_type(agg_t));
-        }
-        else
-        {
-            i = v_cast(LLVMConstIntGetZExtValue(idx_v), unsigned);
-
-            v_assign(v, LLVMBuildExtractValue(builder, agg_v, i, ""));
-
-            if (v_type_is_struct(agg_t))
+            if (v_type_is_vector(idx_t))
             {
-                v_assign(t, v_load(v_getelementptr(v_type_struct_get_element_types(agg_t), i)));
+                count = v_type_vector_get_size(idx_t);
+
+                if (v_type_vector_is_scalable(idx_t))  v_assign(t1, v_svector_type(t1, count));
+                else                                   v_assign(t1, v_vector_type(t1, count));
             }
-            else    //- assert(v_type_is_array(agg_t));
+
+            v_set_result_type(t1);
+
+            v_adopt_result(idx_t, idx_v);
+
+            v_assign(idx_t, v_get_result_type());
+            v_assign(idx_v, v_get_result_value());
+        }
+
+        if (v_type_is_reference(agg_t))
+        {
+            e = v_type_refptr_get_element_type(agg_t);
+
+            if (v_type_is_pointer(e))
             {
-                v_assign(t, v_type_array_get_element_type(agg_t));
+                v_assign(agg_t, e);
+
+                v_assign(agg_v, LLVMBuildLoad2(builder, v_type_get_llvm_type(agg_t), agg_v, "agg"));
             }
         }
+
+        t = v_reference(v_alloca(v_type_ptr));
+        v = v_reference(v_alloca(LLVMValueRef));
+
+        if (v_type_is_pointer(agg_t))
+        {
+            v_assign(v, idx_v);     //- Sic...
+
+            e = v_type_refptr_get_element_type(agg_t);
+
+            v_assign(v, LLVMBuildGEP2(builder, v_type_get_llvm_type(e), agg_v, v_pointer(v), 1, ""));
+
+            a = v_type_refptr_get_address_space(agg_t);
+
+            v_assign(t, v_reference_type(e, a));
+        }
+        else if (v_type_is_reference(agg_t))
+        {
+            idxx = v_alloca(LLVMValueRef, 2);
+
+            n0 = LLVMConstInt(v_type_get_llvm_type(int), 0, 0);
+
+            v_store(n0,    idxx);
+            v_store(idx_v, v_getelementptr(idxx, 1));
+
+            e = v_type_refptr_get_element_type(agg_t);
+
+            v_assign(v, LLVMBuildGEP2(builder, v_type_get_llvm_type(e), agg_v, idxx, 2, ""));
+
+            a = v_type_refptr_get_address_space(agg_t);
+
+            if (v_type_is_struct(e))
+            {
+                i = v_cast(LLVMConstIntGetZExtValue(idx_v), unsigned);
+
+                e = v_load(v_getelementptr(v_type_struct_get_element_types(e), i));
+
+                v_assign(t, v_reference_type(e, a));
+            }
+            else if (v_type_is_array(e))
+            {
+                e = v_type_array_get_element_type(e);
+
+                v_assign(t, v_reference_type(e, a));
+            }
+            else    //- assert(v_type_is_vector(e)); ...
+            {
+                e = v_type_vector_get_element_type(e);
+
+                v_assign(t, v_reference_type(e, a));
+            }
+        }
+        else    //- Just aggregate value
+        {
+            if (v_type_is_vector(agg_t))
+            {
+                v_assign(v, LLVMBuildExtractElement(builder, agg_v, idx_v, ""));
+
+                v_assign(t, v_type_vector_get_element_type(agg_t));
+            }
+            else
+            {
+                i = v_cast(LLVMConstIntGetZExtValue(idx_v), unsigned);
+
+                v_assign(v, LLVMBuildExtractValue(builder, agg_v, i, ""));
+
+                if (v_type_is_struct(agg_t))
+                {
+                    v_assign(t, v_load(v_getelementptr(v_type_struct_get_element_types(agg_t), i)));
+                }
+                else    //- assert(v_type_is_array(agg_t));
+                {
+                    v_assign(t, v_type_array_get_element_type(agg_t));
+                }
+            }
+        }
+
+        v_assign(agg_t, t);
+        v_assign(agg_v, v);
+
+        v_assign(i, v_binop(LLVMAdd, i, 1));
     }
+
+    v_free(idx);
 
     v_set_result_type(tt);
 
-    v_adopt_result(t, v);
+    v_adopt_result(agg_t, agg_v);
 }
 
 
