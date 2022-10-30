@@ -304,7 +304,7 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 
     if (!stmt_list)  v_return();
 
-    stmt_list = v_cast(stmt_list, v_ast_stmt_list_ptr);
+    stmt_list = (stmt_list: v_ast_stmt_list_ptr);
 
 
     expr = v_alloca(v_ast_expr_t, 3);
@@ -320,7 +320,7 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
     defer v_terminate(stmt);
 
 
-    v_ast_make_expr_integer(expr+0, v_cast(type, intptr_t));        //- Sic!!!
+    v_ast_make_expr_integer(expr+0, (type: intptr_t));          //- Sic!!!
 
     v_ast_make_stmt_call(stmt, "type", "voidc.compile_type", expr+0, 1);
 
@@ -348,7 +348,7 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 
     tref = v_reference_type(type, 0);
 
-    v_ast_make_expr_integer(expr+0, v_cast(tref, intptr_t));        //- Sic!!!
+    v_ast_make_expr_integer(expr+0, (tref: intptr_t));          //- Sic!!!
 
     v_ast_make_stmt_call(stmt, "tref", "voidc.compile_type", expr+0, 1);
 

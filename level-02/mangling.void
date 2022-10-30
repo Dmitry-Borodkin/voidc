@@ -901,7 +901,7 @@ compile_unit_spec_fun_renm: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_bas
 private
 v_internal_spec_fun_decl_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
 {
-    call = v_cast(self, v_ast_expr_ptr);
+    call = (self: v_ast_expr_ptr);
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
@@ -946,7 +946,7 @@ v_internal_spec_fun_decl_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v
 private
 v_internal_spec_fun_renm_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
 {
-    call = v_cast(self, v_ast_expr_ptr);
+    call = (self: v_ast_expr_ptr);
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
