@@ -1,0 +1,79 @@
+{   v_import("level-00");
+    v_import("level-01");
+
+    v_import("literals.void");
+    v_import("loops_etc.void");
+    v_import("aggregates.void");
+    v_import("overloading.void");
+    v_import("projections.void");
+    v_import("structures.void");
+    v_import("mangling.void");
+    v_import("inlining.void");
+    v_import("unions.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_literals();
+    voidc_enable_loops_etc();
+    voidc_enable_aggregates();
+    voidc_enable_overloading();
+    voidc_enable_projections();
+    voidc_enable_structures();
+    voidc_enable_mangling();
+    voidc_enable_inlining();
+    voidc_enable_unions();
+}
+
+
+//---------------------------------------------------------------------
+{   v_import("uni_import_test.void");
+}
+
+
+//---------------------------------------------------------------------
+{ v_debug_print_module(9); }
+
+
+union qwerty_t
+{
+    x: int[2];
+    y: long;
+
+    p: *qwerty_t;
+
+    v: vec(int, 3);
+};
+
+s: &qwerty_t := 0;
+
+
+{
+    printf("&s: %p\n", &s);
+
+    s.p := &s;
+
+    printf("s.p: %p\n", s.p);
+
+    printf("s.x: %x, %x\n", s.x[0], s.x[1]);
+
+    printf("s.v: %x, %x, %x\n", s.v[0], s.v[1], s.v[2]);
+
+}
+
+
+//---------------------------------------------------------------------
+{
+    asd.u64 := 0xDDEEAADDBBEEEEFF;
+
+    printf("asd.u1: %x\n", (asd.u1:  uint(32)));
+    printf("asd.u8: %x\n", (asd.u8:  uint(32)));
+    printf("asd.u16: %x\n", (asd.u16: uint(32)));
+    printf("asd.u32: %x\n", asd.u32);
+    printf("asd.u64: %lx\n", asd.u64);
+
+}
+
+
