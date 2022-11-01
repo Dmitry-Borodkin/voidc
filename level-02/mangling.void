@@ -279,7 +279,7 @@ append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) -> void
 
         v_break();
 
-    case v_type_kind_array:
+    case v_type_kind_array:         //- "Contravariant" !!!
 
         append_type(str, dict, v_type_array_get_element_type(t));
 
@@ -334,7 +334,7 @@ encode_base62: (ctx: &v_myz_ctx_t) -> bool
 
     b64: &uint64_t := 0;
 
-    str: &char[12] := v_undef();
+    str: &char[12] := {};
 
     for (i: &int := 0; i < n; ++i)
     {
@@ -352,7 +352,7 @@ encode_base62: (ctx: &v_myz_ctx_t) -> bool
 
                 d = b64 % 62;
 
-                D: &char32_t := v_undef();
+                D: &char32_t := {};
 
                 if (d < 10)       D := '0';
                 else if (d < 36)  D := 'A' - 10;
@@ -374,6 +374,17 @@ encode_base62: (ctx: &v_myz_ctx_t) -> bool
 
 
 //---------------------------------------------------------------------
+export
+voidc_internal_std_string_append_type: (sstr: *v_std_string_t, t: *v_type_t) -> void
+{
+    dict: &v_trp_dict_t := 0;
+    defer dict_term(dict);
+
+    append_type(sstr, dict, t);
+}
+
+
+//---------------------------------------------------------------------
 private
 append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) -> void
 {
@@ -385,11 +396,7 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) -> void
 
     v_std_string_append(stmp, ", ");
 
-    {   dict: &v_trp_dict_t := 0;
-        defer dict_term(dict);
-
-        append_type(stmp, dict, t);
-    }
+    voidc_internal_std_string_append_type(stmp, t);
 
 //printf("%s\n", v_std_string_get(stmp));
 
@@ -737,7 +744,7 @@ register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_qu
     //-------------------------------------------------------------
     block                               //- TODO !!!!!!!!!!!!!!!!!!
     {
-        rt: &*v_type_t := v_undef();
+        rt: &*v_type_t := {};
 
         if (v_type_is_reference(t))
         {
@@ -782,8 +789,8 @@ register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_qu
 private
 register_mangled_function_name: (vis: *voidc_visitor_t, sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) -> void
 {
-    q: &v_quark_t := v_undef();
-    t: &*v_type_t := v_undef();
+    q: &v_quark_t := {};
+    t: &*v_type_t := {};
 
     types = v_type_function_get_param_types(ft);
 
@@ -877,8 +884,8 @@ compile_unit_spec_fun_renm: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_bas
 
     if (v_type_is_pointer(ft))  ft := v_type_refptr_get_element_type(ft);
 
-    q: &v_quark_t := v_undef();
-    t: &*v_type_t := v_undef();
+    q: &v_quark_t := {};
+    t: &*v_type_t := {};
 
     types = v_type_function_get_param_types(ft);
 

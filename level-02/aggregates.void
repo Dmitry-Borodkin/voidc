@@ -102,7 +102,7 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
         et: &v_type_ptr := v_undef();
 
         if (v_type_is_struct(t))  ets := v_type_struct_get_element_types(t);
-        else                      et  := v_type_array_get_element_type(t);
+        if (v_type_is_array(t))   et  := v_type_array_get_element_type(t);
 
         for (i: &int := 0; i < N; ++i)
         {

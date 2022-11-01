@@ -49,8 +49,8 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
 qf_inlinehint:   intptr_t = 1 << 2;                     //- Sic!?!
 qf_alwaysinline: intptr_t = 1 << 3;                     //- Sic!?!
 
-private attr_inlinehint:   &LLVMAttributeRef := v_undef();
-private attr_alwaysinline: &LLVMAttributeRef := v_undef();
+private attr_inlinehint:   &LLVMAttributeRef := {};
+private attr_alwaysinline: &LLVMAttributeRef := {};
 
 
 //---------------------------------------------------------------------
@@ -191,7 +191,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
 
     //- Do inlining! --------------------------------------------------
 
-    saved_obtain_module_ctx: &*void := v_undef();
+    saved_obtain_module_ctx: &*void := {};
     saved_obtain_module_fun = v_get_obtain_module(&saved_obtain_module_ctx);
 
     mod: &LLVMModuleRef := 0;
@@ -207,7 +207,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
     v_initialize(inner_visitor);
     defer v_terminate(inner_visitor);
 
-    stmt_list: &*v_ast_stmt_list_t := v_undef();
+    stmt_list: &*v_ast_stmt_list_t := {};
 
     stmt_list := voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
 
@@ -231,7 +231,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
     v_set_obtain_module(saved_obtain_module_fun, saved_obtain_module_ctx);
 
 
-    fun_name: &*const char := v_undef();
+    fun_name: &*const char := {};
 
     {   stmt = v_list_get_item(stmt_list, v_list_get_size(stmt_list)-1);
 
@@ -342,7 +342,7 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) -> void
         {
             if (LLVMCountBasicBlocks(f))  v_continue();
 
-            sz: &size_t := v_undef();
+            sz: &size_t := {};
 
             fun_name = LLVMGetValueName2(f, &sz);
 
@@ -403,10 +403,10 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) -> void
 //- Enable inlining
 //---------------------------------------------------------------------
 private
-inlining_aux: &inlining_aux_t[2] := v_undef();
+inlining_aux: &inlining_aux_t[2] := {};
 
 private
-finish_module_ctx: &finish_module_ctx_t := v_undef();
+finish_module_ctx: &finish_module_ctx_t := {};
 
 //---------------------------------------------------------------------
 export
