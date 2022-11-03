@@ -66,13 +66,15 @@ s: &qwerty_t := 0;
 
 //---------------------------------------------------------------------
 {
-    asd.u64 := 0xDDEEAADDBBEEEEFF;
+    asd.u64 := 0xDEADBEEFCAFEBABE;
 
-    printf("asd.u1: %x\n", (asd.u1:  uint(32)));
-    printf("asd.u8: %x\n", (asd.u8:  uint(32)));
-    printf("asd.u16: %x\n", (asd.u16: uint(32)));
-    printf("asd.u32: %x\n", asd.u32);
-    printf("asd.u64: %lx\n", asd.u64);
+    printf("asd.u1: %x\n",    (asd.u1:  uint(32)));
+    printf("asd.u2: %x ?!\n", (asd.u2:  uint(32)));         //- ?!
+    printf("asd.u4: %x ?!\n", (asd.u4:  uint(32)));         //- ?!
+    printf("asd.u8: %x\n",    (asd.u8:  uint(32)));
+    printf("asd.u16: %x\n",   (asd.u16: uint(32)));
+    printf("asd.u32: %x\n",   asd.u32);
+    printf("asd.u64: %llx\n", asd.u64);
 
 }
 
