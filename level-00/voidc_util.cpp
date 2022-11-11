@@ -77,129 +77,9 @@ typedef void (*intrinsic_t)(const visitor_t *vis, void *aux, const ast_base_t *s
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_init_term_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
+void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
-
-    auto quark = v_quark_t(uintptr_t(void_quark));
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    lctx.result_type = UNREFERENCE_TAG;
-
-    (*vis)->visit(args->data[0]);
-
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
-
-    void *void_fun;
-    void *aux;
-
-    LLVMValueRef f;
-    v_type_t    *ft;
-
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
-
-    LLVMValueRef values[2];
-
-    values[0] = lctx.result_value;
-
-    if (args->data.size() == 1)
-    {
-        values[1] = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
-    }
-    else
-    {
-        lctx.result_type = UNREFERENCE_TAG;
-
-        (*vis)->visit(args->data[1]);
-
-        values[1] = lctx.result_value;
-    }
-
-    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
-}
-
-//---------------------------------------------------------------------
-static
-void v_copy_move_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
-{
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
-
-    auto quark = v_quark_t(uintptr_t(void_quark));
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    lctx.result_type = UNREFERENCE_TAG;
-
-    (*vis)->visit(args->data[0]);
-
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
-
-    void *void_fun;
-    void *aux;
-
-    LLVMValueRef f;
-    v_type_t    *ft;
-
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
-
-    LLVMValueRef values[3];
-
-    values[0] = lctx.result_value;
-
-    for (int i=1; i<3; ++i)
-    {
-        if (args->data.size() <= i)
-        {
-            values[i] = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
-        }
-        else
-        {
-            lctx.result_type = UNREFERENCE_TAG;
-
-            (*vis)->visit(args->data[i]);
-
-            values[i] = lctx.result_value;
-        }
-    }
-
-    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 3, "");
-}
-
-
-//---------------------------------------------------------------------
-static
-void v_universal_get_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
-{
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
+    auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -212,7 +92,10 @@ void v_universal_get_intrinsic(const visitor_t *vis, void *void_quark, const ast
 
     (*vis)->visit(args->data[0]);
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
+    auto res_type  = lctx.result_type;
+    auto res_value = lctx.result_value;
+
+    auto type = static_cast<v_type_pointer_t *>(res_type)->element_type();
 
     void *void_fun;
     void *aux;
@@ -225,7 +108,9 @@ void v_universal_get_intrinsic(const visitor_t *vis, void *void_quark, const ast
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
+        lctx.result_type = tt;
+
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, res_type, res_value);
 
         return;
     }
@@ -234,7 +119,47 @@ void v_universal_get_intrinsic(const visitor_t *vis, void *void_quark, const ast
 
     auto ft = static_cast<v_type_function_t *>(t);
 
-    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
+    auto par_count = ft->param_count();
+    auto par_types = ft->param_types();
+
+    auto arg_count = args->data.size();
+
+    auto val_count = std::max(size_t(par_count), arg_count);
+
+    auto values = std::make_unique<LLVMValueRef[]>(val_count);
+
+    for (int i=0; i<val_count; ++i)
+    {
+        v_type_t    *ti = nullptr;
+        LLVMValueRef vi = nullptr;
+
+        if (i == 0)
+        {
+            ti = res_type;
+            vi = res_value;
+        }
+        else if (arg_count <= i)
+        {
+            ti = gctx.int_type;
+            vi = LLVMConstInt(ti->llvm_type(), 1, false);               //- Sic!
+        }
+
+        if (i < par_count)  lctx.result_type = par_types[i];
+        else                lctx.result_type = UNREFERENCE_TAG;
+
+        if (vi)
+        {
+            lctx.adopt_result(ti, vi);
+        }
+        else
+        {
+            (*vis)->visit(args->data[i]);
+        }
+
+        values[i] = lctx.result_value;
+    }
+
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), val_count, "");
 
     lctx.result_type = tt;
 
@@ -246,9 +171,7 @@ void v_universal_get_intrinsic(const visitor_t *vis, void *void_quark, const ast
 static
 void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
+    auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -298,9 +221,7 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
 static
 void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
+    auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -354,9 +275,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 static
 void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
+    auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -400,14 +319,11 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
     LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
 }
 
-
 //---------------------------------------------------------------------
 static
 void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
 {
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
+    auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
     auto quark = v_quark_t(uintptr_t(void_quark));
 
@@ -453,236 +369,6 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 
 
 //---------------------------------------------------------------------
-static
-void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
-{
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
-
-    auto quark = v_quark_t(uintptr_t(void_quark));
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    lctx.result_type = UNREFERENCE_TAG;
-
-    (*vis)->visit(args->data[0]);
-
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
-
-    void *void_fun;
-    void *aux;
-
-    LLVMValueRef f;
-    v_type_t    *t;
-
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, t);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
-
-    auto ft = static_cast<v_type_function_t *>(t);
-
-    auto par_count = ft->param_count();
-    auto par_types = ft->param_types();
-
-    auto arg_count = args->data.size();
-
-
-    auto values = std::make_unique<LLVMValueRef[]>(arg_count);
-
-    values[0] = lctx.result_value;
-
-    for (int i=1; i<arg_count; ++i)
-    {
-        if (i < par_count)  lctx.result_type = par_types[i];
-        else                lctx.result_type = UNREFERENCE_TAG;
-
-        (*vis)->visit(args->data[i]);
-
-        values[i] = lctx.result_value;
-    }
-
-    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), arg_count, "");
-}
-
-
-//---------------------------------------------------------------------
-static
-void v_list_append_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
-{
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
-
-    auto quark = v_quark_t(uintptr_t(void_quark));
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    lctx.result_type = UNREFERENCE_TAG;
-
-    (*vis)->visit(args->data[0]);
-
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
-
-    void *void_fun;
-    void *aux;
-
-    LLVMValueRef f;
-    v_type_t    *ft;
-
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
-
-    LLVMValueRef values[4];
-
-    values[0] = lctx.result_value;
-
-    for (int i=1; i<4; ++i)
-    {
-        if (args->data.size() <= i)
-        {
-            values[i] = LLVMConstInt(gctx.int_type->llvm_type(), 1, false);
-        }
-        else
-        {
-            lctx.result_type = UNREFERENCE_TAG;
-
-            (*vis)->visit(args->data[i]);
-
-            values[i] = lctx.result_value;
-        }
-    }
-
-    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 4, "");
-}
-
-
-//---------------------------------------------------------------------
-static
-void v_list_get_size_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
-{
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
-
-    auto quark = v_quark_t(uintptr_t(void_quark));
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    auto tt = lctx.result_type;
-
-    lctx.result_type = UNREFERENCE_TAG;
-
-    (*vis)->visit(args->data[0]);
-
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
-
-    void *void_fun;
-    void *aux;
-
-    LLVMValueRef f;
-    v_type_t    *ft;
-
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, ft);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
-
-    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
-
-    lctx.result_type = tt;
-
-    lctx.adopt_result(gctx.int_type, v);
-}
-
-
-//---------------------------------------------------------------------
-static
-void v_list_get_item_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
-{
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
-
-    auto quark = v_quark_t(uintptr_t(void_quark));
-
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    auto tt = lctx.result_type;
-
-    lctx.result_type = UNREFERENCE_TAG;
-
-    (*vis)->visit(args->data[0]);
-
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
-
-    void *void_fun;
-    void *aux;
-
-    LLVMValueRef f;
-    v_type_t    *t;
-
-    auto ok = lookup_function_dict(vis, quark, type, void_fun, aux, f, t);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
-
-    auto ft = static_cast<v_type_function_t *>(t);
-
-    LLVMValueRef values[2];
-
-    values[0] = lctx.result_value;
-
-    lctx.result_type = UNREFERENCE_TAG;
-
-    (*vis)->visit(args->data[1]);
-
-    values[1] = lctx.result_value;
-
-    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
-
-    lctx.result_type = tt;
-
-    lctx.adopt_result(ft->return_type(), v);
-}
-
-
-//---------------------------------------------------------------------
 //- Static init/term ...
 //---------------------------------------------------------------------
 void static_initialize(void)
@@ -692,35 +378,37 @@ void static_initialize(void)
 #define DEF2(name, fname) \
     vctx.decls.intrinsics_insert({"v_" #name, {(void *)fname, (void *)uintptr_t(v_quark_from_string("v_" #name))}});
 
+#define DEF_U(name) DEF2(name, v_universal_intrinsic)
+
 #define DEF(name) DEF2(name, v_##name##_intrinsic)
 
-    DEF2(initialize, v_init_term_intrinsic)
-    DEF2(terminate,  v_init_term_intrinsic)
+    DEF_U(initialize)
+    DEF_U(terminate)
 
-    DEF2(copy, v_copy_move_intrinsic)
-    DEF2(move, v_copy_move_intrinsic)
+    DEF_U(copy)
+    DEF_U(move)
 
-    DEF2(empty, v_universal_get_intrinsic)
-    DEF2(kind,  v_universal_get_intrinsic)
+    DEF_U(empty)
+    DEF_U(kind)
 
     DEF(std_any_get_value)
     DEF(std_any_get_pointer)
     DEF(std_any_set_value)
     DEF(std_any_set_pointer)
 
-    DEF2(make_list_nil, v_universal_intrinsic)
-    DEF2(make_list,     v_universal_intrinsic)
+    DEF_U(make_list_nil)
+    DEF_U(make_list)
 
-    DEF(list_append)
-    DEF(list_get_size)
-    DEF(list_get_item)
+    DEF_U(list_append)
+    DEF_U(list_get_size)
+    DEF_U(list_get_item)
 
-    DEF2(ast_make_generic, v_universal_intrinsic)
-
-    DEF2(ast_generic_get_vtable, v_universal_get_intrinsic)
-    DEF2(ast_generic_get_object, v_universal_get_intrinsic)
+    DEF_U(ast_make_generic)
+    DEF_U(ast_generic_get_vtable)
+    DEF_U(ast_generic_get_object)
 
 #undef DEF
+#undef DEF_U
 #undef DEF2
 
     //-----------------------------------------------------------------
