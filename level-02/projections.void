@@ -32,8 +32,8 @@
 
 
 //---------------------------------------------------------------------
-op_postfix_dot:     &v_ast_expr_t := {};
-op_postfix_tildato: &v_ast_expr_t := {};
+op_postfix_dot:     &v_ast_expr_t := v_undef();
+op_postfix_tildato: &v_ast_expr_t := v_undef();
 
 voidc_projections_internal_globals_cleaner: (*void) -> void
 {
@@ -126,7 +126,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     name = v_ast_expr_identifier_get_name(etmp);
 
-    alst: &v_ast_expr_list_ptr := {};
+    alst: &v_ast_expr_list_ptr := v_undef();
 
     got_args = v_list_get_size(pay) > 1;
 
@@ -134,7 +134,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     spc_flag: &bool := false;
 
-    quark: &v_quark_t := {};
+    quark: &v_quark_t := v_undef();
 
     {   sstr = v_alloca(v_std_string_t);
         v_initialize(sstr);
@@ -178,8 +178,8 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     if (spc_flag)  v_set_result_type(INVIOLABLE_TAG);
 
-    tr: &v_type_ptr   := {};
-    vr: &LLVMValueRef := {};
+    tr: &v_type_ptr   := v_undef();
+    vr: &LLVMValueRef := v_undef();
 
     if (fun = (void_fun: *intrinsic_p1_t))
     {
@@ -311,7 +311,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         }
         else
         {
-            val: &LLVMValueRef := {};
+            val: &LLVMValueRef := v_undef();
 
             fpar = v_type_function_get_param_types(ft);
 

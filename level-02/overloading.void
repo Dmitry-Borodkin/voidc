@@ -212,7 +212,7 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         }
         else
         {
-            val: &LLVMValueRef[2] := {};
+            val: &LLVMValueRef[2] := v_undef();
 
             fpar = v_type_function_get_param_types(ft);
 
@@ -356,7 +356,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         }
         else
         {
-            val: &LLVMValueRef[2] := {};
+            val: &LLVMValueRef[2] := v_undef();
 
             fpar = v_type_function_get_param_types(ft);
 
@@ -411,7 +411,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         }
         else
         {
-            val: &LLVMValueRef[2] := {};
+            val: &LLVMValueRef[2] := v_undef();
 
             fpar = v_type_function_get_param_types(ft);
 
@@ -515,7 +515,7 @@ check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr
 
     if (strncmp(name, "v.op_infix_", 11))  v_return(0);
 
-    rk: &int := {};
+    rk: &int := v_undef();
 
     block
     {
@@ -621,12 +621,12 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     typ: &v_type_ptr   := v_get_result_type();
     val: &LLVMValueRef := v_get_result_value();
 
-    t0: &v_type_ptr   := {};
-    v0: &LLVMValueRef := {};
-    t1: &v_type_ptr   := {};
-    v1: &LLVMValueRef := {};
+    t0: &v_type_ptr   := v_undef();
+    v0: &LLVMValueRef := v_undef();
+    t1: &v_type_ptr   := v_undef();
+    v1: &LLVMValueRef := v_undef();
 
-    r: &LLVMValueRef := {};
+    r: &LLVMValueRef := v_undef();
 
     for (i: &int := 0; i < Nm1; ++i)
     {
@@ -665,7 +665,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             }
             else
             {
-                vv: &LLVMValueRef[2] := {};
+                vv: &LLVMValueRef[2] := v_undef();
 
                 fpar = v_type_function_get_param_types(ft);
 
@@ -726,7 +726,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                 }
                 else
                 {
-                    vv: &LLVMValueRef[2] := {};
+                    vv: &LLVMValueRef[2] := v_undef();
 
                     fpar = v_type_function_get_param_types(ft);
 
@@ -784,7 +784,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             if (v_type_is_floating_point(st))
             {
-                opc: &LLVMRealPredicate := {};
+                opc: &LLVMRealPredicate := v_undef();
 
                 switch(rel_i)
                 {
@@ -800,7 +800,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             }
             else
             {
-                opc: &LLVMIntPredicate := {};
+                opc: &LLVMIntPredicate := v_undef();
 
                 s: &bool := false;
 
@@ -903,7 +903,7 @@ inc_dec_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef, delta:
     step_v = v_get_result_value();
 
 
-    var_v: &LLVMValueRef := {};
+    var_v: &LLVMValueRef := v_undef();
 
     if (v_type_is_vector(et))
     {
@@ -1149,7 +1149,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         }
         else
         {
-            val: &LLVMValueRef := {};
+            val: &LLVMValueRef := v_undef();
 
             fpar = v_type_function_get_param_types(ft);
 
@@ -1264,7 +1264,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
     tt = v_get_result_type();
 
     void_fun: &*void := 0;
-    void_aux: &*void := {};
+    void_aux: &*void := v_undef();
 
     builder = v_target_get_builder();
 
@@ -1361,7 +1361,7 @@ compile_expr_call: (vis: voidc_visitor_ptr, *void,
     args  = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
     void_fun: &*void := 0;
-    void_aux: &*void := {};
+    void_aux: &*void := v_undef();
 
     if (v_ast_base_get_visitor_method_tag((fexpr: v_ast_base_ptr)) == v_ast_expr_identifier_visitor_method_tag)
     block
@@ -1459,8 +1459,8 @@ voidc_internal_op_postfix_index_helper: (vis: voidc_visitor_ptr,
         }
     }
 
-    t: &v_type_ptr   := {};
-    v: &LLVMValueRef := {};
+    t: &v_type_ptr   := v_undef();
+    v: &LLVMValueRef := v_undef();
 
     if (v_type_is_pointer(agg_t))
     {
@@ -1776,7 +1776,7 @@ voidc_enable_overloading_compiler: () -> void
 
         for (id: &int := 0; name = op_table[id][0]; ++id)
         {
-            void_fun: & *void := {};
+            void_fun: & *void := v_undef();
 
             switch(op_table[id][1])
             {

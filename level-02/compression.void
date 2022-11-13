@@ -315,7 +315,7 @@ v_myz_encode: (ctx: &v_myz_ctx_t) -> void
     next_shift: &unsigned := 512;
 
 
-    dict: &v_myz_dict_enc_t := {};
+    dict: &v_myz_dict_enc_t := v_undef();
     dict_enc_init(dict);
     defer dict_enc_term(dict);
 
@@ -459,7 +459,7 @@ v_myz_decode: (ctx: &v_myz_ctx_t) -> void
     next_shift: &unsigned := 512;
 
 
-    dict: &v_myz_dict_dec_t := {};
+    dict: &v_myz_dict_dec_t := v_undef();
     dict_dec_init(dict);
     defer dict_dec_term(dict);
 

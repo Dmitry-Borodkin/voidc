@@ -206,7 +206,7 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 
     if (!v_empty(name))
     {
-        struct_name: &*const char := {};
+        struct_name: &*const char := v_undef();
 
         tag = v_ast_base_get_visitor_method_tag((name: v_ast_base_ptr));
 
