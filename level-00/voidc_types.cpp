@@ -10,8 +10,6 @@
 #include <cassert>
 #include <algorithm>
 
-#include <llvm/IR/DerivedTypes.h>
-
 #include <llvm-c/Core.h>
 
 
@@ -151,9 +149,7 @@ v_type_array_t::obtain_llvm_type(void) const
 {
     auto et = key.first->llvm_type();
 
-    using namespace llvm;
-
-    return  wrap(ArrayType::get(unwrap(et), key.second));
+    return  LLVMArrayType(et, key.second);
 }
 
 
@@ -164,9 +160,7 @@ v_type_vector_t::obtain_llvm_type(void) const
 {
     auto et = key.first->llvm_type();
 
-    using namespace llvm;
-
-    return  wrap(FixedVectorType::get(unwrap(et), key.second));
+    return  LLVMVectorType(et, key.second);
 }
 
 template<>
@@ -175,9 +169,7 @@ v_type_svector_t::obtain_llvm_type(void) const
 {
     auto et = key.first->llvm_type();
 
-    using namespace llvm;
-
-    return  wrap(ScalableVectorType::get(unwrap(et), key.second));
+    return  LLVMScalableVectorType(et, key.second);
 }
 
 
