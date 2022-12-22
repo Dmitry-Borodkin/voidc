@@ -5,6 +5,7 @@
 #ifndef VOIDC_TYPES_H
 #define VOIDC_TYPES_H
 
+#include "voidc_quark.h"
 #include "voidc_dllexport.h"
 
 #include <utility>
@@ -274,7 +275,7 @@ class v_type_struct_t : public v_type_tag_t<v_type_t, v_type_t::k_struct>
 {
     friend class voidc_types_ctx_t;
 
-    using name_key_t = std::string;
+    using name_key_t = v_quark_t;
     using body_key_t = std::pair<std::vector<v_type_t *>, bool>;
 
     const name_key_t *name_key = nullptr;
@@ -296,7 +297,7 @@ class v_type_struct_t : public v_type_tag_t<v_type_t, v_type_t::k_struct>
     v_type_struct_t &operator=(const v_type_struct_t &) = delete;
 
 public:
-    const char *name(void) const { return (name_key ? name_key->c_str() : nullptr); }
+    v_quark_t name(void) const { return (name_key ? *name_key : 0); }
 
     bool is_opaque(void) const { return !body_key; }
 
@@ -441,7 +442,7 @@ public:
     v_type_pointer_t   *make_pointer_type  (v_type_t *et, unsigned addr_space=0);
     v_type_reference_t *make_reference_type(v_type_t *et, unsigned addr_space=0);
 
-    v_type_struct_t    *make_struct_type(const std::string &name);
+    v_type_struct_t    *make_struct_type(v_quark_t name);
     v_type_struct_t    *make_struct_type(v_type_t * const *elts, unsigned count, bool packed=false);
 
     v_type_array_t     *make_array_type(v_type_t *et, uint64_t count);

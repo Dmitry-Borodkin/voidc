@@ -402,9 +402,10 @@ void parsers_static_initialize(void)
 
 #define DEF(name) \
     static_assert(sizeof(parser_t) == sizeof(name##_t)); \
-    auto name##_type = vctx.make_struct_type("v_peg_" #name "_t"); \
+    auto name##_q = q("v_peg_" #name "_t"); \
+    auto name##_type = vctx.make_struct_type(name##_q); \
     name##_type->set_body(&content_type, 1, false); \
-    vctx.initialize_type(q("v_peg_" #name "_t"), name##_type);
+    vctx.initialize_type(name##_q, name##_type);
 
     DEF(parser)
     DEF(action)

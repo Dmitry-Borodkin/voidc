@@ -101,7 +101,7 @@ v_ast_unit_get_column(const ast_unit_t *ptr)
 void
 v_ast_make_stmt(ast_stmt_t *ret, const char *var, const ast_expr_t *expr)
 {
-    *ret = std::make_shared<const ast_stmt_data_t>(var, *expr);
+    *ret = std::make_shared<const ast_stmt_data_t>(v_quark_from_string(var), *expr);
 }
 
 const char *
@@ -109,7 +109,7 @@ v_ast_stmt_get_name(const ast_stmt_t *ptr)
 {
     auto &r = static_cast<const ast_stmt_data_t &>(**ptr);
 
-    return r.name.c_str();
+    return v_quark_to_string(r.name);
 }
 
 const ast_expr_t *
@@ -147,7 +147,7 @@ v_ast_expr_call_get_arg_list(const ast_expr_t *ptr)
 void
 v_ast_make_expr_identifier(ast_expr_t *ret, const char *name)
 {
-    *ret = std::make_shared<const ast_expr_identifier_data_t>(name);
+    *ret = std::make_shared<const ast_expr_identifier_data_t>(v_quark_from_string(name));
 }
 
 const char *
@@ -155,7 +155,7 @@ v_ast_expr_identifier_get_name(const ast_expr_t *ptr)
 {
     auto &r = static_cast<const ast_expr_identifier_data_t &>(**ptr);
 
-    return r.name.c_str();
+    return v_quark_to_string(r.name);
 }
 
 //---------------------------------------------------------------------
@@ -391,9 +391,10 @@ v_ast_static_initialize(void)
 
 #define DEF(name) \
     static_assert(sizeof(ast_base_t) == sizeof(ast_##name##_t)); \
-    auto name##_type = vctx.make_struct_type("v_ast_" #name "_t"); \
+    auto name##_q = v_quark_from_string("v_ast_" #name "_t"); \
+    auto name##_type = vctx.make_struct_type(name##_q); \
     name##_type->set_body(&content_type, 1, false); \
-    vctx.initialize_type(v_quark_from_string("v_ast_" #name "_t"), name##_type);
+    vctx.initialize_type(name##_q, name##_type);
 
     DEF(base)
 

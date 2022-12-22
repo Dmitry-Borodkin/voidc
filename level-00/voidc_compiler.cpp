@@ -88,9 +88,9 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 
     lctx.pop_temporaries();
 
-    auto const &ret_name = stmt.name.c_str();
+    auto const *ret_name = v_quark_to_string(stmt.name);
 
-    if (ret_name[0])
+    if (ret_name  &&  ret_name[0])
     {
         if (lctx.result_type != voidc_global_ctx_t::voidc->static_type_type)
         {
@@ -100,11 +100,11 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 
             if (len == 0)
             {
-                LLVMSetValueName2(lctx.result_value, ret_name, stmt.name.size());
+                LLVMSetValueName2(lctx.result_value, ret_name, v_quark_to_string_size(stmt.name));
             }
         }
 
-        lctx.vars = lctx.vars.set(v_quark_from_string(ret_name), {lctx.result_type, lctx.result_value});
+        lctx.vars = lctx.vars.set(stmt.name, {lctx.result_type, lctx.result_value});
     }
 }
 
@@ -125,11 +125,9 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 
     if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(call.fun_expr))
     {
-        auto fun_name = v_quark_from_string(fname->name.c_str());
-
         for (auto &intrs : {lctx.decls.intrinsics, (*vis)->intrinsics})
         {
-            if (auto p = intrs.find(fun_name))
+            if (auto p = intrs.find(fname->name))
             {
                 void_fun = p->first;
                 void_aux = p->second;
@@ -209,18 +207,16 @@ void compile_expr_identifier(const visitor_t *vis, void *, const ast_base_t *sel
     LLVMValueRef v = nullptr;
     v_type_t    *t = nullptr;
 
-    auto name_q = v_quark_from_string(ident.name.c_str());
-
-    if (!lctx.obtain_identifier(name_q, t, v))
+    if (!lctx.obtain_identifier(ident.name, t, v))
     {
-        throw std::runtime_error("Identifier not found: " + ident.name);
+        throw std::runtime_error(std::string("Identifier not found: ") + v_quark_to_string(ident.name));
     }
 
     auto &vctx = *voidc_global_ctx_t::voidc;
 
     if (t == vctx.static_type_type  &&  lctx.result_type == vctx.type_ptr_type)
     {
-        auto raw_name = lctx.check_alias(name_q);
+        auto raw_name = lctx.check_alias(ident.name);
 
         t = lctx.get_symbol_type(raw_name);
 

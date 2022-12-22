@@ -132,7 +132,7 @@ v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
 
         if (ok) return;
 
-        throw std::runtime_error("Struct body does not match: " + *name_key);
+        throw std::runtime_error(std::string("Struct body does not match: ") + v_quark_to_string(*name_key));
     }
 
     auto *st = context.make_struct_type(elts, count, packed);
@@ -285,7 +285,7 @@ voidc_types_ctx_t::make_reference_type(v_type_t *et, unsigned addr_space)
 
 //---------------------------------------------------------------------
 v_type_struct_t *
-voidc_types_ctx_t::make_struct_type(const std::string &name)
+voidc_types_ctx_t::make_struct_type(v_quark_t name)
 {
     return make_type_helper(named_struct_types, name);
 }
@@ -619,7 +619,7 @@ v_struct_type_named(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    return gctx.make_struct_type(name);
+    return gctx.make_struct_type(v_quark_from_string(name));
 }
 
 v_type_t *
@@ -639,7 +639,9 @@ v_type_is_struct(v_type_t *type)
 const char *
 v_type_struct_get_name(v_type_t *type)
 {
-    return static_cast<v_type_struct_t *>(type)->name();
+    auto q = static_cast<v_type_struct_t *>(type)->name();
+
+    return v_quark_to_string(q);
 }
 
 bool

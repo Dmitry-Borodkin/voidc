@@ -420,9 +420,10 @@ void static_initialize(void)
 #define DEF(ctype, name) \
     static_assert((sizeof(ctype) % sizeof(intptr_t)) == 0); \
     v_type_t *name##_content_type = vctx.make_array_type(vctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
-    auto name##_type = vctx.make_struct_type("v_" #name "_t"); \
+    auto name##_q = q("v_" #name "_t"); \
+    auto name##_type = vctx.make_struct_type(name##_q); \
     name##_type->set_body(&name##_content_type, 1, false); \
-    vctx.initialize_type(q("v_" #name "_t"), name##_type);
+    vctx.initialize_type(name##_q, name##_type);
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)

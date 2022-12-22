@@ -880,8 +880,8 @@ VOIDC_DLLEXPORT_END
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
   : base_global_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
-    static_type_type(make_struct_type("v_static_type_t")),
-    type_type(make_struct_type("v_type_t")),
+    static_type_type(make_struct_type(v_quark_from_string("v_static_type_t"))),
+    type_type(make_struct_type(v_quark_from_string("v_type_t"))),
     type_ptr_type(make_pointer_type(type_type, 0))
 {
     assert(voidc_global_ctx == nullptr);

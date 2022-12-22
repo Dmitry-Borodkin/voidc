@@ -20,7 +20,7 @@ static std::unordered_set<std::string> voidc_interned_strings;
 
 static std::unordered_map<const char *, const v_quark_t> voidc_quark_from_string;
 
-static immer::vector_transient<const char *> voidc_quark_to_string;
+static immer::vector_transient<const std::string *> voidc_quark_to_std_string;
 
 
 //---------------------------------------------------------------------
@@ -55,7 +55,17 @@ v_quark_to_string(v_quark_t vq)
 {
     if (vq == 0)  return nullptr;
 
-    return  voidc_quark_to_string[vq-1];        //- Sic!
+    return  voidc_quark_to_std_string[vq-1]->c_str();       //- Sic!
+}
+
+
+//---------------------------------------------------------------------
+std::size_t
+v_quark_to_string_size(v_quark_t vq)
+{
+    if (vq == 0)  return 0;
+
+    return  voidc_quark_to_std_string[vq-1]->size();        //- Sic!
 }
 
 
@@ -94,7 +104,7 @@ v_intern_string(const char *str)
 
         voidc_quark_from_string.insert({it_str, q});
 
-        voidc_quark_to_string.push_back(it_str);
+        voidc_quark_to_std_string.push_back(&*it);
     }
 
     return it_str;

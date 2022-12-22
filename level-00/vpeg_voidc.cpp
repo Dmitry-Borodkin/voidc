@@ -72,7 +72,9 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
         e = *p;
     }
 
-    ast_stmt_t ptr = std::make_shared<const ast_stmt_data_t>(s, e);
+    auto q = v_quark_from_string(s.c_str());
+
+    ast_stmt_t ptr = std::make_shared<const ast_stmt_data_t>(q, e);
 
     *ret = ptr;
 }
@@ -107,7 +109,9 @@ mk_expr_identifier(std::any *ret, const std::any *args, size_t)
 {
     auto n = std::any_cast<const std::string>(args[0]);
 
-    ast_expr_t ptr = std::make_shared<const ast_expr_identifier_data_t>(n);
+    auto q = v_quark_from_string(n.c_str());
+
+    ast_expr_t ptr = std::make_shared<const ast_expr_identifier_data_t>(q);
 
     *ret = ptr;
 }

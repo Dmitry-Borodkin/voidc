@@ -25,11 +25,13 @@ voidc_visitor_data_t::static_initialize(void)
 
     v_type_t *content_type = vctx.make_array_type(vctx.intptr_t_type, sizeof(visitor_t)/sizeof(intptr_t));
 
-    auto visitor_type = vctx.make_struct_type("voidc_visitor_t");
+    auto q = v_quark_from_string("voidc_visitor_t");
+
+    auto visitor_type = vctx.make_struct_type(q);
 
     visitor_type->set_body(&content_type, 1, false);
 
-    vctx.initialize_type(v_quark_from_string("voidc_visitor_t"), visitor_type);
+    vctx.initialize_type(q, visitor_type);
 
 
     voidc_compiler = make_voidc_compiler();

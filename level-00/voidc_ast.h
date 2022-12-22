@@ -176,10 +176,10 @@ public:
 //---------------------------------------------------------------------
 struct ast_stmt_data_t : ast_stmt_base_data_t
 {
-    const std::string name;
-    const ast_expr_t  expr;
+    const v_quark_t  name;
+    const ast_expr_t expr;
 
-    explicit ast_stmt_data_t(const std::string &_name,
+    explicit ast_stmt_data_t(v_quark_t          _name,
                              const ast_expr_t  &_expr)
       : name(_name),
         expr(_expr)
@@ -210,9 +210,9 @@ public:
 //---------------------------------------------------------------------
 struct ast_expr_identifier_data_t : ast_expr_base_data_t
 {
-    const std::string name;
+    const v_quark_t name;
 
-    explicit ast_expr_identifier_data_t(const std::string &_name)
+    explicit ast_expr_identifier_data_t(v_quark_t _name)
       : name(_name)
     {}
 
