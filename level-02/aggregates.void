@@ -261,11 +261,16 @@ voidc_enable_aggregates_compiler: () -> void
 {
     vis = voidc_compiler;
 
-    v_return_if(voidc_visitor_get_intrinsic(vis, "v.op_braces", 0));
+    op_braces_q = v_quark_from_string("v.op_braces");
 
-    voidc_visitor_set_intrinsic(vis, vis, "v.op_braces", v_op_braces_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, "v_struct",    v_struct_intrinsic,    0);
-    voidc_visitor_set_intrinsic(vis, vis, "v_typed",     v_typed_intrinsic,     0);
+    v_return_if(voidc_visitor_get_intrinsic(vis, op_braces_q, 0));
+
+    struct_q = v_quark_from_string("v_struct");
+    typed_q  = v_quark_from_string("v_typed");
+
+    voidc_visitor_set_intrinsic(vis, vis, op_braces_q, v_op_braces_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, struct_q,    v_struct_intrinsic,    0);
+    voidc_visitor_set_intrinsic(vis, vis, typed_q,     v_typed_intrinsic,     0);
 
     voidc_enable_definitions_compiler();        //- Sic!
 }

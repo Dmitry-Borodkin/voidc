@@ -42,9 +42,11 @@ bool lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,
         if (!fun_name)  return false;
     }
 
+    auto fun_name_q = v_quark_from_string(fun_name->c_str());
+
     for (auto &intrs : {lctx.decls.intrinsics, (*vis)->intrinsics})
     {
-        if (auto p = intrs.find(*fun_name))
+        if (auto p = intrs.find(fun_name_q))
         {
             void_fun = p->first;
             aux      = p->second;
@@ -57,7 +59,7 @@ bool lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,
 
     v_type_t *t;
 
-    if (!lctx.obtain_identifier(*fun_name, t, f))
+    if (!lctx.obtain_identifier(fun_name_q, t, f))
     {
         throw std::runtime_error("Intrinsic function not found: " + *fun_name);
     }
@@ -375,8 +377,11 @@ void static_initialize(void)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
+    auto q = v_quark_from_string;
+
 #define DEF2(name, fname) \
-    vctx.decls.intrinsics_insert({"v_" #name, {(void *)fname, (void *)uintptr_t(v_quark_from_string("v_" #name))}});
+    auto name##_q = q("v_" #name); \
+    vctx.decls.intrinsics_insert({name##_q, {(void *)fname, (void *)uintptr_t(name##_q)}});
 
 #define DEF_U(name) DEF2(name, v_universal_intrinsic)
 
@@ -417,7 +422,7 @@ void static_initialize(void)
     v_type_t *name##_content_type = vctx.make_array_type(vctx.intptr_t_type, sizeof(ctype)/sizeof(intptr_t)); \
     auto name##_type = vctx.make_struct_type("v_" #name "_t"); \
     name##_type->set_body(&name##_content_type, 1, false); \
-    vctx.initialize_type("v_" #name "_t", name##_type);
+    vctx.initialize_type(q("v_" #name "_t"), name##_type);
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)

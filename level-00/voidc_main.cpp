@@ -848,21 +848,23 @@ main(int argc, char *argv[])
 
     {   v_type_t *import_f_type = gctx.make_function_type(gctx.void_type, &gctx.char_ptr_type, 1, false);
 
-        gctx.decls.symbols_insert({"v_export_import",     import_f_type});
-        gctx.decls.symbols_insert({"voidc_export_import", import_f_type});
-        gctx.decls.symbols_insert({"v_import",            import_f_type});
-        gctx.decls.symbols_insert({"voidc_import",        import_f_type});
-        gctx.decls.symbols_insert({"voidc_guard_target",  import_f_type});      //- Kind of...
+        auto q = v_quark_from_string;
 
-        gctx.decls.intrinsics_insert({"v_local_import", {(void *)v_local_import, nullptr}});
+        gctx.decls.symbols_insert({q("v_export_import"),     import_f_type});
+        gctx.decls.symbols_insert({q("voidc_export_import"), import_f_type});
+        gctx.decls.symbols_insert({q("v_import"),            import_f_type});
+        gctx.decls.symbols_insert({q("voidc_import"),        import_f_type});
+        gctx.decls.symbols_insert({q("voidc_guard_target"),  import_f_type});       //- Kind of...
+
+        gctx.decls.intrinsics_insert({q("v_local_import"), {(void *)v_local_import, nullptr}});
 
 #ifdef _WIN32
-        gctx.add_symbol_value("stdout", stdout);
-        gctx.add_symbol_value("stderr", stderr);
+        gctx.add_symbol_value(q("stdout"), stdout);
+        gctx.add_symbol_value(q("stderr"), stderr);
 #endif
 
-        gctx.add_symbol_value("voidc_argc", &argc);
-        gctx.add_symbol_value("voidc_argv", &argv);
+        gctx.add_symbol_value(q("voidc_argc"), &argc);
+        gctx.add_symbol_value(q("voidc_argv"), &argv);
     }
 
     v_ast_static_initialize();

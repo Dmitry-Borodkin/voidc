@@ -230,10 +230,14 @@ voidc_enable_literals_compiler: () -> void
 {
     vis = voidc_compiler;
 
-    v_return_if(voidc_visitor_get_intrinsic(vis, "v.literal.real", 0));
+    literal_integer_q = v_quark_from_string("v.literal.integer");
 
-    voidc_visitor_set_intrinsic(vis, vis, "v.literal.integer", v_literal_integer_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, "v.literal.real",    v_literal_real_intrinsic,    0);
+    v_return_if(voidc_visitor_get_intrinsic(vis, literal_integer_q, 0));
+
+    literal_real_q = v_quark_from_string("v.literal.real");
+
+    voidc_visitor_set_intrinsic(vis, vis, literal_integer_q, v_literal_integer_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, literal_real_q,    v_literal_real_intrinsic,    0);
 }
 
 

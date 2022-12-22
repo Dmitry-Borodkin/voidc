@@ -358,10 +358,14 @@ voidc_enable_projections_compiler: () -> void
 {
     vis = voidc_compiler;
 
-    v_return_if(voidc_visitor_get_intrinsic(vis, "v.op_postfix_dot", 0));
+    v_op_postfix_dot_q = v_quark_from_string("v.op_postfix_dot");
 
-    voidc_visitor_set_intrinsic(vis, vis, "v.op_postfix_dot",     op_postfix_dot_intrinsic,     0);
-    voidc_visitor_set_intrinsic(vis, vis, "v.op_postfix_tildato", op_postfix_tildato_intrinsic, 0);
+    v_return_if(voidc_visitor_get_intrinsic(vis, v_op_postfix_dot_q, 0));
+
+    v_op_postfix_tildato_q = v_quark_from_string("v.op_postfix_tildato");
+
+    voidc_visitor_set_intrinsic(vis, vis, v_op_postfix_dot_q,     op_postfix_dot_intrinsic,     0);
+    voidc_visitor_set_intrinsic(vis, vis, v_op_postfix_tildato_q, op_postfix_tildato_intrinsic, 0);
 }
 
 

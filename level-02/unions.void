@@ -61,8 +61,10 @@ struct v_ast_expr_union_t
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("expr_union_q",       quark_ref, q("v_ast_expr_union_visitor_method_tag"));
-    v_add_symbol("unit_union_defn_q",  quark_ref, q("unit_union_defn"));
+    v_add_symbol("expr_union_q",      quark_ref, q("v_ast_expr_union_visitor_method_tag"));
+    v_add_symbol("unit_union_defn_q", quark_ref, q("unit_union_defn"));
+
+    v_add_symbol("voidc_decl_stmt_list_q", quark_ref, q("voidc.decl_stmt_list"));
 }
 
 //---------------------------------------------------------------------
@@ -354,7 +356,7 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
 
 
     //-----------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
+    stmt_list = voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
 
     if (!stmt_list)  v_return();
 

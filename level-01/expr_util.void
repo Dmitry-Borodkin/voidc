@@ -4382,6 +4382,8 @@
 {
     vis = voidc_compiler;
 
+    q = v_quark_from_string;
+
 
     count = v_list_get_size(expr_oplist);
 
@@ -4414,7 +4416,7 @@
 
         m = v_load(ti);
 
-        voidc_visitor_set_intrinsic(vis, vis, v_std_string_get(sstr), m, 0);
+        voidc_visitor_set_intrinsic(vis, vis, q(v_std_string_get(sstr)), m, 0);
 
 
         v_assign(i, v_binop(LLVMAdd, i, 1));
@@ -4437,16 +4439,16 @@
 
 
     //-------------------------------------------------------------
-    voidc_visitor_set_intrinsic(vis, vis, "int",   voidc_int_type_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, "uint",  voidc_uint_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("int"),   voidc_int_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("uint"),  voidc_uint_type_intrinsic, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, "float", voidc_float_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("float"), voidc_float_type_intrinsic, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, "v_ptr", voidc_ptr_type_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, "v_ref", voidc_ref_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v_ptr"), voidc_ptr_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v_ref"), voidc_ref_type_intrinsic, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, "vec",   voidc_vec_type_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, "svec",  voidc_svec_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("vec"),   voidc_vec_type_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("svec"),  voidc_svec_type_intrinsic, 0);
 
     //-------------------------------------------------------------
     v_export_symbol("voidc_internal_vectorize_scalar", vectorize_scalar_ft, vectorize_scalar);

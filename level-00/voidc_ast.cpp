@@ -393,7 +393,7 @@ v_ast_static_initialize(void)
     static_assert(sizeof(ast_base_t) == sizeof(ast_##name##_t)); \
     auto name##_type = vctx.make_struct_type("v_ast_" #name "_t"); \
     name##_type->set_body(&content_type, 1, false); \
-    vctx.initialize_type("v_ast_" #name "_t", name##_type);
+    vctx.initialize_type(v_quark_from_string("v_ast_" #name "_t"), name##_type);
 
     DEF(base)
 

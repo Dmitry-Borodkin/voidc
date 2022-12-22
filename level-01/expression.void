@@ -672,7 +672,9 @@
     v_function_hack("voidc_enable_expression_compiler", ft);
 }
 {
-    v_return_if(voidc_visitor_get_intrinsic(voidc_compiler, "v.op_infix_assign", 0));
+    q = v_quark_from_string;
+
+    v_return_if(voidc_visitor_get_intrinsic(voidc_compiler, q("v.op_infix_assign"), 0));
 
     voidc_ast_add_operator_methods();
 }

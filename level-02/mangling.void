@@ -428,6 +428,8 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) -> void
 
     v_add_symbol("unit_spec_fun_defn_q", q_ref, q("unit_spec_fun_defn"));
     v_add_symbol("unit_spec_fun_renm_q", q_ref, q("unit_spec_fun_renm"));
+
+    v_add_symbol("voidc_decl_stmt_list_q", q_ref, q("voidc.decl_stmt_list"));
 }
 
 
@@ -703,7 +705,7 @@ register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_qu
 
     if (vis)
     {
-        sl = voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
+        sl = voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
 
         stmt_list := (sl: *v_ast_stmt_list_t);
     }
@@ -999,8 +1001,10 @@ voidc_enable_mangling_compiler: () -> void
     voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn,  0);
     voidc_visitor_set_void_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm,  0);
 
-    voidc_visitor_set_intrinsic(vis, vis, "v.internal.spec_fun_decl", v_internal_spec_fun_decl_intrinsic,  0);
-    voidc_visitor_set_intrinsic(vis, vis, "v.internal.spec_fun_renm", v_internal_spec_fun_renm_intrinsic,  0);
+    q = v_quark_from_string;
+
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.spec_fun_decl"), v_internal_spec_fun_decl_intrinsic,  0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.spec_fun_renm"), v_internal_spec_fun_renm_intrinsic,  0);
 }
 
 //---------------------------------------------------------------------

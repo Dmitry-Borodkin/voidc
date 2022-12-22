@@ -526,9 +526,11 @@ voidc_enable_loops_etc_compiler: () -> void
 {
     vis = voidc_compiler;
 
-    v_return_if(voidc_visitor_get_intrinsic(vis, "v.internal.copy_variable", 0));
+    copy_variable_q = v_quark_from_string("v.internal.copy_variable");
 
-    voidc_visitor_set_intrinsic(vis, vis, "v.internal.copy_variable", v_internal_copy_variable_intrinsic, 0);
+    v_return_if(voidc_visitor_get_intrinsic(vis, copy_variable_q, 0));
+
+    voidc_visitor_set_intrinsic(vis, vis, copy_variable_q, v_internal_copy_variable_intrinsic, 0);
 
     voidc_enable_statement_block_compiler();
     voidc_enable_statement_loop_compiler();

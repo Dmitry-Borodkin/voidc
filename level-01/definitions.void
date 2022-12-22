@@ -174,6 +174,9 @@
     v_add_symbol("unit_var_defn_q",  quark_ref, q("unit_var_defn"));
     v_add_symbol("unit_val_defn_q",  quark_ref, q("unit_val_defn"));
     v_add_symbol("defn_list_unit_q", quark_ref, q("defn_list_unit"));
+
+    v_add_symbol("voidc_decl_stmt_list_q", quark_ref, q("voidc.decl_stmt_list"));
+    v_add_symbol("voidc_compile_type_q",   quark_ref, q("voidc.compile_type"));
 }
 
 
@@ -969,6 +972,14 @@
 //- voidc_compile_unit_fun_defn_helper - ...
 //---------------------------------------------------------------------
 {
+
+
+
+
+
+
+
+
     typ = v_alloca(v_type_ptr, 6);
     typ[0] := voidc_visitor_ptr;
     typ[1] := intptr_t;
@@ -1042,7 +1053,7 @@
     }
 
     //-------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
+    stmt_list = voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
 
     if (!stmt_list)  v_return();
 
@@ -1217,7 +1228,7 @@
     }
 
     //-------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(visitor, "voidc.decl_stmt_list", 0);
+    stmt_list = voidc_visitor_get_intrinsic(visitor, voidc_decl_stmt_list_q, 0);
 
     if (!stmt_list)  v_return();
 
@@ -1323,7 +1334,7 @@
     }
 
     //-------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(visitor, "voidc.decl_stmt_list", 0);
+    stmt_list = voidc_visitor_get_intrinsic(visitor, voidc_decl_stmt_list_q, 0);
 
     if (!stmt_list)  v_return();
 
@@ -1524,7 +1535,7 @@
 
         v_make_list_nil(decl_stmt_list);
 
-        voidc_visitor_set_intrinsic(inner_visitor, inner_visitor, "voidc.decl_stmt_list", decl_stmt_list, 0);
+        voidc_visitor_set_intrinsic(inner_visitor, inner_visitor, voidc_decl_stmt_list_q, decl_stmt_list, 0);
 
         stmt_list := decl_stmt_list;
     }
@@ -1604,7 +1615,7 @@
 
         vis = inner_visitor;
 
-        voidc_visitor_set_intrinsic(vis, vis, "voidc.compile_type", voidc_compile_type_intrinsic, &ctx);
+        voidc_visitor_set_intrinsic(vis, vis, voidc_compile_type_q, voidc_compile_type_intrinsic, &ctx);
 
 
         v_ast_accept_visitor(v_cast(stmt_list, v_ast_base_ptr), vis);
@@ -1885,15 +1896,17 @@
     voidc_visitor_set_void_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  0);
     voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, "v.op_infix_to",        compile_op_infix_to,  0);
-    voidc_visitor_set_intrinsic(vis, vis, "v.op_prefix_const",    compile_op_prefix_cv, 0);
-    voidc_visitor_set_intrinsic(vis, vis, "v.op_prefix_volatile", compile_op_prefix_cv, 0);
+    q = v_quark_from_string;
 
-    voidc_visitor_set_intrinsic(vis, vis, "v.internal.var_decl", v_internal_var_decl_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, "v.internal.var_defn", v_internal_var_defn_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, "v.internal.val_defn", v_internal_val_defn_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.op_infix_to"),        compile_op_infix_to,  0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.op_prefix_const"),    compile_op_prefix_cv, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.op_prefix_volatile"), compile_op_prefix_cv, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, "v_undef", v_undef_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.var_decl"), v_internal_var_decl_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.var_defn"), v_internal_var_defn_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.val_defn"), v_internal_val_defn_intrinsic, 0);
+
+    voidc_visitor_set_intrinsic(vis, vis, q("v_undef"), v_undef_intrinsic, 0);
 
     //-----------------------------------------------------------------
     typ = *v_alloca(v_type_ptr) := bool;

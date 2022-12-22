@@ -61,6 +61,8 @@ private attr_alwaysinline: &LLVMAttributeRef := v_undef();
 
     v_add_symbol("unit_fun_defn_q",      q_ref, q("unit_fun_defn"));
     v_add_symbol("unit_spec_fun_defn_q", q_ref, q("unit_spec_fun_defn"));
+
+    v_add_symbol("voidc_decl_stmt_list_q", q_ref, q("voidc.decl_stmt_list"));
 }
 
 
@@ -209,7 +211,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
 
     stmt_list: &*v_ast_stmt_list_t := v_undef();
 
-    stmt_list := voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
+    stmt_list := voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
 
     if (stmt_list)
     {
@@ -221,7 +223,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
 
         v_make_list_nil(stmt_list);
 
-        voidc_visitor_set_intrinsic(inner_visitor, vis, "voidc.decl_stmt_list", stmt_list, 0);
+        voidc_visitor_set_intrinsic(inner_visitor, vis, voidc_decl_stmt_list_q, stmt_list, 0);
     }
 
     //--------------------------------------------------
@@ -270,7 +272,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
 
 
     //-----------------------------------------------------------------
-    stmt_list := voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
+    stmt_list := voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
 
     if (!stmt_list)  v_return();
 

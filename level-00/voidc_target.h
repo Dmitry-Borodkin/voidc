@@ -49,36 +49,36 @@ public:
 
     struct declarations_t
     {
-        immer::map<std::string, std::string> aliases;
-        immer::map<std::string, v_type_t *>  constants;
-        immer::map<std::string, v_type_t *>  symbols;
-        immer::map<std::string, intrinsic_t> intrinsics;
+        immer::map<v_quark_t, v_quark_t>   aliases;
+        immer::map<v_quark_t, v_type_t *>  constants;
+        immer::map<v_quark_t, v_type_t *>  symbols;
+        immer::map<v_quark_t, intrinsic_t> intrinsics;
 
         bool empty(void) const
         {
             return (aliases.empty() && constants.empty() && symbols.empty() && intrinsics.empty());
         }
 
-        void aliases_insert   (std::pair<std::string, std::string> v) { aliases    = aliases.insert(v); }
-        void constants_insert (std::pair<std::string, v_type_t *>  v) { constants  = constants.insert(v); }
-        void symbols_insert   (std::pair<std::string, v_type_t *>  v) { symbols    = symbols.insert(v); }
-        void intrinsics_insert(std::pair<std::string, intrinsic_t> v) { intrinsics = intrinsics.insert(v); }
+        void aliases_insert   (std::pair<v_quark_t, v_quark_t>   v) { aliases    = aliases.insert(v); }
+        void constants_insert (std::pair<v_quark_t, v_type_t *>  v) { constants  = constants.insert(v); }
+        void symbols_insert   (std::pair<v_quark_t, v_type_t *>  v) { symbols    = symbols.insert(v); }
+        void intrinsics_insert(std::pair<v_quark_t, intrinsic_t> v) { intrinsics = intrinsics.insert(v); }
 
         void insert(const declarations_t &other);
     };
 
     declarations_t decls;
 
-    using typenames_t = immer::map<v_type_t *, std::string>;
+    using typenames_t = immer::map<v_type_t *, v_quark_t>;
 
 public:
-    std::map<std::string, LLVMValueRef> constant_values;
+    std::map<v_quark_t, LLVMValueRef> constant_values;
 
 public:
-    virtual void add_symbol_value(const char *raw_name, void *value) = 0;
+    virtual void add_symbol_value(v_quark_t raw_name, void *value) = 0;
 
 public:
-    v_type_t *get_symbol_type(const char *raw_name) const
+    v_type_t *get_symbol_type(v_quark_t raw_name) const
     {
         auto *pt = decls.symbols.find(raw_name);
 
@@ -125,7 +125,7 @@ public:
     LLVMTargetDataRef data_layout = nullptr;
 
 public:
-    virtual void initialize_type(const char *raw_name, v_type_t *type);
+    virtual void initialize_type(v_quark_t raw_name, v_type_t *type);
 
     v_type_t * const char_ptr_type;
     v_type_t * const void_ptr_type;
@@ -161,34 +161,34 @@ public:
 public:
     declarations_t *export_decls = nullptr;
 
-    void export_alias(const char *name, const char *raw_name);
-    void add_alias(const char *name, const char *raw_name);
+    void export_alias(v_quark_t name, v_quark_t raw_name);
+    void add_alias(v_quark_t name, v_quark_t raw_name);
 
-    void export_constant(const char *raw_name, v_type_t *type, LLVMValueRef value);
-    void add_constant(const char *raw_name, v_type_t *type, LLVMValueRef value);
+    void export_constant(v_quark_t raw_name, v_type_t *type, LLVMValueRef value);
+    void add_constant(v_quark_t raw_name, v_type_t *type, LLVMValueRef value);
 
-    void export_symbol(const char *raw_name, v_type_t *type, void *value);
-    void add_symbol(const char *raw_name, v_type_t *type, void *value);
+    void export_symbol(v_quark_t raw_name, v_type_t *type, void *value);
+    void add_symbol(v_quark_t raw_name, v_type_t *type, void *value);
 
-    void export_intrinsic(const char *fun_name, void *fun, void *aux=nullptr);
-    void add_intrinsic(const char *fun_name, void *fun, void *aux=nullptr);
+    void export_intrinsic(v_quark_t fun_name, void *fun, void *aux=nullptr);
+    void add_intrinsic(v_quark_t fun_name, void *fun, void *aux=nullptr);
 
-    virtual void export_type(const char *raw_name, v_type_t *type);
-    virtual void add_type(const char *raw_name, v_type_t *type);
-
-public:
-    const std::string check_alias(const std::string &name);
+    virtual void export_type(v_quark_t raw_name, v_type_t *type);
+    virtual void add_type(v_quark_t raw_name, v_type_t *type);
 
 public:
-    v_type_t *find_type(const char *type_name);                     //- Alias checked
+    v_quark_t check_alias(v_quark_t name);
+
+public:
+    v_type_t *find_type(v_quark_t type_name);                       //- Alias checked
 
 
-    bool find_constant(const char *raw_name, v_type_t * &type, LLVMValueRef &value);
+    bool find_constant(v_quark_t raw_name, v_type_t * &type, LLVMValueRef &value);
 
-    bool find_symbol(const char *raw_name, v_type_t * &type, void * &value);
+    bool find_symbol(v_quark_t raw_name, v_type_t * &type, void * &value);
 
 
-    virtual void *find_symbol_value(const char *raw_name) = 0;      //- No alias check!
+    virtual void *find_symbol_value(v_quark_t raw_name) = 0;        //- No alias check!
 
 public:
     LLVMModuleRef module = nullptr;
@@ -202,7 +202,7 @@ public:
         else                    return  nullptr;        //- Sic!
     }
 
-    bool obtain_identifier(const std::string &name, v_type_t * &type, LLVMValueRef &value);
+    bool obtain_identifier(v_quark_t name, v_type_t * &type, LLVMValueRef &value);
 
     finish_module_t finish_module_fun = nullptr;
     void           *finish_module_ctx = nullptr;
@@ -226,7 +226,7 @@ public:
     LLVMBasicBlockRef function_leave_b = nullptr;
 
 public:
-    typedef immer::map<std::string, std::pair<v_type_t *, LLVMValueRef>> variables_t;
+    typedef immer::map<v_quark_t, std::pair<v_type_t *, LLVMValueRef>> variables_t;
 
     variables_t vars;
 
@@ -284,7 +284,7 @@ public:
     ~voidc_global_ctx_t() = default;
 
 public:
-    void initialize_type(const char *raw_name, v_type_t *type) override;
+    void initialize_type(v_quark_t raw_name, v_type_t *type) override;
 
     typenames_t typenames;
 
@@ -317,7 +317,7 @@ public:
     v_type_t * const type_ptr_type;
 
 public:
-    void add_symbol_value(const char *raw_name, void *value) override;
+    void add_symbol_value(v_quark_t raw_name, void *value) override;
 
 public:
     llvm::orc::SymbolMap unit_symbols;
@@ -346,14 +346,14 @@ public:
     typenames_t *export_typenames = nullptr;
     typenames_t  typenames;
 
-    void export_type(const char *raw_name, v_type_t *type) override;
-    void add_type(const char *raw_name, v_type_t *type) override;
+    void export_type(v_quark_t raw_name, v_type_t *type) override;
+    void add_type(v_quark_t raw_name, v_type_t *type) override;
 
 public:
-    void add_symbol_value(const char *raw_name, void *value) override;
+    void add_symbol_value(v_quark_t raw_name, void *value) override;
 
 public:
-    void *find_symbol_value(const char *raw_name) override;         //- No check alias!
+    void *find_symbol_value(v_quark_t raw_name) override;           //- No check alias!
 
 public:
     void adopt_result(v_type_t *type, LLVMValueRef value) override;
@@ -391,12 +391,12 @@ public:
     ~target_global_ctx_t() override;
 
 public:
-    void add_symbol_value(const char *raw_name, void *value) override;
+    void add_symbol_value(v_quark_t raw_name, void *value) override;
 
 private:
     friend class target_local_ctx_t;
 
-    std::map<std::string, void *> symbol_values;
+    std::map<v_quark_t, void *> symbol_values;
 };
 
 //---------------------------------------------------------------------
@@ -409,13 +409,13 @@ public:
     ~target_local_ctx_t() override;
 
 public:
-    void add_symbol_value(const char *raw_name, void *value) override;
+    void add_symbol_value(v_quark_t raw_name, void *value) override;
 
 public:
-    void *find_symbol_value(const char *raw_name) override;         //- No check alias!
+    void *find_symbol_value(v_quark_t raw_name) override;           //- No check alias!
 
 private:
-    std::map<std::string, void *> symbol_values;
+    std::map<v_quark_t, void *> symbol_values;
 };
 
 

@@ -29,7 +29,7 @@ voidc_visitor_data_t::static_initialize(void)
 
     visitor_type->set_body(&content_type, 1, false);
 
-    vctx.initialize_type("voidc_visitor_t", visitor_type);
+    vctx.initialize_type(v_quark_from_string("voidc_visitor_t"), visitor_type);
 
 
     voidc_compiler = make_voidc_compiler();
@@ -98,7 +98,7 @@ voidc_visitor_set_void_method(visitor_t *dst, const visitor_t *src, v_quark_t qu
 
 //---------------------------------------------------------------------
 void *
-voidc_visitor_get_intrinsic(const visitor_t *ptr, const char *name, void **aux_ptr)
+voidc_visitor_get_intrinsic(const visitor_t *ptr, v_quark_t name, void **aux_ptr)
 {
     if (auto *vm = (*ptr)->intrinsics.find(name))
     {
@@ -115,7 +115,7 @@ voidc_visitor_get_intrinsic(const visitor_t *ptr, const char *name, void **aux_p
 }
 
 void
-voidc_visitor_set_intrinsic(visitor_t *dst, const visitor_t *src, const char *name, void *void_fun, void *aux)
+voidc_visitor_set_intrinsic(visitor_t *dst, const visitor_t *src, v_quark_t name, void *void_fun, void *aux)
 {
     auto visitor = (*src)->set_intrinsic(name, void_fun, aux);
 

@@ -398,11 +398,13 @@ void parsers_static_initialize(void)
 
     v_type_t *content_type = vctx.make_array_type(vctx.intptr_t_type, sizeof(parser_t)/sizeof(intptr_t));
 
+    auto q = v_quark_from_string;
+
 #define DEF(name) \
     static_assert(sizeof(parser_t) == sizeof(name##_t)); \
     auto name##_type = vctx.make_struct_type("v_peg_" #name "_t"); \
     name##_type->set_body(&content_type, 1, false); \
-    vctx.initialize_type("v_peg_" #name "_t", name##_type);
+    vctx.initialize_type(q("v_peg_" #name "_t"), name##_type);
 
     DEF(parser)
     DEF(action)
@@ -414,8 +416,9 @@ void parsers_static_initialize(void)
     auto int_llvm_type = int_type->llvm_type();
 
 #define DEF(name, kind) \
-    vctx.decls.constants_insert({"v_peg_" #name "_kind_" #kind, int_type}); \
-    vctx.constant_values.insert({"v_peg_" #name "_kind_" #kind, \
+    auto name##_##kind##_q = q("v_peg_" #name "_kind_" #kind); \
+    vctx.decls.constants_insert({name##_##kind##_q, int_type}); \
+    vctx.constant_values.insert({name##_##kind##_q, \
         LLVMConstInt(int_llvm_type, name##_data_t::k_##kind, 0)});
 
     DEF(parser, choice)
@@ -447,8 +450,9 @@ void parsers_static_initialize(void)
 #undef DEF
 
 #define DEF(kind) \
-    vctx.decls.constants_insert({"v_peg_backref_argument_kind_" #kind, int_type}); \
-    vctx.constant_values.insert({"v_peg_backref_argument_kind_" #kind, \
+    auto kind##_q = q("v_peg_backref_argument_kind_" #kind); \
+    vctx.decls.constants_insert({kind##_q, int_type}); \
+    vctx.constant_values.insert({kind##_q, \
         LLVMConstInt(int_llvm_type, backref_argument_data_t::bk_##kind, 0)});
 
     DEF(string)

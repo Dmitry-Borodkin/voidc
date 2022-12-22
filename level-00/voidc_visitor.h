@@ -37,7 +37,7 @@ class voidc_visitor_data_t : public std::enable_shared_from_this<voidc_visitor_d
 public:
     using void_methods_map_t = immer::map<v_quark_t, std::pair<void *, void *>>;
 
-    using intrinsics_map_t = immer::map<std::string, std::pair<void *, void *>>;
+    using intrinsics_map_t = immer::map<v_quark_t, std::pair<void *, void *>>;
 
     using function_dict_t = immer::map<std::pair<v_quark_t, v_type_t *>, std::string, functdict_hash_t>;
 
@@ -71,7 +71,7 @@ public:
         return  voidc_visitor_data_t(void_methods.set(q, {void_fun, aux}), intrinsics, function_dict);
     }
 
-    voidc_visitor_data_t set_intrinsic(const std::string &name, void *void_fun, void *aux=nullptr) const
+    voidc_visitor_data_t set_intrinsic(v_quark_t name, void *void_fun, void *aux=nullptr) const
     {
         return  voidc_visitor_data_t(void_methods, intrinsics.set(name, {void_fun, aux}), function_dict);
     }

@@ -361,7 +361,13 @@
 //- Enable statement loop compilation
 //---------------------------------------------------------------------
 {
-    v_add_symbol("v_break_intrinsic", voidc_intrinsic_t, voidc_visitor_get_intrinsic(voidc_compiler, "v_break", 0));
+    break_pq = v_quark_ptr_from_string("v_break");
+
+    v_add_symbol("break_q", v_reference_type(v_quark_t, 0), break_pq);
+
+    break_intrinsic = voidc_visitor_get_intrinsic(voidc_compiler, v_load(break_pq), 0);
+
+    v_add_symbol("v_break_intrinsic", voidc_intrinsic_t, break_intrinsic);
 
 
     ft = v_function_type(void, 0, 0, false);
@@ -379,9 +385,11 @@
 
     voidc_visitor_set_void_method(vis, vis, quark, compile_ast_stmt_loop_t, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, "v_continue", voidc_intrinsic_continue, 0);
+    continue_q = v_quark_from_string("v_continue");
 
-    voidc_visitor_set_intrinsic(vis, vis, "v_break", v_break_intrinsic, 0);     //- Re-export from "stmt_block" (?)
+    voidc_visitor_set_intrinsic(vis, vis, continue_q, voidc_intrinsic_continue, 0);
+
+    voidc_visitor_set_intrinsic(vis, vis, break_q, v_break_intrinsic, 0);       //- Re-export from "stmt_block" (?)
 }
 
 

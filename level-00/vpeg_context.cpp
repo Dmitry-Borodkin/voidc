@@ -47,7 +47,7 @@ void context_data_t::static_initialize(void)
     static_assert(sizeof(parser_t) == sizeof(name##_t)); \
     auto name##_type = vctx.make_struct_type("v_peg_" #name "_t"); \
     name##_type->set_body(&content_type, 1, false); \
-    vctx.initialize_type("v_peg_" #name "_t", name##_type);
+    vctx.initialize_type(v_quark_from_string("v_peg_" #name "_t"), name##_type);
 
     DEF(context)
 

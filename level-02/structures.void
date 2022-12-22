@@ -57,6 +57,8 @@ v_ast_expr_struct_t = v_struct("struct.ast_expr_struct_t",
 
     v_add_symbol("expr_struct_q",       quark_ref, q("expr_struct"));
     v_add_symbol("unit_struct_defn_q",  quark_ref, q("unit_struct_defn"));
+
+    v_add_symbol("voidc_decl_stmt_list_q", quark_ref, q("voidc.decl_stmt_list"));
 }
 
 //---------------------------------------------------------------------
@@ -300,7 +302,7 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 
 
     //-----------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(vis, "voidc.decl_stmt_list", 0);
+    stmt_list = voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
 
     if (!stmt_list)  v_return();
 
