@@ -47,14 +47,16 @@ struct v_type_t
         k_array,        //- ...
 
         k_vector,       //- Fixed vector
-        k_svector       //- Scalable vector
+        k_svector,      //- Scalable vector
+
+        k_count         //- Number of kinds...
     };
 
     virtual kind_t kind(void) const = 0;
 
-protected:
     voidc_types_ctx_t &context;
 
+protected:
     explicit v_type_t(voidc_types_ctx_t &ctx)
       : context(ctx)
     {}
@@ -65,20 +67,18 @@ private:
     v_type_t(const v_type_t &) = delete;
     v_type_t &operator=(const v_type_t &) = delete;
 
-protected:
-    virtual LLVMTypeRef obtain_llvm_type(void) const = 0;
-
-    const LLVMTypeRef &cached_llvm_type = _cached_llvm_type;
-
 private:
-    LLVMTypeRef _cached_llvm_type = nullptr;
+    inline
+    LLVMTypeRef obtain_llvm_type(void) const;
 
-    friend class v_type_struct_t;
+    LLVMTypeRef cached_llvm_type = nullptr;
+
+    friend class v_type_struct_t;       //- Sic!
 
 public:
     LLVMTypeRef llvm_type(void)
     {
-        if (!cached_llvm_type)  _cached_llvm_type = obtain_llvm_type();
+        if (!cached_llvm_type)  cached_llvm_type = obtain_llvm_type();
 
         return cached_llvm_type;
     }
@@ -88,8 +88,6 @@ public:
 template<typename T, v_type_t::kind_t tag>
 struct v_type_tag_t : public T
 {
-    enum { type_tag = tag };
-
     v_type_t::kind_t kind(void) const override
     {
         return tag;
@@ -126,8 +124,6 @@ class v_type_simple_t : public v_type_tag_t<v_type_t, tag>
       : v_type_tag_t<v_type_t, tag>(ctx)
     {}
 
-    LLVMTypeRef obtain_llvm_type(void) const override;
-
     v_type_simple_t(const v_type_simple_t &) = delete;
     v_type_simple_t &operator=(const v_type_simple_t &) = delete;
 };
@@ -154,8 +150,6 @@ protected:
       : v_type_t(ctx),
         bits(_bits)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
 private:
     v_type_integer_t(const v_type_integer_t &) = delete;
@@ -202,8 +196,6 @@ class v_type_function_t : public v_type_tag_t<v_type_t, v_type_t::k_function>
         key(_key)
     {}
 
-    LLVMTypeRef obtain_llvm_type(void) const override;
-
     v_type_function_t(const v_type_function_t &) = delete;
     v_type_function_t &operator=(const v_type_function_t &) = delete;
 
@@ -234,8 +226,6 @@ protected:
       : v_type_t(ctx),
         key(_key)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
 private:
     v_type_refptr_t(const v_type_refptr_t &) = delete;
@@ -291,8 +281,6 @@ class v_type_struct_t : public v_type_tag_t<v_type_t, v_type_t::k_struct>
         body_key(&_body)
     {}
 
-    LLVMTypeRef obtain_llvm_type(void) const override;
-
     v_type_struct_t(const v_type_struct_t &) = delete;
     v_type_struct_t &operator=(const v_type_struct_t &) = delete;
 
@@ -326,8 +314,6 @@ class v_type_array_t : public v_type_tag_t<v_type_t, v_type_t::k_array>
       : v_type_tag_t(ctx),
         key(_key)
     {}
-
-    LLVMTypeRef obtain_llvm_type(void) const override;
 
     v_type_array_t(const v_type_array_t &) = delete;
     v_type_array_t &operator=(const v_type_array_t &) = delete;
@@ -378,8 +364,6 @@ class v_type_vector_tag_t : public v_type_tag_t<v_type_vector_base_t, tag>
       : v_type_tag_t<v_type_vector_base_t, tag>(ctx, _key)
     {}
 
-    LLVMTypeRef obtain_llvm_type(void) const override;
-
     v_type_vector_tag_t(const v_type_vector_tag_t &) = delete;
     v_type_vector_tag_t &operator=(const v_type_vector_tag_t &) = delete;
 };
@@ -406,6 +390,13 @@ unsigned  v_type_floating_point_get_width(v_type_t *type);
 
 
 VOIDC_DLLEXPORT_END
+
+
+//---------------------------------------------------------------------
+typedef void (*hook_initialize_t)(void *aux, v_type_t *typ);
+
+typedef LLVMTypeRef (*hook_obtain_llvm_type_t)(void *aux, const v_type_t *typ);
+
 
 //---------------------------------------------------------------------
 }   //- extern "C"
@@ -480,6 +471,47 @@ private:
     types_map_t<v_type_vector_t>  vector_types;
     types_map_t<v_type_svector_t> svector_types;
 
+private:
+    struct hooks_t
+    {
+        hook_initialize_t initialize_fun;
+        void *            initialize_aux;
+
+        hook_obtain_llvm_type_t obtain_llvm_type_fun;
+        void *                  obtain_llvm_type_aux;
+    };
+
+    hooks_t hooks[v_type_t::k_count];
+
+    friend class v_type_t;
+
+public:
+    hook_initialize_t get_initialize_fun(int k, void **paux)
+    {
+        if (paux) *paux = hooks[k].initialize_aux;
+
+        return  hooks[k].initialize_fun;
+    }
+
+    void set_initialize_fun(int k, hook_initialize_t fun, void *aux)
+    {
+        hooks[k].initialize_fun = fun;
+        hooks[k].initialize_aux = aux;
+    }
+
+    hook_obtain_llvm_type_t get_obtain_llvm_type_fun(int k, void **paux)
+    {
+        if (paux) *paux = hooks[k].obtain_llvm_type_aux;
+
+        return  hooks[k].obtain_llvm_type_fun;
+    }
+
+    void set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux)
+    {
+        hooks[k].obtain_llvm_type_fun = fun;
+        hooks[k].obtain_llvm_type_aux = aux;
+    }
+
 public:
     v_type_void_t * const void_type;
 
@@ -495,6 +527,17 @@ public:
     v_type_uint_t * const char32_t_type;
     v_type_uint_t * const uint64_t_type;
 };
+
+
+//---------------------------------------------------------------------
+inline
+LLVMTypeRef
+v_type_t::obtain_llvm_type(void) const
+{
+    auto &h = context.hooks[kind()];
+
+    return h.obtain_llvm_type_fun(h.obtain_llvm_type_aux, this);
+}
 
 
 //---------------------------------------------------------------------

@@ -18,95 +18,157 @@ v_type_t::~v_type_t() {}
 
 
 //---------------------------------------------------------------------
-template<>
-LLVMTypeRef
-v_type_void_t::obtain_llvm_type(void) const
+extern "C"
 {
-    return  LLVMVoidTypeInContext(context.llvm_ctx);
+
+//---------------------------------------------------------------------
+static
+void dummy_initialize(void *, v_type_t *) {}
+
+
+//---------------------------------------------------------------------
+static
+LLVMTypeRef
+obtain_llvm_type_void(void *, const v_type_t *typ)
+{
+    return  LLVMVoidTypeInContext(typ->context.llvm_ctx);
 }
 
-template<>
+static
 LLVMTypeRef
-v_type_f16_t::obtain_llvm_type(void) const
+obtain_llvm_type_f16(void *, const v_type_t *typ)
 {
-    return  LLVMHalfTypeInContext(context.llvm_ctx);
+    return  LLVMHalfTypeInContext(typ->context.llvm_ctx);
 }
 
-template<>
+static
 LLVMTypeRef
-v_type_f32_t::obtain_llvm_type(void) const
+obtain_llvm_type_f32(void *, const v_type_t *typ)
 {
-    return  LLVMFloatTypeInContext(context.llvm_ctx);
+    return  LLVMFloatTypeInContext(typ->context.llvm_ctx);
 }
 
-template<>
+static
 LLVMTypeRef
-v_type_f64_t::obtain_llvm_type(void) const
+obtain_llvm_type_f64(void *, const v_type_t *typ)
 {
-    return  LLVMDoubleTypeInContext(context.llvm_ctx);
+    return  LLVMDoubleTypeInContext(typ->context.llvm_ctx);
 }
 
-template<>
+static
 LLVMTypeRef
-v_type_f128_t::obtain_llvm_type(void) const
+obtain_llvm_type_f128(void *, const v_type_t *typ)
 {
-    return  LLVMFP128TypeInContext(context.llvm_ctx);
+    return  LLVMFP128TypeInContext(typ->context.llvm_ctx);
 }
 
 
 //---------------------------------------------------------------------
+static
 LLVMTypeRef
-v_type_integer_t::obtain_llvm_type(void) const
+obtain_llvm_type_integer(void *, const v_type_t *typ)
 {
-    return  LLVMIntTypeInContext(context.llvm_ctx, bits);
+    auto t = static_cast<const v_type_integer_t *>(typ);
+
+    return  LLVMIntTypeInContext(typ->context.llvm_ctx, t->width());
 }
 
 
 //---------------------------------------------------------------------
+static
 LLVMTypeRef
-v_type_function_t::obtain_llvm_type(void) const
+obtain_llvm_type_function(void *, const v_type_t *typ)
 {
-    const std::size_t N = key.first.size();
+    auto t = static_cast<const v_type_function_t *>(typ);
 
-    LLVMTypeRef ft[N];
+    auto pcount = t->param_count();
+    auto params = t->param_types();
 
-    for (unsigned i=0; i<N; ++i)
+    LLVMTypeRef ft[pcount];
+
+    for (unsigned i=0; i<pcount; ++i)
     {
-        ft[i] = key.first[i]->llvm_type();
+        ft[i] = params[i]->llvm_type();
     }
 
-    return  LLVMFunctionType(ft[0], ft+1, N-1, key.second);
+    return  LLVMFunctionType(t->return_type()->llvm_type(), ft, pcount, t->is_var_arg());
 }
 
 
 //---------------------------------------------------------------------
+static
 LLVMTypeRef
-v_type_refptr_t::obtain_llvm_type(void) const
+obtain_llvm_type_refptr(void *, const v_type_t *typ)
 {
-    return  LLVMPointerTypeInContext(context.llvm_ctx, key.second);
+    auto t = static_cast<const v_type_refptr_t *>(typ);
+
+    return  LLVMPointerTypeInContext(typ->context.llvm_ctx, t->address_space());
 }
 
 
 //---------------------------------------------------------------------
+static
 LLVMTypeRef
-v_type_struct_t::obtain_llvm_type(void) const
+obtain_llvm_type_struct(void *, const v_type_t *typ)
 {
-    if (body_key)
+    auto t = static_cast<const v_type_struct_t *>(typ);
+
+    if (t->is_opaque())  return  typ->context.opaque_struct_type;
+
+    auto count = t->element_count();
+    auto types = t->element_types();
+
+    LLVMTypeRef elts[count];
+
+    for (unsigned i=0; i<count; ++i)
     {
-        const std::size_t N = body_key->first.size();
-
-        LLVMTypeRef elts[N];
-
-        for (unsigned i=0; i<N; ++i)
-        {
-            elts[i] = body_key->first[i]->llvm_type();
-        }
-
-        return  LLVMStructTypeInContext(context.llvm_ctx, elts, N, body_key->second);
+        elts[i] = types[i]->llvm_type();
     }
 
-    return  context.opaque_struct_type;
+    return  LLVMStructTypeInContext(typ->context.llvm_ctx, elts, count, t->is_packed());
 }
+
+
+//---------------------------------------------------------------------
+static
+LLVMTypeRef
+obtain_llvm_type_array(void *, const v_type_t *typ)
+{
+    auto t = static_cast<const v_type_array_t *>(typ);
+
+    auto et = t->element_type()->llvm_type();
+
+    return  LLVMArrayType(et, t->length());
+}
+
+
+//---------------------------------------------------------------------
+static
+LLVMTypeRef
+obtain_llvm_type_vector(void *, const v_type_t *typ)
+{
+    auto t = static_cast<const v_type_vector_t *>(typ);
+
+    auto et = t->element_type()->llvm_type();
+
+    return  LLVMVectorType(et, t->size());
+}
+
+static
+LLVMTypeRef
+obtain_llvm_type_svector(void *, const v_type_t *typ)
+{
+    auto t = static_cast<const v_type_svector_t *>(typ);
+
+    auto et = t->element_type()->llvm_type();
+
+    return  LLVMScalableVectorType(et, t->size());
+}
+
+
+//---------------------------------------------------------------------
+}   //- extern "C"
+
 
 void
 v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
@@ -139,37 +201,7 @@ v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
 
     body_key = st->body_key;
 
-    _cached_llvm_type = nullptr;        //- Sic!!!
-}
-
-
-//---------------------------------------------------------------------
-LLVMTypeRef
-v_type_array_t::obtain_llvm_type(void) const
-{
-    auto et = key.first->llvm_type();
-
-    return  LLVMArrayType(et, key.second);
-}
-
-
-//---------------------------------------------------------------------
-template<>
-LLVMTypeRef
-v_type_vector_t::obtain_llvm_type(void) const
-{
-    auto et = key.first->llvm_type();
-
-    return  LLVMVectorType(et, key.second);
-}
-
-template<>
-LLVMTypeRef
-v_type_svector_t::obtain_llvm_type(void) const
-{
-    auto et = key.first->llvm_type();
-
-    return  LLVMScalableVectorType(et, key.second);
+    cached_llvm_type = nullptr;         //- Sic!!!
 }
 
 
@@ -204,6 +236,40 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     assert(int_size == sizeof(int));            //- Actually, not implemented yet...
     assert(long_size == sizeof(long));          //- Actually, not implemented yet...
     assert(ptr_size == sizeof(intptr_t));       //- Actually, not implemented yet...
+
+#define DEF(tag, fun) \
+    {   auto &h = hooks[v_type_t::k_##tag]; \
+        h.initialize_fun = dummy_initialize; \
+        h.initialize_aux = nullptr; \
+        h.obtain_llvm_type_fun = obtain_llvm_type_##fun; \
+        h.obtain_llvm_type_aux = nullptr; \
+    }
+
+#define DEF2(tag)   DEF(tag, tag)
+
+    DEF2(void)
+
+    DEF2(f16)
+    DEF2(f32)
+    DEF2(f64)
+    DEF2(f128)
+
+    DEF(int,  integer)
+    DEF(uint, integer)
+
+    DEF2(function)
+
+    DEF(pointer,   refptr)
+    DEF(reference, refptr)
+
+    DEF2(struct)
+    DEF2(array)
+
+    DEF2(vector)
+    DEF2(svector)
+
+#undef DEF2
+#undef DEF
 }
 
 voidc_types_ctx_t::~voidc_types_ctx_t()
@@ -742,6 +808,40 @@ bool
 v_type_vector_is_scalable(v_type_t *type)
 {
     return static_cast<v_type_vector_t *>(type)->is_scalable();
+}
+
+
+//---------------------------------------------------------------------
+hook_initialize_t
+v_type_get_initialize_fun(int k, void **paux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.get_initialize_fun(k, paux);
+}
+
+void
+v_type_set_initialize_fun(int k, hook_initialize_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    gctx.set_initialize_fun(k, fun, aux);
+}
+
+hook_obtain_llvm_type_t
+v_type_get_obtain_llvm_type_fun(int k, void **paux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.get_obtain_llvm_type_fun(k, paux);
+}
+
+void
+v_type_set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    gctx.set_obtain_llvm_type_fun(k, fun, aux);
 }
 
 

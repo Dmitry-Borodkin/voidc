@@ -43,6 +43,7 @@
 
     type_ptr = v_pointer_type(v_type_ptr, 0);
     char_ptr = v_pointer_type(char, 0);
+    void_ptr = v_pointer_type(void, 0);
 
     //-----------------------------------------------------------------
     v_store(v_type_ptr, typ0);          //-
@@ -247,6 +248,50 @@
 
     ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_vector_is_scalable", ft);
+
+
+    //-----------------------------------------------------------------
+    v_store(void_ptr,   typ0);          //- aux
+    v_store(v_type_ptr, typ1);          //-
+
+    ft = v_function_type(void, typ0, 2, false);
+
+    hook_initialize_t = v_pointer_type(ft, 0);
+
+//  v_store(void_ptr,   typ0);          //- aux
+//  v_store(v_type_ptr, typ1);          //-
+
+    ft = v_function_type(LLVMTypeRef, typ0, 2, false);
+
+    hook_obtain_llvm_type_t = v_pointer_type(ft, 0);
+
+    void_ptr_ptr = v_pointer_type(void_ptr, 0);
+
+    v_store(int,          typ0);        //- kind
+    v_store(void_ptr_ptr, typ1);        //- paux
+
+    ft = v_function_type(hook_initialize_t, typ0, 2, false);
+    v_export_symbol_type("v_type_get_initialize_fun", ft);
+
+//  v_store(int,          typ0);        //- kind
+//  v_store(void_ptr_ptr, typ1);        //- paux
+
+    ft = v_function_type(hook_obtain_llvm_type_t, typ0, 2, false);
+    v_export_symbol_type("v_type_get_obtain_llvm_type_fun", ft);
+
+//  v_store(int,               typ0);           //- kind
+    v_store(hook_initialize_t, typ1);           //- fun
+    v_store(void_ptr,          typ2);           //- aux
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_type_set_initialize_fun", ft);
+
+//  v_store(int,                     typ0);     //- kind
+    v_store(hook_obtain_llvm_type_t, typ1);     //- fun
+//  v_store(void_ptr,                typ2);     //- aux
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_type_set_obtain_llvm_type_fun", ft);
 }
 
 
