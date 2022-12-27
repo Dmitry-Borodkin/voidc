@@ -32,21 +32,19 @@ bool lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    const std::string *fun_name = nullptr;
+    const v_quark_t *qname = nullptr;
 
     {   auto it = gctx.function_dict.find({quark, type});
 
-        if (it != gctx.function_dict.end())  fun_name = &it->second;
-        else                                 fun_name = (*vis)->function_dict.find({quark, type});
+        if (it != gctx.function_dict.end())  qname = &it->second;
+        else                                 qname = (*vis)->function_dict.find({quark, type});
 
-        if (!fun_name)  return false;
+        if (!qname)  return false;
     }
-
-    auto fun_name_q = v_quark_from_string(fun_name->c_str());
 
     for (auto &intrs : {lctx.decls.intrinsics, (*vis)->intrinsics})
     {
-        if (auto p = intrs.find(fun_name_q))
+        if (auto p = intrs.find(*qname))
         {
             void_fun = p->first;
             aux      = p->second;
@@ -59,9 +57,9 @@ bool lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,
 
     v_type_t *t;
 
-    if (!lctx.obtain_identifier(fun_name_q, t, f))
+    if (!lctx.obtain_identifier(*qname, t, f))
     {
-        throw std::runtime_error("Intrinsic function not found: " + *fun_name);
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + v_quark_to_string(*qname));
     }
 
     ft = static_cast<v_type_pointer_t *>(t)->element_type();
@@ -460,7 +458,7 @@ const char *v_util_function_dict_get(v_quark_t quark, v_type_t *type)
 
     if (it != gctx.function_dict.end())
     {
-        return it->second.c_str();
+        return v_quark_to_string(it->second);
     }
 
     return nullptr;
@@ -470,7 +468,7 @@ void v_util_function_dict_set(v_quark_t quark, v_type_t *type, const char *fun_n
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.function_dict[{quark, type}] = fun_name;
+    gctx.function_dict[{quark, type}] = v_quark_from_string(fun_name);
 }
 
 bool v_util_lookup_function_dict(const visitor_t *vis, v_quark_t quark, v_type_t *type,

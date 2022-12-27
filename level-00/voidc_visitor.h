@@ -39,7 +39,7 @@ public:
 
     using intrinsics_map_t = immer::map<v_quark_t, std::pair<void *, void *>>;
 
-    using function_dict_t = immer::map<std::pair<v_quark_t, v_type_t *>, std::string, functdict_hash_t>;
+    using function_dict_t = immer::map<std::pair<v_quark_t, v_type_t *>, v_quark_t, functdict_hash_t>;
 
 public:
     voidc_visitor_data_t()  = default;
@@ -76,9 +76,9 @@ public:
         return  voidc_visitor_data_t(void_methods, intrinsics.set(name, {void_fun, aux}), function_dict);
     }
 
-    voidc_visitor_data_t function_dict_set(v_quark_t quark, v_type_t *type, const char *fun_name) const
+    voidc_visitor_data_t function_dict_set(v_quark_t quark, v_type_t *type, v_quark_t qname) const
     {
-        return  voidc_visitor_data_t(void_methods, intrinsics, function_dict.set({quark, type}, fun_name));
+        return  voidc_visitor_data_t(void_methods, intrinsics, function_dict.set({quark, type}, qname));
     }
 
 public:

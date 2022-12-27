@@ -131,7 +131,7 @@ voidc_visitor_function_dict_get(const visitor_t *ptr, v_quark_t quark, v_type_t 
 {
     if (auto *it = (*ptr)->function_dict.find({quark, type}))
     {
-        return it->c_str();
+        return v_quark_to_string(*it);
     }
     else
     {
@@ -142,7 +142,9 @@ voidc_visitor_function_dict_get(const visitor_t *ptr, v_quark_t quark, v_type_t 
 void
 voidc_visitor_function_dict_set(visitor_t *dst, const visitor_t *src, v_quark_t quark, v_type_t *type, const char *name)
 {
-    auto visitor = (*src)->function_dict_set(quark, type, name);
+    auto qname = v_quark_from_string(name);
+
+    auto visitor = (*src)->function_dict_set(quark, type, qname);
 
     *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }
