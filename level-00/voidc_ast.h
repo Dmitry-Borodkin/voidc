@@ -56,7 +56,7 @@ struct ast_base_data_t
     virtual ~ast_base_data_t() = default;
 
 public:
-    mutable std::unordered_map<v_quark_t, std::any> attributes;     //- Sic!!!
+    mutable std::unordered_map<v_quark_t, std::any> properties;     //- ?!?!?!?!?!?!?
 
 public:
     virtual v_quark_t method_tag(void) const = 0;

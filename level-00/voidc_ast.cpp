@@ -44,22 +44,22 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------
-//- Attributes ...
+//- Properties ...
 //---------------------------------------------------------------------
 void
-v_ast_set_attribute(const ast_base_t *ast, v_quark_t key, const std::any *val)
+v_ast_set_property(const ast_base_t *ast, v_quark_t key, const std::any *val)
 {
-    (*ast)->attributes[key] = *val;
+    (*ast)->properties[key] = *val;
 }
 
 const std::any *
-v_ast_get_attribute(const ast_base_t *ast, v_quark_t key)
+v_ast_get_property(const ast_base_t *ast, v_quark_t key)
 {
-    auto &attrs = (*ast)->attributes;
+    auto &props = (*ast)->properties;
 
-    auto it = attrs.find(key);
+    auto it = props.find(key);
 
-    if (it != attrs.end())  return &it->second;
+    if (it != props.end())  return &it->second;
     else                    return nullptr;
 }
 
