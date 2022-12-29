@@ -210,7 +210,7 @@ v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
 //---------------------------------------------------------------------
 voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size)
   : llvm_ctx(ctx),
-    opaque_struct_type(LLVMStructCreateNamed(ctx, "v_type_opaque_struct_t")),
+    opaque_struct_type(LLVMStructTypeInContext(ctx, nullptr, 0, false)),        //- Sic!!!
 
     _void_type(new v_type_void_t(*this)),
 
