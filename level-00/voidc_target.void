@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------
-//- Copyright (C) 2020-2022 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- Copyright (C) 2020-2023 Dmitry Borodkin <borodkin.dn@gmail.com>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
 {   voidc_guard_target("voidc_target.void  must be imported into the voidc target only!"); }
@@ -69,8 +69,40 @@
 
 
 //---------------------------------------------------------------------
-{   v_add_type("void_ptr", v_pointer_type(void, 0));
+{   typ = v_alloca(v_type_ptr);
+
+    v_store(unsigned, typ);                 //- Width
+
+    ft = v_function_type(v_type_ptr, typ, 1, false);
+    v_add_symbol("v_uint_type", ft, 0);
+}
+
+{   v_add_type("v_quark_t", v_uint_type(32));
+
+    v_add_type("void_ptr", v_pointer_type(void, 0));
     v_add_type("char_ptr", v_pointer_type(char, 0));
+}
+
+
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    v_store(v_quark_t,   typ0);             //- Symbol name quark
+    v_store(v_type_ptr,  typ1);             //- Symbol type
+    v_store(void_ptr,    typ2);             //- Symbol value
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_export_symbol_q", ft);
+    v_export_symbol_type("v_add_symbol_q", ft);
+
+//  v_store(v_quark_t,   typ0);             //- Type name quark
+//  v_store(v_type_ptr,  typ1);             //- Type
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_export_type_q", ft);
+    v_export_symbol_type("v_add_type_q", ft);
 }
 
 
@@ -159,6 +191,13 @@
     ft = v_function_type(bool, typ0, 3, false);
     v_export_symbol_type("v_obtain_identifier", ft);
 
+    v_store(v_quark_t,        typ0);        //- Name quark
+//  v_store(v_type_ptr_ptr,   typ1);        //- Type
+//  v_store(LLVMValueRef_ptr, typ2);        //- Value
+
+    ft = v_function_type(bool, typ0, 3, false);
+    v_export_symbol_type("v_obtain_identifier_q", ft);
+
     v_store(v_type_ptr,   typ0);            //- Source type
     v_store(LLVMValueRef, typ1);            //- Source value
     v_store(v_type_ptr,   typ2);            //- Destination type
@@ -207,10 +246,19 @@
     v_export_symbol_type("v_get_variable_value", ft);
     v_export_symbol_type("v_find_constant_value", ft);
 
+    v_store(v_quark_t,    typ0);            //- Constant/variable name quark
+//  v_store(v_type_ptr,   typ1);            //- Constant/variable type
+//  v_store(LLVMValueRef, typ2);            //- Constant/variable value
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_export_constant_q", ft);
+    v_export_symbol_type("v_add_constant_q",    ft);
+    v_export_symbol_type("v_add_variable_q",    ft);
+
     t_ptr = v_pointer_type(v_type_ptr, 0);
     v_ptr = v_pointer_type(LLVMValueRef, 0);
 
-//  v_store(char_ptr, typ0);                //- Constant/variable name
+    v_store(char_ptr, typ0);                //- Constant/variable name
     v_store(t_ptr,    typ1);                //- For type
     v_store(v_ptr,    typ2);                //- For value
 
@@ -231,12 +279,40 @@
     ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_find_type", ft);
 
-//  v_store(char_ptr, typ0);                //- Alias name
+    v_store(v_quark_t, typ0);               //- Constant/variable name quark
+//  v_store(t_ptr,     typ1);               //- For type
+//  v_store(v_ptr,     typ2);               //- For value
+
+    ft = v_function_type(bool, typ0, 3, false);
+    v_export_symbol_type("v_get_variable_q", ft);
+    v_export_symbol_type("v_find_constant_q", ft);
+
+//  v_store(v_quark_t, typ0);               //- Symbol name quark
+
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
+    v_export_symbol_type("v_find_symbol_type_q", ft);
+
+    ft = v_function_type(void_ptr, typ0, 1, false);
+    v_export_symbol_type("v_find_symbol_value_q", ft);
+
+//  v_store(v_quark_t, typ0);               //- Type(!) name quark
+
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
+    v_export_symbol_type("v_find_type_q", ft);
+
+    v_store(char_ptr, typ0);                //- Alias name
     v_store(char_ptr, typ1);                //- Aliasee
 
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_export_alias", ft);
     v_export_symbol_type("v_add_alias",    ft);
+
+    v_store(v_quark_t, typ0);               //- Alias name quark
+    v_store(v_quark_t, typ1);               //- Aliasee quark
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_export_alias_q", ft);
+    v_export_symbol_type("v_add_alias_q",    ft);
 
     v_store(v_type_ptr,   typ0);            //- type
     v_store(LLVMValueRef, typ1);            //- value
@@ -375,21 +451,35 @@
     v_export_type("voidc_intrinsic_t", intrinsic_t);
     v_export_type("voidc_visitor_method_t", intrinsic_t);       //- Sic!?!
 
-    v_store(char_ptr,      typ0);           //- Intrinsic name
-    v_store(void_ptr,      typ1);           //- Intrinsic function
-    v_store(void_ptr,      typ2);           //- aux
+    v_store(char_ptr, typ0);                //- Intrinsic name
+    v_store(void_ptr, typ1);                //- Intrinsic function
+    v_store(void_ptr, typ2);                //- aux
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_export_intrinsic", ft);
     v_export_symbol_type("v_add_intrinsic",    ft);
 
+    v_store(v_quark_t, typ0);               //- Intrinsic name quark
+//  v_store(void_ptr,  typ1);               //- Intrinsic function
+//  v_store(void_ptr,  typ2);               //- aux
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_export_intrinsic_q", ft);
+    v_export_symbol_type("v_add_intrinsic_q",    ft);
+
     void_ptr_ptr = v_pointer_type(void_ptr, 0);
 
-//  v_store(char_ptr,      typ0);           //- Intrinsic name
-    v_store(void_ptr_ptr,  typ1);           //- aux
+    v_store(char_ptr,     typ0);            //- Intrinsic name
+    v_store(void_ptr_ptr, typ1);            //- aux
 
     ft = v_function_type(void_ptr, typ0, 2, false);
     v_export_symbol_type("v_get_intrinsic", ft);
+
+    v_store(v_quark_t,    typ0);            //- Intrinsic name quark
+//  v_store(void_ptr_ptr, typ1);            //- aux
+
+    ft = v_function_type(void_ptr, typ0, 2, false);
+    v_export_symbol_type("v_get_intrinsic_q", ft);
 }
 
 
