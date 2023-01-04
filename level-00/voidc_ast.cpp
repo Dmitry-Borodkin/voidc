@@ -99,17 +99,29 @@ v_ast_unit_get_column(const ast_unit_t *ptr)
 
 //---------------------------------------------------------------------
 void
+v_ast_make_stmt_q(ast_stmt_t *ret, v_quark_t qvar, const ast_expr_t *expr)
+{
+    *ret = std::make_shared<const ast_stmt_data_t>(qvar, *expr);
+}
+
+void
 v_ast_make_stmt(ast_stmt_t *ret, const char *var, const ast_expr_t *expr)
 {
-    *ret = std::make_shared<const ast_stmt_data_t>(v_quark_from_string(var), *expr);
+    v_ast_make_stmt_q(ret, v_quark_from_string(var), expr);
+}
+
+v_quark_t
+v_ast_stmt_get_name_q(const ast_stmt_t *ptr)
+{
+    auto &r = static_cast<const ast_stmt_data_t &>(**ptr);
+
+    return r.name;
 }
 
 const char *
 v_ast_stmt_get_name(const ast_stmt_t *ptr)
 {
-    auto &r = static_cast<const ast_stmt_data_t &>(**ptr);
-
-    return v_quark_to_string(r.name);
+    return v_quark_to_string(v_ast_stmt_get_name_q(ptr));
 }
 
 const ast_expr_t *
@@ -145,17 +157,29 @@ v_ast_expr_call_get_arg_list(const ast_expr_t *ptr)
 
 //---------------------------------------------------------------------
 void
+v_ast_make_expr_identifier_q(ast_expr_t *ret, v_quark_t qname)
+{
+    *ret = std::make_shared<const ast_expr_identifier_data_t>(qname);
+}
+
+void
 v_ast_make_expr_identifier(ast_expr_t *ret, const char *name)
 {
-    *ret = std::make_shared<const ast_expr_identifier_data_t>(v_quark_from_string(name));
+    v_ast_make_expr_identifier_q(ret, v_quark_from_string(name));
+}
+
+v_quark_t
+v_ast_expr_identifier_get_name_q(const ast_expr_t *ptr)
+{
+    auto &r = static_cast<const ast_expr_identifier_data_t &>(**ptr);
+
+    return r.name;
 }
 
 const char *
 v_ast_expr_identifier_get_name(const ast_expr_t *ptr)
 {
-    auto &r = static_cast<const ast_expr_identifier_data_t &>(**ptr);
-
-    return v_quark_to_string(r.name);
+    return v_quark_to_string(v_ast_expr_identifier_get_name_q(ptr));
 }
 
 //---------------------------------------------------------------------

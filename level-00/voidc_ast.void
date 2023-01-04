@@ -171,10 +171,20 @@
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_ast_make_stmt", ft);
 
+//  v_store(v_ast_stmt_ptr, typ0);                  //- (out)
+    v_store(v_quark_t,      typ1);                  //- return name or "" (quark)
+//  v_store(v_ast_expr_ptr, typ2);                  //-
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_ast_make_stmt_q", ft);
+
 //  v_store(v_ast_stmt_ptr, typ0);                  //-
 
     ft = v_function_type(char_ptr, typ0, 1, false);
     v_export_symbol_type("v_ast_stmt_get_name", ft);
+
+    ft = v_function_type(v_quark_t, typ0, 1, false);
+    v_export_symbol_type("v_ast_stmt_get_name_q", ft);
 
 //  v_store(v_ast_stmt_ptr, typ0);                  //-
 
@@ -206,10 +216,19 @@
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_ast_make_expr_identifier", ft);
 
+//  v_store(v_ast_expr_ptr, typ0);                  //- (out)
+    v_store(v_quark_t,      typ1);                  //- (quark)
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_ast_make_expr_identifier_q", ft);
+
 //  v_store(v_ast_expr_ptr, typ0);                  //-
 
     ft = v_function_type(char_ptr, typ0, 1, false);
     v_export_symbol_type("v_ast_expr_identifier_get_name", ft);
+
+    ft = v_function_type(v_quark_t, typ0, 1, false);
+    v_export_symbol_type("v_ast_expr_identifier_get_name_q", ft);
 
     //-------------------------------------------------------------
 //  v_store(v_ast_expr_ptr, typ0);                  //- (out)
