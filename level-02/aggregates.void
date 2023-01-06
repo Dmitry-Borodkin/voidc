@@ -22,6 +22,17 @@
 
 
 //---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("q_op_braces", q_ref, q("v.op_braces"));
+
+    v_add_symbol("packed_q", q_ref, q("packed"));
+}
+
+
+//=====================================================================
 {   voidc_unit_begin_module("aggregates_module"); }
 
 
@@ -135,10 +146,6 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
 
 
 //---------------------------------------------------------------------
-strcmp: (*const char, *const char) -> int;
-
-
-//---------------------------------------------------------------------
 //- v_struct ...
 //---------------------------------------------------------------------
 v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
@@ -178,9 +185,9 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 
         if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_identifier_visitor_method_tag)
         {
-            ident = v_ast_expr_identifier_get_name(expr);
+            qident = v_ast_expr_identifier_get_name_q(expr);
 
-            if (strcmp(ident, "packed") == 0) packed := true;
+            if (qident == packed_q) packed := true;
 
             if (n == ++i0) v_break();
         }
@@ -261,16 +268,14 @@ voidc_enable_aggregates_compiler: () -> void
 {
     vis = voidc_compiler;
 
-    op_braces_q = v_quark_from_string("v.op_braces");
+    v_return_if(voidc_visitor_get_intrinsic(vis, q_op_braces, 0));
 
-    v_return_if(voidc_visitor_get_intrinsic(vis, op_braces_q, 0));
+    q_struct = v_quark_from_string("v_struct");
+    q_typed  = v_quark_from_string("v_typed");
 
-    struct_q = v_quark_from_string("v_struct");
-    typed_q  = v_quark_from_string("v_typed");
-
-    voidc_visitor_set_intrinsic(vis, vis, op_braces_q, v_op_braces_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, struct_q,    v_struct_intrinsic,    0);
-    voidc_visitor_set_intrinsic(vis, vis, typed_q,     v_typed_intrinsic,     0);
+    voidc_visitor_set_intrinsic(vis, vis, q_op_braces, v_op_braces_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q_struct,    v_struct_intrinsic,    0);
+    voidc_visitor_set_intrinsic(vis, vis, q_typed,     v_typed_intrinsic,     0);
 
     voidc_enable_definitions_compiler();        //- Sic!
 }
@@ -293,10 +298,6 @@ voidc_enable_aggregates: () -> void
 
     v_peg_get_grammar(gr0);
 
-    any = v_alloca(v_std_any_t);
-    v_initialize(any);
-    defer v_terminate(any);
-
     any_ = v_peg_grammar_get_value(gr0, "v_op_braces");
 
     if (any_)  v_return();
@@ -307,7 +308,9 @@ voidc_enable_aggregates: () -> void
     v_peg_get_grammar(gr0);
 
 
-    any_braces = any + 0;
+    any_braces = v_alloca(v_std_any_t);
+    v_initialize(any_braces);
+    defer v_terminate(any_braces);
 
     v_std_any_set_pointer(any_braces, &v_op_braces);
 
@@ -325,7 +328,7 @@ voidc_enable_aggregates: () -> void
 }
 
 
-//---------------------------------------------------------------------
+//=====================================================================
 {   voidc_unit_end_module(); }
 
 
@@ -335,7 +338,7 @@ voidc_enable_aggregates: () -> void
 {
     v_initialize(&v_op_braces);
 
-    v_ast_make_expr_identifier(&v_op_braces, "v.op_braces");
+    v_ast_make_expr_identifier_q(&v_op_braces, q_op_braces);
 
     v_add_cleaner(voidc_aggregates_internal_gloabls_cleaner, 0);
 }

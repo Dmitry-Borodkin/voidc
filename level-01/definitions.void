@@ -40,6 +40,34 @@
 
     v_add_type("convert_to_type_ctx_t",   convert_to_type_ctx_t);
     v_add_type("convert_to_type_ctx_ptr", v_pointer_type(convert_to_type_ctx_t, 0));
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("q_export_symbol_type", q_ref, q("v_export_symbol_type"));
+    v_add_symbol("q_export_type",        q_ref, q("v_export_type"));
+    v_add_symbol("q_export_constant",    q_ref, q("v_export_constant"));
+    v_add_symbol("q_add_symbol",         q_ref, q("v_add_symbol"));
+    v_add_symbol("q_add_type",           q_ref, q("v_add_type"));
+    v_add_symbol("q_add_constant",       q_ref, q("v_add_constant"));
+    v_add_symbol("q_type_get_llvm_type", q_ref, q("v_type_get_llvm_type"));
+
+    v_add_symbol("typ_q",   q_ref, q("typ"));
+    v_add_symbol("true_q",  q_ref, q("true"));
+
+    v_add_symbol("voidc_compile_type_q", q_ref, q("voidc.compile_type"));
+
+    v_add_symbol("q_internal_var_decl", q_ref, q("v.internal.var_decl"));
+    v_add_symbol("q_internal_var_defn", q_ref, q("v.internal.var_defn"));
+    v_add_symbol("q_internal_val_defn", q_ref, q("v.internal.val_defn"));
+
+    v_add_symbol("q_cast", q_ref, q("v_cast"));
+
+    v_add_symbol("LLVMConstInt_q",          q_ref, q("LLVMConstInt"));
+    v_add_symbol("LLVMConstRealOfString_q", q_ref, q("LLVMConstRealOfString"));
+
+    v_add_symbol("constant_type_not_supported_q", q_ref, q("<constant type not supported>"));
 }
 
 
@@ -643,17 +671,17 @@
 
         v_list_append(lst, lst, type, 1);
 
-        v_ast_make_expr_identifier(etmp, "v.internal.var_decl");
+        v_ast_make_expr_identifier_q(etmp, q_internal_var_decl);
 
         v_ast_make_expr_call(etmp, etmp, lst);
 
-        v_ast_make_stmt(stmt, "", etmp);
+        v_ast_make_stmt_q(stmt, 0, etmp);
     }
     else                    //- Definition
     {
         v_make_list(lst, type, 2);
 
-        v_ast_make_expr_identifier(etmp, "v.internal.var_defn");
+        v_ast_make_expr_identifier_q(etmp, q_internal_var_defn);
 
         v_ast_make_expr_call(etmp, etmp, lst);
 
@@ -696,7 +724,7 @@
     v_initialize(etmp);
     defer v_terminate(etmp);
 
-    v_ast_make_expr_identifier(etmp, "v.internal.val_defn");
+    v_ast_make_expr_identifier_q(etmp, q_internal_val_defn);
 
     v_ast_make_expr_call(etmp, etmp, lst);
 
@@ -930,7 +958,7 @@
 
     if (!v_empty(expr))
     {
-        v_ast_make_expr_identifier(expr, "v_cast");
+        v_ast_make_expr_identifier_q(expr, q_cast);
 
         v_ast_make_expr_call(expr, expr, lst);
     }
@@ -1069,7 +1097,7 @@
 
     v_make_list(elst, expr+0, 1);
 
-    v_ast_make_expr_identifier(expr+0, "voidc.compile_type");
+    v_ast_make_expr_identifier_q(expr+0, voidc_compile_type_q);
 
     v_ast_make_expr_call(expr+1, expr+0, elst);
 
@@ -1078,13 +1106,13 @@
 
     if (export)
     {
-        v_ast_make_stmt_call(stmt, "", "v_export_symbol_type", expr, 2);
+        v_ast_make_stmt_call(stmt, 0, q_export_symbol_type, expr, 2);
     }
     else
     {
         v_ast_make_expr_integer(expr+2, 0);
 
-        v_ast_make_stmt_call(stmt, "", "v_add_symbol", expr, 3);
+        v_ast_make_stmt_call(stmt, 0, q_add_symbol, expr, 3);
     }
 
     v_list_append(stmt_list, stmt_list, stmt);
@@ -1244,7 +1272,7 @@
 
     v_make_list(elst, expr+0, 1);
 
-    v_ast_make_expr_identifier(expr+0, "voidc.compile_type");
+    v_ast_make_expr_identifier_q(expr+0, voidc_compile_type_q);
 
     v_ast_make_expr_call(expr+1, expr+0, elst);
 
@@ -1253,13 +1281,13 @@
 
     if (export)
     {
-        v_ast_make_stmt_call(stmt, "", "v_export_symbol_type", expr, 2);
+        v_ast_make_stmt_call(stmt, 0, q_export_symbol_type, expr, 2);
     }
     else
     {
         v_ast_make_expr_integer(expr+2, 0);
 
-        v_ast_make_stmt_call(stmt, "", "v_add_symbol", expr, 3);
+        v_ast_make_stmt_call(stmt, 0, q_add_symbol, expr, 3);
     }
 
     v_list_append(stmt_list, stmt_list, stmt);
@@ -1353,18 +1381,18 @@
 
     v_ast_make_expr_integer(expr+0, v_cast(typ, intptr_t));         //- Sic!!!
 
-    v_ast_make_stmt_call(stmt, "typ", "voidc.compile_type", expr+0, 1);
+    v_ast_make_stmt_call(stmt, typ_q, voidc_compile_type_q, expr+0, 1);
 
     v_list_append(stmt_list, stmt_list, stmt);
 
-    v_ast_make_expr_identifier(expr+1, "typ");
+    v_ast_make_expr_identifier_q(expr+1, typ_q);
 
 
     if (t != v_static_type_t)
     {
         v_make_list(elst, expr+1, 1);
 
-        v_ast_make_expr_identifier(expr+0, "v_type_get_llvm_type");
+        v_ast_make_expr_identifier_q(expr+0, q_type_get_llvm_type);
 
         v_ast_make_expr_call(expr+0, expr+0, elst);
 
@@ -1393,11 +1421,11 @@
 
             v_list_append(elst, elst, expr+0, 1);
 
-            v_ast_make_expr_identifier(expr+0, "true");
+            v_ast_make_expr_identifier_q(expr+0, true_q);
 
             v_list_append(elst, elst, expr+0, 1);
 
-            v_ast_make_expr_identifier(expr+0, "LLVMConstInt");
+            v_ast_make_expr_identifier_q(expr+0, LLVMConstInt_q);
         }
         else if (v_type_is_floating_point(t))
         {
@@ -1413,11 +1441,11 @@
 
             v_list_append(elst, elst, expr+0, 1);
 
-            v_ast_make_expr_identifier(expr+0, "LLVMConstRealOfString");
+            v_ast_make_expr_identifier_q(expr+0, LLVMConstRealOfString_q);
         }
         else    //- ?!?!?!?!?!?!?!?!?!?
         {
-            v_ast_make_expr_identifier(expr+0, "<constant type not supported>");
+            v_ast_make_expr_identifier_q(expr+0, constant_type_not_supported_q);
         }
 
         v_ast_make_expr_call(expr+2, expr+0, elst);
@@ -1428,13 +1456,13 @@
 
     if (export)
     {
-        if (t == v_static_type_t) v_ast_make_stmt_call(stmt, "", "v_export_type",     expr, 2);
-        else                      v_ast_make_stmt_call(stmt, "", "v_export_constant", expr, 3);
+        if (t == v_static_type_t) v_ast_make_stmt_call(stmt, 0, q_export_type,     expr, 2);
+        else                      v_ast_make_stmt_call(stmt, 0, q_export_constant, expr, 3);
     }
     else
     {
-        if (t == v_static_type_t) v_ast_make_stmt_call(stmt, "", "v_add_type",     expr, 2);
-        else                      v_ast_make_stmt_call(stmt, "", "v_add_constant", expr, 3);
+        if (t == v_static_type_t) v_ast_make_stmt_call(stmt, 0, q_add_type,     expr, 2);
+        else                      v_ast_make_stmt_call(stmt, 0, q_add_constant, expr, 3);
     }
 
     v_list_append(stmt_list, stmt_list, stmt);

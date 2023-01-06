@@ -18,6 +18,20 @@
 
 
 //---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("q_break", q_ref, q("v_break"));
+
+    v_add_symbol("q_internal_copy_variable", q_ref, q("v.internal.copy_variable"));
+
+    v_add_symbol("nil_q",  q_ref, q(""));
+    v_add_symbol("true_q", q_ref, q("true"));
+}
+
+
+//=====================================================================
 {   voidc_unit_begin_module("loops_etc_module"); }
 
 
@@ -46,11 +60,11 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
     v_initialize(cexp);
     defer v_terminate(cexp);
 
-    name = v_ast_stmt_get_name(cstm);
+    qname = v_ast_stmt_get_name_q(cstm);
 
-    if (name[0])
+    if (qname  &&  qname != nil_q)
     {
-        v_ast_make_expr_identifier(cexp, name);
+        v_ast_make_expr_identifier_q(cexp, qname);
     }
     else
     {
@@ -71,7 +85,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 
     stmp_cond = stmp + cond_len;
 
-    v_ast_make_stmt_call(stmp_cond, "", "v_break", 0, 0);
+    v_ast_make_stmt_call(stmp_cond, 0, q_break, 0, 0);
 
     v_ast_make_stmt_if_then_else(stmp_cond, cexp, stmt, stmp_cond);
 
@@ -198,11 +212,11 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     {
         cstm = v_list_get_item(cond, cond_len-1);
 
-        name = v_ast_stmt_get_name(cstm);
+        qname = v_ast_stmt_get_name_q(cstm);
 
-        if (name[0])
+        if (qname  &&  qname != nil_q)
         {
-            v_ast_make_expr_identifier(e_cond, name);
+            v_ast_make_expr_identifier_q(e_cond, qname);
         }
         else
         {
@@ -213,7 +227,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     }
     else
     {
-        v_ast_make_expr_identifier(e_cond, "true");
+        v_ast_make_expr_identifier_q(e_cond, true_q);
     }
 
 
@@ -245,22 +259,22 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     v_copy(etmp+0, e_continue_var);
     v_copy(etmp+1, e_break_var);
 
-    v_ast_make_stmt_call(stmp+0, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+0, 0, q_internal_copy_variable, etmp+0, 2);
 
     v_copy(etmp+0, e_continue);
     v_copy(etmp+1, e_break);
 
-    v_ast_make_stmt_call(stmp+1, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+1, 0, q_internal_copy_variable, etmp+0, 2);
 
     v_copy(etmp+0, e_break_var);
     v_copy(etmp+1, e_break_for_var);
 
-    v_ast_make_stmt_call(stmp+2, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+2, 0, q_internal_copy_variable, etmp+0, 2);
 
     v_copy(etmp+0, e_break);
     v_copy(etmp+1, e_break_for);
 
-    v_ast_make_stmt_call(stmp+3, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+3, 0, q_internal_copy_variable, etmp+0, 2);
 
 
     v_copy(stmp+4, stmt);
@@ -274,7 +288,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
 
     v_ast_make_stmt_block(stmp+0, slst, true);
 
-    v_ast_make_stmt_call(stmp_cond, "", "v_break", 0, 0);
+    v_ast_make_stmt_call(stmp_cond, 0, q_break, 0, 0);
 
     v_ast_make_stmt_if_then_else(stmp_cond+0, e_cond, stmp+0, stmp_cond);
 
@@ -287,12 +301,12 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     v_copy(etmp+0, e_break_for_var);
     v_copy(etmp+1, e_break_var);
 
-    v_ast_make_stmt_call(stmp+0, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+0, 0, q_internal_copy_variable, etmp+0, 2);
 
     v_copy(etmp+0, e_break_for);
     v_copy(etmp+1, e_break);
 
-    v_ast_make_stmt_call(stmp+1, "", "v.internal.copy_variable", etmp+0, 2);
+    v_ast_make_stmt_call(stmp+1, 0, q_internal_copy_variable, etmp+0, 2);
 
 
     if (cond_len)
@@ -379,11 +393,11 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, 
     v_initialize(cexp);
     defer v_terminate(cexp);
 
-    name = v_ast_stmt_get_name(cstm);
+    qname = v_ast_stmt_get_name_q(cstm);
 
-    if (name[0])
+    if (qname  &&  qname != nil_q)
     {
-        v_ast_make_expr_identifier(cexp, name);
+        v_ast_make_expr_identifier_q(cexp, qname);
     }
     else
     {
@@ -459,11 +473,11 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t
 
     {   stmt = v_list_get_item(estm, estm_len-1);
 
-        name = v_ast_stmt_get_name(stmt);
+        qname = v_ast_stmt_get_name_q(stmt);
 
-        if (name[0])
+        if (qname  &&  qname != nil_q)
         {
-            v_ast_make_expr_identifier(etmp, name);
+            v_ast_make_expr_identifier_q(etmp, qname);
         }
         else
         {
@@ -617,7 +631,7 @@ voidc_enable_loops_etc: () -> void
 }
 
 
-//---------------------------------------------------------------------
+//=====================================================================
 {   voidc_unit_end_module(); }
 
 

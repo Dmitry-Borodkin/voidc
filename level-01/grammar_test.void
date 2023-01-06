@@ -108,7 +108,7 @@
     v_ast_make_expr_string(arg1, arg_str);
 
 
-    v_ast_make_stmt_call(stmt, "", "printf", arg0, 2);
+    v_ast_make_stmt_call(stmt, 0, v_quark_from_string("printf"), arg0, 2);
 
 
     v_std_any_set_pointer(ret, stmt);

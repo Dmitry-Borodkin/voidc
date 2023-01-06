@@ -18,6 +18,16 @@
 
 
 //---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("q_literal_integer", q_ref, q("v.literal.integer"));
+    v_add_symbol("q_literal_real",    q_ref, q("v.literal.real"));
+}
+
+
+//=====================================================================
 {   voidc_unit_begin_module("literals_module"); }
 
 
@@ -199,7 +209,8 @@ mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size
 
     str0 = v_std_string_get(v_std_any_get_pointer(v_std_string_t, any+0));
     str1 = v_std_string_get(v_std_any_get_pointer(v_std_string_t, any+1));
-    name = v_std_string_get(v_std_any_get_pointer(v_std_string_t, any+2));
+
+    qname = v_std_any_get_value(v_quark_t, any+2);
 
     expr = v_alloca(v_ast_expr_t, 2);
     v_initialize(expr, 2);
@@ -214,7 +225,7 @@ mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size
 
     v_make_list(lst, expr, 2);
 
-    v_ast_make_expr_identifier(expr, name);
+    v_ast_make_expr_identifier_q(expr, qname);
 
     v_ast_make_expr_call(expr, expr, lst);
 
@@ -230,14 +241,10 @@ voidc_enable_literals_compiler: () -> void
 {
     vis = voidc_compiler;
 
-    literal_integer_q = v_quark_from_string("v.literal.integer");
+    v_return_if(voidc_visitor_get_intrinsic(vis, q_literal_integer, 0));
 
-    v_return_if(voidc_visitor_get_intrinsic(vis, literal_integer_q, 0));
-
-    literal_real_q = v_quark_from_string("v.literal.real");
-
-    voidc_visitor_set_intrinsic(vis, vis, literal_integer_q, v_literal_integer_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, literal_real_q,    v_literal_real_intrinsic,    0);
+    voidc_visitor_set_intrinsic(vis, vis, q_literal_integer, v_literal_integer_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q_literal_real,    v_literal_real_intrinsic,    0);
 }
 
 
@@ -254,6 +261,17 @@ voidc_enable_literals: () -> void
     v_return_if(voidc_grammar_has_parser("real_literal"));
 
 
+    any = v_alloca(v_std_any_t, 2);
+    v_initialize(any, 2);
+    defer v_terminate(any, 2);
+
+    any_integer = any + 0;
+    any_real    = any + 1;
+
+    v_std_any_set_value(any_integer, q_literal_integer);
+    v_std_any_set_value(any_real,    q_literal_real);
+
+
     gr0 = v_alloca(v_peg_grammar_t);
     v_initialize(gr0);
     defer v_terminate(gr0);
@@ -262,6 +280,10 @@ voidc_enable_literals: () -> void
 
     grammar gr0
     {
+    values:
+        q_literal_integer = any_integer;
+        q_literal_real    = any_real;
+
     actions:
         mk_numeric_literal = mk_numeric_literal_grammar_action;
 
@@ -274,7 +296,7 @@ voidc_enable_literals: () -> void
                 ;
 
 
-        big_integer = <[-+]? big_number> <integer_suffix?> !ident_cont  { mk_numeric_literal($1, $2, "v.literal.integer") };
+        big_integer = <[-+]? big_number> <integer_suffix?> !ident_cont  { mk_numeric_literal($1, $2, q_literal_integer) };
 
         big_number = '0' ([xX] hex_digits / [bB] bin_digits / oct_digits)?
                    / nzdec_digits
@@ -303,7 +325,7 @@ voidc_enable_literals: () -> void
         prim =+ big_integer;
 
 
-        real_literal = <[-+]? real_number> <real_suffix?> !ident_cont   { mk_numeric_literal($1, $2, "v.literal.real") };
+        real_literal = <[-+]? real_number> <real_suffix?> !ident_cont   { mk_numeric_literal($1, $2, q_literal_real) };
 
         real_number = dec_digits? '.' dec_digits dec_exponent?
                     / dec_digits  '.' dec_exponent?
@@ -324,7 +346,7 @@ voidc_enable_literals: () -> void
 }
 
 
-//---------------------------------------------------------------------
+//=====================================================================
 {   voidc_unit_end_module(); }
 
 

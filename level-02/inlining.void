@@ -36,6 +36,15 @@
 }
 
 
+//---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("create_inline_function_data_q", q_ref, q("voidc_internal_create_inline_function_data"));
+}
+
+
 //=====================================================================
 {   voidc_unit_begin_module("inlining_module"); }
 
@@ -308,7 +317,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
         v_ast_make_expr_integer(expr+4, 0);
     }
 
-    v_ast_make_stmt_call(stmt, "", "voidc_internal_create_inline_function_data", expr, 5);
+    v_ast_make_stmt_call(stmt, 0, create_inline_function_data_q, expr, 5);
 
     v_list_append(stmt_list, stmt_list, stmt);
 }
