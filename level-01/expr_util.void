@@ -9,12 +9,12 @@
     v_import("llvm-c/Core.void");
 
     v_import("function_hack.void");
-    v_import("memory.void");
     v_import("if_then_else.void");
     v_import("arithmetic.void");
     v_import("block.void");
     v_import("loop.void");
     v_import("switch.void");
+    v_import("memory.void");
 }
 
 //{ v_import("printf.void"); }
@@ -37,6 +37,21 @@
     v_add_type("type_ptr_ptr", v_pointer_type(v_type_ptr, 0));
 
     v_add_type("expr_ptr_ptr", v_pointer_type(v_ast_expr_ptr, 0));
+
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("q_op_infix_logical_and", q_ref, q("v.op_infix_logical_and"));
+    v_add_symbol("q_op_infix_logical_or",  q_ref, q("v.op_infix_logical_or"));
+    v_add_symbol("q_op_infix_lt",          q_ref, q("v.op_infix_lt"));
+    v_add_symbol("q_op_infix_le",          q_ref, q("v.op_infix_le"));
+    v_add_symbol("q_op_infix_gt",          q_ref, q("v.op_infix_gt"));
+    v_add_symbol("q_op_infix_ge",          q_ref, q("v.op_infix_ge"));
+    v_add_symbol("q_op_infix_eq",          q_ref, q("v.op_infix_eq"));
+    v_add_symbol("q_op_infix_ne",          q_ref, q("v.op_infix_ne"));
+    v_add_symbol("q_op_postfix_index",     q_ref, q("v.op_postfix_index"));
 }
 
 
@@ -93,24 +108,9 @@
 
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
+    typ0 = v_alloca(v_type_ptr);
 
     v_store(char_ptr, typ0);
-    v_store(char_ptr, typ1);
-
-    ft = v_function_type(int, typ0, 2, false);
-    v_add_symbol("strcmp", ft, 0);
-
-//  v_store(char_ptr, typ0);
-//  v_store(char_ptr, typ1);
-    v_store(size_t,   typ2);
-
-    ft = v_function_type(int, typ0, 3, false);
-    v_add_symbol("strncmp", ft, 0);
-
-//  v_store(char_ptr, typ0);
 
     ft = v_function_type(void, typ0, 1, false);
     v_add_symbol("free", ft, 0);
@@ -494,58 +494,58 @@
     v_make_list_nil(expr_oplist);
 
     //-------------------------------------------------------------
-    add_op_binary("op_infix_assign",      1000, 0);   //- right
-    add_op_binary("op_infix_add_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_sub_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_mul_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_div_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_rem_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_shl_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_shr_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_and_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_xor_assign",  1000, 0);   //- right
-    add_op_binary("op_infix_or_assign",   1000, 0);   //- right
+    add_op_binary("v.op_infix_assign",      1000, 0);   //- right
+    add_op_binary("v.op_infix_add_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_sub_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_mul_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_div_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_rem_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_shl_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_shr_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_and_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_xor_assign",  1000, 0);   //- right
+    add_op_binary("v.op_infix_or_assign",   1000, 0);   //- right
 
-    add_op_binary("op_infix_logical_or",  3000, 1);   //- left
-    add_op_binary("op_infix_logical_and", 4000, 1);   //- left
-    add_op_binary("op_infix_or",          5000, 1);   //- left
-    add_op_binary("op_infix_xor",         6000, 1);   //- left
-    add_op_binary("op_infix_and",         7000, 1);   //- left
+    add_op_binary("v.op_infix_logical_or",  3000, 1);   //- left
+    add_op_binary("v.op_infix_logical_and", 4000, 1);   //- left
+    add_op_binary("v.op_infix_or",          5000, 1);   //- left
+    add_op_binary("v.op_infix_xor",         6000, 1);   //- left
+    add_op_binary("v.op_infix_and",         7000, 1);   //- left
 
-    add_op_binary("op_infix_lt",          8000, 1);   //- left
-    add_op_binary("op_infix_le",          8000, 1);   //- left
-    add_op_binary("op_infix_gt",          8000, 1);   //- left
-    add_op_binary("op_infix_ge",          8000, 1);   //- left
-    add_op_binary("op_infix_eq",          8000, 1);   //- left
-    add_op_binary("op_infix_ne",          8000, 1);   //- left
+    add_op_binary("v.op_infix_lt",          8000, 1);   //- left
+    add_op_binary("v.op_infix_le",          8000, 1);   //- left
+    add_op_binary("v.op_infix_gt",          8000, 1);   //- left
+    add_op_binary("v.op_infix_ge",          8000, 1);   //- left
+    add_op_binary("v.op_infix_eq",          8000, 1);   //- left
+    add_op_binary("v.op_infix_ne",          8000, 1);   //- left
 
-    add_op_binary("op_infix_shl",         9000, 1);   //- left
-    add_op_binary("op_infix_shr",         9000, 1);   //- left
+    add_op_binary("v.op_infix_shl",         9000, 1);   //- left
+    add_op_binary("v.op_infix_shr",         9000, 1);   //- left
 
-    add_op_binary("op_infix_add",        10000, 1);   //- left
-    add_op_binary("op_infix_sub",        10000, 1);   //- left
-    add_op_binary("op_infix_mul",        11000, 1);   //- left
-    add_op_binary("op_infix_div",        11000, 1);   //- left
-    add_op_binary("op_infix_rem",        11000, 1);   //- left
-
-    //-------------------------------------------------------------
-    add_op_unary("op_prefix_inc",        20000);
-    add_op_unary("op_prefix_dec",        20000);
-    add_op_unary("op_prefix_plus",       20000);
-    add_op_unary("op_prefix_minus",      20000);
-    add_op_unary("op_prefix_star",       20000);
-    add_op_unary("op_prefix_amp",        20000);
-    add_op_unary("op_prefix_bang",       20000);
-    add_op_unary("op_prefix_tilda",      20000);
+    add_op_binary("v.op_infix_add",        10000, 1);   //- left
+    add_op_binary("v.op_infix_sub",        10000, 1);   //- left
+    add_op_binary("v.op_infix_mul",        11000, 1);   //- left
+    add_op_binary("v.op_infix_div",        11000, 1);   //- left
+    add_op_binary("v.op_infix_rem",        11000, 1);   //- left
 
     //-------------------------------------------------------------
-    add_op_unary("op_postfix_inc",       30000);
-    add_op_unary("op_postfix_dec",       30000);
-    add_op_unary("op_postfix_call",      30000);
-    add_op_unary("op_postfix_index",     30000);
+    add_op_unary("v.op_prefix_inc",        20000);
+    add_op_unary("v.op_prefix_dec",        20000);
+    add_op_unary("v.op_prefix_plus",       20000);
+    add_op_unary("v.op_prefix_minus",      20000);
+    add_op_unary("v.op_prefix_star",       20000);
+    add_op_unary("v.op_prefix_amp",        20000);
+    add_op_unary("v.op_prefix_bang",       20000);
+    add_op_unary("v.op_prefix_tilda",      20000);
 
     //-------------------------------------------------------------
-    add_op_unary("op_parentheses",           0);      //- Sic!
+    add_op_unary("v.op_postfix_inc",       30000);
+    add_op_unary("v.op_postfix_dec",       30000);
+    add_op_unary("v.op_postfix_call",      30000);
+    add_op_unary("v.op_postfix_index",     30000);
+
+    //-------------------------------------------------------------
+    add_op_unary("v.op_parentheses",           0);      //- Sic!
 
 
     //-------------------------------------------------------------
@@ -1743,9 +1743,9 @@
         v_return(false);
     }
 
-    name = v_ast_expr_identifier_get_name(etmp);
+    qname = v_ast_expr_identifier_get_name_q(etmp);
 
-    if (strcmp(name, "v.op_infix_logical_and"))
+    if (v_icmp(LLVMIntNE, qname, q_op_infix_logical_and))
     {
         v_return(false);
     }
@@ -1931,9 +1931,9 @@
         v_return(false);
     }
 
-    name = v_ast_expr_identifier_get_name(etmp);
+    qname = v_ast_expr_identifier_get_name_q(etmp);
 
-    if (strcmp(name, "v.op_infix_logical_or"))
+    if (v_icmp(LLVMIntNE, qname, q_op_infix_logical_or))
     {
         v_return(false);
     }
@@ -2243,25 +2243,18 @@
         v_return(0);
     }
 
-    name = v_ast_expr_identifier_get_name(etmp);
-
-    if (strncmp(name, "v.op_infix_", 11))
-    {
-        v_return(0);
-    }
+    qname = v_ast_expr_identifier_get_name_q(etmp);
 
     rk = v_reference(v_alloca(int));
 
     block
     {
-        suffix = v_getelementptr(name, 11);
-
-        if (strcmp(suffix, "lt")) ; else { v_assign(rk, rk_lt); v_break(); }
-        if (strcmp(suffix, "le")) ; else { v_assign(rk, rk_le); v_break(); }
-        if (strcmp(suffix, "gt")) ; else { v_assign(rk, rk_gt); v_break(); }
-        if (strcmp(suffix, "ge")) ; else { v_assign(rk, rk_ge); v_break(); }
-        if (strcmp(suffix, "eq")) ; else { v_assign(rk, rk_eq); v_break(); }
-        if (strcmp(suffix, "ne")) ; else { v_assign(rk, rk_ne); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_lt))  { v_assign(rk, rk_lt); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_le))  { v_assign(rk, rk_le); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_gt))  { v_assign(rk, rk_gt); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_ge))  { v_assign(rk, rk_ge); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_eq))  { v_assign(rk, rk_eq); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_ne))  { v_assign(rk, rk_ne); v_break(); }
 
         v_return(0);
     }
@@ -3676,9 +3669,9 @@
         v_return(false);
     }
 
-    name = v_ast_expr_identifier_get_name(etmp);
+    qname = v_ast_expr_identifier_get_name_q(etmp);
 
-    if (strcmp(name, "v.op_postfix_index"))
+    if (v_icmp(LLVMIntNE, qname, q_op_postfix_index))
     {
         v_return(false);
     }
@@ -4065,7 +4058,7 @@
 
         quark = v_load(v_cast(void_obj, quark_ptr));        //- Sic!!!
 
-        name = v_quark_to_string(quark);
+        name = v_getelementptr(v_quark_to_string(quark), 2);    //- Skip "v."
 
         fv = LLVMGetNamedFunction(module, name);
 
@@ -4382,15 +4375,10 @@
 {
     vis = voidc_compiler;
 
-    q = v_quark_from_string;
-
 
     count = v_list_get_size(expr_oplist);
 
     count = v_cast(count, int);
-
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
 
 
     i = v_reference(v_alloca(int));
@@ -4408,21 +4396,15 @@
 
         quark = v_load(v_cast(void_obj, quark_ptr));        //- Sic!!!
 
-        v_std_string_set(sstr, "v.");
-
-        v_std_string_append(sstr, v_quark_to_string(quark));
-
         ti = v_getelementptr(voidc_ast_operator_method_table, 0, i);
 
         m = v_load(ti);
 
-        voidc_visitor_set_intrinsic(vis, vis, q(v_std_string_get(sstr)), m, 0);
+        voidc_visitor_set_intrinsic(vis, vis, quark, m, 0);
 
 
         v_assign(i, v_binop(LLVMAdd, i, 1));
     }
-
-    v_terminate(sstr);
 
 
     //-------------------------------------------------------------
@@ -4439,6 +4421,8 @@
 
 
     //-------------------------------------------------------------
+    q = v_quark_from_string;
+
     voidc_visitor_set_intrinsic(vis, vis, q("int"),   voidc_int_type_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, q("uint"),  voidc_uint_type_intrinsic, 0);
 

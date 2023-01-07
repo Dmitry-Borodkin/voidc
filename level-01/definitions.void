@@ -9,11 +9,11 @@
     v_import("llvm-c/Core.void");
 
     v_import("function_hack.void");
-    v_import("memory.void");
     v_import("if_then_else.void");
     v_import("block.void");
     v_import("loop.void");
     v_import("grammar.void");
+    v_import("memory.void");
     v_import("expression.void");
     v_import("defer.void");
 }
@@ -68,6 +68,8 @@
     v_add_symbol("LLVMConstRealOfString_q", q_ref, q("LLVMConstRealOfString"));
 
     v_add_symbol("constant_type_not_supported_q", q_ref, q("<constant type not supported>"));
+
+    v_add_symbol("q_op_infix_assign", q_ref, q("v.op_infix_assign"));
 }
 
 
@@ -76,9 +78,6 @@
 
     typ[0] := char_ptr;
     typ[1] := char_ptr;
-
-    ft = v_function_type(int, typ, 2, false);
-    v_add_symbol("strcmp", ft, 0);
 
     ft = v_function_type(int, typ, 2, true);
     v_add_symbol("sprintf", ft, 0);
@@ -458,9 +457,9 @@
 
         if (tag != v_ast_expr_identifier_visitor_method_tag) v_break();
 
-        name = v_ast_expr_identifier_get_name(efun);
+        qname = v_ast_expr_identifier_get_name_q(efun);
 
-        if (strcmp(name, "v.op_infix_assign"))  v_break();
+        if (qname != q_op_infix_assign)  v_break();
 
         arg_list = v_ast_expr_call_get_arg_list(ast2);
 
@@ -641,9 +640,9 @@
 
         if (tag != v_ast_expr_identifier_visitor_method_tag) v_break();
 
-        opnm = v_ast_expr_identifier_get_name(efun);
+        qopnm = v_ast_expr_identifier_get_name_q(efun);
 
-        if (strcmp(opnm, "v.op_infix_assign"))  v_break();
+        if (qopnm != q_op_infix_assign)  v_break();
 
         arg_list = v_ast_expr_call_get_arg_list(ast0);
 
@@ -2144,10 +2143,10 @@
 
     q = v_quark_from_string;
 
-    op_binary(op_infix_to, q("op_infix_to"), 2000, 0, 0);               //- "Lowest" priority, right-assoc
+    op_binary(op_infix_to, q("v.op_infix_to"), 2000, 0, 0);                 //- "Lowest" priority, right-assoc
 
-    op_unary(op_prefix_const,    q("op_prefix_const"),    20000, 0);    //- "Prefix" priority
-    op_unary(op_prefix_volatile, q("op_prefix_volatile"), 20000, 0);    //- "Prefix" priority
+    op_unary(op_prefix_const,    q("v.op_prefix_const"),    20000, 0);      //- "Prefix" priority
+    op_unary(op_prefix_volatile, q("v.op_prefix_volatile"), 20000, 0);      //- "Prefix" priority
 
     v_add_cleaner(voidc_definitions_internal_globals_cleaner, 0);
 }

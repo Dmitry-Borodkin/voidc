@@ -318,7 +318,7 @@ voidc_enable_literals: () -> void
         oct_digit = [0-7];
 
 
-        integer_suffix = [iIuU] nzdec_digits?;
+        integer_suffix = [iIuU] ([1-9] dec_digit*)?;
 
         nzdec_digits = [1-9] ('\''? dec_digit)*;
 
@@ -337,7 +337,7 @@ voidc_enable_literals: () -> void
 
         hex_exponent = [pP] [-+]? dec_digits;
 
-        real_suffix = [fF] nzdec_digits?;
+        real_suffix = [fF] dec_digit*;
 
         prim += real_literal;
     }

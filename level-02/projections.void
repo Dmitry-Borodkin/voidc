@@ -288,7 +288,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     builder = v_target_get_builder();
 
-    q = v_quark_from_string("op_postfix_tildato");
+    q = v_quark_from_string("v.op_postfix_tildato");
 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
@@ -430,8 +430,8 @@ voidc_enable_projections: () -> void
 
     q = v_quark_from_string;
 
-    v_ast_make_operator_unary(&op_postfix_dot,     q("op_postfix_dot"),     30000, 0);      //- "Postfix" priority
-    v_ast_make_operator_unary(&op_postfix_tildato, q("op_postfix_tildato"), 30000, 0);      //- "Postfix" priority
+    v_ast_make_operator_unary(&op_postfix_dot,     q("v.op_postfix_dot"),     30000, 0);        //- "Postfix" priority
+    v_ast_make_operator_unary(&op_postfix_tildato, q("v.op_postfix_tildato"), 30000, 0);        //- "Postfix" priority
 
     v_add_cleaner(voidc_projections_internal_globals_cleaner, 0);
 }

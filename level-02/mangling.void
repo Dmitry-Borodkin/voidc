@@ -440,8 +440,8 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) -> void
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("op_postfix_dot_q",     q_ref, q("op_postfix_dot"));
-    v_add_symbol("op_postfix_tildato_q", q_ref, q("op_postfix_tildato"));
+    v_add_symbol("q_op_postfix_dot",     q_ref, q("v.op_postfix_dot"));
+    v_add_symbol("q_op_postfix_tildato", q_ref, q("v.op_postfix_tildato"));
 
     v_add_symbol("unit_spec_fun_defn_q", q_ref, q("unit_spec_fun_defn"));
     v_add_symbol("unit_spec_fun_renm_q", q_ref, q("unit_spec_fun_renm"));
@@ -504,7 +504,7 @@ mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, siz
 
     quark = obj[0];
 
-    if (quark != op_postfix_dot_q)
+    if (quark != q_op_postfix_dot)
     {
         v_std_any_set_value(ret, (quark: intptr_t));
 

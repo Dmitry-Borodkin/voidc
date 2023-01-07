@@ -9,12 +9,12 @@
     v_import("llvm-c/Core.void");
 
     v_import("function_hack.void");
-    v_import("memory.void");
     v_import("if_then_else.void");
     v_import("arithmetic.void");
     v_import("block.void");
     v_import("loop.void");
     v_import("grammar.void");
+    v_import("memory.void");
 
     v_import("expr_util.void");
 }
@@ -70,24 +70,16 @@
     v_add_parameter_name(f, 2, "args",  v_ast_expr_list_ptr);
 }
 {
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-
-    v_std_string_set(sstr, "v.");
-
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
 
-    v_std_string_append(sstr, v_quark_to_string(quark));
-
-    v_ast_make_expr_identifier(etmp, v_std_string_get(sstr));
+    v_ast_make_expr_identifier_q(etmp, quark);
 
     v_ast_make_expr_call(etmp, etmp, args);
 
     v_copy(ret, etmp);
 
     v_terminate(etmp);
-    v_terminate(sstr);
 }
 
 //---------------------------------------------------------------------
@@ -457,11 +449,11 @@
 //- expr_make_postfix - grammar action
 //---------------------------------------------------------------------
 {
-    quark_ref = v_reference_type(v_quark_t, 0);
+    q_ref = v_reference_type(v_quark_t, 0);
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("op_postfix_call_q", quark_ref, q("op_postfix_call"));
+    v_add_symbol("q_op_postfix_call", q_ref, q("v.op_postfix_call"));
 
 
     //-----------------------------------------------------------------
@@ -500,7 +492,7 @@
 
     q = v_load(v_getelementptr(obj, 0, 0));
 
-    if (v_icmp(LLVMIntEQ, q, op_postfix_call_q))
+    if (v_icmp(LLVMIntEQ, q, q_op_postfix_call))
     {
         //- Special case!
 
@@ -724,7 +716,7 @@
 
             quark = v_load(v_cast(void_obj, quark_ptr));        //- Sic!!!
 
-            name = v_quark_to_string(quark);
+            name = v_getelementptr(v_quark_to_string(quark), 2);    //- Skip "v."
 
             v_std_any_set_pointer(any, op);
 

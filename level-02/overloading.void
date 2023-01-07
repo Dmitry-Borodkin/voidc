@@ -24,8 +24,17 @@
 
 
 //---------------------------------------------------------------------
-strcmp: (*const char, *const char) -> int;
-strncmp: (*const char, *const char, size_t) -> int;
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("q_op_infix_lt", q_ref, q("v.op_infix_lt"));
+    v_add_symbol("q_op_infix_le", q_ref, q("v.op_infix_le"));
+    v_add_symbol("q_op_infix_gt", q_ref, q("v.op_infix_gt"));
+    v_add_symbol("q_op_infix_ge", q_ref, q("v.op_infix_ge"));
+    v_add_symbol("q_op_infix_eq", q_ref, q("v.op_infix_eq"));
+    v_add_symbol("q_op_infix_ne", q_ref, q("v.op_infix_ne"));
+}
 
 
 //=====================================================================
@@ -49,56 +58,56 @@ op_table_item_t = v_struct("struct.op_table_item",
 
 op_table: &op_table_item_t[] :=
 {
-    {"op_infix_assign",      opk_assign   },
-    {"op_infix_add_assign",  opk_assign   },
-    {"op_infix_sub_assign",  opk_assign   },
-    {"op_infix_mul_assign",  opk_assign   },
-    {"op_infix_div_assign",  opk_assign   },
-    {"op_infix_rem_assign",  opk_assign   },
-    {"op_infix_shl_assign",  opk_assign   },
-    {"op_infix_shr_assign",  opk_assign   },
-    {"op_infix_and_assign",  opk_assign   },
-    {"op_infix_xor_assign",  opk_assign   },
-    {"op_infix_or_assign",   opk_assign   },
+    {"v.op_infix_assign",      opk_assign   },
+    {"v.op_infix_add_assign",  opk_assign   },
+    {"v.op_infix_sub_assign",  opk_assign   },
+    {"v.op_infix_mul_assign",  opk_assign   },
+    {"v.op_infix_div_assign",  opk_assign   },
+    {"v.op_infix_rem_assign",  opk_assign   },
+    {"v.op_infix_shl_assign",  opk_assign   },
+    {"v.op_infix_shr_assign",  opk_assign   },
+    {"v.op_infix_and_assign",  opk_assign   },
+    {"v.op_infix_xor_assign",  opk_assign   },
+    {"v.op_infix_or_assign",   opk_assign   },
 
-//  {"op_infix_to",          opk_binary   },        //- ?!?!?!?!?!?!?!?
+//  {"v.op_infix_to",          opk_binary   },          //- ?!?!?!?!?!?!?!?
 
-    {"op_infix_logical_or",  opk_logical  },
-    {"op_infix_logical_and", opk_logical  },
+    {"v.op_infix_logical_or",  opk_logical  },
+    {"v.op_infix_logical_and", opk_logical  },
 
-    {"op_infix_lt",          opk_relation },
-    {"op_infix_le",          opk_relation },
-    {"op_infix_gt",          opk_relation },
-    {"op_infix_ge",          opk_relation },
-    {"op_infix_eq",          opk_relation },
-    {"op_infix_ne",          opk_relation },
+    {"v.op_infix_lt",          opk_relation },
+    {"v.op_infix_le",          opk_relation },
+    {"v.op_infix_gt",          opk_relation },
+    {"v.op_infix_ge",          opk_relation },
+    {"v.op_infix_eq",          opk_relation },
+    {"v.op_infix_ne",          opk_relation },
 
-    {"op_infix_or",          opk_binary   },
-    {"op_infix_xor",         opk_binary   },
-    {"op_infix_and",         opk_binary   },
+    {"v.op_infix_or",          opk_binary   },
+    {"v.op_infix_xor",         opk_binary   },
+    {"v.op_infix_and",         opk_binary   },
 
-    {"op_infix_shl",         opk_binary   },
-    {"op_infix_shr",         opk_binary   },
-    {"op_infix_add",         opk_binary   },
-    {"op_infix_sub",         opk_binary   },
-    {"op_infix_mul",         opk_binary   },
-    {"op_infix_div",         opk_binary   },
-    {"op_infix_rem",         opk_binary   },
+    {"v.op_infix_shl",         opk_binary   },
+    {"v.op_infix_shr",         opk_binary   },
+    {"v.op_infix_add",         opk_binary   },
+    {"v.op_infix_sub",         opk_binary   },
+    {"v.op_infix_mul",         opk_binary   },
+    {"v.op_infix_div",         opk_binary   },
+    {"v.op_infix_rem",         opk_binary   },
 
-    {"op_prefix_inc",        opk_unary    },
-    {"op_prefix_dec",        opk_unary    },
-    {"op_prefix_plus",       opk_unary    },
-    {"op_prefix_minus",      opk_unary    },
-    {"op_prefix_star",       opk_unary    },
-    {"op_prefix_amp",        opk_unary    },
-    {"op_prefix_bang",       opk_unary    },
-    {"op_prefix_tilda",      opk_unary    },
+    {"v.op_prefix_inc",        opk_unary    },
+    {"v.op_prefix_dec",        opk_unary    },
+    {"v.op_prefix_plus",       opk_unary    },
+    {"v.op_prefix_minus",      opk_unary    },
+    {"v.op_prefix_star",       opk_unary    },
+    {"v.op_prefix_amp",        opk_unary    },
+    {"v.op_prefix_bang",       opk_unary    },
+    {"v.op_prefix_tilda",      opk_unary    },
 
-    {"op_prefix_const",      opk_unary    },        //- ...
-    {"op_prefix_volatile",   opk_unary    },        //- ...
+    {"v.op_prefix_const",      opk_unary    },          //- ...
+    {"v.op_prefix_volatile",   opk_unary    },          //- ...
 
-    {"op_postfix_inc",       opk_unary    },
-    {"op_postfix_dec",       opk_unary    },
+    {"v.op_postfix_inc",       opk_unary    },
+    {"v.op_postfix_dec",       opk_unary    },
 
     {0}     //- Sic...
 };
@@ -128,7 +137,7 @@ op_table_ctor: () -> void
 
         v_std_string_set(sstr, "id");
 
-        v_std_string_append(sstr, name+2);
+        v_std_string_append(sstr, name+4);          //- Skip "v.op"
 
         v_add_constant(v_std_string_get(sstr), int, LLVMConstInt(int_, i, 0));
     }
@@ -138,11 +147,11 @@ op_table_ctor: () -> void
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("expr_call_tag",       q_ref, q("expr_call"));
-    v_add_symbol("expr_identifier_tag", q_ref, q("expr_identifier"));
+    v_add_symbol("expr_call_q",       q_ref, q("expr_call"));
+    v_add_symbol("expr_identifier_q", q_ref, q("expr_identifier"));
 
-    v_add_symbol("op_postfix_call_tag",  q_ref, q("op_postfix_call"));
-    v_add_symbol("op_postfix_index_tag", q_ref, q("op_postfix_index"));
+    v_add_symbol("q_op_postfix_call",  q_ref, q("v.op_postfix_call"));
+    v_add_symbol("q_op_postfix_index", q_ref, q("v.op_postfix_index"));
 }
 
 
@@ -505,28 +514,24 @@ check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr
 {
     get_tag = v_ast_base_get_visitor_method_tag;
 
-    if (get_tag((arg: v_ast_base_ptr)) != expr_call_tag)  v_return(0);
+    if (get_tag((arg: v_ast_base_ptr)) != expr_call_q)  v_return(0);
 
     etmp = v_ast_expr_call_get_fun_expr(arg);
 
-    if (get_tag((etmp: v_ast_base_ptr)) != expr_identifier_tag)  v_return(0);
+    if (get_tag((etmp: v_ast_base_ptr)) != expr_identifier_q)  v_return(0);
 
-    name = v_ast_expr_identifier_get_name(etmp);
-
-    if (strncmp(name, "v.op_infix_", 11))  v_return(0);
+    qname = v_ast_expr_identifier_get_name_q(etmp);
 
     rk: &int := v_undef();
 
     block
     {
-        suffix = name + 11;
-
-        if (strcmp(suffix, "lt") == 0)  { rk := id_infix_lt; v_break(); }
-        if (strcmp(suffix, "le") == 0)  { rk := id_infix_le; v_break(); }
-        if (strcmp(suffix, "gt") == 0)  { rk := id_infix_gt; v_break(); }
-        if (strcmp(suffix, "ge") == 0)  { rk := id_infix_ge; v_break(); }
-        if (strcmp(suffix, "eq") == 0)  { rk := id_infix_eq; v_break(); }
-        if (strcmp(suffix, "ne") == 0)  { rk := id_infix_ne; v_break(); }
+        if (qname == q_op_infix_lt)  { rk := id_infix_lt; v_break(); }
+        if (qname == q_op_infix_le)  { rk := id_infix_le; v_break(); }
+        if (qname == q_op_infix_gt)  { rk := id_infix_gt; v_break(); }
+        if (qname == q_op_infix_ge)  { rk := id_infix_ge; v_break(); }
+        if (qname == q_op_infix_eq)  { rk := id_infix_eq; v_break(); }
+        if (qname == q_op_infix_ne)  { rk := id_infix_ne; v_break(); }
 
         v_return(0);
     }
@@ -1268,7 +1273,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
 
     builder = v_target_get_builder();
 
-    q = op_postfix_call_tag;
+    q = q_op_postfix_call;
 
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
@@ -1366,11 +1371,9 @@ compile_expr_call: (vis: voidc_visitor_ptr, *void,
     if (v_ast_base_get_visitor_method_tag((fexpr: v_ast_base_ptr)) == v_ast_expr_identifier_visitor_method_tag)
     block
     {
-        fname = v_ast_expr_identifier_get_name(fexpr);
+        fname_q = v_ast_expr_identifier_get_name_q(fexpr);
 
-        if (void_fun := v_get_intrinsic(fname, &void_aux))  v_break();
-
-        fname_q = v_quark_from_string(fname);
+        if (void_fun := v_get_intrinsic_q(fname_q, &void_aux))  v_break();
 
         if (void_fun := voidc_visitor_get_intrinsic(vis, fname_q, &void_aux)) v_break();
     }
@@ -1545,17 +1548,17 @@ check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t)
 {
     tag = v_ast_base_get_visitor_method_tag((arg: v_ast_base_ptr));
 
-    if (tag != expr_call_tag)  v_return(false);
+    if (tag != expr_call_q)  v_return(false);
 
     etmp = v_ast_expr_call_get_fun_expr(arg);
 
     tag = v_ast_base_get_visitor_method_tag((etmp: v_ast_base_ptr));
 
-    if (tag != expr_identifier_tag)  v_return(false);
+    if (tag != expr_identifier_q)  v_return(false);
 
-    name = v_ast_expr_identifier_get_name(etmp);
+    qname = v_ast_expr_identifier_get_name_q(etmp);
 
-    if (strcmp(name, "v.op_postfix_index"))  v_return(false);
+    if (qname != q_op_postfix_index)  v_return(false);
 
     if (agg  ||  idx)
     {
@@ -1624,7 +1627,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     builder = v_target_get_builder();
 
-    q = op_postfix_index_tag;
+    q = q_op_postfix_index;
 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
@@ -1774,50 +1777,41 @@ voidc_enable_overloading_compiler: () -> void
 
     v_return_if(voidc_visitor_get_intrinsic(vis, q("v.static_type_prefix_star"), 0));
 
-    {   sstr = v_alloca(v_std_string_t);
-        v_initialize(sstr);
-        defer v_terminate(sstr);
+    for (id: &int := 0; op_table[id][0]; ++id)
+    {
+        void_fun: & *void := v_undef();
 
-        for (id: &int := 0; name = op_table[id][0]; ++id)
+        switch(op_table[id][1])
         {
-            void_fun: & *void := v_undef();
-
-            switch(op_table[id][1])
-            {
-            case opk_assign:    void_fun := op_assign_intrinsic;    v_break();
-            case opk_logical:   void_fun := 0;                      v_break();
-            case opk_relation:  void_fun := op_relation_intrinsic;  v_break();
-            case opk_binary:    void_fun := op_binary_intrinsic;    v_break();
-            case opk_unary:     void_fun := op_unary_intrinsic;     v_break();
-            }
-
-            if (!void_fun)  v_continue();
-
-            v_std_string_set(sstr, "v.");
-
-            v_std_string_append(sstr, name);
-
-            voidc_visitor_set_intrinsic(vis, vis, q(v_std_string_get(sstr)), void_fun, (id: *void));
+        case opk_assign:    void_fun := op_assign_intrinsic;    v_break();
+        case opk_logical:   void_fun := 0;                      v_break();
+        case opk_relation:  void_fun := op_relation_intrinsic;  v_break();
+        case opk_binary:    void_fun := op_binary_intrinsic;    v_break();
+        case opk_unary:     void_fun := op_unary_intrinsic;     v_break();
         }
+
+        if (!void_fun)  v_continue();
+
+        voidc_visitor_set_intrinsic(vis, vis, op_table[id][2], void_fun, (id: *void));
     }
 
-    voidc_visitor_function_dict_set(vis, vis, q("op_prefix_star"), v_static_type_t, "v.static_type_prefix_star");
-    voidc_visitor_function_dict_set(vis, vis, q("op_prefix_amp"),  v_static_type_t, "v.static_type_prefix_amp");
+    voidc_visitor_function_dict_set(vis, vis, q("v.op_prefix_star"), v_static_type_t, "v.static_type_prefix_star");
+    voidc_visitor_function_dict_set(vis, vis, q("v.op_prefix_amp"),  v_static_type_t, "v.static_type_prefix_amp");
 
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_star"), static_type_prefix_star_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_amp"),  static_type_prefix_amp_intrinsic,  0);
 
-    voidc_visitor_function_dict_set(vis, vis, q("op_prefix_const"),    v_static_type_t, "v.static_type_prefix_const");
-    voidc_visitor_function_dict_set(vis, vis, q("op_prefix_volatile"), v_static_type_t, "v.static_type_prefix_volatile");
+    voidc_visitor_function_dict_set(vis, vis, q("v.op_prefix_const"),    v_static_type_t, "v.static_type_prefix_const");
+    voidc_visitor_function_dict_set(vis, vis, q("v.op_prefix_volatile"), v_static_type_t, "v.static_type_prefix_volatile");
 
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_const"),    static_type_prefix_cv_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_volatile"), static_type_prefix_cv_intrinsic, 0);
 
-    voidc_visitor_set_void_method(vis, vis, q("expr_call"), compile_expr_call, 0);
+    voidc_visitor_set_void_method(vis, vis, expr_call_q, compile_expr_call, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v.op_postfix_index"), op_postfix_index_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q_op_postfix_index, op_postfix_index_intrinsic, 0);
 
-    voidc_visitor_function_dict_set(vis, vis, q("op_postfix_index"), v_static_type_t, "v.static_type_postfix_index");
+    voidc_visitor_function_dict_set(vis, vis, q_op_postfix_index, v_static_type_t, "v.static_type_postfix_index");
 
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_postfix_index"), static_type_postfix_index_intrinsic, 0);
 }
