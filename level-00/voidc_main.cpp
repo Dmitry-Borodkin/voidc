@@ -200,6 +200,14 @@ my_fopen(const fs::path &fpath, bool write=false)
 
 }
 
+static inline
+void
+my_fread(void* buf, std::size_t sz, std::size_t cn, std::FILE* f)
+{
+    if (std::fread(buf, sz, cn, f))
+    ;                                   //- WTF ?!?!?!?!?!?
+}
+
 
 //--------------------------------------------------------------------
 static
@@ -270,7 +278,7 @@ check_import_state(const fs::path &src_filename)
 
     std::memset(buf.get(), 0, buf_len);
 
-    std::fread(buf.get(), buf_len, 1, infs);
+    my_fread(buf.get(), buf_len, 1, infs);
 
     if (std::strcmp(magic, buf.get()) != 0)
     {
@@ -283,7 +291,7 @@ check_import_state(const fs::path &src_filename)
 
     //- Now, check for imports ...
 
-    std::fread(buf.get(), sizeof(size_t), 1, infs);
+    my_fread(buf.get(), sizeof(size_t), 1, infs);
 
     std::fseek(infs, *((size_t *)buf.get()), SEEK_SET);
 
@@ -293,7 +301,7 @@ check_import_state(const fs::path &src_filename)
     {
         size_t len;
 
-        std::fread(&len, sizeof(len), 1, infs);
+        my_fread(&len, sizeof(len), 1, infs);
 
         if (std::feof(infs))  break;        //- WTF ?!?!?
 
@@ -306,7 +314,7 @@ check_import_state(const fs::path &src_filename)
             buf_len = len;
         }
 
-        std::fread(buf.get(), len, 1, infs);
+        my_fread(buf.get(), len, 1, infs);
 
         std::string name(buf.get(), len);
 
@@ -505,7 +513,7 @@ v_import_helper(const char *name, bool _export)
 
         std::memset(buf.get(), 0, buf_len);
 
-        std::fread(buf.get(), buf_len, 1, infs);
+        my_fread(buf.get(), buf_len, 1, infs);
 
         assert(std::strcmp(magic, buf.get()) == 0);
 
@@ -519,7 +527,7 @@ v_import_helper(const char *name, bool _export)
         {
             size_t len;
 
-            std::fread(&len, sizeof(len), 1, infs);
+            my_fread(&len, sizeof(len), 1, infs);
 
             if (std::feof(infs))  break;        //- WTF ?!?!?
 
@@ -532,7 +540,7 @@ v_import_helper(const char *name, bool _export)
                 buf_len = len;
             }
 
-            std::fread(buf.get(), len, 1, infs);
+            my_fread(buf.get(), len, 1, infs);
 
             lctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
 
