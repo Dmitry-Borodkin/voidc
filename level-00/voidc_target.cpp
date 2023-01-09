@@ -106,13 +106,18 @@ base_global_ctx_t::verify_module(LLVMModuleRef module)
 
 
 //---------------------------------------------------------------------
+static v_quark_t llvm_stacksave_q;
+static v_quark_t llvm_stackrestore_q;
+
+
+//---------------------------------------------------------------------
 void
 base_global_ctx_t::initialize(void)
 {
     assert(voidc_global_ctx_t::voidc);
 
     //-----------------------------------------------------------------
-    auto q = v_quark_from_string;
+    auto q = v_quark_from_string;               //- ?!?!?!?!?!?!?!?
 
     //-----------------------------------------------------------------
 #define DEF(name) \
@@ -153,8 +158,8 @@ base_global_ctx_t::initialize(void)
     auto stacksave_ft    = make_function_type(i8_ptr_type, nullptr, 0, false);
     auto stackrestore_ft = make_function_type(void_type, &i8_ptr_type, 1, false);
 
-    decls.symbols_insert({q("llvm.stacksave"),    stacksave_ft});
-    decls.symbols_insert({q("llvm.stackrestore"), stackrestore_ft});
+    decls.symbols_insert({llvm_stacksave_q,    stacksave_ft});
+    decls.symbols_insert({llvm_stackrestore_q, stackrestore_ft});
 }
 
 
@@ -668,9 +673,6 @@ base_local_ctx_t::pop_variables(void)
 //---------------------------------------------------------------------
 using temporaries_stack_t = std::forward_list<std::pair<LLVMValueRef, base_compile_ctx_t::cleaners_t>>;
 
-static v_quark_t llvm_stacksave_q;
-static v_quark_t llvm_stackrestore_q;
-
 static void
 initialize_temporaries_stack_front(base_local_ctx_t &lctx, temporaries_stack_t &temporaries_stack)
 {
@@ -941,6 +943,8 @@ voidc_global_ctx_t::initialize_type(v_quark_t raw_name, v_type_t *type)
 //---------------------------------------------------------------------
 static char *voidc_triple = nullptr;
 
+static v_quark_t voidc_object_file_load_to_jit_internal_helper_q;
+
 //---------------------------------------------------------------------
 void
 voidc_global_ctx_t::static_initialize(void)
@@ -1046,6 +1050,8 @@ voidc_global_ctx_t::static_initialize(void)
 #undef DEF
 
     //-------------------------------------------------------------
+    voidc_object_file_load_to_jit_internal_helper_q = q("voidc_object_file_load_to_jit_internal_helper");
+
     {   v_type_t *typ[3];
 
         typ[0] = voidc->char_ptr_type;
@@ -1054,7 +1060,7 @@ voidc_global_ctx_t::static_initialize(void)
 
         auto ft = voidc->make_function_type(voidc->void_type, typ, 3, false);
 
-        voidc->decls.symbols_insert({q("voidc_object_file_load_to_jit_internal_helper"), ft});
+        voidc->decls.symbols_insert({voidc_object_file_load_to_jit_internal_helper_q, ft});
     }
 
     //-------------------------------------------------------------
@@ -1765,7 +1771,11 @@ v_find_constant_value_q(v_quark_t qname)
 bool
 v_find_constant(const char *raw_name, v_type_t **type, LLVMValueRef *value)
 {
-    return  v_find_constant_q(v_quark_from_string(raw_name), type, value);
+    auto qname = v_quark_try_string(raw_name);
+
+    if (!qname)  return false;
+
+    return  v_find_constant_q(qname, type, value);
 }
 
 v_type_t *
@@ -1956,7 +1966,7 @@ voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local,
     v_type_t    *t;
     LLVMValueRef f;
 
-    lctx.obtain_identifier(v_quark_from_string("voidc_object_file_load_to_jit_internal_helper"), t, f);
+    lctx.obtain_identifier(voidc_object_file_load_to_jit_internal_helper_q, t, f);
     assert(f);
 
     val[0] = membuf_const_ptr;
@@ -2162,7 +2172,11 @@ v_obtain_identifier_q(v_quark_t qname, v_type_t * *type, LLVMValueRef *value)
 bool
 v_obtain_identifier(const char *name, v_type_t * *type, LLVMValueRef *value)
 {
-    return  v_obtain_identifier_q(v_quark_from_string(name), type, value);
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return false;
+
+    return  v_obtain_identifier_q(qname, type, value);
 }
 
 //---------------------------------------------------------------------
@@ -2294,7 +2308,11 @@ v_get_variable_value_q(v_quark_t qname)
 bool
 v_get_variable(const char *name, v_type_t **type, LLVMValueRef *value)
 {
-    return  v_get_variable_q(v_quark_from_string(name), type, value);
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return false;
+
+    return  v_get_variable_q(qname, type, value);
 }
 
 v_type_t *
@@ -2493,7 +2511,11 @@ v_find_symbol_type_q(v_quark_t qname)
 v_type_t *
 v_find_symbol_type(const char *raw_name)
 {
-    return v_find_symbol_type_q(v_quark_from_string(raw_name));
+    auto qname = v_quark_try_string(raw_name);
+
+    if (!qname)  return nullptr;
+
+    return v_find_symbol_type_q(qname);
 }
 
 //---------------------------------------------------------------------
@@ -2509,7 +2531,11 @@ v_find_symbol_value_q(v_quark_t qname)
 void *
 v_find_symbol_value(const char *raw_name)
 {
-    return v_find_symbol_value_q(v_quark_from_string(raw_name));
+    auto qname = v_quark_try_string(raw_name);
+
+    if (!qname)  return nullptr;
+
+    return v_find_symbol_value_q(qname);
 }
 
 //---------------------------------------------------------------------
@@ -2536,7 +2562,11 @@ v_find_type_q(v_quark_t qname)
 v_type_t *
 v_find_type(const char *name)
 {
-    return v_find_type_q(v_quark_from_string(name));
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return nullptr;
+
+    return v_find_type_q(qname);
 }
 
 
@@ -2628,7 +2658,11 @@ v_get_intrinsic_q(v_quark_t qname, void **aux)
 void *
 v_get_intrinsic(const char *name, void **aux)
 {
-    return v_get_intrinsic_q(v_quark_from_string(name), aux);
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return nullptr;
+
+    return v_get_intrinsic_q(qname, aux);
 }
 
 

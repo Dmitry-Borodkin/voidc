@@ -187,7 +187,11 @@ v_peg_make_grammar(grammar_t *ret)
 const parser_t *
 v_peg_grammar_get_parser(const grammar_t *ptr, const char *name, int *leftrec)
 {
-    if (auto *pair = (*ptr)->parsers.find(v_quark_from_string(name)))
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return nullptr;
+
+    if (auto *pair = (*ptr)->parsers.find(qname))
     {
         if (leftrec)  *leftrec = pair->second;
 
@@ -220,7 +224,11 @@ v_peg_grammar_erase_parser(grammar_t *dst, const grammar_t *src, const char *nam
 grammar_action_fun_t
 v_peg_grammar_get_action(const grammar_t *ptr, const char *name)
 {
-    if (auto *fun = (*ptr)->actions.find(v_quark_from_string(name)))
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return nullptr;
+
+    if (auto *fun = (*ptr)->actions.find(qname))
     {
         return *fun;
     }
@@ -251,7 +259,11 @@ v_peg_grammar_erase_action(grammar_t *dst, const grammar_t *src, const char *nam
 const std::any *
 v_peg_grammar_get_value(const grammar_t *ptr, const char *name)
 {
-    return (*ptr)->values.find(v_quark_from_string(name));
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return nullptr;
+
+    return (*ptr)->values.find(qname);
 }
 
 void
