@@ -973,7 +973,7 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
-    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
     LLVMBuildBr(builder, leave_b);
@@ -1020,7 +1020,7 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b);
 
-    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
     LLVMBuildBr(builder, leave_b);

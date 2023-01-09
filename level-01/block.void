@@ -19,6 +19,14 @@
 
 //---------------------------------------------------------------------
 {   v_add_type("void_ptr", v_pointer_type(void, 0));
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("voidc_internal_branch_target_break_variable_q", q_ref, q("voidc.internal_branch_target_break_variable"));
+    v_add_symbol("voidc_internal_branch_target_break_q",          q_ref, q("voidc.internal_branch_target_break"));
+    v_add_symbol("voidc_internal_branch_target_leave_q",          q_ref, q("voidc.internal_branch_target_leave"));
 }
 
 //---------------------------------------------------------------------
@@ -278,8 +286,8 @@
     v_add_parameter_name(f, 3, "break_addr", LLVMValueRef);
 }
 {
-    v_add_variable("voidc.internal_branch_target_break_variable", 0, break_var);
-    v_add_variable("voidc.internal_branch_target_break",          0, break_addr);
+    v_add_variable_q(voidc_internal_branch_target_break_variable_q, 0, break_var);
+    v_add_variable_q(voidc_internal_branch_target_break_q,          0, break_addr);
 
     base_ast = v_cast(stmt_list, v_ast_base_ptr);
 
@@ -309,7 +317,7 @@
 
     LLVMBuildStore(builder, break_addr, block_var);
 
-    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
     LLVMBuildBr(builder, leave_b);
@@ -361,7 +369,7 @@
 
     blk_leave_var_v = LLVMBuildAlloca(builder, i8_ptr_, "blk_leave_var_v");
 
-    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
     cur_f = LLVMGetBasicBlockParent(leave_b);
@@ -374,7 +382,7 @@
     blk_leave_b  = LLVMAppendBasicBlock(cur_f, "blk_leave_b");
     blk_leave_bv = LLVMBasicBlockAsValue(blk_leave_b);
 
-    v_add_variable("voidc.internal_branch_target_leave", 0, blk_leave_bv);      //- Sic!
+    v_add_variable_q(voidc_internal_branch_target_leave_q, 0, blk_leave_bv);        //- Sic!
 
 
     blk_exit_b = LLVMAppendBasicBlock(cur_f, "blk_exit_b");
@@ -442,8 +450,8 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 }
 {
-    break_var  = v_get_variable_value("voidc.internal_branch_target_break_variable");
-    break_addr = v_get_variable_value("voidc.internal_branch_target_break");
+    break_var  = v_get_variable_value_q(voidc_internal_branch_target_break_variable_q);
+    break_addr = v_get_variable_value_q(voidc_internal_branch_target_break_q);
 
     voidc_intrinsic_break_helper(break_var, break_addr);
 }

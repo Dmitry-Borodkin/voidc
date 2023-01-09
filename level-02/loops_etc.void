@@ -28,6 +28,13 @@
 
     v_add_symbol("nil_q",  q_ref, q(""));
     v_add_symbol("true_q", q_ref, q("true"));
+
+    v_add_symbol("e_break_for_var_q", q_ref, q("voidc.internal_branch_target_break_for_variable"));
+    v_add_symbol("e_break_for_q",     q_ref, q("voidc.internal_branch_target_break_for"));
+    v_add_symbol("e_break_var_q",     q_ref, q("voidc.internal_branch_target_break_variable"));
+    v_add_symbol("e_break_q",         q_ref, q("voidc.internal_branch_target_break"));
+    v_add_symbol("e_continue_var_q",  q_ref, q("voidc.internal_branch_target_continue_variable"));
+    v_add_symbol("e_continue_q",      q_ref, q("voidc.internal_branch_target_continue"));
 }
 
 
@@ -132,13 +139,15 @@ v_internal_copy_variable_intrinsic: (vis: voidc_visitor_ptr, *void,
     expr0 = v_list_get_item(args, 0);
     expr1 = v_list_get_item(args, 1);
 
-    name_dst = v_ast_expr_string_get_string(expr0);
-    name_src = v_ast_expr_string_get_string(expr1);
+    qname_dst = v_ast_expr_identifier_get_name_q(expr0);
+    qname_src = v_ast_expr_identifier_get_name_q(expr1);
 
-    src_type  = v_get_variable_type(name_src);
-    src_value = v_get_variable_value(name_src);
+    src_type:  &*v_type_t    := v_undef();
+    src_value: &LLVMValueRef := v_undef();
 
-    v_add_variable(name_dst, src_type, src_value);
+    v_get_variable_q(qname_src, &src_type, &src_value);
+
+    v_add_variable_q(qname_dst, src_type, src_value);
 }
 
 //---------------------------------------------------------------------
@@ -153,28 +162,28 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     //-
     //-     loop
     //-     {
-    //-         v.internal.copy_variable("voidc.internal_branch_target_break_for_variable",
-    //-                                  "voidc.internal_branch_target_break_variable");
+    //-         v.internal.copy_variable(voidc.internal_branch_target_break_for_variable,
+    //-                                  voidc.internal_branch_target_break_variable);
     //-
-    //-         v.internal.copy_variable("voidc.internal_branch_target_break_for",
-    //-                                  "voidc.internal_branch_target_break");
+    //-         v.internal.copy_variable(voidc.internal_branch_target_break_for,
+    //-                                  voidc.internal_branch_target_break);
     //-
     //-         <cond>...
     //-
     //-         if (<cond>)     //- Kinda...
     //-         block
     //-         {
-    //-             v.internal.copy_variable("voidc.internal_branch_target_continue_variable",
-    //-                                      "voidc.internal_branch_target_break_variable");
+    //-             v.internal.copy_variable(voidc.internal_branch_target_continue_variable,
+    //-                                      voidc.internal_branch_target_break_variable);
     //-
-    //-             v.internal.copy_variable("voidc.internal_branch_target_continue",
-    //-                                      "voidc.internal_branch_target_break");
+    //-             v.internal.copy_variable(voidc.internal_branch_target_continue,
+    //-                                      voidc.internal_branch_target_break);
     //-
-    //-             v.internal.copy_variable("voidc.internal_branch_target_break_variable",
-    //-                                      "voidc.internal_branch_target_break_for_variable");
+    //-             v.internal.copy_variable(voidc.internal_branch_target_break_variable,
+    //-                                      voidc.internal_branch_target_break_for_variable);
     //-
-    //-             v.internal.copy_variable("voidc.internal_branch_target_break",
-    //-                                      "voidc.internal_branch_target_break_for");
+    //-             v.internal.copy_variable(voidc.internal_branch_target_break,
+    //-                                      voidc.internal_branch_target_break_for);
     //-
     //-             <stmt>
     //-         }
@@ -196,12 +205,12 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> 
     e_continue      = etmp+7;
     e_cond          = etmp+8;
 
-    v_ast_make_expr_string(e_break_for_var, "voidc.internal_branch_target_break_for_variable");
-    v_ast_make_expr_string(e_break_for,     "voidc.internal_branch_target_break_for");
-    v_ast_make_expr_string(e_break_var,     "voidc.internal_branch_target_break_variable");
-    v_ast_make_expr_string(e_break,         "voidc.internal_branch_target_break");
-    v_ast_make_expr_string(e_continue_var,  "voidc.internal_branch_target_continue_variable");
-    v_ast_make_expr_string(e_continue,      "voidc.internal_branch_target_continue");
+    v_ast_make_expr_identifier_q(e_break_for_var, e_break_for_var_q);
+    v_ast_make_expr_identifier_q(e_break_for,     e_break_for_q);
+    v_ast_make_expr_identifier_q(e_break_var,     e_break_var_q);
+    v_ast_make_expr_identifier_q(e_break,         e_break_q);
+    v_ast_make_expr_identifier_q(e_continue_var,  e_continue_var_q);
+    v_ast_make_expr_identifier_q(e_continue,      e_continue_q);
 
 
     init_len = v_list_get_size(init);

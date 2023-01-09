@@ -20,6 +20,12 @@
 
 //---------------------------------------------------------------------
 {   v_add_type("void_ptr", v_pointer_type(void, 0));
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("voidc_internal_branch_target_leave_q", q_ref, q("voidc.internal_branch_target_leave"));
 }
 
 //---------------------------------------------------------------------
@@ -250,13 +256,13 @@
     v_ast_accept_visitor(base_ast, visitor);
 
 
-    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
     LLVMBuildBr(builder, leave_b);
 
 
-    v_add_variable("voidc.internal_branch_target_leave", 0, defer_bv);      //- Sic!
+    v_add_variable_q(voidc_internal_branch_target_leave_q, 0, defer_bv);        //- Sic!
 
 
     v_restore_builder_ip();

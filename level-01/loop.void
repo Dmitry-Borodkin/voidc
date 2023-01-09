@@ -21,6 +21,16 @@
 
 //---------------------------------------------------------------------
 {   v_add_type("void_ptr", v_pointer_type(void, 0));
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("voidc_internal_branch_target_leave_q",             q_ref, q("voidc.internal_branch_target_leave"));
+    v_add_symbol("voidc_internal_branch_target_continue_variable_q", q_ref, q("voidc.internal_branch_target_continue_variable"));
+    v_add_symbol("voidc_internal_branch_target_continue_q",          q_ref, q("voidc.internal_branch_target_continue"));
+    v_add_symbol("voidc_internal_branch_target_break_variable_q",    q_ref, q("voidc.internal_branch_target_break_variable"));
+    v_add_symbol("voidc_internal_branch_target_break_q",             q_ref, q("voidc.internal_branch_target_break"));
 }
 
 //---------------------------------------------------------------------
@@ -265,7 +275,7 @@
 
     loop_leave_var_v = LLVMBuildAlloca(builder, i8_ptr_, "loop_leave_var_v");
 
-    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
     leave_b_addr = LLVMBlockAddress(cur_f, leave_b);
@@ -276,16 +286,16 @@
     loop_leave_b  = LLVMAppendBasicBlock(cur_f, "loop_leave_b");
     loop_leave_bv = LLVMBasicBlockAsValue(loop_leave_b);
 
-    v_add_variable("voidc.internal_branch_target_leave", 0, loop_leave_bv);     //- Sic!
+    v_add_variable_q(voidc_internal_branch_target_leave_q, 0, loop_leave_bv);       //- Sic!
 
 
     loop_start_b_addr = LLVMBlockAddress(cur_f, loop_start_b);
     loop_stop_b_addr  = LLVMBlockAddress(cur_f, loop_stop_b);
 
-    v_add_variable("voidc.internal_branch_target_continue_variable", 0, loop_leave_var_v);
-    v_add_variable("voidc.internal_branch_target_continue",          0, loop_start_b_addr);
-    v_add_variable("voidc.internal_branch_target_break_variable",    0, loop_leave_var_v);
-    v_add_variable("voidc.internal_branch_target_break",             0, loop_stop_b_addr);
+    v_add_variable_q(voidc_internal_branch_target_continue_variable_q, 0, loop_leave_var_v);
+    v_add_variable_q(voidc_internal_branch_target_continue_q,          0, loop_start_b_addr);
+    v_add_variable_q(voidc_internal_branch_target_break_variable_q,    0, loop_leave_var_v);
+    v_add_variable_q(voidc_internal_branch_target_break_q,             0, loop_stop_b_addr);
 
 
     base_ast = v_cast(stmt, v_ast_base_ptr);
@@ -352,8 +362,8 @@
 {
     builder = v_target_get_builder();
 
-    cont_var  = v_get_variable_value("voidc.internal_branch_target_continue_variable");
-    cont_addr = v_get_variable_value("voidc.internal_branch_target_continue");
+    cont_var  = v_get_variable_value_q(voidc_internal_branch_target_continue_variable_q);
+    cont_addr = v_get_variable_value_q(voidc_internal_branch_target_continue_q);
 
     voidc_intrinsic_break_helper(cont_var, cont_addr);
 }

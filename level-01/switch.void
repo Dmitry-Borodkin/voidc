@@ -26,6 +26,14 @@
 
 //---------------------------------------------------------------------
 {   v_add_type("void_ptr", v_pointer_type(void, 0));
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("voidc_internal_branch_target_leave_q",          q_ref, q("voidc.internal_branch_target_leave"));
+    v_add_symbol("voidc_internal_branch_target_break_variable_q", q_ref, q("voidc.internal_branch_target_break_variable"));
+    v_add_symbol("voidc_internal_branch_target_break_q",          q_ref, q("voidc.internal_branch_target_break"));
 }
 
 //---------------------------------------------------------------------
@@ -562,7 +570,7 @@
 
     switch_leave_var_v = LLVMBuildAlloca(builder, i8_ptr_, "switch_leave_var_v");
 
-    leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     leave_b  = LLVMValueAsBasicBlock(leave_bv);
 
     cur_f = LLVMGetBasicBlockParent(leave_b);
@@ -575,7 +583,7 @@
     switch_leave_b  = LLVMAppendBasicBlock(cur_f, "switch_leave_b");
     switch_leave_bv = LLVMBasicBlockAsValue(switch_leave_b);
 
-    v_add_variable("voidc.internal_branch_target_leave", 0, switch_leave_bv);       //- Sic!
+    v_add_variable_q(voidc_internal_branch_target_leave_q, 0, switch_leave_bv);         //- Sic!
 
 
     switch_exit_b = LLVMAppendBasicBlock(cur_f, "switch_exit_b");
@@ -583,8 +591,8 @@
     switch_exit_b_addr = LLVMBlockAddress(cur_f, switch_exit_b);
 
 
-    v_add_variable("voidc.internal_branch_target_break_variable", 0, switch_leave_var_v);
-    v_add_variable("voidc.internal_branch_target_break",          0, switch_exit_b_addr);
+    v_add_variable_q(voidc_internal_branch_target_break_variable_q, 0, switch_leave_var_v);
+    v_add_variable_q(voidc_internal_branch_target_break_q,          0, switch_exit_b_addr);
 
 
     //- Generate llvm's switch statement...
