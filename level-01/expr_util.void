@@ -185,8 +185,8 @@
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    init_f = v_obtain_function("voidc_ast_operator_unary_init");
-    term_f = v_obtain_function("voidc_ast_operator_unary_term");
+    init_f = v_obtain_function("voidc_ast_operator_unary_init", 0);
+    term_f = v_obtain_function("voidc_ast_operator_unary_term", 0);
 
     v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 
@@ -310,8 +310,8 @@
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    init_f = v_obtain_function("voidc_ast_operator_binary_init");
-    term_f = v_obtain_function("voidc_ast_operator_binary_term");
+    init_f = v_obtain_function("voidc_ast_operator_binary_init", 0);
+    term_f = v_obtain_function("voidc_ast_operator_binary_term", 0);
 
     v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 

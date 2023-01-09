@@ -1742,6 +1742,26 @@ v_find_constant_q(v_quark_t qname, v_type_t **type, LLVMValueRef *value)
     return bool(t);
 }
 
+v_type_t *
+v_find_constant_type_q(v_quark_t qname)
+{
+    v_type_t *t = nullptr;
+
+    v_find_constant_q(qname, &t, nullptr);
+
+    return t;
+}
+
+LLVMValueRef
+v_find_constant_value_q(v_quark_t qname)
+{
+    LLVMValueRef v = nullptr;
+
+    v_find_constant_q(qname, nullptr, &v);
+
+    return v;
+}
+
 bool
 v_find_constant(const char *raw_name, v_type_t **type, LLVMValueRef *value)
 {
@@ -2249,6 +2269,26 @@ v_get_variable_q(v_quark_t qname, v_type_t **type, LLVMValueRef *value)
     }
 
     return false;
+}
+
+v_type_t *
+v_get_variable_type_q(v_quark_t qname)
+{
+    v_type_t *t = nullptr;
+
+    v_get_variable_q(qname, &t, nullptr);
+
+    return t;
+}
+
+LLVMValueRef
+v_get_variable_value_q(v_quark_t qname)
+{
+    LLVMValueRef v = nullptr;
+
+    v_get_variable_q(qname, nullptr, &v);
+
+    return v;
 }
 
 bool

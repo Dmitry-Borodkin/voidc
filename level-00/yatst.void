@@ -119,15 +119,17 @@
     val2 = v_getelementptr(val0, 2);
     val3 = v_getelementptr(val0, 3);
 
+    lltyp = v_alloca(LLVMTypeRef);
 
-    init_f = v_obtain_function("init_f");
+
+    init_f = v_obtain_function("init_f", lltyp);
     LLVMSetLinkage(init_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(init_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    printf_ft_ = v_type_get_llvm_type(v_find_symbol_type("printf"));
-    printf_f   = v_obtain_function("printf");
+    printf_f   = v_obtain_function("printf", lltyp);
+    printf_ft_ = v_load(lltyp);
 
     str = LLVMBuildGlobalStringPtr(builder, "init!\n", "str");
 
@@ -138,13 +140,13 @@
     LLVMBuildRetVoid(builder);
 
 
-    term_f = v_obtain_function("term_f");
+    term_f = v_obtain_function("term_f", lltyp);
     LLVMSetLinkage(term_f, LLVMPrivateLinkage);
 
     entry = LLVMAppendBasicBlock(term_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    printf_f = v_obtain_function("printf");
+    printf_f = v_obtain_function("printf", lltyp);
 
     str = LLVMBuildGlobalStringPtr(builder, "term!\n", "str");
 
@@ -172,7 +174,7 @@
 
     vtable_v = LLVMConstNamedStruct(v_ast_generic_vtable_, val0, 3);
 
-    vtable_g = v_obtain_global("vtable_g");
+    vtable_g = v_obtain_global("vtable_g", lltyp);
 
     LLVMSetInitializer(vtable_g, vtable_v);
 

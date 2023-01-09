@@ -119,8 +119,8 @@
 
     val = v_alloca(LLVMValueRef, 3);
 
-    init_f   = v_obtain_function("voidc_ast_stmt_defer_init");
-    term_f   = v_obtain_function("voidc_ast_stmt_defer_term");
+    init_f   = v_obtain_function("voidc_ast_stmt_defer_init", 0);
+    term_f   = v_obtain_function("voidc_ast_stmt_defer_term", 0);
     quark_u  = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
 
     val[0] := init_f;

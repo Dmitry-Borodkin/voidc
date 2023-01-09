@@ -390,8 +390,10 @@
     case v_type_kind_svector:   fn := "v_svector_type";     v_break();
     }
 
-    ft_ = v_type_get_llvm_type(v_find_symbol_type(fn));
-    f   = v_obtain_function(fn);
+    lltyp = v_alloca(LLVMTypeRef);
+
+    f   = v_obtain_function(fn, lltyp);
+    ft_ = v_load(lltyp);
 
     builder = v_target_get_builder();
 
@@ -519,8 +521,8 @@
             {
                 name_v = LLVMBuildGlobalStringPtr(builder, name, "");
 
-                struct_type_named_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_struct_type_named"));
-                struct_type_named_f   = v_obtain_function("v_struct_type_named");
+                struct_type_named_f   = v_obtain_function("v_struct_type_named", lltyp);
+                struct_type_named_ft_ = v_load(lltyp);
 
                 ret := LLVMBuildCall2(builder, struct_type_named_ft_, struct_type_named_f, &name_v, 1, "");
 
@@ -597,8 +599,8 @@
                     val[2] := count_v;
                     val[3] := packed_v;
 
-                    set_body_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_type_struct_set_body"));
-                    set_body_f   = v_obtain_function("v_type_struct_set_body");
+                    set_body_f   = v_obtain_function("v_type_struct_set_body", lltyp);
+                    set_body_ft_ = v_load(lltyp);
 
                     LLVMBuildCall2(builder, set_body_ft_, set_body_f, val, 4, "");
                 }

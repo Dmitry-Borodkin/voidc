@@ -32,17 +32,19 @@
 
     bool_ = v_type_get_llvm_type(bool);
 
+    lltyp = v_alloca(LLVMTypeRef);
+
     builder = v_target_get_voidc_builder();
 
-    my_echo_f = v_obtain_function("my_echo_grammar_action");
+    my_echo_f = v_obtain_function("my_echo_grammar_action", lltyp);
 
     entry = LLVMAppendBasicBlock(my_echo_f, "entry");
 
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    get_string_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_util_std_any_get_pointer_std_string_impl"));
-    get_string_f   = v_obtain_function("v_util_std_any_get_pointer_std_string_impl");
+    get_string_f   = v_obtain_function("v_util_std_any_get_pointer_std_string_impl", lltyp);
+    get_string_ft_ = v_load(lltyp);
 
     par1 = LLVMGetParam(my_echo_f, 1);
 
@@ -54,16 +56,16 @@
     pstr = LLVMBuildCall2(builder, get_string_ft_, get_string_f, val0, 1, "pstr");
 
 
-    get_c_str_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_std_string_get"));
-    get_c_str_f   = v_obtain_function("v_std_string_get");
+    get_c_str_f   = v_obtain_function("v_std_string_get", lltyp);
+    get_c_str_ft_ = v_load(lltyp);
 
     v_store(pstr, val0);
 
     str = LLVMBuildCall2(builder, get_c_str_ft_, get_c_str_f, val0, 1, "str");
 
 
-    printf_ft_ = v_type_get_llvm_type(v_find_symbol_type("printf"));
-    printf_f   = v_obtain_function("printf");
+    printf_f   = v_obtain_function("printf", lltyp);
+    printf_ft_ = v_load(lltyp);
 
     str0 = LLVMBuildGlobalStringPtr(builder, "my_echo: %s", "str0");
 
@@ -73,8 +75,8 @@
     LLVMBuildCall2(builder, printf_ft_, printf_f, val0, 2, "");
 
 
-    set_value_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_util_std_any_set_value_bool_impl"));
-    set_value_f   = v_obtain_function("v_util_std_any_set_value_bool_impl");
+    set_value_f   = v_obtain_function("v_util_std_any_set_value_bool_impl", lltyp);
+    set_value_ft_ = v_load(lltyp);
 
     par0 = LLVMGetParam(my_echo_f, 0);
 

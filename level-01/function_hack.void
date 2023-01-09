@@ -20,11 +20,19 @@
     v_add_type("void_ptr", v_pointer_type(void, 0));
 }
 
-{    void_ptr_ = v_type_get_llvm_type(void_ptr);
+{   void_ptr_ = v_type_get_llvm_type(void_ptr);
 
     llvm_opaque_type = v_type_refptr_get_element_type(LLVMTypeRef);
 
     v_add_symbol("void_ptr_", llvm_opaque_type, void_ptr_);
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("voidc_internal_return_type_q",         q_ref, q("voidc.internal_return_type"));
+    v_add_symbol("voidc_internal_return_value_q",        q_ref, q("voidc.internal_return_value"));
+    v_add_symbol("voidc_internal_branch_target_leave_q", q_ref, q("voidc.internal_branch_target_leave"));
 }
 
 
@@ -69,6 +77,8 @@
     bool_ = v_type_get_llvm_type(bool);
 
     false_ = LLVMConstInt(bool_, 0, 0);
+
+    lltyp = v_alloca(LLVMTypeRef);
 
 
     //-----------------------------------------------------------------
@@ -135,7 +145,7 @@
     //-     voidc_unit_load_local_module_to_jit(fun_module, false);
     //- }
     //-----------------------------------------------------------------
-    method_f = v_obtain_function("voidc_function_hack_visitor_method");
+    method_f = v_obtain_function("voidc_function_hack_visitor_method", 0);
     LLVMSetLinkage(method_f, LLVMPrivateLinkage);
 
     visitor = LLVMGetParam(method_f, 0);
@@ -152,8 +162,8 @@
 
     v_store(unit, val0);
 
-    get_stmt_list_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_unit_get_stmt_list"));
-    get_stmt_list_f   = v_obtain_function("v_ast_unit_get_stmt_list");
+    get_stmt_list_f   = v_obtain_function("v_ast_unit_get_stmt_list", lltyp);
+    get_stmt_list_ft_ = v_load(lltyp);
 
     stmt_list = LLVMBuildCall2(builder, get_stmt_list_ft_, get_stmt_list_f, val0, 1, "stmt_list");
 
@@ -165,26 +175,26 @@
     v_store(base_ast, val0);
     v_store(visitor,  val1);
 
-    accept_visitor_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_accept_visitor"));
-    accept_visitor_f   = v_obtain_function("v_ast_accept_visitor");
+    accept_visitor_f   = v_obtain_function("v_ast_accept_visitor", lltyp);
+    accept_visitor_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, accept_visitor_ft_, accept_visitor_f, val0, 2, "");
 
 
-    finish_function_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_finish_function"));
-    finish_function_f   = v_obtain_function("v_finish_function");
+    finish_function_f   = v_obtain_function("v_finish_function", lltyp);
+    finish_function_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, finish_function_ft_, finish_function_f, val0, 0, "");
 
 
-    get_module_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_get_module"));
-    get_module_f   = v_obtain_function("v_get_module");
+    get_module_f   = v_obtain_function("v_get_module", lltyp);
+    get_module_ft_ = v_load(lltyp);
 
     fun_module_v = LLVMBuildCall2(builder, get_module_ft_, get_module_f, 0, 0, "fun_module_v");
 
 
-    verify_module_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_verify_module"));
-    verify_module_f   = v_obtain_function("v_verify_module");
+    verify_module_f   = v_obtain_function("v_verify_module", lltyp);
+    verify_module_ft_ = v_load(lltyp);
 
     v_store(fun_module_v, val0);
 
@@ -195,20 +205,20 @@
 
     v_store(old_module_v, val0);
 
-    set_module_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_set_module"));
-    set_module_f = v_obtain_function("v_set_module");
+    set_module_f   = v_obtain_function("v_set_module", lltyp);
+    set_module_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, set_module_ft_, set_module_f, val0, 1, "");
 
 
-    voidc_compiler_v = v_obtain_global("voidc_compiler");
+    voidc_compiler_v = v_obtain_global("voidc_compiler", 0);
 
     v_store(voidc_compiler_v, val0);
     v_store(saved_compiler_g, val1);
     v_store(n1,               val2);
 
-    vis_move_ft_ = v_type_get_llvm_type(v_find_symbol_type("voidc_move_visitor_impl"));
-    vis_move_f   = v_obtain_function("voidc_move_visitor_impl");
+    vis_move_f   = v_obtain_function("voidc_move_visitor_impl", lltyp);
+    vis_move_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, vis_move_ft_, vis_move_f, val0, 3, "");
 
@@ -230,8 +240,8 @@
     LLVMPositionBuilderAtEnd(builder, else_b);
 
 
-    load_to_jit_ft_ = v_type_get_llvm_type(v_find_symbol_type("voidc_unit_load_local_module_to_jit"));
-    load_to_jit_f   = v_obtain_function("voidc_unit_load_local_module_to_jit");
+    load_to_jit_f   = v_obtain_function("voidc_unit_load_local_module_to_jit", lltyp);
+    load_to_jit_ft_ = v_load(lltyp);
 
     v_store(fun_module_v, val0);
     v_store(false_,       val1);
@@ -281,7 +291,7 @@
     //-     v_return(fun_value);
     //- }
     //-----------------------------------------------------------------
-    helper_f = v_obtain_function("voidc_function_hack_intrinsic_helper");
+    helper_f = v_obtain_function("voidc_function_hack_intrinsic_helper", 0);
 
     fun_name = LLVMGetParam(helper_f, 0);       //- :char_ptr
     fun_type = LLVMGetParam(helper_f, 1);       //- :v_type_ptr
@@ -296,13 +306,13 @@
     v_store(fun_type, val1);
     v_store(v0,       val2);
 
-    add_sym_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_add_symbol"));
-    add_sym_f   = v_obtain_function("v_add_symbol");
+    add_sym_f   = v_obtain_function("v_add_symbol", lltyp);
+    add_sym_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, add_sym_ft_, add_sym_f, val0, 3, "");
 
-    has_grammar_ft_ = v_type_get_llvm_type(v_find_symbol_type("voidc_has_grammar"));
-    has_grammar_f   = v_obtain_function("voidc_has_grammar");
+    has_grammar_f   = v_obtain_function("voidc_has_grammar", lltyp);
+    has_grammar_ft_ = v_load(lltyp);
 
     ok_v = LLVMBuildCall2(builder, has_grammar_ft_, has_grammar_f, 0, 0, "ok_v");
 
@@ -334,8 +344,8 @@
     LLVMPositionBuilderAtEnd(builder, then_b);
 
 
-    get_llvm_ctx_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_target_get_llvm_ctx"));
-    get_llvm_ctx_f   = v_obtain_function("v_target_get_llvm_ctx");
+    get_llvm_ctx_f   = v_obtain_function("v_target_get_llvm_ctx", lltyp);
+    get_llvm_ctx_ft_ = v_load(lltyp);
 
     llvm_ctx_v = LLVMBuildCall2(builder, get_llvm_ctx_ft_, get_llvm_ctx_f, 0, 0, "llvm_ctx_v");
 
@@ -345,8 +355,8 @@
     v_store(fun_module_n, val0);
     v_store(llvm_ctx_v,   val1);
 
-    llvm_mod_create_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMModuleCreateWithNameInContext"));
-    llvm_mod_create_f   = v_obtain_function("LLVMModuleCreateWithNameInContext");
+    llvm_mod_create_f   = v_obtain_function("LLVMModuleCreateWithNameInContext", lltyp);
+    llvm_mod_create_ft_ = v_load(lltyp);
 
     fun_mod_v = LLVMBuildCall2(builder, llvm_mod_create_ft_, llvm_mod_create_f, val0, 2, "fun_mod_v");
 
@@ -365,8 +375,8 @@
     v_store(fun_name, val0);
     v_store(fun_type, val1);
 
-    prepare_function_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_prepare_function"));
-    prepare_function_f   = v_obtain_function("v_prepare_function");
+    prepare_function_f   = v_obtain_function("v_prepare_function", lltyp);
+    prepare_function_ft_ = v_load(lltyp);
 
     fun_value = LLVMBuildCall2(builder, prepare_function_ft_, prepare_function_f, val0, 2, "fun_value");
 
@@ -374,8 +384,8 @@
     v_store(saved_compiler_g, val0);
     v_store(n1,               val1);
 
-    vis_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("voidc_initialize_visitor_impl"));
-    vis_init_f   = v_obtain_function("voidc_initialize_visitor_impl");
+    vis_init_f   = v_obtain_function("voidc_initialize_visitor_impl", lltyp);
+    vis_init_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, vis_init_ft_, vis_init_f, val0, 2, "");
 
@@ -384,14 +394,14 @@
     v_store(voidc_compiler_v, val1);
     v_store(n1,               val2);
 
-    vis_copy_ft_ = v_type_get_llvm_type(v_find_symbol_type("voidc_copy_visitor_impl"));
-    vis_copy_f   = v_obtain_function("voidc_copy_visitor_impl");
+    vis_copy_f   = v_obtain_function("voidc_copy_visitor_impl", lltyp);
+    vis_copy_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, vis_copy_ft_, vis_copy_f, val0, 3, "");
 
 
+    quark_g  = v_obtain_global("v_ast_unit_visitor_method_tag", 0);
     quark_t_ = v_type_get_llvm_type(v_quark_t);
-    quark_g  = v_obtain_global("v_ast_unit_visitor_method_tag");
 
     quark_v = LLVMBuildLoad2(builder, quark_t_, quark_g, "quark_v");
 
@@ -407,8 +417,8 @@
     v_store(void_method_f,    val3);
     v_store(null_void_ptr_v,  val4);
 
-    set_void_method_ft_ = v_type_get_llvm_type(v_find_symbol_type("voidc_visitor_set_void_method"));
-    set_void_method_f   = v_obtain_function("voidc_visitor_set_void_method");
+    set_void_method_f   = v_obtain_function("voidc_visitor_set_void_method", lltyp);
+    set_void_method_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, set_void_method_ft_, set_void_method_f, val0, 5, "");
 
@@ -457,8 +467,10 @@
     //-     v_store(fun_name, arg0);
     //-     v_store(fun_type, arg1);
     //-
-    //-     helper_ft_ = v_type_get_llvm_type(v_find_symbol_type("voidc_function_hack_intrinsic_helper"));
-    //-     helper_f   = v_obtain_function("voidc_function_hack_intrinsic_helper");
+    //-     lltyp = v_alloca(LLVMTypeRef);
+    //-
+    //-     helper_f   = v_obtain_function("voidc_function_hack_intrinsic_helper", lltyp);
+    //-     helper_ft_ = v_load(lltyp);
     //-
     //-     ret = LLVMBuildCall2(builder, helper_ft_, helper_f, arg0, 2, "");
     //-
@@ -485,7 +497,7 @@
     //-     v_adopt_result(LLVMValueRef, ret);
     //- }
     //-----------------------------------------------------------------
-    intrinsic_f = v_obtain_function("voidc_function_hack_intrinsic");
+    intrinsic_f = v_obtain_function("voidc_function_hack_intrinsic", 0);
 
     visitor = LLVMGetParam(intrinsic_f, 0);
     aux     = LLVMGetParam(intrinsic_f, 1);
@@ -501,20 +513,20 @@
 
     v_store(call, val0);
 
-    get_arg_list_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_expr_call_get_arg_list"));
-    get_arg_list_f   = v_obtain_function("v_ast_expr_call_get_arg_list");
+    get_arg_list_f   = v_obtain_function("v_ast_expr_call_get_arg_list", lltyp);
+    get_arg_list_ft_ = v_load(lltyp);
 
     arg_list = LLVMBuildCall2(builder, get_arg_list_ft_, get_arg_list_f, val0, 1, "arg_list");
 
 
-    get_builder_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_target_get_builder"));
-    get_builder_f   = v_obtain_function("v_target_get_builder");
+    get_builder_f   = v_obtain_function("v_target_get_builder", lltyp);
+    get_builder_ft_ = v_load(lltyp);
 
     builder_v = LLVMBuildCall2(builder, get_builder_ft_, get_builder_f, val0, 0, "builder_v");
 
 
-    get_res_type_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_get_result_type"));
-    get_res_type_f   = v_obtain_function("v_get_result_type");
+    get_res_type_f   = v_obtain_function("v_get_result_type", lltyp);
+    get_res_type_ft_ = v_load(lltyp);
 
     tt_v = LLVMBuildCall2(builder, get_res_type_ft_, get_res_type_f, 0, 0, "tt_v");
 
@@ -522,8 +534,8 @@
     v_store(arg_list, val0);
     v_store(n0,       val1);
 
-    expr_list_get_item_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_list_get_item_expr_list_impl"));
-    expr_list_get_item_f   = v_obtain_function("v_ast_list_get_item_expr_list_impl");
+    expr_list_get_item_f   = v_obtain_function("v_ast_list_get_item_expr_list_impl", lltyp);
+    expr_list_get_item_ft_ = v_load(lltyp);
 
     arg0_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "arg0");
 
@@ -538,12 +550,12 @@
     base_arg = LLVMBuildBitCast(builder, arg0_v, v_ast_base_ptr_, "base_arg");
 
 
-    char_ptr_v = v_obtain_global("char_ptr");
+    char_ptr_v = v_obtain_global("char_ptr", 0);
 
     v_store(char_ptr_v, val0);
 
-    set_res_type_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_set_result_type"));
-    set_res_type_f   = v_obtain_function("v_set_result_type");
+    set_res_type_f   = v_obtain_function("v_set_result_type", lltyp);
+    set_res_type_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, set_res_type_ft_, set_res_type_f, val0, 1, "");
 
@@ -554,13 +566,13 @@
     LLVMBuildCall2(builder, accept_visitor_ft_, accept_visitor_f, val0, 2, "");
 
 
-    get_res_val_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_get_result_value"));
-    get_res_val_f   = v_obtain_function("v_get_result_value");
+    get_res_val_f   = v_obtain_function("v_get_result_value", lltyp);
+    get_res_val_ft_ = v_load(lltyp);
 
     fun_name = LLVMBuildCall2(builder, get_res_val_ft_, get_res_val_f, 0, 0, "fun_name");
 
 
-    type_ptr_v = v_obtain_global("v_type_ptr");
+    type_ptr_v = v_obtain_global("v_type_ptr", 0);
 
     v_store(type_ptr_v, val0);
 
@@ -591,28 +603,23 @@
     LLVMBuildStore(builder, fun_type, arg1);
 
 
+    LLVMTypeRef_ = v_type_get_llvm_type(LLVMTypeRef);
+
+    lltyp_v = LLVMBuildAlloca(builder, LLVMTypeRef_, "lltyp_v");
+
+
     helper_fn = LLVMBuildGlobalStringPtr(builder, "voidc_function_hack_intrinsic_helper", "helper_fn");
 
     v_store(helper_fn, val0);
+    v_store(lltyp_v,   val1);
 
-    find_sym_type_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_find_symbol_type"));
-    find_sym_type_f   = v_obtain_function("v_find_symbol_type");
+    obtain_fun_f   = v_obtain_function("v_obtain_function", lltyp);
+    obtain_fun_ft_ = v_load(lltyp);
 
-    helper_ftv = LLVMBuildCall2(builder, find_sym_type_ft_, find_sym_type_f, val0, 1, "helper_ftv");
+    helper_fv = LLVMBuildCall2(builder, obtain_fun_ft_, obtain_fun_f, val0, 2, "helper_fv");
 
-    v_store(helper_ftv, val0);
 
-    get_llvm_type_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_type_get_llvm_type"));
-    get_llvm_type_f   = v_obtain_function("v_type_get_llvm_type");
-
-    helper_ft_v = LLVMBuildCall2(builder, get_llvm_type_ft_, get_llvm_type_f, val0, 1, "helper_ft_v");
-
-    v_store(helper_fn, val0);
-
-    obtain_fun_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_obtain_function"));
-    obtain_fun_f   = v_obtain_function("v_obtain_function");
-
-    helper_fv = LLVMBuildCall2(builder, obtain_fun_ft_, obtain_fun_f, val0, 1, "helper_fv");
+    helper_ft_v = LLVMBuildLoad2(builder, LLVMTypeRef_, lltyp_v, "helper_ft_v");
 
 
     empty_str = LLVMBuildGlobalStringPtr(builder, "", "empty_str");
@@ -624,8 +631,8 @@
     v_store(n2,          val4);
     v_store(empty_str,   val5);
 
-    llvm_build_call2_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMBuildCall2"));
-    llvm_build_call2_f   = v_obtain_function("LLVMBuildCall2");
+    llvm_build_call2_f   = v_obtain_function("LLVMBuildCall2", lltyp);
+    llvm_build_call2_ft_ = v_load(lltyp);
 
     ret_v = LLVMBuildCall2(builder, llvm_build_call2_ft_, llvm_build_call2_f, val0, 6, "ret_v");
 
@@ -634,28 +641,28 @@
     v_store(ret_v,     val1);
     v_store(empty_str, val2);
 
-    llvm_build_is_null_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMBuildIsNull"));
-    llvm_build_is_null_f   = v_obtain_function("LLVMBuildIsNull");
+    llvm_build_is_null_f   = v_obtain_function("LLVMBuildIsNull", lltyp);
+    llvm_build_is_null_ft_ = v_load(lltyp);
 
     nok_v = LLVMBuildCall2(builder, llvm_build_is_null_ft_, llvm_build_is_null_f, val0, 3, "nok_v");
 
 
 //  v_store(builder_v, val0);
 
-    llvm_get_insert_block_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMGetInsertBlock"));
-    llvm_get_insert_block_f   = v_obtain_function("LLVMGetInsertBlock");
+    llvm_get_insert_block_f   = v_obtain_function("LLVMGetInsertBlock", lltyp);
+    llvm_get_insert_block_ft_ = v_load(lltyp);
 
     cur_b = LLVMBuildCall2(builder, llvm_get_insert_block_ft_, llvm_get_insert_block_f, val0, 1, "cur_b");
 
-    llvm_get_basic_block_parent_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMGetBasicBlockParent"));
-    llvm_get_basic_block_parent_f   = v_obtain_function("LLVMGetBasicBlockParent");
+    llvm_get_basic_block_parent_f   = v_obtain_function("LLVMGetBasicBlockParent", lltyp);
+    llvm_get_basic_block_parent_ft_ = v_load(lltyp);
 
     v_store(cur_b, val0);
 
     cur_fv = LLVMBuildCall2(builder, llvm_get_basic_block_parent_ft_, llvm_get_basic_block_parent_f, val0, 1, "cur_fv");
 
-    llvm_append_basic_block_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMAppendBasicBlock"));
-    llvm_append_basic_block_f   = v_obtain_function("LLVMAppendBasicBlock");
+    llvm_append_basic_block_f   = v_obtain_function("LLVMAppendBasicBlock", lltyp);
+    llvm_append_basic_block_ft_ = v_load(lltyp);
 
     then_b_str = LLVMBuildGlobalStringPtr(builder, "then_b", "then_b_str");
     else_b_str = LLVMBuildGlobalStringPtr(builder, "else_b", "else_b_str");
@@ -671,8 +678,8 @@
     else_bv = LLVMBuildCall2(builder, llvm_append_basic_block_ft_, llvm_append_basic_block_f, val0, 2, "else_bv");
 
 
-    llvm_build_cond_br_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMBuildCondBr"));
-    llvm_build_cond_br_f   = v_obtain_function("LLVMBuildCondBr");
+    llvm_build_cond_br_f   = v_obtain_function("LLVMBuildCondBr", lltyp);
+    llvm_build_cond_br_ft_ = v_load(lltyp);
 
     v_store(builder_v, val0);
     v_store(nok_v,     val1);
@@ -685,13 +692,13 @@
 //  v_store(builder_v, val0);
     v_store(then_bv,   val1);
 
-    llvm_position_builder_at_end_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMPositionBuilderAtEnd"));
-    llvm_position_builder_at_end_f   = v_obtain_function("LLVMPositionBuilderAtEnd");
+    llvm_position_builder_at_end_f   = v_obtain_function("LLVMPositionBuilderAtEnd", lltyp);
+    llvm_position_builder_at_end_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, llvm_position_builder_at_end_ft_, llvm_position_builder_at_end_f, val0, 2, "");
 
-    llvm_build_ret_void_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMBuildRetVoid"));
-    llvm_build_ret_void_f   = v_obtain_function("LLVMBuildRetVoid");
+    llvm_build_ret_void_f   = v_obtain_function("LLVMBuildRetVoid", lltyp);
+    llvm_build_ret_void_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, llvm_build_ret_void_ft_, llvm_build_ret_void_f, val0, 1, "");
 
@@ -709,13 +716,13 @@
 
     //- That's it...
 
-    llvm_value_ref_v = v_obtain_global("LLVMValueRef");
+    llvm_value_ref_v = v_obtain_global("LLVMValueRef", 0);
 
     v_store(llvm_value_ref_v, val0);
     v_store(ret_v,            val1);
 
-    adopt_res_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_adopt_result"));
-    adopt_res_f   = v_obtain_function("v_adopt_result");
+    adopt_res_f   = v_obtain_function("v_adopt_result", lltyp);
+    adopt_res_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, adopt_res_ft_, adopt_res_f, val0, 2, "");
 
@@ -742,7 +749,7 @@
     //-     {
     //-         arg0 = v_list_get_item(arg_list, 0);
     //-
-    //-         ret_type = v_get_variable_type("voidc.internal_return_type");
+    //-         ret_type = v_get_variable_type_q(voidc_internal_return_type_q);
     //-
     //-         v_set_result_type(ret_type);
     //-
@@ -752,18 +759,18 @@
     //-
     //-         ret = v_get_result_value();
     //-
-    //-         ret_var_v = v_get_variable_value("voidc.internal_return_value");
+    //-         ret_var_v = v_get_variable_value_q(voidc_internal_return_value_q);
     //-
     //-         LLVMBuildStore(builder, ret, ret_var_v);
     //-     }
     //-
-    //-     leave_bv = v_get_variable_value("voidc.internal_branch_target_leave");
+    //-     leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     //-     leave_b  = LLVMValueAsBasicBlock(leave_bv);
     //-
     //-     LLVMBuildBr(builder, leave_b);
     //- }
     //-----------------------------------------------------------------
-    return_f = v_obtain_function("voidc_function_hack_return_intrinsic");
+    return_f = v_obtain_function("voidc_function_hack_return_intrinsic", 0);
 
     visitor = LLVMGetParam(return_f, 0);
     aux     = LLVMGetParam(return_f, 1);
@@ -785,8 +792,8 @@
 
     v_store(arg_list, val0);
 
-    list_get_size_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_list_get_size_expr_list_impl"));
-    list_get_size_f   = v_obtain_function("v_ast_list_get_size_expr_list_impl");
+    list_get_size_f   = v_obtain_function("v_ast_list_get_size_expr_list_impl", lltyp);
+    list_get_size_ft_ = v_load(lltyp);
 
     args_count_v = LLVMBuildCall2(builder, list_get_size_ft_, list_get_size_f, val0, 1, "args_count_v");
 
@@ -809,14 +816,17 @@
     arg0_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "");
 
 
-    ret_type_var_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_return_type", "ret_type_var_n");
+    ret_type_var_q_g = v_obtain_global("voidc_internal_return_type_q", 0);
 
-    v_store(ret_type_var_n, val0);
+    ret_type_var_q = LLVMBuildLoad2(builder, quark_t_, ret_type_var_q_g, "ret_type_var_q");
 
-    get_var_type_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_get_variable_type"));
-    get_var_type_f   = v_obtain_function("v_get_variable_type");
 
-    ret_type_v = LLVMBuildCall2(builder, get_var_type_ft_, get_var_type_f, val0, 1, "ret_type_v");
+    v_store(ret_type_var_q, val0);
+
+    get_var_type_q_f   = v_obtain_function("v_get_variable_type_q", lltyp);
+    get_var_type_q_ft_ = v_load(lltyp);
+
+    ret_type_v = LLVMBuildCall2(builder, get_var_type_q_ft_, get_var_type_q_f, val0, 1, "ret_type_v");
 
 
     v_store(ret_type_v, val0);
@@ -835,22 +845,25 @@
     ret_v = LLVMBuildCall2(builder, get_res_val_ft_, get_res_val_f, 0, 0, "ret_v");
 
 
-    ret_var_v_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_return_value", "ret_var_v_n");
+    ret_var_q_g = v_obtain_global("voidc_internal_return_value_q", 0);
 
-    v_store(ret_var_v_n, val0);
+    ret_var_q = LLVMBuildLoad2(builder, quark_t_, ret_var_q_g, "ret_var_q");
 
-    get_var_value_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_get_variable_value"));
-    get_var_value_f   = v_obtain_function("v_get_variable_value");
 
-    ret_var_v = LLVMBuildCall2(builder, get_var_value_ft_, get_var_value_f, val0, 1, "ret_var_v");
+    v_store(ret_var_q, val0);
+
+    get_var_value_q_f   = v_obtain_function("v_get_variable_value_q", lltyp);
+    get_var_value_q_ft_ = v_load(lltyp);
+
+    ret_var_v = LLVMBuildCall2(builder, get_var_value_q_ft_, get_var_value_q_f, val0, 1, "ret_var_v");
 
 
     v_store(builder_v, val0);
     v_store(ret_v,     val1);
     v_store(ret_var_v, val2);
 
-    llvm_build_store_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMBuildStore"));
-    llvm_build_store_f   = v_obtain_function("LLVMBuildStore");
+    llvm_build_store_f   = v_obtain_function("LLVMBuildStore", lltyp);
+    llvm_build_store_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, llvm_build_store_ft_, llvm_build_store_f, val0, 3, "");
 
@@ -861,17 +874,20 @@
     LLVMPositionBuilderAtEnd(builder, else_b);
 
 
-    leave_bv_v_n = LLVMBuildGlobalStringPtr(builder, "voidc.internal_branch_target_leave", "leave_bv_v_n");
+    leave_bv_q_g = v_obtain_global("voidc_internal_branch_target_leave_q", 0);
 
-    v_store(leave_bv_v_n, val0);
+    leave_bv_q = LLVMBuildLoad2(builder, quark_t_, leave_bv_q_g, "leave_bv_q");
 
-    leave_bv_v = LLVMBuildCall2(builder, get_var_value_ft_, get_var_value_f, val0, 1, "leave_bv_v");
+
+    v_store(leave_bv_q, val0);
+
+    leave_bv_v = LLVMBuildCall2(builder, get_var_value_q_ft_, get_var_value_q_f, val0, 1, "leave_bv_v");
 
 
     v_store(leave_bv_v, val0);
 
-    llvm_value_as_basic_block_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMValueAsBasicBlock"));
-    llvm_value_as_basic_block_f   = v_obtain_function("LLVMValueAsBasicBlock");
+    llvm_value_as_basic_block_f   = v_obtain_function("LLVMValueAsBasicBlock", lltyp);
+    llvm_value_as_basic_block_ft_ = v_load(lltyp);
 
     leave_b_v = LLVMBuildCall2(builder, llvm_value_as_basic_block_ft_, llvm_value_as_basic_block_f, val0, 1, "leave_b_v");
 
@@ -879,8 +895,8 @@
     v_store(builder_v, val0);
     v_store(leave_b_v, val1);
 
-    llvm_build_br_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMBuildBr"));
-    llvm_build_br_f   = v_obtain_function("LLVMBuildBr");
+    llvm_build_br_f   = v_obtain_function("LLVMBuildBr", lltyp);
+    llvm_build_br_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, llvm_build_br_ft_, llvm_build_br_f, val0, 2, "");
 

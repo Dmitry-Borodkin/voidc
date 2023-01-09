@@ -115,6 +115,9 @@
     v_peg_grammar_t_ = v_type_get_llvm_type(v_peg_grammar_t);
     v_peg_parser_t_  = v_type_get_llvm_type(v_peg_parser_t);
 
+    lltyp = v_alloca(LLVMTypeRef);
+
+
     //-----------------------------------------------------------------
     builder = v_target_get_voidc_builder();
 
@@ -122,35 +125,35 @@
     //-----------------------------------------------------------------
     //- bool voidc_has_grammar(void)
     //-----------------------------------------------------------------
-    has_grammar_f = v_obtain_function("voidc_has_grammar");
+    has_grammar_f = v_obtain_function("voidc_has_grammar", lltyp);
 
     entry = LLVMAppendBasicBlock(has_grammar_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
     grm = LLVMBuildAlloca(builder, v_peg_grammar_t_, "grm");
 
-    grammar_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_initialize_grammar_impl"));
-    grammar_init_f   = v_obtain_function("v_peg_initialize_grammar_impl");
+    grammar_init_f   = v_obtain_function("v_peg_initialize_grammar_impl", lltyp);
+    grammar_init_ft_ = v_load(lltyp);
 
     v_store(grm, val0);
     v_store(n1,  val1);
 
     LLVMBuildCall2(builder, grammar_init_ft_, grammar_init_f, val0, 2, "");
 
-    get_grammar_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_get_grammar"));
-    get_grammar_f   = v_obtain_function("v_peg_get_grammar");
+    get_grammar_f   = v_obtain_function("v_peg_get_grammar", lltyp);
+    get_grammar_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, get_grammar_ft_, get_grammar_f, val0, 1, "");
 
-    grammar_empty_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_empty_grammar_impl"));
-    grammar_empty_f   = v_obtain_function("v_peg_empty_grammar_impl");
+    grammar_empty_f   = v_obtain_function("v_peg_empty_grammar_impl", lltyp);
+    grammar_empty_ft_ = v_load(lltyp);
 
     nok = LLVMBuildCall2(builder, grammar_empty_ft_, grammar_empty_f, val0, 1, "nok");
 
     ok = LLVMBuildNot(builder, nok, "ok");
 
-    grammar_term_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_terminate_grammar_impl"));
-    grammar_term_f   = v_obtain_function("v_peg_terminate_grammar_impl");
+    grammar_term_f   = v_obtain_function("v_peg_terminate_grammar_impl", lltyp);
+    grammar_term_ft_ = v_load(lltyp);
 
 //  v_store(grm, val0);
 //  v_store(n1,  val1);
@@ -163,7 +166,7 @@
     //-----------------------------------------------------------------
     //- bool voidc_grammar_has_parser(const char *name)
     //-----------------------------------------------------------------
-    has_parser_f = v_obtain_function("voidc_grammar_has_parser");
+    has_parser_f = v_obtain_function("voidc_grammar_has_parser", lltyp);
 
     name = LLVMGetParam(has_parser_f, 0);
 
@@ -181,8 +184,8 @@
     LLVMBuildCall2(builder, get_grammar_ft_, get_grammar_f, val0, 1, "");
 
 
-    get_parser_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_peg_grammar_get_parser"));
-    get_parser_f   = v_obtain_function("v_peg_grammar_get_parser");
+    get_parser_f   = v_obtain_function("v_peg_grammar_get_parser", lltyp);
+    get_parser_ft_ = v_load(lltyp);
 
     ip0 = LLVMConstNull(int_ptr_);
 

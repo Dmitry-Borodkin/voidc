@@ -158,8 +158,8 @@
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    init_f   = v_obtain_function("voidc_ast_stmt_switch_init");
-    term_f   = v_obtain_function("voidc_ast_stmt_switch_term");
+    init_f   = v_obtain_function("voidc_ast_stmt_switch_init", 0);
+    term_f   = v_obtain_function("voidc_ast_stmt_switch_term", 0);
     quark_u  = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
 
     v_store(init_f,   val0);
@@ -282,8 +282,8 @@
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    init_f = v_obtain_function("voidc_ast_case_block_init");
-    term_f = v_obtain_function("voidc_ast_case_block_term");
+    init_f = v_obtain_function("voidc_ast_case_block_init", 0);
+    term_f = v_obtain_function("voidc_ast_case_block_term", 0);
 
     v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 
@@ -547,10 +547,12 @@
 
     //- Start...
 
+    lltyp = v_alloca(LLVMTypeRef);
+
     builder = v_target_get_builder();
 
-    llvm_stacksave_ft_ = v_type_get_llvm_type(v_find_symbol_type("llvm.stacksave"));
-    llvm_stacksave_f   = v_obtain_function("llvm.stacksave");
+    llvm_stacksave_f   = v_obtain_function("llvm.stacksave", lltyp);
+    llvm_stacksave_ft_ = v_load(lltyp);
 
     switch = LLVMBuildCall2(builder, llvm_stacksave_ft_, llvm_stacksave_f, 0, 0, "switch");
 
@@ -735,8 +737,8 @@
 
     v_store(switch, val0);
 
-    llvm_stackrestore_ft_ = v_type_get_llvm_type(v_find_symbol_type("llvm.stackrestore"));
-    llvm_stackrestore_f   = v_obtain_function("llvm.stackrestore");
+    llvm_stackrestore_f   = v_obtain_function("llvm.stackrestore", lltyp);
+    llvm_stackrestore_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, llvm_stackrestore_ft_, llvm_stackrestore_f, val0, 1, "");
 

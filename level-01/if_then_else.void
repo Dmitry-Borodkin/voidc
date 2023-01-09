@@ -127,8 +127,10 @@
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
-    init_f   = v_obtain_function("voidc_ast_stmt_if_then_else_init");
-    term_f   = v_obtain_function("voidc_ast_stmt_if_then_else_term");
+    lltyp = v_alloca(LLVMTypeRef);
+
+    init_f   = v_obtain_function("voidc_ast_stmt_if_then_else_init", 0);
+    term_f   = v_obtain_function("voidc_ast_stmt_if_then_else_term", 0);
     quark_u  = LLVMGetUndef(v_type_get_llvm_type(v_quark_t));
 
     v_store(init_f,  val0);
@@ -251,6 +253,8 @@
     n1 = LLVMConstInt(int_, 1, 0);
     n2 = LLVMConstInt(int_, 2, 0);
 
+    lltyp = v_alloca(LLVMTypeRef);
+
     builder = v_target_get_voidc_builder();
 
 
@@ -259,8 +263,8 @@
     par_else = LLVMBuildGEP2(builder, v_type_get_llvm_type(v_std_any_t), any0, val0, 1, "par_else");
 
 
-    get_arg_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_std_any_get_pointer_stmt_impl"));
-    get_arg_f   = v_obtain_function("v_ast_std_any_get_pointer_stmt_impl");
+    get_arg_f   = v_obtain_function("v_ast_std_any_get_pointer_stmt_impl", lltyp);
+    get_arg_ft_ = v_load(lltyp);
 
     v_store(par_else, val0);
 
@@ -276,8 +280,8 @@
 
     stmt = LLVMBuildAlloca(builder, v_ast_stmt_t_, "stmt");
 
-    stmt_init_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_initialize_stmt_impl"));
-    stmt_init_f   = v_obtain_function("v_ast_initialize_stmt_impl");
+    stmt_init_f   = v_obtain_function("v_ast_initialize_stmt_impl", lltyp);
+    stmt_init_ft_ = v_load(lltyp);
 
     v_store(stmt, val0);
     v_store(n1,   val1);
@@ -402,17 +406,19 @@
     val1 = v_getelementptr(val0, 1);
     val2 = v_getelementptr(val0, 2);
 
+    lltyp = v_alloca(LLVMTypeRef);
+
     builder = v_target_get_voidc_builder();
 
 
-    get_builder_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_target_get_builder"));
-    get_builder_f   = v_obtain_function("v_target_get_builder");
+    get_builder_f   = v_obtain_function("v_target_get_builder", lltyp);
+    get_builder_ft_ = v_load(lltyp);
 
     builder_v = LLVMBuildCall2(builder, get_builder_ft_, get_builder_f, val0, 0, "builder_v");
 
 
-    stmt_empty_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_empty_stmt_impl"));
-    stmt_empty_f   = v_obtain_function("v_ast_empty_stmt_impl");
+    stmt_empty_f   = v_obtain_function("v_ast_empty_stmt_impl", lltyp);
+    stmt_empty_ft_ = v_load(lltyp);
 
     v_store(stmt, val0);
 
@@ -435,24 +441,24 @@
     v_store(base_ast, val0);
     v_store(visitor,  val1);
 
-    accept_visitor_ft_ = v_type_get_llvm_type(v_find_symbol_type("v_ast_accept_visitor"));
-    accept_visitor_f   = v_obtain_function("v_ast_accept_visitor");
+    accept_visitor_f   = v_obtain_function("v_ast_accept_visitor", lltyp);
+    accept_visitor_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, accept_visitor_ft_, accept_visitor_f, val0, 2, "");
 
 
     v_store(builder_v, val0);
 
-    llvm_get_insert_block_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMGetInsertBlock"));
-    llvm_get_insert_block_f   = v_obtain_function("LLVMGetInsertBlock");
+    llvm_get_insert_block_f   = v_obtain_function("LLVMGetInsertBlock", lltyp);
+    llvm_get_insert_block_ft_ = v_load(lltyp);
 
     cur_bv = LLVMBuildCall2(builder, llvm_get_insert_block_ft_, llvm_get_insert_block_f, val0, 1, "cur_bv");
 
 
     v_store(cur_bv, val0);
 
-    llvm_get_basic_block_terminator_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMGetBasicBlockTerminator"));
-    llvm_get_basic_block_terminator_f   = v_obtain_function("LLVMGetBasicBlockTerminator");
+    llvm_get_basic_block_terminator_f   = v_obtain_function("LLVMGetBasicBlockTerminator", lltyp);
+    llvm_get_basic_block_terminator_ft_ = v_load(lltyp);
 
     term_v = LLVMBuildCall2(builder, llvm_get_basic_block_terminator_ft_, llvm_get_basic_block_terminator_f, val0, 1, "term_v");
 
@@ -490,16 +496,16 @@
     cur_bv = LLVMBuildCall2(builder, llvm_get_insert_block_ft_, llvm_get_insert_block_f, val0, 1, "cur_bv");
 
 
-    llvm_get_basic_block_parent_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMGetBasicBlockParent"));
-    llvm_get_basic_block_parent_f   = v_obtain_function("LLVMGetBasicBlockParent");
+    llvm_get_basic_block_parent_f   = v_obtain_function("LLVMGetBasicBlockParent", lltyp);
+    llvm_get_basic_block_parent_ft_ = v_load(lltyp);
 
     v_store(cur_bv, val0);
 
     fun_v = LLVMBuildCall2(builder, llvm_get_basic_block_parent_ft_, llvm_get_basic_block_parent_f, val0, 1, "fun_v");
 
 
-    llvm_append_basic_block_ft_ = v_type_get_llvm_type(v_find_symbol_type("LLVMAppendBasicBlock"));
-    llvm_append_basic_block_f   = v_obtain_function("LLVMAppendBasicBlock");
+    llvm_append_basic_block_f   = v_obtain_function("LLVMAppendBasicBlock", lltyp);
+    llvm_append_basic_block_ft_ = v_load(lltyp);
 
     fin_bb_str = LLVMBuildGlobalStringPtr(builder, "fin_bb", "fin_bb_str");
 
