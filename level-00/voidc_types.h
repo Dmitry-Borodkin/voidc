@@ -13,6 +13,8 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <any>
+#include <unordered_map>
 
 #include <llvm-c/Types.h>
 
@@ -82,6 +84,9 @@ public:
 
         return cached_llvm_type;
     }
+
+public:
+    std::unordered_map<v_quark_t, std::any> properties;
 };
 
 //---------------------------------------------------------------------

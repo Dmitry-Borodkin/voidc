@@ -900,6 +900,8 @@ voidc_global_ctx_t::voidc_global_ctx_t()
     initialize_type(q("v_type_t"),   type_type);
     initialize_type(q("v_type_ptr"), type_ptr_type);
 
+    initialize_type(q("v_quark_t"), make_uint_type(32));            //- Sic!
+
     {   v_type_t *types[] =
         {
             type_ptr_type,
