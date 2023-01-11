@@ -359,7 +359,7 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
 
             intrinsic = v_std_string_get(sstr+1);
 
-            v_util_function_dict_set(quark, tref, intrinsic);
+            v_util_function_dict_set(tref, quark, intrinsic);
 
             tri = v_reference_type(types[i], 0);
 
@@ -453,10 +453,10 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
 
         v_ast_make_expr_string(expr+2, v_std_string_get(sstr));
 
-        v_ast_make_expr_identifier_q(expr+0, quark_q);
+        v_ast_make_expr_identifier_q(expr+1, quark_q);
 
 
-        v_ast_make_expr_identifier_q(expr+1, tref_q);
+        v_ast_make_expr_identifier_q(expr+0, tref_q);
 
         v_ast_make_stmt_call(stmt, 0, q_util_function_dict_set, expr+0, 3);
 

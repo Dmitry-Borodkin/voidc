@@ -126,25 +126,27 @@ voidc_visitor_set_intrinsic(visitor_t *dst, const visitor_t *src, v_quark_t name
 
 
 //---------------------------------------------------------------------
-const char *
-voidc_visitor_function_dict_get(const visitor_t *ptr, v_quark_t quark, v_type_t *type)
+const std::any *
+voidc_visitor_get_type_property(const visitor_t *ptr, v_type_t *type, v_quark_t quark)
 {
-    if (auto *it = (*ptr)->function_dict.find({quark, type}))
-    {
-        return v_quark_to_string(*it);
-    }
-    else
-    {
-        return nullptr;
-    }
+    return  (*ptr)->type_properties.find({type, quark});
 }
 
 void
-voidc_visitor_function_dict_set(visitor_t *dst, const visitor_t *src, v_quark_t quark, v_type_t *type, const char *name)
+voidc_visitor_set_type_property(visitor_t *dst, const visitor_t *src, v_type_t *type, v_quark_t quark, const std::any *prop)
 {
-    auto qname = v_quark_from_string(name);
+    auto visitor = (*src)->set_type_property(type, quark, *prop);
 
-    auto visitor = (*src)->function_dict_set(quark, type, qname);
+    *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
+}
+
+//---------------------------------------------------------------------
+void
+voidc_visitor_function_dict_set(visitor_t *dst, const visitor_t *src, v_type_t *type, v_quark_t quark, const char *name)
+{
+    std::any prop = v_quark_from_string(name);
+
+    auto visitor = (*src)->set_type_property(type, quark, prop);
 
     *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }

@@ -18,8 +18,6 @@
 //---------------------------------------------------------------------
 namespace utility
 {
-using function_dict_t = std::map<std::pair<v_quark_t, v_type_t *>, v_quark_t>;
-
 void static_initialize(void);
 void static_terminate(void);
 

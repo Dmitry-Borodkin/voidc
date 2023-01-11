@@ -55,9 +55,9 @@
 
     q = v_quark_from_string("v_kind");
 
-    v_util_function_dict_set(q, v_peg_parser_t,   "v_peg_parser_get_kind");
-    v_util_function_dict_set(q, v_peg_action_t,   "v_peg_action_get_kind");
-    v_util_function_dict_set(q, v_peg_argument_t, "v_peg_argument_get_kind");
+    v_util_function_dict_set(v_peg_parser_t,   q, "v_peg_parser_get_kind");
+    v_util_function_dict_set(v_peg_action_t,   q, "v_peg_action_get_kind");
+    v_util_function_dict_set(v_peg_argument_t, q, "v_peg_argument_get_kind");
 }
 
 {   typ0 = v_alloca(v_type_ptr, 4);

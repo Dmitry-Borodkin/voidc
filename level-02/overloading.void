@@ -209,7 +209,7 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, t0, q, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -353,7 +353,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     builder = v_target_get_builder();
 
-    if (v_util_lookup_function_dict(vis, q0, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, t0, q0, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -408,7 +408,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     q1 = op_table[(aux: int)][3];       //- Quark (right)
 
-    if (v_util_lookup_function_dict(vis, q1, t1, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, t1, q1, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -652,7 +652,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         ft: &v_type_ptr   := 0;
         fv: &LLVMValueRef := 0;
 
-        if (v_util_lookup_function_dict(vis, q0, typ, void_fun, void_aux, ft, fv))
+        if (v_util_lookup_function_dict(vis, typ, q0, void_fun, void_aux, ft, fv))
         {
             //- Got overloading!
 
@@ -713,7 +713,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             q1 = op_table[rel_i][3];            //- Quark (right)
 
-            if (v_util_lookup_function_dict(vis, q1, t1, void_fun, void_aux, ft, fv))
+            if (v_util_lookup_function_dict(vis, t1, q1, void_fun, void_aux, ft, fv))
             {
                 //- Got overloading!
 
@@ -1142,7 +1142,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, t0, q, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -1278,7 +1278,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(vis, q, t, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, t, q, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -1637,7 +1637,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     for (i: &int := 0; i < N; ++i)
     {
-        if (v_util_lookup_function_dict(vis, q, agg_t, void_fun, void_aux, ft, fv))
+        if (v_util_lookup_function_dict(vis, agg_t, q, void_fun, void_aux, ft, fv))
         {
             //- Got overloading!
 
@@ -1795,14 +1795,14 @@ voidc_enable_overloading_compiler: () -> void
         voidc_visitor_set_intrinsic(vis, vis, op_table[id][2], void_fun, (id: *void));
     }
 
-    voidc_visitor_function_dict_set(vis, vis, q("v.op_prefix_star"), v_static_type_t, "v.static_type_prefix_star");
-    voidc_visitor_function_dict_set(vis, vis, q("v.op_prefix_amp"),  v_static_type_t, "v.static_type_prefix_amp");
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_star"), "v.static_type_prefix_star");
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_amp"),  "v.static_type_prefix_amp");
 
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_star"), static_type_prefix_star_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_amp"),  static_type_prefix_amp_intrinsic,  0);
 
-    voidc_visitor_function_dict_set(vis, vis, q("v.op_prefix_const"),    v_static_type_t, "v.static_type_prefix_const");
-    voidc_visitor_function_dict_set(vis, vis, q("v.op_prefix_volatile"), v_static_type_t, "v.static_type_prefix_volatile");
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_const"),    "v.static_type_prefix_const");
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_volatile"), "v.static_type_prefix_volatile");
 
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_const"),    static_type_prefix_cv_intrinsic, 0);
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_volatile"), static_type_prefix_cv_intrinsic, 0);
@@ -1811,7 +1811,7 @@ voidc_enable_overloading_compiler: () -> void
 
     voidc_visitor_set_intrinsic(vis, vis, q_op_postfix_index, op_postfix_index_intrinsic, 0);
 
-    voidc_visitor_function_dict_set(vis, vis, q_op_postfix_index, v_static_type_t, "v.static_type_postfix_index");
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q_op_postfix_index, "v.static_type_postfix_index");
 
     voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_postfix_index"), static_type_postfix_index_intrinsic, 0);
 }

@@ -155,7 +155,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (!v_util_lookup_function_dict(vis, quark, t0, void_fun, void_aux, ft, fv))
+    if (!v_util_lookup_function_dict(vis, t0, quark, void_fun, void_aux, ft, fv))
     {
         spc_flag := true;       //- assert(got_args);
 
@@ -169,7 +169,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
         quark := v_quark_from_string(v_std_string_get(sstr));
 
-        v_util_lookup_function_dict(vis, quark, t0, void_fun, void_aux, ft, fv);        //- Sic!!!
+        v_util_lookup_function_dict(vis, t0, quark, void_fun, void_aux, ft, fv);        //- Sic!!!
     }
 
     //- Overloading only!
@@ -296,7 +296,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(vis, q, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(vis, t0, q, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 

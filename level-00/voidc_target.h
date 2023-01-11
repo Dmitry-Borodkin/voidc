@@ -134,9 +134,6 @@ public:
     static void verify_module(LLVMModuleRef module);
 
 public:
-    utility::function_dict_t function_dict;
-
-public:
     base_local_ctx_t *local_ctx = nullptr;
 
 protected:

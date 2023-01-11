@@ -52,10 +52,10 @@ vector_y: (v: Vector) -> double
 
     q = v_quark_from_string;
 
-    v_util_function_dict_set(q(".x"), vector_ref, "vector_x_ref");
-    v_util_function_dict_set(q(".y"), vector_ref, "vector_y_ref");
-    v_util_function_dict_set(q(".x"), Vector,     "vector_x");
-    v_util_function_dict_set(q(".y"), Vector,     "vector_y");
+    v_util_function_dict_set(vector_ref, q(".x"), "vector_x_ref");
+    v_util_function_dict_set(vector_ref, q(".y"), "vector_y_ref");
+    v_util_function_dict_set(Vector,     q(".x"), "vector_x");
+    v_util_function_dict_set(Vector,     q(".y"), "vector_y");
 }
 
 
@@ -95,8 +95,8 @@ vector_add: (v: Vector, x: double, y: double) -> Vector
 
     q = v_quark_from_string;
 
-    v_util_function_dict_set(q(".add()"), vector_ref, "vector_add_ref");
-    v_util_function_dict_set(q(".add()"), Vector,     "vector_add");
+    v_util_function_dict_set(vector_ref, q(".add()"), "vector_add_ref");
+    v_util_function_dict_set(Vector,     q(".add()"), "vector_add");
 }
 
 
@@ -146,8 +146,8 @@ vector_add: (v: Vector, x: double, y: double) -> Vector
 
     q = v_quark_from_string(".my_printf()");
 
-    v_util_function_dict_set(q, char_ptr,     "printf");
-    v_util_function_dict_set(q, char_ptr_ref, "printf");
+    v_util_function_dict_set(char_ptr,     q, "printf");
+    v_util_function_dict_set(char_ptr_ref, q, "printf");
 }
 
 //---------------------------------------------------------------------
@@ -175,8 +175,8 @@ foo: &foo_t := { printf };
 {
     q = v_quark_from_string(".fun");
 
-    v_util_function_dict_set(q, foo_t,   "foo_bar");
-    v_util_function_dict_set(q, foo_ref, "foo_bar");
+    v_util_function_dict_set(foo_t,   q, "foo_bar");
+    v_util_function_dict_set(foo_ref, q, "foo_bar");
 }
 
 //---------------------------------------------------------------------
@@ -218,8 +218,8 @@ static_type_alignof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 }
 
 {
-    v_util_function_dict_set(v_quark_from_string(".size"),  v_static_type_t, "v.static_type_sizeof");
-    v_util_function_dict_set(v_quark_from_string(".align"), v_static_type_t, "v.static_type_alignof");
+    v_util_function_dict_set(v_static_type_t, v_quark_from_string(".size"),  "v.static_type_sizeof");
+    v_util_function_dict_set(v_static_type_t, v_quark_from_string(".align"), "v.static_type_alignof");
 
     v_add_intrinsic("v.static_type_sizeof",  static_type_sizeof_intrinsic,  0);
     v_add_intrinsic("v.static_type_alignof", static_type_alignof_intrinsic, 0);
