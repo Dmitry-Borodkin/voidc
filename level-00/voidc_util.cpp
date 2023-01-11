@@ -456,11 +456,9 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------
-void v_util_function_dict_set(v_type_t *type, v_quark_t quark, const char *fun_name)
+void v_util_function_dict_set(v_type_t *type, v_quark_t quark, v_quark_t qname)
 {
-    std::any any = v_quark_from_string(fun_name);
-
-    type->properties[quark] = any;
+    type->properties[quark] = qname;
 }
 
 bool v_util_lookup_function_dict(const visitor_t *vis, v_type_t *type, v_quark_t quark,

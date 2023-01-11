@@ -57,7 +57,7 @@
 
     v_store(v_type_ptr, typ0);
     v_store(v_quark_t,  typ1);
-    v_store(char_ptr,   typ2);
+    v_store(v_quark_t,  typ2);
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_util_function_dict_set", ft);
@@ -87,7 +87,7 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_util_function_dict_set(v_type_t, q_kind, "v_type_get_kind");
+{   v_util_function_dict_set(v_type_t, q_kind, v_quark_from_string("v_type_get_kind"));
 }
 
 
@@ -723,9 +723,17 @@
     //-                             fun_name: char_ptr, fun_type: v_type_ptr
     //-                            ) -> void
     //- {
-    //-     v_export_symbol_type(fun_name, fun_type);
+    //-     qname = v_quark_from_string(fun_name);
     //-
-    //-     v_util_function_dict_set(val_t_type, q_dict, fun_name);
+    //-     v_export_symbol_type_q(qname, fun_type);
+    //-
+    //-     v_util_function_dict_set(val_t_type, q_dict, qname);
+    //-
+    //-
+    //-
+    //- //    v_export_symbol_type(fun_name, fun_type);
+    //- //
+    //- //    v_util_function_dict_set(val_t_type, q_dict, fun_name);
     //- }
     //-------------------------------------------------------------
     util_reg_helper_f   = v_obtain_function("v_util_registering_helper", lltyp);
@@ -741,17 +749,25 @@
 
 
     v_store(fun_name, val0);
+
+    quark_from_str_f   = v_obtain_function("v_quark_from_string", lltyp);
+    quark_from_str_ft_ = v_load(lltyp);
+
+    qname = LLVMBuildCall2(builder, quark_from_str_ft_, quark_from_str_f, val0, 1, "qname");
+
+
+    v_store(qname,    val0);
     v_store(fun_type, val1);
 
-    export_symbol_type_f   = v_obtain_function("v_export_symbol_type", lltyp);
-    export_symbol_type_ft_ = v_load(lltyp);
+    export_symbol_type_q_f   = v_obtain_function("v_export_symbol_type_q", lltyp);
+    export_symbol_type_q_ft_ = v_load(lltyp);
 
-    LLVMBuildCall2(builder, export_symbol_type_ft_, export_symbol_type_f, val0, 2, "");
+    LLVMBuildCall2(builder, export_symbol_type_q_ft_, export_symbol_type_q_f, val0, 2, "");
 
 
     v_store(val_t_type, val0);
     v_store(q_dict,     val1);
-    v_store(fun_name,   val2);
+    v_store(qname,      val2);
 
     dict_set_f   = v_obtain_function("v_util_function_dict_set", lltyp);
     dict_set_ft_ = v_load(lltyp);

@@ -87,16 +87,28 @@
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
-    v_store(v_quark_t,   typ0);             //- Symbol name quark
-    v_store(v_type_ptr,  typ1);             //- Symbol type
-    v_store(void_ptr,    typ2);             //- Symbol value
+    v_store(v_quark_t,  typ0);              //- Symbol name quark
+    v_store(v_type_ptr, typ1);              //- Symbol type
+    v_store(void_ptr,   typ2);              //- Symbol value
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_export_symbol_q", ft);
     v_export_symbol_type("v_add_symbol_q", ft);
 
-//  v_store(v_quark_t,   typ0);             //- Type name quark
-//  v_store(v_type_ptr,  typ1);             //- Type
+//  v_store(v_quark_t,  typ0);              //- Symbol name quark
+//  v_store(v_type_ptr, typ1);              //- Symbol type
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_export_symbol_type_q", ft);
+
+//  v_store(v_quark_t, typ0);               //- Symbol name quark
+    v_store(void_ptr,  typ1);               //- Symbol value (for "linker")
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_export_symbol_value_q", ft);
+
+//  v_store(v_quark_t,  typ0);              //- Type name quark
+    v_store(v_type_ptr, typ1);              //- Type
 
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_export_type_q", ft);

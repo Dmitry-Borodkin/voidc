@@ -47,6 +47,7 @@
     v_add_symbol("type_q",  q_ref, q("type"));
     v_add_symbol("tref_q",  q_ref, q("tref"));
     v_add_symbol("quark_q", q_ref, q("quark"));
+    v_add_symbol("qname_q", q_ref, q("qname"));
 
     v_add_symbol("voidc_decl_stmt_list_q", q_ref, q("voidc.decl_stmt_list"));
     v_add_symbol("voidc_compile_type_q",   q_ref, q("voidc.compile_type"));
@@ -55,8 +56,8 @@
     v_add_symbol("q_add_type",               q_ref, q("v_add_type"));
     v_add_symbol("q_quark_from_string",      q_ref, q("v_quark_from_string"));
     v_add_symbol("q_util_function_dict_set", q_ref, q("v_util_function_dict_set"));
-    v_add_symbol("q_export_intrinsic",       q_ref, q("v_export_intrinsic"));
-    v_add_symbol("q_add_intrinsic",          q_ref, q("v_add_intrinsic"));
+    v_add_symbol("q_export_intrinsic_q",     q_ref, q("v_export_intrinsic_q"));
+    v_add_symbol("q_add_intrinsic_q",        q_ref, q("v_add_intrinsic_q"));
 
     v_add_symbol("voidc_internal_union_cast_intrinsic_q", q_ref, q("voidc_internal_union_cast_intrinsic"));
 }
@@ -359,12 +360,14 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
 
             intrinsic = v_std_string_get(sstr+1);
 
-            v_util_function_dict_set(tref, quark, intrinsic);
+            intrinsic_q = v_quark_from_string(intrinsic);
+
+            v_util_function_dict_set(tref, quark, intrinsic_q);
 
             tri = v_reference_type(types[i], 0);
 
-            if (obj.export)  v_export_intrinsic(intrinsic, voidc_internal_union_cast_intrinsic, tri);
-            else             v_add_intrinsic   (intrinsic, voidc_internal_union_cast_intrinsic, tri);
+            if (obj.export)  v_export_intrinsic_q(intrinsic_q, voidc_internal_union_cast_intrinsic, tri);
+            else             v_add_intrinsic_q   (intrinsic_q, voidc_internal_union_cast_intrinsic, tri);
         }
     }
 
@@ -453,10 +456,14 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
 
         v_ast_make_expr_string(expr+2, v_std_string_get(sstr));
 
-        v_ast_make_expr_identifier_q(expr+1, quark_q);
+        v_ast_make_stmt_call(stmt, qname_q, q_quark_from_string, expr+2, 1);
+
+        v_list_append(stmt_list, stmt_list, stmt);
 
 
         v_ast_make_expr_identifier_q(expr+0, tref_q);
+        v_ast_make_expr_identifier_q(expr+1, quark_q);
+        v_ast_make_expr_identifier_q(expr+2, qname_q);
 
         v_ast_make_stmt_call(stmt, 0, q_util_function_dict_set, expr+0, 3);
 
@@ -479,8 +486,8 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
 
         v_ast_make_expr_identifier_q(expr+1, voidc_internal_union_cast_intrinsic_q);
 
-        if (obj.export)  v_ast_make_stmt_call(stmt, 0, q_export_intrinsic, expr+0, 3);
-        else             v_ast_make_stmt_call(stmt, 0, q_add_intrinsic,    expr+0, 3);
+        if (obj.export)  v_ast_make_stmt_call(stmt, 0, q_export_intrinsic_q, expr+0, 3);
+        else             v_ast_make_stmt_call(stmt, 0, q_add_intrinsic_q,    expr+0, 3);
 
         v_list_append(stmt_list, stmt_list, stmt);
     }

@@ -39,6 +39,7 @@
     q = v_quark_ptr_from_string;
 
     v_add_symbol("q_quark", q_ref, q("v.quark"));
+    v_add_symbol("qname_q", q_ref, q("qname"));
 
     v_add_symbol("q_quark_from_string",      q_ref, q("v_quark_from_string"));
     v_add_symbol("q_util_function_dict_set", q_ref, q("v_util_function_dict_set"));
@@ -715,7 +716,9 @@ mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, siz
 private
 register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_quark_t, t: *v_type_t) -> void
 {
-    v_util_function_dict_set(t, q, fn);
+    qname = v_quark_from_string(fn);
+
+    v_util_function_dict_set(t, q, qname);
 
     //-------------------------------------------------------------
     stmt_list: &*v_ast_stmt_list_t := 0;
@@ -755,6 +758,12 @@ register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_qu
 
         v_ast_make_expr_string(expr+2, fn);
 
+        v_ast_make_stmt_call(stmt, qname_q, q_quark_from_string, expr+2, 1);
+
+        v_list_append(stmt_list, stmt_list, stmt);
+
+        v_ast_make_expr_identifier_q(expr+2, qname_q);
+
         v_ast_make_stmt_call(stmt, 0, q_util_function_dict_set, expr, 3);
 
         v_list_append(stmt_list, stmt_list, stmt);
@@ -778,7 +787,7 @@ register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_qu
             rt := v_reference_type(t, 0);       //- ?!?!?!?
         }
 
-        v_util_function_dict_set(rt, q, fn);
+        v_util_function_dict_set(rt, q, qname);
 
         if (stmt_list)
         {

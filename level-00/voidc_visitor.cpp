@@ -142,11 +142,9 @@ voidc_visitor_set_type_property(visitor_t *dst, const visitor_t *src, v_type_t *
 
 //---------------------------------------------------------------------
 void
-voidc_visitor_function_dict_set(visitor_t *dst, const visitor_t *src, v_type_t *type, v_quark_t quark, const char *name)
+voidc_visitor_function_dict_set(visitor_t *dst, const visitor_t *src, v_type_t *type, v_quark_t quark, v_quark_t qname)
 {
-    std::any prop = v_quark_from_string(name);
-
-    auto visitor = (*src)->set_type_property(type, quark, prop);
+    auto visitor = (*src)->set_type_property(type, quark, qname);
 
     *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }

@@ -1795,25 +1795,31 @@ voidc_enable_overloading_compiler: () -> void
         voidc_visitor_set_intrinsic(vis, vis, op_table[id][2], void_fun, (id: *void));
     }
 
-    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_star"), "v.static_type_prefix_star");
-    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_amp"),  "v.static_type_prefix_amp");
+    q_static_type_prefix_star     = q("v.static_type_prefix_star");
+    q_static_type_prefix_amp      = q("v.static_type_prefix_amp");
+    q_static_type_prefix_const    = q("v.static_type_prefix_const");
+    q_static_type_prefix_volatile = q("v.static_type_prefix_volatile");
+    q_static_type_postfix_index   = q("v.static_type_postfix_index");
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_star"), static_type_prefix_star_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_amp"),  static_type_prefix_amp_intrinsic,  0);
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_star"), q_static_type_prefix_star);
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_amp"),  q_static_type_prefix_amp);
 
-    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_const"),    "v.static_type_prefix_const");
-    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_volatile"), "v.static_type_prefix_volatile");
+    voidc_visitor_set_intrinsic(vis, vis, q_static_type_prefix_star, static_type_prefix_star_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q_static_type_prefix_amp,  static_type_prefix_amp_intrinsic,  0);
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_const"),    static_type_prefix_cv_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_prefix_volatile"), static_type_prefix_cv_intrinsic, 0);
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_const"),    q_static_type_prefix_const);
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q("v.op_prefix_volatile"), q_static_type_prefix_volatile);
+
+    voidc_visitor_set_intrinsic(vis, vis, q_static_type_prefix_const,    static_type_prefix_cv_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q_static_type_prefix_volatile, static_type_prefix_cv_intrinsic, 0);
 
     voidc_visitor_set_void_method(vis, vis, expr_call_q, compile_expr_call, 0);
 
     voidc_visitor_set_intrinsic(vis, vis, q_op_postfix_index, op_postfix_index_intrinsic, 0);
 
-    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q_op_postfix_index, "v.static_type_postfix_index");
+    voidc_visitor_function_dict_set(vis, vis, v_static_type_t, q_op_postfix_index, q_static_type_postfix_index);
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v.static_type_postfix_index"), static_type_postfix_index_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q_static_type_postfix_index, static_type_postfix_index_intrinsic, 0);
 }
 
 

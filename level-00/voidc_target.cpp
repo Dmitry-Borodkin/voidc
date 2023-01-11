@@ -1621,6 +1621,18 @@ v_export_symbol_q(v_quark_t qname, v_type_t *type, void *value)
 }
 
 void
+v_export_symbol_type_q(v_quark_t qname, v_type_t *type)
+{
+    v_export_symbol_q(qname, type, nullptr);
+}
+
+void
+v_export_symbol_value_q(v_quark_t qname, void *value)
+{
+    v_export_symbol_q(qname, nullptr, value);
+}
+
+void
 v_export_symbol(const char *raw_name, v_type_t *type, void *value)
 {
     v_export_symbol_q(v_quark_from_string(raw_name), type, value);

@@ -52,10 +52,10 @@ vector_y: (v: Vector) -> double
 
     q = v_quark_from_string;
 
-    v_util_function_dict_set(vector_ref, q(".x"), "vector_x_ref");
-    v_util_function_dict_set(vector_ref, q(".y"), "vector_y_ref");
-    v_util_function_dict_set(Vector,     q(".x"), "vector_x");
-    v_util_function_dict_set(Vector,     q(".y"), "vector_y");
+    v_util_function_dict_set(vector_ref, q(".x"), q("vector_x_ref"));
+    v_util_function_dict_set(vector_ref, q(".y"), q("vector_y_ref"));
+    v_util_function_dict_set(Vector,     q(".x"), q("vector_x"));
+    v_util_function_dict_set(Vector,     q(".y"), q("vector_y"));
 }
 
 
@@ -95,8 +95,8 @@ vector_add: (v: Vector, x: double, y: double) -> Vector
 
     q = v_quark_from_string;
 
-    v_util_function_dict_set(vector_ref, q(".add()"), "vector_add_ref");
-    v_util_function_dict_set(Vector,     q(".add()"), "vector_add");
+    v_util_function_dict_set(vector_ref, q(".add()"), q("vector_add_ref"));
+    v_util_function_dict_set(Vector,     q(".add()"), q("vector_add"));
 }
 
 
@@ -144,10 +144,10 @@ vector_add: (v: Vector, x: double, y: double) -> Vector
 {   char_ptr     = v_pointer_type(char, 0);
     char_ptr_ref = v_reference_type(char_ptr, 0);
 
-    q = v_quark_from_string(".my_printf()");
+    q = v_quark_from_string;
 
-    v_util_function_dict_set(char_ptr,     q, "printf");
-    v_util_function_dict_set(char_ptr_ref, q, "printf");
+    v_util_function_dict_set(char_ptr,     q(".my_printf()"), q("printf"));
+    v_util_function_dict_set(char_ptr_ref, q(".my_printf()"), q("printf"));
 }
 
 //---------------------------------------------------------------------
@@ -173,10 +173,10 @@ foo_bar: (f: foo_t) -> *((*const char, ...) -> int)
 foo: &foo_t := { printf };
 
 {
-    q = v_quark_from_string(".fun");
+    q = v_quark_from_string;
 
-    v_util_function_dict_set(foo_t,   q, "foo_bar");
-    v_util_function_dict_set(foo_ref, q, "foo_bar");
+    v_util_function_dict_set(foo_t,   q(".fun"), q("foo_bar"));
+    v_util_function_dict_set(foo_ref, q(".fun"), q("foo_bar"));
 }
 
 //---------------------------------------------------------------------
@@ -218,11 +218,16 @@ static_type_alignof_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 }
 
 {
-    v_util_function_dict_set(v_static_type_t, v_quark_from_string(".size"),  "v.static_type_sizeof");
-    v_util_function_dict_set(v_static_type_t, v_quark_from_string(".align"), "v.static_type_alignof");
+    q = v_quark_from_string;
 
-    v_add_intrinsic("v.static_type_sizeof",  static_type_sizeof_intrinsic,  0);
-    v_add_intrinsic("v.static_type_alignof", static_type_alignof_intrinsic, 0);
+    q_static_type_sizeof  = q("v.static_type_sizeof");
+    q_static_type_alignof = q("v.static_type_alignof");
+
+    v_util_function_dict_set(v_static_type_t, q(".size"),  q_static_type_sizeof);
+    v_util_function_dict_set(v_static_type_t, q(".align"), q_static_type_alignof);
+
+    v_add_intrinsic_q(q_static_type_sizeof,  static_type_sizeof_intrinsic,  0);
+    v_add_intrinsic_q(q_static_type_alignof, static_type_alignof_intrinsic, 0);
 }
 
 //---------------------------------------------------------------------
