@@ -204,8 +204,7 @@ static inline
 void
 my_fread(void* buf, std::size_t sz, std::size_t cn, std::FILE* f)
 {
-    if (std::fread(buf, sz, cn, f))
-    ;                                   //- WTF ?!?!?!?!?!?
+    auto dummy = std::fread(buf, sz, cn, f);
 }
 
 

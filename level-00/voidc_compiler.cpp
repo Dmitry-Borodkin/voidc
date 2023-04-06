@@ -277,7 +277,7 @@ void compile_expr_integer(const visitor_t *vis, void *, const ast_base_t *self)
 
             unsigned w = tot_bits - __builtin_clrsbll(num);
 
-            if (w == 0) w = 1;
+            assert(w);      //- Sic!
 
             t = gctx.make_int_type(w);
 

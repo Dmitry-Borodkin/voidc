@@ -393,8 +393,6 @@ base_local_ctx_t::obtain_identifier(v_quark_t name, v_type_t * &type, LLVMValueR
     {
         auto raw_name = check_alias(name);
 
-        auto cname = v_quark_to_string(raw_name);
-
         if (!find_constant(raw_name, t, v))
         {
             t = get_symbol_type(raw_name);
@@ -404,6 +402,8 @@ base_local_ctx_t::obtain_identifier(v_quark_t name, v_type_t * &type, LLVMValueR
             if (!(module  ||  (module = obtain_module())))  return false;
 
             assert(module);
+
+            auto cname = v_quark_to_string(raw_name);
 
             if (auto *ft = dynamic_cast<v_type_function_t *>(t))
             {
@@ -1289,7 +1289,7 @@ voidc_local_ctx_t::~voidc_local_ctx_t()
         unwrap(voidc_global_ctx_t::main_jd)->removeFromLinkOrder(*unwrap(local_jd));
     }
 
-    LLVMOrcJITDylibClear(local_jd);         //- So, how to "delete" local_jd ?
+    auto err = unwrap(voidc_global_ctx_t::jit)->getExecutionSession().removeJITDylib(*unwrap(local_jd));        //- WTF ?
 }
 
 
