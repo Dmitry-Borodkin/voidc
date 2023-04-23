@@ -182,7 +182,7 @@ public:
 
     bool find_constant(v_quark_t raw_name, v_type_t * &type, LLVMValueRef &value);
 
-    bool find_symbol(v_quark_t raw_name, v_type_t * &type, void * &value);
+    bool find_symbol(v_quark_t raw_name, v_type_t * &type, void * &value);      //- ???
 
 
     virtual void *find_symbol_value(v_quark_t raw_name) = 0;        //- No alias check!
@@ -272,9 +272,45 @@ private:
 
 
 //---------------------------------------------------------------------
+//- Voidc template Context
+//---------------------------------------------------------------------
+template<typename T, typename... Targs>
+class voidc_template_ctx_t: public T
+{
+public:
+    explicit voidc_template_ctx_t(Targs... args)
+      : T(args...)
+    {}
+
+public:
+    LLVMOrcJITDylibRef base_jd = nullptr;
+
+public:
+    void add_symbol_value(v_quark_t raw_name, void *value) override;
+
+public:
+    llvm::orc::SymbolMap unit_symbols;
+
+    void flush_unit_symbols(void);
+
+public:
+    void add_module_to_jit(LLVMModuleRef module);
+
+
+
+};
+
+template<> void voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>::flush_unit_symbols(void);
+template<> void voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>::flush_unit_symbols(void);
+
+extern template class voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>;
+extern template class voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>;
+
+
+//---------------------------------------------------------------------
 //- Voidc Global Context
 //---------------------------------------------------------------------
-class voidc_global_ctx_t : public base_global_ctx_t
+class voidc_global_ctx_t : public voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>
 {
 public:
     voidc_global_ctx_t();
@@ -296,8 +332,7 @@ public:
     VOIDC_DLLEXPORT static base_global_ctx_t  *         target;
 
 public:
-    VOIDC_DLLEXPORT static LLVMOrcLLJITRef      jit;
-    VOIDC_DLLEXPORT static LLVMOrcJITDylibRef   main_jd;
+    VOIDC_DLLEXPORT static LLVMOrcLLJITRef jit;
 
     VOIDC_DLLEXPORT static LLVMTargetMachineRef target_machine;
     VOIDC_DLLEXPORT static LLVMPassManagerRef   pass_manager;
@@ -305,32 +340,22 @@ public:
 public:
     static void prepare_module_for_jit(LLVMModuleRef module);
 
-    static void add_module_to_jit(LLVMModuleRef module);
-
 public:
     v_type_t * const static_type_type;
     v_type_t * const type_type;
 
     v_type_t * const type_ptr_type;
 
-public:
-    void add_symbol_value(v_quark_t raw_name, void *value) override;
-
-public:
-    llvm::orc::SymbolMap unit_symbols;
-
-    void flush_unit_symbols(void);
-
 private:
     friend class voidc_local_ctx_t;
 
-    int local_jd_hash = 0;
+    int jd_hash = 0;
 };
 
 //---------------------------------------------------------------------
 //- Voidc Local Context
 //---------------------------------------------------------------------
-class voidc_local_ctx_t : public base_local_ctx_t
+class voidc_local_ctx_t : public voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>
 {
 public:
     explicit voidc_local_ctx_t(voidc_global_ctx_t &global);
@@ -347,19 +372,10 @@ public:
     void add_type(v_quark_t raw_name, v_type_t *type) override;
 
 public:
-    void add_symbol_value(v_quark_t raw_name, void *value) override;
-
-public:
     void *find_symbol_value(v_quark_t raw_name) override;           //- No check alias!
 
 public:
     void adopt_result(v_type_t *type, LLVMValueRef value) override;
-
-public:
-    LLVMOrcJITDylibRef local_jd = nullptr;
-
-public:
-    void add_module_to_jit(LLVMModuleRef module);
 
 public:
     void prepare_unit_action(int line, int column);
@@ -367,11 +383,6 @@ public:
     void run_unit_action(void);
 
     LLVMMemoryBufferRef unit_buffer = nullptr;
-
-public:
-    llvm::orc::SymbolMap unit_symbols;
-
-    void flush_unit_symbols(void);
 
 private:
     void setup_link_order(void);

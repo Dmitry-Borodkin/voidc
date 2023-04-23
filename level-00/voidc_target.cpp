@@ -861,6 +861,170 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 
 
 //---------------------------------------------------------------------
+//- Voidc template Context
+//---------------------------------------------------------------------
+template<typename T, typename... TArgs>
+void
+voidc_template_ctx_t<T, TArgs...>::add_symbol_value(v_quark_t raw_name_q, void *value)
+{
+    auto raw_name = v_quark_to_string(raw_name_q);
+
+    auto vjit = unwrap(voidc_global_ctx_t::voidc->jit);
+
+    if (vjit->lookup(*unwrap(base_jd), raw_name)) return;
+
+    unit_symbols[vjit->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
+}
+
+//---------------------------------------------------------------------
+template<typename T, typename... Targs>
+static inline
+void
+flush_unit_symbols_helper(voidc_template_ctx_t<T, Targs...> *ctx)
+{
+    if (ctx->unit_symbols.empty()) return;
+
+    auto err = unwrap(ctx->base_jd)->define(absoluteSymbols(ctx->unit_symbols));
+
+    ctx->unit_symbols.clear();
+}
+
+template<>
+void
+voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>::
+flush_unit_symbols(void)
+{
+    flush_unit_symbols_helper(this);
+}
+
+template<>
+void
+voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>::
+flush_unit_symbols(void)
+{
+    flush_unit_symbols_helper(this);
+
+    flush_unit_symbols_helper(voidc_global_ctx_t::voidc);
+}
+
+
+//---------------------------------------------------------------------
+static LLVMOrcJITTargetAddress
+add_object_file_to_jit_with_rt(LLVMMemoryBufferRef membuf,
+                               LLVMOrcJITDylibRef jd,
+                               LLVMOrcResourceTrackerRef rt,
+                               bool search_action = false)
+{
+    char *msg = nullptr;
+
+    auto &jit = voidc_global_ctx_t::jit;
+
+    //-------------------------------------------------------------
+    auto bref = LLVMCreateBinary(membuf, nullptr, &msg);
+    assert(bref);
+
+    auto mb_copy = LLVMBinaryCopyMemoryBuffer(bref);
+
+    //-------------------------------------------------------------
+    auto lerr = LLVMOrcLLJITAddObjectFileWithRT(jit, rt, mb_copy);
+
+    if (lerr)
+    {
+        msg = LLVMGetErrorMessage(lerr);
+
+        printf("\n%s\n", msg);
+
+        LLVMDisposeErrorMessage(msg);
+    }
+
+    //-------------------------------------------------------------
+    LLVMOrcJITTargetAddress ret = 0;
+
+    auto it = LLVMObjectFileCopySymbolIterator(bref);
+
+    static std::regex act_regex("unit_[0-9]+_[0-9]+_action");
+
+    while(!LLVMObjectFileIsSymbolIteratorAtEnd(bref, it))
+    {
+        auto sname = LLVMGetSymbolName(it);
+
+        if (auto sym = unwrap(jit)->lookup(*unwrap(jd), sname))
+        {
+            auto addr = sym->getValue();
+
+            if (search_action  &&  std::regex_match(sname, act_regex))
+            {
+                ret = addr;
+            }
+        }
+
+        LLVMMoveToNextSymbol(it);
+    }
+
+    LLVMDisposeSymbolIterator(it);
+
+    //-------------------------------------------------------------
+    LLVMDisposeBinary(bref);
+
+
+//  unwrap(jd)->dump(outs());
+
+
+    return ret;
+}
+
+//---------------------------------------------------------------------
+static LLVMOrcJITTargetAddress
+add_object_file_to_jit(LLVMMemoryBufferRef membuf,
+                       LLVMOrcJITDylibRef jd,
+                       bool search_action = false)
+{
+    return add_object_file_to_jit_with_rt(membuf, jd, LLVMOrcJITDylibGetDefaultResourceTracker(jd), search_action);
+}
+
+//---------------------------------------------------------------------
+template<typename T, typename... TArgs>
+void
+voidc_template_ctx_t<T, TArgs...>::add_module_to_jit(LLVMModuleRef mod)
+{
+    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
+
+//  verify_module(mod);
+
+    //-------------------------------------------------------------
+    LLVMMemoryBufferRef mod_buffer = nullptr;
+
+    char *msg = nullptr;
+
+    auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
+                                                   mod,
+                                                   LLVMObjectFile,
+                                                   &msg,
+                                                   &mod_buffer);
+
+    if (err)
+    {
+        printf("\n%s\n", msg);
+
+        LLVMDisposeMessage(msg);
+
+        exit(1);                //- Sic !!!
+    }
+
+    assert(mod_buffer);
+
+    add_object_file_to_jit(mod_buffer, base_jd);
+
+    LLVMDisposeMemoryBuffer(mod_buffer);
+}
+
+
+//---------------------------------------------------------------------
+template class voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>;
+template class voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>;
+
+
+//---------------------------------------------------------------------
 //- Voidc Global Context
 //---------------------------------------------------------------------
 static
@@ -871,8 +1035,7 @@ VOIDC_DLLEXPORT_BEGIN_VARIABLE
 voidc_global_ctx_t * const & voidc_global_ctx_t::voidc = voidc_global_ctx;
 base_global_ctx_t  *         voidc_global_ctx_t::target;
 
-LLVMOrcLLJITRef      voidc_global_ctx_t::jit;
-LLVMOrcJITDylibRef   voidc_global_ctx_t::main_jd;
+LLVMOrcLLJITRef voidc_global_ctx_t::jit;
 
 LLVMTargetMachineRef voidc_global_ctx_t::target_machine;
 LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
@@ -881,7 +1044,7 @@ VOIDC_DLLEXPORT_END
 
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
-  : base_global_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
+  : voidc_template_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
     static_type_type(make_struct_type(v_quark_from_string("v_static_type_t"))),
     type_type(make_struct_type(v_quark_from_string("v_type_t"))),
     type_ptr_type(make_pointer_type(type_type, 0))
@@ -890,6 +1053,17 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     voidc_global_ctx = this;
 
+    //-------------------------------------------------------------
+    base_jd = LLVMOrcLLJITGetMainJITDylib(jit);
+
+    {   LLVMOrcDefinitionGeneratorRef gen = nullptr;
+
+        LLVMOrcCreateDynamicLibrarySearchGeneratorForProcess(&gen, LLVMOrcLLJITGetGlobalPrefix(jit), nullptr, nullptr);
+
+        LLVMOrcJITDylibAddGenerator(base_jd, gen);
+    }
+
+    //-------------------------------------------------------------
     auto q = v_quark_from_string;
 
     v_quark_t v_static_type_t_q = q("v_static_type_t");
@@ -967,15 +1141,6 @@ voidc_global_ctx_t::static_initialize(void)
 
     //-------------------------------------------------------------
     LLVMOrcCreateLLJIT(&jit, 0);            //- Sic!
-
-    main_jd = LLVMOrcLLJITGetMainJITDylib(jit);
-
-    {   LLVMOrcDefinitionGeneratorRef gen = nullptr;
-
-        LLVMOrcCreateDynamicLibrarySearchGeneratorForProcess(&gen, LLVMOrcLLJITGetGlobalPrefix(jit), nullptr, nullptr);
-
-        LLVMOrcJITDylibAddGenerator(main_jd, gen);
-    }
 
     //-------------------------------------------------------------
     target = new voidc_global_ctx_t();      //- Sic!
@@ -1119,156 +1284,22 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 
 
 //---------------------------------------------------------------------
-static LLVMOrcJITTargetAddress
-add_object_file_to_jit_with_rt(LLVMMemoryBufferRef membuf,
-                               LLVMOrcJITDylibRef jd,
-                               LLVMOrcResourceTrackerRef rt,
-                               bool search_action = false)
-{
-    char *msg = nullptr;
-
-    auto &jit = voidc_global_ctx_t::jit;
-
-    //-------------------------------------------------------------
-    auto bref = LLVMCreateBinary(membuf, nullptr, &msg);
-    assert(bref);
-
-    auto mb_copy = LLVMBinaryCopyMemoryBuffer(bref);
-
-    //-------------------------------------------------------------
-    auto lerr = LLVMOrcLLJITAddObjectFileWithRT(jit, rt, mb_copy);
-
-    if (lerr)
-    {
-        msg = LLVMGetErrorMessage(lerr);
-
-        printf("\n%s\n", msg);
-
-        LLVMDisposeErrorMessage(msg);
-    }
-
-    //-------------------------------------------------------------
-    LLVMOrcJITTargetAddress ret = 0;
-
-    auto it = LLVMObjectFileCopySymbolIterator(bref);
-
-    static std::regex act_regex("unit_[0-9]+_[0-9]+_action");
-
-    while(!LLVMObjectFileIsSymbolIteratorAtEnd(bref, it))
-    {
-        auto sname = LLVMGetSymbolName(it);
-
-        if (auto sym = unwrap(jit)->lookup(*unwrap(jd), sname))
-        {
-            auto addr = sym->getValue();
-
-            if (search_action  &&  std::regex_match(sname, act_regex))
-            {
-                ret = addr;
-            }
-        }
-
-        LLVMMoveToNextSymbol(it);
-    }
-
-    LLVMDisposeSymbolIterator(it);
-
-    //-------------------------------------------------------------
-    LLVMDisposeBinary(bref);
-
-
-//  unwrap(jd)->dump(outs());
-
-
-    return ret;
-}
-
-//---------------------------------------------------------------------
-static LLVMOrcJITTargetAddress
-add_object_file_to_jit(LLVMMemoryBufferRef membuf,
-                       LLVMOrcJITDylibRef jd,
-                       bool search_action = false)
-{
-    return add_object_file_to_jit_with_rt(membuf, jd, LLVMOrcJITDylibGetDefaultResourceTracker(jd), search_action);
-}
-
-//---------------------------------------------------------------------
-void
-voidc_global_ctx_t::add_module_to_jit(LLVMModuleRef module)
-{
-    assert(target == voidc);    //- Sic!
-
-//  verify_module(module);
-
-    //-------------------------------------------------------------
-    LLVMMemoryBufferRef mod_buffer = nullptr;
-
-    char *msg = nullptr;
-
-    auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
-                                                   module,
-                                                   LLVMObjectFile,
-                                                   &msg,
-                                                   &mod_buffer);
-
-    if (err)
-    {
-        printf("\n%s\n", msg);
-
-        LLVMDisposeMessage(msg);
-
-        exit(1);                //- Sic !!!
-    }
-
-    assert(mod_buffer);
-
-    add_object_file_to_jit(mod_buffer, main_jd);
-
-    LLVMDisposeMemoryBuffer(mod_buffer);
-}
-
-
-//---------------------------------------------------------------------
-void
-voidc_global_ctx_t::add_symbol_value(v_quark_t raw_name_q, void *value)
-{
-    auto raw_name = v_quark_to_string(raw_name_q);
-
-    if (unwrap(jit)->lookup(*unwrap(main_jd), raw_name)) return;
-
-    unit_symbols[unwrap(jit)->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
-}
-
-
-//---------------------------------------------------------------------
-void
-voidc_global_ctx_t::flush_unit_symbols(void)
-{
-    if (unit_symbols.empty()) return;
-
-    auto err = unwrap(main_jd)->define(absoluteSymbols(unit_symbols));
-
-    unit_symbols.clear();
-}
-
-
-//---------------------------------------------------------------------
 //- Voidc Local Context
 //---------------------------------------------------------------------
 voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
-  : base_local_ctx_t(global)
+  : voidc_template_ctx_t(global)
 {
     typenames = global.typenames;
 
     auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
 
-    std::string jd_name("local_jd_" + std::to_string(global.local_jd_hash));
+    std::string jd_name("voidc_jd_" + std::to_string(global.jd_hash));
 
-    global.local_jd_hash += 1;
+    global.jd_hash += 1;
 
-    LLVMOrcExecutionSessionCreateJITDylib(es, &local_jd, jd_name.c_str());
+    LLVMOrcExecutionSessionCreateJITDylib(es, &base_jd, jd_name.c_str());
 
-    assert(local_jd);
+    assert(base_jd);
 
     setup_link_order();
 }
@@ -1286,10 +1317,10 @@ voidc_local_ctx_t::~voidc_local_ctx_t()
     }
     else    //- ?
     {
-        unwrap(voidc_global_ctx_t::main_jd)->removeFromLinkOrder(*unwrap(local_jd));
+        unwrap(voidc_global_ctx_t::voidc->base_jd)->removeFromLinkOrder(*unwrap(base_jd));
     }
 
-    auto err = unwrap(voidc_global_ctx_t::jit)->getExecutionSession().removeJITDylib(*unwrap(local_jd));        //- WTF ?
+    auto err = unwrap(voidc_global_ctx_t::jit)->getExecutionSession().removeJITDylib(*unwrap(base_jd));        //- WTF ?
 }
 
 
@@ -1315,26 +1346,12 @@ voidc_local_ctx_t::add_type(v_quark_t raw_name, v_type_t *type)
 
 
 //---------------------------------------------------------------------
-void
-voidc_local_ctx_t::add_symbol_value(v_quark_t raw_name_q, void *value)
-{
-    auto &jit = voidc_global_ctx_t::jit;
-
-    auto raw_name = v_quark_to_string(raw_name_q);
-
-    if (unwrap(jit)->lookup(*unwrap(local_jd), raw_name)) return;
-
-    unit_symbols[unwrap(jit)->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
-}
-
-
-//---------------------------------------------------------------------
 void *
 voidc_local_ctx_t::find_symbol_value(v_quark_t raw_name_q)
 {
     auto raw_name = v_quark_to_string(raw_name_q);
 
-    for (auto jd : {local_jd, voidc_global_ctx_t::main_jd})
+    for (auto jd : {base_jd, voidc_global_ctx_t::voidc->base_jd})
     {
         auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(jd), raw_name);
 
@@ -1375,42 +1392,6 @@ voidc_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
     }
 
     base_local_ctx_t::adopt_result(type, value);
-}
-
-
-//---------------------------------------------------------------------
-void
-voidc_local_ctx_t::add_module_to_jit(LLVMModuleRef mod)
-{
-    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
-
-//  verify_module(mod);
-
-    //-------------------------------------------------------------
-    LLVMMemoryBufferRef mod_buffer = nullptr;
-
-    char *msg = nullptr;
-
-    auto err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine,
-                                                   mod,
-                                                   LLVMObjectFile,
-                                                   &msg,
-                                                   &mod_buffer);
-
-    if (err)
-    {
-        printf("\n%s\n", msg);
-
-        LLVMDisposeMessage(msg);
-
-        exit(1);                //- Sic !!!
-    }
-
-    assert(mod_buffer);
-
-    add_object_file_to_jit(mod_buffer, local_jd);
-
-    LLVMDisposeMemoryBuffer(mod_buffer);
 }
 
 
@@ -1479,9 +1460,9 @@ voidc_local_ctx_t::run_unit_action(void)
 {
     if (!unit_buffer) return;
 
-    auto rt = LLVMOrcJITDylibCreateResourceTracker(local_jd);
+    auto rt = LLVMOrcJITDylibCreateResourceTracker(base_jd);
 
-    auto addr = add_object_file_to_jit_with_rt(unit_buffer, local_jd, rt, true);
+    auto addr = add_object_file_to_jit_with_rt(unit_buffer, base_jd, rt, true);
 
     void (*unit_action)() = (void (*)())addr;
 
@@ -1499,21 +1480,6 @@ voidc_local_ctx_t::run_unit_action(void)
 
 //---------------------------------------------------------------------
 void
-voidc_local_ctx_t::flush_unit_symbols(void)
-{
-    if (!unit_symbols.empty())
-    {
-        auto err = unwrap(local_jd)->define(absoluteSymbols(unit_symbols));
-
-        unit_symbols.clear();
-    }
-
-    voidc_global_ctx_t::voidc->flush_unit_symbols();
-}
-
-
-//---------------------------------------------------------------------
-void
 voidc_local_ctx_t::setup_link_order(void)
 {
 #ifdef _WIN32
@@ -1522,8 +1488,8 @@ voidc_local_ctx_t::setup_link_order(void)
     auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
 #endif
 
-    auto g_jd = unwrap(voidc_global_ctx_t::main_jd);
-    auto l_jd = unwrap(local_jd);
+    auto g_jd = unwrap(voidc_global_ctx_t::voidc->base_jd);
+    auto l_jd = unwrap(base_jd);
 
     JITDylibSearchOrder so =
     {
@@ -1859,7 +1825,9 @@ voidc_prepare_module_for_jit(LLVMModuleRef module)
 void
 voidc_add_module_to_jit(LLVMModuleRef module)
 {
-    voidc_global_ctx_t::add_module_to_jit(module);
+    auto &gctx = *voidc_global_ctx_t::voidc;
+
+    gctx.add_module_to_jit(module);
 }
 
 void
@@ -1877,7 +1845,7 @@ voidc_add_object_file_to_jit(LLVMMemoryBufferRef membuf)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
 
-    add_object_file_to_jit(membuf, gctx.main_jd);
+    add_object_file_to_jit(membuf, gctx.base_jd);
 }
 
 void
@@ -1886,7 +1854,7 @@ voidc_add_local_object_file_to_jit(LLVMMemoryBufferRef membuf)
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
 
-    add_object_file_to_jit(membuf, lctx.local_jd);
+    add_object_file_to_jit(membuf, lctx.base_jd);
 }
 
 //---------------------------------------------------------------------
