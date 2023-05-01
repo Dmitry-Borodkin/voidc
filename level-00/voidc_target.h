@@ -295,9 +295,6 @@ public:
 
 public:
     void add_module_to_jit(LLVMModuleRef module);
-
-
-
 };
 
 template<> void voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>::flush_unit_symbols(void);
@@ -390,40 +387,51 @@ private:
 
 
 //---------------------------------------------------------------------
+//- Target template Context
+//---------------------------------------------------------------------
+template<typename T, typename... Targs>
+class target_template_ctx_t: public T
+{
+public:
+    explicit target_template_ctx_t(Targs... args)
+      : T(args...)
+    {}
+
+public:
+    void add_symbol_value(v_quark_t raw_name, void *value) override;
+
+protected:
+    std::map<v_quark_t, void *> symbol_values;
+};
+
+extern template class target_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>;
+extern template class target_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>;
+
+
+//---------------------------------------------------------------------
 //- Target Global Context
 //---------------------------------------------------------------------
-class target_global_ctx_t : public base_global_ctx_t
+class target_global_ctx_t : public target_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>
 {
 public:
     target_global_ctx_t(size_t int_size, size_t long_size, size_t ptr_size);
     ~target_global_ctx_t() override;
 
-public:
-    void add_symbol_value(v_quark_t raw_name, void *value) override;
-
 private:
     friend class target_local_ctx_t;
-
-    std::map<v_quark_t, void *> symbol_values;
 };
 
 //---------------------------------------------------------------------
 //- Target Local Context
 //---------------------------------------------------------------------
-class target_local_ctx_t : public base_local_ctx_t
+class target_local_ctx_t : public target_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>
 {
 public:
     explicit target_local_ctx_t(base_global_ctx_t &global);
     ~target_local_ctx_t() override;
 
 public:
-    void add_symbol_value(v_quark_t raw_name, void *value) override;
-
-public:
     void *find_symbol_value(v_quark_t raw_name) override;           //- No check alias!
-
-private:
-    std::map<v_quark_t, void *> symbol_values;
 };
 
 

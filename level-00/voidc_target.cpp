@@ -1503,10 +1503,25 @@ voidc_local_ctx_t::setup_link_order(void)
 
 
 //---------------------------------------------------------------------
+//- Target template Context
+//---------------------------------------------------------------------
+template<typename T, typename... TArgs>
+void
+target_template_ctx_t<T, TArgs...>::add_symbol_value(v_quark_t raw_name, void *value)
+{
+    symbol_values.insert({raw_name, value});
+}
+
+//---------------------------------------------------------------------
+template class target_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>;
+template class target_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>;
+
+
+//---------------------------------------------------------------------
 //- Target Global Context
 //---------------------------------------------------------------------
 target_global_ctx_t::target_global_ctx_t(size_t int_size, size_t long_size, size_t ptr_size)
-  : base_global_ctx_t(LLVMContextCreate(), int_size, long_size, ptr_size)
+  : target_template_ctx_t(LLVMContextCreate(), int_size, long_size, ptr_size)
 {
     initialize();
 }
@@ -1520,18 +1535,10 @@ target_global_ctx_t::~target_global_ctx_t()
 
 
 //---------------------------------------------------------------------
-void
-target_global_ctx_t::add_symbol_value(v_quark_t raw_name, void *value)
-{
-    symbol_values.insert({raw_name, value});
-}
-
-
-//---------------------------------------------------------------------
 //- Target Local Context
 //---------------------------------------------------------------------
 target_local_ctx_t::target_local_ctx_t(base_global_ctx_t &global)
-  : base_local_ctx_t(global)
+  : target_template_ctx_t(global)
 {
 }
 
@@ -1539,15 +1546,6 @@ target_local_ctx_t::~target_local_ctx_t()
 {
     run_cleaners();
 }
-
-
-//---------------------------------------------------------------------
-void
-target_local_ctx_t::add_symbol_value(v_quark_t raw_name, void *value)
-{
-    symbol_values.insert({raw_name, value});
-}
-
 
 //---------------------------------------------------------------------
 void *
