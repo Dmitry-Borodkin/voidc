@@ -14,6 +14,7 @@
 #include <set>
 #include <map>
 #include <forward_list>
+#include <deque>
 #include <utility>
 
 #include <immer/map.hpp>
@@ -281,6 +282,7 @@ public:
     explicit voidc_template_ctx_t(Targs... args)
       : T(args...)
     {}
+    ~voidc_template_ctx_t() override;
 
 public:
     LLVMOrcJITDylibRef base_jd = nullptr;
@@ -294,11 +296,25 @@ public:
     void flush_unit_symbols(void);
 
 public:
+    void add_object_file_to_jit(LLVMMemoryBufferRef membuf);
+
     void add_module_to_jit(LLVMModuleRef module);
+
+public:
+    std::deque<LLVMOrcJITDylibRef> deque_jd;
+
+public:
+    void setup_link_order(LLVMOrcJITDylibRef jd);
 };
 
-template<> void voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>::flush_unit_symbols(void);
-template<> void voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>::flush_unit_symbols(void);
+using voidc_global_template_ctx_t = voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>;
+using voidc_local_template_ctx_t  = voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>;
+
+template<> void voidc_global_template_ctx_t::flush_unit_symbols(void);
+template<> void voidc_local_template_ctx_t::flush_unit_symbols(void);
+
+template<> void voidc_global_template_ctx_t::setup_link_order(LLVMOrcJITDylibRef jd);
+template<> void voidc_local_template_ctx_t::setup_link_order(LLVMOrcJITDylibRef jd);
 
 extern template class voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>;
 extern template class voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>;
@@ -307,7 +323,7 @@ extern template class voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &
 //---------------------------------------------------------------------
 //- Voidc Global Context
 //---------------------------------------------------------------------
-class voidc_global_ctx_t : public voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>
+class voidc_global_ctx_t : public voidc_global_template_ctx_t
 {
 public:
     voidc_global_ctx_t();
@@ -343,16 +359,14 @@ public:
 
     v_type_t * const type_ptr_type;
 
-private:
-    friend class voidc_local_ctx_t;
-
+public:
     int jd_hash = 0;
 };
 
 //---------------------------------------------------------------------
 //- Voidc Local Context
 //---------------------------------------------------------------------
-class voidc_local_ctx_t : public voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>
+class voidc_local_ctx_t : public voidc_local_template_ctx_t
 {
 public:
     explicit voidc_local_ctx_t(voidc_global_ctx_t &global);
@@ -380,9 +394,6 @@ public:
     void run_unit_action(void);
 
     LLVMMemoryBufferRef unit_buffer = nullptr;
-
-private:
-    void setup_link_order(void);
 };
 
 

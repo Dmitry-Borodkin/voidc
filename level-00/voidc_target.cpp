@@ -864,6 +864,20 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 //- Voidc template Context
 //---------------------------------------------------------------------
 template<typename T, typename... TArgs>
+voidc_template_ctx_t<T, TArgs...>::~voidc_template_ctx_t()
+{
+    auto &es = unwrap(voidc_global_ctx_t::jit)->getExecutionSession();
+
+    for (auto jd : deque_jd)
+    {
+        auto e0 = unwrap(voidc_global_ctx_t::jit)->deinitialize(*unwrap(jd));
+
+        auto e1 = es.removeJITDylib(*unwrap(jd));
+    }
+}
+
+//---------------------------------------------------------------------
+template<typename T, typename... TArgs>
 void
 voidc_template_ctx_t<T, TArgs...>::add_symbol_value(v_quark_t raw_name_q, void *value)
 {
@@ -891,16 +905,14 @@ flush_unit_symbols_helper(voidc_template_ctx_t<T, Targs...> *ctx)
 
 template<>
 void
-voidc_template_ctx_t<base_global_ctx_t, LLVMContextRef, size_t, size_t, size_t>::
-flush_unit_symbols(void)
+voidc_global_template_ctx_t::flush_unit_symbols(void)
 {
     flush_unit_symbols_helper(this);
 }
 
 template<>
 void
-voidc_template_ctx_t<base_local_ctx_t, base_global_ctx_t &>::
-flush_unit_symbols(void)
+voidc_local_template_ctx_t::flush_unit_symbols(void)
 {
     flush_unit_symbols_helper(this);
 
@@ -909,11 +921,82 @@ flush_unit_symbols(void)
 
 
 //---------------------------------------------------------------------
+template<>
+void
+voidc_global_template_ctx_t::setup_link_order(LLVMOrcJITDylibRef jd)
+{
+#ifdef _WIN32
+    const auto flags = JITDylibLookupFlags::MatchAllSymbols;
+#else
+    const auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
+#endif
+
+    size_t sz = deque_jd.size() + 2;
+
+    if (local_ctx)  sz += 1;
+
+    JITDylibSearchOrder so(sz);
+
+    auto it = so.begin();
+
+    auto set_item = [&it](LLVMOrcJITDylibRef _jd, JITDylibLookupFlags _flags = flags)
+    {
+        *it++ = {unwrap(_jd), _flags};
+    };
+
+    set_item(jd);
+
+    if (local_ctx)  set_item(static_cast<voidc_local_ctx_t *>(local_ctx)->base_jd);
+
+    for (auto _jd : deque_jd)   set_item(_jd);
+
+    set_item(base_jd, JITDylibLookupFlags::MatchAllSymbols);
+
+    unwrap(jd)->setLinkOrder(so, false);        //- Set "as is"
+}
+
+//---------------------------------------------------------------------
+template<>
+void
+voidc_local_template_ctx_t::setup_link_order(LLVMOrcJITDylibRef jd)
+{
+#ifdef _WIN32
+    const auto flags = JITDylibLookupFlags::MatchAllSymbols;
+#else
+    const auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
+#endif
+
+    auto &vctx = *voidc_global_ctx_t::voidc;
+
+    size_t sz = 2 + deque_jd.size() + vctx.deque_jd.size();
+
+    JITDylibSearchOrder so(sz);
+
+    auto it = so.begin();
+
+    auto set_item = [&it](LLVMOrcJITDylibRef _jd, JITDylibLookupFlags _flags = flags)
+    {
+        *it++ = {unwrap(_jd), _flags};
+    };
+
+    set_item(jd);
+
+    for (auto _jd : deque_jd)   set_item(_jd);
+
+    for (auto _jd : vctx.deque_jd)  set_item(_jd);
+
+    set_item(vctx.base_jd, JITDylibLookupFlags::MatchAllSymbols);
+
+    unwrap(jd)->setLinkOrder(so, false);        //- Set "as is"
+}
+
+
+//---------------------------------------------------------------------
 static LLVMOrcJITTargetAddress
-add_object_file_to_jit_with_rt(LLVMMemoryBufferRef membuf,
-                               LLVMOrcJITDylibRef jd,
-                               LLVMOrcResourceTrackerRef rt,
-                               bool search_action = false)
+add_object_file_to_jd_with_rt(LLVMMemoryBufferRef membuf,
+                              LLVMOrcJITDylibRef jd,
+                              LLVMOrcResourceTrackerRef rt,
+                              bool search_action = false)
 {
     char *msg = nullptr;
 
@@ -975,12 +1058,45 @@ add_object_file_to_jit_with_rt(LLVMMemoryBufferRef membuf,
 
 //---------------------------------------------------------------------
 static LLVMOrcJITTargetAddress
-add_object_file_to_jit(LLVMMemoryBufferRef membuf,
-                       LLVMOrcJITDylibRef jd,
-                       bool search_action = false)
+add_object_file_to_jd(LLVMMemoryBufferRef membuf,
+                      LLVMOrcJITDylibRef jd,
+                      bool search_action = false)
 {
-    return add_object_file_to_jit_with_rt(membuf, jd, LLVMOrcJITDylibGetDefaultResourceTracker(jd), search_action);
+    return add_object_file_to_jd_with_rt(membuf, jd, LLVMOrcJITDylibGetDefaultResourceTracker(jd), search_action);
 }
+
+//---------------------------------------------------------------------
+template<typename T, typename... TArgs>
+void
+voidc_template_ctx_t<T, TArgs...>::add_object_file_to_jit(LLVMMemoryBufferRef membuf)
+{
+    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
+
+    auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
+
+    auto &vctx = *voidc_global_ctx_t::voidc;
+
+    std::string jd_name("voidc_jd_" + std::to_string(vctx.jd_hash));
+
+    vctx.jd_hash += 1;
+
+    LLVMOrcJITDylibRef jd = nullptr;
+
+    LLVMOrcExecutionSessionCreateJITDylib(es, &jd, jd_name.c_str());
+
+    assert(jd);
+
+    setup_link_order(jd);
+
+    add_object_file_to_jd(membuf, jd);
+
+    auto err = unwrap(voidc_global_ctx_t::jit)->initialize(*unwrap(jd));
+
+    unwrap(jd)->setLinkOrder({{unwrap(vctx.base_jd), JITDylibLookupFlags::MatchAllSymbols}});       //- Sic!    WTF?
+
+    deque_jd.push_front(jd);
+}
+
 
 //---------------------------------------------------------------------
 template<typename T, typename... TArgs>
@@ -1013,7 +1129,7 @@ voidc_template_ctx_t<T, TArgs...>::add_module_to_jit(LLVMModuleRef mod)
 
     assert(mod_buffer);
 
-    add_object_file_to_jit(mod_buffer, base_jd);
+    add_object_file_to_jit(mod_buffer);
 
     LLVMDisposeMemoryBuffer(mod_buffer);
 }
@@ -1055,6 +1171,8 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     //-------------------------------------------------------------
     base_jd = LLVMOrcLLJITGetMainJITDylib(jit);
+
+//  deque_jd.push_front(base_jd);
 
     {   LLVMOrcDefinitionGeneratorRef gen = nullptr;
 
@@ -1254,9 +1372,9 @@ voidc_global_ctx_t::static_terminate(void)
     LLVMDisposeMessage(voidc_triple);
     LLVMDisposeTargetData(voidc->data_layout);
 
-    LLVMOrcDisposeLLJIT(jit);
-
     delete voidc;
+
+    LLVMOrcDisposeLLJIT(jit);
 
     LLVMShutdown();
 }
@@ -1301,26 +1419,15 @@ voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
 
     assert(base_jd);
 
-    setup_link_order();
+    setup_link_order(base_jd);
+
+    deque_jd.push_front(base_jd);
 }
 
 //---------------------------------------------------------------------
 voidc_local_ctx_t::~voidc_local_ctx_t()
 {
     run_cleaners();
-
-    if (parent_ctx)
-    {
-        //- Restore link order
-
-        static_cast<voidc_local_ctx_t *>(parent_ctx)->setup_link_order();
-    }
-    else    //- ?
-    {
-        unwrap(voidc_global_ctx_t::voidc->base_jd)->removeFromLinkOrder(*unwrap(base_jd));
-    }
-
-    auto err = unwrap(voidc_global_ctx_t::jit)->getExecutionSession().removeJITDylib(*unwrap(base_jd));        //- WTF ?
 }
 
 
@@ -1460,45 +1567,45 @@ voidc_local_ctx_t::run_unit_action(void)
 {
     if (!unit_buffer) return;
 
-    auto rt = LLVMOrcJITDylibCreateResourceTracker(base_jd);
+    auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
 
-    auto addr = add_object_file_to_jit_with_rt(unit_buffer, base_jd, rt, true);
+    auto &gctx = *voidc_global_ctx_t::voidc;
+
+    std::string jd_name("voidc_unit_jd_" + std::to_string(gctx.jd_hash));
+
+    gctx.jd_hash += 1;
+
+    LLVMOrcJITDylibRef jd = nullptr;
+
+    LLVMOrcExecutionSessionCreateJITDylib(es, &jd, jd_name.c_str());
+
+    assert(jd);
+
+    setup_link_order(jd);
+
+    auto rt = LLVMOrcJITDylibCreateResourceTracker(jd);
+
+    auto addr = add_object_file_to_jd_with_rt(unit_buffer, jd, rt, true);
+
+    auto e0 = unwrap(voidc_global_ctx_t::jit)->initialize(*unwrap(jd));
 
     void (*unit_action)() = (void (*)())addr;
 
     unit_action();
+
+//  unwrap(jd)->dump(outs());
+
+    auto e1 = unwrap(voidc_global_ctx_t::jit)->deinitialize(*unwrap(jd));
 
     flush_unit_symbols();
 
     LLVMOrcResourceTrackerRemove(rt);
     LLVMOrcReleaseResourceTracker(rt);      //- ?
 
+    auto e2 = unwrap(voidc_global_ctx_t::jit)->getExecutionSession().removeJITDylib(*unwrap(jd));       //- WTF ?
+
     fflush(stdout);     //- WTF?
     fflush(stderr);     //- WTF?
-}
-
-
-//---------------------------------------------------------------------
-void
-voidc_local_ctx_t::setup_link_order(void)
-{
-#ifdef _WIN32
-    auto flags = JITDylibLookupFlags::MatchAllSymbols;
-#else
-    auto flags = JITDylibLookupFlags::MatchExportedSymbolsOnly;
-#endif
-
-    auto g_jd = unwrap(voidc_global_ctx_t::voidc->base_jd);
-    auto l_jd = unwrap(base_jd);
-
-    JITDylibSearchOrder so =
-    {
-        { l_jd, flags },    //- First  - the local
-        { g_jd, flags }     //- Second - the global
-    };
-
-    g_jd->setLinkOrder(so, false);      //- Set "as is"
-    l_jd->setLinkOrder(so, false);      //- Set "as is"
 }
 
 
@@ -1843,7 +1950,7 @@ voidc_add_object_file_to_jit(LLVMMemoryBufferRef membuf)
 {
     auto &gctx = *voidc_global_ctx_t::voidc;
 
-    add_object_file_to_jit(membuf, gctx.base_jd);
+    gctx.add_object_file_to_jit(membuf);
 }
 
 void
@@ -1852,7 +1959,7 @@ voidc_add_local_object_file_to_jit(LLVMMemoryBufferRef membuf)
     auto &gctx = *voidc_global_ctx_t::voidc;
     auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
 
-    add_object_file_to_jit(membuf, lctx.base_jd);
+    lctx.add_object_file_to_jit(membuf);
 }
 
 //---------------------------------------------------------------------
