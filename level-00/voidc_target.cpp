@@ -1458,11 +1458,18 @@ voidc_local_ctx_t::find_symbol_value(v_quark_t raw_name_q)
 {
     auto raw_name = v_quark_to_string(raw_name_q);
 
-    for (auto jd : {base_jd, voidc_global_ctx_t::voidc->base_jd})
-    {
-        auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(jd), raw_name);
+    auto &vcxt = *voidc_global_ctx_t::voidc;
 
-        if (sym)  return (void *)sym->getValue();
+    std::deque<LLVMOrcJITDylibRef> main_dq = {vcxt.base_jd};
+
+    for (auto dq : {deque_jd, vcxt.deque_jd, main_dq})
+    {
+        for (auto jd : dq)
+        {
+            auto sym = unwrap(voidc_global_ctx_t::jit)->lookup(*unwrap(jd), raw_name);
+
+            if (sym)  return (void *)sym->getValue();
+        }
     }
 
     return nullptr;
