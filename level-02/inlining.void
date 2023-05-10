@@ -42,6 +42,8 @@
     q = v_quark_ptr_from_string;
 
     v_add_symbol("create_inline_function_data_q", q_ref, q("voidc_internal_create_inline_function_data"));
+
+    v_add_symbol("enabled_q", q_ref, q("voidc.internal.inlining_enabled"));
 }
 
 
@@ -423,6 +425,11 @@ finish_module_ctx: &finish_module_ctx_t := v_undef();
 export
 voidc_enable_inlining_compiler: () -> void
 {
+    v_return_if(v_find_constant_q(enabled_q, 0, 0));
+
+    v_add_constant_q(enabled_q, void, 0);
+
+
     llvm_ctx = v_target_get_llvm_ctx();
 
     ak_inlinehint   = LLVMGetEnumAttributeKindForName("inlinehint", 10);
@@ -465,7 +472,7 @@ voidc_enable_inlining: () -> void
 
     v_peg_get_grammar(gr0);
 
-    v_return_if(v_peg_grammar_get_value(gr0, "gf_alwaysinline"));
+    v_return_if(v_peg_grammar_get_value(gr0, "qf_alwaysinline"));
 
 
     any = v_alloca(v_std_any_t, 2);
