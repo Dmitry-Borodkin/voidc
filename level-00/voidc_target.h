@@ -29,11 +29,16 @@
 //---------------------------------------------------------------------
 class base_local_ctx_t;
 
-extern "C" typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
+extern "C"
+{
+    typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
 
-extern "C" typedef LLVMModuleRef (*obtain_module_t)(void *ctx);
+    typedef LLVMValueRef (*make_temporary_t)(void *ctx, v_type_t *t, LLVMValueRef v);
 
-extern "C" typedef void (*finish_module_t)(void *ctx, LLVMModuleRef module);
+    typedef LLVMModuleRef (*obtain_module_t)(void *ctx);
+
+    typedef void (*finish_module_t)(void *ctx, LLVMModuleRef module);
+}
 
 
 //---------------------------------------------------------------------
@@ -242,30 +247,35 @@ public:
     virtual void adopt_result(v_type_t *type, LLVMValueRef value);
 
 public:
+    convert_to_type_t convert_to_type_fun;
+    void             *convert_to_type_ctx;
+
     LLVMValueRef convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
     {
         return convert_to_type_fun(convert_to_type_ctx, t0, v0, t1);
     }
 
-    convert_to_type_t convert_to_type_fun;
-    void             *convert_to_type_ctx;
-
 public:
-    LLVMValueRef make_temporary(v_type_t *type, LLVMValueRef value);
+    make_temporary_t make_temporary_fun;
+    void            *make_temporary_ctx;
+
+    LLVMValueRef make_temporary(v_type_t *t, LLVMValueRef v)
+    {
+        return make_temporary_fun(make_temporary_ctx, t, v);
+    }
 
     void add_temporary_cleaner(void (*fun)(void *data), void *data);
 
     void push_temporaries(void);
     void pop_temporaries(void);
 
-    LLVMValueRef get_temporaries_front(void)  { return temporaries_stack.front().first; }
+public:
+    std::forward_list<std::pair<LLVMValueRef, cleaners_t>> temporaries_stack;
 
 public:
     bool has_parent(void) const { return bool(parent_ctx); }
 
 private:
-    std::forward_list<std::pair<LLVMValueRef, cleaners_t>> temporaries_stack;
-
     friend class voidc_local_ctx_t;
 
     base_local_ctx_t * const parent_ctx = nullptr;

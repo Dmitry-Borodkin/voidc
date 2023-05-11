@@ -167,12 +167,15 @@ base_global_ctx_t::initialize(void)
 //- Base Local Context
 //---------------------------------------------------------------------
 static LLVMValueRef v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
+static LLVMValueRef v_make_temporary_default(void *, v_type_t *t, LLVMValueRef v);
 
 base_local_ctx_t::base_local_ctx_t(base_global_ctx_t &_global)
   : global_ctx(_global),
     parent_ctx(_global.local_ctx),
     convert_to_type_fun(v_convert_to_type_default),
-    convert_to_type_ctx(0)
+    convert_to_type_ctx(0),
+    make_temporary_fun(v_make_temporary_default),
+    make_temporary_ctx(0)
 {
     global_ctx.local_ctx = this;
 
@@ -671,12 +674,10 @@ base_local_ctx_t::pop_variables(void)
 
 
 //---------------------------------------------------------------------
-using temporaries_stack_t = std::forward_list<std::pair<LLVMValueRef, base_compile_ctx_t::cleaners_t>>;
-
 static void
-initialize_temporaries_stack_front(base_local_ctx_t &lctx, temporaries_stack_t &temporaries_stack)
+initialize_temporaries_stack_front(base_local_ctx_t &lctx)
 {
-    assert(temporaries_stack.front().first == nullptr);
+    assert(lctx.temporaries_stack.front().first == nullptr);
 
     v_type_t    *t;
     LLVMValueRef f;
@@ -687,23 +688,7 @@ initialize_temporaries_stack_front(base_local_ctx_t &lctx, temporaries_stack_t &
 
     auto stack_ptr = LLVMBuildCall2(lctx.global_ctx.builder, t->llvm_type(), f, nullptr, 0, "tmp_stack_ptr");
 
-    temporaries_stack.front().first = stack_ptr;
-}
-
-//---------------------------------------------------------------------
-LLVMValueRef
-base_local_ctx_t::make_temporary(v_type_t *type, LLVMValueRef value)
-{
-    if (!temporaries_stack.front().first)
-    {
-        initialize_temporaries_stack_front(*this, temporaries_stack);
-    }
-
-    auto tmp = LLVMBuildAlloca(global_ctx.builder, type->llvm_type(), "tmp");
-
-    if (value)  LLVMBuildStore(global_ctx.builder, value, tmp);         //- Sic!
-
-    return  tmp;
+    lctx.temporaries_stack.front().first = stack_ptr;
 }
 
 //---------------------------------------------------------------------
@@ -712,7 +697,7 @@ base_local_ctx_t::add_temporary_cleaner(void (*fun)(void *data), void *data)
 {
     if (!temporaries_stack.front().first)
     {
-        initialize_temporaries_stack_front(*this, temporaries_stack);
+        initialize_temporaries_stack_front(*this);
     }
 
     temporaries_stack.front().second.push_front({fun, data});
@@ -764,6 +749,7 @@ base_local_ctx_t::pop_temporaries(void)
 extern "C"
 {
 
+//---------------------------------------------------------------------
 static LLVMValueRef
 v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 {
@@ -855,6 +841,25 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
     if (!opcode)  return v0;    //- Sic!
 
     return  LLVMBuildCast(gctx.builder, opcode, v0, t1->llvm_type(), "");
+}
+
+//---------------------------------------------------------------------
+static LLVMValueRef
+v_make_temporary_default(void *, v_type_t *type, LLVMValueRef value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (!lctx.temporaries_stack.front().first)
+    {
+        initialize_temporaries_stack_front(lctx);
+    }
+
+    auto tmp = LLVMBuildAlloca(gctx.builder, type->llvm_type(), "tmp");
+
+    if (value)  LLVMBuildStore(gctx.builder, value, tmp);           //- Sic!
+
+    return  tmp;
 }
 
 }
@@ -2546,6 +2551,27 @@ v_convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 }
 
 //---------------------------------------------------------------------
+make_temporary_t
+v_get_make_temporary(void **pctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (pctx) *pctx = lctx.make_temporary_ctx;
+
+    return lctx.make_temporary_fun;
+}
+
+void
+v_set_make_temporary(make_temporary_t fun, void *ctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.make_temporary_fun = fun;
+    lctx.make_temporary_ctx = ctx;
+}
+
 LLVMValueRef
 v_make_temporary(v_type_t *type, LLVMValueRef value)
 {
@@ -2588,7 +2614,7 @@ v_get_temporaries_front(void)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    return lctx.get_temporaries_front();
+    return lctx.temporaries_stack.front().first;
 }
 
 

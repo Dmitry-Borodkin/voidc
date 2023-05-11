@@ -342,6 +342,25 @@
     ft = v_function_type(LLVMValueRef, typ0, 2, false);
     v_export_symbol_type("v_make_temporary", ft);
 
+    v_store(void_ptr,     typ0);            //- Context
+    v_store(v_type_ptr,   typ1);            //- type
+    v_store(LLVMValueRef, typ2);            //- value
+
+    mt_ft = v_function_type(LLVMValueRef, typ0, 3, false);
+
+    mt_ft_ptr = v_pointer_type(mt_ft, 0);
+
+    v_store(void_ptr_ptr, typ0);            //- ctx
+
+    ft = v_function_type(mt_ft_ptr, typ0, 1, false);
+    v_export_symbol_type("v_get_make_temporary", ft);
+
+    v_store(mt_ft_ptr,    typ0);            //- fun
+    v_store(void_ptr,     typ1);            //- ctx
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_set_make_temporary", ft);
+
     v_store(int, typ0);                     //- Number of prints/modules...
 
     ft = v_function_type(void, typ0, 1, false);
