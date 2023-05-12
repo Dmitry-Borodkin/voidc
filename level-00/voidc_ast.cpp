@@ -49,7 +49,14 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 void
 v_ast_set_property(const ast_base_t *ast, v_quark_t key, const std::any *val)
 {
-    (*ast)->properties[key] = *val;
+    if (val)
+    {
+        (*ast)->properties[key] = *val;
+    }
+    else
+    {
+        (*ast)->properties.erase(key);
+    }
 }
 
 const std::any *

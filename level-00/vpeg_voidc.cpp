@@ -56,21 +56,11 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
 {
     std::string s = "";
 
-    if (auto p = std::any_cast<const std::string>(args+0))  { s = *p; }
+    if (auto p = std::any_cast<const std::string>(args+0))  s = *p;
 
     ast_expr_t e;
 
-    if (auto p = std::any_cast<ast_expr_t>(args+1))
-    {
-        if (s.c_str()[0])
-        {
-            static const v_quark_t key = v_quark_from_string("root");       //- ?!?!?!?!?!?!?
-
-            (*p)->properties[key] = s;
-        }
-
-        e = *p;
-    }
+    if (auto p = std::any_cast<ast_expr_t>(args+1))  e = *p;
 
     auto q = v_quark_from_string(s.c_str());
 
