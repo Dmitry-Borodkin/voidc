@@ -453,7 +453,7 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) -> void
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_infix_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_infix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     op = v_std_any_get_pointer(v_ast_expr_t, any);
 
@@ -468,7 +468,7 @@ mk_spec_ident_infix_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_infix_right_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_infix_right_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     op = v_std_any_get_pointer(v_ast_expr_t, any);
 
@@ -495,7 +495,7 @@ mk_spec_ident_infix_right_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t,
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     op = v_std_any_get_pointer(v_ast_expr_t, any);
 
@@ -537,7 +537,7 @@ mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, siz
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_prefix_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_prefix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     op = v_std_any_get_pointer(v_ast_expr_t, any);
 
@@ -553,7 +553,7 @@ mk_spec_ident_prefix_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size
 
 //---------------------------------------------------------------------
 private
-mk_qlf_spec_ident_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_qlf_spec_ident_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     qualif = v_std_any_get_value(intptr_t, any+0);
     quark  = v_std_any_get_value(intptr_t, any+1);
@@ -576,7 +576,7 @@ mk_qlf_spec_ident_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t)
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     q_si = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
@@ -595,7 +595,7 @@ mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t,
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     head = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
     body = v_std_any_get_pointer(v_ast_stmt_list_t,    any+1);
@@ -617,7 +617,7 @@ mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, siz
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     quark = v_std_any_get_value(intptr_t, any+0);
     fname = v_std_any_get_pointer(v_std_string_t, any+1);
@@ -641,7 +641,7 @@ mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, siz
 
 //---------------------------------------------------------------------
 private
-mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     quark = v_std_any_get_value(intptr_t, any+0);
 
@@ -678,7 +678,7 @@ mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, siz
 
 //---------------------------------------------------------------------
 private
-mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, any: *v_std_any_t, size_t) -> void
+mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
 {
     quark = v_std_any_get_value(intptr_t, any+0);
 

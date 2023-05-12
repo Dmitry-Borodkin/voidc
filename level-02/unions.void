@@ -138,7 +138,7 @@ v_ast_make_expr_union: (ret: *v_ast_expr_t,
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_expr_union_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
+mk_expr_union_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
 {
     name   = v_std_any_get_pointer(v_ast_expr_t, any+0);
     body   = v_std_any_get_pointer(v_ast_stmt_list_t, any+1);
@@ -154,7 +154,7 @@ mk_expr_union_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -
 
 //---------------------------------------------------------------------
 private
-mk_unit_union_defn_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
+mk_unit_union_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
 {
     qualif = v_std_any_get_value(intptr_t, any+0);
     expr   = v_std_any_get_pointer(v_ast_expr_t, any+1);

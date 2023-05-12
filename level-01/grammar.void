@@ -416,8 +416,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     gr_name = v_std_any_get_pointer(v_std_string_t, any0);
@@ -456,8 +457,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     gr_stmt_list = v_alloca(v_ast_stmt_list_t);
@@ -635,8 +637,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -796,8 +799,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     pr_sstr = v_std_any_get_pointer(v_std_string_t, any0);
@@ -855,16 +859,18 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
-    arg0 = v_alloca(v_ast_expr_t, 4);
-    v_initialize(arg0, 4);
+    arg0 = v_alloca(v_ast_expr_t, 5);
+    v_initialize(arg0, 5);
 
     arg1 = v_getelementptr(arg0, 1);
     arg2 = v_getelementptr(arg0, 2);
     arg3 = v_getelementptr(arg0, 3);
+    arg4 = v_getelementptr(arg0, 4);
 
     stmt = v_alloca(v_ast_stmt_t);
     v_initialize(stmt);
@@ -886,11 +892,16 @@
 
     if (fun_sstr)
     {
-        fun_str = v_std_string_get(fun_sstr);
+        v_ast_make_expr_identifier(arg3, v_std_string_get(fun_sstr));
 
-        v_ast_make_expr_identifier(arg3, fun_str);
+        any2 = v_getelementptr(any0, 2);
 
-        v_ast_make_stmt_call(stmt, 0, q_peg_grammar_set_action, arg0, 4);
+        aux_sstr = v_std_any_get_pointer(v_std_string_t, any2);
+
+        if (aux_sstr)   v_ast_make_expr_identifier(arg4, v_std_string_get(aux_sstr));
+        else            v_ast_make_expr_integer(arg4, 0);
+
+        v_ast_make_stmt_call(stmt, 0, q_peg_grammar_set_action, arg0, 5);
     }
     else
     {
@@ -904,7 +915,7 @@
 
 
     v_terminate(stmt);
-    v_terminate(arg0, 4);
+    v_terminate(arg0, 5);
 }
 
 
@@ -918,8 +929,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_expr_t, 4);
@@ -981,8 +993,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     //- assert(voidc_ast_stmt_grammar_parser_number == 0);
@@ -1049,8 +1062,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_expr_t, 3);
@@ -1119,8 +1133,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_expr_t, 3);
@@ -1189,8 +1204,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg_sstr = v_std_any_get_pointer(v_std_string_t, any0);
@@ -1308,8 +1324,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_and_parser");
@@ -1327,8 +1344,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_not_parser");
@@ -1346,8 +1364,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_star_parser");
@@ -1365,8 +1384,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_plus_parser");
@@ -1384,8 +1404,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_question_parser");
@@ -1403,8 +1424,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     id_sstr = v_std_any_get_pointer(v_std_string_t, any0);
@@ -1461,8 +1483,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     id_sstr = v_std_any_get_pointer(v_std_string_t, any0);
@@ -1519,8 +1542,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     br_num = v_std_any_get_value(size_t, any0);     //- size_t == uintptr_t ...
@@ -1577,8 +1601,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     voidc_make_parser_unary("v_peg_make_catch_string_parser");
@@ -1596,8 +1621,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_expr_t, 2);
@@ -1649,8 +1675,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     rn_num = v_cast(voidc_ast_stmt_grammar_range_number,  intptr_t);
@@ -1708,8 +1735,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     lit_sstr = v_std_any_get_pointer(v_std_string_t, any0);
@@ -1766,8 +1794,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     ch = v_std_any_get_value(char32_t, any0);
@@ -1822,8 +1851,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_expr_t);
@@ -1871,8 +1901,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_expr_t, 3);
@@ -1958,8 +1989,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     fun_sstr = v_std_any_get_pointer(v_std_string_t, any0);
@@ -2013,8 +2045,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg0 = v_alloca(v_ast_expr_t, 2);
@@ -2054,8 +2087,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     id_sstr = v_std_any_get_pointer(v_std_string_t, any0);
@@ -2112,8 +2146,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     br_num = v_std_any_get_value(size_t, any0);     //- size_t == uintptr_t ...
@@ -2197,8 +2232,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     num = v_std_any_get_value(intptr_t, any0);
@@ -2253,8 +2289,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     lit_sstr = v_std_any_get_pointer(v_std_string_t, any0);
@@ -2311,8 +2348,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     ch = v_std_any_get_value(char32_t, any0);
@@ -2375,8 +2413,8 @@
     v_return_if(voidc_grammar_has_parser("stmt_grammar"));
 
 
-    pp0 = v_alloca(v_peg_parser_t, 13);
-    v_initialize(pp0, 13);
+    pp0 = v_alloca(v_peg_parser_t, 14);
+    v_initialize(pp0, 14);
 
     pp1 = v_getelementptr(pp0, 1);
     pp2 = v_getelementptr(pp0, 2);
@@ -2390,6 +2428,7 @@
     pp10 = v_getelementptr(pp0, 10);
     pp11 = v_getelementptr(pp0, 11);
     pp12 = v_getelementptr(pp0, 12);
+    pp13 = v_getelementptr(pp0, 13);
 
     ar0 = v_alloca(v_peg_argument_t, 3);
     v_initialize(ar0, 3);
@@ -2408,38 +2447,38 @@
     v_peg_get_grammar(gr0);
 
     //-----------------------------------------------------------------
-    v_peg_grammar_set_action(gr0, gr0, "mk_stmt_grammar_init",      mk_stmt_grammar_init_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_stmt_grammar",           mk_stmt_grammar_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_parser",         mk_gr_stmt_parser_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_parser_leftrec", mk_gr_stmt_parser_leftrec_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_action",         mk_gr_stmt_action_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_value",          mk_gr_stmt_value_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_special",             mk_pr_special_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_choice",              mk_pr_choice_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_sequence",            mk_pr_sequence_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_catch_var",           mk_pr_catch_var_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_and",                 mk_pr_and_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_not",                 mk_pr_not_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_star",                mk_pr_star_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_plus",                mk_pr_plus_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_question",            mk_pr_question_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_identifier",          mk_pr_identifier_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_external",            mk_pr_external_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_backref",             mk_pr_backref_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_catch_str",           mk_pr_catch_str_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action",              mk_pr_action_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_class",               mk_pr_class_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_literal",             mk_pr_literal_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_char",                mk_pr_char_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_dot",                 mk_pr_dot_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_range",               mk_pr_range_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action_call",         mk_pr_action_call_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action_return",       mk_pr_action_return_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_identifier",      mk_pr_arg_identifier_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_backref",         mk_pr_arg_backref_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_integer",         mk_pr_arg_integer_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_string",          mk_pr_arg_string_grammar_action);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_char",            mk_pr_arg_char_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "mk_stmt_grammar_init",      mk_stmt_grammar_init_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_stmt_grammar",           mk_stmt_grammar_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_parser",         mk_gr_stmt_parser_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_parser_leftrec", mk_gr_stmt_parser_leftrec_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_action",         mk_gr_stmt_action_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_gr_stmt_value",          mk_gr_stmt_value_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_special",             mk_pr_special_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_choice",              mk_pr_choice_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_sequence",            mk_pr_sequence_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_catch_var",           mk_pr_catch_var_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_and",                 mk_pr_and_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_not",                 mk_pr_not_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_star",                mk_pr_star_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_plus",                mk_pr_plus_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_question",            mk_pr_question_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_identifier",          mk_pr_identifier_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_external",            mk_pr_external_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_backref",             mk_pr_backref_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_catch_str",           mk_pr_catch_str_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action",              mk_pr_action_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_class",               mk_pr_class_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_literal",             mk_pr_literal_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_char",                mk_pr_char_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_dot",                 mk_pr_dot_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_range",               mk_pr_range_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action_call",         mk_pr_action_call_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_action_return",       mk_pr_action_return_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_identifier",      mk_pr_arg_identifier_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_backref",         mk_pr_arg_backref_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_integer",         mk_pr_arg_integer_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_string",          mk_pr_arg_string_grammar_action, 0);
+    v_peg_grammar_set_action(gr0, gr0, "mk_pr_arg_char",            mk_pr_arg_char_grammar_action, 0);
 
 
     //-----------------------------------------------------------------
@@ -3221,44 +3260,65 @@
 
 
     //-----------------------------------------------------------------
-    //- gr_action <- a:identifier _ '=' _ i:identifier _ ';'    { mk_gr_stmt_action(a, i) }
-    //-            / a:identifier _ '=' _ '0' _ ';'             { mk_gr_stmt_action(a, 0) }
+    //- gr_action <- a:identifier _'='_ i:identifier _','_ x:identifier _';'    { mk_gr_stmt_action(a, i, x) }
+    //-            / a:identifier _'='_ i:identifier _';'                       { mk_gr_stmt_action(a, i, 0) }
+    //-            / a:identifier _'='_ '0' _';'                                { mk_gr_stmt_action(a, 0, 0) }
 
-    v_peg_make_identifier_parser(pp1, "identifier");
-    v_peg_make_catch_variable_parser(pp1, "a", pp1);
 
-    v_peg_make_identifier_parser(pp2, "_");
-    v_peg_make_character_parser(pp3, '=');
-    v_peg_make_identifier_parser(pp4, "_");
+    v_peg_make_identifier_parser(pp2, "identifier");
+    v_peg_make_catch_variable_parser(pp2, "a", pp2);
 
-    v_peg_make_identifier_parser(pp5, "identifier");
-    v_peg_make_catch_variable_parser(pp5, "i", pp5);
+    v_peg_make_identifier_parser(pp3, "_");
+    v_peg_make_character_parser(pp4, '=');
+    v_peg_make_identifier_parser(pp5, "_");
 
-    v_peg_make_identifier_parser(pp6, "_");
-    v_peg_make_character_parser(pp7, ';');
+    v_peg_make_identifier_parser(pp6, "identifier");
+    v_peg_make_catch_variable_parser(pp6, "i", pp6);
+
+    v_peg_make_identifier_parser(pp7, "_");
+    v_peg_make_character_parser(pp8, ',');
+    v_peg_make_identifier_parser(pp9, "_");
+
+    v_peg_make_identifier_parser(pp10, "identifier");
+    v_peg_make_catch_variable_parser(pp10, "x", pp10);
+
+    v_peg_make_identifier_parser(pp11, "_");
+    v_peg_make_character_parser(pp12, ';');
 
     v_peg_make_identifier_argument(ar0, "a");
     v_peg_make_identifier_argument(ar1, "i");
+    v_peg_make_identifier_argument(ar2, "x");
 
-    v_peg_make_call_action(act, "mk_gr_stmt_action", ar0, 2);
+    v_peg_make_call_action(act, "mk_gr_stmt_action", ar0, 3);
 
-    v_peg_make_action_parser(pp8, act);
+    v_peg_make_action_parser(pp13, act);
 
-    v_peg_make_sequence_parser(pp0, pp1, 8);
+    v_peg_make_sequence_parser(pp0, pp2, 12);
 
 
-    v_peg_make_character_parser(pp5, '0');
+    v_peg_make_character_parser(pp8, ';');
+
+    v_peg_make_integer_argument(ar2, 0);
+
+    v_peg_make_call_action(act, "mk_gr_stmt_action", ar0, 3);
+
+    v_peg_make_action_parser(pp9, act);
+
+    v_peg_make_sequence_parser(pp1, pp2, 8);
+
+
+    v_peg_make_character_parser(pp6, '0');
 
     v_peg_make_integer_argument(ar1, 0);
 
-    v_peg_make_call_action(act, "mk_gr_stmt_action", ar0, 2);
+    v_peg_make_call_action(act, "mk_gr_stmt_action", ar0, 3);
 
-    v_peg_make_action_parser(pp8, act);
+    v_peg_make_action_parser(pp9, act);
 
-    v_peg_make_sequence_parser(pp1, pp1, 8);
+    v_peg_make_sequence_parser(pp2, pp2, 8);
 
 
-    v_peg_make_choice_parser(pp0, pp0, 2);
+    v_peg_make_choice_parser(pp0, pp0, 3);
 
     v_peg_grammar_set_parser(gr0, gr0, "gr_action", pp0, 0);
 
@@ -3315,7 +3375,7 @@
     v_terminate(gr0);
     v_terminate(act);
     v_terminate(ar0, 3);
-    v_terminate(pp0, 13);
+    v_terminate(pp0, 14);
 }
 
 

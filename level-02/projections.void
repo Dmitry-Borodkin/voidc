@@ -55,7 +55,7 @@ voidc_projections_internal_globals_cleaner: (*void) -> void
 //- mk_projection - grammar action
 //---------------------------------------------------------------------
 private
-mk_projection_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
+mk_projection_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
 {
     op0  = v_std_any_get_pointer(v_ast_expr_t,      any+0);
     name = v_std_any_get_pointer(v_std_string_t,    any+1);

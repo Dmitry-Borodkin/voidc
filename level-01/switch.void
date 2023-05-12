@@ -371,8 +371,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     arg = v_std_any_get_pointer(v_ast_expr_t, any0);
@@ -401,8 +402,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -428,8 +430,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);
@@ -457,8 +460,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     any1 = v_getelementptr(any0, 1);

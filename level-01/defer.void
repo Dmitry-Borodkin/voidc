@@ -199,8 +199,9 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 2, "any_count", size_t);
+    v_add_parameter_name(f, 1, "aux",       void_ptr);
+    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
+    v_add_parameter_name(f, 3, "any_count", size_t);
 }
 {
     stmt = v_std_any_get_pointer(v_ast_stmt_t, any0);

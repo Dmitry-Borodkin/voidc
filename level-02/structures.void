@@ -136,7 +136,7 @@ v_ast_make_expr_struct: (ret: *v_ast_expr_t,
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_expr_struct_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
+mk_expr_struct_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
 {
     packed = v_std_any_get_value(intptr_t, any+0);
     name   = v_std_any_get_pointer(v_ast_expr_t, any+1);
@@ -153,7 +153,7 @@ mk_expr_struct_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) 
 
 //---------------------------------------------------------------------
 private
-mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, any: v_std_any_ptr, size_t) -> void
+mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
 {
     qualif = v_std_any_get_value(intptr_t, any+0);
     expr   = v_std_any_get_pointer(v_ast_expr_t, any+1);

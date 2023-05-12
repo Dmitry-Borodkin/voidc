@@ -17,7 +17,7 @@
 namespace vpeg
 {
 
-extern "C" typedef void (*grammar_action_fun_t)(std::any *ret, const std::any *args, size_t count);
+extern "C" typedef void (*grammar_action_fun_t)(std::any *ret, void *aux, const std::any *args, size_t count);
 
 
 //---------------------------------------------------------------------
@@ -27,7 +27,7 @@ class grammar_data_t
 {
 public:
     using parsers_map_t = immer::map<v_quark_t, std::pair<parser_t, bool>>;
-    using actions_map_t = immer::map<v_quark_t, grammar_action_fun_t>;
+    using actions_map_t = immer::map<v_quark_t, std::pair<grammar_action_fun_t, void *>>;
     using values_map_t  = immer::map<v_quark_t, std::any>;
 
 public:
@@ -67,14 +67,14 @@ public:
         return  set_parser(v_quark_from_string(name), parser, leftrec);
     }
 
-    grammar_data_t set_action(v_quark_t q_name, grammar_action_fun_t fun) const
+    grammar_data_t set_action(v_quark_t q_name, grammar_action_fun_t fun, void *aux=nullptr) const
     {
-        return  grammar_data_t(parsers, _actions.set(q_name, fun), values);
+        return  grammar_data_t(parsers, _actions.set(q_name, {fun, aux}), values);
     }
 
-    grammar_data_t set_action(const char *name, grammar_action_fun_t fun) const
+    grammar_data_t set_action(const char *name, grammar_action_fun_t fun, void *aux=nullptr) const
     {
-        return  set_action(v_quark_from_string(name), fun);
+        return  set_action(v_quark_from_string(name), fun, aux);
     }
 
     grammar_data_t set_value(v_quark_t q_name, const std::any &val) const

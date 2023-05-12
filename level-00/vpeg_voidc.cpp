@@ -20,7 +20,7 @@ static const ast_stmt_list_t stmt_list_nil = std::make_shared<const ast_stmt_lis
 static const ast_expr_list_t expr_list_nil = std::make_shared<const ast_expr_list_data_t>();
 
 static void
-mk_unit(std::any *ret, const std::any *args, size_t)
+mk_unit(std::any *ret, void *, const std::any *args, size_t)
 {
     auto p = std::any_cast<ast_stmt_list_t>(args+0);
 
@@ -39,7 +39,7 @@ mk_unit(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_stmt_list(std::any *ret, const std::any *args, size_t)
+mk_stmt_list(std::any *ret, void *, const std::any *args, size_t)
 {
     auto plst = std::any_cast<ast_stmt_list_t>(args+0);
 
@@ -52,7 +52,7 @@ mk_stmt_list(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_stmt(std::any *ret, const std::any *args, size_t)
+mk_stmt(std::any *ret, void *, const std::any *args, size_t)
 {
     std::string s = "";
 
@@ -70,7 +70,7 @@ mk_stmt(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_expr_call(std::any *ret, const std::any *args, size_t)
+mk_expr_call(std::any *ret, void *, const std::any *args, size_t)
 {
     auto f = std::any_cast<ast_expr_t>(args[0]);
 
@@ -82,7 +82,7 @@ mk_expr_call(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_expr_list(std::any *ret, const std::any *args, size_t)
+mk_expr_list(std::any *ret, void *, const std::any *args, size_t)
 {
     auto plst = std::any_cast<ast_expr_list_t>(args+0);
 
@@ -95,7 +95,7 @@ mk_expr_list(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_expr_identifier(std::any *ret, const std::any *args, size_t)
+mk_expr_identifier(std::any *ret, void *, const std::any *args, size_t)
 {
     auto n = std::any_cast<const std::string>(args[0]);
 
@@ -107,7 +107,7 @@ mk_expr_identifier(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_expr_integer(std::any *ret, const std::any *args, size_t)
+mk_expr_integer(std::any *ret, void *, const std::any *args, size_t)
 {
     auto n = std::any_cast<intptr_t>(args[0]);
 
@@ -117,7 +117,7 @@ mk_expr_integer(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_expr_string(std::any *ret, const std::any *args, size_t)
+mk_expr_string(std::any *ret, void *, const std::any *args, size_t)
 {
     auto s = std::any_cast<const std::string>(args[0]);
 
@@ -127,7 +127,7 @@ mk_expr_string(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_expr_char(std::any *ret, const std::any *args, size_t)
+mk_expr_char(std::any *ret, void *, const std::any *args, size_t)
 {
 //  auto c = std::any_cast<char32_t>(args[0]);
     auto c = (char32_t)std::any_cast<uint32_t>(args[0]);
@@ -138,7 +138,7 @@ mk_expr_char(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_pos_integer(std::any *ret, const std::any *args, size_t)
+mk_pos_integer(std::any *ret, void *, const std::any *args, size_t)
 {
     uintptr_t n = std::any_cast<uintptr_t>(args[0]);
 
@@ -148,7 +148,7 @@ mk_pos_integer(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_neg_integer(std::any *ret, const std::any *args, size_t)
+mk_neg_integer(std::any *ret, void *, const std::any *args, size_t)
 {
     uintptr_t n = std::any_cast<uintptr_t>(args[0]);
 
@@ -158,7 +158,7 @@ mk_neg_integer(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_dec_integer(std::any *ret, const std::any *args, size_t)
+mk_dec_integer(std::any *ret, void *, const std::any *args, size_t)
 {
     uintptr_t n = std::any_cast<uintptr_t>(args[0]);
 
@@ -174,7 +174,7 @@ mk_dec_integer(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_dec_numdigit(std::any *ret, const std::any *args, size_t)
+mk_dec_numdigit(std::any *ret, void *, const std::any *args, size_t)
 {
     uintptr_t d = uintptr_t(char32_t(std::any_cast<uint32_t>(args[0])) - U'0');
 
@@ -182,7 +182,7 @@ mk_dec_numdigit(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_string_str(std::any *ret, const std::any *args, size_t)
+mk_string_str(std::any *ret, void *, const std::any *args, size_t)
 {
     auto s0 = std::any_cast<const std::string>(args[0]);
     auto s1 = std::any_cast<const std::string>(args[1]);
@@ -191,7 +191,7 @@ mk_string_str(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_string_chr(std::any *ret, const std::any *args, size_t)
+mk_string_chr(std::any *ret, void *, const std::any *args, size_t)
 {
     auto s = std::any_cast<const std::string>(args[0]);
 
@@ -234,7 +234,7 @@ mk_string_chr(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-mk_EOF(std::any *ret, const std::any *args, size_t)
+mk_EOF(std::any *ret, void *, const std::any *args, size_t)
 {
     //- Just a placeholder...
 
@@ -244,7 +244,7 @@ mk_EOF(std::any *ret, const std::any *args, size_t)
 }
 
 static void
-is_SOF(std::any *ret, const std::any *args, size_t)
+is_SOF(std::any *ret, void *, const std::any *args, size_t)
 {
     auto pos = std::any_cast<size_t>(args[0]);
 

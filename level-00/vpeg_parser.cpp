@@ -347,7 +347,7 @@ std::any call_action_data_t::act(context_data_t &ctx) const
 
     std::any ret;
 
-    auto fun = ctx.grammar.actions[q_fun];
+    auto [fun, aux] = ctx.grammar.actions[q_fun];
 
 #ifndef NDEBUG
 
@@ -357,7 +357,7 @@ std::any call_action_data_t::act(context_data_t &ctx) const
 
 #endif
 
-    fun(&ret, a.get(), N);
+    fun(&ret, aux, a.get(), N);
 
     return ret;
 }
