@@ -398,8 +398,6 @@ VOIDC_DLLEXPORT_END
 
 
 //---------------------------------------------------------------------
-typedef void (*hook_initialize_t)(void *aux, v_type_t *typ);
-
 typedef LLVMTypeRef (*hook_obtain_llvm_type_t)(void *aux, const v_type_t *typ);
 
 
@@ -479,9 +477,6 @@ private:
 private:
     struct hooks_t
     {
-        hook_initialize_t initialize_fun;
-        void *            initialize_aux;
-
         hook_obtain_llvm_type_t obtain_llvm_type_fun;
         void *                  obtain_llvm_type_aux;
     };
@@ -491,19 +486,6 @@ private:
     friend class v_type_t;
 
 public:
-    hook_initialize_t get_initialize_fun(int k, void **paux)
-    {
-        if (paux) *paux = hooks[k].initialize_aux;
-
-        return  hooks[k].initialize_fun;
-    }
-
-    void set_initialize_fun(int k, hook_initialize_t fun, void *aux)
-    {
-        hooks[k].initialize_fun = fun;
-        hooks[k].initialize_aux = aux;
-    }
-
     hook_obtain_llvm_type_t get_obtain_llvm_type_fun(int k, void **paux)
     {
         if (paux) *paux = hooks[k].obtain_llvm_type_aux;

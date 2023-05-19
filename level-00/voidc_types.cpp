@@ -23,11 +23,6 @@ extern "C"
 
 //---------------------------------------------------------------------
 static
-void dummy_initialize(void *, v_type_t *) {}
-
-
-//---------------------------------------------------------------------
-static
 LLVMTypeRef
 obtain_llvm_type_void(void *, const v_type_t *typ)
 {
@@ -239,8 +234,6 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
 
 #define DEF(tag, fun) \
     {   auto &h = hooks[v_type_t::k_##tag]; \
-        h.initialize_fun = dummy_initialize; \
-        h.initialize_aux = nullptr; \
         h.obtain_llvm_type_fun = obtain_llvm_type_##fun; \
         h.obtain_llvm_type_aux = nullptr; \
     }
@@ -833,22 +826,6 @@ v_type_vector_is_scalable(v_type_t *type)
 
 
 //---------------------------------------------------------------------
-hook_initialize_t
-v_type_get_initialize_fun(int k, void **paux)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    return gctx.get_initialize_fun(k, paux);
-}
-
-void
-v_type_set_initialize_fun(int k, hook_initialize_t fun, void *aux)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-
-    gctx.set_initialize_fun(k, fun, aux);
-}
-
 hook_obtain_llvm_type_t
 v_type_get_obtain_llvm_type_fun(int k, void **paux)
 {
