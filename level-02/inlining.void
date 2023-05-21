@@ -413,14 +413,22 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) -> void
 
 
 //---------------------------------------------------------------------
-//- Enable inlining
+//- ...
 //---------------------------------------------------------------------
 private
-inlining_aux: &inlining_aux_t[2] := v_undef();
+struct inlining_ctx_t
+{
+    inlining_aux: inlining_aux_t[2];
+
+    finish_module_ctx: finish_module_ctx_t;
+};
 
 private
-finish_module_ctx: &finish_module_ctx_t := v_undef();
+free: (*char) -> void;
 
+
+//---------------------------------------------------------------------
+//- Enable inlining
 //---------------------------------------------------------------------
 export
 voidc_enable_inlining_compiler: () -> void
@@ -441,18 +449,23 @@ voidc_enable_inlining_compiler: () -> void
 
     vis = voidc_compiler;
 
-    inlining_aux[0].fun := voidc_visitor_get_void_method(vis, unit_fun_defn_q, &inlining_aux[0].aux);
+    ctx = *v_malloc(inlining_ctx_t);
 
-    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q, compile_unit_inline_fun_defn, &inlining_aux[0]);
+    ctx.inlining_aux[0].fun := voidc_visitor_get_void_method(vis, unit_fun_defn_q, &ctx.inlining_aux[0].aux);
 
-    inlining_aux[1].fun := voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, &inlining_aux[1].aux);
+    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[0]);
 
-    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_inline_fun_defn, &inlining_aux[1]);
+    ctx.inlining_aux[1].fun := voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, &ctx.inlining_aux[1].aux);
+
+    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[1]);
 
 
-    finish_module_ctx.fun := v_get_finish_module(&finish_module_ctx.ctx);
+    ctx.finish_module_ctx.fun := v_get_finish_module(&ctx.finish_module_ctx.ctx);
 
-    v_set_finish_module(finish_module_inlining, &finish_module_ctx);
+    v_set_finish_module(finish_module_inlining, &ctx.finish_module_ctx);
+
+
+    v_add_local_cleaner(v_cast(free, *((*void) -> void)), &ctx);
 }
 
 
