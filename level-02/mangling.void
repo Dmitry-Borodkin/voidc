@@ -48,6 +48,9 @@
     v_add_symbol("q_internal_spec_fun_renm", q_ref, q("v.internal.spec_fun_renm"));
 
     v_add_symbol("voidc_compile_type_q", q_ref, q("voidc.compile_type"));
+
+    //-----------------------------------------------------------------
+    v_add_symbol("compute_key_quark_type_q", q_ref, q("voidc.compute_key_quark_type"));
 }
 
 
@@ -714,7 +717,7 @@ mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
 //---------------------------------------------------------------------
 private
-register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_quark_t, t: *v_type_t) -> void
+register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const char, q: v_quark_t, t: *v_type_t) -> void
 {
     qname = v_quark_from_string(fn);
 
@@ -723,7 +726,7 @@ register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_qu
     //-------------------------------------------------------------
     stmt_list: &*v_ast_stmt_list_t := 0;
 
-    if (vis)
+    if (unit)
     {
         sl = voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
 
@@ -815,23 +818,55 @@ register_special_function_name: (vis: *voidc_visitor_t, fn: *const char, q: v_qu
 
 //---------------------------------------------------------------------
 private
-register_mangled_function_name: (vis: *voidc_visitor_t, sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) -> void
+compute_key_quark_type_intrinsic: (vis: *voidc_visitor_t, aux: *void,
+                                   ft: *v_type_t,
+                                   iq: &intptr_t, t: &*v_type_t
+                                  ) -> void
 {
-    q: &v_quark_t := v_undef();
-    t: &*v_type_t := v_undef();
-
     types = v_type_function_get_param_types(ft);
 
     if (iq < 0)     //- "Right" infix?
     {
-        q := (-iq: v_quark_t);
+        iq := -iq;
         t := types[1];
     }
     else            //- "Normal" operator
     {
-        q := (iq: v_quark_t);
         t := types[0];
     }
+}
+
+//---------------------------------------------------------------------
+private
+compute_key_quark_type: (vis: *voidc_visitor_t,
+                         ft: *v_type_t,
+                         iq: &intptr_t, t: &*v_type_t
+                        ) -> void
+{
+    void_aux: &*void := v_undef();
+
+    void_fun = voidc_visitor_get_intrinsic(vis, compute_key_quark_type_q, &void_aux);
+
+    compute_key_quark_type_ft = (vis: *voidc_visitor_t, aux: *void,
+                                 ft: *v_type_t,
+                                 iq: &intptr_t, t: &*v_type_t
+                                ) -> void;
+
+    compute_key_quark_type_fun = (void_fun: *compute_key_quark_type_ft);
+
+    compute_key_quark_type_fun(vis, void_aux, ft, iq, t);
+}
+
+//---------------------------------------------------------------------
+private
+register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool, sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) -> void
+{
+    iq: &intptr_t := iq;
+    t: &*v_type_t := v_undef();
+
+    compute_key_quark_type(vis, ft, iq, t);
+
+    q = (iq: v_quark_t);
 
     v_std_string_set(sstr, "v__");
 
@@ -839,7 +874,7 @@ register_mangled_function_name: (vis: *voidc_visitor_t, sstr: *v_std_string_t, i
 
     fun_name = v_std_string_get(sstr);
 
-    register_special_function_name(vis, fun_name, q, t);
+    register_special_function_name(vis, unit, fun_name, q, t);
 }
 
 //---------------------------------------------------------------------
@@ -884,7 +919,7 @@ compile_unit_spec_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_bas
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(vis, sstr, quark, fun_type);
+    register_mangled_function_name(vis, true, sstr, quark, fun_type);
 
     fun_name = v_std_string_get(sstr);
 
@@ -912,23 +947,14 @@ compile_unit_spec_fun_renm: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_bas
 
     if (v_type_is_pointer(ft))  ft := v_type_refptr_get_element_type(ft);
 
-    q: &v_quark_t := v_undef();
+    iq: &intptr_t := iq;
     t: &*v_type_t := v_undef();
 
-    types = v_type_function_get_param_types(ft);
+    compute_key_quark_type(vis, ft, iq, t);
 
-    if (iq < 0)     //- "Right" infix?
-    {
-        q := (-iq: v_quark_t);
-        t := types[1];
-    }
-    else            //- "Normal" operator
-    {
-        q := (iq: v_quark_t);
-        t := types[0];
-    }
+    q = (iq: v_quark_t);
 
-    register_special_function_name(vis, fun_name, q, t);
+    register_special_function_name(vis, true, fun_name, q, t);
 }
 
 
@@ -968,7 +994,7 @@ v_internal_spec_fun_decl_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(0, sstr, quark, fun_type);
+    register_mangled_function_name(vis, false, sstr, quark, fun_type);
 
     fun_name = v_std_string_get(sstr);
 
@@ -1004,7 +1030,7 @@ v_internal_spec_fun_renm_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(0, sstr, quark, v_type_refptr_get_element_type(fun_type));       //- Sic!
+    register_mangled_function_name(vis, false, sstr, quark, v_type_refptr_get_element_type(fun_type));      //- Sic!
 
     fun_name = v_std_string_get(sstr);
 
@@ -1024,13 +1050,15 @@ voidc_enable_mangling_compiler: () -> void
 
     v_return_if(voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, 0));
 
-    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn,  0);
-    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm,  0);
+    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn, 0);
+    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm, 0);
 
     q = v_quark_from_string;
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.spec_fun_decl"), v_internal_spec_fun_decl_intrinsic,  0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.spec_fun_renm"), v_internal_spec_fun_renm_intrinsic,  0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.spec_fun_decl"), v_internal_spec_fun_decl_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.spec_fun_renm"), v_internal_spec_fun_renm_intrinsic, 0);
+
+    voidc_visitor_set_intrinsic(vis, vis, compute_key_quark_type_q, compute_key_quark_type_intrinsic, 0);
 }
 
 //---------------------------------------------------------------------
