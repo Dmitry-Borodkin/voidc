@@ -216,7 +216,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
         v_set_result_type(tr);
 
-        voidc_llvm_build_call_helper(vis, ft, fv, arg_ptrs, arg_count);
+        voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, arg_count);
 
         vr := v_get_result_value();
     }
@@ -312,7 +312,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             v_set_result_type(t0);
 
-            voidc_llvm_build_call_helper(vis, ft, fv, &arg_ptr, 1);
+            voidc_llvm_build_call_helper(vis, self, ft, fv, &arg_ptr, 1);
 
             v0 := v_get_result_value();
         }
