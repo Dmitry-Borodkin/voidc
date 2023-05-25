@@ -1226,6 +1226,12 @@ voidc_global_ctx_t::voidc_global_ctx_t()
     decls.constants_insert({q("_WIN32"), void_type});           //- Sic!!!
 
 #endif
+
+#ifdef NDEBUG
+
+    decls.constants_insert({q("NDEBUG"), void_type});           //- Sic!!!
+
+#endif
 }
 
 
