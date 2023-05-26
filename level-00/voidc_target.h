@@ -31,9 +31,13 @@ class base_local_ctx_t;
 
 extern "C"
 {
+    typedef void (*compile_ctx_cleaner_t)(void *data);
+
     typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
 
     typedef LLVMValueRef (*make_temporary_t)(void *ctx, v_type_t *t, LLVMValueRef v);
+
+    typedef compile_ctx_cleaner_t temporary_cleaner_t;
 
     typedef LLVMModuleRef (*obtain_module_t)(void *ctx);
 
@@ -93,9 +97,9 @@ public:
     }
 
 public:
-    using cleaners_t = std::forward_list<std::pair<void (*)(void *), void *>>;
+    using cleaners_t = std::forward_list<std::pair<compile_ctx_cleaner_t, void *>>;
 
-    void add_cleaner(void (*fun)(void *data), void *data)
+    void add_cleaner(compile_ctx_cleaner_t fun, void *data)
     {
         cleaners.push_front({fun, data});
     }
@@ -264,7 +268,7 @@ public:
         return make_temporary_fun(make_temporary_ctx, t, v);
     }
 
-    void add_temporary_cleaner(void (*fun)(void *data), void *data);
+    void add_temporary_cleaner(temporary_cleaner_t fun, void *data);
 
     void push_temporaries(void);
     void pop_temporaries(void);
