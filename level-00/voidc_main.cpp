@@ -225,7 +225,7 @@ std::map<std::string, import_state_t> import_state;
 static bool
 check_import_state(const fs::path &src_filename)
 {
-    auto src_filename_str = src_filename.string();
+    auto src_filename_str = src_filename.u8string();
 
     {   auto it = import_state.find(src_filename_str);
 
@@ -435,7 +435,7 @@ v_import_helper(const char *name, bool _export)
 
     src_filename = find_file_for_import(parent_path, src_filename);
 
-    auto src_filename_str = src_filename.string();
+    auto src_filename_str = src_filename.u8string();
 
     if (!fs::exists(src_filename))
     {
@@ -903,12 +903,16 @@ main(int argc, char *argv[])
             {
                 fs::path src_path = fs::u8path(src_name);
 
+                src_path = fs::canonical(src_path);
+
                 if (!fs::exists(src_path))
                 {
                     throw std::runtime_error("Source file not found: " + src_name);
                 }
 
                 istr = my_fopen(src_path);
+
+                src_name = src_path.u8string();
             }
 
             lctx.filename = src_name;
