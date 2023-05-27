@@ -225,7 +225,7 @@ std::map<std::string, import_state_t> import_state;
 static bool
 check_import_state(const fs::path &src_filename)
 {
-    auto src_filename_str = src_filename.u8string();
+    auto src_filename_str = src_filename.generic_u8string();
 
     {   auto it = import_state.find(src_filename_str);
 
@@ -435,7 +435,7 @@ v_import_helper(const char *name, bool _export)
 
     src_filename = find_file_for_import(parent_path, src_filename);
 
-    auto src_filename_str = src_filename.u8string();
+    auto src_filename_str = src_filename.generic_u8string();
 
     if (!fs::exists(src_filename))
     {
@@ -726,6 +726,19 @@ voidc_guard_target(const char *errmsg)
 
 
 //--------------------------------------------------------------------
+void
+v_find_file_for_import(std::string *ret, const char *parent, const char *filename)
+{
+    auto _parent   = fs::u8path(parent);
+    auto _filename = fs::u8path(filename);
+
+    auto path = find_file_for_import(_parent, _filename);
+
+    *ret = path.generic_u8string();
+}
+
+
+//--------------------------------------------------------------------
 std::FILE *
 v_fopen(const char *filename, const char *prop)
 {
@@ -872,6 +885,8 @@ main(int argc, char *argv[])
 
         gctx.add_symbol_value(q("voidc_argc"), &argc);
         gctx.add_symbol_value(q("voidc_argv"), &argv);
+
+        gctx.add_symbol_value(q("voidc_import_paths"), &import_paths);      //- Sic!
     }
 
     v_ast_static_initialize();
@@ -912,7 +927,7 @@ main(int argc, char *argv[])
 
                 istr = my_fopen(src_path);
 
-                src_name = src_path.u8string();
+                src_name = src_path.generic_u8string();
             }
 
             lctx.filename = src_name;
