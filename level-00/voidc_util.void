@@ -632,7 +632,7 @@
     register_batch_wtyp_ft = v_function_type(void, typ0, 4, false);
 
     v_store(v_std_string_ptr, typ0);
-    v_store(int,              typ1);
+    v_store(size_t,           typ1);
 
     sstr_i_d_ft = v_function_type(void, typ0, 2, false);
 
@@ -698,6 +698,10 @@
     n2 = LLVMConstInt(int_, 2, 0);
     n3 = LLVMConstInt(int_, 3, 0);
     n4 = LLVMConstInt(int_, 4, 0);
+
+    size_t_ = v_type_get_llvm_type(size_t);
+
+    sz1 = LLVMConstInt(size_t_, 1, 0);
 
     v_quark_t_ = v_type_get_llvm_type(v_quark_t);
 
@@ -783,7 +787,7 @@
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(val_t_ptr, arg0);
-    //-     v_store(int,       arg1);
+    //-     v_store(size_t,    arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
@@ -821,9 +825,9 @@
     LLVMBuildStore(builder, val_t_ptr, arg0);
 
 
-    int_type = v_obtain_global("int", 0);
+    size_t_type = v_obtain_global("size_t", 0);
 
-    LLVMBuildStore(builder, int_type, arg1);
+    LLVMBuildStore(builder, size_t_type, arg1);
 
 
     void_type = v_obtain_global("void", 0);
@@ -923,7 +927,7 @@
     //-
     //-     v_store(val_t_ptr, arg0);
     //-     v_store(val_t_ptr, arg1);
-    //-     v_store(int,       arg2);
+    //-     v_store(size_t,    arg2);
     //-
     //-     fun_type = v_function_type(void, arg0, 3, false);
     //-
@@ -959,11 +963,11 @@
     val_t_ptr = LLVMBuildCall2(builder, pointer_type_ft_, pointer_type_f, val0, 2, "val_t_ptr");
 
 
-    LLVMBuildStore(builder, val_t_ptr, arg0);
+    LLVMBuildStore(builder, val_t_ptr,   arg0);
 
-    LLVMBuildStore(builder, val_t_ptr, arg1);
+    LLVMBuildStore(builder, val_t_ptr,   arg1);
 
-    LLVMBuildStore(builder, int_type,  arg2);
+    LLVMBuildStore(builder, size_t_type, arg2);
 
 
     v_store(void_type, val0);
@@ -1108,8 +1112,8 @@
     //-------------------------------------------------------------
     //- Init/Term/Copy/Move/Empty batch registering
     //-------------------------------------------------------------
-    //- v_util_initialize_std_string_impl: (s: v_std_string_ptr, n: int) -> void;
-    //- v_util_terminate_std_string_impl: (s: v_std_string_ptr, n: int) -> void;
+    //- v_util_initialize_std_string_impl: (s: v_std_string_ptr, n: size_t) -> void;
+    //- v_util_terminate_std_string_impl: (s: v_std_string_ptr, n: size_t) -> void;
     //-
     //- v_util_register_itcme_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
     //- {
@@ -1186,7 +1190,7 @@
     sstr_term_ft_ = v_load(lltyp);
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
 
     LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val0, 2, "");
 
@@ -1311,7 +1315,7 @@
 
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_term_ft_, sstr_term_f, val0, 2, "");
 
 
@@ -1439,7 +1443,7 @@
     //-     arg1 = v_getelementptr(arg0, 1);
     //-
     //-     v_store(v_std_any_ptr, arg0);
-    //-     v_store(val_t_type,         arg1);
+    //-     v_store(val_t_type,    arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
@@ -1500,7 +1504,7 @@
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(v_std_any_ptr, arg0);
-    //-     v_store(val_t_ptr,          arg1);
+    //-     v_store(val_t_ptr,     arg1);
     //-
     //-     fun_type = v_function_type(void, arg0, 2, false);
     //-
@@ -1600,7 +1604,7 @@
     sstr = LLVMBuildAlloca(builder, v_std_string_t_, "sstr");
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val0, 2, "");
 
 
@@ -1646,7 +1650,7 @@
 
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_term_ft_, sstr_term_f, val0, 2, "");
 
 
@@ -1697,7 +1701,7 @@
     sstr = LLVMBuildAlloca(builder, v_std_string_t_, "sstr");
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val0, 2, "");
 
 
@@ -1743,7 +1747,7 @@
 
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_term_ft_, sstr_term_f, val0, 2, "");
 
 
@@ -1886,7 +1890,7 @@
     //-     v_store(val_t_ptr, arg0);
     //-     v_store(val_t_ptr, arg1);
     //-     v_store(item_ptr,  arg2);
-    //-     v_store(int,       arg3);
+    //-     v_store(size_t,    arg3);
     //-
     //-     fun_type = v_function_type(void, arg0, 4, false);
     //-
@@ -1931,13 +1935,13 @@
     item_ptr = LLVMBuildCall2(builder, pointer_type_ft_, pointer_type_f, val0, 2, "item_ptr");
 
 
-    LLVMBuildStore(builder, val_t_ptr, arg0);
+    LLVMBuildStore(builder, val_t_ptr,   arg0);
 
-    LLVMBuildStore(builder, val_t_ptr, arg1);
+    LLVMBuildStore(builder, val_t_ptr,   arg1);
 
-    LLVMBuildStore(builder, item_ptr,  arg2);
+    LLVMBuildStore(builder, item_ptr,    arg2);
 
-    LLVMBuildStore(builder, int_type,  arg3);
+    LLVMBuildStore(builder, size_t_type, arg3);
 
 
     v_store(void_type, val0);
@@ -1997,10 +2001,10 @@
     LLVMBuildStore(builder, val_t_ptr, arg0);
 
 
-    v_store(int_type, val0);
-    v_store(arg0,     val1);
-    v_store(n1,       val2);
-    v_store(false_v,  val3);
+    v_store(size_t_type, val0);
+    v_store(arg0,        val1);
+    v_store(n1,          val2);
+    v_store(false_v,     val3);
 
     fun_type = LLVMBuildCall2(builder, function_type_ft_, function_type_f, val0, 4, "fun_type");
 
@@ -2030,7 +2034,7 @@
     //-     item_ptr  = v_pointer_type(item_type,  0);
     //-
     //-     v_store(val_t_ptr, arg0);
-    //-     v_store(int,       arg1);
+    //-     v_store(size_t,    arg1);
     //-
     //-     fun_type = v_function_type(item_ptr, arg0, 2, false);
     //-
@@ -2067,9 +2071,9 @@
     item_ptr = LLVMBuildCall2(builder, pointer_type_ft_, pointer_type_f, val0, 2, "item_ptr");
 
 
-    LLVMBuildStore(builder, val_t_ptr, arg0);
+    LLVMBuildStore(builder, val_t_ptr,   arg0);
 
-    LLVMBuildStore(builder, int_type,  arg1);
+    LLVMBuildStore(builder, size_t_type, arg1);
 
 
     v_store(item_ptr, val0);
@@ -2147,7 +2151,7 @@
     sstr = LLVMBuildAlloca(builder, v_std_string_t_, "sstr");
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val0, 2, "");
 
 
@@ -2216,7 +2220,7 @@
 
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_term_ft_, sstr_term_f, val0, 2, "");
 
 
@@ -2271,7 +2275,7 @@
 
 
     vtable_ptr_type = v_obtain_global("vtable_ptr", 0);
-    size_t_type     = v_obtain_global("size_t", 0);
+//  size_t_type     = v_obtain_global("size_t", 0);
 
 
     LLVMBuildStore(builder, val_t_ptr,       arg0);
@@ -2474,7 +2478,7 @@
     sstr = LLVMBuildAlloca(builder, v_std_string_t_, "sstr");
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val0, 2, "");
 
 
@@ -2536,7 +2540,7 @@
 
 
     v_store(sstr, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
     LLVMBuildCall2(builder, sstr_term_ft_, sstr_term_f, val0, 2, "");
 
 

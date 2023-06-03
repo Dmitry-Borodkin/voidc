@@ -29,25 +29,25 @@ void static_terminate(void);
 //- !!!
 //-----------------------------------------------------------------
 #define VOIDC_DEFINE_INITIALIZE_IMPL(val_t, fun_name) \
-void fun_name(val_t *ptr, int count) \
+void fun_name(val_t *ptr, size_t count) \
 { \
-    std::uninitialized_default_construct_n(ptr, size_t(count)); \
+    std::uninitialized_default_construct_n(ptr, count); \
 }
 
 #define VOIDC_DEFINE_TERMINATE_IMPL(val_t, fun_name) \
-void fun_name(val_t *ptr, int count) \
+void fun_name(val_t *ptr, size_t count) \
 { \
-    std::destroy_n(ptr, size_t(count)); \
+    std::destroy_n(ptr, count); \
 }
 
 #define VOIDC_DEFINE_COPY_IMPL(val_t, fun_name) \
-void fun_name(val_t *dst, const val_t *src, int count) \
+void fun_name(val_t *dst, const val_t *src, size_t count) \
 { \
     std::copy(src, src+count, dst); \
 }
 
 #define VOIDC_DEFINE_MOVE_IMPL(val_t, fun_name) \
-void fun_name(val_t *dst, val_t *src, int count) \
+void fun_name(val_t *dst, val_t *src, size_t count) \
 { \
     std::move(src, src+count, dst); \
 }

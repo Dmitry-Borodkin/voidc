@@ -58,7 +58,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
     //- }
 
 
-    cond_len: &int := v_list_get_size(cond);
+    cond_len: &size_t := v_list_get_size(cond);
 
     cstm = v_list_get_item(cond, cond_len-1);
 
@@ -103,7 +103,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
     {
         //- stmp+0 - block
 
-        i: &int := 0;
+        i: &size_t := 0;
 
         loop
         {
@@ -215,7 +215,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size
 
     init_len = v_list_get_size(init);
 
-    cond_len: &int := v_list_get_size(cond);
+    cond_len: &size_t := v_list_get_size(cond);
 
     if (cond_len)
     {
@@ -243,7 +243,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size
     incr_len = v_list_get_size(incr);
 
 
-    stmp_len: &int := 4 + 1;        //- Inner block ("if then")
+    stmp_len: &size_t := 4 + 1;         //- Inner block ("if then")
 
     {   l = 2 + cond_len + 1 + incr_len;
 
@@ -320,7 +320,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size
 
     if (cond_len)
     {
-        i: &int := 0;
+        i: &size_t := 0;
 
         loop
         {
@@ -334,7 +334,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size
 
     if (incr_len)
     {
-        i: &int := 0;
+        i: &size_t := 0;
 
         loop
         {
@@ -356,7 +356,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size
 
     if (init_len)
     {
-        i: &int := 0;
+        i: &size_t := 0;
 
         loop
         {
@@ -393,7 +393,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_an
     //- }
 
 
-    cond_len: &int := v_list_get_size(cond);
+    cond_len: &size_t := v_list_get_size(cond);
 
     cstm = v_list_get_item(cond, cond_len-1);
 
@@ -436,7 +436,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_an
     v_ast_make_stmt_if_then_else(stmp_cond+0, cexp, tstm, else_stmt);
 
 
-    {   i: &int := 0;
+    {   i: &size_t := 0;
 
         loop
         {
@@ -474,7 +474,7 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr,
     //- }
 
 
-    estm_len: &int := v_list_get_size(estm);
+    estm_len: &size_t := v_list_get_size(estm);
 
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
@@ -515,7 +515,7 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr,
 
     if (estm_len)       //- if?
     {
-        i: &int := 0;
+        i: &size_t := 0;
 
         loop
         {

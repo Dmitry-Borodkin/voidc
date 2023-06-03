@@ -9,7 +9,6 @@
     v_import("llvm-c/Core.void");
 
     v_import("function_hack.void");
-    v_import("memory.void");
     v_import("if_then_else.void");
     v_import("arithmetic.void");
     v_import("block.void");
@@ -524,12 +523,12 @@
 
     //- Count switch cases
 
-    case_num = v_alloca(int);   case_num = v_reference(case_num);
+    case_num = v_alloca(size_t);    case_num = v_reference(case_num);
     v_assign(case_num, 0);
 
     list_count = v_list_get_size(list);
 
-    case_idx = v_alloca(int);   case_idx = v_reference(case_idx);
+    case_idx = v_alloca(size_t);    case_idx = v_reference(case_idx);
     v_assign(case_idx, 0);
 
     loop
@@ -551,7 +550,7 @@
 
         v_assign(case_num, num);
 
-        idx = v_binop(LLVMAdd, case_idx, 1);
+        idx = v_binop(LLVMAdd, case_idx, v_cast(1, size_t));
 
         v_assign(case_idx, idx);
     }
@@ -603,12 +602,12 @@
 
     switch_default_b = LLVMAppendBasicBlock(cur_f, "switch_default_b");
 
-    switch_v = LLVMBuildSwitch(builder, arg0, switch_default_b, case_num);
+    switch_v = LLVMBuildSwitch(builder, arg0, switch_default_b, v_cast(case_num, unsigned));
 
 
     //- Compile case blocks...
 
-    case_i = v_alloca(int);                 case_i = v_reference(case_i);
+    case_i = v_alloca(size_t);              case_i = v_reference(case_i);
 
     case_b = v_alloca(LLVMBasicBlockRef);   case_b = v_reference(case_b);
 
@@ -651,7 +650,7 @@
                 LLVMMoveBasicBlockAfter(switch_default_b, cur_b);
             }
 
-            i = v_binop(LLVMAdd, case_i, 1);
+            i = v_binop(LLVMAdd, case_i, v_cast(1, size_t));
 
             v_assign(case_i, i);
         }
@@ -690,7 +689,7 @@
 
             case_arg_i = v_list_get_item(case_list, case_i);
 
-            i = v_binop(LLVMAdd, case_i, 1);
+            i = v_binop(LLVMAdd, case_i, v_cast(1, size_t));
 
             v_assign(case_i, i);
 
@@ -711,7 +710,7 @@
             LLVMAddCase(switch_v, val, case_b);
         }
 
-        idx = v_binop(LLVMAdd, case_idx, 1);
+        idx = v_binop(LLVMAdd, case_idx, v_cast(1, size_t));
 
         v_assign(case_idx, idx);
     }

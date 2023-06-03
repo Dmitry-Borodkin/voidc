@@ -323,20 +323,20 @@ v_ast_accept_visitor(const ast_base_t *object, const visitor_t *visitor)
 #define AST_DEFINE_LIST_APPEND_IMPL(list_data_t, fun_name) \
 void fun_name(std::shared_ptr<const list_data_t> *ret, \
               const std::shared_ptr<const list_data_t> *list, \
-              const std::shared_ptr<const list_data_t::item_t> *items, int count) \
+              const std::shared_ptr<const list_data_t::item_t> *items, size_t count) \
 { \
     (*ret) = std::make_shared<const list_data_t>(*list, items, count); \
 }
 
 #define AST_DEFINE_LIST_GET_SIZE_IMPL(list_data_t, fun_name) \
-int fun_name(const std::shared_ptr<const list_data_t> *list) \
+size_t fun_name(const std::shared_ptr<const list_data_t> *list) \
 { \
-    return int((*list)->data.size()); \
+    return (*list)->data.size(); \
 }
 
 #define AST_DEFINE_LIST_GET_ITEM_IMPL(list_data_t, fun_name) \
 const std::shared_ptr<const list_data_t::item_t> * \
-fun_name(const std::shared_ptr<const list_data_t> *list, int idx) \
+fun_name(const std::shared_ptr<const list_data_t> *list, size_t idx) \
 { \
     return &(*list)->data[idx]; \
 }
@@ -358,9 +358,9 @@ v_ast_make_list_nil_stmt_list_impl(ast_stmt_list_t *ret)
 
 void
 v_ast_make_list_stmt_list_impl(ast_stmt_list_t *ret,
-                               const ast_stmt_t *items, int count)
+                               const ast_stmt_t *items, size_t count)
 {
-    (*ret) = std::make_shared<const ast_stmt_list_data_t>(items, size_t(count));
+    (*ret) = std::make_shared<const ast_stmt_list_data_t>(items, count);
 }
 
 AST_DEFINE_LIST_AGSGI_IMPL(ast_stmt_list_data_t, stmt_list)
@@ -375,9 +375,9 @@ v_ast_make_list_nil_expr_list_impl(ast_expr_list_t *ret)
 
 void
 v_ast_make_list_expr_list_impl(ast_expr_list_t *ret,
-                               const ast_expr_t *items, int count)
+                               const ast_expr_t *items, size_t count)
 {
-    (*ret) = std::make_shared<const ast_expr_list_data_t>(items, size_t(count));
+    (*ret) = std::make_shared<const ast_expr_list_data_t>(items, count);
 }
 
 AST_DEFINE_LIST_AGSGI_IMPL(ast_expr_list_data_t, expr_list)
@@ -392,9 +392,9 @@ v_ast_make_list_nil_generic_list_impl(ast_generic_list_t *ret, v_quark_t tag)
 
 void
 v_ast_make_list_generic_list_impl(ast_generic_list_t *ret, v_quark_t tag,
-                                  const ast_base_t *items, int count)
+                                  const ast_base_t *items, size_t count)
 {
-    (*ret) = std::make_shared<const ast_generic_list_data_t>(tag, items, size_t(count));
+    (*ret) = std::make_shared<const ast_generic_list_data_t>(tag, items, count);
 }
 
 AST_DEFINE_LIST_AGSGI_IMPL(ast_generic_list_data_t, generic_list)

@@ -297,7 +297,7 @@ compile_expr_compile_hook: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 private
 voidc_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t,
                                          ft: v_type_ptr, fv: LLVMValueRef,
-                                         arg_ptrs: **v_ast_expr_t, arg_count: int
+                                         arg_ptrs: **v_ast_expr_t, arg_count: unsigned
                                         ) -> void
 {
     par_count = v_type_function_get_param_count(ft);
@@ -308,7 +308,7 @@ voidc_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self
 
     tt = v_get_result_type();
 
-    for (i: &int := 0; i < arg_count; ++i)
+    for (i: &unsigned := 0; i < arg_count; ++i)
     {
         if (i < par_count)  v_set_result_type(par_types[i]);
         else                v_set_result_type(UNREFERENCE_TAG);
@@ -334,7 +334,7 @@ voidc_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self
 export
 voidc_llvm_build_call_helper: (vis: *voidc_visitor_t, self: *v_ast_base_t,
                                ft: v_type_ptr, fv: LLVMValueRef,
-                               arg_ptrs: **v_ast_expr_t, arg_count: int
+                               arg_ptrs: **v_ast_expr_t, arg_count: unsigned
                               ) -> void
 {
     aux: &*void := v_undef();
@@ -343,7 +343,7 @@ voidc_llvm_build_call_helper: (vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     fun_t = (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t,
              ft: v_type_ptr, fv: LLVMValueRef,
-             arg_ptrs: **v_ast_expr_t, arg_count: int
+             arg_ptrs: **v_ast_expr_t, arg_count: unsigned
             ) -> void;
 
     (void_fun: *fun_t)(vis, aux, self, ft, fv, arg_ptrs, arg_count);
@@ -1471,7 +1471,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
 
     v_set_result_type(tt);
 
-    voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, arg_count);
+    voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, (arg_count: unsigned));
 }
 
 //---------------------------------------------------------------------
@@ -1798,7 +1798,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
                 v_set_result_type(agg_t);
 
-                voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, arg_count);
+                voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, (arg_count: unsigned));
 
                 agg_v := v_get_result_value();
             }

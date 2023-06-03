@@ -146,7 +146,7 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
         }
         else if (arg_count <= i)
         {
-            ti = gctx.int_type;
+            ti = gctx.size_t_type;                                      //- Sic!!!
             vi = LLVMConstInt(ti->llvm_type(), 1, false);               //- Sic!
         }
 

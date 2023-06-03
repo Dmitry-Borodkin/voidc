@@ -1771,13 +1771,13 @@
 
     is_vararg = *v_alloca(bool) := false;
 
-    count = *v_alloca(int) := v_list_get_size(args);
+    count = *v_alloca(size_t) := v_list_get_size(args);
 
     if (count)
     {
         argtypes := v_malloc(v_type_ptr, count);
 
-        i = *v_alloca(int) := 0;
+        i = *v_alloca(size_t) := 0;
 
         loop
         {
@@ -1814,7 +1814,7 @@
 
     rtyp = v_cast(v_get_result_value(), v_type_ptr);
 
-    ft = v_function_type(rtyp, argtypes, count, is_vararg);
+    ft = v_function_type(rtyp, argtypes, v_cast(count, unsigned), is_vararg);
 
     v_set_result_type(v_static_type_t);
     v_set_result_value(v_cast(ft, LLVMValueRef));

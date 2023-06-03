@@ -12,15 +12,19 @@
 {   v_import("printf.void"); }
 
 
-{   typ0 = v_alloca(v_type_ptr, 3);
+{   typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+
+    void_ptr = v_pointer_type(void, 0);
 
     v_store(v_std_any_ptr, typ0);
-    v_store(v_std_any_ptr, typ1);
-    v_store(size_t,        typ2);
+    v_store(void_ptr,      typ1);
+    v_store(v_std_any_ptr, typ2);
+    v_store(size_t,        typ3);
 
-    my_echo_ft = v_function_type(void, typ0, 3, false);
+    my_echo_ft = v_function_type(void, typ0, 4, false);
 
     v_export_symbol_type("my_echo_grammar_action", my_echo_ft);
 }
@@ -46,12 +50,12 @@
     get_string_f   = v_obtain_function("v_util_std_any_get_pointer_std_string_impl", lltyp);
     get_string_ft_ = v_load(lltyp);
 
-    par1 = LLVMGetParam(my_echo_f, 1);
+    par2 = LLVMGetParam(my_echo_f, 2);
 
     val0 = v_alloca(LLVMValueRef, 2);
     val1 = v_getelementptr(val0, 1);
 
-    v_store(par1, val0);
+    v_store(par2, val0);
 
     pstr = LLVMBuildCall2(builder, get_string_ft_, get_string_f, val0, 1, "pstr");
 
@@ -112,7 +116,7 @@
     v_peg_get_grammar(gr0);
 
 
-    v_peg_grammar_set_action(gr0, gr0, "my_echo", my_echo_grammar_action);
+    v_peg_grammar_set_action(gr0, gr0, "my_echo", my_echo_grammar_action, 0);
 
 
     pp0 = v_alloca(v_peg_parser_t, 2);

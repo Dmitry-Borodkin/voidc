@@ -255,6 +255,10 @@
     n1 = LLVMConstInt(int_, 1, 0);
     n2 = LLVMConstInt(int_, 2, 0);
 
+    size_t_ = v_type_get_llvm_type(size_t);
+
+    sz1 = LLVMConstInt(size_t_, 1, 0);
+
     lltyp = v_alloca(LLVMTypeRef);
 
     builder = v_target_get_voidc_builder();
@@ -286,7 +290,7 @@
     stmt_init_ft_ = v_load(lltyp);
 
     v_store(stmt, val0);
-    v_store(n1,   val1);
+    v_store(sz1,  val1);
 
     LLVMBuildCall2(builder, stmt_init_ft_, stmt_init_f, val0, 2, "");
 

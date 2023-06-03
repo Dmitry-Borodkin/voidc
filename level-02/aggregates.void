@@ -203,7 +203,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
         {
             alst = v_ast_expr_call_get_arg_list(expr);
 
-            N = v_list_get_size(alst);
+            N = (v_list_get_size(alst) : unsigned);
 
             types = v_malloc(v_type_ptr, N);
             defer v_free(types);

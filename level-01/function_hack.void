@@ -74,6 +74,11 @@
     n2 = LLVMConstInt(int_, 2, 0);
     n3 = LLVMConstInt(int_, 3, 0);
 
+    size_t_ = v_type_get_llvm_type(size_t);
+
+    sz0 = LLVMConstInt(size_t_, 0, 0);
+    sz1 = LLVMConstInt(size_t_, 1, 0);
+
     bool_ = v_type_get_llvm_type(bool);
 
     false_ = LLVMConstInt(bool_, 0, 0);
@@ -215,7 +220,7 @@
 
     v_store(voidc_compiler_v, val0);
     v_store(saved_compiler_g, val1);
-    v_store(n1,               val2);
+    v_store(sz1,              val2);
 
     vis_move_f   = v_obtain_function("voidc_move_visitor_impl", lltyp);
     vis_move_ft_ = v_load(lltyp);
@@ -382,7 +387,7 @@
 
 
     v_store(saved_compiler_g, val0);
-    v_store(n1,               val1);
+    v_store(sz1,              val1);
 
     vis_init_f   = v_obtain_function("voidc_initialize_visitor_impl", lltyp);
     vis_init_ft_ = v_load(lltyp);
@@ -392,7 +397,7 @@
 
 //  v_store(saved_compiler_g, val0);
     v_store(voidc_compiler_v, val1);
-    v_store(n1,               val2);
+    v_store(sz1,              val2);
 
     vis_copy_f   = v_obtain_function("voidc_copy_visitor_impl", lltyp);
     vis_copy_ft_ = v_load(lltyp);
@@ -532,7 +537,7 @@
 
 
     v_store(arg_list, val0);
-    v_store(n0,       val1);
+    v_store(sz0,      val1);
 
     expr_list_get_item_f   = v_obtain_function("v_ast_list_get_item_expr_list_impl", lltyp);
     expr_list_get_item_ft_ = v_load(lltyp);
@@ -540,7 +545,7 @@
     arg0_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "arg0");
 
 //  v_store(arg_list, val0);
-    v_store(n1,       val1);
+    v_store(sz1,      val1);
 
     arg1_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "arg1");
 
@@ -811,7 +816,7 @@
 
 
     v_store(arg_list, val0);
-    v_store(n0,       val1);
+    v_store(sz0,      val1);
 
     arg0_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "");
 

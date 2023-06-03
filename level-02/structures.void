@@ -258,7 +258,7 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 
     if (!v_empty(body))
     {
-        N = v_list_get_size(body);
+        N = (v_list_get_size(body) : unsigned);
 
         {   types = v_malloc(v_type_ptr, N);
             defer v_free(types);

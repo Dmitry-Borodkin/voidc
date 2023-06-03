@@ -246,7 +246,7 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
         else             v_add_type(type_name, type);
     }
 
-    N: &int := 0;
+    N: &unsigned := 0;
 
     hstr = v_alloca(v_std_string_t);
     v_initialize(hstr);
@@ -258,7 +258,7 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
     if (!v_empty(&obj.body))
     block
     {
-        N := v_list_get_size(&obj.body);
+        N := (v_list_get_size(&obj.body) : unsigned);
 
         i8_t = v_int_type(8);
 

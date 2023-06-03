@@ -63,7 +63,7 @@
 
     tt = v_get_result_type();
 
-    if (v_icmp(LLVMIntEQ, args_count, 1))
+    if (v_icmp(LLVMIntEQ, args_count, v_cast(1, size_t)))
     {
         n1_v = LLVMConstInt(int_, 1, 0);
 
