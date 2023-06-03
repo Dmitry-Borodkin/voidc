@@ -33,18 +33,20 @@
 
 struct qwerty_t
 {
-    x: int;
-    y: long;
+    x: int;             //- 0
+    y: long;            //- 1
 
-    p: *qwerty_t;
+    p: *qwerty_t;       //- 2
+
+    *const char;        //- 3 ...
 };
 
 
 s: &qwerty_t;
 
-r: &qwerty_t := { 77, 999, &s };
+r: &qwerty_t := { 77, 999, &s, "r" };
 
-s: &qwerty_t := { 7, 19, &r };
+s: &qwerty_t := { 7, 19, &r, "s" };
 
 
 //---------------------------------------------------------------------
@@ -53,7 +55,7 @@ s: &qwerty_t := { 7, 19, &r };
 
     q.y += r.p~>y;
 
-    printf("q: { x: %d, y: %ld }\n", q.x, q.y);
+    printf("q: { x: %d, y: %ld, _, \"%s\" }\n", q.x, q.y, q[3]);
 
 }
 

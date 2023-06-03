@@ -292,6 +292,8 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
 
             field = v_ast_stmt_get_name(stmp);
 
+            if (!field  ||  !field[0])  v_continue();
+
             v_std_string_set(sstr+0, ".");
 
             v_std_string_append(sstr+0, field);
@@ -392,6 +394,8 @@ compile_expr_struct: (vis: *voidc_visitor_t, aux: *void,
         stmp = v_list_get_item(body, i);
 
         field = v_ast_stmt_get_name(stmp);
+
+        if (!field  ||  !field[0])  v_continue();
 
         v_std_string_set(sstr, ".");
 
@@ -532,6 +536,7 @@ voidc_enable_structures: () -> void
         fields_list_lr is left-recursive;
 
         field_decl = i:identifier _':'_ t:expr _';'         { mk_stmt(i, t) }           //- Sic!!!
+                   / t:expr _';'                            { mk_stmt(0, t) }           //- Sic!!!
                    ;
 
 
