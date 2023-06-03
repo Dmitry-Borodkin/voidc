@@ -1,0 +1,156 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+}
+
+
+//---------------------------------------------------------------------
+struct unique_ptr_int
+{
+    ptr: *int;
+};
+
+alwaysinline
+(v_initialize(_)): (sp: *unique_ptr_int, N: int) -> void
+{
+    for (i: &int := 0; i < N; ++i)  sp[i].ptr := 0;
+}
+
+alwaysinline
+(v_terminate(_)): (sp: *unique_ptr_int, N: int) -> void
+{
+    for (i: &int := 0; i < N; ++i)  v_free(sp[i].ptr);
+}
+
+alwaysinline
+(v_move(_)): (dst: *unique_ptr_int, src: *unique_ptr_int, N: int) -> void
+{
+    for (i: &int := 0; i < N; ++i)
+    {
+        v_free(dst[i].ptr);
+
+        dst[i].ptr := src[i].ptr;
+
+        src[i].ptr := 0;
+    }
+}
+
+alwaysinline
+(*_): (sp: &unique_ptr_int) -> &int
+{
+    v_return(*sp.ptr);
+}
+
+alwaysinline
+(_:=_): (dst: &unique_ptr_int, src: &unique_ptr_int) -> &unique_ptr_int
+{
+    v_move(&dst, &src);
+
+    v_return(dst);
+}
+
+//---------------------------------------------------------------------
+print: (a: &unique_ptr_int) -> void
+{
+    if (a.ptr)  printf("%d\n", *a);
+    else        printf("(nil)\n");
+}
+
+N: &int := 7;
+
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(2);
+//
+//    voidc_verify_jit_module_optimized(true);
+//}
+
+{   a: &unique_ptr_int := v_undef();
+    v_initialize(&a);
+    defer v_terminate(&a);
+
+    a.ptr := v_malloc(int);
+
+    *a := 777;
+
+    printf("a: ");  print(a);
+
+    N *= 2;
+
+    b = v_alloca(unique_ptr_int, N);
+    v_initialize(b, N);
+    defer v_terminate(b, N);
+
+    for (i: &int := 0; i < N; ++i)
+    {
+        b[i].ptr := v_malloc(int);
+
+        *b[i] := 111 + i;
+    }
+
+    for (i: &int := 0; i < N; i += 2)
+    {
+        b[i] := b[i+1];
+    }
+
+    for (i: &int := 0; i < N; ++i)
+    {
+        printf("b[%d]: ", i);   print(b[i]);
+    }
+}
+
+
+//---------------------------------------------------------------------
+{   v_debug_print_module(4);
+
+    voidc_verify_jit_module_optimized(true);
+}
+
+struct qwe_t
+{
+    p: v_ast_base_t[3][7][2];
+    q: int[3];
+    r: v_ast_expr_t[5][4][3];
+};
+
+(v_initialize(_)): (*qwe_t, int) -> void = derive;
+(v_terminate(_)):  (*qwe_t, int) -> void = derive;
+
+(v_copy(_)): (*qwe_t, *const qwe_t, int) -> void = derive;
+
+
+//---------------------------------------------------------------------
+struct asd_t
+{
+    a: struct { z: int; x: qwe_t; };
+
+    b: qwe_t;
+};
+
+zxc_t = struct { z: int; x: qwe_t; };
+
+(v_initialize(_)): (*zxc_t, int) -> void = derive;
+
+(v_initialize(_)): (*asd_t, int) -> void = derive;
+
+
+//---------------------------------------------------------------------
+{   a: &asd_t := 0;
+
+    a.a.x.q[1] := N;
+
+    printf("a.a.x.q[1]: %d\n", v_load(&a).a.x.q[1]);
+}
+
+
+
