@@ -398,6 +398,8 @@ VOIDC_DLLEXPORT_END
 
 
 //---------------------------------------------------------------------
+typedef void (*hook_initialize_t)(void *aux, v_type_t *typ);
+
 typedef LLVMTypeRef (*hook_obtain_llvm_type_t)(void *aux, const v_type_t *typ);
 
 
@@ -477,15 +479,29 @@ private:
 private:
     struct hooks_t
     {
+        hook_initialize_t initialize_fun = [](void *, v_type_t *){};
+        void *            initialize_aux = nullptr;
+
         hook_obtain_llvm_type_t obtain_llvm_type_fun;
         void *                  obtain_llvm_type_aux;
     };
 
     hooks_t hooks[v_type_t::k_count];
 
-    friend class v_type_t;
-
 public:
+    hook_initialize_t get_initialize_fun(int k, void **paux)
+    {
+        if (paux) *paux = hooks[k].initialize_aux;
+
+        return  hooks[k].initialize_fun;
+    }
+
+    void set_initialize_fun(int k, hook_initialize_t fun, void *aux)
+    {
+        hooks[k].initialize_fun = fun;
+        hooks[k].initialize_aux = aux;
+    }
+
     hook_obtain_llvm_type_t get_obtain_llvm_type_fun(int k, void **paux)
     {
         if (paux) *paux = hooks[k].obtain_llvm_type_aux;
@@ -521,9 +537,10 @@ inline
 LLVMTypeRef
 v_type_t::obtain_llvm_type(void) const
 {
-    auto &h = context.hooks[kind()];
+    void *aux;
+    auto *fun = context.get_obtain_llvm_type_fun(kind(), &aux);
 
-    return h.obtain_llvm_type_fun(h.obtain_llvm_type_aux, this);
+    return fun(aux, this);
 }
 
 

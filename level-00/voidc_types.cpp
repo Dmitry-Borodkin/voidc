@@ -21,6 +21,7 @@ v_type_t::~v_type_t() {}
 extern "C"
 {
 
+
 //---------------------------------------------------------------------
 static
 LLVMTypeRef
@@ -197,6 +198,11 @@ v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
     body_key = st->body_key;
 
     cached_llvm_type = nullptr;         //- Sic!!!
+
+    void *aux;
+    auto *fun = context.get_initialize_fun(kind(), &aux);
+
+    fun(aux, this);                     //- Second time!
 }
 
 
@@ -279,7 +285,16 @@ voidc_types_ctx_t::make_type_helper(types_map_t<T, K> &tmap, const K &key)
 {
     auto [it, nx] = tmap.try_emplace(key, nullptr);
 
-    if (nx) it->second.reset(new T(*this, it->first));
+    if (nx)
+    {
+        auto t = new T(*this, it->first);
+
+        it->second.reset(t);
+
+        auto &h = hooks[t->kind()];
+
+        h.initialize_fun(h.initialize_aux, t);
+    }
 
     return  it->second.get();
 }
@@ -826,6 +841,22 @@ v_type_vector_is_scalable(v_type_t *type)
 
 
 //---------------------------------------------------------------------
+hook_initialize_t
+v_type_get_initialize_fun(int k, void **paux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.get_initialize_fun(k, paux);
+}
+
+void
+v_type_set_initialize_fun(int k, hook_initialize_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    gctx.set_initialize_fun(k, fun, aux);
+}
+
 hook_obtain_llvm_type_t
 v_type_get_obtain_llvm_type_fun(int k, void **paux)
 {
