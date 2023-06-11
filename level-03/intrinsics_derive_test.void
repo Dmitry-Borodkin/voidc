@@ -63,7 +63,7 @@ alwaysinline
 print: (a: &unique_ptr_int) -> void
 {
     if (a.ptr)  printf("%d\n", *a);
-    else        printf("(nil)\n");
+    else        printf("(%s)\n", "nil");        //- WTF ?!?!?!?
 }
 
 N: &int := 7;

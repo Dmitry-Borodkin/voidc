@@ -117,6 +117,8 @@ voidc_intrinsic_quarks_ctor: () -> void
 
     q = v_quark_ptr_from_string;
 
+    v_add_symbol("voidc_internal_function_type_q", q_ref, q("voidc.internal_function_type"));
+
     v_add_symbol("q_internal_spec_fun_derive", q_ref, q("v.internal.spec_fun_derive"));
 
     v_add_symbol("q_initialize", q_ref, q("v_initialize"));
@@ -241,11 +243,7 @@ spec_fun_derive_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 
     fun = LLVMGetBasicBlockParent(cur_b);
 
-    len: &size_t := 0;
-
-    fun_name = LLVMGetValueName2(fun, &len);
-
-    fun_type = v_find_symbol_type(fun_name);
+    fun_type = v_get_variable_type_q(voidc_internal_function_type_q);
 
     params = v_type_function_get_param_types(fun_type);
 

@@ -30,7 +30,6 @@
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("voidc_internal_return_type_q",         q_ref, q("voidc.internal_return_type"));
     v_add_symbol("voidc_internal_return_value_q",        q_ref, q("voidc.internal_return_value"));
     v_add_symbol("voidc_internal_branch_target_leave_q", q_ref, q("voidc.internal_branch_target_leave"));
 }
@@ -754,7 +753,7 @@
     //-     {
     //-         arg0 = v_list_get_item(arg_list, 0);
     //-
-    //-         ret_type = v_get_variable_type_q(voidc_internal_return_type_q);
+    //-         ret_type = v_get_variable_type_q(voidc_internal_return_value_q);
     //-
     //-         v_set_result_type(ret_type);
     //-
@@ -821,12 +820,12 @@
     arg0_v = LLVMBuildCall2(builder, expr_list_get_item_ft_, expr_list_get_item_f, val0, 2, "");
 
 
-    ret_type_var_q_g = v_obtain_global("voidc_internal_return_type_q", 0);
+    ret_var_q_g = v_obtain_global("voidc_internal_return_value_q", 0);
 
-    ret_type_var_q = LLVMBuildLoad2(builder, quark_t_, ret_type_var_q_g, "ret_type_var_q");
+    ret_var_q = LLVMBuildLoad2(builder, quark_t_, ret_var_q_g, "ret_var_q");
 
 
-    v_store(ret_type_var_q, val0);
+    v_store(ret_var_q, val0);
 
     get_var_type_q_f   = v_obtain_function("v_get_variable_type_q", lltyp);
     get_var_type_q_ft_ = v_load(lltyp);
@@ -848,11 +847,6 @@
 
 
     ret_v = LLVMBuildCall2(builder, get_res_val_ft_, get_res_val_f, 0, 0, "ret_v");
-
-
-    ret_var_q_g = v_obtain_global("voidc_internal_return_value_q", 0);
-
-    ret_var_q = LLVMBuildLoad2(builder, quark_t_, ret_var_q_g, "ret_var_q");
 
 
     v_store(ret_var_q, val0);

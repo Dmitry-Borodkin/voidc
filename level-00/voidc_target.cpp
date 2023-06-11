@@ -462,7 +462,7 @@ base_local_ctx_t::pop_builder_ip(void)
 
 
 //---------------------------------------------------------------------
-static v_quark_t voidc_internal_return_type_q;
+static v_quark_t voidc_internal_function_type_q;
 static v_quark_t voidc_internal_return_value_q;
 static v_quark_t voidc_internal_branch_target_leave_q;
 
@@ -478,19 +478,21 @@ base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
 
     LLVMPositionBuilderAtEnd(global_ctx.builder, entry);
 
-    vars = variables_t();       //- ?
+    assert(vars.size() == 0);           //- Sic!
 
-    push_variables();
+    vars = vars.set(voidc_internal_function_type_q, {type, nullptr});
 
-    auto ret_type = static_cast<v_type_function_t *>(type)->return_type();
+    auto ft_ = type->llvm_type();
 
-    vars = vars.set(voidc_internal_return_type_q, {ret_type, nullptr});
+    auto rt_ = LLVMGetReturnType(ft_);
 
-    if (ret_type->kind() != v_type_t::k_void)
+    if (LLVMGetTypeKind(rt_) != LLVMVoidTypeKind)
     {
-        auto ret_value = LLVMBuildAlloca(global_ctx.builder, ret_type->llvm_type(), "ret_value");
+        auto ret_type = static_cast<v_type_function_t *>(type)->return_type();
 
-        vars = vars.set(voidc_internal_return_value_q, {nullptr, ret_value});   //- Sic!
+        auto ret_var_v = LLVMBuildAlloca(global_ctx.builder, ret_type->llvm_type(), "ret_var_v");
+
+        vars = vars.set(voidc_internal_return_value_q, {ret_type, ret_var_v});      //- Sic!
     }
 
     function_leave_b = LLVMAppendBasicBlock(f, "f_leave_b");
@@ -521,15 +523,20 @@ base_local_ctx_t::finish_function(void)
     LLVMPositionBuilderAtEnd(global_ctx.builder, function_leave_b);
 
 
-    auto ret_type = vars[voidc_internal_return_type_q].first;
+    auto type = vars[voidc_internal_function_type_q].first;
 
-    if (ret_type->kind() == v_type_t::k_void)
+    auto ft_ = type->llvm_type();
+
+    auto rt_ = LLVMGetReturnType(ft_);
+
+    if (LLVMGetTypeKind(rt_) == LLVMVoidTypeKind)
     {
         LLVMBuildRetVoid(global_ctx.builder);
     }
     else
     {
-        auto ret_var_v = vars[voidc_internal_return_value_q].second;
+        auto [ret_type, ret_var_v] = vars[voidc_internal_return_value_q];
+
         auto ret_value = LLVMBuildLoad2(global_ctx.builder, ret_type->llvm_type(), ret_var_v, "ret_value");
 
         LLVMBuildRet(global_ctx.builder, ret_value);
@@ -537,7 +544,7 @@ base_local_ctx_t::finish_function(void)
 
     LLVMClearInsertionPosition(global_ctx.builder);
 
-    pop_variables();
+    vars = variables_t();       //- Sic!
 }
 
 
@@ -1267,7 +1274,7 @@ voidc_global_ctx_t::static_initialize(void)
 {
     auto q = v_quark_from_string;
 
-    voidc_internal_return_type_q         = q("voidc.internal_return_type");
+    voidc_internal_function_type_q       = q("voidc.internal_function_type");
     voidc_internal_return_value_q        = q("voidc.internal_return_value");
     voidc_internal_branch_target_leave_q = q("voidc.internal_branch_target_leave");
     llvm_stacksave_q                     = q("llvm.stacksave");

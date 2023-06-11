@@ -1,6 +1,7 @@
 {   v_import("level-00");
     v_import("level-01");
 
+    v_import("literals.void");
     v_import("loops_etc.void");
     v_import("aggregates.void");
 
@@ -9,6 +10,7 @@
 
 {   v_enable_level_01();
 
+    voidc_enable_literals();
     voidc_enable_loops_etc();
     voidc_enable_aggregates();
 }
@@ -24,6 +26,21 @@ w: &int := 30;
     for(i: &int := 0; i < 10; ++i)
     {
         printf("v[%d]: %d\n", i, v[i]);
+    }
+
+    printf("\n");
+}
+
+//---------------------------------------------------------------------
+w5: &uint(5) := 13;
+
+//{ v_debug_print_module(1); }
+{
+    v: vec(uint(5), 10) = {0, 1, 2, 3, 4, 5, w5+6u5, w5+7u5, w5+8u5};
+
+    for(i: &int := 0; i < 10; ++i)
+    {
+        printf("v[%d]: %u\n", i, (v[i]: unsigned));
     }
 
     printf("\n");
