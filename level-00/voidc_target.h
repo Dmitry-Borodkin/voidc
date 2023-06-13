@@ -33,6 +33,8 @@ extern "C"
 {
     typedef void (*compile_ctx_cleaner_t)(void *data);
 
+    typedef void (*adopt_result_t)(void *ctx, v_type_t *type, LLVMValueRef value);
+
     typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
 
     typedef LLVMValueRef (*make_temporary_t)(void *ctx, v_type_t *t, LLVMValueRef v);
@@ -248,7 +250,13 @@ public:
     v_type_t    *result_type  = nullptr;
     LLVMValueRef result_value = nullptr;
 
-    virtual void adopt_result(v_type_t *type, LLVMValueRef value);
+    adopt_result_t adopt_result_fun;
+    void          *adopt_result_ctx;
+
+    void adopt_result(v_type_t *type, LLVMValueRef value)
+    {
+        return adopt_result_fun(adopt_result_ctx, type, value);
+    }
 
 public:
     convert_to_type_t convert_to_type_fun;
@@ -398,9 +406,6 @@ public:
 
 public:
     void *find_symbol_value(v_quark_t raw_name) override;           //- No check alias!
-
-public:
-    void adopt_result(v_type_t *type, LLVMValueRef value) override;
 
 public:
     void prepare_unit_action(int line, int column);

@@ -166,16 +166,19 @@ base_global_ctx_t::initialize(void)
 //---------------------------------------------------------------------
 //- Base Local Context
 //---------------------------------------------------------------------
+static void         base_adopt_result_default(void *, v_type_t *type, LLVMValueRef value);
 static LLVMValueRef v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
 static LLVMValueRef v_make_temporary_default(void *, v_type_t *t, LLVMValueRef v);
 
 base_local_ctx_t::base_local_ctx_t(base_global_ctx_t &_global)
   : global_ctx(_global),
     parent_ctx(_global.local_ctx),
+    adopt_result_fun(base_adopt_result_default),
+    adopt_result_ctx(this),
     convert_to_type_fun(v_convert_to_type_default),
-    convert_to_type_ctx(0),
+    convert_to_type_ctx(this),
     make_temporary_fun(v_make_temporary_default),
-    make_temporary_ctx(0)
+    make_temporary_ctx(this)
 {
     global_ctx.local_ctx = this;
 
@@ -549,12 +552,18 @@ base_local_ctx_t::finish_function(void)
 
 
 //---------------------------------------------------------------------
-void
-base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
+extern "C"
 {
+
+static void
+base_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
+{
+    auto &lctx = *(reinterpret_cast<base_local_ctx_t *>(void_ctx));
+    auto &gctx = lctx.global_ctx;
+
     bool src_ref = (type->kind() == v_type_t::k_reference);
 
-    switch(intptr_t(result_type))
+    switch(intptr_t(lctx.result_type))
     {
     case -1:        //- Unreference...
 
@@ -568,16 +577,16 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 
                 et = static_cast<v_type_array_t *>(et)->element_type();
 
-                result_type = global_ctx.make_pointer_type(et, 0);
+                lctx.result_type = gctx.make_pointer_type(et, 0);               //- 0?  ??!??!?!?!?!?!?
 
-                value = convert_to_type(type, value, result_type);
+                value = lctx.convert_to_type(type, value, lctx.result_type);
 
                 break;
             }
 
-            result_type = et;
+            lctx.result_type = et;
 
-            value = LLVMBuildLoad2(global_ctx.builder, et->llvm_type(), value, "tmp");
+            value = LLVMBuildLoad2(gctx.builder, et->llvm_type(), value, "tmp");
 
             break;
         }
@@ -588,9 +597,9 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 
             auto et = static_cast<v_type_array_t *>(type)->element_type();
 
-            result_type = global_ctx.make_pointer_type(et, 0);
+            lctx.result_type = gctx.make_pointer_type(et, 0);
 
-            value = convert_to_type(type, value, result_type);
+            value = lctx.convert_to_type(type, value, lctx.result_type);
 
             break;
         }
@@ -599,17 +608,17 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
 
     case  0:        //- Get "as is"...
 
-        result_type = type;
+        lctx.result_type = type;
 
         break;
 
     default:        //- Adopt...
 
-        if (result_type == type)  break;
+        if (lctx.result_type == type)   break;
 
-        bool dst_ref = (result_type->kind() == v_type_t::k_reference);
+        bool dst_ref = (lctx.result_type->kind() == v_type_t::k_reference);
 
-        auto dst_typ = result_type;
+        auto dst_typ = lctx.result_type;
 
         if (dst_ref)  dst_typ = static_cast<v_type_reference_t *>(dst_typ)->element_type();
 
@@ -622,43 +631,44 @@ base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
             if (src_typ->kind() == v_type_t::k_array  &&
                 dst_typ->kind() == v_type_t::k_pointer)
             {
-                auto n0 = LLVMConstNull(global_ctx.int_type->llvm_type());
+                auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
 
                 LLVMValueRef val[2] = { n0, n0 };
 
-                value = LLVMBuildInBoundsGEP2(global_ctx.builder, src_typ->llvm_type(), value, val, 2, "");
+                value = LLVMBuildInBoundsGEP2(gctx.builder, src_typ->llvm_type(), value, val, 2, "");
 
                 auto et = static_cast<v_type_array_t *>(src_typ)->element_type();
 
                 auto as = static_cast<v_type_reference_t *>(type)->address_space();
 
-                src_typ = global_ctx.make_pointer_type(et, as);
+                src_typ = gctx.make_pointer_type(et, as);
             }
             else
             {
-                value = LLVMBuildLoad2(global_ctx.builder, src_typ->llvm_type(), value, "tmp");
+                value = LLVMBuildLoad2(gctx.builder, src_typ->llvm_type(), value, "tmp");
             }
         }
 
         if (src_typ != dst_typ)
         {
-            if (dst_typ == global_ctx.void_ptr_type  &&
+            if (dst_typ == gctx.void_ptr_type  &&
                 src_typ->kind() == v_type_t::k_pointer)
             {
-                value = LLVMBuildPointerCast(global_ctx.builder, value, dst_typ->llvm_type(), "");
+                value = LLVMBuildPointerCast(gctx.builder, value, dst_typ->llvm_type(), "");
             }
             else
             {
-                value = convert_to_type(src_typ, value, dst_typ);       //- "generic" ...
+                value = lctx.convert_to_type(src_typ, value, dst_typ);      //- "generic" ...
             }
         }
 
-        if (dst_ref)  value = make_temporary(dst_typ, value);
+        if (dst_ref)  value = lctx.make_temporary(dst_typ, value);
     }
 
-    result_value = value;
+    lctx.result_value = value;
 }
 
+}
 
 //---------------------------------------------------------------------
 void
@@ -769,12 +779,12 @@ extern "C"
 
 //---------------------------------------------------------------------
 static LLVMValueRef
-v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
+v_convert_to_type_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 {
     if (t0 == t1)   return v0;      //- No conversion...
 
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
+    auto &lctx = *(reinterpret_cast<base_local_ctx_t *>(void_ctx));
+    auto &gctx = lctx.global_ctx;
 
     if (t1->kind() == v_type_t::k_pointer)
     {
@@ -863,10 +873,10 @@ v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 
 //---------------------------------------------------------------------
 static LLVMValueRef
-v_make_temporary_default(void *, v_type_t *type, LLVMValueRef value)
+v_make_temporary_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 {
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
+    auto &lctx = *(reinterpret_cast<base_local_ctx_t *>(void_ctx));
+    auto &gctx = lctx.global_ctx;
 
     if (!lctx.temporaries_stack.front().first)
     {
@@ -1434,9 +1444,13 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 //---------------------------------------------------------------------
 //- Voidc Local Context
 //---------------------------------------------------------------------
+static void voidc_adopt_result_default(void *, v_type_t *type, LLVMValueRef value);
+
 voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
   : voidc_template_ctx_t(global)
 {
+    adopt_result_fun = voidc_adopt_result_default;
+
     typenames = global.typenames;
 
     auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
@@ -1507,37 +1521,42 @@ voidc_local_ctx_t::find_symbol_value(v_quark_t raw_name_q)
 
 
 //---------------------------------------------------------------------
-void
-voidc_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
+extern "C"
+{
+
+static void
+voidc_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = *(reinterpret_cast<voidc_local_ctx_t *>(void_ctx));
 
-    if (result_type == UNREFERENCE_TAG  &&  type == vctx.static_type_type)
+    if (lctx.result_type == UNREFERENCE_TAG  &&  type == vctx.static_type_type)
     {
-        if (auto pq = typenames.find(reinterpret_cast<v_type_t *>(value)))
+        if (auto pq = lctx.typenames.find(reinterpret_cast<v_type_t *>(value)))
         {
             auto q = *pq;
 
-            auto t = get_symbol_type(q);
+            auto t = lctx.get_symbol_type(q);
 
             assert(t == vctx.type_type);
 
             auto cname = v_quark_to_string(q);
 
-            auto v = LLVMGetNamedGlobal(module, cname);
+            auto v = LLVMGetNamedGlobal(lctx.module, cname);
 
-            if (!v) v = LLVMAddGlobal(module, t->llvm_type(), cname);
+            if (!v) v = LLVMAddGlobal(lctx.module, t->llvm_type(), cname);
 
-            result_type  = vctx.type_ptr_type;
-            result_value = v;
+            lctx.result_type  = vctx.type_ptr_type;
+            lctx.result_value = v;
 
             return;
         }
     }
 
-    base_local_ctx_t::adopt_result(type, value);
+    base_adopt_result_default(void_ctx, type, value);           //- Sic!
 }
 
+}
 
 //---------------------------------------------------------------------
 void
@@ -2535,6 +2554,27 @@ v_set_result_value(LLVMValueRef val)
 }
 
 //---------------------------------------------------------------------
+adopt_result_t
+v_get_adopt_result(void **pctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (pctx) *pctx = lctx.adopt_result_ctx;
+
+    return lctx.adopt_result_fun;
+}
+
+void
+v_set_adopt_result(adopt_result_t fun, void *ctx)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.adopt_result_fun = fun;
+    lctx.adopt_result_ctx = ctx;
+}
+
 void
 v_adopt_result(v_type_t *type, LLVMValueRef value)
 {

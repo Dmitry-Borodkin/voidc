@@ -473,6 +473,25 @@
 
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_adopt_result", ft);
+
+    v_store(void_ptr,     typ0);            //- Context
+    v_store(v_type_ptr,   typ1);            //- Type
+    v_store(LLVMValueRef, typ2);            //- Value
+
+    ar_ft = v_function_type(void, typ0, 3, false);
+
+    ar_ft_ptr = v_pointer_type(ar_ft, 0);
+
+    v_store(void_ptr_ptr, typ0);            //- ctx
+
+    ft = v_function_type(ar_ft_ptr, typ0, 1, false);
+    v_export_symbol_type("v_get_adopt_result", ft);
+
+    v_store(ar_ft_ptr,    typ0);            //- fun
+    v_store(void_ptr,     typ1);            //- ctx
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_set_adopt_result", ft);
 }
 
 
