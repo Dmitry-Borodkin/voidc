@@ -577,7 +577,9 @@ base_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 
                 et = static_cast<v_type_array_t *>(et)->element_type();
 
-                lctx.result_type = gctx.make_pointer_type(et, 0);               //- 0?  ??!??!?!?!?!?!?
+                auto as = static_cast<v_type_reference_t *>(type)->address_space();
+
+                lctx.result_type = gctx.make_pointer_type(et, as);
 
                 value = lctx.convert_to_type(type, value, lctx.result_type);
 
