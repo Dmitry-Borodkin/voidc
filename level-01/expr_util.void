@@ -3483,7 +3483,24 @@
         }
         else
         {
-            v_assign(v, v_make_temporary(t, v));
+            if (LLVMIsConstant(v))
+            {
+                v1 = LLVMAddGlobal(v_get_module(), v_type_get_llvm_type(t), "tmp");
+
+                LLVMSetInitializer(v1, v);
+
+                LLVMSetLinkage(v1, LLVMPrivateLinkage);
+
+                LLVMSetUnnamedAddress(v1, LLVMGlobalUnnamedAddr);
+
+                LLVMSetGlobalConstant(v1, true);
+
+                v_assign(v, v1);
+            }
+            else
+            {
+                v_assign(v, v_make_temporary(t, v));
+            }
 
             v_assign(t, v_pointer_type(t, 0));
         }

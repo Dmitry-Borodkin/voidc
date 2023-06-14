@@ -618,9 +618,13 @@ v_cast(const visitor_t *vis, void *, const ast_base_t *self)
             {
                 v1 = LLVMAddGlobal(lctx.module, src_type->llvm_type(), "arr");
 
+                LLVMSetInitializer(v1, src_value);
+
                 LLVMSetLinkage(v1, LLVMPrivateLinkage);
 
-                LLVMSetInitializer(v1, src_value);
+                LLVMSetUnnamedAddress(v1, LLVMGlobalUnnamedAddr);
+
+                LLVMSetGlobalConstant(v1, true);
             }
             else
             {
@@ -750,9 +754,13 @@ v_pointer(const visitor_t *vis, void *, const ast_base_t *self)
         {
             auto v1 = LLVMAddGlobal(lctx.module, t->llvm_type(), "tmp");
 
+            LLVMSetInitializer(v1, v);
+
             LLVMSetLinkage(v1, LLVMPrivateLinkage);
 
-            LLVMSetInitializer(v1, v);
+            LLVMSetUnnamedAddress(v1, LLVMGlobalUnnamedAddr);
+
+            LLVMSetGlobalConstant(v1, true);
 
             v = v1;
         }

@@ -1162,7 +1162,7 @@ compile_prefix_star_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValu
 private
 compile_prefix_amp_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
 {
-    vr: &LLVMValueRef := v;
+    v: &LLVMValueRef := v;
 
     if (v_type_is_reference(t))
     {
@@ -1173,12 +1173,29 @@ compile_prefix_amp_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValue
     }
     else
     {
-        vr := v_make_temporary(t, v);
+        if (LLVMIsConstant(v))
+        {
+            v1 = LLVMAddGlobal(v_get_module(), v_type_get_llvm_type(t), "tmp");
+
+            LLVMSetInitializer(v1, v);
+
+            LLVMSetLinkage(v1, LLVMPrivateLinkage);
+
+            LLVMSetUnnamedAddress(v1, LLVMGlobalUnnamedAddr);
+
+            LLVMSetGlobalConstant(v1, true);
+
+            v := v1;
+        }
+        else
+        {
+            v := v_make_temporary(t, v);
+        }
 
         t := v_pointer_type(t, 0);
     }
 
-    v_return(vr);
+    v_return(v);
 }
 
 //---------------------------------------------------------------------
