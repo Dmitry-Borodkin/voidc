@@ -51,6 +51,8 @@
 
     //-----------------------------------------------------------------
     v_add_symbol("compute_key_quark_type_q", q_ref, q("voidc.compute_key_quark_type"));
+
+    v_add_symbol("q_initialize", q_ref, q("v_initialize"));
 }
 
 
@@ -717,6 +719,26 @@ mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
 //---------------------------------------------------------------------
 private
+type_is_initializable: (t: *v_type_t) -> bool
+{
+    switch(v_type_get_kind(t))
+    {
+    case v_type_kind_array:
+        v_return(type_is_initializable(v_type_array_get_element_type(t)));
+
+    case v_type_kind_struct:
+        v_break();
+
+    default:
+        v_return(false);        //- Sic!!!
+    }
+
+    v_return(v_type_get_property(t, q_initialize) != 0);
+}
+
+
+//---------------------------------------------------------------------
+private
 register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const char, q: v_quark_t, t: *v_type_t) -> void
 {
     qname = v_quark_from_string(fn);
@@ -783,10 +805,14 @@ register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const c
 
             if (v_type_is_struct(et)  &&  v_type_struct_is_opaque(et))  v_break();      //- !?!?!?!?!?!
 
+            if (type_is_initializable(et))  v_break();
+
             rt := et;
         }
         else
         {
+            if (type_is_initializable(t))   v_break();
+
             rt := v_reference_type(t, 0);       //- ?!?!?!?
         }
 
