@@ -80,11 +80,14 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.result_type = INVIOLABLE_TAG;
-
     lctx.push_temporaries();
 
+    lctx.result_type = INVIOLABLE_TAG;
+
     (*vis)->visit(stmt.expr);
+
+    auto tr = lctx.result_type;
+    auto vr = lctx.result_value;
 
     lctx.pop_temporaries();
 
@@ -92,19 +95,19 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 
     if (ret_name  &&  ret_name[0])
     {
-        if (lctx.result_type != voidc_global_ctx_t::voidc->static_type_type)
+        if (tr != voidc_global_ctx_t::voidc->static_type_type)
         {
             size_t len = 0;
 
-            LLVMGetValueName2(lctx.result_value, &len);
+            LLVMGetValueName2(vr, &len);
 
             if (len == 0)
             {
-                LLVMSetValueName2(lctx.result_value, ret_name, v_quark_to_string_size(stmt.name));
+                LLVMSetValueName2(vr, ret_name, v_quark_to_string_size(stmt.name));
             }
         }
 
-        lctx.vars = lctx.vars.set(stmt.name, {lctx.result_type, lctx.result_value});
+        lctx.vars = lctx.vars.set(stmt.name, {tr, vr});
     }
 }
 
