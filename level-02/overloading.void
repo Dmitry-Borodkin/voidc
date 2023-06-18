@@ -445,6 +445,8 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         v_set_result_type(e0);
     }
 
+    v_set_result_value(0);
+
     rhs = v_list_get_item(args, 2);             //- "Value"
 
     v_ast_accept_visitor((rhs : v_ast_base_ptr), vis);
