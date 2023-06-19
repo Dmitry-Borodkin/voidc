@@ -174,9 +174,12 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     //- Overloading only!
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     if (spc_flag)  v_set_result_type(INVIOLABLE_TAG);
+
+    v_set_result_value(0);
 
     tr: &v_type_ptr   := v_undef();
     vr: &LLVMValueRef := v_undef();
@@ -215,13 +218,15 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
         tr := v_type_function_get_return_type(ft);
 
         v_set_result_type(tr);
+        v_set_result_value(0);
 
         voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, arg_count);
 
         vr := v_get_result_value();
     }
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     if (spc_flag)  voidc_internal_compile_expr_call_helper(vis, self, alst, tr, vr);
     else           v_adopt_result(tr, vr);
@@ -237,11 +242,13 @@ op_postfix_dot_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     arg = v_list_get_item(args, 1);
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor((arg: v_ast_base_ptr), vis);
 
@@ -249,7 +256,8 @@ op_postfix_dot_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     v0 = v_get_result_value();
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     op_postfix_dot_helper(vis, self, t0, v0);
 }
@@ -264,11 +272,13 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     arg = v_list_get_item(args, 1);
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor((arg: v_ast_base_ptr), vis);
 
@@ -292,6 +302,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         if (fun = (void_fun: *intrinsic_p1_t))
         {
             v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_value(0);
 
             fun(vis, void_aux, self, t0, v0);
 
@@ -311,6 +322,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             t0 := v_type_function_get_return_type(ft);
 
             v_set_result_type(t0);
+            v_set_result_value(0);
 
             voidc_llvm_build_call_helper(vis, self, ft, fv, &arg_ptr, 1);
 
@@ -333,7 +345,8 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         t0 := v_reference_type(e, a);
     }
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     op_postfix_dot_helper(vis, self, t0, v0);
 }

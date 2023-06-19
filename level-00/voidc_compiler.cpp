@@ -84,6 +84,8 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 
     lctx.result_type = INVIOLABLE_TAG;
 
+    //- Don't touch lctx.result_value !..
+
     (*vis)->visit(stmt.expr);
 
     auto tr = lctx.result_type;
@@ -151,9 +153,11 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 
     //- Function call
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(call.fun_expr);
 
@@ -182,6 +186,8 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
         if (i < par_count)  lctx.result_type = par_types[i];
         else                lctx.result_type = UNREFERENCE_TAG;
 
+        lctx.result_value = 0;
+
         (*vis)->visit(args_data[i]);
 
         values[i] = lctx.result_value;
@@ -190,7 +196,8 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
     auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), arg_count, "");
 
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(ft->return_type(), v);
 }
@@ -261,7 +268,7 @@ void compile_expr_integer(const visitor_t *vis, void *, const ast_base_t *self)
 
         v = LLVMConstInt(t->llvm_type(), (long long)num, true);
 
-        lctx.result_type = t;
+        lctx.result_type  = t;
         lctx.result_value = v;
     }
     else
@@ -347,9 +354,12 @@ v_alloca(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
-    lctx.result_type = INVIOLABLE_TAG;
+    lctx.result_type  = INVIOLABLE_TAG;
+//  lctx.result_type  = voidc_global_ctx_t::voidc->static_type_type;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);               //- Element type
 
@@ -367,7 +377,8 @@ v_alloca(const visitor_t *vis, void *, const ast_base_t *self)
     }
     else                                        //- Array...
     {
-        lctx.result_type = UNREFERENCE_TAG;
+        lctx.result_type  = UNREFERENCE_TAG;
+        lctx.result_value = 0;
 
         (*vis)->visit(args->data[1]);               //- Array size
 
@@ -376,7 +387,8 @@ v_alloca(const visitor_t *vis, void *, const ast_base_t *self)
 
     auto t = gctx.make_pointer_type(type, LLVMGetPointerAddressSpace(LLVMTypeOf(v)));
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(t, v);
 }
@@ -392,7 +404,8 @@ v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
     auto arg_count = args->data.size();
 
@@ -401,7 +414,8 @@ v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
 
     for (int i=0; i<arg_count; ++i)
     {
-        lctx.result_type = UNREFERENCE_TAG;
+        lctx.result_type  = UNREFERENCE_TAG;
+        lctx.result_value = 0;
 
         (*vis)->visit(args->data[i]);
 
@@ -422,7 +436,8 @@ v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
                     else                    t1 = gctx.make_vector_type(t1, count);
                 }
 
-                lctx.result_type = t1;
+                lctx.result_type  = t1;
+                lctx.result_value = 0;
 
                 lctx.adopt_result(ti, vi);
 
@@ -486,7 +501,8 @@ v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
         }
     }
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(t, v);
 }
@@ -502,13 +518,15 @@ v_store(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[1]);               //- "Place"
 
     auto place = lctx.result_value;
 
-    lctx.result_type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
+    lctx.result_type  = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);               //- "Value"
 
@@ -526,9 +544,11 @@ v_load(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);
 
@@ -536,7 +556,8 @@ v_load(const visitor_t *vis, void *, const ast_base_t *self)
 
     auto v = LLVMBuildLoad2(gctx.builder, t->llvm_type(), lctx.result_value, "");
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(t, v);
 }
@@ -552,17 +573,20 @@ v_cast(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
-    lctx.result_type = INVIOLABLE_TAG;
+    lctx.result_type  = INVIOLABLE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);               //- Value
 
+    auto src_type  = lctx.result_type;
     auto src_value = lctx.result_value;
 
-    auto src_type = lctx.result_type;
-
-    lctx.result_type = INVIOLABLE_TAG;
+    lctx.result_type  = INVIOLABLE_TAG;
+//  lctx.result_type  = voidc_global_ctx_t::voidc->static_type_type;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[1]);               //- Type
 
@@ -720,7 +744,8 @@ v_cast(const visitor_t *vis, void *, const ast_base_t *self)
         }
     }
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(dst_type, v);
 }
@@ -736,9 +761,11 @@ v_pointer(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
-    lctx.result_type = INVIOLABLE_TAG;
+    lctx.result_type  = INVIOLABLE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);
 
@@ -775,7 +802,8 @@ v_pointer(const visitor_t *vis, void *, const ast_base_t *self)
         t = gctx.make_pointer_type(t, 0);
     }
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(t, v);
 }
@@ -791,9 +819,11 @@ v_reference(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);
 
@@ -802,7 +832,8 @@ v_reference(const visitor_t *vis, void *, const ast_base_t *self)
     auto v = lctx.result_value;
     auto t = gctx.make_reference_type(pt->element_type(), pt->address_space());
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(t, v);
 }
@@ -818,22 +849,26 @@ v_assign(const visitor_t *vis, void *, const ast_base_t *self)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
-    lctx.result_type = INVIOLABLE_TAG;
+    lctx.result_type  = INVIOLABLE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);               //- "Place"
 
     auto type  = lctx.result_type;
     auto place = lctx.result_value;
 
-    lctx.result_type = static_cast<v_type_reference_t *>(type)->element_type();
+    lctx.result_type  = static_cast<v_type_reference_t *>(type)->element_type();
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[1]);               //- "Value"
 
     LLVMBuildStore(gctx.builder, lctx.result_value, place);
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(type, place);
 }

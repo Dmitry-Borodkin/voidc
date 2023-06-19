@@ -61,7 +61,8 @@
 
     num_var = v_alloca(LLVMValueRef);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     if (v_icmp(LLVMIntEQ, args_count, v_cast(1, size_t)))
     {
@@ -72,6 +73,7 @@
     else
     {
         v_set_result_type(UNREFERENCE_TAG);
+        v_set_result_value(0);
 
         arg1 = v_list_get_item(arg_list, 1);
 
@@ -88,7 +90,9 @@
 
     builder = v_target_get_builder();
 
-    v_set_result_type(INVIOLABLE_TAG);
+//  v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(v_static_type_t);
+    v_set_result_value(0);
 
     arg0 = v_list_get_item(arg_list, 0);
 
@@ -103,7 +107,8 @@
 
     pt = v_pointer_type(type, 0);
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(pt, ret);
 }
@@ -128,6 +133,7 @@
     builder = v_target_get_builder();
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     arg = v_list_get_item(arg_list, 0);
 

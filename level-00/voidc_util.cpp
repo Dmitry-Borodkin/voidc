@@ -92,9 +92,11 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);
 
@@ -114,7 +116,8 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        lctx.result_type = tt;
+        lctx.result_type  = ttag;
+        lctx.result_value = vtag;
 
         reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, res_type, res_value);
 
@@ -153,6 +156,8 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
         if (i < par_count)  lctx.result_type = par_types[i];
         else                lctx.result_type = UNREFERENCE_TAG;
 
+        lctx.result_value = 0;
+
         if (vi)
         {
             lctx.adopt_result(ti, vi);
@@ -167,7 +172,8 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
 
     auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), val_count, "");
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(ft->return_type(), v);
 }
@@ -184,9 +190,12 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
     lctx.result_type = INVIOLABLE_TAG;
+//  lctx.result_type  = voidc_global_ctx_t::voidc->static_type_type;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);              //- Type
 
@@ -205,20 +214,28 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
+        auto tr = lctx.result_type;
+        auto vr = lctx.result_value;
+
+        lctx.result_type  = ttag;
+        lctx.result_value = vtag;
+
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, tr, vr);
 
         return;
     }
 
     //- Function call
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[1]);
 
     auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(type, v);
 }
@@ -234,9 +251,12 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto tt = lctx.result_type;
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
 
     lctx.result_type = INVIOLABLE_TAG;
+//  lctx.result_type  = voidc_global_ctx_t::voidc->static_type_type;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);              //- Type
 
@@ -255,14 +275,21 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
+        auto tr = lctx.result_type;
+        auto vr = lctx.result_value;
+
+        lctx.result_type  = ttag;
+        lctx.result_value = vtag;
+
+        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, tr, vr);
 
         return;
     }
 
     //- Function call
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[1]);
 
@@ -272,7 +299,8 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 
     type = gctx.make_pointer_type(type, adsp);
 
-    lctx.result_type = tt;
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
 
     lctx.adopt_result(type, v);
 }
@@ -288,7 +316,8 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[1]);           //- Second argument
 
@@ -316,7 +345,8 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
 
     values[1] = lctx.result_value;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);           //- First argument
 
@@ -336,7 +366,8 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[1]);           //- Second argument
 
@@ -364,7 +395,8 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 
     values[1] = lctx.result_value;
 
-    lctx.result_type = UNREFERENCE_TAG;
+    lctx.result_type  = UNREFERENCE_TAG;
+    lctx.result_value = 0;
 
     (*vis)->visit(args->data[0]);           //- First argument
 

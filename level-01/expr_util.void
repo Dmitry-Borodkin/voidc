@@ -1040,6 +1040,7 @@
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast0, v_ast_base_ptr), visitor);
 
@@ -1048,6 +1049,7 @@
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast1, v_ast_base_ptr), visitor);
 
@@ -1103,6 +1105,7 @@
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast0, v_ast_base_ptr), visitor);
 
@@ -1121,6 +1124,8 @@
     {
         v_set_result_type(e0);
     }
+
+    v_set_result_value(0);
 
 
     v_ast_accept_visitor(v_cast(ast1, v_ast_base_ptr), visitor);
@@ -1447,7 +1452,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -1470,7 +1476,8 @@
     LLVMBuildStore(builder, v1, v0);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v0);
 }
@@ -1509,7 +1516,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -1530,7 +1538,8 @@
     LLVMBuildStore(builder, v, v0);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v0);
 }
@@ -1820,7 +1829,8 @@
     }
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     builder = v_target_get_builder();
 
@@ -1849,6 +1859,7 @@
         if (v_icmp(LLVMIntEQ, i, N))  v_break();
 
         v_set_result_type(UNREFERENCE_TAG);
+        v_set_result_value(0);
 
         ast_i = v_load(v_getelementptr(ast, i));
 
@@ -1888,7 +1899,8 @@
     v = LLVMBuildLoad2(builder, bool_, and_result_v, "");
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(_bool, v);       //- ?!?!?
 }
@@ -2008,7 +2020,8 @@
     }
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     builder = v_target_get_builder();
 
@@ -2037,6 +2050,7 @@
         if (v_icmp(LLVMIntEQ, i, N))  v_break();
 
         v_set_result_type(UNREFERENCE_TAG);
+        v_set_result_value(0);
 
         ast_i = v_load(v_getelementptr(ast, i));
 
@@ -2076,7 +2090,8 @@
     v = LLVMBuildLoad2(builder, bool_, or_result_v, "");
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(_bool, v);       //- ?!?!?
 }
@@ -2100,7 +2115,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2112,7 +2128,8 @@
     v = compile_and(t0, v0, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -2135,7 +2152,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2147,7 +2165,8 @@
     v = compile_xor(t0, v0, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -2170,7 +2189,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2182,7 +2202,8 @@
     v = compile_or(t0, v0, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -2354,7 +2375,8 @@
     }
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     builder = v_target_get_builder();
 
@@ -2386,6 +2408,7 @@
     val = v_reference(v_alloca(LLVMValueRef));
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(v_load(ast), v_ast_base_ptr), visitor);
 
@@ -2415,6 +2438,7 @@
         ast_i = v_load(v_getelementptr(ast, i));
 
         v_set_result_type(UNREFERENCE_TAG);
+        v_set_result_value(0);
 
         v_ast_accept_visitor(v_cast(ast_i, v_ast_base_ptr), visitor);
 
@@ -2525,7 +2549,8 @@
     }
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, r);
 }
@@ -2651,7 +2676,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2663,7 +2689,8 @@
     v = compile_shl(t0, v0, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -2686,7 +2713,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -2698,7 +2726,8 @@
     v = compile_shr(t0, v0, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -2836,13 +2865,15 @@
     ast1 = v_list_get_item(arg_list, 2);        //- Sic!
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast0, v_ast_base_ptr), visitor);
 
@@ -2854,6 +2885,7 @@
     v1 = v_reference(v_alloca(LLVMValueRef));
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast1, v_ast_base_ptr), visitor);
 
@@ -2864,7 +2896,8 @@
     v = compile_infix_add(t0, v0, t1, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -3002,13 +3035,15 @@
     ast1 = v_list_get_item(arg_list, 2);        //- Sic!
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast0, v_ast_base_ptr), visitor);
 
@@ -3020,6 +3055,7 @@
     v1 = v_reference(v_alloca(LLVMValueRef));
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast1, v_ast_base_ptr), visitor);
 
@@ -3030,7 +3066,8 @@
     v = compile_infix_sub(t0, v0, t1, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -3053,7 +3090,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -3065,7 +3103,8 @@
     v = compile_mul(t0, v0, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -3088,7 +3127,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -3100,7 +3140,8 @@
     v = compile_div(t0, v0, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -3123,7 +3164,8 @@
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     t0 = v_reference(v_alloca(v_type_ptr));
     v0 = v_reference(v_alloca(LLVMValueRef));
@@ -3135,7 +3177,8 @@
     v = compile_rem(t0, v0, v1);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -3175,10 +3218,12 @@
     ast = v_list_get_item(arg_list, 1);
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 
@@ -3203,6 +3248,8 @@
 
     if (pf) v_set_result_type(int);         //- ?
     else    v_set_result_type(st);
+
+    v_set_result_value(0);
 
     v_ast_accept_visitor(step_base, visitor);
 
@@ -3248,7 +3295,8 @@
     LLVMBuildStore(builder, var_v, v);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     if (is_pref)  v_adopt_result( t,  v);
     else          v_adopt_result(et, ev);
@@ -3337,10 +3385,12 @@
     ast = v_list_get_item(arg_list, 1);
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 
@@ -3361,7 +3411,8 @@
         v_assign(val, LLVMBuildNeg(builder, v, ""));
     }
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t, val);
 }
@@ -3387,10 +3438,12 @@
     ast = v_list_get_item(arg_list, 1);
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 
@@ -3424,7 +3477,8 @@
 
         v_assign(t, v_reference_type(e, a));
 
-        v_set_result_type(tt);
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
 
         v_adopt_result(t, v);
     }
@@ -3451,10 +3505,12 @@
     ast = v_list_get_item(arg_list, 1);
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 
@@ -3505,7 +3561,8 @@
             v_assign(t, v_pointer_type(t, 0));
         }
 
-        v_set_result_type(tt);
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
 
         v_adopt_result(t, v);
     }
@@ -3532,10 +3589,12 @@
     ast = v_list_get_item(arg_list, 1);
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 
@@ -3548,7 +3607,8 @@
     val = LLVMBuildIsNull(builder, v, "");
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t, val);
 }
@@ -3574,10 +3634,12 @@
     ast = v_list_get_item(arg_list, 1);
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 
@@ -3590,7 +3652,8 @@
     val = LLVMBuildNot(builder, v, "");
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t, val);
 }
@@ -3798,10 +3861,12 @@
     }
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(agg, v_ast_base_ptr), visitor);
 
@@ -3827,6 +3892,7 @@
             if (idx_i)
             {
                 v_set_result_type(UNREFERENCE_TAG);
+                v_set_result_value(0);
 
                 v_ast_accept_visitor(v_cast(idx_i, v_ast_base_ptr), visitor);
 
@@ -3882,6 +3948,7 @@
         idx_i = v_load(v_getelementptr(idx, i));
 
         v_set_result_type(UNREFERENCE_TAG);
+        v_set_result_value(0);
 
         v_ast_accept_visitor(v_cast(idx_i, v_ast_base_ptr), visitor);
 
@@ -3915,6 +3982,7 @@
             }
 
             v_set_result_type(t1);
+            v_set_result_value(0);
 
             v_adopt_result(idx_t, idx_v);
 
@@ -4018,7 +4086,8 @@
 
     v_free(idx);
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(agg_t, agg_v);
 }
@@ -4131,6 +4200,7 @@
     arg = v_list_get_item(arg_list, 0);
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
 
@@ -4163,6 +4233,7 @@
     arg = v_list_get_item(arg_list, 0);
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
 
@@ -4195,6 +4266,7 @@
     arg = v_list_get_item(arg_list, 0);
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
 
@@ -4237,6 +4309,7 @@
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast0, v_ast_base_ptr), vis);
 
@@ -4244,6 +4317,7 @@
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast1, v_ast_base_ptr), vis);
 
@@ -4278,6 +4352,7 @@
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast0, v_ast_base_ptr), vis);
 
@@ -4285,6 +4360,7 @@
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(ast1, v_ast_base_ptr), vis);
 
@@ -4319,6 +4395,7 @@
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);
 
@@ -4326,6 +4403,7 @@
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(arg1, v_ast_base_ptr), visitor);
 
@@ -4360,6 +4438,7 @@
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(arg0, v_ast_base_ptr), visitor);
 
@@ -4367,6 +4446,7 @@
 
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(arg1, v_ast_base_ptr), visitor);
 

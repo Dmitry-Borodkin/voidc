@@ -290,6 +290,7 @@ compile_expr_union: (vis: *voidc_visitor_t, aux: *void,
             etmp = v_ast_stmt_get_expr(stmp);
 
             v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_value(0);
 
             v_ast_accept_visitor((etmp : v_ast_base_ptr), vis);
 

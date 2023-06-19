@@ -306,12 +306,15 @@ voidc_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self
     values = v_malloc(LLVMValueRef, arg_count);
     defer v_free(values);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     for (i: &unsigned := 0; i < arg_count; ++i)
     {
         if (i < par_count)  v_set_result_type(par_types[i]);
         else                v_set_result_type(UNREFERENCE_TAG);
+
+        v_set_result_value(0);
 
         v_ast_accept_visitor((arg_ptrs[i]: v_ast_base_ptr), vis);
 
@@ -326,7 +329,8 @@ voidc_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self
 
     tr = v_type_function_get_return_type(ft);
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(tr, vr);
 }
@@ -370,9 +374,11 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     lhs = v_list_get_item(args, 1);             //- "Place"
 
@@ -397,7 +403,8 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         if (fun = (void_fun: *intrinsic_p1_t))
         {
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             fun(vis, void_aux, self, t0, v0);
         }
@@ -414,7 +421,8 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             arg_ptrs[0] := expr;                            //- "Place", compiled
             arg_ptrs[1] := v_list_get_item(args, 2);        //- "Value"
 
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, 2);
         }
@@ -490,7 +498,8 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     LLVMBuildStore(builder, vr, v0);
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v0);
 }
@@ -503,11 +512,13 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     //- First argument
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     lhs = v_list_get_item(args, 1);
 
@@ -532,7 +543,8 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         if (fun = (void_fun: *intrinsic_p1_t))
         {
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             fun(vis, void_aux, self, t0, v0);
         }
@@ -549,7 +561,8 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             arg_ptrs[0] := expr;                            //- "LHS", compiled
             arg_ptrs[1] := v_list_get_item(args, 2);        //- "RHS"
 
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, 2);
         }
@@ -560,6 +573,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     //- Second argument
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     rhs = v_list_get_item(args, 2);
 
@@ -576,7 +590,8 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         if (fun = (void_fun: *intrinsic_p2_t))
         {
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             fun(vis, void_aux, self, t0, v0, t1, v1);
         }
@@ -594,7 +609,8 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             arg_ptrs[0] := expr+0;                          //- "LHS", compiled
             arg_ptrs[1] := expr+1;                          //- "RHS", compiled
 
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, 2);
         }
@@ -605,6 +621,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     //- Default treatment...
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_adopt_result(t0, v0);
 
@@ -612,6 +629,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     v0: &LLVMValueRef := v_get_result_value();
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_adopt_result(t1, v1);
 
@@ -630,7 +648,8 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             v = compile(t0, v0, t1, v1);
 
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             v_adopt_result(t0, v);
 
@@ -656,7 +675,8 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     v = compile(t0, v0, v1);
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -747,7 +767,8 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     }
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     builder = v_target_get_builder();
 
@@ -774,6 +795,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor((ast[0] : v_ast_base_ptr), vis);
 
@@ -818,7 +840,8 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             if (fun = (void_fun: *intrinsic_p12_t))
             {
-                v_set_result_type(tt);      //- Sic !?!
+                v_set_result_type(ttag);        //- Sic !?!
+                v_set_result_value(vtag);       //- Sic !?!
 
                 fun(vis, void_aux, ast+i, t0, v0, t1, v1);                      //- Without "self" !?!?!?!?!
             }
@@ -837,7 +860,8 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                 arg_ptrs[0] := expr+0;                          //- "LHS", compiled
                 arg_ptrs[1] := expr+1;                          //- "RHS", compile hook
 
-                v_set_result_type(tt);
+                v_set_result_type(ttag);
+                v_set_result_value(vtag);
 
                 voidc_llvm_build_call_helper(vis, 0, ft, fv, arg_ptrs, 2);      //- Without "self" !?!?!?!?!
             }
@@ -869,7 +893,8 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
                 if (fun = (void_fun: *intrinsic_p22_t))
                 {
-                    v_set_result_type(tt);      //- Sic !?!
+                    v_set_result_type(ttag);        //- Sic !?!
+                    v_set_result_value(vtag);       //- Sic !?!
 
                     fun(vis, void_aux, ast+i, t0, v0, t1, v1);                      //- Without "self" !?!?!?!?!
                 }
@@ -887,7 +912,8 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                     arg_ptrs[0] := expr+0;                          //- "LHS", compiled
                     arg_ptrs[1] := expr+1;                          //- "RHS", compiled
 
-                    v_set_result_type(tt);
+                    v_set_result_type(ttag);
+                    v_set_result_value(vtag);
 
                     voidc_llvm_build_call_helper(vis, 0, ft, fv, arg_ptrs, 2);      //- Without "self" !?!?!?!?!
                 }
@@ -904,6 +930,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             //- Default treatment...
 
             v_set_result_type(UNREFERENCE_TAG);
+            v_set_result_value(0);
 
             v_adopt_result(t0, v0);
 
@@ -911,6 +938,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             v0 := v_get_result_value();
 
             v_set_result_type(UNREFERENCE_TAG);
+            v_set_result_value(0);
 
             v_adopt_result(t1, v1);
 
@@ -1009,7 +1037,8 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     }
 
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, r);
 }
@@ -1037,6 +1066,8 @@ inc_dec_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef, delta:
 
     if (pf) v_set_result_type(int);         //- ?
     else    v_set_result_type(st);
+
+    v_set_result_value(0);
 
     v_ast_accept_visitor(step_base, vis);
 
@@ -1118,6 +1149,7 @@ private
 compile_prefix_minus_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
 {
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_adopt_result(t, v);
 
@@ -1205,6 +1237,7 @@ private
 compile_prefix_bang_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
 {
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_adopt_result(t, v);
 
@@ -1240,6 +1273,7 @@ private
 compile_prefix_tilda_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
 {
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_adopt_result(t, v);
 
@@ -1274,9 +1308,11 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     arg = v_list_get_item(args, 1);
 
@@ -1301,7 +1337,8 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         if (fun = (void_fun: *intrinsic_p1_t))
         {
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             fun(vis, void_aux, self, t0, v0);
         }
@@ -1315,7 +1352,8 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             arg_ptr: &v_ast_expr_ptr := expr;               //- Value, compiled
 
-            v_set_result_type(tt);
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
 
             voidc_llvm_build_call_helper(vis, self, ft, fv, &arg_ptr, 1);
         }
@@ -1345,7 +1383,8 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     v = compile(vis, t0, v0);
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t0, v);
 }
@@ -1456,6 +1495,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
     else        //- "Normal"...
     {
         v_set_result_type(UNREFERENCE_TAG);
+        v_set_result_value(0);
 
         v_adopt_result(t, v);
 
@@ -1551,9 +1591,11 @@ voidc_internal_op_postfix_index_helper: (vis: voidc_visitor_ptr,
                                          t0: v_type_ptr, v0: LLVMValueRef
                                         ) -> void
 {
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor((eidx: v_ast_base_ptr), vis);
 
@@ -1582,6 +1624,7 @@ voidc_internal_op_postfix_index_helper: (vis: voidc_visitor_ptr,
         }
 
         v_set_result_type(t1);
+        v_set_result_value(0);
 
         v_adopt_result(idx_t, idx_v);
 
@@ -1679,7 +1722,8 @@ voidc_internal_op_postfix_index_helper: (vis: voidc_visitor_ptr,
         }
     }
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t, v);
 }
@@ -1756,10 +1800,12 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     }
 
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor((agg: v_ast_base_ptr), vis);
 
@@ -1791,7 +1837,8 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
             if (fun = (void_fun: *intrinsic_t))
             {
-                v_set_result_type(tt);
+                v_set_result_type(ttag);
+                v_set_result_value(vtag);
 
                 fun(vis, void_aux, self, agg_t, agg_v, idx+i, N-i);
 
@@ -1822,6 +1869,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                 agg_t := v_type_function_get_return_type(ft);
 
                 v_set_result_type(agg_t);
+                v_set_result_value(0);
 
                 voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, (arg_count: unsigned));
 
@@ -1835,6 +1883,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             eidx = v_list_get_item(idx[i], 0);              //- Just one!
 
             v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_value(0);
 
             voidc_internal_op_postfix_index_helper(vis, eidx, agg_t, agg_v);
 
@@ -1843,7 +1892,8 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         }
     }
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(agg_t, agg_v);
 }
@@ -1870,6 +1920,7 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             expr = v_list_get_item(idx_list, 0);        //- Just one!
 
             v_set_result_type(UNREFERENCE_TAG);
+            v_set_result_value(0);
 
             v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
 

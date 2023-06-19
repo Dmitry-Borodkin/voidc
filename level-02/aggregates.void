@@ -96,6 +96,7 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
             expr = v_list_get_item(args, i);
 
             v_set_result_type(et);
+            v_set_result_value(0);
 
             v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
 
@@ -122,6 +123,7 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
             if (ets)  et := ets[i];
 
             v_set_result_type(et);
+            v_set_result_value(0);
 
             v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
 
@@ -134,6 +136,7 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
     if (is_reference)
     {
         v_set_result_type(v_reference_type(t, addr_sp));
+        v_set_result_value(0);
 
         v_adopt_result(t, v);
     }
@@ -213,6 +216,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
                 etmp = v_list_get_item(alst, i);
 
                 v_set_result_type(INVIOLABLE_TAG);
+                v_set_result_value(0);
 
                 v_ast_accept_visitor((etmp : v_ast_base_ptr), vis);
 
@@ -240,21 +244,25 @@ v_typed_intrinsic: (vis: voidc_visitor_ptr, *void,
     arg0 = v_list_get_item(args, 0);
     arg1 = v_list_get_item(args, 1);
 
-    tt = v_get_result_type();
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
 
     v_ast_accept_visitor((arg0 : v_ast_base_ptr), vis);         //- Type
 
     t = (v_get_result_value() : v_type_ptr);
 
     v_set_result_type(t);
+    v_set_result_value(0);
 
     v_ast_accept_visitor((arg1 : v_ast_base_ptr), vis);         //- Value
 
     v = v_get_result_value();
 
-    v_set_result_type(tt);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
 
     v_adopt_result(t, v);
 }
