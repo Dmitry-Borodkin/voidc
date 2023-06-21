@@ -1995,6 +1995,10 @@
 
 
     //-----------------------------------------------------------------
+    saved_gctx = v_target_get_global_ctx();
+    v_target_set_global_ctx(v_target_get_voidc_global_ctx());
+
+    //----------------------------------------------
     typ = *v_alloca(v_type_ptr) := bool;
 
     ft = v_function_type(void, &typ, 1, false);
@@ -2004,6 +2008,9 @@
     ft = v_function_type(bool, 0, 0, false);
 
     v_add_symbol("v_get_export_flag", ft, 0);
+
+    //----------------------------------------------
+    v_target_set_global_ctx(saved_gctx);
 }
 
 

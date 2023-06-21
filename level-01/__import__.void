@@ -22,7 +22,11 @@
 
 
 //---------------------------------------------------------------------
-{   voidc_enable_definitions();
+{
+    voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_expression();
+    voidc_enable_definitions();
 }
 
 
@@ -41,10 +45,46 @@
 export
 v_enable_level_01: () -> void
 {
+    gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    if (gctx != vctx)
+    {
+        v_target_set_global_ctx(vctx);
+
+        return_aux: &*void := v_undef();
+        return_fun = v_get_intrinsic("v_return", &return_aux);
+
+        init_aux: &*void := v_undef();
+        init_fun = v_get_intrinsic("v_initialize", &init_aux);
+
+        term_aux: &*void := v_undef();
+        term_fun = v_get_intrinsic("v_terminate", &term_aux);
+
+        copy_aux: &*void := v_undef();
+        copy_fun = v_get_intrinsic("v_copy", &copy_aux);
+
+        move_aux: &*void := v_undef();
+        move_fun = v_get_intrinsic("v_move", &move_aux);
+
+        v_target_set_global_ctx(gctx);
+
+        v_add_intrinsic("v_return",     return_fun, return_aux);
+        v_add_intrinsic("v_initialize", init_fun,   init_aux);
+        v_add_intrinsic("v_terminate",  term_fun,   term_aux);
+        v_add_intrinsic("v_copy",       copy_fun,   copy_aux);
+        v_add_intrinsic("v_move",       move_fun,   move_aux);
+    }
+
     voidc_enable_statement_if_then_else();
     voidc_enable_statement_block();
     voidc_enable_statement_loop();
-    voidc_enable_statement_grammar();
+
+    if (gctx == vctx)
+    {
+        voidc_enable_statement_grammar();
+    }
+
     voidc_enable_statement_switch();
     voidc_enable_expression();
     voidc_enable_statement_defer();
