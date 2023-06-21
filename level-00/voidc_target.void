@@ -83,6 +83,14 @@
 
 
 //---------------------------------------------------------------------
+{   voidc_visitor_ptr = v_pointer_type(voidc_visitor_t, 0);
+
+    ft = v_function_type(voidc_visitor_ptr, 0, 0, false);
+    v_export_symbol_type("v_get_compiler", ft);
+}
+
+
+//---------------------------------------------------------------------
 {   typ0 = v_alloca(v_type_ptr, 3);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);

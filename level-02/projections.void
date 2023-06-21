@@ -358,7 +358,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 export
 voidc_enable_projections_compiler: () -> void
 {
-    vis = voidc_compiler;
+    vis = v_get_compiler();
 
     v_op_postfix_dot_q = v_quark_from_string("v.op_postfix_dot");
 

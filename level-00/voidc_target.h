@@ -8,6 +8,7 @@
 #include "voidc_ast.h"
 #include "voidc_types.h"
 #include "voidc_util.h"
+#include "voidc_visitor.h"
 
 #include <string>
 #include <vector>
@@ -166,6 +167,9 @@ public:
     std::string filename;
 
     base_global_ctx_t &global_ctx;
+
+public:
+    visitor_t compiler;
 
 public:
     declarations_t *export_decls = nullptr;

@@ -1951,7 +1951,9 @@
     v_function_hack("voidc_enable_definitions_compiler", ft);
 }
 {
-    v_return_if(voidc_visitor_get_void_method(voidc_compiler, unit_fun_defn_q, 0));
+    vis = v_get_compiler();
+
+    v_return_if(voidc_visitor_get_void_method(vis, unit_fun_defn_q, 0));
 
     voidc_enable_expression_compiler();         //- Sic!
 
@@ -1970,8 +1972,6 @@
 
 
     //-------------------------------------------------------------
-    vis = voidc_compiler;
-
     voidc_visitor_set_void_method(vis, vis, br_item_list_q,   compile_br_item_list,   0);
     voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q,  compile_unit_fun_defn,  0);
     voidc_visitor_set_void_method(vis, vis, unit_var_defn_q,  compile_unit_var_defn,  0);

@@ -1075,7 +1075,7 @@ v_internal_spec_fun_renm_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v
 export
 voidc_enable_mangling_compiler: () -> void
 {
-    vis = voidc_compiler;
+    vis = v_get_compiler();
 
     v_return_if(voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, 0));
 

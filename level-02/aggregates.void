@@ -274,7 +274,7 @@ v_typed_intrinsic: (vis: voidc_visitor_ptr, *void,
 export
 voidc_enable_aggregates_compiler: () -> void
 {
-    vis = voidc_compiler;
+    vis = v_get_compiler();
 
     v_return_if(voidc_visitor_get_intrinsic(vis, q_op_braces, 0));
 

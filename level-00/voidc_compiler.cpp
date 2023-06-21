@@ -8,13 +8,6 @@
 #include "voidc_target.h"
 
 
-//---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
-visitor_t voidc_compiler;
-
-
-
 //=====================================================================
 //- AST Visitor - Compiler (level 0) ...
 //=====================================================================
@@ -875,45 +868,81 @@ v_assign(const visitor_t *vis, void *, const ast_base_t *self)
 
 
 //=====================================================================
-//- Compiler visitor
+//- Compiler visitors
 //=====================================================================
 static
-visitor_t compile_visitor_level_zero;
+visitor_t voidc_compiler_level_zero;
 
 visitor_t
 make_voidc_compiler(void)
 {
-    if (!compile_visitor_level_zero)
+    if (!voidc_compiler_level_zero)
     {
         voidc_visitor_data_t vis;
 
-#define DEF(name) \
+#define DEF_METHOD(name) \
         vis = vis.set_void_method(v_ast_##name##_visitor_method_tag, (void *)compile_##name);
 
-        DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
+        DEFINE_AST_VISITOR_METHOD_TAGS(DEF_METHOD)
 
-#undef DEF
 
-#define DEF(name) \
+#define DEF_INTRINSIC(name) \
         vis = vis.set_intrinsic(v_quark_from_string(#name), (void *)name, nullptr);
 
-        DEF(v_alloca)
-        DEF(v_getelementptr)
-        DEF(v_store)
-        DEF(v_load)
-        DEF(v_cast)
-        DEF(v_pointer)
-        DEF(v_reference)
-        DEF(v_assign)
+#define DEFINE_INTRINSICS(DEF) \
+        DEF(v_alloca)          \
+        DEF(v_getelementptr)   \
+        DEF(v_store)           \
+        DEF(v_load)            \
+        DEF(v_cast)            \
+        DEF(v_pointer)         \
+        DEF(v_reference)       \
+        DEF(v_assign)          \
 
-#undef DEF
+        DEFINE_INTRINSICS(DEF_INTRINSIC)
 
-        compile_visitor_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
+
+        voidc_compiler_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
     }
 
-    assert(compile_visitor_level_zero);
+    assert(voidc_compiler_level_zero);
 
-    return  compile_visitor_level_zero;
+    return  voidc_compiler_level_zero;
 }
+
+
+//---------------------------------------------------------------------
+static
+visitor_t target_compiler_level_zero;
+
+visitor_t
+make_target_compiler(void)
+{
+    if (!target_compiler_level_zero)
+    {
+        voidc_visitor_data_t vis;
+
+        DEF_METHOD(stmt_list)
+        DEF_METHOD(stmt)
+        DEF_METHOD(expr_call)
+        DEF_METHOD(expr_identifier)
+        DEF_METHOD(expr_integer)
+        DEF_METHOD(expr_string)
+        DEF_METHOD(expr_char)
+
+        DEFINE_INTRINSICS(DEF_INTRINSIC)
+
+        target_compiler_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
+    }
+
+    assert(target_compiler_level_zero);
+
+    return  target_compiler_level_zero;
+}
+
+
+#undef DEFINE_INTRINSICS
+#undef DEF_INTRINSIC
+#undef DEF_METHOD
 
 

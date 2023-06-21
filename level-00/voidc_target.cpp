@@ -1451,6 +1451,8 @@ static void voidc_adopt_result_default(void *, v_type_t *type, LLVMValueRef valu
 voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
   : voidc_template_ctx_t(global)
 {
+    compiler = make_voidc_compiler();
+
     adopt_result_fun = voidc_adopt_result_default;
 
     typenames = global.typenames;
@@ -1705,6 +1707,7 @@ target_global_ctx_t::~target_global_ctx_t()
 target_local_ctx_t::target_local_ctx_t(base_global_ctx_t &global)
   : target_template_ctx_t(global)
 {
+    compiler = make_target_compiler();
 }
 
 target_local_ctx_t::~target_local_ctx_t()
@@ -1737,6 +1740,17 @@ extern "C"
 {
 
 VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+
+//---------------------------------------------------------------------
+visitor_t *
+v_get_compiler(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return  &lctx.compiler;
+}
 
 
 //---------------------------------------------------------------------

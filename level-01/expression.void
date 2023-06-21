@@ -676,7 +676,7 @@
 {
     q = v_quark_from_string;
 
-    v_return_if(voidc_visitor_get_intrinsic(voidc_compiler, q("v.op_infix_assign"), 0));
+    v_return_if(voidc_visitor_get_intrinsic(v_get_compiler(), q("v.op_infix_assign"), 0));
 
     voidc_ast_add_operator_methods();
 }

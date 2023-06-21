@@ -447,7 +447,7 @@ voidc_enable_inlining_compiler: () -> void
     attr_alwaysinline := LLVMCreateEnumAttribute(llvm_ctx, ak_alwaysinline, 0);
 
 
-    vis = voidc_compiler;
+    vis = v_get_compiler();
 
     ctx = *v_malloc(inlining_ctx_t);
 

@@ -499,10 +499,6 @@ v_import_helper(const char *name, bool _export)
         lctx.export_typenames = export_typenames;
     }
 
-    auto saved_compiler = make_voidc_compiler();
-
-    std::swap(voidc_compiler, saved_compiler);
-
     if (use_binary)
     {
         infs = my_fopen(bin_filename);
@@ -575,7 +571,7 @@ v_import_helper(const char *name, bool _export)
 
             while(auto unit = parse_unit())
             {
-                voidc_compiler->visit(unit);
+                lctx.compiler->visit(unit);
 
                 unit.reset();
 
@@ -631,8 +627,6 @@ v_import_helper(const char *name, bool _export)
     target_lctx->decls.insert(*export_decls);
 
     if (_export  &&  target_lctx->export_decls) target_lctx->export_decls->insert(*export_decls);
-
-    std::swap(voidc_compiler, saved_compiler);
 }
 
 //--------------------------------------------------------------------
@@ -945,7 +939,7 @@ main(int argc, char *argv[])
 
             while(auto unit = parse_unit())
             {
-                voidc_compiler->visit(unit);
+                lctx.compiler->visit(unit);
 
                 unit.reset();
 

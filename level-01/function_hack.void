@@ -146,7 +146,9 @@
     //-
     //-     v_set_module(old_module);
     //-
-    //-     v_move(voidc_compiler, saved_compiler_g);
+    //-     compiler = v_get_compiler();
+    //-
+    //-     v_move(compiler, saved_compiler_g);
     //-
     //-     if (old_module) v_return();
     //-
@@ -219,9 +221,13 @@
     LLVMBuildCall2(builder, set_module_ft_, set_module_f, val0, 1, "");
 
 
-    voidc_compiler_v = v_obtain_global("voidc_compiler", 0);
+    get_comp_f   = v_obtain_function("v_get_compiler", lltyp);
+    get_comp_ft_ = v_load(lltyp);
 
-    v_store(voidc_compiler_v, val0);
+    compiler_v = LLVMBuildCall2(builder, get_comp_ft_, get_comp_f, val0, 0, "compiler_v");
+
+
+    v_store(compiler_v,       val0);
     v_store(saved_compiler_g, val1);
     v_store(sz1,              val2);
 
@@ -291,9 +297,11 @@
     //-
     //-     v_initialize(saved_compiler_g);
     //-
-    //-     v_copy(saved_compiler_g, voidc_compiler);
+    //-     compiler = v_get_compiler();
     //-
-    //-     voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, v_ast_unit_visitor_method_tag,
+    //-     v_copy(saved_compiler_g, compiler);
+    //-
+    //-     voidc_visitor_set_void_method(compiler, compiler, v_ast_unit_visitor_method_tag,
     //-                                   voidc_function_hack_visitor_method, 0);
     //-
     //-     v_return(fun_value);
@@ -398,8 +406,11 @@
     LLVMBuildCall2(builder, vis_init_ft_, vis_init_f, val0, 2, "");
 
 
+    compiler_v = LLVMBuildCall2(builder, get_comp_ft_, get_comp_f, val0, 0, "compiler_v");
+
+
 //  v_store(saved_compiler_g, val0);
-    v_store(voidc_compiler_v, val1);
+    v_store(compiler_v,       val1);
     v_store(sz1,              val2);
 
     vis_copy_f   = v_obtain_function("voidc_copy_visitor_impl", lltyp);
@@ -419,11 +430,11 @@
 
     null_void_ptr_v = LLVMConstNull(void_ptr_);
 
-    v_store(voidc_compiler_v, val0);
-//  v_store(voidc_compiler_v, val1);
-    v_store(quark_v,          val2);
-    v_store(void_method_f,    val3);
-    v_store(null_void_ptr_v,  val4);
+    v_store(compiler_v,      val0);
+//  v_store(compiler_v,      val1);
+    v_store(quark_v,         val2);
+    v_store(void_method_f,   val3);
+    v_store(null_void_ptr_v, val4);
 
     set_void_method_f   = v_obtain_function("voidc_visitor_set_void_method", lltyp);
     set_void_method_ft_ = v_load(lltyp);

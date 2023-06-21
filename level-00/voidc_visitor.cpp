@@ -32,16 +32,12 @@ voidc_visitor_data_t::static_initialize(void)
     visitor_type->set_body(&content_type, 1, false);
 
     vctx.initialize_type(q, visitor_type);
-
-
-    voidc_compiler = make_voidc_compiler();
 }
 
 //-----------------------------------------------------------------
 void
 voidc_visitor_data_t::static_terminate(void)
 {
-    voidc_compiler.reset();
 }
 
 
@@ -127,6 +123,21 @@ voidc_visitor_set_intrinsic(visitor_t *dst, const visitor_t *src, v_quark_t name
 
 //---------------------------------------------------------------------
 const std::any *
+voidc_visitor_get_property(const visitor_t *ptr, v_quark_t quark)
+{
+    return  (*ptr)->properties.find(quark);
+}
+
+void
+voidc_visitor_set_property(visitor_t *dst, const visitor_t *src, v_quark_t quark, const std::any *prop)
+{
+    auto visitor = (*src)->set_property(quark, *prop);
+
+    *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
+}
+
+//---------------------------------------------------------------------
+const std::any *
 voidc_visitor_get_type_property(const visitor_t *ptr, v_type_t *type, v_quark_t quark)
 {
     return  (*ptr)->type_properties.find({type, quark});
@@ -139,6 +150,7 @@ voidc_visitor_set_type_property(visitor_t *dst, const visitor_t *src, v_type_t *
 
     *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }
+
 
 //---------------------------------------------------------------------
 void

@@ -547,7 +547,7 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr,
 export
 voidc_enable_loops_etc_compiler: () -> void
 {
-    vis = voidc_compiler;
+    vis = v_get_compiler();
 
     copy_variable_q = v_quark_from_string("v.internal.copy_variable");
 

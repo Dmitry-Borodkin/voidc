@@ -468,16 +468,18 @@
     v_function_hack("voidc_enable_statement_block_compiler", ft);
 }
 {
-    v_return_if(voidc_visitor_get_void_method(voidc_compiler, quark, 0));
+    vis = v_get_compiler();
+
+    v_return_if(voidc_visitor_get_void_method(vis, quark, 0));
 
 
     v_store(quark, v_getelementptr(voidc_ast_stmt_block_vtable, 0, 2));
 
-    voidc_visitor_set_void_method(voidc_compiler, voidc_compiler, quark, compile_ast_stmt_block_t, 0);
+    voidc_visitor_set_void_method(vis, vis, quark, compile_ast_stmt_block_t, 0);
 
     break_q = v_quark_from_string("v_break");
 
-    voidc_visitor_set_intrinsic(voidc_compiler, voidc_compiler, break_q, voidc_intrinsic_break, 0);
+    voidc_visitor_set_intrinsic(vis, vis, break_q, voidc_intrinsic_break, 0);
 }
 
 
