@@ -1603,7 +1603,7 @@
     v_initialize(inner_visitor);
     defer v_terminate(inner_visitor);
 
-    v_copy(inner_visitor, visitor);
+    v_copy(inner_visitor, v_get_compiler());
 
 
     if (v_target_local_ctx_has_parent())
@@ -1691,6 +1691,8 @@
 
         voidc_compile_type_ctx_set_stack(ctx, ctx_stack);
 
+
+        v_copy(inner_visitor, v_get_compiler());
 
         vis = inner_visitor;
 

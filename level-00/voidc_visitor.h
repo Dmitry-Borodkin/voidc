@@ -101,7 +101,7 @@ public:
     {
         auto q = object->method_tag();
 
-//      printf("visit: %s\n", v_quark_to_string(q));
+//      printf("visit: %p, %s\n", this, v_quark_to_string(q));
 
         auto &[void_fun, aux] = void_methods.at(q);
 

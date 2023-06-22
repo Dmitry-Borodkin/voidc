@@ -466,35 +466,39 @@ voidc_enable_intrinsics_derive_compiler: () -> void
 
     v_return_if(voidc_visitor_get_void_method(vis, q_internal_spec_fun_derive, 0));
 
-
-    block
-    {
-        gctx = v_target_get_global_ctx();
+    {   gctx = v_target_get_global_ctx();
         vctx = v_target_get_voidc_global_ctx();
 
-        if (gctx == vctx) v_break();
+        if (gctx != vctx) v_target_set_global_ctx(vctx);
 
-        v_target_set_global_ctx(vctx);
+        if (!v_get_intrinsic("v_binop", 0))
+        {
+            v_import("level-01/arithmetic.void");
+        }
 
-        v_import("level-01/arithmetic.void");
+        if (gctx != vctx)
+        {
+            binop_aux: &*void := v_undef();
+            binop_fun = v_get_intrinsic("v_binop", &binop_aux);
 
-        binop_aux: &*void := v_undef();
-        binop_fun = v_get_intrinsic("v_binop", &binop_aux);
+            icmp_aux: &*void := v_undef();
+            icmp_fun = v_get_intrinsic("v_icmp", &icmp_aux);
 
-        icmp_aux: &*void := v_undef();
-        icmp_fun = v_get_intrinsic("v_icmp", &icmp_aux);
+            v_target_set_global_ctx(gctx);
 
-        v_target_set_global_ctx(gctx);
+            v_add_intrinsic("v_binop", binop_fun, binop_aux);
+            v_add_intrinsic("v_icmp",  icmp_fun,  icmp_aux);
+        }
 
-        v_add_intrinsic("v_binop", binop_fun, binop_aux);
-        v_add_intrinsic("v_icmp",  icmp_fun,  icmp_aux);
+        if (!v_find_constant("LLVMIntSGE", 0, 0))
+        {
+            _int = v_find_type("int");
 
-        _int = v_find_type("int");
+            int_ = v_type_get_llvm_type(_int);
 
-        int_ = v_type_get_llvm_type(_int);
-
-        v_add_constant("LLVMAdd",    _int, LLVMConstInt(int_, LLVMAdd,    0));
-        v_add_constant("LLVMIntSGE", _int, LLVMConstInt(int_, LLVMIntSGE, 0));
+            v_add_constant("LLVMAdd",    _int, LLVMConstInt(int_, LLVMAdd,    0));
+            v_add_constant("LLVMIntSGE", _int, LLVMConstInt(int_, LLVMIntSGE, 0));
+        }
     }
 
     q = v_quark_from_string("voidc.compute_key_quark_type");
