@@ -38,9 +38,6 @@ struct voidc_compute_key_quark_type_ctx_t
     aux: *void;
 };
 
-private
-compute_key_quark_type_ctx: &voidc_compute_key_quark_type_ctx_t := v_undef();
-
 
 //---------------------------------------------------------------------
 private
@@ -459,6 +456,9 @@ spec_fun_derive_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 //---------------------------------------------------------------------
 //- Enable intrinsics derive
 //---------------------------------------------------------------------
+private
+free: (*char) -> void;
+
 export
 voidc_enable_intrinsics_derive_compiler: () -> void
 {
@@ -503,11 +503,15 @@ voidc_enable_intrinsics_derive_compiler: () -> void
 
     q = v_quark_from_string("voidc.compute_key_quark_type");
 
-    compute_key_quark_type_ctx.fun := voidc_visitor_get_intrinsic(vis, q, &compute_key_quark_type_ctx.aux);
+    ctx = *v_malloc(voidc_compute_key_quark_type_ctx_t);
 
-    voidc_visitor_set_intrinsic(vis, vis, q, compute_key_quark_type, &compute_key_quark_type_ctx);
+    ctx.fun := voidc_visitor_get_intrinsic(vis, q, &ctx.aux);
+
+    voidc_visitor_set_intrinsic(vis, vis, q, compute_key_quark_type, &ctx);
 
     voidc_visitor_set_intrinsic(vis, vis, q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
+
+    v_add_local_cleaner(v_cast(free, *((*void) -> void)), &ctx);
 }
 
 //---------------------------------------------------------------------

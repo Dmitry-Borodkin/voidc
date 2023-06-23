@@ -1595,7 +1595,7 @@
 
     //- Declarations (i.e. "types of things") ---------------------
 
-    stmt_list = *v_alloca(v_ast_stmt_list_ptr);
+    stmt_list = *v_alloca(v_ast_stmt_list_ptr) := 0;
 
     decl_stmt_list = v_alloca(v_ast_stmt_list_t);
 
@@ -1606,8 +1606,24 @@
     v_copy(inner_visitor, v_get_compiler());
 
 
-    if (v_target_local_ctx_has_parent())
+    block
     {
+        //- We'll do "direct declaration" ?..
+
+        {   gctx = v_target_get_global_ctx();
+            vctx = v_target_get_voidc_global_ctx();
+
+            is_importing = *v_alloca(bool) := false;
+
+            if (gctx != vctx)   v_target_set_global_ctx(vctx);
+
+            is_importing := v_target_local_ctx_has_parent();
+
+            if (gctx != vctx)   v_target_set_global_ctx(gctx);
+
+            if (!is_importing)  v_break();
+        }
+
         //- We're importing - need to build a unit
 
         v_initialize(decl_stmt_list);
@@ -1617,12 +1633,6 @@
         voidc_visitor_set_intrinsic(inner_visitor, inner_visitor, voidc_decl_stmt_list_q, decl_stmt_list, 0);
 
         stmt_list := decl_stmt_list;
-    }
-    else
-    {
-        //- We'll do "direct declaration" ...
-
-        stmt_list := 0;
     }
 
     defer  if (stmt_list)  v_terminate(decl_stmt_list);

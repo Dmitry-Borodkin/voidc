@@ -63,8 +63,8 @@ parse_unit(void)
 
     pctx.get_line_column(pctx.get_buffer_size(), line, column);
 
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
+    auto &vctx = *voidc_global_ctx_t::voidc;        //- Sic!!!
+    auto &lctx = *vctx.local_ctx;
 
     std::string msg = "Parse error in " + lctx.filename + ":"
                       + std::to_string(line+1) + ":"

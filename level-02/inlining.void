@@ -60,9 +60,6 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
 qf_inlinehint:   intptr_t = 1 << 2;                     //- Sic!?!
 qf_alwaysinline: intptr_t = 1 << 3;                     //- Sic!?!
 
-private attr_inlinehint:   &LLVMAttributeRef := v_undef();
-private attr_alwaysinline: &LLVMAttributeRef := v_undef();
-
 
 //---------------------------------------------------------------------
 {
@@ -261,14 +258,24 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
     {
         f = LLVMGetNamedFunction(mod, fun_name);
 
+        llvm_ctx = LLVMGetModuleContext(mod);
+
         if (qualif & qf_inlinehint)
         {
-             LLVMAddAttributeAtIndex(f, LLVMAttributeFunctionIndex, attr_inlinehint);
+            ak_inlinehint = LLVMGetEnumAttributeKindForName("inlinehint", 10);
+
+            attr_inlinehint = LLVMCreateEnumAttribute(llvm_ctx, ak_inlinehint, 0);
+
+            LLVMAddAttributeAtIndex(f, LLVMAttributeFunctionIndex, attr_inlinehint);
         }
 
         if (qualif & qf_alwaysinline)
         {
-             LLVMAddAttributeAtIndex(f, LLVMAttributeFunctionIndex, attr_alwaysinline);
+            ak_alwaysinline = LLVMGetEnumAttributeKindForName("alwaysinline", 12);
+
+            attr_alwaysinline = LLVMCreateEnumAttribute(llvm_ctx, ak_alwaysinline, 0);
+
+            LLVMAddAttributeAtIndex(f, LLVMAttributeFunctionIndex, attr_alwaysinline);
         }
     }
 
@@ -438,18 +445,9 @@ voidc_enable_inlining_compiler: () -> void
     v_add_constant_q(enabled_q, void, 0);
 
 
-    llvm_ctx = v_target_get_llvm_ctx();
-
-    ak_inlinehint   = LLVMGetEnumAttributeKindForName("inlinehint", 10);
-    ak_alwaysinline = LLVMGetEnumAttributeKindForName("alwaysinline", 12);
-
-    attr_inlinehint   := LLVMCreateEnumAttribute(llvm_ctx, ak_inlinehint,   0);
-    attr_alwaysinline := LLVMCreateEnumAttribute(llvm_ctx, ak_alwaysinline, 0);
-
+    ctx = *v_malloc(inlining_ctx_t) := 0;
 
     vis = v_get_compiler();
-
-    ctx = *v_malloc(inlining_ctx_t);
 
     ctx.inlining_aux[0].fun := voidc_visitor_get_void_method(vis, unit_fun_defn_q, &ctx.inlining_aux[0].aux);
 
