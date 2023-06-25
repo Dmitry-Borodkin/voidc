@@ -2984,6 +2984,14 @@ v_target_destroy_local_ctx(base_local_ctx_t *lctx)
 }
 
 //---------------------------------------------------------------------
+base_local_ctx_t *
+v_target_get_local_ctx(void)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return  gctx.local_ctx;
+}
+
 bool
 v_target_local_ctx_has_parent(void)
 {

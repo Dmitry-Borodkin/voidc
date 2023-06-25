@@ -618,6 +618,9 @@
     ft = v_function_type(v_target_local_ctx_ptr, typ0, 2, false);
     v_export_symbol_type("v_target_create_local_ctx", ft);
 
+    ft = v_function_type(v_target_local_ctx_ptr, 0, 0, false);
+    v_export_symbol_type("v_target_get_local_ctx", ft);
+
     v_store(v_target_local_ctx_ptr, typ0);          //-
 
     ft = v_function_type(void, typ0, 1, false);

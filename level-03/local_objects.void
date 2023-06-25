@@ -1,0 +1,1230 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2023 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("local_objects.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("level-03/intrinsics_derive.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("local_objects_module"); }
+
+//---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("enabled_q", q_ref, q("voidc.internal.local_objects_enabled"));
+
+    v_add_symbol("q_initialize", q_ref, q("v_initialize"));
+    v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
+    v_add_symbol("q_copy",       q_ref, q("v_copy"));
+
+    v_add_symbol("q_getelementptr", q_ref, q("v_getelementptr"));
+
+    v_add_symbol("voidc_internal_return_value_q",        q_ref, q("voidc.internal_return_value"));
+    v_add_symbol("voidc_internal_branch_target_leave_q", q_ref, q("voidc.internal_branch_target_leave"));
+
+    v_add_symbol("voidc_obtain_special_result_value_q", q_ref, q("voidc.obtain_special_result_value"));
+}
+
+
+//=====================================================================
+private
+v_internal_fake_utility_intrinsic: (*voidc_visitor_t, aux: *void, *v_ast_base_t,
+                                    *v_type_t, LLVMValueRef) -> void
+{
+    q = v_quark_to_string((aux: v_quark_t));
+
+    printf: (*const char, ...) -> int;
+
+    printf("v_internal_fake_utility_intrinsic: %s\n", q);
+
+    exit: (int) -> void;
+
+    exit(-1);       //- Sic!
+}
+
+//---------------------------------------------------------------------
+v_internal_fake_utility_intrinsic_ctor: () -> void
+{
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    qnames: &(*const char)[] :=
+    {
+        "v_initialize",
+        "v_terminate",
+        "v_copy",
+        0
+    };
+
+    for (name: &**const char := &qnames[0]; *name; ++name)
+    {
+        v_std_string_set(sstr, "v.internal.fake_utility.");
+
+        v_std_string_append(sstr, *name);
+
+        q_fake = v_quark_from_string(v_std_string_get(sstr));
+        q_name = v_quark_from_string(*name);
+
+        v_add_intrinsic_q(q_fake, v_internal_fake_utility_intrinsic, (q_name: *void));
+    }
+}
+
+
+//---------------------------------------------------------------------
+v_type_is_special: (t: *v_type_t, q: v_quark_t) -> bool;
+
+//---------------------------------------------------------------------
+v_type_check_special: (t: *v_type_t, q: v_quark_t) -> void
+{
+    switch(v_type_get_kind(t))
+    {
+    case v_type_kind_array:
+    case v_type_kind_struct:
+        v_break();
+
+    default:
+        v_return();
+    }
+
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    v_std_string_set(sstr, v_quark_to_string(q));
+
+    v_std_string_append(sstr, ".checked");
+
+    q_checked = v_quark_from_string(v_std_string_get(sstr));
+
+    if (v_type_get_property(t, q_checked))  v_return();
+
+    block
+    {
+        if (v_type_is_array(t))
+        {
+            v_type_check_special(v_type_array_get_element_type(t), q);
+            v_break();
+        }
+
+        if (v_type_is_struct(t))
+        {
+            if (v_type_get_property(t, q))  v_break();
+
+            flag: &bool := false;
+
+            count = v_type_struct_get_element_count(t);
+            types = v_type_struct_get_element_types(t);
+
+            for (i: &int := 0; i < count; ++i)
+            {
+                flag |= v_type_is_special(types[i], q);
+
+                if (flag)   v_break();
+            }
+
+            if (flag)
+            {
+                v_std_string_set(sstr, "v.internal.fake_utility.");
+
+                v_std_string_append(sstr, v_quark_to_string(q));
+
+                q_fake = v_quark_from_string(v_std_string_get(sstr));
+
+                v_util_function_dict_set(t, q, q_fake);
+            }
+
+            v_break();
+        }
+
+        //- ?!? ...
+    }
+
+    any = v_alloca(v_std_any_t);
+    v_initialize(any);
+    defer v_terminate(any);
+
+    v_std_any_set_value(any, true);
+
+    v_type_set_property(t, q_checked, any);
+}
+
+
+//---------------------------------------------------------------------
+export
+v_type_is_special: (t: *v_type_t, q: v_quark_t) -> bool
+{
+    switch(v_type_get_kind(t))
+    {
+    case v_type_kind_array:
+        v_return(v_type_is_special(v_type_array_get_element_type(t), q));
+
+    case v_type_kind_struct:
+        v_break();
+
+    default:
+        v_return(false);        //- Sic!!!
+    }
+
+    v_type_check_special(t, q);
+
+    v_return(v_type_get_property(t, q) != 0);
+}
+
+
+//=====================================================================
+private
+v_type_function_obtain_llvm_type_hook: (*void, ft: *v_type_t) -> LLVMTypeRef
+{
+    par_count = v_type_function_get_param_count(ft);
+    par_types = v_type_function_get_param_types(ft);
+
+    n: &unsigned := par_count;
+
+    rt = v_type_function_get_return_type(ft);
+
+    rt_initializable = v_type_is_special(rt, q_initialize);
+
+    if (rt_initializable) ++n;
+
+    par = v_malloc(LLVMTypeRef, n);
+    defer v_free(par);
+
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    llvm_ptr = LLVMPointerTypeInContext(llvm_ctx, 0);
+
+    ppar: &*LLVMTypeRef := par;
+
+    if (rt_initializable)
+    {
+        par[0] := llvm_ptr;
+
+        ++ppar;
+    }
+
+    for(i: &unsigned := 0; i < par_count; ++i, ++ppar)
+    {
+        pt = par_types[i];
+
+        if (v_type_is_special(pt, q_initialize))  *ppar := llvm_ptr;
+        else                                      *ppar := v_type_get_llvm_type(pt);
+    }
+
+    ret: &LLVMTypeRef := v_undef();
+
+    if (rt_initializable)   ret := LLVMVoidTypeInContext(llvm_ctx);
+    else                    ret := v_type_get_llvm_type(rt);
+
+    var_arg = v_type_function_is_var_arg(ft);
+
+    v_return(LLVMFunctionType(ret, par, n, var_arg));
+}
+
+
+//=====================================================================
+private
+struct v_internal_prepare_function_parameters_ctx_t
+{
+    fun: *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) -> void);
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
+private
+v_internal_prepare_function_parameters: (aux: *void, fun: LLVMValueRef,
+                                         qualif: intptr_t,
+                                         fun_name: *const char,
+                                         fun_type: *v_type_t,
+                                         fun_args: *v_ast_generic_list_t
+                                        ) -> void
+{
+    tr = v_type_function_get_return_type(fun_type);
+
+    if (!v_type_is_special(tr, q_initialize))
+    {
+        ctx = *(aux: *v_internal_prepare_function_parameters_ctx_t);
+
+        ctx.fun(ctx.aux, fun, qualif, fun_name, fun_type, fun_args);
+
+        v_return();
+    }
+
+    vr = LLVMGetParam(fun, 0);
+
+    v_add_variable_q(voidc_internal_return_value_q, tr, vr);         //- Sic!
+
+    count = v_type_function_get_param_count(fun_type);
+    types = v_type_function_get_param_types(fun_type);
+
+    for (i: &int := 0; i < count; ++i)
+    {
+        item = (v_list_get_item(fun_args, i) : *v_ast_generic_list_t);
+
+        etmp = (v_list_get_item(item, 0) : *v_ast_expr_t);
+
+        if (!v_empty(etmp))
+        {
+            pname = v_ast_expr_identifier_get_name(etmp);
+
+            v_add_parameter_name(fun, i+1, pname, types[i]);
+        }
+    }
+}
+
+
+//=====================================================================
+//- ...
+//=====================================================================
+private
+make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
+                              t: *v_type_t, v0: LLVMValueRef, v1: LLVMValueRef
+                              ) -> void
+{
+    expr = v_alloca(v_ast_expr_t, 3);
+    v_initialize(expr, 3);
+    defer v_terminate(expr, 3);
+
+    expr_list = v_alloca(v_ast_expr_list_t, 2);
+    v_initialize(expr_list, 2);
+    defer v_terminate(expr_list, 2);
+
+    t_ptr = v_pointer_type(t, 0);
+
+    v_ast_make_expr_compiled(expr+0, t_ptr, v0);
+
+    is_copy = q == q_copy;
+
+    if (is_copy)  v_ast_make_expr_compiled(expr+1, t_ptr, v1);
+
+    length: &uint64_t := 1;
+
+    if (v_type_is_array(t))
+    {
+        v_ast_make_expr_integer(expr+2, 0);
+
+        v_make_list(expr_list+0, expr+0, 1);
+
+        v_list_append(expr_list+0, expr_list+0, expr+2, 1);
+
+        if (is_copy)  v_make_list(expr_list+1, expr+1, 2);
+
+        et: &v_type_ptr := t;
+
+        loop
+        {
+            length *= v_type_array_get_length(et);
+
+            v_list_append(expr_list+0, expr_list+0, expr+2, 1);
+
+            if (is_copy)  v_list_append(expr_list+1, expr_list+1, expr+2, 1);
+
+            et := v_type_array_get_element_type(et);
+
+            if (!v_type_is_array(et))   v_break();
+        }
+
+        //- assert(length != 0);            //- WTF ?..
+
+        v_ast_make_expr_identifier_q(expr+2, q_getelementptr);
+
+        v_ast_make_expr_call(expr+0, expr+2, expr_list+0);
+
+        if (is_copy)  v_ast_make_expr_call(expr+1, expr+2, expr_list+0);
+    }
+
+    if (is_copy)
+    {
+        v_ast_make_expr_integer(expr+2, (length: intptr_t));
+
+        v_ast_make_stmt_call(stmt, 0, q, expr+0, 3);
+    }
+    else
+    {
+        v_ast_make_expr_integer(expr+1, (length: intptr_t));
+
+        v_ast_make_stmt_call(stmt, 0, q, expr+0, 2);
+    }
+}
+
+//---------------------------------------------------------------------
+private
+struct v_internal_temporary_cleaner_ctx_t
+{
+    typ: *v_type_t;
+    val: LLVMValueRef;
+};
+
+private
+v_internal_temporary_cleaner: (void_ctx: *void) -> void
+{
+    ctx = *(void_ctx: *v_internal_temporary_cleaner_ctx_t);
+    defer v_free(&ctx);
+
+    if (!v_type_is_special(ctx.typ, q_terminate))   v_return();     //- ?..
+
+    stmt = v_alloca(v_ast_stmt_t);
+    v_initialize(stmt);
+    defer v_terminate(stmt);
+
+    make_special_intrinsic_call(stmt, q_terminate, ctx.typ, ctx.val, 0);
+
+    v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
+}
+
+
+//---------------------------------------------------------------------
+private
+obtain_special_result_value_temporary: (vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
+{
+    //- assert(v_type_is_special(t, q_initialize));
+
+    builder = v_target_get_builder();
+
+    v = v_make_temporary(t, 0);
+
+    stmt = v_alloca(v_ast_stmt_t);
+    v_initialize(stmt);
+    defer v_terminate(stmt);
+
+    make_special_intrinsic_call(stmt, q_initialize, t, v, 0);
+
+    v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
+
+    if (v_type_is_special(t, q_terminate))
+    {
+        ctx = *v_malloc(v_internal_temporary_cleaner_ctx_t) := {t, v};
+
+        v_add_temporary_cleaner(v_internal_temporary_cleaner, &ctx);
+    }
+
+    v_return(v);
+}
+
+//---------------------------------------------------------------------
+private
+obtain_special_result_value_variable: (vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
+{
+    //- assert(v_type_is_special(t, q_initialize));
+
+    builder = v_target_get_builder();
+
+    t_front = v_get_temporaries_front();
+
+    if (t_front)
+    {
+        v_save_builder_ip();
+
+        LLVMPositionBuilderBefore(builder, t_front);
+    }
+
+    v = LLVMBuildAlloca(builder, v_type_get_llvm_type(t), "");
+
+    stmt = v_alloca(v_ast_stmt_t);
+    v_initialize(stmt);
+    defer v_terminate(stmt);
+
+    make_special_intrinsic_call(stmt, q_initialize, t, v, 0);
+
+    v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
+
+    if (v_type_is_special(t, q_terminate))
+    {
+        make_special_intrinsic_call(stmt, q_terminate, t, v, 0);
+
+        v_ast_make_stmt_defer(stmt, stmt);
+
+        v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
+    }
+
+    if (t_front)  v_restore_builder_ip();
+
+    v_return(v);
+}
+
+
+//---------------------------------------------------------------------
+//- voidc_obtain_special_result_value ...
+//---------------------------------------------------------------------
+private
+voidc_obtain_special_result_value_helper: (vis: *voidc_visitor_t, *void, t: *v_type_t) -> LLVMValueRef
+{
+    //- assert(v_type_is_special(t, q_initialize));
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    switch((vtag: intptr_t))
+    {
+    case 0:         //- TEMPORARY_VTAG
+
+        v_return(obtain_special_result_value_temporary(vis, t));
+
+    case -1:        //- VARIABLE_VTAG
+
+        v_return(obtain_special_result_value_variable(vis, t));
+
+    default:
+
+        //- assert(INVIOLABLE_TAG != ttag != UNREFERENCE_TAG);
+
+        if (ttag != t)
+        {
+            v_set_result_type(t);
+
+            v_adopt_result(ttag, vtag);             //- ?...
+
+            v_return(v_get_result_value());
+        }
+
+        v_return(vtag);         //- ?..
+    }
+}
+
+//---------------------------------------------------------------------
+export
+voidc_obtain_special_result_value: (vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
+{
+    aux: &*void := v_undef();
+
+    void_fun = voidc_visitor_get_intrinsic(vis, voidc_obtain_special_result_value_q, &aux);
+
+    fun_t = (vis: *voidc_visitor_t, *void, t: *v_type_t) -> LLVMValueRef;
+
+    v_return((void_fun: *fun_t)(vis, aux, t));
+}
+
+
+//=====================================================================
+{   intptr_t_  = v_type_get_llvm_type(intptr_t);
+    value_ref_ = v_type_get_llvm_type(LLVMValueRef);
+
+    zero_v   = LLVMConstInt(intptr_t_,  0, 0);
+    minus1_v = LLVMConstInt(intptr_t_, -1, 0);
+    minus2_v = LLVMConstInt(intptr_t_, -2, 0);
+
+    TEMPORARY_VTAG_v = LLVMConstIntToPtr(zero_v,   value_ref_);
+    VARIABLE_VTAG_v  = LLVMConstIntToPtr(minus1_v, value_ref_);
+    GLOBAL_VTAG_v    = LLVMConstIntToPtr(minus2_v, value_ref_);
+
+    v_export_constant("TEMPORARY_VTAG", LLVMValueRef, TEMPORARY_VTAG_v);
+    v_export_constant("VARIABLE_VTAG",  LLVMValueRef, VARIABLE_VTAG_v);
+    v_export_constant("GLOBAL_VTAG",    LLVMValueRef, GLOBAL_VTAG_v);
+}
+
+//---------------------------------------------------------------------
+private
+struct v_internal_compile_stmt_hook_t
+{
+    fun: *((*voidc_visitor_t, *void, *v_ast_base_t) -> void);
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
+private
+v_internal_compile_stmt: (vis: *voidc_visitor_t, void_aux: *void, self: *v_ast_base_t) -> void
+{
+    expr = v_ast_stmt_get_expr((self: *v_ast_stmt_t));
+    if (v_empty(expr))  v_return();                             //- Sic!
+
+    name = v_ast_stmt_get_name((self: *v_ast_stmt_t));
+
+    if (name  &&  name[0])  v_set_result_value(VARIABLE_VTAG);      //- Sic!!!
+    else                    v_set_result_value(TEMPORARY_VTAG);     //- Sic!!!
+
+    aux = *(void_aux: *v_internal_compile_stmt_hook_t);
+
+    aux.fun(vis, aux.aux, self);
+}
+
+
+//---------------------------------------------------------------------
+//- voidc_llvm_build_call_helper ...
+//---------------------------------------------------------------------
+private
+v_internal_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t,
+                                              ft: v_type_ptr, fv: LLVMValueRef,
+                                              arg_ptrs: **v_ast_expr_t, arg_count: unsigned
+                                             ) -> void
+{
+    par_count = v_type_function_get_param_count(ft);
+    par_types = v_type_function_get_param_types(ft);
+
+    par_count: &unsigned := par_count;
+    arg_count: &unsigned := arg_count;
+
+    tr = v_type_function_get_return_type(ft);
+
+    tr_initializable = v_type_is_special(tr, q_initialize);
+
+    if (tr_initializable)
+    {
+        ++par_count;
+        ++arg_count;
+    }
+
+    values = v_malloc(LLVMValueRef, arg_count);
+    defer v_free(values);
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    vr: &LLVMValueRef := v_undef();
+
+    i: &unsigned := 0;
+
+    if (tr_initializable)
+    {
+        values[0] := vr := voidc_obtain_special_result_value(vis, tr);
+
+        i := 1;
+    }
+
+    for (; i < arg_count; ++i)
+    {
+        j: &unsigned := i;
+
+        if (tr_initializable)   --j;
+
+        if (i < par_count)  v_set_result_type(par_types[j]);
+        else                v_set_result_type(UNREFERENCE_TAG);
+
+        v_set_result_value(TEMPORARY_VTAG);
+
+        v_ast_accept_visitor((arg_ptrs[j]: v_ast_base_ptr), vis);
+
+        values[i] := v_get_result_value();
+    }
+
+    builder = v_target_get_builder();
+
+    ft_ = v_type_get_llvm_type(ft);
+
+    _vr = LLVMBuildCall2(builder, ft_, fv, values, arg_count, "");
+
+    if (!tr_initializable)  vr := _vr;
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(tr, vr);
+}
+
+
+//---------------------------------------------------------------------
+//- adopt_result ...
+//---------------------------------------------------------------------
+private
+struct v_internal_adopt_result_ctx_t
+{
+    fun: *((*void, *v_type_t, LLVMValueRef) -> void);
+    ctx: *void;
+};
+
+//---------------------------------------------------------------------
+private
+v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
+{
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    if (ttag == UNREFERENCE_TAG  &&  type == v_static_type_t)
+    {
+        ctx = *(void_ctx: *v_internal_adopt_result_ctx_t);
+
+        ctx.fun(ctx.ctx, type, value);
+
+        v_return();
+    }
+
+    value: &LLVMValueRef := value;
+
+    src_ref = v_type_is_reference(type);
+
+    builder = v_target_get_builder();
+
+    switch((ttag: intptr_t))
+    {
+    case -1:        //- Unreference...
+
+        if (src_ref)
+        {
+            et = v_type_refptr_get_element_type(type);
+
+            if (v_type_is_array(et))
+            {
+                //- Special case for C-like array-to-pointer "promotion"...
+
+                et = v_type_array_get_element_type(et);
+
+                as = v_type_refptr_get_address_space(type);
+
+                v_set_result_type(v_pointer_type(et, as));
+
+                value := v_convert_to_type(type, value, v_get_result_type());
+
+                v_break();
+            }
+
+            v_set_result_type(et);
+
+            if (!v_type_is_special(et, q_initialize))
+            {
+                value := LLVMBuildLoad2(builder, v_type_get_llvm_type(et), value, "tmp");
+            }
+
+            v_break();
+        }
+
+        if (v_type_is_array(type))
+        {
+            //- Special case for C-like array-to-pointer "promotion"...
+
+            et = v_type_array_get_element_type(type);
+
+            v_set_result_type(v_pointer_type(et, 0));           //- 0?
+
+            value := v_convert_to_type(type, value, v_get_result_type());
+
+            v_break();
+        }
+
+        //- Fallthrough!
+
+    case 0:         //- Get "as is"...
+
+        v_set_result_type(type);
+
+        v_break();
+
+    default:        //- Adopt...
+
+        if (ttag == type)
+        {
+            if (v_type_is_special(type, q_copy))            //- q_copy ?
+            block
+            {
+                if (vtag == TEMPORARY_VTAG) v_break();
+                if (vtag == VARIABLE_VTAG)  v_break();
+                if (vtag == GLOBAL_VTAG)    v_break();      //- ?..
+                if (vtag == value)          v_break();
+
+                stmt = v_alloca(v_ast_stmt_t);
+                v_initialize(stmt);
+                defer v_terminate(stmt);
+
+                make_special_intrinsic_call(stmt, q_copy, ttag, vtag, value);
+
+                v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
+
+                value := vtag;
+            }
+
+            v_break();
+        }
+
+        //- assert(ttag != type);
+
+        dst_ref = v_type_is_reference(ttag);
+
+        dst_typ: &*v_type_t := ttag;
+
+        if (dst_ref)  dst_typ := v_type_refptr_get_element_type(dst_typ);
+
+        src_typ: &*v_type_t := type;
+
+        if (src_ref)
+        {
+            src_typ := v_type_refptr_get_element_type(src_typ);
+
+            if (v_type_is_array(src_typ)  &&  v_type_is_pointer(dst_typ))
+            {
+                n0 = LLVMConstNull(v_type_get_llvm_type(v_int_type(32)));
+
+                val: &LLVMValueRef[2] := {n0, n0};
+
+                value := LLVMBuildInBoundsGEP2(builder, v_type_get_llvm_type(src_typ), value, val, 2, "");
+
+                et = v_type_array_get_element_type(src_typ);
+
+                as = v_type_refptr_get_address_space(type);
+
+                src_typ := v_pointer_type(et, as);
+            }
+            else if (!v_type_is_special(src_typ, q_initialize))
+            {
+                value := LLVMBuildLoad2(builder, v_type_get_llvm_type(src_typ), value, "tmp");
+            }
+        }
+
+        //- Now value has type src_typ!
+
+        //- assert(!v_type_is_reference(src_typ));
+        //- assert(!v_type_is_reference(dst_typ));
+
+        if (src_typ != dst_typ)
+        {
+            if (dst_typ == v_pointer_type(v_void_type(), 0)  &&  v_type_is_pointer(src_typ))
+            {
+                value := LLVMBuildPointerCast(builder, value, v_type_get_llvm_type(dst_typ), "");
+            }
+            else
+            {
+                value := v_convert_to_type(src_typ, value, dst_typ);        //- "generic" ...
+            }
+        }
+
+        //- Now value has type dst_typ!
+
+        if (dst_ref)
+        {
+            if (v_type_is_special(dst_typ, q_initialize))
+            {
+                stmt = v_alloca(v_ast_stmt_t);
+                v_initialize(stmt);
+                defer v_terminate(stmt);
+
+                v = v_make_temporary(dst_typ, 0);
+
+                make_special_intrinsic_call(stmt, q_initialize, dst_typ, v, 0);
+
+                vis = v_get_compiler();
+
+                v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
+
+                make_special_intrinsic_call(stmt, q_copy, dst_typ, v, value);           //- Sic!
+
+                v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
+
+                if (v_type_is_special(dst_typ, q_terminate))
+                {
+                    ctx = *v_malloc(v_internal_temporary_cleaner_ctx_t) := {dst_typ, v};
+
+                    v_add_temporary_cleaner(v_internal_temporary_cleaner, &ctx);
+                }
+
+                value := v;
+            }
+            else
+            {
+                value := v_make_temporary(dst_typ, value);        //- Sic!!!
+            }
+        }
+
+        //- ??!?!?!?!?!?!?!?
+
+    }
+
+    v_set_result_value(value);          //- ?..
+}
+
+
+//=====================================================================
+private
+struct v_internal_return_intrinsic_ctx_t
+{
+    fun: *((*voidc_visitor_t, *void, *v_ast_base_t) -> void);
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
+private
+v_internal_return_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    call = (self: *v_ast_expr_t);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
+
+    builder = v_target_get_builder();
+
+    args_count = v_list_get_size(arg_list);
+
+    if (args_count)
+    {
+        ret_type = v_get_variable_type_q(voidc_internal_return_value_q);
+
+        if (!v_type_is_special(ret_type, q_initialize))
+        {
+            ctx = *(aux: *v_internal_return_intrinsic_ctx_t);
+
+            ctx.fun(vis, ctx.aux, self);
+
+            v_return();
+        }
+
+        ret_value = v_get_variable_value_q(voidc_internal_return_value_q);
+
+        v_set_result_type(ret_type);
+        v_set_result_value(ret_value);
+
+        arg0 = v_list_get_item(arg_list, 0);
+
+        v_ast_accept_visitor((arg0: *v_ast_base_t), vis);
+
+        t = v_get_result_type();
+        v = v_get_result_value();
+
+        if (t != ret_type  ||  v != ret_value)          //- WTF?
+        {
+            v_set_result_type(ret_type);
+            v_set_result_value(ret_value);
+
+            v_adopt_result(t, v);
+        }
+    }
+
+    leave_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
+    leave_b  = LLVMValueAsBasicBlock(leave_bv);
+
+    LLVMBuildBr(builder, leave_b);
+}
+
+
+//=====================================================================
+private
+v_get_return_value_intrinsic: (*voidc_visitor_t, *void, *v_ast_base_t) -> void
+{
+    ret_type  = v_get_variable_type_q(voidc_internal_return_value_q);
+    ret_value = v_get_variable_value_q(voidc_internal_return_value_q);
+
+    v_set_result_type(v_reference_type(ret_type, 0));
+    v_set_result_value(ret_value);
+}
+
+//---------------------------------------------------------------------
+private
+v_get_object_pointer_intrinsic: (vis: *voidc_visitor_t, *void, self: *v_ast_base_t) -> void
+{
+    arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(TEMPORARY_VTAG);
+
+    v_ast_accept_visitor((v_list_get_item(arg_list, 0) : *v_ast_base_t), vis);
+
+    ret_type  = v_get_result_type();
+    ret_value = v_get_result_value();
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(v_pointer_type(ret_type, 0), ret_value);
+}
+
+
+//=====================================================================
+private
+my_internal_var_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(arg_list, 0);
+    arg1 = v_list_get_item(arg_list, 1);
+
+//  ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(TEMPORARY_VTAG);
+
+    v_ast_accept_visitor((arg0: *v_ast_base_t), vis);               //- Type
+
+    var_type = (v_get_result_value() : *v_type_t);
+
+    t = v_type_refptr_get_element_type(var_type);       //- Sic!
+    a = v_type_refptr_get_address_space(var_type);      //- Sic!
+
+    v_set_result_type(t);
+    v_set_result_value(vtag);
+
+    v_ast_accept_visitor((arg1: *v_ast_base_t), vis);               //- Value
+
+    t = v_get_result_type();
+    v = v_get_result_value();
+
+    v_set_result_type(v_reference_type(t, a));
+
+    if (v_type_is_special(t, q_initialize))
+    block
+    {
+        if (LLVMIsUndef(v)) v_break();
+
+        if (v == LLVMConstNull(v_type_get_llvm_type(t)))  v_break();
+
+        v_return();
+    }
+
+    builder = v_target_get_builder();
+
+    t_ = v_type_get_llvm_type(t);
+
+    var_value = LLVMBuildAlloca(builder, t_, "");
+
+    LLVMBuildStore(builder, v, var_value);
+
+    v_set_result_value(var_value);
+}
+
+//---------------------------------------------------------------------
+private
+my_internal_val_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(arg_list, 0);
+    arg1 = v_list_get_item(arg_list, 1);
+
+//  ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(TEMPORARY_VTAG);
+
+    v_ast_accept_visitor((arg1: *v_ast_base_t), vis);               //- Type
+
+    t = (v_get_result_value() : *v_type_t);
+
+    is_ref = v_type_is_reference(t);
+
+    if (is_ref)  v_set_result_type(INVIOLABLE_TAG);
+    else         v_set_result_type(t);
+
+    v_set_result_value(vtag);
+
+    v_ast_accept_visitor((arg0: *v_ast_base_t), vis);               //- Value
+
+    if (is_ref)
+    {
+        tr = v_get_result_type();
+
+        abort: () -> void;
+
+        if (!v_type_is_reference(tr))  abort();         //- !?!?!?!?!?!
+
+        vr = v_get_result_value();
+
+        v_set_result_type(t);
+
+        v_adopt_result(tr, vr);
+    }
+}
+
+
+//=====================================================================
+private
+struct v_internal_op_braces_intrinsic_ctx_t
+{
+    fun: *((*voidc_visitor_t, *void, *v_ast_base_t) -> void);
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
+private
+v_internal_op_braces_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+
+    N = v_list_get_size(args);
+
+
+    tr: &v_type_ptr := v_get_result_type();
+
+    is_reference = v_type_is_reference(tr);
+
+    addr_sp: &unsigned := v_undef();
+
+    if (is_reference)
+    {
+        addr_sp := v_type_refptr_get_address_space(tr);         //- Sic!
+        tr      := v_type_refptr_get_element_type(tr);          //- Sic!
+    }
+
+    block
+    {
+        if (!v_type_is_struct(tr))  v_break();
+
+        typs = v_type_struct_get_element_types(tr);
+
+        incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
+
+        if (typs[0] != incomplete_array_type_tag)  v_break();
+
+        tr := v_array_type(typs[1], N);
+    }
+
+    if (!v_type_is_special(tr, q_initialize))
+    {
+        if (is_reference)   tr := v_reference_type(tr, addr_sp);
+
+        v_set_result_type(tr);
+
+        ctx = *(aux: *v_internal_op_braces_intrinsic_ctx_t);
+
+        ctx.fun(vis, ctx.aux, self);
+
+        v_return();
+    }
+
+    vr = voidc_obtain_special_result_value(vis, tr);
+
+    builder = v_target_get_builder();
+
+    {   ets: &*v_type_ptr := 0;
+
+        et: &v_type_ptr := v_undef();
+
+        if (v_type_is_struct(tr)) ets := v_type_struct_get_element_types(tr);
+        if (v_type_is_array(tr))  et  := v_type_array_get_element_type(tr);
+
+        int_ = v_type_get_llvm_type(v_find_type("int"));
+
+        val: &LLVMValueRef[2] := { LLVMConstInt(int_, 0, 0) };
+
+        tr_ = v_type_get_llvm_type(tr);
+
+        for (i: &int := 0; i < N; ++i)
+        {
+            expr = v_list_get_item(args, i);
+
+            if (ets)  et := ets[i];
+
+            v_set_result_type(et);
+
+            val[1] := LLVMConstInt(int_, i, 0);
+
+            vr_i = LLVMBuildGEP2(builder, tr_, vr, val, 2, "");
+
+            v_set_result_value(vr_i);
+
+            v_ast_accept_visitor((expr: *v_ast_base_t), vis);
+        }
+    }
+
+    if (is_reference) v_set_result_type(v_reference_type(tr, addr_sp));
+    else              v_set_result_type(tr);
+
+    v_set_result_value(vr);
+}
+
+
+//=====================================================================
+private
+struct v_internal_local_objects_ctx_t
+{
+    fun_params:   v_internal_prepare_function_parameters_ctx_t;
+    stmt_hook:    v_internal_compile_stmt_hook_t;
+    adopt_result: v_internal_adopt_result_ctx_t;
+    return:       v_internal_return_intrinsic_ctx_t;
+    op_braces:    v_internal_op_braces_intrinsic_ctx_t;
+};
+
+//---------------------------------------------------------------------
+//- Enable local objects
+//---------------------------------------------------------------------
+export
+voidc_enable_local_objects_compiler: () -> void
+{
+    v_return_if(v_find_constant_q(enabled_q, 0, 0));
+
+    v_add_constant_q(enabled_q, void, 0);
+
+    vis = v_get_compiler();
+
+    v_type_set_obtain_llvm_type_fun(v_type_kind_function, v_type_function_obtain_llvm_type_hook, 0);
+
+    ctx = *v_malloc(v_internal_local_objects_ctx_t);
+
+    q = v_quark_from_string("v.prepare_function_parameters");
+
+    ctx.fun_params.fun := voidc_visitor_get_intrinsic(vis, q, &ctx.fun_params.aux);
+
+    voidc_visitor_set_intrinsic(vis, vis, q, v_internal_prepare_function_parameters, &ctx.fun_params);
+
+    q = voidc_obtain_special_result_value_q;
+
+    voidc_visitor_set_intrinsic(vis, vis, q, voidc_obtain_special_result_value_helper, 0);
+
+    q = v_quark_from_string("stmt");
+
+    ctx.stmt_hook.fun := voidc_visitor_get_void_method(vis, q, &ctx.stmt_hook.aux);
+
+    voidc_visitor_set_void_method(vis, vis, q, v_internal_compile_stmt, &ctx.stmt_hook);
+
+    q = v_quark_from_string("voidc.llvm_build_call_helper");
+
+    voidc_visitor_set_intrinsic(vis, vis, q, v_internal_llvm_build_call_helper_intrinsic, 0);
+
+    ctx.adopt_result.fun := v_get_adopt_result(&ctx.adopt_result.ctx);
+
+    v_set_adopt_result(v_internal_adopt_result, &ctx.adopt_result);
+
+    q = v_quark_from_string("v_return");
+
+    ctx.return.fun := v_get_intrinsic_q(q, &ctx.return.aux);
+
+    v_add_intrinsic_q(q, v_internal_return_intrinsic, &ctx.return);
+
+    v_add_intrinsic("v_get_return_value",   v_get_return_value_intrinsic,   0);
+    v_add_intrinsic("v_get_object_pointer", v_get_object_pointer_intrinsic, 0);
+
+    q = v_quark_from_string;
+
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.var_defn"), my_internal_var_defn_intrinsic, 0);
+    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.val_defn"), my_internal_val_defn_intrinsic, 0);
+
+    q = v_quark_from_string("v.op_braces");
+
+    ctx.op_braces.fun := voidc_visitor_get_intrinsic(vis, q, &ctx.op_braces.aux);
+
+    voidc_visitor_set_intrinsic(vis, vis, q, v_internal_op_braces_intrinsic, &ctx.op_braces);
+
+    //-----------------------------------------------------------------
+    free: (*void) -> void;
+
+    v_add_local_cleaner(free, &ctx);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable local objects
+//---------------------------------------------------------------------
+export
+voidc_enable_local_objects: () -> void
+{
+    voidc_enable_local_objects_compiler();
+
+    //- ...
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+{   v_internal_fake_utility_intrinsic_ctor();
+}
+
+

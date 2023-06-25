@@ -1,0 +1,185 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+}
+
+
+//=====================================================================
+//- test_t ...
+//=====================================================================
+test_t = struct { v_std_any_t; };
+
+{   f = v_type_is_special(test_t, v_quark_from_string("v_initialize"));
+
+    printf("f: %d\n", (f: int));
+}
+
+(v_initialize(_)): (*test_t, size_t) -> void = derive;
+(v_terminate(_)):  (*test_t, size_t) -> void = derive;
+
+(v_copy(_)): (*test_t, *const test_t, size_t) -> void = derive;
+
+{ v_debug_print_module(1); }
+{
+    u: &test_t[2][3][4] := {};
+
+    U = *v_malloc(test_t[7]) := 0;
+
+    v_free(&U);
+}
+
+
+//=====================================================================
+//- v_ast ...
+//=====================================================================
+{
+    v_import("local_obj_ast_test.void");
+}
+
+{   enable_local_obj_ast_test();
+}
+
+
+//---------------------------------------------------------------------
+//{ v_debug_print_module(1); }
+{
+    e = mk_expr_call(mk_expr_identifier("fun"), mk_expr_list());
+
+//    a = mk_expr_identifier("a");
+//    b = mk_expr_identifier("b");
+//    c = mk_expr_identifier("c");
+//
+//    l = mk_expr_list(a, b, c);
+
+    l = mk_expr_list
+    (
+        mk_expr_identifier("a"),
+        mk_expr_identifier("b"),
+        mk_expr_identifier("c")
+    );
+
+    f = mk_expr_call
+    (
+        mk_expr_identifier("foo"),
+        mk_expr_list
+        (
+            mk_expr_integer(42),
+            mk_expr_identifier("v"),
+            mk_expr_call
+            (
+                mk_expr_identifier("bar"),
+                mk_expr_list
+                (
+                    mk_expr_identifier("baz")
+                )
+            )
+        )
+    );
+}
+
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(1);
+//
+////  voidc_verify_jit_module_optimized(true);
+//}
+{
+    e: &v_ast_expr_t := mk_expr_identifier("foo");
+
+    printf("e: %p[%p, %p]\n", &e, (e[0][0]: *void), (e[0][1]: *void));
+
+    l: &v_ast_expr_list_t := mk_expr_list();
+
+    l += mk_expr_identifier("a");
+    l += mk_expr_identifier("b");
+    l += mk_expr_identifier("c");
+
+    e := mk_expr_call(e, l);
+
+
+    printf("e: %p[%p, %p]\n", &e, (e[0][0]: *void), (e[0][1]: *void));
+
+    f = *v_ast_expr_call_get_fun_expr(&e);
+
+    printf("f: %p[%p, %p]\n", &f, (f[0][0]: *void), (f[0][1]: *void));
+
+
+    s: v_ast_expr_t = mk_expr_string("qwerty");
+
+}
+
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(1); }
+{
+    e: &v_ast_expr_t[] :=
+    {
+        mk_expr_identifier("foo"),
+        mk_expr_integer(777),
+        mk_expr_char('Ы'),
+    };
+
+    f: &v_ast_expr_t := {};
+
+
+}
+
+
+//---------------------------------------------------------------------
+{   v_debug_print_module(2);
+
+    voidc_verify_jit_module_optimized(true);
+}
+
+(_[]): (l: v_ast_expr_list_t, i: size_t) -> v_ast_expr_t
+{
+    p = v_get_object_pointer(l);
+
+    v_return(*v_list_get_item(p, i));
+}
+
+(_[]): (l: &v_ast_expr_list_t, i: size_t) -> &v_ast_expr_t
+{
+    v_return(*v_list_get_item(&l, i));
+}
+
+
+//---------------------------------------------------------------------
+{   v_debug_print_module(2);
+
+    voidc_verify_jit_module_optimized(true);
+}
+
+{
+    e: &v_ast_expr_t[3] := {};
+
+    e[0] := mk_expr_identifier("foo");
+    e[1] := mk_expr_integer(777);
+    e[2] := mk_expr_char('Ы');
+
+    l: &v_ast_expr_list_t := {};
+
+    v_make_list(&l, e, 3);
+
+    v_ast_make_expr_call(&e[0], &e[0], &l);
+
+    ef = v_ast_expr_call_get_fun_expr(&e[0]);
+
+    name = v_ast_expr_identifier_get_name(ef);
+
+    printf("fun_name: %s\n", name);
+}
+
+
