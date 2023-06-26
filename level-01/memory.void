@@ -90,8 +90,8 @@
 
     builder = v_target_get_builder();
 
-//  v_set_result_type(INVIOLABLE_TAG);
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(INVIOLABLE_TAG);
+//  v_set_result_type(v_static_type_t);
     v_set_result_value(0);
 
     arg0 = v_list_get_item(arg_list, 0);
@@ -103,7 +103,7 @@
     type  = v_cast(v_get_result_value(), v_type_ptr);
     type_ = v_type_get_llvm_type(type);
 
-    ret = LLVMBuildArrayMalloc(builder, type_, number, "ret");
+    ret = LLVMBuildArrayMalloc(builder, type_, number, "");
 
     pt = v_pointer_type(type, 0);
 

@@ -128,6 +128,12 @@
 
 
     //-------------------------------------------------------------
+    v_store(v_std_any_ptr, typ0);
+
+    ft = v_function_type(v_ast_base_ptr, typ0, 1, false);
+    v_export_symbol_type("v_ast_std_any_get_base", ft);
+
+    //-------------------------------------------------------------
     v_store(v_ast_base_ptr, typ0);
     v_store(v_quark_t,      typ1);
     v_store(v_std_any_ptr,  typ2);

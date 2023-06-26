@@ -8,6 +8,50 @@
 #include "voidc_target.h"
 #include "voidc_visitor.h"
 
+#include <typeindex>
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+#define AST_DEFINE_INTERFACE_CLASSES(DEF) \
+    DEF(base) \
+    DEF(unit) \
+    DEF(stmt) \
+    DEF(stmt_list) \
+    DEF(expr) \
+    DEF(expr_list) \
+    DEF(generic_list)
+
+
+//---------------------------------------------------------------------
+template<class T, class F>
+static inline
+std::pair<const std::type_index, std::function<const ast_base_t *(const std::any *)>>
+to_any_visitor(F const &f)
+{
+    return
+    {
+        std::type_index(typeid(T)),
+        [g = f](const std::any *a)
+        {
+            return  g(std::any_cast<T>(a));
+        }
+    };
+}
+
+#define DEF(name) \
+to_any_visitor<ast_##name##_t>([](const ast_##name##_t *x) { return reinterpret_cast<const ast_base_t *>(x); }),
+
+static
+std::unordered_map<std::type_index, std::function<const ast_base_t *(const std::any *)>>
+any_visitor
+{
+AST_DEFINE_INTERFACE_CLASSES(DEF)
+};
+
+#undef DEF
+
 
 //---------------------------------------------------------------------
 //- ...
@@ -28,19 +72,27 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
     VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(ast_##name##_t, v_ast_std_any_get_pointer_##name##_impl) \
     VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(ast_##name##_t, v_ast_std_any_set_pointer_##name##_impl)
 
-    DEF(base)
-
-    DEF(unit)
-
-    DEF(stmt)
-    DEF(stmt_list)
-
-    DEF(expr)
-    DEF(expr_list)
-
-    DEF(generic_list)
+AST_DEFINE_INTERFACE_CLASSES(DEF)
 
 #undef DEF
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+const ast_base_t *
+v_ast_std_any_get_base(const std::any *a)
+{
+    if (const auto it = any_visitor.find(std::type_index(a->type()));
+        it != any_visitor.cend())
+    {
+        auto *ast = it->second(a);
+
+        if (ast && *ast)  return ast;
+    }
+
+    return nullptr;
+}
 
 
 //---------------------------------------------------------------------

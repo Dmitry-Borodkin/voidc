@@ -63,6 +63,13 @@
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_peg_parse", ft);
 
+    v_store(v_std_string_ptr, typ0);
+    v_store(size_t,           typ1);
+    v_store(size_t,           typ2);
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_peg_take_string", ft);
+
     size_t_ref = v_reference_type(size_t, 0);
 
     v_store(size_t,     typ0);

@@ -362,4 +362,12 @@ void v_ast_static_initialize(void);
 void v_ast_static_terminate(void);
 
 
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+extern "C"
+const ast_base_t *
+v_ast_std_any_get_base(const std::any *a);
+
+
 #endif  //- VOIDC_AST_H

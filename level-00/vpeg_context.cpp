@@ -293,6 +293,14 @@ void v_peg_set_grammar(const grammar_t *ptr)
     }
 }
 
+void v_peg_take_string(std::string *ret, size_t from, size_t to)
+{
+    if (context_data_t::current_ctx)
+    {
+        *ret = context_data_t::current_ctx->take_string(from, to);
+    }
+}
+
 void v_peg_get_line_column(size_t pos, size_t *line, size_t *column)
 {
     if (context_data_t::current_ctx)

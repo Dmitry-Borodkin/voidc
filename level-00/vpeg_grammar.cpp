@@ -5,6 +5,7 @@
 #include "vpeg_grammar.h"
 
 #include "vpeg_context.h"
+#include "voidc_ast.h"
 #include "voidc_types.h"
 #include "voidc_target.h"
 #include "voidc_util.h"
@@ -101,6 +102,20 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
             ctx.memo[key] = {res, est};
 
             ret = res;
+        }
+
+        if (auto *ast = v_ast_std_any_get_base(&ret))
+        {
+            static const v_quark_t pos_start_q = v_quark_from_string("pos_start");
+            static const v_quark_t pos_end_q   = v_quark_from_string("pos_end");
+
+            auto &props = (*ast)->properties;
+
+            if (props.find(pos_start_q) == props.end())
+            {
+                props[pos_start_q] = st.position;
+                props[pos_end_q]   = ctx.get_position();
+            }
         }
     }
 

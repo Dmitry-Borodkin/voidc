@@ -2992,6 +2992,14 @@ v_target_get_local_ctx(void)
     return  gctx.local_ctx;
 }
 
+base_local_ctx_t *
+v_target_get_voidc_local_ctx(void)
+{
+    auto &vctx = *voidc_global_ctx_t::voidc;
+
+    return  vctx.local_ctx;
+}
+
 bool
 v_target_local_ctx_has_parent(void)
 {
@@ -2999,6 +3007,13 @@ v_target_local_ctx_has_parent(void)
     auto &lctx = *gctx.local_ctx;
 
     return  lctx.has_parent();
+}
+
+//---------------------------------------------------------------------
+const char *
+v_target_local_ctx_get_filename(base_local_ctx_t *lctx)
+{
+    return  lctx->filename.c_str();
 }
 
 
