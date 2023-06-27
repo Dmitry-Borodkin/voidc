@@ -98,7 +98,7 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
     lctx.result_type  = UNREFERENCE_TAG;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[0]);
+    voidc_visitor_data_t::visit(*vis, args->data[0]);
 
     auto res_type  = lctx.result_type;
     auto res_value = lctx.result_value;
@@ -164,7 +164,7 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
         }
         else
         {
-            (*vis)->visit(args->data[i]);
+            voidc_visitor_data_t::visit(*vis, args->data[i]);
         }
 
         values[i] = lctx.result_value;
@@ -197,7 +197,7 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
 //  lctx.result_type  = voidc_global_ctx_t::voidc->static_type_type;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[0]);              //- Type
+    voidc_visitor_data_t::visit(*vis, args->data[0]);       //- Type
 
     assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
 
@@ -230,7 +230,7 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
     lctx.result_type  = UNREFERENCE_TAG;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[1]);
+    voidc_visitor_data_t::visit(*vis, args->data[1]);
 
     auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
@@ -258,7 +258,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 //  lctx.result_type  = voidc_global_ctx_t::voidc->static_type_type;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[0]);              //- Type
+    voidc_visitor_data_t::visit(*vis, args->data[0]);       //- Type
 
     assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
 
@@ -291,7 +291,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
     lctx.result_type  = UNREFERENCE_TAG;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[1]);
+    voidc_visitor_data_t::visit(*vis, args->data[1]);
 
     auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
 
@@ -319,7 +319,7 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
     lctx.result_type  = UNREFERENCE_TAG;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[1]);           //- Second argument
+    voidc_visitor_data_t::visit(*vis, args->data[1]);       //- Second argument
 
     auto type = lctx.result_type;
 
@@ -348,7 +348,7 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
     lctx.result_type  = UNREFERENCE_TAG;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[0]);           //- First argument
+    voidc_visitor_data_t::visit(*vis, args->data[0]);       //- First argument
 
     values[0] = lctx.result_value;
 
@@ -369,7 +369,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
     lctx.result_type  = UNREFERENCE_TAG;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[1]);           //- Second argument
+    voidc_visitor_data_t::visit(*vis, args->data[1]);       //- Second argument
 
     auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
 
@@ -398,7 +398,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
     lctx.result_type  = UNREFERENCE_TAG;
     lctx.result_value = 0;
 
-    (*vis)->visit(args->data[0]);           //- First argument
+    voidc_visitor_data_t::visit(*vis, args->data[0]);       //- First argument
 
     values[0] = lctx.result_value;
 

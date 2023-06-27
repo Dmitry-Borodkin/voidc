@@ -22,7 +22,7 @@ typedef std::shared_ptr<const voidc_visitor_data_t> visitor_t;
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-class voidc_visitor_data_t : public std::enable_shared_from_this<voidc_visitor_data_t>
+class voidc_visitor_data_t
 {
     struct typeprops_hash_t
     {
@@ -97,19 +97,18 @@ public:
     const type_properties_t  &type_properties = _type_properties;
 
 public:
-    void visit(const std::shared_ptr<const ast_base_data_t> &object) const
+    static
+    void visit(const visitor_t &vis, const ast_base_t &obj)
     {
-        auto q = object->method_tag();
+        auto q = obj->method_tag();
 
-//      printf("visit: %p, %s\n", this, v_quark_to_string(q));
+//      printf("visit: %p, %s\n", &vis, v_quark_to_string(q));
 
-        auto &[void_fun, aux] = void_methods.at(q);
-
-        auto self = shared_from_this();
+        auto &[void_fun, aux] = vis->void_methods.at(q);
 
         typedef void (*FunT)(const visitor_t *, void *, const ast_base_t *);
 
-        reinterpret_cast<FunT>(void_fun)(&self, aux, &object);
+        reinterpret_cast<FunT>(void_fun)(&vis, aux, &obj);
     }
 
 private:

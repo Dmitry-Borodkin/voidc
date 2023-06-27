@@ -363,9 +363,9 @@ v_quark_t v_ast_##name##_visitor_method_tag;
 
 //---------------------------------------------------------------------
 void
-v_ast_accept_visitor(const ast_base_t *object, const visitor_t *visitor)
+v_ast_accept_visitor(const ast_base_t *obj, const visitor_t *vis)
 {
-    (*visitor)->visit(*object);             //- Sic!!!
+    voidc_visitor_data_t::visit(*vis, *obj);                //- Sic!!!
 }
 
 

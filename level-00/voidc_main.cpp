@@ -571,7 +571,7 @@ v_import_helper(const char *name, bool _export)
 
             while(auto unit = parse_unit())
             {
-                lctx.compiler->visit(unit);
+                voidc_visitor_data_t::visit(lctx.compiler, unit);
 
                 unit.reset();
 
@@ -939,7 +939,7 @@ main(int argc, char *argv[])
 
             while(auto unit = parse_unit())
             {
-                lctx.compiler->visit(unit);
+                voidc_visitor_data_t::visit(lctx.compiler, unit);
 
                 unit.reset();
 
