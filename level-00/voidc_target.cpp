@@ -2084,9 +2084,22 @@ voidc_flush_unit_symbols(void)
 
 
 //---------------------------------------------------------------------
+static
+int skip_load = 0;
+
+void
+voidc_skip_object_file_load(int n) { skip_load += n; }
+
 void
 voidc_object_file_load_to_jit_internal_helper(const char *buf, size_t len, bool is_local)
 {
+    if (!is_local  &&  skip_load > 0)
+    {
+        --skip_load;
+
+        return;
+    }
+
     auto modbuf = LLVMCreateMemoryBufferWithMemoryRange(buf, len, "modbuf", 0);
 
     if (is_local) voidc_add_local_object_file_to_jit(modbuf);
