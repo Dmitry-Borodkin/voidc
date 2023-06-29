@@ -135,15 +135,17 @@ mk_ast_list_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) 
 
         if (is_generic) v_list_append(list, list, v_list_get_item(arg_list, 0));
 
-        e = mk_expr_call(mk_expr_identifier("v_make_list_nil"), list);      //- list ???
+        e = mk_expr_call(mk_expr_identifier("v_make_list_nil"), *list);
+
+        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_value(0);
+
+        v_ast_accept_visitor((v_get_object_pointer(e): *v_ast_base_t), vis);
 
         v_set_result_type(ttag);
         v_set_result_value(vtag);
 
-        v_ast_accept_visitor((v_get_object_pointer(e): *v_ast_base_t), vis);
-
-        v_set_result_type(tr);
-        v_set_result_value(vr);
+        v_adopt_result(tr, vr);
 
         v_return();
     }
@@ -240,10 +242,10 @@ mk_ast_list_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) 
 
         v_list_append(list, list, expr);
 
-        e = mk_expr_call(mk_expr_identifier("v_make_list"), list);      //- list ???
+        e = mk_expr_call(mk_expr_identifier("v_make_list"), *list);
 
-        v_set_result_type(ttag);
-        v_set_result_value(vtag);
+        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_value(0);
 
         v_ast_accept_visitor((v_get_object_pointer(e): *v_ast_base_t), vis);
     }
@@ -272,8 +274,10 @@ mk_ast_list_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) 
     LLVMBuildCall2(builder, lltyp, llvm_stackrestore_f, &blk, 1, "");
 
 
-    v_set_result_type(tr);
-    v_set_result_value(vr);
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(tr, vr);
 }
 
 

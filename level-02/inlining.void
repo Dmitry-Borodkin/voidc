@@ -119,7 +119,7 @@ inline_function_data_cleaner: (void_data: *void) -> void
 export
 voidc_internal_create_inline_function_data: (flags: intptr_t, fun_name: *const char,
                                              module: LLVMModuleRef,
-                                             buffer: *void, size: size_t
+                                             buffer: *const char, size: size_t
                                             ) -> void
 {
     data = *v_malloc(inline_function_data_t) := 0;
@@ -219,7 +219,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
 
     stmt_list: &*v_ast_stmt_list_t := v_undef();
 
-    stmt_list := voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
+    stmt_list := (voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0) : *v_ast_stmt_list_t);
 
     if (stmt_list)
     {
@@ -290,7 +290,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
 
 
     //-----------------------------------------------------------------
-    stmt_list := voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
+    stmt_list := (voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0) : *v_ast_stmt_list_t);
 
     if (!stmt_list)  v_return();
 
@@ -449,11 +449,15 @@ voidc_enable_inlining_compiler: () -> void
 
     vis = v_get_compiler();
 
-    ctx.inlining_aux[0].fun := voidc_visitor_get_void_method(vis, unit_fun_defn_q, &ctx.inlining_aux[0].aux);
+    void_fun = voidc_visitor_get_void_method(vis, unit_fun_defn_q, &ctx.inlining_aux[0].aux);
+
+    ctx.inlining_aux[0].fun := (void_fun: *voidc_visitor_method_t);
 
     voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[0]);
 
-    ctx.inlining_aux[1].fun := voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, &ctx.inlining_aux[1].aux);
+    void_fun = voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, &ctx.inlining_aux[1].aux);
+
+    ctx.inlining_aux[1].fun := (void_fun: *voidc_visitor_method_t);
 
     voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[1]);
 

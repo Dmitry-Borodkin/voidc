@@ -678,9 +678,11 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
 
                 as = v_type_refptr_get_address_space(type);
 
-                v_set_result_type(v_pointer_type(et, as));
+                res_type = v_pointer_type(et, as);
 
-                value := v_convert_to_type(type, value, v_get_result_type());
+                v_set_result_type(res_type);
+
+                value := v_convert_to_type(type, value, res_type);
 
                 v_break();
             }
@@ -701,9 +703,11 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
 
             et = v_type_array_get_element_type(type);
 
-            v_set_result_type(v_pointer_type(et, 0));           //- 0?
+            res_type = v_pointer_type(et, 0);           //- 0?
 
-            value := v_convert_to_type(type, value, v_get_result_type());
+            v_set_result_type(res_type);
+
+            value := v_convert_to_type(type, value, res_type);
 
             v_break();
         }
@@ -739,6 +743,8 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
                 value := vtag;
             }
 
+            //- ?!?!?!?!?!?
+
             v_break();
         }
 
@@ -758,19 +764,21 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
 
             if (v_type_is_array(src_typ)  &&  v_type_is_pointer(dst_typ))
             {
-                n0 = LLVMConstNull(v_type_get_llvm_type(v_int_type(32)));
-
-                val: &LLVMValueRef[2] := {n0, n0};
-
-                value := LLVMBuildInBoundsGEP2(builder, v_type_get_llvm_type(src_typ), value, val, 2, "");
+                //- Special case for C-like array-to-pointer "promotion"...
 
                 et = v_type_array_get_element_type(src_typ);
 
-                as = v_type_refptr_get_address_space(type);
+                as = v_type_refptr_get_address_space(dst_typ);
 
                 src_typ := v_pointer_type(et, as);
+
+                value := v_convert_to_type(type, value, src_typ);
             }
-            else if (!v_type_is_special(src_typ, q_initialize))
+            else if (v_type_is_special(src_typ, q_initialize))
+            {
+                //- Kinda, NOP! ...
+            }
+            else
             {
                 value := LLVMBuildLoad2(builder, v_type_get_llvm_type(src_typ), value, "tmp");
             }
@@ -1158,7 +1166,9 @@ voidc_enable_local_objects_compiler: () -> void
 
     q = v_quark_from_string("v.prepare_function_parameters");
 
-    ctx.fun_params.fun := voidc_visitor_get_intrinsic(vis, q, &ctx.fun_params.aux);
+    void_fun = voidc_visitor_get_intrinsic(vis, q, &ctx.fun_params.aux);
+
+    ctx.fun_params.fun := (void_fun : *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) -> void));
 
     voidc_visitor_set_intrinsic(vis, vis, q, v_internal_prepare_function_parameters, &ctx.fun_params);
 
@@ -1168,7 +1178,9 @@ voidc_enable_local_objects_compiler: () -> void
 
     q = v_quark_from_string("stmt");
 
-    ctx.stmt_hook.fun := voidc_visitor_get_void_method(vis, q, &ctx.stmt_hook.aux);
+    void_fun = voidc_visitor_get_void_method(vis, q, &ctx.stmt_hook.aux);
+
+    ctx.stmt_hook.fun := (void_fun: *voidc_visitor_method_t);
 
     voidc_visitor_set_void_method(vis, vis, q, v_internal_compile_stmt, &ctx.stmt_hook);
 
@@ -1182,7 +1194,7 @@ voidc_enable_local_objects_compiler: () -> void
 
     q = v_quark_from_string("v_return");
 
-    ctx.return.fun := v_get_intrinsic_q(q, &ctx.return.aux);
+    ctx.return.fun := (v_get_intrinsic_q(q, &ctx.return.aux) : *voidc_intrinsic_t);
 
     v_add_intrinsic_q(q, v_internal_return_intrinsic, &ctx.return);
 
@@ -1196,7 +1208,7 @@ voidc_enable_local_objects_compiler: () -> void
 
     q = v_quark_from_string("v.op_braces");
 
-    ctx.op_braces.fun := voidc_visitor_get_intrinsic(vis, q, &ctx.op_braces.aux);
+    ctx.op_braces.fun := (voidc_visitor_get_intrinsic(vis, q, &ctx.op_braces.aux) : *voidc_intrinsic_t);
 
     voidc_visitor_set_intrinsic(vis, vis, q, v_internal_op_braces_intrinsic, &ctx.op_braces);
 

@@ -633,17 +633,15 @@ base_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
             if (src_typ->kind() == v_type_t::k_array  &&
                 dst_typ->kind() == v_type_t::k_pointer)
             {
-                auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
-
-                LLVMValueRef val[2] = { n0, n0 };
-
-                value = LLVMBuildInBoundsGEP2(gctx.builder, src_typ->llvm_type(), value, val, 2, "");
+                //- Special case for C-like array-to-pointer "promotion"...
 
                 auto et = static_cast<v_type_array_t *>(src_typ)->element_type();
 
-                auto as = static_cast<v_type_reference_t *>(type)->address_space();
+                auto as = static_cast<v_type_pointer_t *>(dst_typ)->address_space();
 
                 src_typ = gctx.make_pointer_type(et, as);
+
+                value = lctx.convert_to_type(type, value, src_typ);
             }
             else
             {
@@ -868,7 +866,7 @@ v_convert_to_type_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_type_
         }
     }
 
-    if (!opcode)  return v0;    //- Sic!
+    if (!opcode)  throw std::runtime_error("Impossible to convert!");
 
     return  LLVMBuildCast(gctx.builder, opcode, v0, t1->llvm_type(), "");
 }
