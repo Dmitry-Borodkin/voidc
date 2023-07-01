@@ -837,13 +837,19 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
                 value := v_make_temporary(dst_typ, value);        //- Sic!!!
             }
         }
-        else if (vtag != value  &&  v_type_is_special(dst_typ, q_copy))         //- q_copy ?
+        else if (v_type_is_special(dst_typ, q_copy))              //- q_copy ?
+        block
         {
+            if (vtag == TEMPORARY_VTAG) v_break();      //- ?..
+            if (vtag == VARIABLE_VTAG)  v_break();      //- ?..
+            if (vtag == GLOBAL_VTAG)    v_break();      //- ?..
+            if (vtag == value)          v_break();
+
             stmt = v_alloca(v_ast_stmt_t);
             v_initialize(stmt);
             defer v_terminate(stmt);
 
-            make_special_intrinsic_call(stmt, q_copy, dst_typ, vtag, value);    //- vtag???
+            make_special_intrinsic_call(stmt, q_copy, dst_typ, vtag, value);
 
             v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
 
