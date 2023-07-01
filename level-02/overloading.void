@@ -1335,11 +1335,11 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     {
         //- Got overloading!
 
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
+
         if (fun = (void_fun: *intrinsic_p1_t))
         {
-            v_set_result_type(ttag);
-            v_set_result_value(vtag);
-
             fun(vis, void_aux, self, t0, v0);
         }
         else
@@ -1351,9 +1351,6 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             v_ast_make_expr_compiled(expr, t0, v0);
 
             arg_ptr: &v_ast_expr_ptr := expr;               //- Value, compiled
-
-            v_set_result_type(ttag);
-            v_set_result_value(vtag);
 
             voidc_llvm_build_call_helper(vis, self, ft, fv, &arg_ptr, 1);
         }
