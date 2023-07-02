@@ -70,7 +70,7 @@ struct v_trp_node_t         //- "trp" - kinda, "type representation"...
 
 //---------------------------------------------------------------------
 private
-compare_nodes: (lhs: *void, rhs: *void) -> int
+compare_nodes: (aux: *void, lhs: *void, rhs: *void) -> int
 {
     lhs = *(lhs: *v_trp_node_t);
     rhs = *(rhs: *v_trp_node_t);
@@ -84,22 +84,36 @@ compare_nodes: (lhs: *void, rhs: *void) -> int
     v_return(0);
 }
 
+private
+free_node: (aux: *void, node: *void) -> void
+{
+    free: (*void) -> void;
+
+    free(node);
+}
+
 
 //---------------------------------------------------------------------
 private
 struct v_trp_dict_t
 {
-    root: *void;
+    tree: *v_tree_t;
     size: size_t;
 };
 
 //---------------------------------------------------------------------
 private
+dict_init: (dict: &v_trp_dict_t) -> void
+{
+    dict.tree := v_tree_create(compare_nodes, 0, free_node, 0);
+
+    dict.size := 0;
+}
+
+private
 dict_term: (dict: &v_trp_dict_t) -> void
 {
-    free: (*void) -> void;
-
-    v_tdestroy(dict.root, free);
+    v_tree_destroy(dict.tree);
 }
 
 
@@ -107,7 +121,7 @@ dict_term: (dict: &v_trp_dict_t) -> void
 private
 dict_find: (dict: &v_trp_dict_t, key: *v_type_t) -> intptr_t
 {
-    r = v_tfind(&key, &dict.root, compare_nodes);
+    r = v_tree_find(dict.tree, &key);
 
     if (!r)  v_return(-1);
 
@@ -125,7 +139,7 @@ dict_insert: (dict: &v_trp_dict_t, key: *v_type_t) -> void
     node~>key := key;
     node~>idx := dict.size++;
 
-    v_tsearch(node, &dict.root, compare_nodes);
+    v_tree_insert(dict.tree, node);
 }
 
 
@@ -400,7 +414,8 @@ encode_base62: (ctx: &v_myz_ctx_t) -> bool
 export
 voidc_internal_std_string_append_type: (sstr: *v_std_string_t, t: *v_type_t) -> void
 {
-    dict: &v_trp_dict_t := 0;
+    dict: &v_trp_dict_t := v_undef();
+    dict_init(dict);
     defer dict_term(dict);
 
     append_type(sstr, dict, t);

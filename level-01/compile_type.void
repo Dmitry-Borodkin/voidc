@@ -45,38 +45,32 @@
     v_add_type("node_ptr", node_ptr);
 
     //-----------------------------------------------------------------
-    dict_t = v_pointer_type(void, 0);           //- Types dictionary
-
-    dict_ptr = v_pointer_type(dict_t, 0);
-
-    v_add_type("dict_t",   dict_t);
-    v_add_type("dict_ptr", dict_ptr);
+    v_add_type("dict_t",   v_tree_ptr);                         //- Sic !!!
+    v_add_type("dict_ptr", v_pointer_type(v_tree_ptr, 0));      //- Sic !!!
 }
 
+
 //---------------------------------------------------------------------
-//- tsearch etc...
+//- v_tree_t...
 //---------------------------------------------------------------------
-{   typ = v_alloca(v_type_ptr, 2);
+{   typ = v_alloca(v_type_ptr, 3);
 
     void_ptr = v_pointer_type(void, 0);
 
-    typ[0] := void_ptr;
-    typ[1] := void_ptr;
+    typ[0] := void_ptr;                         //- aux
+    typ[1] := void_ptr;                         //- lhs
+    typ[2] := void_ptr;                         //- rhs
 
-    compare_ft = v_function_type(int, typ, 2, false);
+    compare_ft = v_function_type(int, typ, 3, false);
 
-//  typ[0] := void_ptr;                         //- key
+//  typ[0] := void_ptr;                         //- aux
+//  typ[1] := void_ptr;                         //- key
 
-    free_ft = v_function_type(void, typ, 1, false);
+    free_ft = v_function_type(void, typ, 2, false);
 
     v_add_type("void_ptr",   void_ptr);
     v_add_type("compare_ft", compare_ft);
     v_add_type("free_ft",    free_ft);
-
-    v_add_alias("tsearch",  "v_tsearch");
-    v_add_alias("tfind",    "v_tfind");
-//  v_add_alias("tdelete",  "v_tdelete");
-    v_add_alias("tdestroy", "v_tdestroy");
 }
 
 
@@ -135,8 +129,9 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "lhs", void_ptr);
-    v_add_parameter_name(f, 1, "rhs", void_ptr);
+    v_add_parameter_name(f, 0, "aux", void_ptr);
+    v_add_parameter_name(f, 1, "lhs", void_ptr);
+    v_add_parameter_name(f, 2, "rhs", void_ptr);
 }
 {
     lhs = *v_cast(lhs, node_ptr);
@@ -156,7 +151,8 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "void_node", void_ptr);
+    v_add_parameter_name(f, 0, "aux",       void_ptr);
+    v_add_parameter_name(f, 1, "void_node", void_ptr);
 }
 {
     v_free(v_cast(void_node, node_ptr));
@@ -178,7 +174,7 @@
     v_add_parameter_name(f, 0, "dict", dict_ptr);
 }
 {
-    dict[0] := 0;       //- All zeros
+    dict[0] := v_tree_create(compare_nodes, 0, free_node, 0);
 }
 
 //---------------------------------------------------------------------
@@ -194,7 +190,7 @@
     v_add_parameter_name(f, 0, "dict", dict_ptr);
 }
 {
-    tdestroy(dict[0], free_node);
+    v_tree_destroy(dict[0]);
 }
 
 
@@ -215,7 +211,7 @@
     v_add_parameter_name(f, 1, "key",  v_type_ptr);
 }
 {
-    r = tfind(&key, dict, compare_nodes);
+    r = v_tree_find(dict[0], &key);
 
     if (!r) v_return(0);
     else    v_return(v_cast(r, *node_ptr)[0][0][1]);
@@ -247,7 +243,7 @@
     node[0] := key;
     node[1] := value;
 
-    tsearch(&node, dict, compare_nodes);
+    v_tree_insert(dict[0], &node);
 }
 
 

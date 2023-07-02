@@ -32,26 +32,26 @@ struct v_type_t
 
     enum kind_t
     {
-        k_void,         //- ...
+        k_void,         //-  0 - ...
 
-        k_f16,          //- "half"
-        k_f32,          //- "float"
-        k_f64,          //- "double"
-        k_f128,         //- "fp128"
+        k_f16,          //-  1 - "half"
+        k_f32,          //-  2 - "float"
+        k_f64,          //-  3 - "double"
+        k_f128,         //-  4 - "fp128"
 
-        k_int,          //- Signed integer
-        k_uint,         //- Unsigned integer
+        k_int,          //-  5 - Signed integer
+        k_uint,         //-  6 - Unsigned integer
 
-        k_function,     //- ...
-        k_pointer,      //- Typed(!) pointer ((void *) - ok!)
-        k_reference,    //- References...
-        k_struct,       //- (Un-)named structs ("tuples" in fact)
-        k_array,        //- ...
+        k_function,     //-  7 - ...
+        k_pointer,      //-  8 - Typed(!) pointer ((void *) - ok!)
+        k_reference,    //-  9 - References...
+        k_struct,       //- 10 - (Un-)named structs ("tuples" in fact)
+        k_array,        //- 11 - ...
 
-        k_vector,       //- Fixed vector
-        k_svector,      //- Scalable vector
+        k_vector,       //- 12 - Fixed vector
+        k_svector,      //- 13 - Scalable vector
 
-        k_count         //- Number of kinds...
+        k_count         //- 14 - Number of kinds...
     };
 
     virtual kind_t kind(void) const = 0;

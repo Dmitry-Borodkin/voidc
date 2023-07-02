@@ -632,36 +632,47 @@ VOIDC_DLLEXPORT_END
 
 
 //---------------------------------------------------------------------
-//- Own tsearch etc. "implementation"...
+//- v_tree_t ...
 //---------------------------------------------------------------------
 extern "C"
 {
-    typedef int (*compare_fun_t)(const void *, const void *);
+    typedef int  (*tree_compare_t)(void *aux, const void *lhs, const void *rhs);
+    typedef void (*tree_free_t)(void *aux, void *node);
 }
 
-struct tree_impl_t
+struct v_tree_t
 {
     struct compare_t
     {
-        explicit compare_t(compare_fun_t &p_fun)
-          : compare(p_fun)
+        explicit compare_t(tree_compare_t _fun, void *_aux)
+          : fun(_fun), aux(_aux)
         {}
 
-        compare_fun_t &compare;
+        tree_compare_t const fun;
+        void * const aux;
 
         bool operator()(const void *lhs, const void *rhs) const
         {
-            if (compare)  return  (compare(lhs, rhs) < 0);
-            else          return  (uintptr_t(lhs) < uintptr_t(rhs));
+            if (fun)  return  (fun(aux, lhs, rhs) < 0);
+            else      return  (uintptr_t(lhs) < uintptr_t(rhs));
         }
     };
 
-    compare_fun_t compare_fun = 0;
+    const compare_t compare;
 
-    typedef std::set<const void *, compare_t> tree_t;
+    tree_free_t const free_fun;
+    void *      const free_aux;
 
-    tree_t tree = tree_t(compare_t(compare_fun));
+    std::set<const void *, compare_t> tree;
+
+    explicit v_tree_t(tree_compare_t c_fun, void *c_aux, tree_free_t f_fun, void *f_aux)
+      : compare(c_fun, c_aux),
+        free_fun(f_fun),
+        free_aux(f_aux),
+        tree(compare)
+    {}
 };
+
 
 //---------------------------------------------------------------------
 extern "C"
@@ -669,63 +680,60 @@ extern "C"
 VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 //---------------------------------------------------------------------
-void *
-v_tsearch(const void *key, void **rootp, compare_fun_t compar)
+v_tree_t *
+v_tree_create(tree_compare_t c_fun, void *c_aux, tree_free_t f_fun, void *f_aux)
 {
-    if (!rootp) return nullptr;
-
-    if (!*rootp)  *rootp = new tree_impl_t;
-
-    auto root = reinterpret_cast<tree_impl_t *>(*rootp);
-
-    root->compare_fun = compar;     //- WTF ?!?!?
-
-    auto [it,ok] = root->tree.insert(key);
-
-    return  (void *)&*it;           //- Sic!(?)
+    return  new v_tree_t(c_fun, c_aux, f_fun, f_aux);
 }
 
-//---------------------------------------------------------------------
-void *
-v_tfind(const void *key, void **rootp, compare_fun_t compar)
-{
-    if (!rootp) return nullptr;
-
-    if (!*rootp)  return nullptr;
-
-    auto root = reinterpret_cast<tree_impl_t *>(*rootp);
-
-    root->compare_fun = compar;     //- WTF ?!?!?
-
-    auto it = root->tree.find(key);
-
-    if (it == root->tree.end()) return nullptr;
-
-    return  (void *)&*it;           //- Sic!(?)
-}
-
-
-//---------------------------------------------------------------------
 void
-v_tdestroy(void *root_, void (*free_node)(void *nodep))
+v_tree_destroy(v_tree_t *self)
 {
-    if (!root_) return;
-
-    auto root = reinterpret_cast<tree_impl_t *>(root_);
-
-    if (free_node)
+    if (self->free_fun)
     {
-        for (auto &it: root->tree)   free_node((void *)it);     //- ?
+        for (auto &it: self->tree)   self->free_fun(self->free_aux, (void *)it);
     }
 
-    delete root;
+    delete self;
 }
 
+//---------------------------------------------------------------------
+void *
+v_tree_insert(v_tree_t *self, const void *key)
+{
+    auto [it,ok] = self->tree.insert(key);
+
+    return  (void *)&*it;
+}
+
+bool
+v_tree_erase(v_tree_t *self, const void *key)
+{
+    if (auto it = self->tree.find(key); it != self->tree.end())
+    {
+        if (self->free_fun) self->free_fun(self->free_aux, (void *)&*it);
+
+        self->tree.erase(it);
+
+        return true;
+    }
+
+    return false;
+}
+
+void *
+v_tree_find(v_tree_t *self, const void *key)
+{
+    auto it = self->tree.find(key);
+
+    if (it == self->tree.end()) return nullptr;
+
+    return  (void *)&*it;
+}
 
 //---------------------------------------------------------------------
 
 VOIDC_DLLEXPORT_END
 }   //- extern "C"
-
 
 
