@@ -456,9 +456,6 @@ spec_fun_derive_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 //---------------------------------------------------------------------
 //- Enable intrinsics derive
 //---------------------------------------------------------------------
-private
-free: (*char) -> void;
-
 export
 voidc_enable_intrinsics_derive_compiler: () -> void
 {
@@ -511,7 +508,9 @@ voidc_enable_intrinsics_derive_compiler: () -> void
 
     voidc_visitor_set_intrinsic(vis, vis, q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
 
-    v_add_local_cleaner(v_cast(free, *((*void) -> void)), &ctx);
+    free: (*void) -> void;
+
+    v_add_local_cleaner(free, &ctx);
 }
 
 //---------------------------------------------------------------------
