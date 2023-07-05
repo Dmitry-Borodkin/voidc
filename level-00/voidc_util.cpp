@@ -618,6 +618,11 @@ DEF(uint32_t, uint32_t)
 DEF(int64_t,  int64_t)
 DEF(uint64_t, uint64_t)
 
+DEF(         _BitInt(128), int128_t)
+DEF(unsigned _BitInt(128), uint128_t)
+DEF(         _BitInt(256), int256_t)
+DEF(unsigned _BitInt(256), uint256_t)
+
 DEF_PTR(std::string, std_string)
 
 #undef DEF
