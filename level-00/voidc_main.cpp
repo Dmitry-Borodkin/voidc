@@ -420,6 +420,8 @@ private:
 //--------------------------------------------------------------------
 //- Intrinsics (functions)
 //--------------------------------------------------------------------
+static bool trace_imports = false;
+
 static void
 v_import_helper(const char *name, bool _export)
 {
@@ -550,6 +552,8 @@ v_import_helper(const char *name, bool _export)
     }
     else        //- !use_binary
     {
+        if (trace_imports)  printf("import: %s\n", src_filename_str.c_str());
+
         infs = my_fopen(src_filename);
 
         out_binary_t out_binary(bin_filename);
@@ -825,7 +829,7 @@ main(int argc, char *argv[])
     {
         char c;
 
-        if ((c = getopt(argc, argv, "-I:s:")) != -1)
+        if ((c = getopt(argc, argv, "-I:s:T")) != -1)
         {
             //- Option argument
 
@@ -838,6 +842,10 @@ main(int argc, char *argv[])
             case 's':
                 sources.push_back(optarg);
                 c = -1;
+                break;
+
+            case 'T':
+                trace_imports = true;
                 break;
 
             case 1:

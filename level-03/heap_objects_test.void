@@ -1,0 +1,231 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+}
+
+
+//=====================================================================
+M: &int := 100;
+
+//{   v_debug_print_module(2);
+//
+//    voidc_verify_jit_module_optimized(true);
+//}
+{
+    a = new int[M][17][6] { {}, { {}, {}, { 1, 2, 3, 4, 5, 6 } } };
+//  a = new int[][17][6]  { {}, { {}, {}, { 1, 2, 3, 4, 5, 6 } }, {}, {} };
+
+    printf("a: %p\n", a);
+
+    for (i: &int := 0; i < 6; ++i)
+    {
+        printf("a[1][2][%d]: %d\n", i, a[1][2][i]);
+    }
+
+    delete[] a;
+}
+
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(2);
+//
+//    voidc_verify_jit_module_optimized(true);
+//}
+{
+    printf("\n");
+
+    ss: &v_std_string_t[3] := {};
+
+    v_std_string_set(&ss[0], "a--------------------------------------------------------------------------------------");
+    v_std_string_set(&ss[1], "b--------------------------------------------------------------------------------------");
+    v_std_string_set(&ss[2], "c--------------------------------------------------------------------------------------");
+
+    a = new v_std_string_t[7][2] {{}, {}, {ss[2], ss[1]}};
+
+    printf("a[2][0]: %s\n", v_std_string_get(&a[2][0]));
+    printf("a[2][1]: %s\n", v_std_string_get(&a[2][1]));
+
+    b = new v_std_string_t { ss[0] };
+
+    printf("b: %s\n", v_std_string_get(b));
+
+    delete b;
+    delete[] a;
+}
+
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(2);
+//
+//    voidc_verify_jit_module_optimized(true);
+//}
+{
+    printf("\n");
+
+    str3 = new (v_std_string_t[3]);
+
+    v_std_string_set(&str3[0][1], "zzz");
+
+    printf("str3[0][1]: %s\n", v_std_string_get(&str3[0][1]));
+
+    delete str3;
+}
+
+
+//=====================================================================
+//{   v_debug_print_module(2);
+//
+//    voidc_verify_jit_module_optimized(true);
+//}
+
+//---------------------------------------------------------------------
+struct some_t
+{
+    x: int;
+};
+
+(v_initialize(_)): (data: *some_t, count: size_t) -> void
+{
+    printf("v_initialize(%p: *some_t, %zd)\n", data, count);
+}
+
+(v_terminate(_)): (data: *some_t, count: size_t) -> void
+{
+    printf("v_terminate(%p: *some_t, %zd)\n", data, count);
+}
+
+(v_copy(_)): (dst: *some_t, src: *const some_t, count: size_t) -> void
+{
+    printf("v_copy(%p: *some_t, %p, %zd)\n", dst, src, count);
+
+    for (i: &size_t := 0; i < count; ++i)    dst[i].x := src[i].x;
+}
+
+
+(new _): (fixed: size_t) -> *some_t
+{
+    ret = v_malloc(some_t, fixed);
+
+    printf("new (some_t[%zd]): %p\n", fixed, ret);
+
+    v_initialize(ret, fixed);
+
+    v_return(ret);
+}
+
+(delete _): (data: *some_t, fixed: size_t) -> void
+{
+    v_terminate(data, fixed);
+
+    printf("delete (some_t[%zd]): %p\n", fixed, data);
+
+    v_free(data);
+}
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(2);
+//
+//    voidc_verify_jit_module_optimized(true);
+//}
+{
+    printf("\n");
+
+    a = *new (some_t[7]) {{{1}, {2}, {3}}};
+
+    printf("a[0].x: %d\n", a[0].x);
+    printf("a[1].x: %d\n", a[1].x);
+    printf("a[2].x: %d\n", a[2].x);
+
+    delete &a;
+
+    b = *new some_t {{77}};
+
+    printf("b.x: %d\n", b.x);
+
+    delete &b;
+}
+
+
+//---------------------------------------------------------------------
+(new[] _): (fixed: size_t, dynamic: size_t) -> *some_t
+{
+    alloc_t = struct { num: size_t; data: some_t[0]; };
+
+    size = (&(0: *alloc_t)~>data[fixed*dynamic] : size_t);
+
+    aligned_alloc: (align: size_t, size: size_t) -> *void;
+
+    void_data = aligned_alloc(alloc_t.align, size);
+
+    data = (void_data : *alloc_t);
+
+    data~>num := dynamic;
+
+    ret = &data~>data[0];
+
+    printf("new[] (some_t[%zd])[%zd]: %p\n", fixed, dynamic, ret);
+
+    v_initialize(ret, fixed*dynamic);
+
+    v_return(ret);
+}
+
+(delete[] _): (data: *some_t, fixed: size_t) -> void
+{
+    alloc_t = struct { num: size_t; data: some_t[0]; };
+
+    shift = (&(0: *alloc_t)~>data[0] : size_t);
+
+    alloc_p = ((data: *char) - shift : *alloc_t);
+
+    dynamic = alloc_p~>num;
+
+    v_terminate(data, fixed*dynamic);
+
+    printf("delete[] (some_t[%zd])[%zd]: %p\n", fixed, dynamic, data);
+
+    v_free(alloc_p);
+}
+
+//---------------------------------------------------------------------
+//{   v_debug_print_module(2);
+//
+//    voidc_verify_jit_module_optimized(true);
+//}
+{
+    printf("\n");
+
+    a = new some_t[M][7] {{}, {{1}, {2}, {3}}};
+
+    printf("a[1][0].x: %d\n", a[1][0].x);
+    printf("a[1][1].x: %d\n", a[1][1].x);
+    printf("a[1][2].x: %d\n", a[1][2].x);
+
+    b: &some_t := a[1][2];
+
+    c: &some_t[7] := a[1];
+
+    delete[] a;
+
+    printf("b.x: %d\n", b.x);
+
+    printf("c[2].x: %d\n", c[2].x);
+}
+
+
+
+
