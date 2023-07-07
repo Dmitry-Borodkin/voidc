@@ -16,6 +16,8 @@
 
 #include <llvm-c/Core.h>
 
+#include <immer/flex_vector.hpp>
+
 
 //---------------------------------------------------------------------
 namespace utility
@@ -407,6 +409,22 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 
 
 //---------------------------------------------------------------------
+//- v_util_list_t ...
+//---------------------------------------------------------------------
+using util_list_data_t = immer::flex_vector<std::any>;
+
+using util_list_t = std::shared_ptr<const util_list_data_t>;
+
+
+//---------------------------------------------------------------------
+//- v_util_map_t ...
+//---------------------------------------------------------------------
+using util_map_data_t = immer::map<intptr_t, std::any>;
+
+using util_map_t = std::shared_ptr<const util_map_data_t>;
+
+
+//---------------------------------------------------------------------
 //- Static init/term ...
 //---------------------------------------------------------------------
 void static_initialize(void)
@@ -444,6 +462,15 @@ void static_initialize(void)
     DEF_U(list_get_size)
     DEF_U(list_get_item)
 
+    DEF_U(list_insert)
+    DEF_U(list_erase)
+
+    DEF_U(make_map)
+    DEF_U(map_get_size)
+    DEF_U(map_find)
+    DEF_U(map_insert)
+    DEF_U(map_erase)
+
     DEF_U(ast_make_generic)
     DEF_U(ast_generic_get_vtable)
     DEF_U(ast_generic_get_object)
@@ -463,6 +490,9 @@ void static_initialize(void)
 
     DEF(std::any, std_any)
     DEF(std::string, std_string)
+
+    DEF(util_list_t, util_list)
+    DEF(util_map_t, util_map)
 
 #undef DEF
 }
@@ -740,5 +770,141 @@ v_tree_find(v_tree_t *self, const void *key)
 
 VOIDC_DLLEXPORT_END
 }   //- extern "C"
+
+
+//---------------------------------------------------------------------
+using namespace utility;
+
+
+//---------------------------------------------------------------------
+//- v_util_list_t ...
+//---------------------------------------------------------------------
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+//---------------------------------------------------------------------
+void
+v_util_make_list_nil_util_list_impl(util_list_t *ret)
+{
+    (*ret) = std::make_shared<const util_list_data_t>();
+}
+
+void
+v_util_make_list_util_list_impl(util_list_t *ret, const std::any *items, size_t count)
+{
+    (*ret) = std::make_shared<const util_list_data_t>(items, items+count);
+}
+
+void
+v_util_list_append_util_list_impl(util_list_t *ret, const util_list_t *list, const std::any *items, size_t count)
+{
+    (*ret) = std::make_shared<const util_list_data_t>(**list + util_list_data_t(items, items+count));
+}
+
+size_t
+v_util_list_get_size_util_list_impl(const util_list_t *list)
+{
+    return (*list)->size();
+}
+
+const std::any *
+v_util_list_get_item_util_list_impl(const util_list_t *list, size_t idx)
+{
+    return &(**list)[idx];
+}
+
+//---------------------------------------------------------------------
+void
+v_util_list_insert_util_list_impl(util_list_t *ret, const util_list_t *list, size_t pos, const std::any *items, size_t count)
+{
+    auto v = util_list_data_t(items, items+count);
+
+    (*ret) = std::make_shared<const util_list_data_t>((*list)->insert(pos, v));
+}
+
+void
+v_util_list_erase_util_list_impl(util_list_t *ret, const util_list_t *list, size_t pos, size_t count)
+{
+    (*ret) = std::make_shared<const util_list_data_t>((*list)->erase(pos, pos+count));
+}
+
+//---------------------------------------------------------------------
+
+VOIDC_DLLEXPORT_END
+}   //- extern "C"
+
+
+//---------------------------------------------------------------------
+//- v_util_map_t ...
+//---------------------------------------------------------------------
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+//---------------------------------------------------------------------
+void
+v_util_make_map_util_map_impl(util_map_t *ret)
+{
+    (*ret) = std::make_shared<const util_map_data_t>();
+}
+
+size_t
+v_util_map_get_size_util_map_impl(const util_map_t *map)
+{
+    return (*map)->size();
+}
+
+const std::any *
+v_util_map_find_util_map_impl(const util_map_t *map, intptr_t key)
+{
+    return (*map)->find(key);
+}
+
+void
+v_util_map_insert_util_map_impl(util_map_t *ret, const util_map_t *map, intptr_t key, const std::any *val)
+{
+    (*ret) = std::make_shared<const util_map_data_t>((*map)->insert({key, val}));
+}
+
+void
+v_util_map_erase_util_map_impl(util_map_t *ret, const util_map_t *map, intptr_t key)
+{
+    (*ret) = std::make_shared<const util_map_data_t>((*map)->erase(key));
+}
+
+//---------------------------------------------------------------------
+
+VOIDC_DLLEXPORT_END
+}   //- extern "C"
+
+
+//---------------------------------------------------------------------
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+//---------------------------------------------------------------------
+#define DEF(name) \
+    VOIDC_DEFINE_INITIALIZE_IMPL(util_##name##_t, v_util_initialize_util_##name##_impl) \
+    VOIDC_DEFINE_TERMINATE_IMPL(util_##name##_t, v_util_terminate_util_##name##_impl) \
+    VOIDC_DEFINE_COPY_IMPL(util_##name##_t, v_util_copy_util_##name##_impl) \
+    VOIDC_DEFINE_MOVE_IMPL(util_##name##_t, v_util_move_util_##name##_impl) \
+    VOIDC_DEFINE_EMPTY_IMPL(util_##name##_t, v_util_empty_util_##name##_impl) \
+    VOIDC_DEFINE_STD_ANY_GET_POINTER_IMPL(util_##name##_t, v_util_std_any_get_pointer_util_##name##_impl) \
+    VOIDC_DEFINE_STD_ANY_SET_POINTER_IMPL(util_##name##_t, v_util_std_any_set_pointer_util_##name##_impl)
+
+DEF(list)
+DEF(map)
+
+#undef DEF
+
+//---------------------------------------------------------------------
+
+VOIDC_DLLEXPORT_END
+}   //- extern "C"
+
+
+
 
 
