@@ -864,7 +864,7 @@ v_util_map_find_util_map_impl(const util_map_t *map, intptr_t key)
 void
 v_util_map_insert_util_map_impl(util_map_t *ret, const util_map_t *map, intptr_t key, const std::any *val)
 {
-    (*ret) = std::make_shared<const util_map_data_t>((*map)->insert({key, val}));
+    (*ret) = std::make_shared<const util_map_data_t>((*map)->insert({key, *val}));
 }
 
 void
