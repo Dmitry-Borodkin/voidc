@@ -952,8 +952,8 @@ voidc_enable_heap_objects: () -> void
               / "new" !ident_cont _ t:expr                                  { mk_expr_new(t, 0) }
               ;
 
-        spec_ident =+ '('_ "new" _ '_' _')'             { mk_spec_ident_prefix(op_prefix_new) }
-                   /  '('_ "new" _'['_']'_ '_' _')'     { mk_spec_ident_prefix(op_prefix_new_array) }
+        spec_ident =+ '('_ "new" _'['_']'_ '_' _')'         { mk_spec_ident_prefix(op_prefix_new_array) }
+                   /  '('_ "new" !ident_cont _ '_' _')'     { mk_spec_ident_prefix(op_prefix_new) }
                    ;
     }
 

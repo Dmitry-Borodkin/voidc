@@ -32,45 +32,8 @@
 //---------------------------------------------------------------------
 //- Types dictionary...
 //---------------------------------------------------------------------
-{   typ = v_alloca(v_type_ptr, 2);
-
-    typ[0] := v_type_ptr;           //- Key
-    typ[1] := LLVMValueRef;         //- Value
-
-    node_t = v_struct_type(typ, 2, false);      //- Tree node
-
-    node_ptr = v_pointer_type(node_t, 0);
-
-    v_add_type("node_t",   node_t);
-    v_add_type("node_ptr", node_ptr);
-
-    //-----------------------------------------------------------------
-    v_add_type("dict_t",   v_tree_ptr);                         //- Sic !!!
-    v_add_type("dict_ptr", v_pointer_type(v_tree_ptr, 0));      //- Sic !!!
-}
-
-
-//---------------------------------------------------------------------
-//- v_tree_t...
-//---------------------------------------------------------------------
-{   typ = v_alloca(v_type_ptr, 3);
-
-    void_ptr = v_pointer_type(void, 0);
-
-    typ[0] := void_ptr;                         //- aux
-    typ[1] := void_ptr;                         //- lhs
-    typ[2] := void_ptr;                         //- rhs
-
-    compare_ft = v_function_type(int, typ, 3, false);
-
-//  typ[0] := void_ptr;                         //- aux
-//  typ[1] := void_ptr;                         //- key
-
-    free_ft = v_function_type(void, typ, 2, false);
-
-    v_add_type("void_ptr",   void_ptr);
-    v_add_type("compare_ft", compare_ft);
-    v_add_type("free_ft",    free_ft);
+{   v_add_type("dict_t",   v_util_map_t);               //- Sic !!!
+    v_add_type("dict_ptr", v_util_map_ptr);             //- Sic !!!
 }
 
 
@@ -123,77 +86,7 @@
 
 
 //---------------------------------------------------------------------
-//- Types dictionary utility
-//---------------------------------------------------------------------
-{   f = v_function_hack("compare_nodes", compare_ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "aux", void_ptr);
-    v_add_parameter_name(f, 1, "lhs", void_ptr);
-    v_add_parameter_name(f, 2, "rhs", void_ptr);
-}
-{
-    lhs = *v_cast(lhs, node_ptr);
-    rhs = *v_cast(rhs, node_ptr);
-
-    lhs = v_cast(lhs[0], size_t);
-    rhs = v_cast(rhs[0], size_t);
-
-    if (lhs < rhs)  v_return(-1);
-    if (lhs > rhs)  v_return(+1);
-
-    v_return(0);
-}
-
-//---------------------------------------------------------------------
-{   f = v_function_hack("free_node", free_ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "aux",       void_ptr);
-    v_add_parameter_name(f, 1, "void_node", void_ptr);
-}
-{
-    v_free(v_cast(void_node, node_ptr));
-}
-
-
-//---------------------------------------------------------------------
 //- Types dictionary API...
-//---------------------------------------------------------------------
-{   typ = *v_alloca(v_type_ptr) := dict_ptr;
-
-    ft = v_function_type(void, &typ, 1, false);
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("dict_initialize", ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "dict", dict_ptr);
-}
-{
-    dict[0] := v_tree_create(compare_nodes, 0, free_node, 0);
-}
-
-//---------------------------------------------------------------------
-{   typ = *v_alloca(v_type_ptr) := dict_ptr;
-
-    ft = v_function_type(void, &typ, 1, false);
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("dict_terminate", ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "dict", dict_ptr);
-}
-{
-    v_tree_destroy(dict[0]);
-}
-
-
 //---------------------------------------------------------------------
 {   typ = v_alloca(v_type_ptr, 2);
 
@@ -211,10 +104,13 @@
     v_add_parameter_name(f, 1, "key",  v_type_ptr);
 }
 {
-    r = v_tree_find(dict[0], &key);
+    a = v_map_find(dict, v_cast(key, intptr_t));
 
-    if (!r) v_return(0);
-    else    v_return(v_cast(r, *node_ptr)[0][0][1]);
+    if (!a) v_return(0);
+
+    v = v_std_any_get_value(intptr_t, a);
+
+    v_return(v_cast(v, LLVMValueRef));
 }
 
 //---------------------------------------------------------------------
@@ -236,14 +132,13 @@
     v_add_parameter_name(f, 2, "value", LLVMValueRef);
 }
 {
-    //- assert(!dict_find(key));
+    a = v_alloca(v_std_any_t);
+    v_initialize(a);
+    defer v_terminate(a);
 
-    node = *v_malloc(node_t);
+    v_std_any_set_value(a, v_cast(value, intptr_t));
 
-    node[0] := key;
-    node[1] := value;
-
-    v_tree_insert(dict[0], &node);
+    v_map_insert(dict, dict, v_cast(key, intptr_t), a);
 }
 
 
@@ -288,7 +183,9 @@
     ctx[stk_length] := 0;
     ctx[stk_stack]  := 0;
 
-    dict_initialize(&ctx[stk_dict]);
+    v_initialize(&ctx[stk_dict]);
+
+    v_make_map(&ctx[stk_dict]);             //- Sic!!!
 }
 
 //---------------------------------------------------------------------
@@ -303,7 +200,7 @@
     v_add_parameter_name(f, 0, "ctx", ctx_ref);
 }
 {
-    dict_terminate(&ctx[stk_dict]);
+    v_terminate(&ctx[stk_dict]);
 }
 
 

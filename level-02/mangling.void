@@ -62,58 +62,26 @@
 
 //---------------------------------------------------------------------
 private
-struct v_trp_node_t         //- "trp" - kinda, "type representation"...
-{
-    key: *v_type_t;
-    idx: size_t;
-};
-
-//---------------------------------------------------------------------
-private
-compare_nodes: (aux: *void, lhs: *void, rhs: *void) -> int
-{
-    lhs = *(lhs: *v_trp_node_t);
-    rhs = *(rhs: *v_trp_node_t);
-
-    lhs = (lhs.key: size_t);
-    rhs = (rhs.key: size_t);
-
-    if (lhs < rhs)  v_return(-1);
-    if (lhs > rhs)  v_return(+1);
-
-    v_return(0);
-}
-
-private
-free_node: (aux: *void, node: *void) -> void
-{
-    free: (*void) -> void;
-
-    free(node);
-}
-
-
-//---------------------------------------------------------------------
-private
 struct v_trp_dict_t
 {
-    tree: *v_tree_t;
-    size: size_t;
+    map:  v_util_map_t;
+    next: intptr_t;
 };
 
 //---------------------------------------------------------------------
 private
 dict_init: (dict: &v_trp_dict_t) -> void
 {
-    dict.tree := v_tree_create(compare_nodes, 0, free_node, 0);
+    v_initialize(&dict.map);
+    v_make_map(&dict.map);
 
-    dict.size := 0;
+    dict.next := 0;
 }
 
 private
 dict_term: (dict: &v_trp_dict_t) -> void
 {
-    v_tree_destroy(dict.tree);
+    v_terminate(&dict.map);
 }
 
 
@@ -121,25 +89,26 @@ dict_term: (dict: &v_trp_dict_t) -> void
 private
 dict_find: (dict: &v_trp_dict_t, key: *v_type_t) -> intptr_t
 {
-    r = v_tree_find(dict.tree, &key);
+    a = v_map_find(&dict.map, (key: intptr_t));
 
-    if (!r)  v_return(-1);
+    if (!a) v_return(0);
 
-    r = *(r: **v_trp_node_t);
+    v = v_std_any_get_value(intptr_t, a);
 
-    v_return((r~>idx : intptr_t));
+    v_return(v);
 }
 
 //---------------------------------------------------------------------
 private
 dict_insert: (dict: &v_trp_dict_t, key: *v_type_t) -> void
 {
-    node = v_malloc(v_trp_node_t);
+    a = v_alloca(v_std_any_t);
+    v_initialize(a);
+    defer v_terminate(a);
 
-    node~>key := key;
-    node~>idx := dict.size++;
+    v_std_any_set_value(a, dict.next++);
 
-    v_tree_insert(dict.tree, node);
+    v_map_insert(&dict.map, &dict.map, (key: intptr_t), a);
 }
 
 

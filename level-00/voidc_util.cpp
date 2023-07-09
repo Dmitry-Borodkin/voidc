@@ -667,112 +667,6 @@ VOIDC_DLLEXPORT_END
 
 
 //---------------------------------------------------------------------
-//- v_tree_t ...
-//---------------------------------------------------------------------
-extern "C"
-{
-    typedef int  (*tree_compare_t)(void *aux, const void *lhs, const void *rhs);
-    typedef void (*tree_free_t)(void *aux, void *node);
-}
-
-struct v_tree_t
-{
-    struct compare_t
-    {
-        explicit compare_t(tree_compare_t _fun, void *_aux)
-          : fun(_fun), aux(_aux)
-        {}
-
-        tree_compare_t const fun;
-        void * const aux;
-
-        bool operator()(const void *lhs, const void *rhs) const
-        {
-            if (fun)  return  (fun(aux, lhs, rhs) < 0);
-            else      return  (uintptr_t(lhs) < uintptr_t(rhs));
-        }
-    };
-
-    const compare_t compare;
-
-    tree_free_t const free_fun;
-    void *      const free_aux;
-
-    std::set<const void *, compare_t> tree;
-
-    explicit v_tree_t(tree_compare_t c_fun, void *c_aux, tree_free_t f_fun, void *f_aux)
-      : compare(c_fun, c_aux),
-        free_fun(f_fun),
-        free_aux(f_aux),
-        tree(compare)
-    {}
-};
-
-
-//---------------------------------------------------------------------
-extern "C"
-{
-VOIDC_DLLEXPORT_BEGIN_FUNCTION
-
-//---------------------------------------------------------------------
-v_tree_t *
-v_tree_create(tree_compare_t c_fun, void *c_aux, tree_free_t f_fun, void *f_aux)
-{
-    return  new v_tree_t(c_fun, c_aux, f_fun, f_aux);
-}
-
-void
-v_tree_destroy(v_tree_t *self)
-{
-    if (self->free_fun)
-    {
-        for (auto &it: self->tree)   self->free_fun(self->free_aux, (void *)it);
-    }
-
-    delete self;
-}
-
-//---------------------------------------------------------------------
-void *
-v_tree_insert(v_tree_t *self, const void *key)
-{
-    auto [it,ok] = self->tree.insert(key);
-
-    return  (void *)&*it;
-}
-
-bool
-v_tree_erase(v_tree_t *self, const void *key)
-{
-    if (auto it = self->tree.find(key); it != self->tree.end())
-    {
-        if (self->free_fun) self->free_fun(self->free_aux, (void *)&*it);
-
-        self->tree.erase(it);
-
-        return true;
-    }
-
-    return false;
-}
-
-void *
-v_tree_find(v_tree_t *self, const void *key)
-{
-    auto it = self->tree.find(key);
-
-    if (it == self->tree.end()) return nullptr;
-
-    return  (void *)&*it;
-}
-
-//---------------------------------------------------------------------
-
-VOIDC_DLLEXPORT_END
-}   //- extern "C"
-
-
-//---------------------------------------------------------------------
 using namespace utility;
 
 
@@ -903,8 +797,5 @@ DEF(map)
 
 VOIDC_DLLEXPORT_END
 }   //- extern "C"
-
-
-
 
 

@@ -3440,65 +3440,6 @@
 
 
 //---------------------------------------------------------------------
-//- v_tree_t ...
-//---------------------------------------------------------------------
-{
-    v_tree_t = v_struct_type_named("v_tree_t");
-
-    v_tree_ptr = v_pointer_type(v_tree_t, 0);
-
-    v_export_type("v_tree_t",   v_tree_t);
-    v_export_type("v_tree_ptr", v_tree_ptr);
-
-    typ0 = v_alloca(v_type_ptr, 4);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-    typ3 = v_getelementptr(typ0, 3);
-
-    void_ptr = v_pointer_type(void, 0);
-
-    v_store(void_ptr, typ0);        //- aux
-    v_store(void_ptr, typ1);        //- lhs
-    v_store(void_ptr, typ2);        //- rhs
-
-    compare_ft  = v_function_type(int, typ0, 3, false);
-    compare_ptr = v_pointer_type(compare_ft, 0);
-
-//  v_store(void_ptr, typ0);        //- aux
-//  v_store(void_ptr, typ1);        //- node
-
-    free_ft  = v_function_type(void, typ0, 2, false);
-    free_ptr = v_pointer_type(free_ft, 0);
-
-    v_store(compare_ptr, typ0);         //- compare fun
-    v_store(void_ptr,    typ1);         //- compare fun aux
-    v_store(free_ptr,    typ2);         //- free node fun
-    v_store(void_ptr,    typ3);         //- free node fun aux
-
-    ft = v_function_type(v_tree_ptr, typ0, 4, false);
-    v_export_symbol("v_tree_create", ft, 0);
-
-    v_store(v_tree_ptr,  typ0);         //- tree
-
-    ft = v_function_type(void, typ0, 1, false);
-    v_export_symbol("v_tree_destroy", ft, 0);
-
-//  v_store(v_tree_ptr,  typ0);         //- tree
-    v_store(void_ptr,    typ1);         //- key
-
-    ft = v_function_type(void_ptr, typ0, 2, false);
-    v_export_symbol("v_tree_insert", ft, 0);
-    v_export_symbol("v_tree_find", ft, 0);
-
-//  v_store(v_tree_ptr,  typ0);         //- tree
-//  v_store(void_ptr,    typ1);         //- key
-
-    ft = v_function_type(bool, typ0, 2, false);
-    v_export_symbol("v_tree_erase", ft, 0);
-}
-
-
-//---------------------------------------------------------------------
 //- v_util_list_t, v_util_map_t ...
 //---------------------------------------------------------------------
 {
