@@ -366,8 +366,14 @@ void v_ast_static_terminate(void);
 //- ...
 //---------------------------------------------------------------------
 extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
 const ast_base_t *
 v_ast_std_any_get_base(const std::any *a);
+
+VOIDC_DLLEXPORT_END
+}
 
 
 #endif  //- VOIDC_AST_H

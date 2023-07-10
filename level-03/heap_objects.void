@@ -446,28 +446,57 @@ op_prefix_new_intrinsic: (vis: *voidc_visitor_t, aux: *void,
             size_v := LLVMBuildAnd(builder, size_v, align_neg, "");
         }
 
-        if (!v_find_symbol_type("aligned_alloc"))       //- ?
+
+
+//        if (!v_find_symbol_type("aligned_alloc"))       //- ?
+//        {
+//            typ: &(*v_type_t)[2] := { _size_t, _size_t };
+//
+//            v_export_symbol("aligned_alloc", v_function_type(_void_ptr, typ, 2, false), 0);
+//        }
+//
+//        expr: &v_ast_expr_t := {};
+//
+//        v_ast_make_expr_compiled(&expr, _size_t, align_v);
+//
+//        list: &v_ast_expr_list_t := {};
+//
+//        v_make_list(&list, &expr, 1);
+//
+//        v_ast_make_expr_compiled(&expr, _size_t, size_v);
+//
+//        v_list_append(&list, &list, &expr);
+//
+//        v_ast_make_expr_identifier(&expr, "aligned_alloc");
+//
+//        v_ast_make_expr_call(&expr, &expr, &list);
+
+
+
+        if (!v_find_symbol_type("_aligned_malloc"))       //- ?
         {
             typ: &(*v_type_t)[2] := { _size_t, _size_t };
 
-            v_export_symbol("aligned_alloc", v_function_type(_void_ptr, typ, 2, false), 0);
+            v_export_symbol("_aligned_malloc", v_function_type(_void_ptr, typ, 2, false), 0);
         }
 
         expr: &v_ast_expr_t := {};
 
-        v_ast_make_expr_compiled(&expr, _size_t, align_v);
+        v_ast_make_expr_compiled(&expr, _size_t, size_v);
 
         list: &v_ast_expr_list_t := {};
 
         v_make_list(&list, &expr, 1);
 
-        v_ast_make_expr_compiled(&expr, _size_t, size_v);
+        v_ast_make_expr_compiled(&expr, _size_t, align_v);
 
         v_list_append(&list, &list, &expr);
 
-        v_ast_make_expr_identifier(&expr, "aligned_alloc");
+        v_ast_make_expr_identifier(&expr, "_aligned_malloc");
 
         v_ast_make_expr_call(&expr, &expr, &list);
+
+
 
         v_set_result_type(UNREFERENCE_TAG);
         v_set_result_value(0);
@@ -630,20 +659,41 @@ op_prefix_delete_intrinsic: (vis: *voidc_visitor_t, aux: *void,
         v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
     }
 
-    if (!v_find_symbol_type("free"))        //- ?
+
+
+//    if (!v_find_symbol_type("free"))        //- ?
+//    {
+//        _void = v_find_type("void");
+//
+//        typ: &*v_type_t := v_pointer_type(_void, 0);
+//
+//        v_export_symbol("free", v_function_type(_void, &typ, 1, false), 0);
+//    }
+//
+//    expr: &v_ast_expr_t := {};
+//
+//    v_ast_make_expr_compiled(&expr, t, v);
+//
+//    v_ast_make_stmt_call(&stmt, 0, free_q, &expr, 1);
+
+
+
+    if (!v_find_symbol_type("_aligned_free"))        //- ?
     {
         _void = v_find_type("void");
 
         typ: &*v_type_t := v_pointer_type(_void, 0);
 
-        v_export_symbol("free", v_function_type(_void, &typ, 1, false), 0);
+        v_export_symbol("_aligned_free", v_function_type(_void, &typ, 1, false), 0);
     }
 
     expr: &v_ast_expr_t := {};
 
     v_ast_make_expr_compiled(&expr, t, v);
 
-    v_ast_make_stmt_call(&stmt, 0, free_q, &expr, 1);
+    v_ast_make_stmt_call(&stmt, 0, v_quark_from_string("_aligned_free"), &expr, 1);
+
+
 
     v_set_result_type(INVIOLABLE_TAG);          //- ?..
     v_set_result_value(0);                      //- ?..
@@ -788,18 +838,39 @@ op_prefix_delete_array_intrinsic: (vis: *voidc_visitor_t, aux: *void,
         v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
     }
 
-    if (!v_find_symbol_type("free"))        //- ?
-    {
-        typ: &*v_type_t := _void_ptr;
 
-        v_export_symbol("free", v_function_type(_void, &typ, 1, false), 0);
+
+//    if (!v_find_symbol_type("free"))        //- ?
+//    {
+//        typ: &*v_type_t := _void_ptr;
+//
+//        v_export_symbol("free", v_function_type(_void, &typ, 1, false), 0);
+//    }
+//
+//    expr: &v_ast_expr_t := {};
+//
+//    v_ast_make_expr_compiled(&expr, _void_ptr, alloc_v);
+//
+//    v_ast_make_stmt_call(&stmt, 0, free_q, &expr, 1);
+
+
+
+    if (!v_find_symbol_type("_aligned_free"))        //- ?
+    {
+        _void = v_find_type("void");
+
+        typ: &*v_type_t := v_pointer_type(_void, 0);
+
+        v_export_symbol("_aligned_free", v_function_type(_void, &typ, 1, false), 0);
     }
 
     expr: &v_ast_expr_t := {};
 
     v_ast_make_expr_compiled(&expr, _void_ptr, alloc_v);
 
-    v_ast_make_stmt_call(&stmt, 0, free_q, &expr, 1);
+    v_ast_make_stmt_call(&stmt, 0, v_quark_from_string("_aligned_free"), &expr, 1);
+
+
 
     v_set_result_type(INVIOLABLE_TAG);          //- ?..
     v_set_result_value(0);                      //- ?..
