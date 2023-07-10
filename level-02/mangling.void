@@ -91,7 +91,7 @@ dict_find: (dict: &v_trp_dict_t, key: *v_type_t) -> intptr_t
 {
     a = v_map_find(&dict.map, (key: intptr_t));
 
-    if (!a) v_return(0);
+    if (!a) v_return(-1);
 
     v = v_std_any_get_value(intptr_t, a);
 
