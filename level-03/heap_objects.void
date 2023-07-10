@@ -40,13 +40,25 @@
 
     v_add_symbol("q_op_postfix_index", q_ref, q("v.op_postfix_index"));
 
-    v_add_symbol("free_q", q_ref, q("free"));
-
     v_add_symbol("q_op_prefix_new",          q_ref, q("v.op_prefix_new"));
     v_add_symbol("q_op_prefix_new_array",    q_ref, q("v.op_prefix_new_array"));
     v_add_symbol("q_op_prefix_delete",       q_ref, q("v.op_prefix_delete"));
     v_add_symbol("q_op_prefix_delete_array", q_ref, q("v.op_prefix_delete_array"));
+
+    v_add_symbol("q_aligned_alloc", q_ref, q("v_aligned_alloc"));
+    v_add_symbol("q_aligned_free",  q_ref, q("v_aligned_free"));
 }
+
+
+//=====================================================================
+private
+struct voidc_internal_aligned_alloc_ctx_t   //- Linux            |  Windoze
+{
+    alloc: v_quark_t;                       //- "aligned_alloc"  |  "_aligned_malloc"
+    free:  v_quark_t;                       //- "free"           |  "_aligned_free"
+
+    swap:  bool;                            //- false            |  true
+};
 
 
 //=====================================================================
@@ -111,6 +123,53 @@ mk_expr_new_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t
     v_ast_make_expr_call(&expr, &expr, &list);
 
     v_std_any_set_pointer(ret, &expr);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+v_aligned_alloc_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    align = v_list_get_item(args, 0);
+    size  = v_list_get_item(args, 1);
+
+    expr: &v_ast_expr_t[2] := {};
+
+    ctx = *(aux: *voidc_internal_aligned_alloc_ctx_t);
+
+    v_copy(&expr[    (ctx.swap: int)], align);
+    v_copy(&expr[1 - (ctx.swap: int)], size);
+
+    list: &v_ast_expr_list_t := {};
+
+    v_make_list(&list, expr, 2);
+
+    v_ast_make_expr_identifier_q(&expr[0], ctx.alloc);
+
+    v_ast_make_expr_call(&expr[0], &expr[0], &list);
+
+    v_ast_accept_visitor((&expr[0]: *v_ast_base_t), vis);
+}
+
+//---------------------------------------------------------------------
+private
+v_aligned_free_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    ctx = *(aux: *voidc_internal_aligned_alloc_ctx_t);
+
+    stmt: &v_ast_stmt_t := {};
+
+    v_ast_make_stmt_call(&stmt, 0, ctx.free, arg0, 1);
+
+    v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
 }
 
 
@@ -446,62 +505,26 @@ op_prefix_new_intrinsic: (vis: *voidc_visitor_t, aux: *void,
             size_v := LLVMBuildAnd(builder, size_v, align_neg, "");
         }
 
-
-
-//        if (!v_find_symbol_type("aligned_alloc"))       //- ?
-//        {
-//            typ: &(*v_type_t)[2] := { _size_t, _size_t };
-//
-//            v_export_symbol("aligned_alloc", v_function_type(_void_ptr, typ, 2, false), 0);
-//        }
-//
-//        expr: &v_ast_expr_t := {};
-//
-//        v_ast_make_expr_compiled(&expr, _size_t, align_v);
-//
-//        list: &v_ast_expr_list_t := {};
-//
-//        v_make_list(&list, &expr, 1);
-//
-//        v_ast_make_expr_compiled(&expr, _size_t, size_v);
-//
-//        v_list_append(&list, &list, &expr);
-//
-//        v_ast_make_expr_identifier(&expr, "aligned_alloc");
-//
-//        v_ast_make_expr_call(&expr, &expr, &list);
-
-
-
-        if (!v_find_symbol_type("_aligned_malloc"))       //- ?
-        {
-            typ: &(*v_type_t)[2] := { _size_t, _size_t };
-
-            v_export_symbol("_aligned_malloc", v_function_type(_void_ptr, typ, 2, false), 0);
-        }
-
         expr: &v_ast_expr_t := {};
 
-        v_ast_make_expr_compiled(&expr, _size_t, size_v);
+        v_ast_make_expr_compiled(&expr, _size_t, align_v);
 
         list: &v_ast_expr_list_t := {};
 
         v_make_list(&list, &expr, 1);
 
-        v_ast_make_expr_compiled(&expr, _size_t, align_v);
+        v_ast_make_expr_compiled(&expr, _size_t, size_v);
 
         v_list_append(&list, &list, &expr);
 
-        v_ast_make_expr_identifier(&expr, "_aligned_malloc");
+        v_ast_make_expr_identifier_q(&expr, q_aligned_alloc);
 
         v_ast_make_expr_call(&expr, &expr, &list);
-
-
 
         v_set_result_type(UNREFERENCE_TAG);
         v_set_result_value(0);
 
-        v_ast_accept_visitor((&expr: *v_ast_base_t), vis);
+        v_ast_accept_visitor((&expr[0]: *v_ast_base_t), vis);
 
         v := v_get_result_value();
 
@@ -659,41 +682,11 @@ op_prefix_delete_intrinsic: (vis: *voidc_visitor_t, aux: *void,
         v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
     }
 
-
-
-//    if (!v_find_symbol_type("free"))        //- ?
-//    {
-//        _void = v_find_type("void");
-//
-//        typ: &*v_type_t := v_pointer_type(_void, 0);
-//
-//        v_export_symbol("free", v_function_type(_void, &typ, 1, false), 0);
-//    }
-//
-//    expr: &v_ast_expr_t := {};
-//
-//    v_ast_make_expr_compiled(&expr, t, v);
-//
-//    v_ast_make_stmt_call(&stmt, 0, free_q, &expr, 1);
-
-
-
-    if (!v_find_symbol_type("_aligned_free"))        //- ?
-    {
-        _void = v_find_type("void");
-
-        typ: &*v_type_t := v_pointer_type(_void, 0);
-
-        v_export_symbol("_aligned_free", v_function_type(_void, &typ, 1, false), 0);
-    }
-
     expr: &v_ast_expr_t := {};
 
     v_ast_make_expr_compiled(&expr, t, v);
 
-    v_ast_make_stmt_call(&stmt, 0, v_quark_from_string("_aligned_free"), &expr, 1);
-
-
+    v_ast_make_stmt_call(&stmt, 0, q_aligned_free, &expr, 1);
 
     v_set_result_type(INVIOLABLE_TAG);          //- ?..
     v_set_result_value(0);                      //- ?..
@@ -838,39 +831,13 @@ op_prefix_delete_array_intrinsic: (vis: *voidc_visitor_t, aux: *void,
         v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
     }
 
-
-
-//    if (!v_find_symbol_type("free"))        //- ?
-//    {
-//        typ: &*v_type_t := _void_ptr;
-//
-//        v_export_symbol("free", v_function_type(_void, &typ, 1, false), 0);
-//    }
-//
-//    expr: &v_ast_expr_t := {};
-//
-//    v_ast_make_expr_compiled(&expr, _void_ptr, alloc_v);
-//
-//    v_ast_make_stmt_call(&stmt, 0, free_q, &expr, 1);
-
-
-
-    if (!v_find_symbol_type("_aligned_free"))        //- ?
-    {
-        _void = v_find_type("void");
-
-        typ: &*v_type_t := v_pointer_type(_void, 0);
-
-        v_export_symbol("_aligned_free", v_function_type(_void, &typ, 1, false), 0);
-    }
+    ctx = *(aux: *voidc_internal_aligned_alloc_ctx_t);
 
     expr: &v_ast_expr_t := {};
 
     v_ast_make_expr_compiled(&expr, _void_ptr, alloc_v);
 
-    v_ast_make_stmt_call(&stmt, 0, v_quark_from_string("_aligned_free"), &expr, 1);
-
-
+    v_ast_make_stmt_call(&stmt, 0, q_aligned_free, &expr, 1);
 
     v_set_result_type(INVIOLABLE_TAG);          //- ?..
     v_set_result_value(0);                      //- ?..
@@ -945,6 +912,15 @@ compute_key_quark_type: (vis: *voidc_visitor_t, aux: *void,
 }
 
 
+//=====================================================================
+private
+struct voidc_internal_heap_objects_ctx_t
+{
+    alloc: voidc_internal_aligned_alloc_ctx_t;
+    quark: voidc_compute_key_quark_type_ctx_t;
+};
+
+
 //---------------------------------------------------------------------
 //- Enable heap objects
 //---------------------------------------------------------------------
@@ -955,19 +931,54 @@ voidc_enable_heap_objects_compiler: () -> void
 
     v_return_if(voidc_visitor_get_intrinsic(vis, q_op_prefix_new, 0));
 
+    ctx = *v_malloc(voidc_internal_heap_objects_ctx_t);
+
+    if (v_find_constant("_WIN32", 0, 0))
+    {
+        ctx.alloc.alloc := v_quark_from_string("_aligned_malloc");
+        ctx.alloc.free  := v_quark_from_string("_aligned_free");
+        ctx.alloc.swap  := true;
+    }
+    else
+    {
+        ctx.alloc.alloc := v_quark_from_string("aligned_alloc");
+        ctx.alloc.free  := v_quark_from_string("free");
+        ctx.alloc.swap  := false;
+    }
+
+    {   _void = v_find_type("void");
+
+        _void_ptr = v_pointer_type(_void, 0);
+
+        if (!v_find_symbol_type_q(ctx.alloc.alloc))
+        {
+            _size_t = v_find_type("size_t");
+
+            typ: &(*v_type_t)[2] := { _size_t, _size_t };
+
+            v_add_symbol_q(ctx.alloc.alloc, v_function_type(_void_ptr, typ, 2, false), 0);
+        }
+
+        if (!v_find_symbol_type_q(ctx.alloc.free))
+        {
+            v_add_symbol_q(ctx.alloc.free, v_function_type(_void, &_void_ptr, 1, false), 0);
+        }
+    }
+
+    v_add_intrinsic_q(q_aligned_alloc, v_aligned_alloc_intrinsic, &ctx.alloc);
+    v_add_intrinsic_q(q_aligned_free,  v_aligned_free_intrinsic,  &ctx.alloc);
+
     voidc_visitor_set_intrinsic(vis, vis, q_op_prefix_new,          op_prefix_new_intrinsic,          0);
     voidc_visitor_set_intrinsic(vis, vis, q_op_prefix_delete,       op_prefix_delete_intrinsic,       0);
     voidc_visitor_set_intrinsic(vis, vis, q_op_prefix_delete_array, op_prefix_delete_array_intrinsic, 0);
 
     q = v_quark_from_string("voidc.compute_key_quark_type");
 
-    ctx = *v_malloc(voidc_compute_key_quark_type_ctx_t);
-
     vis = v_get_compiler();
 
-    ctx.fun := (voidc_visitor_get_intrinsic(vis, q, &ctx.aux) : *compute_key_quark_type_ft);
+    ctx.quark.fun := (voidc_visitor_get_intrinsic(vis, q, &ctx.quark.aux) : *compute_key_quark_type_ft);
 
-    voidc_visitor_set_intrinsic(vis, vis, q, compute_key_quark_type, &ctx);
+    voidc_visitor_set_intrinsic(vis, vis, q, compute_key_quark_type, &ctx.quark);
 
     free: (*void) -> void;
 

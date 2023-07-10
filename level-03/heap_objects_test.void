@@ -167,16 +167,7 @@ struct some_t
 
     size = (&(0: *alloc_t)~>data[fixed*dynamic] : size_t);
 
-
-//    aligned_alloc: (align: size_t, size: size_t) -> *void;
-//
-//    void_data = aligned_alloc(alloc_t.align, size);
-
-
-    _aligned_malloc: (align: size_t, size: size_t) -> *void;
-
-    void_data = _aligned_malloc(size, alloc_t.align);
-
+    void_data = v_aligned_alloc(alloc_t.align, size);
 
     data = (void_data : *alloc_t);
 
@@ -205,12 +196,7 @@ struct some_t
 
     printf("delete[] (some_t[%zd])[%zd]: %p\n", fixed, dynamic, data);
 
-//  v_free(alloc_p);
-
-
-    _aligned_free: (*void) -> void;
-
-    _aligned_free(alloc_p);
+    v_aligned_free(alloc_p);
 }
 
 //---------------------------------------------------------------------
