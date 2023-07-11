@@ -1566,8 +1566,6 @@ voidc_local_ctx_t::prepare_unit_action(int line, int column)
 {
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
 
-    auto &builder = global_ctx.builder;
-
     std::string hdr = "unit_" + std::to_string(line) + "_" + std::to_string(column);
 
     std::string mod_name = hdr + "_module";

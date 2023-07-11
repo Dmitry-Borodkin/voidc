@@ -7,6 +7,7 @@
     v_import("level-00");
 
     v_import("llvm-c/Core.void");
+    v_import("llvm-c/BitWriter.void");
 
     v_import("function_hack.void");
     v_import("if_then_else.void");
@@ -62,12 +63,30 @@
     v_add_symbol("q_internal_var_defn", q_ref, q("v.internal.var_defn"));
     v_add_symbol("q_internal_val_defn", q_ref, q("v.internal.val_defn"));
 
-    v_add_symbol("q_cast", q_ref, q("v_cast"));
+    v_add_symbol("q_cast",   q_ref, q("v_cast"));
+    v_add_symbol("q_alloca", q_ref, q("v_alloca"));
+    v_add_symbol("q_load",   q_ref, q("v_load"));
 
-    v_add_symbol("LLVMConstInt_q",          q_ref, q("LLVMConstInt"));
-    v_add_symbol("LLVMConstRealOfString_q", q_ref, q("LLVMConstRealOfString"));
+    v_add_symbol("LLVMGetNamedGlobal_q", q_ref, q("LLVMGetNamedGlobal"));
+    v_add_symbol("LLVMGetInitializer_q", q_ref, q("LLVMGetInitializer"));
 
-    v_add_symbol("constant_type_not_supported_q", q_ref, q("<constant type not supported>"));
+    v_add_symbol("membuf_q", q_ref, q("membuf"));
+
+    v_add_symbol("LLVMCreateMemoryBufferWithMemoryRangeCopy_q", q_ref,
+               q("LLVMCreateMemoryBufferWithMemoryRangeCopy"));
+
+    v_add_symbol("LLVMParseBitcodeInContext2_q", q_ref,
+               q("LLVMParseBitcodeInContext2"));
+
+    v_add_symbol("LLVMDisposeMemoryBuffer_q", q_ref,
+               q("LLVMDisposeMemoryBuffer"));
+
+    v_add_symbol("LLVMDisposeModule_q", q_ref,
+               q("LLVMDisposeModule"));
+
+    v_add_symbol("LLVMModuleRef_q",       q_ref, q("LLVMModuleRef"));
+    v_add_symbol("q_target_get_llvm_ctx", q_ref, q("v_target_get_llvm_ctx"));
+
 
     v_add_symbol("q_op_infix_assign", q_ref, q("v.op_infix_assign"));
 
@@ -194,18 +213,20 @@
 
 //---------------------------------------------------------------------
 {
-    quark_ref = v_reference_type(v_quark_t, 0);
+    q_ref = v_reference_type(v_quark_t, 0);
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("br_item_list_q",   quark_ref, q("br_item_list"));
-    v_add_symbol("unit_fun_defn_q",  quark_ref, q("unit_fun_defn"));
-    v_add_symbol("unit_var_defn_q",  quark_ref, q("unit_var_defn"));
-    v_add_symbol("unit_val_defn_q",  quark_ref, q("unit_val_defn"));
-    v_add_symbol("defn_list_unit_q", quark_ref, q("defn_list_unit"));
+    v_add_symbol("br_item_list_q",   q_ref, q("br_item_list"));
+    v_add_symbol("unit_fun_defn_q",  q_ref, q("unit_fun_defn"));
+    v_add_symbol("unit_var_defn_q",  q_ref, q("unit_var_defn"));
+    v_add_symbol("unit_val_defn_q",  q_ref, q("unit_val_defn"));
+    v_add_symbol("defn_list_unit_q", q_ref, q("defn_list_unit"));
 
-    v_add_symbol("voidc_decl_stmt_list_q", quark_ref, q("voidc.decl_stmt_list"));
-    v_add_symbol("voidc_compile_type_q",   quark_ref, q("voidc.compile_type"));
+    v_add_symbol("voidc_decl_stmt_list_q", q_ref, q("voidc.decl_stmt_list"));
+    v_add_symbol("voidc_compile_type_q",   q_ref, q("voidc.compile_type"));
+
+    v_add_symbol("mod_const_q", q_ref, q("voidc.constants_module"));
 }
 
 
@@ -1413,7 +1434,9 @@
     }
 
     //-------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(visitor, voidc_decl_stmt_list_q, 0);
+    mod_const = *v_alloca(*LLVMModuleRef);
+
+    stmt_list = voidc_visitor_get_intrinsic(visitor, voidc_decl_stmt_list_q, v_cast(&mod_const, **void));
 
     if (!stmt_list)  v_return();
 
@@ -1446,71 +1469,41 @@
 
     v_ast_make_expr_identifier_q(expr+1, typ_q);
 
+    v_ast_make_expr_string(expr+0, name);
+
 
     if (t != v_static_type_t)
     {
-        v_make_list(elst, expr+1, 1);
+        t_ = v_type_get_llvm_type(t);
 
-        v_ast_make_expr_identifier_q(expr+0, q_type_get_llvm_type);
-
-        v_ast_make_expr_call(expr+0, expr+0, elst);
-
-        v_make_list(elst, expr+0, 1);
-
-        if (v_type_is_integer(t))
+        if (!*mod_const)
         {
-            //- assert(v_type_integer_get_width(t) <= v_type_integer_get_width(intptr_t));
+            c_ = LLVMGetTypeContext(t_);
 
-            cv = *v_alloca(intptr_t);
-
-            if (v_type_integer_is_signed(t))
-            {
-                llv = LLVMConstIntGetSExtValue(v);
-
-                cv := v_cast(llv, intptr_t);
-            }
-            else
-            {
-                ullv = LLVMConstIntGetZExtValue(v);
-
-                cv := v_cast(ullv, intptr_t);
-            }
-
-            v_ast_make_expr_integer(expr+0, cv);
-
-            v_list_append(elst, elst, expr+0, 1);
-
-            v_ast_make_expr_identifier_q(expr+0, true_q);
-
-            v_list_append(elst, elst, expr+0, 1);
-
-            v_ast_make_expr_identifier_q(expr+0, LLVMConstInt_q);
-        }
-        else if (v_type_is_floating_point(t))
-        {
-            fl = *v_alloca(LLVMBool);
-
-            cv = LLVMConstRealGetDouble(v, &fl);
-
-            str = v_alloca(char, 32);
-
-            sprintf(str, "%.13a", cv);              //- WTF ?!?!?!?!?
-
-            v_ast_make_expr_string(expr+0, str);
-
-            v_list_append(elst, elst, expr+0, 1);
-
-            v_ast_make_expr_identifier_q(expr+0, LLVMConstRealOfString_q);
-        }
-        else    //- ?!?!?!?!?!?!?!?!?!?
-        {
-            v_ast_make_expr_identifier_q(expr+0, constant_type_not_supported_q);
+            *mod_const := LLVMModuleCreateWithNameInContext("voidc_module_for_constants", c_);
         }
 
-        v_ast_make_expr_call(expr+2, expr+0, elst);
+        v_ = LLVMAddGlobal(*mod_const, t_, name);
+
+        LLVMSetInitializer(v_, v);
+
+
+        v_ast_make_expr_identifier_q(expr+2, mod_const_q);
+
+        v_make_list(elst, expr+2, 1);
+
+        v_list_append(elst, elst, expr+0, 1);           //- Sic!
+
+        v_ast_make_expr_identifier_q(expr+2, LLVMGetNamedGlobal_q);
+
+        v_ast_make_expr_call(expr+2, expr+2, elst);
+
+        v_make_list(elst, expr+2, 1);
+
+        v_ast_make_expr_identifier_q(expr+2, LLVMGetInitializer_q);
+
+        v_ast_make_expr_call(expr+2, expr+2, elst);
     }
-
-    v_ast_make_expr_string(expr+0, name);
 
 
     if (export)
@@ -1595,6 +1588,8 @@
 
     //- Declarations (i.e. "types of things") ---------------------
 
+    mod_const = *v_alloca(LLVMModuleRef) := 0;
+
     stmt_list = *v_alloca(v_ast_stmt_list_ptr) := 0;
 
     decl_stmt_list = v_alloca(v_ast_stmt_list_t);
@@ -1630,7 +1625,7 @@
 
         v_make_list_nil(decl_stmt_list);
 
-        voidc_visitor_set_intrinsic(inner_visitor, inner_visitor, voidc_decl_stmt_list_q, decl_stmt_list, 0);
+        voidc_visitor_set_intrinsic(inner_visitor, inner_visitor, voidc_decl_stmt_list_q, decl_stmt_list, &mod_const);
 
         stmt_list := decl_stmt_list;
     }
@@ -1668,6 +1663,14 @@
 
         saved_voidc_module = v_get_module();
 
+        //---------------------------------------------------------
+        v_import("level-00/voidc_target.void");
+        v_import("level-00/voidc_types.void");
+
+        v_import("llvm-c/Core.void");
+        v_import("llvm-c/BitReader.void");
+
+        //---------------------------------------------------------
         expr0 = v_cast(v_list_get_item(list, 1), v_ast_expr_ptr);
         expr1 = v_cast(v_list_get_item(list, 2), v_ast_expr_ptr);
 
@@ -1677,12 +1680,76 @@
         voidc_prepare_unit_action(line, column);
 
         //---------------------------------------------------------
-        v_import("level-00/voidc_target.void");
-        v_import("level-00/voidc_types.void");
+        if (mod_const)
+        {
+            expr = v_alloca(v_ast_expr_t, 3);
+            v_initialize(expr, 3);
+            defer v_terminate(expr, 3);
 
-        v_import("llvm-c/Core.void");
+            elst = v_alloca(v_ast_expr_list_t);
+            v_initialize(elst);
+            defer v_terminate(elst);
 
-        builder = v_target_get_builder();
+            stmt = v_alloca(v_ast_stmt_t);
+            v_initialize(stmt);
+            defer v_terminate(stmt);
+
+            slst = v_alloca(v_ast_stmt_list_t);
+            v_initialize(slst);
+            defer v_terminate(slst);
+
+            m = LLVMWriteBitcodeToMemoryBuffer(mod_const);
+
+            sz = LLVMGetBufferSize(m);
+
+            v_ast_make_expr_string_data(expr+0, LLVMGetBufferStart(m), sz);
+
+            v_ast_make_expr_integer(expr+1, sz);
+
+            LLVMDisposeMemoryBuffer(m);
+
+            v_ast_make_expr_string(expr+2, "constants_module_data");
+
+            v_ast_make_stmt_call(stmt, membuf_q, LLVMCreateMemoryBufferWithMemoryRangeCopy_q, expr+0, 3);
+
+            v_make_list(slst, stmt, 1);
+
+            v_ast_make_expr_identifier_q(expr+0, LLVMModuleRef_q);
+
+            v_ast_make_stmt_call(stmt, mod_const_q, q_alloca, expr+0, 1);
+
+            v_list_append(slst, slst, stmt);
+
+            v_make_list_nil(elst);
+
+            v_ast_make_expr_identifier_q(expr+0, q_target_get_llvm_ctx);
+
+            v_ast_make_expr_call(expr+0, expr+0, elst);
+
+            v_ast_make_expr_identifier_q(expr+1, membuf_q);
+
+            v_ast_make_expr_identifier_q(expr+2, mod_const_q);
+
+            v_ast_make_stmt_call(stmt, 0, LLVMParseBitcodeInContext2_q, expr+0, 3);
+
+            v_list_append(slst, slst, stmt);
+
+            v_ast_make_stmt_call(stmt, 0, LLVMDisposeMemoryBuffer_q, expr+1, 1);
+
+            v_list_append(slst, slst, stmt);
+
+            v_ast_make_stmt_call(stmt, mod_const_q, q_load, expr+2, 1);
+
+            v_list_append(slst, slst, stmt);
+
+
+            v_ast_accept_visitor(v_cast(slst, v_ast_base_ptr), v_get_compiler());
+
+
+            v_ast_make_stmt_call(stmt, 0, LLVMDisposeModule_q, expr+2, 1);
+
+            v_list_append(stmt_list, stmt_list, stmt);                      //- Sic!!!
+        }
 
         //---------------------------------------------------------
         ctx = *v_alloca(voidc_compile_type_ctx_t);
@@ -1694,6 +1761,8 @@
 
         int_ptr_    = v_type_get_llvm_type(v_pointer_type(int, 0));
         v_type_ptr_ = v_type_get_llvm_type(v_type_ptr);
+
+        builder = v_target_get_builder();
 
         dummy_len_v = LLVMBuildLoad2(builder, int_, LLVMGetUndef(int_ptr_), "dummy_len");
 
@@ -1723,6 +1792,9 @@
 
         LLVMInstructionEraseFromParent(dummy_len_v);
 
+
+        //---------------------------------------------------------
+        if (mod_const)  LLVMDisposeModule(mod_const);
 
         //---------------------------------------------------------
         if (defn_module  &&  !saved_module)
