@@ -803,7 +803,11 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
             }
             else
             {
+                v_set_result_type(dst_typ);                                 //- Sic!
+
                 value := v_convert_to_type(src_typ, value, dst_typ);        //- "generic" ...
+
+                dst_typ := v_get_result_type();                             //- Sic!!!
             }
         }
 
@@ -842,6 +846,10 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
             {
                 value := v_make_temporary(dst_typ, value);        //- Sic!!!
             }
+
+            as = v_type_refptr_get_address_space(ttag);
+
+            v_set_result_type(v_reference_type(dst_typ, as));
         }
         else if (v_type_is_special(dst_typ, q_copy))              //- q_copy ?
         block
@@ -860,11 +868,12 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
             v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
 
             value := vtag;
+
+            v_set_result_type(dst_typ);
         }
 
         //- ??!?!?!?!?!?!?!?
 
-        v_set_result_type(ttag);
     }
 
     v_set_result_value(value);
