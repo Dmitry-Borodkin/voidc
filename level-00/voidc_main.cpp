@@ -803,6 +803,11 @@ voidc_flush_output(void)
 int
 main(int argc, char *argv[])
 {
+    std::ios::sync_with_stdio(true);
+
+    std::setbuf(stdout, nullptr);
+    std::setbuf(stderr, nullptr);
+
     std::atexit(voidc_flush_output);
 
 #ifdef _WIN32
@@ -883,6 +888,10 @@ main(int argc, char *argv[])
 #ifdef _WIN32
         gctx.add_symbol_value(q("stdout"), stdout);
         gctx.add_symbol_value(q("stderr"), stderr);
+
+        gctx.add_symbol_value(q("getopt"), (void *)&getopt);
+        gctx.add_symbol_value(q("optind"), &optind);
+        gctx.add_symbol_value(q("optarg"), &optarg);
 #endif
 
         gctx.add_symbol_value(q("voidc_argc"), &argc);
