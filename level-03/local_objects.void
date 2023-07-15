@@ -34,7 +34,7 @@
 
     v_add_symbol("q_initialize", q_ref, q("v_initialize"));
     v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
-    v_add_symbol("q_copy",       q_ref, q("v_copy"));
+    v_add_symbol("q_transfer",   q_ref, q("v_transfer"));
 
     v_add_symbol("q_getelementptr", q_ref, q("v_getelementptr"));
 
@@ -314,9 +314,9 @@ make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 
     v_ast_make_expr_compiled(expr+0, t_ptr, v0);
 
-    is_copy = q == q_copy;
+    is_trans = q == q_transfer;
 
-    if (is_copy)  v_ast_make_expr_compiled(expr+1, t_ptr, v1);
+    if (is_trans) v_ast_make_expr_compiled(expr+1, t_ptr, v1);
 
     length: &uint64_t := 1;
 
@@ -328,7 +328,7 @@ make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 
         v_list_append(expr_list+0, expr_list+0, expr+2, 1);
 
-        if (is_copy)  v_make_list(expr_list+1, expr+1, 2);
+        if (is_trans) v_make_list(expr_list+1, expr+1, 2);
 
         et: &v_type_ptr := t;
 
@@ -338,7 +338,7 @@ make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 
             v_list_append(expr_list+0, expr_list+0, expr+2, 1);
 
-            if (is_copy)  v_list_append(expr_list+1, expr_list+1, expr+2, 1);
+            if (is_trans) v_list_append(expr_list+1, expr_list+1, expr+2, 1);
 
             et := v_type_array_get_element_type(et);
 
@@ -351,10 +351,10 @@ make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 
         v_ast_make_expr_call(expr+0, expr+2, expr_list+0);
 
-        if (is_copy)  v_ast_make_expr_call(expr+1, expr+2, expr_list+1);
+        if (is_trans) v_ast_make_expr_call(expr+1, expr+2, expr_list+1);
     }
 
-    if (is_copy)
+    if (is_trans)
     {
         v_ast_make_expr_integer(expr+2, (length: intptr_t));
 
@@ -728,7 +728,7 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
 
         if (ttag == type)
         {
-            if (v_type_is_special(type, q_copy))            //- q_copy ?
+            if (v_type_is_special(type, q_transfer))            //- q_transfer ?
             block
             {
                 if (vtag == TEMPORARY_VTAG) v_break();
@@ -740,7 +740,7 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
                 v_initialize(stmt);
                 defer v_terminate(stmt);
 
-                make_special_intrinsic_call(stmt, q_copy, ttag, vtag, value);
+                make_special_intrinsic_call(stmt, q_transfer, ttag, vtag, value);
 
                 v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
 
@@ -829,7 +829,7 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
 
                 v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
 
-                make_special_intrinsic_call(stmt, q_copy, dst_typ, v, value);           //- Sic!
+                make_special_intrinsic_call(stmt, q_transfer, dst_typ, v, value);           //- Sic!
 
                 v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
 
@@ -844,14 +844,14 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
             }
             else
             {
-                value := v_make_temporary(dst_typ, value);        //- Sic!!!
+                value := v_make_temporary(dst_typ, value);          //- Sic!!!
             }
 
             as = v_type_refptr_get_address_space(ttag);
 
             v_set_result_type(v_reference_type(dst_typ, as));
         }
-        else if (v_type_is_special(dst_typ, q_copy))              //- q_copy ?
+        else if (v_type_is_special(dst_typ, q_transfer))            //- q_transfer ?
         block
         {
             if (vtag == TEMPORARY_VTAG) v_break();      //- ?..
@@ -863,7 +863,7 @@ v_internal_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef)
             v_initialize(stmt);
             defer v_terminate(stmt);
 
-            make_special_intrinsic_call(stmt, q_copy, dst_typ, vtag, value);
+            make_special_intrinsic_call(stmt, q_transfer, dst_typ, vtag, value);
 
             v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
 
@@ -1025,7 +1025,7 @@ my_internal_var_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast
            v_initialize(stmt);
            defer v_terminate(stmt);
 
-           make_special_intrinsic_call(stmt, q_copy, t, vv, v);
+           make_special_intrinsic_call(stmt, q_transfer, t, vv, v);
 
            v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
 
