@@ -8,6 +8,7 @@
 
     v_import("llvm-c/Core.void");
     v_import("llvm-c/BitWriter.void");
+    v_import("llvm-c/BitReader.void");
 
     v_import("function_hack.void");
     v_import("if_then_else.void");
@@ -70,22 +71,9 @@
     v_add_symbol("LLVMGetNamedGlobal_q", q_ref, q("LLVMGetNamedGlobal"));
     v_add_symbol("LLVMGetInitializer_q", q_ref, q("LLVMGetInitializer"));
 
-    v_add_symbol("membuf_q", q_ref, q("membuf"));
+    v_add_symbol("voidc_internal_constants_module_helper_q", q_ref, q("voidc_internal_constants_module_helper"));
 
-    v_add_symbol("LLVMCreateMemoryBufferWithMemoryRangeCopy_q", q_ref,
-               q("LLVMCreateMemoryBufferWithMemoryRangeCopy"));
-
-    v_add_symbol("LLVMParseBitcodeInContext2_q", q_ref,
-               q("LLVMParseBitcodeInContext2"));
-
-    v_add_symbol("LLVMDisposeMemoryBuffer_q", q_ref,
-               q("LLVMDisposeMemoryBuffer"));
-
-    v_add_symbol("LLVMDisposeModule_q", q_ref,
-               q("LLVMDisposeModule"));
-
-    v_add_symbol("LLVMModuleRef_q",       q_ref, q("LLVMModuleRef"));
-    v_add_symbol("q_target_get_llvm_ctx", q_ref, q("v_target_get_llvm_ctx"));
+    v_add_symbol("LLVMDisposeModule_q", q_ref, q("LLVMDisposeModule"));
 
 
     v_add_symbol("q_op_infix_assign", q_ref, q("v.op_infix_assign"));
@@ -1557,6 +1545,34 @@
 
 
 //---------------------------------------------------------------------
+//- voidc_internal_constants_module_helper ...
+//---------------------------------------------------------------------
+{
+    typ = v_alloca(v_type_ptr, 2);
+    typ[0] := char_ptr;
+    typ[1] := size_t;
+
+    ft = v_function_type(LLVMModuleRef, typ, 2, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_internal_constants_module_helper", ft);
+
+    v_add_parameter_name(f, 0, "data", char_ptr);
+    v_add_parameter_name(f, 1, "size", size_t);
+}
+{
+    membuf = LLVMCreateMemoryBufferWithMemoryRangeCopy(data, size, "constants_module_data");
+
+    mod_const = v_alloca(LLVMModuleRef);
+
+    LLVMParseBitcodeInContext2(v_target_get_llvm_ctx(), membuf, mod_const);
+
+    LLVMDisposeMemoryBuffer(membuf);
+
+    v_return(v_load(mod_const));
+}
+
+//---------------------------------------------------------------------
 //- compile_defn_list_unit - visitor method
 //---------------------------------------------------------------------
 {
@@ -1668,7 +1684,6 @@
         v_import("level-00/voidc_types.void");
 
         v_import("llvm-c/Core.void");
-        v_import("llvm-c/BitReader.void");
 
         //---------------------------------------------------------
         expr0 = v_cast(v_list_get_item(list, 1), v_ast_expr_ptr);
@@ -1682,21 +1697,13 @@
         //---------------------------------------------------------
         if (mod_const)
         {
-            expr = v_alloca(v_ast_expr_t, 3);
-            v_initialize(expr, 3);
-            defer v_terminate(expr, 3);
-
-            elst = v_alloca(v_ast_expr_list_t);
-            v_initialize(elst);
-            defer v_terminate(elst);
+            expr = v_alloca(v_ast_expr_t, 2);
+            v_initialize(expr, 2);
+            defer v_terminate(expr, 2);
 
             stmt = v_alloca(v_ast_stmt_t);
             v_initialize(stmt);
             defer v_terminate(stmt);
-
-            slst = v_alloca(v_ast_stmt_list_t);
-            v_initialize(slst);
-            defer v_terminate(slst);
 
             m = LLVMWriteBitcodeToMemoryBuffer(mod_const);
 
@@ -1708,45 +1715,14 @@
 
             LLVMDisposeMemoryBuffer(m);
 
-            v_ast_make_expr_string(expr+2, "constants_module_data");
+            v_ast_make_stmt_call(stmt, mod_const_q, voidc_internal_constants_module_helper_q, expr+0, 2);
 
-            v_ast_make_stmt_call(stmt, membuf_q, LLVMCreateMemoryBufferWithMemoryRangeCopy_q, expr+0, 3);
-
-            v_make_list(slst, stmt, 1);
-
-            v_ast_make_expr_identifier_q(expr+0, LLVMModuleRef_q);
-
-            v_ast_make_stmt_call(stmt, mod_const_q, q_alloca, expr+0, 1);
-
-            v_list_append(slst, slst, stmt);
-
-            v_make_list_nil(elst);
-
-            v_ast_make_expr_identifier_q(expr+0, q_target_get_llvm_ctx);
-
-            v_ast_make_expr_call(expr+0, expr+0, elst);
-
-            v_ast_make_expr_identifier_q(expr+1, membuf_q);
-
-            v_ast_make_expr_identifier_q(expr+2, mod_const_q);
-
-            v_ast_make_stmt_call(stmt, 0, LLVMParseBitcodeInContext2_q, expr+0, 3);
-
-            v_list_append(slst, slst, stmt);
-
-            v_ast_make_stmt_call(stmt, 0, LLVMDisposeMemoryBuffer_q, expr+1, 1);
-
-            v_list_append(slst, slst, stmt);
-
-            v_ast_make_stmt_call(stmt, mod_const_q, q_load, expr+2, 1);
-
-            v_list_append(slst, slst, stmt);
+            v_ast_accept_visitor(v_cast(stmt, v_ast_base_ptr), v_get_compiler());
 
 
-            v_ast_accept_visitor(v_cast(slst, v_ast_base_ptr), v_get_compiler());
+            v_ast_make_expr_identifier_q(expr+0, mod_const_q);
 
-
-            v_ast_make_stmt_call(stmt, 0, LLVMDisposeModule_q, expr+2, 1);
+            v_ast_make_stmt_call(stmt, 0, LLVMDisposeModule_q, expr+0, 1);
 
             v_list_append(stmt_list, stmt_list, stmt);                      //- Sic!!!
         }
@@ -2313,6 +2289,7 @@
 //---------------------------------------------------------------------
 {
     v_make_export_symbol("voidc_compile_unit_fun_defn_helper");
+    v_make_export_symbol("voidc_internal_constants_module_helper");
 
     v_make_export_symbol("voidc_enable_definitions_compiler");
     v_make_export_symbol("voidc_enable_definitions");
