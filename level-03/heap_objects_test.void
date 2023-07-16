@@ -108,12 +108,14 @@ struct some_t
     printf("v_terminate(%p: *some_t, %zd)\n", data, count);
 }
 
-(v_transfer(_)): (dst: *some_t, src: *some_t, count: size_t) -> void
+(v_copy(_)): (dst: *some_t, src: *some_t, count: size_t) -> void
 {
-    printf("v_transfer(%p: *some_t, %p, %zd)\n", dst, src, count);
+    printf("v_copy(%p: *some_t, %p, %zd)\n", dst, src, count);
 
     for (i: &size_t := 0; i < count; ++i)    dst[i].x := src[i].x;
 }
+
+(v_transfer(_)): (*some_t, *some_t, size_t) -> void = derive;
 
 
 (new _): (fixed: size_t) -> *some_t

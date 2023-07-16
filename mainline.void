@@ -2,15 +2,12 @@
 //- Copyright (C) 2020-2023 Dmitry Borodkin <borodkin.dn@gmail.com>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
-{   voidc_guard_target("level-03  must be imported into the voidc target only!");
+{   voidc_guard_target("mainline.void  must be imported into the voidc target only!");
 
-    v_import("level-00");
-    v_import("level-01");
-    v_import("level-02");
-
-    v_export_import("intrinsics_derive.void");
-    v_export_import("local_objects.void");
-    v_export_import("heap_objects.void");
+    v_export_import("level-00");
+    v_export_import("level-01");
+    v_export_import("level-02");
+    v_export_import("level-03");
 }
 
 {   v_enable_level_01();
@@ -19,16 +16,16 @@
 
 
 //---------------------------------------------------------------------
-{   voidc_unit_begin_module("level-03_module"); }
+{   voidc_unit_begin_module("mainline_module"); }
 
 
 //---------------------------------------------------------------------
 export
-v_enable_level_03: () -> void
+v_enable_mainline: () -> void
 {
-    voidc_enable_intrinsics_derive();
-    voidc_enable_local_objects();
-    voidc_enable_heap_objects();
+    v_enable_level_01();
+    v_enable_level_02();
+    v_enable_level_03();
 }
 
 
