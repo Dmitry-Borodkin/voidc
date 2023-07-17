@@ -429,8 +429,10 @@
     v129 = v_function_type(v128, arg0, 1, false);
     v_export_symbol_type("LLVMCopyStringRepOfTargetData", v129);
 
+    v_store(v118_LLVMTargetDataRef, arg0);
     v130_int = v_find_type("int");
-    v_export_symbol_type("LLVMByteOrder", v130_int);
+    v130 = v_function_type(v130_int, arg0, 1, false);
+    v_export_symbol_type("LLVMByteOrder", v130);
 
     v_store(v118_LLVMTargetDataRef, arg0);
     v131_unsigned = v_find_type("unsigned");
