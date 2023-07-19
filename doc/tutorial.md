@@ -116,11 +116,12 @@ In fact, Void as a language *has no* fixed/constant/static syntax/semantics...
 Instead, it has a minimalist "starter language" and a set of "language development" tools.
 Then the language is *developed*, and this development is organized into so-called "levels".
 
-For the moment (Sep 2022) there are only three levels:
+For the moment (Jul 2023) there are only four levels:
 
-  - Level 0.0 - "starter language" and compiler API.
-  - Level 0.1 - control flow, grammars, expressions and declarations/definitions.
-  - Level 0.2 - ...
+  - Level 0.0 - "Starter Language" and compiler API.
+  - Level 0.1 - Control flow, grammars, expressions and declarations/definitions.
+  - Level 0.2 - "C on steroids"...
+  - Level 0.3 - Kinda, objects...
 
 Let's take a look of them closer.
 
@@ -215,15 +216,6 @@ Please note, in contrast to C, in the Starter Language:
 In fact, the semantics of `=` in Void is almost the same as in LLVM IR (with respect to "shadowing").
 
 
-#### Identifiers. "What's in a name?"(c)...
-
-...
-
-
-
-
-
-
 #### Not all functions are the same...
 
 Let's look at [The extended "Hello, world" example](#the-extended-hello-world-example).
@@ -259,62 +251,8 @@ Therefore, we'll describe Void's type system "through the lens" of the compiler'
 This API is designed to be similar (in spirit) to the LLVM-C API associated with LLVM's types.
 The implementation of Void's types is also very similar to LLVM's.
 
-<details>
-  <summary>Some technical details (click to expand)...</summary>
-
->
-> It is important to understand that in Starter Language we have to work with types in two different contexts (roles):
->   1. Like in "routine programming" - to create "local variables" and to make "conversions of values".
->   2. When we work with types as with data - to build new types and to analyze existing ones.
->
-> It's about different occurencies of "write program" in "write program to write program"...
-> Also, these roles are distinguished by their "show-time": the first "acts" at the *compilation* stage,
-> and the second -  at the *execution* stage.
->
-> In the first role (in the Starter Language) types can only be used with the help of identifiers (names).
->
->
->
->
->
->
-
-
-
-
-
-
-
-</details>
-
-
-
-
-
 As you can probably guessed, the name of the type of the Void's types representation is `v_type_ptr`.
 Like `LLVMTypeRef`, `v_type_ptr` looks like a pointer to some opaque structure
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #### Integer types.
@@ -324,21 +262,97 @@ Void's integer types are all LLVM's ones with additional "attribute" of *signedn
 Yes! You can use integers of any bitwidth accepted by LLVM.
 And they can also be signed or unsigned.
 
+API in "C" syntax:
+```C
+v_type_ptr v_int_type(unsigned width);          // Signed
+v_type_ptr v_uint_type(unsigned width);         // Unsigned
+```
+
+There are number of predefined integral types which correspond to tagret's "C" integral types.
+Some of them: `char`, `short`, `int`, `long`, `intptr_t` etc...
+
+Predefined type `bool` is the `v_uint_type(1)`. Named constants `false` and `true` have obvious type and values...
 
 
+#### Floating point types.
+
+```C
+v_type_ptr v_f16_type();            // ...
+v_type_ptr v_f32_type();            // C's float
+v_type_ptr v_f64_type();            // C's double
+v_type_ptr v_f128_type();           // ...
+```
 
 
+#### Pointer types.
+
+```C
+v_type_ptr v_pointer_type(v_type_ptr elem, unsigned adsp);
+```
+
+These pointer types are similar to C's with respect to additional parameter of LLVM's "address space"...
 
 
+#### Reference types.
+
+```C
+v_type_ptr v_reference_type(v_type_ptr elem, unsigned adsp);
+```
+
+These references are semantically identical to C++'s `&` ones (with respect to LLVM's "address space").
+
+Reference can be seen as a pointer in a "superhero costume"...
+The "superpower" of reference is ability to *unreference* pointed value "on demand".
 
 
+#### Array types.
+
+```C
+v_type_ptr v_array_type(v_type_ptr elem, uint64_t length);
+```
+
+Ordinary LLVM's (and C's) arrays...
 
 
+#### Vector types.
+
+```C
+v_type_ptr v_vector_type(v_type_ptr elem, unsigned size);           // ...
+v_type_ptr v_svector_type(v_type_ptr elem, unsigned size);          // Scalable
+```
+
+LLVM's vectors...
 
 
+#### Structure types.
+
+```C
+v_type_ptr v_struct_type_named(const char *name);                           // Named (opaque)
+
+v_type_ptr v_struct_type(v_type_ptr *elts, unsigned count, bool packed);    // Unnamed
+
+void v_type_struct_set_body(v_type_ptr typ, v_type_ptr *elts, unsigned count, bool packed);
+```
+
+Similar to LLVM's struct types...
 
 
+#### Function types.
 
+```C
+v_type_ptr v_function_type(v_type_ptr ret, v_type_ptr *par, unsigned count, bool vararg);
+```
+
+Similar to LLVM's (and C's) function types...
+
+
+#### Void type.
+
+```C
+v_type_ptr v_void_type();               //- As is...
+```
+
+This type also predefined as `void`...
 
 
 
