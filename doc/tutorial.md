@@ -277,10 +277,10 @@ Predefined type `bool` is the `v_uint_type(1)`. Named constants `false` and `tru
 #### Floating point types.
 
 ```C
-v_type_ptr v_f16_type();            // ...
-v_type_ptr v_f32_type();            // C's float
-v_type_ptr v_f64_type();            // C's double
-v_type_ptr v_f128_type();           // ...
+v_type_ptr v_f16_type();            // LLVM's half
+v_type_ptr v_f32_type();            // LLVM's float
+v_type_ptr v_f64_type();            // LLVM's double
+v_type_ptr v_f128_type();           // LLVM's fp128
 ```
 
 
@@ -299,7 +299,7 @@ These pointer types are similar to C's with respect to additional parameter of L
 v_type_ptr v_reference_type(v_type_ptr elem, unsigned adsp);
 ```
 
-These references are semantically identical to C++'s `&` ones (with respect to LLVM's "address space").
+These references are semantically alike to C++'s `&` ones (with respect to LLVM's "address space").
 
 Reference can be seen as a pointer in a "superhero costume"...
 The "superpower" of reference is ability to *unreference* pointed value "on demand".

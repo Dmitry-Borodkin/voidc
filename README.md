@@ -35,17 +35,31 @@ See more details in [tutorial](doc/tutorial.md).
     - Extensible compiler based on "visitor pattern";
     - Exposing essential parts of LLVM-C API (Core, TargetMachine, etc.).
 
-  - Developing further language features:
+  - Developing "basic" language features:
     - Ability to create (C-compatible) functions;
     - Basic set of control flow constructions: "if then else", "block", "loop", "switch", "defer";
     - Comfortable "syntactic sugar" for grammar development;
     - C-like expressions (with some additional "twists");
     - Finally, some "normal" syntax for function's and variable's definitions/declarations.
 
+  - Extending the language:
+    - Comprehensive numeric literals;
+    - Sophisticated control flow constuctions: "while", "for", extended "if then else" and "switch";
+    - Aggregate "initializations";
+    - "Simple" overloading of operators;
+    - "Projections" (functions with syntax `a.something`);
+    - Simple structures with named fields;
+    - "Mangling" (fancy function names to help overloading/projections);
+    - Function inlining;
+    - Unions (like in C).
+
+  - Kinda, objects:
+    - ...
+
   - ...
 
 
-For the moment (Sep 2022), language seems to be ready just for some early experiments...
+For the moment (Jul 2023), language seems to be ready just for some early experiments...
 
 
 **Note:** Void is *not* intended to be seen as a complete/finished/whatever programming language in usual sense...
@@ -64,6 +78,7 @@ and for development of *itself* particularly.
       - "Named fields/methods",
       - "Variants and matching",
       - "Coercions",
+      - "Namespaces",
       - ...
     - "Bootstrapping"...
 
@@ -93,7 +108,7 @@ $ ./mk_build
 
 ## Usage
 
-Currently (Sep 2022) `voidc` works mainly from it's source directory.
+Currently (Jul 2023) `voidc` works mainly from it's source directory.
 
 You can try some of:
 
@@ -110,7 +125,7 @@ BTW, first time it can take a while due to long (idk, 10-30 sec) compilation of 
 After that, try:
 
 ```bash
-$ build/voidc level-02/inlining_test.void
+$ build/voidc level-03/heap_objects_test.void
 ```
 
 This "script" (with imports) uses almost all language features developed so far.
