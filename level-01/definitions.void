@@ -1619,23 +1619,21 @@
 
     block
     {
-        //- We'll do "direct declaration" ?..
+        //- "Direct declaration" ?..
 
         {   gctx = v_target_get_global_ctx();
             vctx = v_target_get_voidc_global_ctx();
 
-            is_importing = *v_alloca(bool) := false;
-
             if (gctx != vctx)   v_target_set_global_ctx(vctx);
 
-            is_importing := v_target_local_ctx_has_parent();
+            is_importing = v_target_local_ctx_has_parent();
 
             if (gctx != vctx)   v_target_set_global_ctx(gctx);
 
             if (!is_importing)  v_break();
         }
 
-        //- We're importing - need to build a unit
+        //- Importing - need to build a unit
 
         v_initialize(decl_stmt_list);
 

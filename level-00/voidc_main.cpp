@@ -455,19 +455,26 @@ v_import_helper(const char *name, bool _export)
 
         if (!ok)    //- Already imported
         {
-            target_lctx->decls.insert(it->second);
+            auto res_i = target_lctx->imported.insert(src_filename_str);
+
+            if (res_i.second) target_lctx->decls.insert(it->second);
 
             if (_export  &&  target_lctx->export_decls)
             {
-                target_lctx->export_decls->insert(it->second);
+                auto res_e = target_lctx->exported.insert(src_filename_str);
 
-                if (&tctx == &vctx)
+                if (res_e.second)
                 {
-                    auto &tns = static_cast<voidc_local_ctx_t *>(target_lctx)->typenames;
+                    target_lctx->export_decls->insert(it->second);
 
-                    for (auto tni : vctx.imported_typenames[src_filename_str])
+                    if (&tctx == &vctx)
                     {
-                        tns = tns.insert(tni);
+                        auto &tns = static_cast<voidc_local_ctx_t *>(target_lctx)->typenames;
+
+                        for (auto tni : vctx.imported_typenames[src_filename_str])
+                        {
+                            tns = tns.insert(tni);
+                        }
                     }
                 }
             }
@@ -552,7 +559,7 @@ v_import_helper(const char *name, bool _export)
     }
     else        //- !use_binary
     {
-        if (trace_imports)  printf("import: %s\n", src_filename_str.c_str());
+        if (trace_imports)  printf("start:  %s\n", src_filename_str.c_str());
 
         infs = my_fopen(src_filename);
 
@@ -624,6 +631,8 @@ v_import_helper(const char *name, bool _export)
         std::fwrite(magic, sizeof(magic), 1, outfs);
 
         std::fwrite((char *)&imports_pos, sizeof(imports_pos), 1, outfs);
+
+        if (trace_imports)  printf("finish: %s\n", src_filename_str.c_str());
     }
 
     std::fclose(infs);

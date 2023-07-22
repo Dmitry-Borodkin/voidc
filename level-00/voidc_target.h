@@ -172,6 +172,10 @@ public:
     visitor_t compiler;
 
 public:
+    std::set<std::string> imported;
+    std::set<std::string> exported;
+
+public:
     declarations_t *export_decls = nullptr;
 
     void export_alias(v_quark_t name, v_quark_t raw_name);
