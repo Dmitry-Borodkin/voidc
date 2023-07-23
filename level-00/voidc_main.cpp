@@ -639,7 +639,14 @@ v_import_helper(const char *name, bool _export)
 
     target_lctx->decls.insert(*export_decls);
 
-    if (_export  &&  target_lctx->export_decls) target_lctx->export_decls->insert(*export_decls);
+    target_lctx->imported.insert(src_filename_str);
+
+    if (_export  &&  target_lctx->export_decls)
+    {
+        target_lctx->export_decls->insert(*export_decls);
+
+        target_lctx->exported.insert(src_filename_str);
+    }
 }
 
 //--------------------------------------------------------------------
