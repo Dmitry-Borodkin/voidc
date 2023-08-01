@@ -337,12 +337,22 @@
     v_export_symbol_type("v_export_alias", ft);
     v_export_symbol_type("v_add_alias",    ft);
 
+//  v_store(char_ptr, typ0);                //- Alias name
+
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_export_symbol_type("v_check_alias", ft);
+
     v_store(v_quark_t, typ0);               //- Alias name quark
     v_store(v_quark_t, typ1);               //- Aliasee quark
 
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_export_alias_q", ft);
     v_export_symbol_type("v_add_alias_q",    ft);
+
+//  v_store(v_quark_t, typ0);               //- Alias name quark
+
+    ft = v_function_type(v_quark_t, typ0, 1, false);
+    v_export_symbol_type("v_check_alias_q", ft);
 
     v_store(v_type_ptr,   typ0);            //- type
     v_store(LLVMValueRef, typ1);            //- value

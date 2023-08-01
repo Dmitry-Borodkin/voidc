@@ -2815,6 +2815,29 @@ v_add_alias(const char *name, const char *raw_name)
     v_add_alias_q(q(name), q(raw_name));
 }
 
+v_quark_t
+v_check_alias_q(v_quark_t qname)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return lctx.check_alias(qname);
+}
+
+const char *
+v_check_alias(const char *name)
+{
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return name;
+
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    auto raw_qname = lctx.check_alias(qname);
+
+    return  v_quark_to_string(raw_qname);
+}
 
 //---------------------------------------------------------------------
 void
