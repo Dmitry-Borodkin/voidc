@@ -254,11 +254,11 @@ struct my_prepare_function_parameters_ctx_t
 //---------------------------------------------------------------------
 private
 my_prepare_function_parameters: (aux: *void, fun: LLVMValueRef,
-                                         qualif: intptr_t,
-                                         fun_name: *const char,
-                                         fun_type: *v_type_t,
-                                         fun_args: *v_ast_generic_list_t
-                                        ) -> void
+                                 qualif: intptr_t,
+                                 fun_name: *const char,
+                                 fun_type: *v_type_t,
+                                 fun_args: *v_ast_generic_list_t
+                                ) -> void
 {
     tr = v_type_function_get_return_type(fun_type);
 
@@ -566,9 +566,9 @@ my_compile_stmt: (vis: *voidc_visitor_t, void_aux: *void, self: *v_ast_base_t) -
 //---------------------------------------------------------------------
 private
 my_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t,
-                                              ft: v_type_ptr, fv: LLVMValueRef,
-                                              arg_ptrs: **v_ast_expr_t, arg_count: unsigned
-                                             ) -> void
+                                      ft: v_type_ptr, fv: LLVMValueRef,
+                                      arg_ptrs: **v_ast_expr_t, arg_count: unsigned
+                                     ) -> void
 {
     par_count = v_type_function_get_param_count(ft);
     par_types = v_type_function_get_param_types(ft);
