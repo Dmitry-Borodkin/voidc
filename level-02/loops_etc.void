@@ -547,13 +547,11 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr,
 export
 voidc_enable_loops_etc_compiler: () -> void
 {
-    vis = v_get_compiler();
-
     copy_variable_q = v_quark_from_string("v.internal.copy_variable");
 
-    v_return_if(voidc_visitor_get_intrinsic(vis, copy_variable_q, 0));
+    v_return_if(v_get_intrinsic_q(copy_variable_q, 0));
 
-    voidc_visitor_set_intrinsic(vis, vis, copy_variable_q, v_internal_copy_variable_intrinsic, 0);
+    v_add_intrinsic_q(copy_variable_q, v_internal_copy_variable_intrinsic, 0);
 
     voidc_enable_statement_block_compiler();
     voidc_enable_statement_loop_compiler();

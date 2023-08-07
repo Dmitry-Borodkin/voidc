@@ -239,12 +239,10 @@ mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_pt
 export
 voidc_enable_literals_compiler: () -> void
 {
-    vis = v_get_compiler();
+    v_return_if(v_get_intrinsic_q(q_literal_integer, 0));
 
-    v_return_if(voidc_visitor_get_intrinsic(vis, q_literal_integer, 0));
-
-    voidc_visitor_set_intrinsic(vis, vis, q_literal_integer, v_literal_integer_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q_literal_real,    v_literal_real_intrinsic,    0);
+    v_add_intrinsic_q(q_literal_integer, v_literal_integer_intrinsic, 0);
+    v_add_intrinsic_q(q_literal_real,    v_literal_real_intrinsic,    0);
 }
 
 

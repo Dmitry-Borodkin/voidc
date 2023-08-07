@@ -44,6 +44,21 @@
     v_add_symbol("create_inline_function_data_q", q_ref, q("voidc_internal_create_inline_function_data"));
 
     v_add_symbol("enabled_q", q_ref, q("voidc.internal.inlining_enabled"));
+
+    v_add_symbol("voidc_definitions_context_q", q_ref, q("voidc.definitions_context"));
+
+    ctx_type = v_struct_type_named("struct.voidc_definitions_ctx_t");
+
+    v_add_type("definitions_ctx_t", ctx_type);
+}
+
+{   int_ = v_type_get_llvm_type(int);
+
+    v_add_constant("ctx_stmt_list", int, LLVMConstInt(int_, 4, 0));
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -213,30 +228,24 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
     v_initialize(inner_stmt_list);
     defer v_terminate(inner_stmt_list);
 
-    inner_visitor = v_alloca(voidc_visitor_t);
-    v_initialize(inner_visitor);
-    defer v_terminate(inner_visitor);
+    def_ctx = v_find_symbol_value_q(voidc_definitions_context_q);
 
-    stmt_list: &*v_ast_stmt_list_t := v_undef();
+    def_ctx = *v_cast(def_ctx, *definitions_ctx_t);
 
-    stmt_list := (voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0) : *v_ast_stmt_list_t);
+    stmt_list = def_ctx[ctx_stmt_list];
 
-    if (stmt_list)
-    {
-        v_copy(inner_visitor, vis);
-    }
-    else
+    saved_stmt_list = v_load(&stmt_list);
+
+    if (!saved_stmt_list)
     {
         stmt_list := inner_stmt_list;
 
         v_make_list_nil(stmt_list);
-
-        voidc_visitor_set_intrinsic(inner_visitor, vis, voidc_decl_stmt_list_q, stmt_list, 0);
     }
 
-    //--------------------------------------------------
-    ctx.fun(inner_visitor, ctx.aux, self);      //- Sic!
-    //--------------------------------------------------
+    //------------------------------------------
+    ctx.fun(vis, ctx.aux, self);        //- Sic!
+    //------------------------------------------
 
     v_set_obtain_module(saved_obtain_module_fun, saved_obtain_module_ctx);
 
@@ -290,7 +299,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
 
 
     //-----------------------------------------------------------------
-    stmt_list := (voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0) : *v_ast_stmt_list_t);
+    stmt_list := saved_stmt_list;
 
     if (!stmt_list)  v_return();
 

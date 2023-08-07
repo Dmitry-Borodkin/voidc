@@ -11,8 +11,16 @@
 //---------------------------------------------------------------------
 //- Compilers (level 0) ...
 //---------------------------------------------------------------------
-visitor_t make_voidc_compiler(void);
-visitor_t make_target_compiler(void);
+visitor_t make_level_0_voidc_compiler(void);
+visitor_t make_level_0_target_compiler(void);
+
+
+//---------------------------------------------------------------------
+//- Intrinsics (level 0) ...
+//---------------------------------------------------------------------
+class base_global_ctx_t;
+
+void make_level_0_intrinsics(base_global_ctx_t &gctx);
 
 
 #endif  //- VOIDC_COMPILER_H

@@ -123,15 +123,10 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 
     if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(call.fun_expr))
     {
-        for (auto &intrs : {lctx.decls.intrinsics, (*vis)->intrinsics})
+        if (auto p = lctx.decls.intrinsics.find(fname->name))
         {
-            if (auto p = intrs.find(fname->name))
-            {
-                void_fun = p->first;
-                void_aux = p->second;
-
-                break;
-            }
+            void_fun = p->first;
+            void_aux = p->second;
         }
     }
 
@@ -868,13 +863,13 @@ v_assign(const visitor_t *vis, void *, const ast_base_t *self)
 
 
 //=====================================================================
-//- Compiler visitors
+//- Compiler visitors (level 0)
 //=====================================================================
 static
 visitor_t voidc_compiler_level_zero;
 
 visitor_t
-make_voidc_compiler(void)
+make_level_0_voidc_compiler(void)
 {
     if (!voidc_compiler_level_zero)
     {
@@ -884,23 +879,6 @@ make_voidc_compiler(void)
         vis = vis.set_void_method(v_ast_##name##_visitor_method_tag, (void *)compile_##name);
 
         DEFINE_AST_VISITOR_METHOD_TAGS(DEF_METHOD)
-
-
-#define DEF_INTRINSIC(name) \
-        vis = vis.set_intrinsic(v_quark_from_string(#name), (void *)name, nullptr);
-
-#define DEFINE_INTRINSICS(DEF) \
-        DEF(v_alloca)          \
-        DEF(v_getelementptr)   \
-        DEF(v_store)           \
-        DEF(v_load)            \
-        DEF(v_cast)            \
-        DEF(v_pointer)         \
-        DEF(v_reference)       \
-        DEF(v_assign)          \
-
-        DEFINE_INTRINSICS(DEF_INTRINSIC)
-
 
         voidc_compiler_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
     }
@@ -916,7 +894,7 @@ static
 visitor_t target_compiler_level_zero;
 
 visitor_t
-make_target_compiler(void)
+make_level_0_target_compiler(void)
 {
     if (!target_compiler_level_zero)
     {
@@ -930,8 +908,6 @@ make_target_compiler(void)
         DEF_METHOD(expr_string)
         DEF_METHOD(expr_char)
 
-        DEFINE_INTRINSICS(DEF_INTRINSIC)
-
         target_compiler_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
     }
 
@@ -941,8 +917,35 @@ make_target_compiler(void)
 }
 
 
+#undef DEF_METHOD
+
+
+//=====================================================================
+//- Intrinsics (level 0) ...
+//=====================================================================
+void
+make_level_0_intrinsics(base_global_ctx_t &gctx)
+{
+
+#define DEF_INTRINSIC(name) \
+    gctx.decls.intrinsics_insert({v_quark_from_string(#name), {(void *)name, nullptr}});
+
+#define DEFINE_INTRINSICS(DEF) \
+    DEF(v_alloca)          \
+    DEF(v_getelementptr)   \
+    DEF(v_store)           \
+    DEF(v_load)            \
+    DEF(v_cast)            \
+    DEF(v_pointer)         \
+    DEF(v_reference)       \
+    DEF(v_assign)          \
+
+    DEFINE_INTRINSICS(DEF_INTRINSIC)
+
 #undef DEFINE_INTRINSICS
 #undef DEF_INTRINSIC
-#undef DEF_METHOD
+
+}
+
 
 

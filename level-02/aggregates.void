@@ -274,16 +274,14 @@ v_typed_intrinsic: (vis: voidc_visitor_ptr, *void,
 export
 voidc_enable_aggregates_compiler: () -> void
 {
-    vis = v_get_compiler();
-
-    v_return_if(voidc_visitor_get_intrinsic(vis, q_op_braces, 0));
+    v_return_if(v_get_intrinsic_q(q_op_braces, 0));
 
     q_struct = v_quark_from_string("v_struct");
     q_typed  = v_quark_from_string("v_typed");
 
-    voidc_visitor_set_intrinsic(vis, vis, q_op_braces, v_op_braces_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q_struct,    v_struct_intrinsic,    0);
-    voidc_visitor_set_intrinsic(vis, vis, q_typed,     v_typed_intrinsic,     0);
+    v_add_intrinsic_q(q_op_braces, v_op_braces_intrinsic, 0);
+    v_add_intrinsic_q(q_struct,    v_struct_intrinsic,    0);
+    v_add_intrinsic_q(q_typed,     v_typed_intrinsic,     0);
 
     voidc_enable_definitions_compiler();        //- Sic!
 }

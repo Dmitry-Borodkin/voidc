@@ -927,9 +927,7 @@ struct voidc_internal_heap_objects_ctx_t
 export
 voidc_enable_heap_objects_compiler: () -> void
 {
-    vis = v_get_compiler();
-
-    v_return_if(voidc_visitor_get_intrinsic(vis, q_op_prefix_new, 0));
+    v_return_if(v_get_intrinsic_q(q_op_prefix_new, 0));
 
     ctx = *v_malloc(voidc_internal_heap_objects_ctx_t);
 
@@ -968,17 +966,17 @@ voidc_enable_heap_objects_compiler: () -> void
     v_add_intrinsic_q(q_aligned_alloc, v_aligned_alloc_intrinsic, &ctx.alloc);
     v_add_intrinsic_q(q_aligned_free,  v_aligned_free_intrinsic,  &ctx.alloc);
 
-    voidc_visitor_set_intrinsic(vis, vis, q_op_prefix_new,          op_prefix_new_intrinsic,          0);
-    voidc_visitor_set_intrinsic(vis, vis, q_op_prefix_delete,       op_prefix_delete_intrinsic,       0);
-    voidc_visitor_set_intrinsic(vis, vis, q_op_prefix_delete_array, op_prefix_delete_array_intrinsic, 0);
+    v_add_intrinsic_q(q_op_prefix_new,          op_prefix_new_intrinsic,          0);
+    v_add_intrinsic_q(q_op_prefix_delete,       op_prefix_delete_intrinsic,       0);
+    v_add_intrinsic_q(q_op_prefix_delete_array, op_prefix_delete_array_intrinsic, 0);
 
     q = v_quark_from_string("voidc.compute_key_quark_type");
 
     vis = v_get_compiler();
 
-    ctx.quark.fun := (voidc_visitor_get_intrinsic(vis, q, &ctx.quark.aux) : *compute_key_quark_type_ft);
+    ctx.quark.fun := (v_get_intrinsic_q(q, &ctx.quark.aux) : *compute_key_quark_type_ft);
 
-    voidc_visitor_set_intrinsic(vis, vis, q, compute_key_quark_type, &ctx.quark);
+    v_add_intrinsic_q(q, compute_key_quark_type, &ctx.quark);
 
     free: (*void) -> void;
 

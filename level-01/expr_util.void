@@ -110,15 +110,10 @@
 {
     typ0 = v_alloca(v_type_ptr);
 
-    v_store(char_ptr, typ0);
-
-    ft = v_function_type(void, typ0, 1, false);
-    v_add_symbol("free", ft, 0);
-
     v_store(void_ptr, typ0);
 
     ft = v_function_type(void, typ0, 1, false);
-    v_add_type("cleaner_ft_ptr", v_pointer_type(ft, 0));
+    v_add_symbol("free", ft, 0);
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
@@ -4497,7 +4492,7 @@
 
         m = v_load(ti);
 
-        voidc_visitor_set_intrinsic(vis, vis, quark, m, 0);
+        v_add_intrinsic_q(quark, m, 0);
 
 
         v_assign(i, v_binop(LLVMAdd, i, 1));
@@ -4514,41 +4509,41 @@
 
     v_set_convert_to_type(convert_to_type, saved_ctx);
 
-    v_add_local_cleaner(v_cast(free, cleaner_ft_ptr), saved_ctx);
+    v_add_local_cleaner(free, saved_ctx);
 
 
     //-------------------------------------------------------------
     q = v_quark_from_string;
 
-    voidc_visitor_set_intrinsic(vis, vis, q("int"),   voidc_int_type_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("uint"),  voidc_uint_type_intrinsic, 0);
+    v_add_intrinsic_q(q("int"),   voidc_int_type_intrinsic, 0);
+    v_add_intrinsic_q(q("uint"),  voidc_uint_type_intrinsic, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, q("float"), voidc_float_type_intrinsic, 0);
+    v_add_intrinsic_q(q("float"), voidc_float_type_intrinsic, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v_ptr"), voidc_ptr_type_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v_ref"), voidc_ref_type_intrinsic, 0);
+    v_add_intrinsic_q(q("v_ptr"), voidc_ptr_type_intrinsic, 0);
+    v_add_intrinsic_q(q("v_ref"), voidc_ref_type_intrinsic, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, q("vec"),   voidc_vec_type_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("svec"),  voidc_svec_type_intrinsic, 0);
+    v_add_intrinsic_q(q("vec"),   voidc_vec_type_intrinsic, 0);
+    v_add_intrinsic_q(q("svec"),  voidc_svec_type_intrinsic, 0);
 
     //-------------------------------------------------------------
-    v_export_symbol("voidc_internal_vectorize_scalar", vectorize_scalar_ft, vectorize_scalar);
+    v_add_symbol("voidc_internal_vectorize_scalar", vectorize_scalar_ft, vectorize_scalar);
 
-    v_export_symbol("voidc_internal_compile_add_helper", compile_op_ft, compile_add);
-    v_export_symbol("voidc_internal_compile_sub_helper", compile_op_ft, compile_sub);
-    v_export_symbol("voidc_internal_compile_mul_helper", compile_op_ft, compile_mul);
-    v_export_symbol("voidc_internal_compile_div_helper", compile_op_ft, compile_div);
-    v_export_symbol("voidc_internal_compile_rem_helper", compile_op_ft, compile_rem);
-    v_export_symbol("voidc_internal_compile_shl_helper", compile_op_ft, compile_shl);
-    v_export_symbol("voidc_internal_compile_shr_helper", compile_op_ft, compile_shr);
-    v_export_symbol("voidc_internal_compile_and_helper", compile_op_ft, compile_and);
-    v_export_symbol("voidc_internal_compile_xor_helper", compile_op_ft, compile_xor);
-    v_export_symbol("voidc_internal_compile_or_helper",  compile_op_ft, compile_or);
+    v_add_symbol("voidc_internal_compile_add_helper", compile_op_ft, compile_add);
+    v_add_symbol("voidc_internal_compile_sub_helper", compile_op_ft, compile_sub);
+    v_add_symbol("voidc_internal_compile_mul_helper", compile_op_ft, compile_mul);
+    v_add_symbol("voidc_internal_compile_div_helper", compile_op_ft, compile_div);
+    v_add_symbol("voidc_internal_compile_rem_helper", compile_op_ft, compile_rem);
+    v_add_symbol("voidc_internal_compile_shl_helper", compile_op_ft, compile_shl);
+    v_add_symbol("voidc_internal_compile_shr_helper", compile_op_ft, compile_shr);
+    v_add_symbol("voidc_internal_compile_and_helper", compile_op_ft, compile_and);
+    v_add_symbol("voidc_internal_compile_xor_helper", compile_op_ft, compile_xor);
+    v_add_symbol("voidc_internal_compile_or_helper",  compile_op_ft, compile_or);
 
-    v_export_symbol("voidc_internal_compile_infix_add_helper", compile_infix_ft, compile_infix_add);
-    v_export_symbol("voidc_internal_compile_infix_sub_helper", compile_infix_ft, compile_infix_sub);
+    v_add_symbol("voidc_internal_compile_infix_add_helper", compile_infix_ft, compile_infix_add);
+    v_add_symbol("voidc_internal_compile_infix_sub_helper", compile_infix_ft, compile_infix_sub);
 
-    v_export_symbol("voidc_internal_convert_to_common_type_helper", convert_to_common_type_ft, convert_to_common_type);
+    v_add_symbol("voidc_internal_convert_to_common_type_helper", convert_to_common_type_ft, convert_to_common_type);
 }
 
 

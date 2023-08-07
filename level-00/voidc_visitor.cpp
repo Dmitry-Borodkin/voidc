@@ -93,34 +93,6 @@ voidc_visitor_set_void_method(visitor_t *dst, const visitor_t *src, v_quark_t qu
     *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }
 
-
-//---------------------------------------------------------------------
-void *
-voidc_visitor_get_intrinsic(const visitor_t *ptr, v_quark_t name, void **aux_ptr)
-{
-    if (auto *vm = (*ptr)->intrinsics.find(name))
-    {
-        auto [void_fun, aux] = *vm;
-
-        if (aux_ptr)  *aux_ptr = aux;
-
-        return void_fun;
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-void
-voidc_visitor_set_intrinsic(visitor_t *dst, const visitor_t *src, v_quark_t name, void *void_fun, void *aux)
-{
-    auto visitor = (*src)->set_intrinsic(name, void_fun, aux);
-
-    *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
-}
-
-
 //---------------------------------------------------------------------
 const std::any *
 voidc_visitor_get_property(const visitor_t *ptr, v_quark_t quark)

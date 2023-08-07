@@ -378,7 +378,7 @@
 
     v_add_symbol("break_q", v_reference_type(v_quark_t, 0), break_pq);
 
-    break_intrinsic = voidc_visitor_get_intrinsic(v_get_compiler(), v_load(break_pq), 0);
+    break_intrinsic = v_get_intrinsic_q(v_load(break_pq), 0);
 
     v_add_symbol("v_break_intrinsic", voidc_intrinsic_t, break_intrinsic);
 
@@ -400,9 +400,9 @@
 
     continue_q = v_quark_from_string("v_continue");
 
-    voidc_visitor_set_intrinsic(vis, vis, continue_q, voidc_intrinsic_continue, 0);
+    v_export_intrinsic_q(continue_q, voidc_intrinsic_continue, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, break_q, v_break_intrinsic, 0);       //- Re-export from "stmt_block" (?)
+    v_export_intrinsic_q(break_q, v_break_intrinsic, 0);                        //- Re-export from "stmt_block" (?)
 }
 
 

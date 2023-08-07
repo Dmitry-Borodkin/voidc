@@ -52,7 +52,9 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     builder(LLVMCreateBuilderInContext(ctx)),
     char_ptr_type(make_pointer_type(char_type, 0)),         //- address space 0 !?
     void_ptr_type(make_pointer_type(void_type, 0))          //- address space 0 !?
-{}
+{
+    make_level_0_intrinsics(*this);
+}
 
 base_global_ctx_t::~base_global_ctx_t()
 {
@@ -1449,7 +1451,7 @@ static void voidc_adopt_result_default(void *, v_type_t *type, LLVMValueRef valu
 voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
   : voidc_template_ctx_t(global)
 {
-    compiler = make_voidc_compiler();
+    compiler = make_level_0_voidc_compiler();
 
     adopt_result_fun = voidc_adopt_result_default;
 
@@ -1703,7 +1705,7 @@ target_global_ctx_t::~target_global_ctx_t()
 target_local_ctx_t::target_local_ctx_t(base_global_ctx_t &global)
   : target_template_ctx_t(global)
 {
-    compiler = make_target_compiler();
+    compiler = make_level_0_target_compiler();
 }
 
 target_local_ctx_t::~target_local_ctx_t()

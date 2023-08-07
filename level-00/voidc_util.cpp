@@ -50,15 +50,12 @@ bool lookup_function_dict(const visitor_t *vis, v_type_t *type, v_quark_t quark,
         if (!qname)  return false;
     }
 
-    for (auto &intrs : {lctx.decls.intrinsics, (*vis)->intrinsics})
+    if (auto p = lctx.decls.intrinsics.find(*qname))
     {
-        if (auto p = intrs.find(*qname))
-        {
-            void_fun = p->first;
-            aux      = p->second;
+        void_fun = p->first;
+        aux      = p->second;
 
-            return true;
-        }
+        return true;
     }
 
     void_fun = nullptr;

@@ -510,7 +510,7 @@ voidc_obtain_special_result_value: (vis: *voidc_visitor_t, t: *v_type_t) -> LLVM
 {
     aux: &*void := v_undef();
 
-    void_fun = voidc_visitor_get_intrinsic(vis, voidc_obtain_special_result_value_q, &aux);
+    void_fun = v_get_intrinsic_q(voidc_obtain_special_result_value_q, &aux);
 
     fun_t = (vis: *voidc_visitor_t, *void, t: *v_type_t) -> LLVMValueRef;
 
@@ -1227,16 +1227,16 @@ voidc_enable_local_objects_compiler: () -> void
 
     q = v_quark_from_string("v.prepare_function_parameters");
 
-    void_fun = voidc_visitor_get_intrinsic(vis, q, &ctx.fun_params.aux);
+    void_fun = v_get_intrinsic_q(q, &ctx.fun_params.aux);
 
     ctx.fun_params.fun := (void_fun : *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) -> void));
 
-    voidc_visitor_set_intrinsic(vis, vis, q, my_prepare_function_parameters, &ctx.fun_params);
+    v_add_intrinsic_q(q, my_prepare_function_parameters, &ctx.fun_params);
 
     //-----------------------------------------------------------------
     q = voidc_obtain_special_result_value_q;
 
-    voidc_visitor_set_intrinsic(vis, vis, q, voidc_obtain_special_result_value_helper, 0);
+    v_add_intrinsic_q(q, voidc_obtain_special_result_value_helper, 0);
 
     //-----------------------------------------------------------------
     q = v_quark_from_string("stmt");
@@ -1250,7 +1250,7 @@ voidc_enable_local_objects_compiler: () -> void
     //-----------------------------------------------------------------
     q = v_quark_from_string("voidc.llvm_build_call_helper");
 
-    voidc_visitor_set_intrinsic(vis, vis, q, my_llvm_build_call_helper_intrinsic, 0);
+    v_add_intrinsic_q(q, my_llvm_build_call_helper_intrinsic, 0);
 
     ctx.adopt_result.fun := v_get_adopt_result(&ctx.adopt_result.ctx);
 
@@ -1269,15 +1269,15 @@ voidc_enable_local_objects_compiler: () -> void
     //-----------------------------------------------------------------
     q = v_quark_from_string;
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.var_defn"), my_internal_var_defn_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.val_defn"), my_internal_val_defn_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.var_defn"), my_internal_var_defn_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.val_defn"), my_internal_val_defn_intrinsic, 0);
 
     //-----------------------------------------------------------------
     q = v_quark_from_string("v.op_braces");
 
-    ctx.op_braces.fun := (voidc_visitor_get_intrinsic(vis, q, &ctx.op_braces.aux) : *voidc_intrinsic_t);
+    ctx.op_braces.fun := (v_get_intrinsic_q(q, &ctx.op_braces.aux) : *voidc_intrinsic_t);
 
-    voidc_visitor_set_intrinsic(vis, vis, q, my_op_braces_intrinsic, &ctx.op_braces);
+    v_add_intrinsic_q(q, my_op_braces_intrinsic, &ctx.op_braces);
 
     //-----------------------------------------------------------------
     free: (*void) -> void;

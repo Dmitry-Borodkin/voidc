@@ -79,6 +79,42 @@
     v_add_symbol("q_op_infix_assign", q_ref, q("v.op_infix_assign"));
 
     v_add_symbol("q_prepare_function_parameters", q_ref, q("v.prepare_function_parameters"));
+
+    v_add_symbol("voidc_definitions_context_q", q_ref, q("voidc.definitions_context"));
+}
+
+
+//---------------------------------------------------------------------
+//- Context ...
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 6);
+
+    typ[0] := bool;                         //- "export_flag"
+    typ[1] := LLVMModuleRef;                //- "saved_module"
+    typ[2] := LLVMModuleRef;                //- "defn_module"
+    typ[3] := convert_to_type_ctx_t;        //- "convert_ctx"
+    typ[4] := v_ast_stmt_list_ptr;          //- "stmt_list"
+    typ[5] := LLVMModuleRef;                //- "mod_const"
+
+    ctx_type = v_struct_type_named("struct.voidc_definitions_ctx_t");
+
+    v_type_struct_set_body(ctx_type, typ, 6, false);
+
+    v_add_type("definitions_ctx_t", ctx_type);
+}
+
+{   int_ = v_type_get_llvm_type(int);
+
+    v_add_constant("ctx_export_flag",  int, LLVMConstInt(int_, 0, 0));
+    v_add_constant("ctx_saved_module", int, LLVMConstInt(int_, 1, 0));
+    v_add_constant("ctx_defn_module",  int, LLVMConstInt(int_, 2, 0));
+    v_add_constant("ctx_convert_ctx",  int, LLVMConstInt(int_, 3, 0));
+    v_add_constant("ctx_stmt_list",    int, LLVMConstInt(int_, 4, 0));
+    v_add_constant("ctx_mod_const",    int, LLVMConstInt(int_, 5, 0));
+
+    //-----------------------------------------------------------------
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -91,15 +127,10 @@
     ft = v_function_type(int, typ, 2, true);
     v_add_symbol("sprintf", ft, 0);
 
-//  typ[0] := char_ptr;
-
-    ft = v_function_type(void, typ, 1, false);
-    v_add_symbol("free", ft, 0);
-
     typ[0] := void_ptr;
 
     ft = v_function_type(void, typ, 1, false);
-    v_add_type("cleaner_ft_ptr", v_pointer_type(ft, 0));
+    v_add_symbol("free", ft, 0);
 
     ft = v_function_type(void, 0, 0, false);
     v_add_symbol("abort", ft, 0);
@@ -212,7 +243,6 @@
     v_add_symbol("defn_list_unit_q", q_ref, q("defn_list_unit"));
 
     v_add_symbol("voidc_decl_stmt_list_q", q_ref, q("voidc.decl_stmt_list"));
-    v_add_symbol("voidc_compile_type_q",   q_ref, q("voidc.compile_type"));
 
     v_add_symbol("mod_const_q", q_ref, q("voidc.constants_module"));
 }
@@ -1012,8 +1042,12 @@
     f = v_function_hack("check_defn_module", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ctx", void_ptr);
 }
 {
+    defn_module = *v_cast(ctx, *LLVMModuleRef);
+
     if (!defn_module)
     {
         //- voidc_guard_target(...);
@@ -1046,6 +1080,7 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
+    v_add_parameter_name(f, 0, "aux",      void_ptr);
     v_add_parameter_name(f, 1, "fun",      LLVMValueRef);
     v_add_parameter_name(f, 2, "qualif",   intptr_t);
     v_add_parameter_name(f, 3, "fun_name", char_ptr);
@@ -1104,6 +1139,15 @@
     v_add_parameter_name(f, 5, "fun_body", v_ast_base_ptr);
 }
 {
+    def_ctx = v_find_symbol_value_q(voidc_definitions_context_q);
+
+    def_ctx = *v_cast(def_ctx, *definitions_ctx_t);
+
+    export_flag = def_ctx[ctx_export_flag];
+
+    stmt_list = def_ctx[ctx_stmt_list];
+
+    //-------------------------------------------------------------
     private = (qualif & qf_private);
     export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
@@ -1122,7 +1166,7 @@
         if (private)  LLVMSetLinkage(f, LLVMPrivateLinkage);
 
         aux = *v_alloca(void_ptr);
-        void_fun = voidc_visitor_get_intrinsic(vis, q_prepare_function_parameters, &aux);
+        void_fun = v_get_intrinsic_q(q_prepare_function_parameters, &aux);
 
         fun = v_cast(void_fun, *v_prepare_function_parameters_t);
 
@@ -1136,11 +1180,7 @@
     }
 
     //-------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(vis, voidc_decl_stmt_list_q, 0);
-
     if (!stmt_list)  v_return();
-
-    stmt_list = v_cast(stmt_list, v_ast_stmt_list_ptr);
 
 
     expr = v_alloca(v_ast_expr_t, 3);
@@ -1259,6 +1299,13 @@
     ast1 = v_list_get_item(list, 1);
 
     //-------------------------------------------------------------
+    def_ctx = *v_cast(aux, *definitions_ctx_t);
+
+    export_flag = def_ctx[ctx_export_flag];
+
+    stmt_list = def_ctx[ctx_stmt_list];
+
+    //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
 
     private = (qualif & qf_private);
@@ -1314,11 +1361,7 @@
     }
 
     //-------------------------------------------------------------
-    stmt_list = voidc_visitor_get_intrinsic(visitor, voidc_decl_stmt_list_q, 0);
-
     if (!stmt_list)  v_return();
-
-    stmt_list = v_cast(stmt_list, v_ast_stmt_list_ptr);
 
 
     expr = v_alloca(v_ast_expr_t, 3);
@@ -1383,6 +1426,14 @@
     ast1 = v_list_get_item(list, 1);
 
     //-------------------------------------------------------------
+    def_ctx = *v_cast(aux, *definitions_ctx_t);
+
+    export_flag = def_ctx[ctx_export_flag];
+
+    stmt_list = def_ctx[ctx_stmt_list];
+    mod_const = def_ctx[ctx_mod_const];
+
+    //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
 
     private = (qualif & qf_private);
@@ -1422,13 +1473,7 @@
     }
 
     //-------------------------------------------------------------
-    mod_const = *v_alloca(*LLVMModuleRef);
-
-    stmt_list = voidc_visitor_get_intrinsic(visitor, voidc_decl_stmt_list_q, v_cast(&mod_const, **void));
-
     if (!stmt_list)  v_return();
-
-    stmt_list = v_cast(stmt_list, v_ast_stmt_list_ptr);
 
 
     expr = v_alloca(v_ast_expr_t, 3);
@@ -1464,14 +1509,14 @@
     {
         t_ = v_type_get_llvm_type(t);
 
-        if (!*mod_const)
+        if (!mod_const)
         {
             c_ = LLVMGetTypeContext(t_);
 
-            *mod_const := LLVMModuleCreateWithNameInContext("voidc_module_for_constants", c_);
+            mod_const := LLVMModuleCreateWithNameInContext("voidc_module_for_constants", c_);
         }
 
-        v_ = LLVMAddGlobal(*mod_const, t_, name);
+        v_ = LLVMAddGlobal(mod_const, t_, name);
 
         LLVMSetInitializer(v_, v);
 
@@ -1591,6 +1636,15 @@
 
     list = v_cast(self, v_ast_generic_list_ptr);
 
+    //-------------------------------------------------------------
+    def_ctx = *v_cast(aux, *definitions_ctx_t);
+
+    saved_module = def_ctx[ctx_saved_module];
+    defn_module  = def_ctx[ctx_defn_module];
+
+    stmt_list = def_ctx[ctx_stmt_list];
+    mod_const = def_ctx[ctx_mod_const];
+
     //- Definitions (i.e. "values of things") ---------------------
 
     saved_module := v_get_module();
@@ -1600,21 +1654,14 @@
     saved_obtain_module_ctx = *v_alloca(*void);
     saved_obtain_module_fun = v_get_obtain_module(&saved_obtain_module_ctx);
 
-    v_set_obtain_module(check_defn_module, 0);
+    v_set_obtain_module(check_defn_module, &defn_module);
 
     //- Declarations (i.e. "types of things") ---------------------
 
-    mod_const = *v_alloca(LLVMModuleRef) := 0;
-
-    stmt_list = *v_alloca(v_ast_stmt_list_ptr) := 0;
+    stmt_list := 0;
+    mod_const := 0;
 
     decl_stmt_list = v_alloca(v_ast_stmt_list_t);
-
-    inner_visitor = v_alloca(voidc_visitor_t);
-    v_initialize(inner_visitor);
-    defer v_terminate(inner_visitor);
-
-    v_copy(inner_visitor, v_get_compiler());
 
 
     block
@@ -1639,8 +1686,6 @@
 
         v_make_list_nil(decl_stmt_list);
 
-        voidc_visitor_set_intrinsic(inner_visitor, inner_visitor, voidc_decl_stmt_list_q, decl_stmt_list, &mod_const);
-
         stmt_list := decl_stmt_list;
     }
 
@@ -1662,7 +1707,7 @@
 
         lst1 = v_cast(v_list_get_item(lst0, i), v_ast_generic_list_ptr);
 
-        v_ast_accept_visitor(v_cast(lst1, v_ast_base_ptr), inner_visitor);
+        v_ast_accept_visitor(v_cast(lst1, v_ast_base_ptr), visitor);
 
         ++i;
     }
@@ -1726,7 +1771,11 @@
         }
 
         //---------------------------------------------------------
-        ctx = *v_alloca(voidc_compile_type_ctx_t);
+        ctx_ptr = *v_alloca(*void);
+
+        v_get_intrinsic_q(voidc_compile_type_q, &ctx_ptr);
+
+        ctx = *v_cast(ctx_ptr, *voidc_compile_type_ctx_t);
 
         voidc_compile_type_ctx_initialize(ctx);
 
@@ -1745,14 +1794,7 @@
         voidc_compile_type_ctx_set_stack(ctx, ctx_stack);
 
 
-        v_copy(inner_visitor, v_get_compiler());
-
-        vis = inner_visitor;
-
-        voidc_visitor_set_intrinsic(vis, vis, voidc_compile_type_q, voidc_compile_type_intrinsic, &ctx);
-
-
-        v_ast_accept_visitor(v_cast(stmt_list, v_ast_base_ptr), vis);
+        v_ast_accept_visitor(v_cast(stmt_list, v_ast_base_ptr), v_get_compiler());
 
 
         LLVMBuildFree(builder, ctx_stack);
@@ -1943,6 +1985,12 @@
     v_add_parameter_name(f, 0, "flag", bool);
 }
 {
+    def_ctx = v_find_symbol_value_q(voidc_definitions_context_q);
+
+    def_ctx = *v_cast(def_ctx, *definitions_ctx_t);
+
+    export_flag = def_ctx[ctx_export_flag];
+
     export_flag := flag;
 }
 
@@ -1956,6 +2004,12 @@
     f = v_function_hack("v_get_export_flag", ft);
 }
 {
+    def_ctx = v_find_symbol_value_q(voidc_definitions_context_q);
+
+    def_ctx = *v_cast(def_ctx, *definitions_ctx_t);
+
+    export_flag = def_ctx[ctx_export_flag];
+
     v_return(export_flag);
 }
 
@@ -2017,57 +2071,67 @@
 
 
     //-------------------------------------------------------------
-    saved_ctx = v_malloc(convert_to_type_ctx_t);
+    def_ctx = *v_malloc(definitions_ctx_t) := 0;
 
-    saved_ctx_fun = v_getelementptr(saved_ctx, 0, 0);
-    saved_ctx_ctx = v_getelementptr(saved_ctx, 0, 1);
-
-    v_store(v_get_convert_to_type(saved_ctx_ctx), saved_ctx_fun);
-
-    v_set_convert_to_type(convert_to_type, saved_ctx);
-
-    v_add_local_cleaner(v_cast(free, cleaner_ft_ptr), saved_ctx);
-
+    v_add_local_cleaner(free, &def_ctx);
 
     //-------------------------------------------------------------
-    voidc_visitor_set_void_method(vis, vis, br_item_list_q,   compile_br_item_list,   0);
-    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q,  compile_unit_fun_defn,  0);
-    voidc_visitor_set_void_method(vis, vis, unit_var_defn_q,  compile_unit_var_defn,  0);
-    voidc_visitor_set_void_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  0);
-    voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, 0);
+    convert_ctx = def_ctx[ctx_convert_ctx];
+
+    convert_ctx[0] := v_get_convert_to_type(&convert_ctx[1]);
+
+    v_set_convert_to_type(convert_to_type, &convert_ctx);
+
+    //-------------------------------------------------------------
+    voidc_visitor_set_void_method(vis, vis, br_item_list_q,   compile_br_item_list,   &def_ctx);
+    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q,  compile_unit_fun_defn,  &def_ctx);
+    voidc_visitor_set_void_method(vis, vis, unit_var_defn_q,  compile_unit_var_defn,  &def_ctx);
+    voidc_visitor_set_void_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  &def_ctx);
+    voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, &def_ctx);
 
     q = v_quark_from_string;
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v.op_infix_to"),        compile_op_infix_to,  0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v.op_prefix_const"),    compile_op_prefix_cv, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v.op_prefix_volatile"), compile_op_prefix_cv, 0);
+    v_add_intrinsic_q(q("v.op_infix_to"),        compile_op_infix_to,  0);
+    v_add_intrinsic_q(q("v.op_prefix_const"),    compile_op_prefix_cv, 0);
+    v_add_intrinsic_q(q("v.op_prefix_volatile"), compile_op_prefix_cv, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.var_decl"), v_internal_var_decl_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.var_defn"), v_internal_var_defn_intrinsic, 0);
-    voidc_visitor_set_intrinsic(vis, vis, q("v.internal.val_defn"), v_internal_val_defn_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.var_decl"), v_internal_var_decl_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.var_defn"), v_internal_var_defn_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.val_defn"), v_internal_val_defn_intrinsic, 0);
 
-    voidc_visitor_set_intrinsic(vis, vis, q("v_undef"), v_undef_intrinsic, 0);
+    v_add_intrinsic_q(q("v_undef"), v_undef_intrinsic, 0);
 
     //-----------------------------------------------------------------
-    voidc_visitor_set_intrinsic(vis, vis, q_prepare_function_parameters, v_prepare_function_parameters_default, 0);
+    v_add_intrinsic_q(q_prepare_function_parameters, v_prepare_function_parameters_default, 0);     //- ???
+
+    //-----------------------------------------------------------------
+    v_add_symbol_q(voidc_definitions_context_q, 0, &def_ctx);
 
 
     //-----------------------------------------------------------------
     saved_gctx = v_target_get_global_ctx();
     v_target_set_global_ctx(v_target_get_voidc_global_ctx());
 
-    //----------------------------------------------
-    typ = *v_alloca(v_type_ptr) := bool;
+    if (!v_get_intrinsic_q(voidc_compile_type_q, 0))
+    {
+        comp_type = v_malloc(voidc_compile_type_ctx_t);
 
-    ft = v_function_type(void, &typ, 1, false);
+        v_add_intrinsic_q(voidc_compile_type_q, voidc_compile_type_intrinsic, comp_type);
 
-    v_add_symbol("v_set_export_flag", ft, 0);
+        v_add_local_cleaner(free, comp_type);
 
-    ft = v_function_type(bool, 0, 0, false);
+        //----------------------------------------------
+        typ = *v_alloca(v_type_ptr) := bool;
 
-    v_add_symbol("v_get_export_flag", ft, 0);
+        ft = v_function_type(void, &typ, 1, false);
 
-    //----------------------------------------------
+        v_add_symbol("v_set_export_flag", ft, 0);
+
+        ft = v_function_type(bool, 0, 0, false);
+
+        v_add_symbol("v_get_export_flag", ft, 0);
+    }
+
     v_target_set_global_ctx(saved_gctx);
 }
 

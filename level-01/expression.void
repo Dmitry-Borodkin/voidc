@@ -209,17 +209,15 @@
     v_type_struct_set_body(precedence_stack_node_t, typ0, 2, 0);
 
     //-----------------------------------------------------------------
-    stack_g = LLVMAddGlobal(module, precedence_stack_node_ptr_, "precedence_stack");
-
-    stack_u = LLVMGetUndef(precedence_stack_node_ptr_);
-
-    LLVMSetInitializer(stack_g, stack_u);
+    v_add_type("precedence_stack_node_t",       precedence_stack_node_t);
+    v_add_type("precedence_stack_node_ptr",     precedence_stack_node_ptr);
+    v_add_type("precedence_stack_node_ptr_ptr", v_pointer_type(precedence_stack_node_ptr, 0));
 
     //-----------------------------------------------------------------
-    v_add_type("precedence_stack_node_t",   precedence_stack_node_t);
-    v_add_type("precedence_stack_node_ptr", precedence_stack_node_ptr);
+    v_store(void_ptr, typ0);
 
-    v_add_symbol("precedence_stack", precedence_stack_node_ptr, 0);       //- Sic!
+    ft = v_function_type(void, typ0, 1, false);
+    v_add_symbol("free", ft, 0);
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
@@ -231,18 +229,21 @@
 //- Precedence stack utility...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr);
+    typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
 
-    v_store(int, typ0);
+    v_store(void_ptr, typ0);
+    v_store(int,      typ1);
 
-    ft = v_function_type(void, typ0, 1, false);
+    ft = v_function_type(void, typ0, 2, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("precedence_stack_push", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "prec", int);
+    v_add_parameter_name(f, 0, "vpst", void_ptr);
+    v_add_parameter_name(f, 1, "prec", int);
 }
 {
 //  printf("precedence_stack_push(%d)\n", prec);
@@ -252,32 +253,42 @@
     p_prec = v_getelementptr(node, 0, 0);
     p_next = v_getelementptr(node, 0, 1);
 
-    cur = v_load(precedence_stack);
+    ppst = v_cast(vpst, precedence_stack_node_ptr_ptr);
+
+    cur = v_load(ppst);
 
     v_store(prec, p_prec);
     v_store(cur,  p_next);
 
-    v_store(node, precedence_stack);
+    v_store(node, ppst);
 }
 
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(int, 0, 0, false);
+    typ0 = v_alloca(v_type_ptr);
+
+    v_store(void_ptr, typ0);
+
+    ft = v_function_type(int, typ0, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("precedence_stack_pop", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vpst", void_ptr);
 }
 {
-    node = v_load(precedence_stack);
+    ppst = v_cast(vpst, precedence_stack_node_ptr_ptr);
+
+    node = v_load(ppst);
 
     p_prec = v_getelementptr(node, 0, 0);
     p_next = v_getelementptr(node, 0, 1);
 
     next = v_load(p_next);
 
-    v_store(next, precedence_stack);
+    v_store(next, ppst);
 
     prec = v_load(p_prec);
 
@@ -290,15 +301,23 @@
 
 //---------------------------------------------------------------------
 {
-    ft = v_function_type(int, 0, 0, false);
+    typ0 = v_alloca(v_type_ptr);
+
+    v_store(void_ptr, typ0);
+
+    ft = v_function_type(int, typ0, 1, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("precedence_stack_peek", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vpst", void_ptr);
 }
 {
-    node = v_load(precedence_stack);
+    ppst = v_cast(vpst, precedence_stack_node_ptr_ptr);
+
+    node = v_load(ppst);
 
     p_prec = v_getelementptr(node, 0, 0);
 
@@ -325,7 +344,9 @@
 {
 //  printf("expr_start_grammar_action\n");
 
-    precedence_stack_push(0);
+    ppst = v_cast(aux, precedence_stack_node_ptr_ptr);
+
+    precedence_stack_push(ppst, 0);
 
     v_std_any_set_value(ret, 1);
 }
@@ -347,7 +368,9 @@
 {
 //  printf("expr_stop_grammar_action\n");
 
-    precedence_stack_pop();
+    ppst = v_cast(aux, precedence_stack_node_ptr_ptr);
+
+    precedence_stack_pop(ppst);
 
     v_copy(ret, any0);
 }
@@ -369,7 +392,9 @@
 {
 //  printf("expr_cleanup_grammar_action\n");
 
-    precedence_stack_pop();
+    ppst = v_cast(aux, precedence_stack_node_ptr_ptr);
+
+    precedence_stack_pop(ppst);
 
     //- Just fail!
 }
@@ -392,7 +417,9 @@
 {
 //  printf("expr_check_infix_grammar_action\n");
 
-    min_prec = precedence_stack_peek();
+    ppst = v_cast(aux, precedence_stack_node_ptr_ptr);
+
+    min_prec = precedence_stack_peek(ppst);
 
     op = v_std_any_get_pointer(v_ast_expr_t, any0);
 
@@ -406,7 +433,7 @@
 
     if (v_icmp(LLVMIntULT, prec, min_prec)) v_return();     //- NOK
 
-    precedence_stack_push(v_binop(LLVMAdd, prec, left));
+    precedence_stack_push(ppst, v_binop(LLVMAdd, prec, left));
 
     v_std_any_set_value(ret, 1);                            //- OK
 }
@@ -446,7 +473,9 @@
 
     v_terminate(expr);
 
-    precedence_stack_pop();
+    ppst = v_cast(aux, precedence_stack_node_ptr_ptr);
+
+    precedence_stack_pop(ppst);
 }
 
 
@@ -474,7 +503,9 @@
 {
 //  printf("expr_make_postfix_grammar_action\n");
 
-    min_prec = precedence_stack_peek();
+    ppst = v_cast(aux, precedence_stack_node_ptr_ptr);
+
+    min_prec = precedence_stack_peek(ppst);
 
     any1 = v_getelementptr(any0, 1);
 
@@ -544,7 +575,9 @@
 
     prec = v_load(v_getelementptr(obj, 0, 1));
 
-    precedence_stack_push(prec);
+    ppst = v_cast(aux, precedence_stack_node_ptr_ptr);
+
+    precedence_stack_push(ppst, prec);
 
     v_std_any_set_value(ret, 1);
 }
@@ -581,7 +614,9 @@
 
     v_terminate(expr);
 
-    precedence_stack_pop();
+    ppst = v_cast(aux, precedence_stack_node_ptr_ptr);
+
+    precedence_stack_pop(ppst);
 }
 
 
@@ -676,7 +711,7 @@
 {
     q = v_quark_from_string;
 
-    v_return_if(voidc_visitor_get_intrinsic(v_get_compiler(), q("v.op_infix_assign"), 0));
+    v_return_if(v_get_intrinsic_q(q("v.op_infix_assign"), 0));
 
     voidc_ast_add_operator_methods();
 }
@@ -740,17 +775,21 @@
         v_terminate(any);
     }
 
+    ppst = v_malloc(precedence_stack_node_ptr);
+
+    v_store(0, ppst);
+
     grammar gr0
     {
     actions:
-        expr_start        = expr_start_grammar_action;
-        expr_stop         = expr_stop_grammar_action;
-        expr_cleanup      = expr_cleanup_grammar_action;
-        expr_check_infix  = expr_check_infix_grammar_action;
-        expr_infix        = expr_infix_grammar_action;
-        expr_make_postfix = expr_make_postfix_grammar_action;
-        expr_push_prefix  = expr_push_prefix_grammar_action;
-        expr_prefix       = expr_prefix_grammar_action;
+        expr_start        = expr_start_grammar_action,        ppst;
+        expr_stop         = expr_stop_grammar_action,         ppst;
+        expr_cleanup      = expr_cleanup_grammar_action,      ppst;
+        expr_check_infix  = expr_check_infix_grammar_action,  ppst;
+        expr_infix        = expr_infix_grammar_action,        ppst;
+        expr_make_postfix = expr_make_postfix_grammar_action, ppst;
+        expr_push_prefix  = expr_push_prefix_grammar_action,  ppst;
+        expr_prefix       = expr_prefix_grammar_action,       ppst;
 
         mk_bracketed = mk_bracketed_grammar_action;
 
@@ -832,6 +871,9 @@
 
 
     v_terminate(gr0);
+
+
+    v_add_local_cleaner(free, ppst);        //- Sic!
 }
 
 

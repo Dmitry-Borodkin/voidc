@@ -574,11 +574,11 @@ voidc_enable_intrinsics_derive_compiler: () -> void
 
     ctx = *v_malloc(voidc_compute_key_quark_type_ctx_t);
 
-    ctx.fun := (voidc_visitor_get_intrinsic(vis, q, &ctx.aux) : *compute_key_quark_type_ft);
+    ctx.fun := (v_get_intrinsic_q(q, &ctx.aux) : *compute_key_quark_type_ft);
 
-    voidc_visitor_set_intrinsic(vis, vis, q, compute_key_quark_type, &ctx);
+    v_add_intrinsic_q(q, compute_key_quark_type, &ctx);
 
-    voidc_visitor_set_intrinsic(vis, vis, q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
+    v_add_intrinsic_q(q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
 
     free: (*void) -> void;
 
