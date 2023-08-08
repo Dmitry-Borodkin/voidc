@@ -191,6 +191,74 @@
 
 
 //---------------------------------------------------------------------
+//- Add "definitions context"...
+//---------------------------------------------------------------------
+{
+    ctx_ptr = v_pointer_type(definitions_ctx_t, 0);
+
+    typ = *v_alloca(v_type_ptr) := ctx_ptr;
+
+    ft = v_function_type(void, &typ, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("add_definitions_context", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "ctx", ctx_ptr);
+}
+{
+    any = v_alloca(v_std_any_t);
+    v_initialize(any);
+    defer v_terminate(any);
+
+    v_std_any_set_value(any, v_cast(ctx, intptr_t));
+
+    v_add_property_q(voidc_definitions_context_q, any);
+}
+
+//---------------------------------------------------------------------
+//- Get "definitions context"...
+//---------------------------------------------------------------------
+{
+    ctx_ptr = v_pointer_type(definitions_ctx_t, 0);
+
+    ft = v_function_type(ctx_ptr, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("get_definitions_context", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+}
+{
+    any = v_get_property_q(voidc_definitions_context_q);
+
+    ctx = v_cast(v_std_any_get_value(intptr_t, any), *definitions_ctx_t);
+
+    v_return(ctx);
+}
+
+//---------------------------------------------------------------------
+//- Get "definitions context" "stmt_list" ...
+//---------------------------------------------------------------------
+{
+    rt = v_reference_type(v_ast_stmt_list_ptr, 0);
+
+    ft = v_function_type(rt, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_definitions_context_get_stmt_list", ft);
+}
+{
+    any = v_get_property_q(voidc_definitions_context_q);
+
+    ctx = *v_cast(v_std_any_get_value(intptr_t, any), *definitions_ctx_t);
+
+    v_return(ctx[ctx_stmt_list]);
+}
+
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
@@ -1139,9 +1207,7 @@
     v_add_parameter_name(f, 5, "fun_body", v_ast_base_ptr);
 }
 {
-    def_ctx = v_find_symbol_value_q(voidc_definitions_context_q);
-
-    def_ctx = *v_cast(def_ctx, *definitions_ctx_t);
+    def_ctx = *get_definitions_context();
 
     export_flag = def_ctx[ctx_export_flag];
 
@@ -1985,9 +2051,7 @@
     v_add_parameter_name(f, 0, "flag", bool);
 }
 {
-    def_ctx = v_find_symbol_value_q(voidc_definitions_context_q);
-
-    def_ctx = *v_cast(def_ctx, *definitions_ctx_t);
+    def_ctx = *get_definitions_context();
 
     export_flag = def_ctx[ctx_export_flag];
 
@@ -2004,9 +2068,7 @@
     f = v_function_hack("v_get_export_flag", ft);
 }
 {
-    def_ctx = v_find_symbol_value_q(voidc_definitions_context_q);
-
-    def_ctx = *v_cast(def_ctx, *definitions_ctx_t);
+    def_ctx = *get_definitions_context();
 
     export_flag = def_ctx[ctx_export_flag];
 
@@ -2105,7 +2167,7 @@
     v_add_intrinsic_q(q_prepare_function_parameters, v_prepare_function_parameters_default, 0);     //- ???
 
     //-----------------------------------------------------------------
-    v_add_symbol_q(voidc_definitions_context_q, 0, &def_ctx);
+    add_definitions_context(&def_ctx);
 
 
     //-----------------------------------------------------------------
@@ -2352,6 +2414,8 @@
 {
     v_make_export_symbol("voidc_compile_unit_fun_defn_helper");
     v_make_export_symbol("voidc_internal_constants_module_helper");
+
+    v_make_export_symbol("voidc_definitions_context_get_stmt_list");
 
     v_make_export_symbol("voidc_enable_definitions_compiler");
     v_make_export_symbol("voidc_enable_definitions");
