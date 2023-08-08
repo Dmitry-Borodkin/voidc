@@ -66,16 +66,18 @@ public:
         immer::map<v_quark_t, v_type_t *>  constants;
         immer::map<v_quark_t, v_type_t *>  symbols;
         immer::map<v_quark_t, intrinsic_t> intrinsics;
+        immer::map<v_quark_t, std::any>    properties;
 
         bool empty(void) const
         {
-            return (aliases.empty() && constants.empty() && symbols.empty() && intrinsics.empty());
+            return (aliases.empty() && constants.empty() && symbols.empty() && intrinsics.empty() && properties.empty());
         }
 
         void aliases_insert   (std::pair<v_quark_t, v_quark_t>   v) { aliases    = aliases.insert(v); }
         void constants_insert (std::pair<v_quark_t, v_type_t *>  v) { constants  = constants.insert(v); }
         void symbols_insert   (std::pair<v_quark_t, v_type_t *>  v) { symbols    = symbols.insert(v); }
         void intrinsics_insert(std::pair<v_quark_t, intrinsic_t> v) { intrinsics = intrinsics.insert(v); }
+        void properties_insert(std::pair<v_quark_t, std::any>    v) { properties = properties.insert(v); }
 
         void insert(const declarations_t &other);
     };
@@ -189,6 +191,9 @@ public:
 
     void export_intrinsic(v_quark_t fun_name, void *fun, void *aux=nullptr);
     void add_intrinsic(v_quark_t fun_name, void *fun, void *aux=nullptr);
+
+    void export_property(v_quark_t name, const std::any &value);
+    void add_property(v_quark_t name, const std::any &value);
 
     virtual void export_type(v_quark_t raw_name, v_type_t *type);
     virtual void add_type(v_quark_t raw_name, v_type_t *type);

@@ -566,6 +566,38 @@
 {   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 
+    v_std_any_ptr = v_pointer_type(v_std_any_t, 0);     //- Sic!
+
+    v_store(char_ptr,      typ0);           //- Property name
+    v_store(v_std_any_ptr, typ1);           //- Property value
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_export_property", ft);
+    v_export_symbol_type("v_add_property",    ft);
+
+    v_store(v_quark_t,     typ0);           //- Property name quark
+    v_store(v_std_any_ptr, typ1);           //- Property value
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_export_property_q", ft);
+    v_export_symbol_type("v_add_property_q",    ft);
+
+    v_store(char_ptr, typ0);                //- Property name
+
+    ft = v_function_type(v_std_any_ptr, typ0, 1, false);
+    v_export_symbol_type("v_get_property", ft);
+
+    v_store(v_quark_t, typ0);               //- Property name quark
+
+    ft = v_function_type(v_std_any_ptr, typ0, 1, false);
+    v_export_symbol_type("v_get_property_q", ft);
+}
+
+
+//---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
     v_store(void_ptr, typ0);
 
     fun_t = v_function_type(void, typ0, 1, false);

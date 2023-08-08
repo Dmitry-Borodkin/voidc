@@ -41,6 +41,7 @@ base_compile_ctx_t::declarations_t::insert(const declarations_t &other)
     for (auto it : other.constants)   constants_insert(it);
     for (auto it : other.symbols)     symbols_insert(it);
     for (auto it : other.intrinsics)  intrinsics_insert(it);
+    for (auto it : other.properties)  properties_insert(it);
 }
 
 
@@ -269,6 +270,23 @@ void
 base_local_ctx_t::add_intrinsic(v_quark_t fun_name, void *fun, void *aux)
 {
     decls.intrinsics_insert({fun_name, {fun, aux}});
+}
+
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::export_property(v_quark_t name, const std::any &value)
+{
+    if (export_decls)   export_decls->properties_insert({name, value});
+
+    decls.properties_insert({name, value});
+}
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::add_property(v_quark_t name, const std::any &value)
+{
+    decls.properties_insert({name, value});
 }
 
 
@@ -2898,6 +2916,59 @@ v_get_intrinsic(const char *name, void **aux)
     if (!qname)  return nullptr;
 
     return v_get_intrinsic_q(qname, aux);
+}
+
+
+//---------------------------------------------------------------------
+void
+v_export_property_q(v_quark_t qname, const std::any *value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.export_property(qname, *value);
+}
+
+void
+v_export_property(const char *name, const std::any *value)
+{
+    v_export_property_q(v_quark_from_string(name), value);
+}
+
+void
+v_add_property_q(v_quark_t qname, const std::any *value)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.add_property(qname, *value);
+}
+
+void
+v_add_property(const char *name, const std::any *value)
+{
+    v_add_property_q(v_quark_from_string(name), value);
+}
+
+const std::any *
+v_get_property_q(v_quark_t qname)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    auto &props = lctx.decls.properties;
+
+    return props.find(qname);
+}
+
+const std::any *
+v_get_property(const char *name)
+{
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return nullptr;
+
+    return v_get_property_q(qname);
 }
 
 
