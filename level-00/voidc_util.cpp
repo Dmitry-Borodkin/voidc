@@ -27,7 +27,7 @@ namespace utility
 //- ...
 //---------------------------------------------------------------------
 static
-bool lookup_function_dict(const visitor_t *vis, v_type_t *type, v_quark_t quark,
+bool lookup_function_dict(v_type_t *type, v_quark_t quark,
                           void *&void_fun, void *&aux,
                           LLVMValueRef &f, v_type_t *&ft)
 {
@@ -41,9 +41,7 @@ bool lookup_function_dict(const visitor_t *vis, v_type_t *type, v_quark_t quark,
         const std::any *any = nullptr;
 
         auto it = props.find(quark);
-
         if (it != props.end())  any = &it->second;
-        else                    any = (*vis)->type_properties.find({type, quark});
 
         qname = std::any_cast<v_quark_t>(any);
 
@@ -110,7 +108,7 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
     LLVMValueRef f;
     v_type_t    *t;
 
-    auto ok = lookup_function_dict(vis, type, quark, void_fun, aux, f, t);
+    auto ok = lookup_function_dict(type, quark, void_fun, aux, f, t);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -208,7 +206,7 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
     LLVMValueRef f;
     v_type_t    *ft;
 
-    auto ok = lookup_function_dict(vis, type, quark, void_fun, aux, f, ft);
+    auto ok = lookup_function_dict(type, quark, void_fun, aux, f, ft);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -269,7 +267,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
     LLVMValueRef f;
     v_type_t    *ft;
 
-    auto ok = lookup_function_dict(vis, type, quark, void_fun, aux, f, ft);
+    auto ok = lookup_function_dict(type, quark, void_fun, aux, f, ft);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -328,7 +326,7 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
     LLVMValueRef f;
     v_type_t    *ft;
 
-    auto ok = lookup_function_dict(vis, type, quark, void_fun, aux, f, ft);
+    auto ok = lookup_function_dict(type, quark, void_fun, aux, f, ft);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -378,7 +376,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
     LLVMValueRef f;
     v_type_t    *ft;
 
-    auto ok = lookup_function_dict(vis, type, quark, void_fun, aux, f, ft);
+    auto ok = lookup_function_dict(type, quark, void_fun, aux, f, ft);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -520,11 +518,11 @@ void v_util_function_dict_set(v_type_t *type, v_quark_t quark, v_quark_t qname)
     type->properties[quark] = qname;
 }
 
-bool v_util_lookup_function_dict(const visitor_t *vis, v_type_t *type, v_quark_t quark,
+bool v_util_lookup_function_dict(v_type_t *type, v_quark_t quark,
                                  void **void_fun, void **void_aux,
                                  v_type_t **ft, LLVMValueRef *fv)
 {
-    return utility::lookup_function_dict(vis, type, quark, *void_fun, *void_aux, *fv, *ft);
+    return utility::lookup_function_dict(type, quark, *void_fun, *void_aux, *fv, *ft);
 }
 
 //---------------------------------------------------------------------

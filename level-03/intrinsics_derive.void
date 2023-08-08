@@ -288,11 +288,11 @@ spec_fun_derive_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
     {
         easy_q: &v_quark_t := v_undef();
 
-        if (v_util_lookup_function_dict(vis, type, q_copy, void_fun, void_aux, ft, fv))
+        if (v_util_lookup_function_dict(type, q_copy, void_fun, void_aux, ft, fv))
         {
             easy_q := q_copy;
         }
-        else if (v_util_lookup_function_dict(vis, type, q_move, void_fun, void_aux, ft, fv))
+        else if (v_util_lookup_function_dict(type, q_move, void_fun, void_aux, ft, fv))
         {
             easy_q := q_move;
         }
@@ -432,17 +432,17 @@ spec_fun_derive_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 
         e_quark: &v_quark_t := 0;
 
-        if (v_util_lookup_function_dict(vis, et, quark, void_fun, void_aux, ft, fv))
+        if (v_util_lookup_function_dict(et, quark, void_fun, void_aux, ft, fv))
         {
             e_quark := quark;
         }
         else if (is_trans)
         {
-            if (v_util_lookup_function_dict(vis, et, q_copy, void_fun, void_aux, ft, fv))
+            if (v_util_lookup_function_dict(et, q_copy, void_fun, void_aux, ft, fv))
             {
                 e_quark := q_copy;
             }
-            else if (v_util_lookup_function_dict(vis, et, q_move, void_fun, void_aux, ft, fv))
+            else if (v_util_lookup_function_dict(et, q_move, void_fun, void_aux, ft, fv))
             {
                 e_quark := q_move;
             }

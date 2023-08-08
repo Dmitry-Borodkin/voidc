@@ -425,8 +425,8 @@ dict_dec_at: (dict: &v_myz_dict_dec_t, i: int) -> &v_myz_dec_t
 
     q = v_quark_from_string;
 
-    voidc_visitor_function_dict_set(vis, vis, dict_dec_ref, q(".expand()"),          q("dict_dec_expand"));
-    voidc_visitor_function_dict_set(vis, vis, dict_dec_ref, q("v.op_postfix_index"), q("dict_dec_at"));
+    v_util_function_dict_set(dict_dec_ref, q(".expand()"),          q("dict_dec_expand"));
+    v_util_function_dict_set(dict_dec_ref, q("v.op_postfix_index"), q("dict_dec_at"));
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());

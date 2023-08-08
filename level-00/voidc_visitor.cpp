@@ -93,6 +93,7 @@ voidc_visitor_set_void_method(visitor_t *dst, const visitor_t *src, v_quark_t qu
     *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }
 
+
 //---------------------------------------------------------------------
 const std::any *
 voidc_visitor_get_property(const visitor_t *ptr, v_quark_t quark)
@@ -104,31 +105,6 @@ void
 voidc_visitor_set_property(visitor_t *dst, const visitor_t *src, v_quark_t quark, const std::any *prop)
 {
     auto visitor = (*src)->set_property(quark, *prop);
-
-    *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
-}
-
-//---------------------------------------------------------------------
-const std::any *
-voidc_visitor_get_type_property(const visitor_t *ptr, v_type_t *type, v_quark_t quark)
-{
-    return  (*ptr)->type_properties.find({type, quark});
-}
-
-void
-voidc_visitor_set_type_property(visitor_t *dst, const visitor_t *src, v_type_t *type, v_quark_t quark, const std::any *prop)
-{
-    auto visitor = (*src)->set_type_property(type, quark, *prop);
-
-    *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
-}
-
-
-//---------------------------------------------------------------------
-void
-voidc_visitor_function_dict_set(visitor_t *dst, const visitor_t *src, v_type_t *type, v_quark_t quark, v_quark_t qname)
-{
-    auto visitor = (*src)->set_type_property(type, quark, qname);
 
     *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }

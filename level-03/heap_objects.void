@@ -390,7 +390,7 @@ op_prefix_new_intrinsic: (vis: *voidc_visitor_t, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(vis, root_t, quark, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(root_t, quark, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -639,7 +639,7 @@ op_prefix_delete_intrinsic: (vis: *voidc_visitor_t, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(vis, root_t, quark, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(root_t, quark, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -735,7 +735,7 @@ op_prefix_delete_array_intrinsic: (vis: *voidc_visitor_t, aux: *void,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(vis, root_t, quark, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(root_t, quark, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
