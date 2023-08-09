@@ -784,13 +784,15 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     bool_ = v_type_get_llvm_type(_bool);
 
+    llvm_ctx = v_target_get_llvm_ctx();
+
     if (N != 2)
     {
         cmp_result_v := LLVMBuildAlloca(builder, bool_, "");
 
         LLVMBuildStore(builder, LLVMConstNull(bool_), cmp_result_v);
 
-        branch_if_false_b := LLVMAppendBasicBlock(cur_f, "branch_if_false_b");
+        branch_if_false_b := LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_false_b");
     }
 
 
@@ -994,7 +996,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             if (i < N-2)
             {
-                branch_if_true_b = LLVMAppendBasicBlock(cur_f, "branch_if_true_b");
+                branch_if_true_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_true_b");
 
                 LLVMBuildCondBr(builder, r, branch_if_true_b, branch_if_false_b);
 

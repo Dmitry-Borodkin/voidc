@@ -497,7 +497,7 @@ base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
 
     if (!f)  f = LLVMAddFunction(module, name, type->llvm_type());
 
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(f, "entry");
+    auto entry = LLVMAppendBasicBlockInContext(global_ctx.llvm_ctx, f, "entry");
 
     LLVMPositionBuilderAtEnd(global_ctx.builder, entry);
 
@@ -518,7 +518,7 @@ base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
         vars = vars.set(voidc_internal_return_value_q, {ret_type, ret_var_v});      //- Sic!
     }
 
-    function_leave_b = LLVMAppendBasicBlock(f, "f_leave_b");
+    function_leave_b = LLVMAppendBasicBlockInContext(global_ctx.llvm_ctx, f, "f_leave_b");
     auto f_leave_bv  = LLVMBasicBlockAsValue(function_leave_b);
 
     vars = vars.set(voidc_internal_branch_target_leave_q, {nullptr, f_leave_bv});   //- Sic!

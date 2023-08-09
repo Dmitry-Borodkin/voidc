@@ -1841,7 +1841,9 @@
 
     cur_f = LLVMGetBasicBlockParent(cur_b);
 
-    branch_if_false_b = LLVMAppendBasicBlock(cur_f, "branch_if_false_b");
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    branch_if_false_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_false_b");
 
 
     Nm1 = v_binop(LLVMSub, N, 1);
@@ -1866,7 +1868,7 @@
 
         if (v_icmp(LLVMIntNE, i, Nm1))
         {
-            branch_if_true_b = LLVMAppendBasicBlock(cur_f, "branch_if_true_b");
+            branch_if_true_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_true_b");
 
             LLVMBuildCondBr(builder, v, branch_if_true_b, branch_if_false_b);
 
@@ -2032,7 +2034,9 @@
 
     cur_f = LLVMGetBasicBlockParent(cur_b);
 
-    branch_if_true_b = LLVMAppendBasicBlock(cur_f, "branch_if_true_b");
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    branch_if_true_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_true_b");
 
 
     Nm1 = v_binop(LLVMSub, N, 1);
@@ -2057,7 +2061,7 @@
 
         if (v_icmp(LLVMIntNE, i, Nm1))
         {
-            branch_if_false_b = LLVMAppendBasicBlock(cur_f, "branch_if_false_b");
+            branch_if_false_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_false_b");
 
             LLVMBuildCondBr(builder, v, branch_if_true_b, branch_if_false_b);
 
@@ -2389,13 +2393,15 @@
 
     bool_ = v_type_get_llvm_type(_bool);
 
+    llvm_ctx = v_target_get_llvm_ctx();
+
     if (v_icmp(LLVMIntNE, N, 2))
     {
         v_assign(cmp_result_v, LLVMBuildAlloca(builder, bool_, ""));
 
         LLVMBuildStore(builder, LLVMConstNull(bool_), cmp_result_v);
 
-        v_assign(branch_if_false_b, LLVMAppendBasicBlock(cur_f, "branch_if_false_b"));
+        v_assign(branch_if_false_b, LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_false_b"));
     }
 
 
@@ -2498,7 +2504,7 @@
         {
             if (v_icmp(LLVMIntNE, i, Nm1))
             {
-                branch_if_true_b = LLVMAppendBasicBlock(cur_f, "branch_if_true_b");
+                branch_if_true_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_true_b");
 
                 LLVMBuildCondBr(builder, r, branch_if_true_b, branch_if_false_b);
 

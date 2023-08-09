@@ -584,13 +584,15 @@
     LLVMBuildStore(builder, leave_b_addr, switch_leave_var_v);
 
 
-    switch_leave_b  = LLVMAppendBasicBlock(cur_f, "switch_leave_b");
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    switch_leave_b  = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "switch_leave_b");
     switch_leave_bv = LLVMBasicBlockAsValue(switch_leave_b);
 
     v_add_variable_q(voidc_internal_branch_target_leave_q, 0, switch_leave_bv);         //- Sic!
 
 
-    switch_exit_b = LLVMAppendBasicBlock(cur_f, "switch_exit_b");
+    switch_exit_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "switch_exit_b");
 
     switch_exit_b_addr = LLVMBlockAddress(cur_f, switch_exit_b);
 
@@ -601,7 +603,7 @@
 
     //- Generate llvm's switch statement...
 
-    switch_default_b = LLVMAppendBasicBlock(cur_f, "switch_default_b");
+    switch_default_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "switch_default_b");
 
     switch_v = LLVMBuildSwitch(builder, arg0, switch_default_b, v_cast(case_num, unsigned));
 
@@ -659,7 +661,7 @@
         if (case_b) ;       //- Have default case
         else                //- All "normal" cases
         {
-            b = LLVMAppendBasicBlock(cur_f, "case_b");
+            b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "case_b");
 
             v_assign(case_b, b);
         }

@@ -255,8 +255,10 @@
 
     cur_f = LLVMGetBasicBlockParent(cur_b);
 
-    loop_start_b = LLVMAppendBasicBlock(cur_f, "loop_start_b");
-    loop_stop_b  = LLVMAppendBasicBlock(cur_f, "loop_stop_b");
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    loop_start_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "loop_start_b");
+    loop_stop_b  = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "loop_stop_b");
 
 
     LLVMBuildBr(builder, loop_start_b);
@@ -284,7 +286,7 @@
     LLVMBuildStore(builder, leave_b_addr, loop_leave_var_v);
 
 
-    loop_leave_b  = LLVMAppendBasicBlock(cur_f, "loop_leave_b");
+    loop_leave_b  = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "loop_leave_b");
     loop_leave_bv = LLVMBasicBlockAsValue(loop_leave_b);
 
     v_add_variable_q(voidc_internal_branch_target_leave_q, 0, loop_leave_bv);       //- Sic!

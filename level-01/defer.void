@@ -243,7 +243,9 @@
 
     cur_f = LLVMGetBasicBlockParent(cur_b);
 
-    defer_b  = LLVMAppendBasicBlock(cur_f, "defer_b");
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    defer_b  = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "defer_b");
     defer_bv = LLVMBasicBlockAsValue(defer_b);
 
 

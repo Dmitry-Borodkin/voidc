@@ -380,13 +380,15 @@
     LLVMBuildStore(builder, leave_b_addr, blk_leave_var_v);
 
 
-    blk_leave_b  = LLVMAppendBasicBlock(cur_f, "blk_leave_b");
+    llvm_ctx = v_target_get_llvm_ctx();
+
+    blk_leave_b  = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "blk_leave_b");
     blk_leave_bv = LLVMBasicBlockAsValue(blk_leave_b);
 
     v_add_variable_q(voidc_internal_branch_target_leave_q, 0, blk_leave_bv);        //- Sic!
 
 
-    blk_exit_b = LLVMAppendBasicBlock(cur_f, "blk_exit_b");
+    blk_exit_b = LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "blk_exit_b");
 
     blk_exit_b_addr = LLVMBlockAddress(cur_f, blk_exit_b);
 
