@@ -42,8 +42,6 @@
     v_add_symbol("voidc_internal_branch_target_leave_q", q_ref, q("voidc.internal_branch_target_leave"));
 
     v_add_symbol("voidc_obtain_special_result_value_q", q_ref, q("voidc.obtain_special_result_value"));
-
-    v_add_symbol("voidc_internal_special_result_value_variable_q", q_ref, q("voidc.internal_special_result_value_variable"));
 }
 
 
@@ -460,8 +458,6 @@ obtain_special_result_value_variable: (vis: *voidc_visitor_t, t: *v_type_t) -> L
 
     if (t_front)  v_restore_builder_ip();
 
-    v_add_variable_q(voidc_internal_special_result_value_variable_q, t, v);         //- Sic!!!
-
     v_return(v);
 }
 
@@ -470,9 +466,11 @@ obtain_special_result_value_variable: (vis: *voidc_visitor_t, t: *v_type_t) -> L
 //- voidc_obtain_special_result_value ...
 //---------------------------------------------------------------------
 private
-voidc_obtain_special_result_value_helper: (vis: *voidc_visitor_t, *void, t: *v_type_t) -> LLVMValueRef
+voidc_obtain_special_result_value_helper: (vis: *voidc_visitor_t, aux: *void, t: *v_type_t) -> LLVMValueRef
 {
     //- assert(v_type_is_special(t, q_initialize));
+
+    *(aux: *bool) := true;                  //- Kinda, signal...
 
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -1003,7 +1001,7 @@ my_internal_var_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast
     v_set_result_type(t);
     v_set_result_value(vtag);
 
-    v_add_variable_q(voidc_internal_special_result_value_variable_q, 0, 0);         //- Sic!!!
+    obtain_special_result_value_flag = *(aux: *bool) := false;
 
     v_ast_accept_visitor((arg1: *v_ast_base_t), vis);               //- Value
 
@@ -1017,7 +1015,7 @@ my_internal_var_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast
 
         if (v == LLVMConstNull(v_type_get_llvm_type(t)))  v_break();
 
-        if (!v_get_variable_value_q(voidc_internal_special_result_value_variable_q))
+        if (!obtain_special_result_value_flag)
         {
            vv = obtain_special_result_value_variable(vis, t);       //- Sic!!!
 
@@ -1200,6 +1198,8 @@ my_op_braces_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t)
 private
 struct my_local_objects_ctx_t
 {
+    obtain_special_result_value_flag: bool;
+
     fun_params:   my_prepare_function_parameters_ctx_t;
     stmt_hook:    my_compile_stmt_hook_t;
     adopt_result: my_adopt_result_ctx_t;
@@ -1236,7 +1236,7 @@ voidc_enable_local_objects_compiler: () -> void
     //-----------------------------------------------------------------
     q = voidc_obtain_special_result_value_q;
 
-    v_add_intrinsic_q(q, voidc_obtain_special_result_value_helper, 0);
+    v_add_intrinsic_q(q, voidc_obtain_special_result_value_helper, &ctx.obtain_special_result_value_flag);
 
     //-----------------------------------------------------------------
     q = v_quark_from_string("stmt");
@@ -1269,8 +1269,8 @@ voidc_enable_local_objects_compiler: () -> void
     //-----------------------------------------------------------------
     q = v_quark_from_string;
 
-    v_add_intrinsic_q(q("v.internal.var_defn"), my_internal_var_defn_intrinsic, 0);
-    v_add_intrinsic_q(q("v.internal.val_defn"), my_internal_val_defn_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.var_defn"), my_internal_var_defn_intrinsic, &ctx.obtain_special_result_value_flag);
+    v_add_intrinsic_q(q("v.internal.val_defn"), my_internal_val_defn_intrinsic, 0);     //- ?
 
     //-----------------------------------------------------------------
     q = v_quark_from_string("v.op_braces");
