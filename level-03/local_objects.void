@@ -295,10 +295,10 @@ my_prepare_function_parameters: (aux: *void, fun: LLVMValueRef,
 //=====================================================================
 //- ...
 //=====================================================================
-private
-make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
-                              t: *v_type_t, v0: LLVMValueRef, v1: LLVMValueRef
-                              ) -> void
+export
+voidc_make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
+                                    t: *v_type_t, v0: LLVMValueRef, v1: LLVMValueRef
+                                    ) -> void
 {
     expr = v_alloca(v_ast_expr_t, 3);
     v_initialize(expr, 3);
@@ -386,7 +386,7 @@ my_temporary_cleaner: (void_ctx: *void) -> void
     v_initialize(stmt);
     defer v_terminate(stmt);
 
-    make_special_intrinsic_call(stmt, q_terminate, ctx.typ, ctx.val, 0);
+    voidc_make_special_intrinsic_call(stmt, q_terminate, ctx.typ, ctx.val, 0);
 
     v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
 }
@@ -406,7 +406,7 @@ obtain_special_result_value_temporary: (vis: *voidc_visitor_t, t: *v_type_t) -> 
     v_initialize(stmt);
     defer v_terminate(stmt);
 
-    make_special_intrinsic_call(stmt, q_initialize, t, v, 0);
+    voidc_make_special_intrinsic_call(stmt, q_initialize, t, v, 0);
 
     v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
 
@@ -443,13 +443,13 @@ obtain_special_result_value_variable: (vis: *voidc_visitor_t, t: *v_type_t) -> L
     v_initialize(stmt);
     defer v_terminate(stmt);
 
-    make_special_intrinsic_call(stmt, q_initialize, t, v, 0);
+    voidc_make_special_intrinsic_call(stmt, q_initialize, t, v, 0);
 
     v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
 
     if (v_type_is_special(t, q_terminate))
     {
-        make_special_intrinsic_call(stmt, q_terminate, t, v, 0);
+        voidc_make_special_intrinsic_call(stmt, q_terminate, t, v, 0);
 
         v_ast_make_stmt_defer(stmt, stmt);
 
@@ -738,7 +738,7 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
                 v_initialize(stmt);
                 defer v_terminate(stmt);
 
-                make_special_intrinsic_call(stmt, q_transfer, ttag, vtag, value);
+                voidc_make_special_intrinsic_call(stmt, q_transfer, ttag, vtag, value);
 
                 v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
 
@@ -821,13 +821,13 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
 
                 v = v_make_temporary(dst_typ, 0);
 
-                make_special_intrinsic_call(stmt, q_initialize, dst_typ, v, 0);
+                voidc_make_special_intrinsic_call(stmt, q_initialize, dst_typ, v, 0);
 
                 vis = v_get_compiler();
 
                 v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
 
-                make_special_intrinsic_call(stmt, q_transfer, dst_typ, v, value);           //- Sic!
+                voidc_make_special_intrinsic_call(stmt, q_transfer, dst_typ, v, value);         //- Sic!
 
                 v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
 
@@ -861,7 +861,7 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
             v_initialize(stmt);
             defer v_terminate(stmt);
 
-            make_special_intrinsic_call(stmt, q_transfer, dst_typ, vtag, value);
+            voidc_make_special_intrinsic_call(stmt, q_transfer, dst_typ, vtag, value);
 
             v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
 
@@ -1023,7 +1023,7 @@ my_internal_var_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast
            v_initialize(stmt);
            defer v_terminate(stmt);
 
-           make_special_intrinsic_call(stmt, q_transfer, t, vv, v);
+           voidc_make_special_intrinsic_call(stmt, q_transfer, t, vv, v);
 
            v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
 
