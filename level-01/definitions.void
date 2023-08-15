@@ -55,8 +55,8 @@
     v_add_symbol("q_add_constant",       q_ref, q("v_add_constant"));
     v_add_symbol("q_type_get_llvm_type", q_ref, q("v_type_get_llvm_type"));
 
-    v_add_symbol("typ_q",   q_ref, q("typ"));
-    v_add_symbol("true_q",  q_ref, q("true"));
+    v_add_symbol("typ_q",  q_ref, q("typ"));
+    v_add_symbol("true_q", q_ref, q("true"));
 
     v_add_symbol("voidc_compile_type_q", q_ref, q("voidc.compile_type"));
 
@@ -239,7 +239,7 @@
 }
 
 //---------------------------------------------------------------------
-//- Get "definitions context" "stmt_list" ...
+//- Get "definitions context" "stmt_list" ...                       ???
 //---------------------------------------------------------------------
 {
     rt = v_reference_type(v_ast_stmt_list_ptr, 0);
@@ -255,6 +255,25 @@
     ctx = *v_cast(v_std_any_get_value(intptr_t, any), *definitions_ctx_t);
 
     v_return(ctx[ctx_stmt_list]);
+}
+
+//---------------------------------------------------------------------
+//- Get "definitions context" "mod_const" ...                       ???
+//---------------------------------------------------------------------
+{
+    rt = v_reference_type(LLVMModuleRef, 0);
+
+    ft = v_function_type(rt, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_definitions_context_get_mod_const", ft);
+}
+{
+    any = v_get_property_q(voidc_definitions_context_q);
+
+    ctx = *v_cast(v_std_any_get_value(intptr_t, any), *definitions_ctx_t);
+
+    v_return(ctx[ctx_mod_const]);
 }
 
 
@@ -2413,7 +2432,8 @@
     v_make_export_symbol("voidc_compile_unit_fun_defn_helper");
     v_make_export_symbol("voidc_internal_constants_module_helper");
 
-    v_make_export_symbol("voidc_definitions_context_get_stmt_list");
+    v_make_export_symbol("voidc_definitions_context_get_stmt_list");        //- ???
+    v_make_export_symbol("voidc_definitions_context_get_mod_const");        //- ???
 
     v_make_export_symbol("voidc_enable_definitions_compiler");
     v_make_export_symbol("voidc_enable_definitions");
