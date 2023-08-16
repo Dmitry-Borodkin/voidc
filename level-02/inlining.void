@@ -265,6 +265,8 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
 
             LLVMAddAttributeAtIndex(f, LLVMAttributeFunctionIndex, attr_alwaysinline);
         }
+
+        LLVMSetLinkage(f, LLVMExternalLinkage);         //- Sic!
     }
 
     private = (qualif & qf_private);

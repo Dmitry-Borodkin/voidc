@@ -1,0 +1,181 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+}
+
+
+//=====================================================================
+//{ voidc_verify_jit_module_optimized(true); }
+//{ v_debug_print_module(999); }
+
+
+//---------------------------------------------------------------------
+private alwaysinline
+foo: (s: *const char) -> int
+{
+    printf("foo(%s)\n", s);
+
+    v_return(42);
+}
+
+qwe: &int := foo("qwe");
+
+asd = foo("asd");
+
+
+private
+bar: (s: *const char) -> v_std_string_t
+{
+    ret = v_get_return_value();
+
+    v_std_string_set(&ret, s);
+}
+
+zxc: &v_std_string_t := bar("Превед!");
+
+
+qaz: &int[7] := v_undef();
+
+edc: (*int)[2] = { &qaz[1], &qaz[6] };
+
+wsx = edc[1] - edc[0];
+
+//---------------------------------------------------------------------
+{
+    printf("qwe: %d\n", qwe);
+
+    printf("asd: %d\n", asd);
+
+    printf("zxc: %s\n", v_std_string_get(&zxc));
+
+    printf("wsx: %zd\n", wsx);
+}
+
+
+//=====================================================================
+try_variable: &int := 77;
+
+
+//=====================================================================
+{   voidc_unit_begin_module("try_ctors_module"); }
+
+
+
+//---------------------------------------------------------------------
+zzz: &int := printf("Медвед\n");
+
+
+//---------------------------------------------------------------------
+private
+ptr_variable: &*int := v_undef();
+
+
+//---------------------------------------------------------------------
+try_ctors: () -> void
+{
+    v = *ptr_variable;
+
+    v += 700;
+}
+
+
+//---------------------------------------------------------------------
+private
+try_ctors_ctor: () -> void
+{
+    printf("try_ctors_ctor\n");
+
+    v_find_symbol_value: (*const char) -> *void;
+
+    ptr_variable := (v_find_symbol_value("try_variable") : *int);
+
+    printf("ptr_variable: %p\n", ptr_variable);
+}
+
+private
+try_ctors_dtor: () -> void
+{
+    printf("try_ctors_dtor\n");
+}
+
+private try_ctors_ctor_0: () -> void { printf("try_ctors_ctor_0\n"); }
+private try_ctors_dtor_0: () -> void { printf("try_ctors_dtor_0\n"); }
+
+private try_ctors_ctor_1: () -> void { printf("try_ctors_ctor_1\n"); }
+private try_ctors_dtor_1: () -> void { printf("try_ctors_dtor_1\n"); }
+
+private try_ctors_ctor_2: () -> void { printf("try_ctors_ctor_2\n"); }
+private try_ctors_dtor_2: () -> void { printf("try_ctors_dtor_2\n"); }
+
+
+private
+llvm_global_cdtors_item_t = v_struct({int(32), *(() -> void), *void});
+
+my_llvm_global_ctors: &llvm_global_cdtors_item_t[] :=
+{
+    {65536, try_ctors_ctor, 0},
+    {65537, try_ctors_ctor_0, 0},
+    {65538, try_ctors_ctor_1, 0},
+    {65539, try_ctors_ctor_2, 0},
+};
+
+my_llvm_global_dtors: &llvm_global_cdtors_item_t[] :=
+{
+    {65536, try_ctors_dtor, 0},
+    {65537, try_ctors_dtor_0, 0},
+    {65538, try_ctors_dtor_1, 0},
+    {65539, try_ctors_dtor_2, 0},
+};
+
+{   module = v_get_module();
+
+    c = LLVMGetNamedGlobal(module, "my_llvm_global_ctors");
+    d = LLVMGetNamedGlobal(module, "my_llvm_global_dtors");
+
+    LLVMSetValueName2(c, "llvm.global_ctors", 17);
+    LLVMSetValueName2(d, "llvm.global_dtors", 17);
+
+    LLVMSetLinkage(c, LLVMAppendingLinkage);
+    LLVMSetLinkage(d, LLVMAppendingLinkage);
+}
+
+
+//=====================================================================
+//{ v_debug_print_module(2); }
+
+{   voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+{
+    printf("{\n");
+
+    printf("try_variable: %d\n", try_variable);
+
+    try_ctors();
+
+    printf("try_variable: %d\n", try_variable);
+
+    printf("}\n");
+}
+
+
+
