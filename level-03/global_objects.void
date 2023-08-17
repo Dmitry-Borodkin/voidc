@@ -14,7 +14,7 @@
     v_import("local_objects.void");
     v_import("heap_objects.void");
 
-    v_import("printf.void");
+//  v_import("printf.void");
 }
 
 {   v_enable_level_01();
@@ -63,6 +63,8 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
     v_add_symbol("mod_const_q", q_ref, q("voidc.constants_module"));
 
     v_add_symbol("voidc_obtain_special_result_value_q", q_ref, q("voidc.obtain_special_result_value"));
+
+    v_add_symbol("obtain_spec_ctx_q", q_ref, q("voidc.obtain_special_result_value_global_ctx"));
 }
 
 
@@ -70,6 +72,8 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
 {   voidc_unit_begin_module("global_objects_module"); }
 
 
+//---------------------------------------------------------------------
+//- obtain_special_result_value_global_ctx_t ...
 //---------------------------------------------------------------------
 private
 struct obtain_special_result_value_global_ctx_t
@@ -82,11 +86,35 @@ struct obtain_special_result_value_global_ctx_t
 
 //---------------------------------------------------------------------
 private
-obtain_special_result_value_global: (vis: *voidc_visitor_t, aux: *void, t: *v_type_t) -> LLVMValueRef
+add_obtain_spec_ctx: (ctx: *obtain_special_result_value_global_ctx_t) -> void
+{
+    any: &v_std_any_t := {};
+
+    v_std_any_set_value(&any, (ctx: intptr_t));
+
+    v_add_property_q(obtain_spec_ctx_q, &any);
+}
+
+//---------------------------------------------------------------------
+private
+get_obtain_spec_ctx: () -> *obtain_special_result_value_global_ctx_t
+{
+    any = v_get_property_q(obtain_spec_ctx_q);
+
+    ctx = (v_std_any_get_value(intptr_t, any) : *obtain_special_result_value_global_ctx_t);
+
+    v_return(ctx);
+}
+
+//---------------------------------------------------------------------
+//- obtain_special_result_value_global ...
+//---------------------------------------------------------------------
+private
+obtain_special_result_value_global: (vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
 {
     //- assert(v_type_is_special(t, q_initialize));
 
-    ctx = *(aux: *obtain_special_result_value_global_ctx_t);
+    ctx = *get_obtain_spec_ctx();
 
     raw_name = v_check_alias(ctx.name);
 
@@ -144,7 +172,6 @@ private
 struct my_obtain_special_result_value_ctx_t
 {
     global_flag: bool;
-    global_ctx:  obtain_special_result_value_global_ctx_t;
 
     fun: *((vis: *voidc_visitor_t, *void, t: *v_type_t) -> LLVMValueRef);
     aux: *void;
@@ -167,7 +194,7 @@ my_obtain_special_result_value_helper: (vis: *voidc_visitor_t, aux: *void, t: *v
 
         ctx.global_flag := true;
 
-        v_return(obtain_special_result_value_global(vis, &ctx.global_ctx, t));
+        v_return(obtain_special_result_value_global(vis, t));
 
     default:
 
@@ -231,9 +258,11 @@ my_compile_unit_var_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 
         ctx.global_flag := false;
 
-        ctx.global_ctx.name := name;
+        global_ctx = *get_obtain_spec_ctx();
 
-        LLVMPositionBuilderAtEnd(builder, ctx.global_ctx.init);
+        global_ctx.name := name;
+
+        LLVMPositionBuilderAtEnd(builder, global_ctx.init);
 
         v_ast_accept_visitor(value, vis);
 
@@ -261,7 +290,7 @@ my_compile_unit_var_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 
             if (!ctx.global_flag)
             {
-               vv = obtain_special_result_value_global(vis, &ctx.global_ctx, t);        //- Sic!!!
+               vv = obtain_special_result_value_global(vis, t);         //- Sic!!!
 
                stmt: &v_ast_stmt_t := {};
 
@@ -295,6 +324,7 @@ my_compile_unit_var_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 
         v_set_module(0);
     }
+
 
     //-------------------------------------------------------------
     if (!stmt_list)  v_return();
@@ -383,11 +413,13 @@ my_compile_unit_val_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 
     ctx.global_flag := false;
 
-    ctx.global_ctx.name := name;
+    global_ctx = *get_obtain_spec_ctx();
+
+    global_ctx.name := name;
 
     builder = v_target_get_builder();
 
-    LLVMPositionBuilderAtEnd(builder, ctx.global_ctx.init);
+    LLVMPositionBuilderAtEnd(builder, global_ctx.init);
 
     v_ast_accept_visitor(value, vis);
 
@@ -415,7 +447,7 @@ my_compile_unit_val_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
         {
             if (!ctx.global_flag)
             {
-               vv = obtain_special_result_value_global(vis, &ctx.global_ctx, t);        //- Sic!!!
+               vv = obtain_special_result_value_global(vis, t);         //- Sic!!!
 
                stmt: &v_ast_stmt_t := {};
 
@@ -663,18 +695,17 @@ my_compile_defn_list_unit: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
         v_set_module(module);
     }
 
-    global_ctx = ctx.obtain_spec.global_ctx;
+    global_ctx = *get_obtain_spec_ctx();
 
     if (!global_ctx.init)
     {
 
 
-        {   vf = v_target_local_ctx_get_filename(v_target_get_voidc_local_ctx());
-            tf = v_target_local_ctx_get_filename(v_target_get_local_ctx());
-
-            printf("vf: %s, tf: %s\n", vf, tf);
-        }
-
+//        {   vf = v_target_local_ctx_get_filename(v_target_get_voidc_local_ctx());
+//            tf = v_target_local_ctx_get_filename(v_target_get_local_ctx());
+//
+//            printf("vf: %s, tf: %s\n", vf, tf);
+//        }
 
 
 
@@ -725,8 +756,6 @@ my_compile_defn_list_unit: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 private
 struct my_finish_module_globals_ctx_t
 {
-    global_ctx: *obtain_special_result_value_global_ctx_t;
-
     fun: *((*void, LLVMModuleRef) -> void);
     ctx: *void;
 };
@@ -745,7 +774,7 @@ my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) -> void
 {
     ctx = *(void_ctx: *my_finish_module_globals_ctx_t);
 
-    global_ctx = *ctx.global_ctx;
+    global_ctx = *get_obtain_spec_ctx();
 
     block
     {
@@ -993,6 +1022,7 @@ orc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) -> void
 private
 struct my_global_objects_ctx_t
 {
+    global_ctx:  obtain_special_result_value_global_ctx_t;
     unit:        my_compile_defn_list_unit_ctx_t;
     fin_globals: my_finish_module_globals_ctx_t;
     fin_cdtors:  orc_finish_module_cdtors_ctx_t;
@@ -1011,6 +1041,9 @@ voidc_enable_global_objects_compiler: () -> void
     //-----------------------------------------------------------------
     ctx = *v_malloc(my_global_objects_ctx_t) := 0;
 
+    add_obtain_spec_ctx(&ctx.global_ctx);
+
+    //-----------------------------------------------------------------
     obtain_spec = ctx.unit.obtain_spec;
 
     //-----------------------------------------------------------------
@@ -1048,8 +1081,6 @@ voidc_enable_global_objects_compiler: () -> void
     }
 
     //-----------------------------------------------------------------
-    ctx.fin_globals.global_ctx := &obtain_spec.global_ctx;
-
     ctx.fin_globals.fun := v_get_finish_module(&ctx.fin_globals.ctx);
 
     v_set_finish_module(my_finish_module_globals, &ctx.fin_globals);
