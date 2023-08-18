@@ -720,8 +720,8 @@
 
     v_copy(&ast[0], v_cast(list, v_ast_base_ptr));
 
-    v_ast_make_expr_integer(v_cast(&ast[1], v_ast_expr_ptr), v_cast(line,   intptr_t));
-    v_ast_make_expr_integer(v_cast(&ast[2], v_ast_expr_ptr), v_cast(column, intptr_t));
+    v_ast_make_expr_integer(v_cast(&ast[1], v_ast_expr_ptr), v_cast(line+1,   intptr_t));
+    v_ast_make_expr_integer(v_cast(&ast[2], v_ast_expr_ptr), v_cast(column+1, intptr_t));
 
     lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
@@ -1717,6 +1717,17 @@
 //  printf("compile_defn_list_unit\n");
 //  defer printf("compile_defn_list_unit leave\n");
 
+    {   vis = v_get_compiler();
+
+        if (vis != visitor)
+        {
+            v_ast_accept_visitor(self, vis);            //- Sic!!!
+
+            v_return();
+        }
+    }
+
+    //-------------------------------------------------------------
     list = v_cast(self, v_ast_generic_list_ptr);
 
     //-------------------------------------------------------------
@@ -1843,7 +1854,7 @@
 
             v_ast_make_stmt_call(stmt, mod_const_q, voidc_internal_constants_module_helper_q, expr+0, 2);
 
-            v_ast_accept_visitor(v_cast(stmt, v_ast_base_ptr), v_get_compiler());
+            v_ast_accept_visitor(v_cast(stmt, v_ast_base_ptr), v_get_compiler());       //- Sic!
 
 
             v_ast_make_expr_identifier_q(expr+0, mod_const_q);
@@ -1877,7 +1888,7 @@
         voidc_compile_type_ctx_set_stack(ctx, ctx_stack);
 
 
-        v_ast_accept_visitor(v_cast(stmt_list, v_ast_base_ptr), v_get_compiler());
+        v_ast_accept_visitor(v_cast(stmt_list, v_ast_base_ptr), v_get_compiler());      //- Sic!
 
 
         LLVMBuildFree(builder, ctx_stack);
