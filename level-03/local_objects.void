@@ -517,21 +517,10 @@ voidc_obtain_special_result_value: (vis: *voidc_visitor_t, t: *v_type_t) -> LLVM
 
 
 //=====================================================================
-{   intptr_t_  = v_type_get_llvm_type(intptr_t);
-    value_ref_ = v_type_get_llvm_type(LLVMValueRef);
+export TEMPORARY_VTAG = (( 0: intptr_t) : LLVMValueRef);
+export VARIABLE_VTAG  = ((-1: intptr_t) : LLVMValueRef);
+export GLOBAL_VTAG    = ((-2: intptr_t) : LLVMValueRef);
 
-    zero_v   = LLVMConstInt(intptr_t_,  0, 0);
-    minus1_v = LLVMConstInt(intptr_t_, -1, 0);
-    minus2_v = LLVMConstInt(intptr_t_, -2, 0);
-
-    TEMPORARY_VTAG_v = LLVMConstIntToPtr(zero_v,   value_ref_);
-    VARIABLE_VTAG_v  = LLVMConstIntToPtr(minus1_v, value_ref_);
-    GLOBAL_VTAG_v    = LLVMConstIntToPtr(minus2_v, value_ref_);
-
-    v_export_constant("TEMPORARY_VTAG", LLVMValueRef, TEMPORARY_VTAG_v);
-    v_export_constant("VARIABLE_VTAG",  LLVMValueRef, VARIABLE_VTAG_v);
-    v_export_constant("GLOBAL_VTAG",    LLVMValueRef, GLOBAL_VTAG_v);
-}
 
 //---------------------------------------------------------------------
 private
