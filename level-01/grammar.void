@@ -1474,65 +1474,6 @@
 }
 
 //---------------------------------------------------------------------
-//- mk_pr_external - grammar action
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("mk_pr_external_grammar_action", v_peg_grammar_action_fun_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "aux",       void_ptr);
-    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 3, "any_count", size_t);
-}
-{
-    id_sstr = v_std_any_get_pointer(v_std_string_t, any0);
-
-    id_str = v_std_string_get(id_sstr);
-
-
-    arg0 = v_alloca(v_ast_expr_t, 2);
-    v_initialize(arg0, 2);
-
-    arg1 = v_getelementptr(arg0, 1);
-
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-
-
-    pr_num = v_cast(voidc_ast_stmt_grammar_parser_number, intptr_t);
-
-    pr_sstr = v_alloca(v_std_string_t);
-    v_initialize(pr_sstr);
-
-    v_std_string_set(pr_sstr, "v.pr");
-
-    v_std_string_append_number(pr_sstr, pr_num);
-
-    pr_str = v_std_string_get(pr_sstr);
-
-    v_ast_make_expr_identifier(arg0, pr_str);
-
-    v_ast_make_expr_identifier(arg1, id_str);
-
-    v_ast_make_stmt_call(stmt, 0, q_copy, arg0, 2);
-
-    v_list_append(voidc_ast_stmt_grammar_stmt_list, voidc_ast_stmt_grammar_stmt_list, stmt);
-
-    voidc_ast_stmt_grammar_parsers_inc();
-
-
-    v_std_any_set_value(ret, 1);
-
-
-    v_terminate(pr_sstr);
-    v_terminate(stmt);
-    v_terminate(arg0, 2);
-}
-
-//---------------------------------------------------------------------
 //- mk_pr_backref - grammar action
 //---------------------------------------------------------------------
 {
@@ -2463,7 +2404,6 @@
     v_peg_grammar_set_action(gr0, gr0, "mk_pr_plus",                mk_pr_plus_grammar_action, 0);
     v_peg_grammar_set_action(gr0, gr0, "mk_pr_question",            mk_pr_question_grammar_action, 0);
     v_peg_grammar_set_action(gr0, gr0, "mk_pr_identifier",          mk_pr_identifier_grammar_action, 0);
-    v_peg_grammar_set_action(gr0, gr0, "mk_pr_external",            mk_pr_external_grammar_action, 0);
     v_peg_grammar_set_action(gr0, gr0, "mk_pr_backref",             mk_pr_backref_grammar_action, 0);
     v_peg_grammar_set_action(gr0, gr0, "mk_pr_catch_str",           mk_pr_catch_str_grammar_action, 0);
     v_peg_grammar_set_action(gr0, gr0, "mk_pr_action",              mk_pr_action_grammar_action, 0);
@@ -2895,7 +2835,6 @@
 
     //-----------------------------------------------------------------
     //- pr_primary <- i:identifier              { mk_pr_identifier(i) }
-    //-             / '@' i:identifier          { mk_pr_external(i) }
     //-             / '$' n:dec_natural         { mk_pr_backref(n) }
     //-             / '(' _ pr_choice _ ')'
     //-             / '<' _ pr_choice _ '>'     { mk_pr_catch_str() }
@@ -2917,112 +2856,103 @@
     v_peg_make_sequence_parser(pp0, pp4, 2);
 
 
-    v_peg_make_character_parser(pp3, '@');
+    v_peg_make_character_parser(pp2, '$');
 
-    v_peg_make_call_action(act, "mk_pr_external", ar0, 1);
-
-    v_peg_make_action_parser(pp5, act);
-
-    v_peg_make_sequence_parser(pp1, pp3, 3);
-
-
-    v_peg_make_character_parser(pp3, '$');
-
-    v_peg_make_identifier_parser(pp4, "dec_natural");
-    v_peg_make_catch_variable_parser(pp4, "n", pp4);
+    v_peg_make_identifier_parser(pp3, "dec_natural");
+    v_peg_make_catch_variable_parser(pp3, "n", pp3);
 
     v_peg_make_identifier_argument(ar0, "n");
 
     v_peg_make_call_action(act, "mk_pr_backref", ar0, 1);
 
-    v_peg_make_action_parser(pp5, act);
+    v_peg_make_action_parser(pp4, act);
 
-    v_peg_make_sequence_parser(pp2, pp3, 3);
-
-
-    v_peg_make_character_parser(pp6, '(');
-    v_peg_make_identifier_parser(pp7, "_");
-
-    v_peg_make_identifier_parser(pp8, "pr_choice");
-
-    v_peg_make_identifier_parser(pp9, "_");
-    v_peg_make_character_parser(pp10, ')');
-
-    v_peg_make_sequence_parser(pp3, pp6, 5);
+    v_peg_make_sequence_parser(pp1, pp2, 3);
 
 
-    v_peg_make_character_parser(pp6, '<');
-    v_peg_make_character_parser(pp10, '>');
+    v_peg_make_character_parser(pp5, '(');
+    v_peg_make_identifier_parser(pp6, "_");
+
+    v_peg_make_identifier_parser(pp7, "pr_choice");
+
+    v_peg_make_identifier_parser(pp8, "_");
+    v_peg_make_character_parser(pp9, ')');
+
+    v_peg_make_sequence_parser(pp2, pp5, 5);
+
+
+    v_peg_make_character_parser(pp5, '<');
+    v_peg_make_character_parser(pp9, '>');
 
     v_peg_make_call_action(act, "mk_pr_catch_str", ar0, 0);
 
-    v_peg_make_action_parser(pp11, act);
+    v_peg_make_action_parser(pp10, act);
 
-    v_peg_make_sequence_parser(pp4, pp6, 6);
+    v_peg_make_sequence_parser(pp3, pp5, 6);
 
 
-    v_peg_make_character_parser(pp6, '{');
-    v_peg_make_character_parser(pp10, '}');
+    v_peg_make_character_parser(pp5, '{');
+    v_peg_make_character_parser(pp9, '}');
 
-    v_peg_make_identifier_parser(pp8, "pr_action");
+    v_peg_make_identifier_parser(pp7, "pr_action");
 
     v_peg_make_call_action(act, "mk_pr_action", ar0, 0);
 
-    v_peg_make_action_parser(pp11, act);
+    v_peg_make_action_parser(pp10, act);
 
-    v_peg_make_sequence_parser(pp5, pp6, 6);
+    v_peg_make_sequence_parser(pp4, pp5, 6);
 
 
-    v_peg_make_character_parser(pp6, '[');
+    v_peg_make_character_parser(pp5, '[');
 
-    v_peg_make_identifier_parser(pp7, "pr_range_list");
-    v_peg_make_catch_variable_parser(pp7, "l", pp7);
+    v_peg_make_identifier_parser(pp6, "pr_range_list");
+    v_peg_make_catch_variable_parser(pp6, "l", pp6);
 
-    v_peg_make_character_parser(pp8, ']');
+    v_peg_make_character_parser(pp7, ']');
 
     v_peg_make_identifier_argument(ar0, "l");
 
     v_peg_make_call_action(act, "mk_pr_class", ar0, 1);
 
-    v_peg_make_action_parser(pp9, act);
+    v_peg_make_action_parser(pp8, act);
 
-    v_peg_make_sequence_parser(pp6, pp6, 4);
+    v_peg_make_sequence_parser(pp5, pp5, 4);
 
 
-    v_peg_make_identifier_parser(pp7, "string");
-    v_peg_make_catch_variable_parser(pp7, "s", pp7);
+    v_peg_make_identifier_parser(pp6, "string");
+    v_peg_make_catch_variable_parser(pp6, "s", pp6);
 
     v_peg_make_identifier_argument(ar0, "s");
 
     v_peg_make_call_action(act, "mk_pr_literal", ar0, 1);
+
+    v_peg_make_action_parser(pp7, act);
+
+    v_peg_make_sequence_parser(pp6, pp6, 2);
+
+
+    v_peg_make_identifier_parser(pp7, "char");
+    v_peg_make_catch_variable_parser(pp7, "c", pp7);
+
+    v_peg_make_identifier_argument(ar0, "c");
+
+    v_peg_make_call_action(act, "mk_pr_char", ar0, 1);
 
     v_peg_make_action_parser(pp8, act);
 
     v_peg_make_sequence_parser(pp7, pp7, 2);
 
 
-    v_peg_make_identifier_parser(pp8, "char");
-    v_peg_make_catch_variable_parser(pp8, "c", pp8);
+    v_peg_make_character_parser(pp8, '.');
 
-    v_peg_make_identifier_argument(ar0, "c");
-
-    v_peg_make_call_action(act, "mk_pr_char", ar0, 1);
+    v_peg_make_call_action(act, "mk_pr_dot", ar0, 0);
 
     v_peg_make_action_parser(pp9, act);
 
     v_peg_make_sequence_parser(pp8, pp8, 2);
 
 
-    v_peg_make_character_parser(pp9, '.');
-
-    v_peg_make_call_action(act, "mk_pr_dot", ar0, 0);
-
-    v_peg_make_action_parser(pp10, act);
-
-    v_peg_make_sequence_parser(pp9, pp9, 2);
-
-
-    v_peg_make_choice_parser(pp0, pp0, 10);
+    v_peg_make_choice_parser(pp0, pp0, 9);
 
     v_peg_grammar_set_parser(gr0, gr0, "pr_primary", pp0, 0);
 

@@ -34,6 +34,8 @@
 
     v_peg_make_dot_parser(dot);
 
+    v_peg_grammar_set_parser(qwe, qwe, "dot", dot, 0);
+
 
     grammar qwe
     {
@@ -55,7 +57,7 @@
 
         zx = &"a" ("b" "c" "d")? v:"e";
 
-        sd = "q" <"w" "e" "r"> $1 @dot;
+        sd = "q" <"w" "e" "r"> $1 dot;
 
         we = 'a' . ;
 
