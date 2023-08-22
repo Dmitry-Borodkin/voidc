@@ -642,6 +642,9 @@ struct my_compile_defn_list_unit_ctx_t
 };
 
 //---------------------------------------------------------------------
+private global_module_number: &unsigned := 0;           //- Sic!!!
+
+//---------------------------------------------------------------------
 private
 my_compile_defn_list_unit: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
 {
@@ -667,7 +670,13 @@ my_compile_defn_list_unit: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 
         //- voidc_guard_target(...);
 
-        module := LLVMModuleCreateWithName("voidc_global_objects_module");
+        sstr: &v_std_string_t := {};
+
+        v_std_string_set(&sstr, "voidc_global_objects_module_");
+
+        v_std_string_append_number(&sstr, global_module_number++);
+
+        module := LLVMModuleCreateWithName(v_std_string_get(&sstr));
 
         filename = v_target_local_ctx_get_filename(v_target_get_voidc_local_ctx());
 
@@ -880,10 +889,10 @@ my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) -> void
 
 
 //---------------------------------------------------------------------
-//- Transform global ctors/dtors tables for ORC(v2) JIT...
+//- Transform global ctors/dtors tables for voidc's JIT...
 //---------------------------------------------------------------------
 private
-struct orc_finish_module_cdtors_ctx_t
+struct voidc_finish_module_cdtors_ctx_t
 {
     fun: *((*void, LLVMModuleRef) -> void);
     ctx: *void;
@@ -914,13 +923,13 @@ compare: (void_lhs: *const void, void_rhs: *const void) -> int
 private
 prefs: &(*const char)[2] :=
 {
-    "__orc_init_func.",
-    "__orc_deinit_func.",
+    "voidc.init_func.",
+    "voidc.term_func.",
 };
 
 //---------------------------------------------------------------------
 private
-orc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) -> void
+voidc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) -> void
 {
     llvm_ctx = v_target_get_llvm_ctx();
 
@@ -985,7 +994,7 @@ orc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) -> void
         LLVMDeleteGlobal(cdt);
     }
 
-    ctx = *(void_ctx: *orc_finish_module_cdtors_ctx_t);
+    ctx = *(void_ctx: *voidc_finish_module_cdtors_ctx_t);
 
     if (ctx.fun)  ctx.fun(ctx.ctx, module);
 }
@@ -997,7 +1006,7 @@ struct my_global_objects_ctx_t
 {
     unit:        my_compile_defn_list_unit_ctx_t;
     fin_globals: my_finish_module_globals_ctx_t;
-    fin_cdtors:  orc_finish_module_cdtors_ctx_t;
+    fin_cdtors:  voidc_finish_module_cdtors_ctx_t;
 };
 
 //---------------------------------------------------------------------
@@ -1046,7 +1055,7 @@ voidc_enable_global_objects_compiler: () -> void
     {
         ctx.fin_cdtors.fun := v_get_finish_module(&ctx.fin_cdtors.ctx);
 
-        v_set_finish_module(orc_finish_module_cdtors, &ctx.fin_cdtors);
+        v_set_finish_module(voidc_finish_module_cdtors, &ctx.fin_cdtors);
     }
 
     //-----------------------------------------------------------------

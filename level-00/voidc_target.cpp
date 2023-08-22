@@ -5,7 +5,6 @@
 #include "voidc_target.h"
 
 #include <stdexcept>
-#include <regex>
 #include <cassert>
 
 #include <llvm-c/Target.h>
@@ -923,7 +922,7 @@ voidc_template_ctx_t<T, TArgs...>::~voidc_template_ctx_t()
 
     for (auto jd : deque_jd)
     {
-        auto e0 = unwrap(voidc_global_ctx_t::jit)->deinitialize(*unwrap(jd));
+//      auto e0 = unwrap(voidc_global_ctx_t::jit)->deinitialize(*unwrap(jd));
 
         auto e1 = es.removeJITDylib(*unwrap(jd));
     }
@@ -1045,11 +1044,20 @@ voidc_local_template_ctx_t::setup_link_order(LLVMOrcJITDylibRef jd)
 
 
 //---------------------------------------------------------------------
-static LLVMOrcJITTargetAddress
+struct search_request_t
+{
+    const char *prefix;
+    unsigned    length;
+
+    LLVMOrcJITTargetAddress addr;
+};
+
+//---------------------------------------------------------------------
+static void
 add_object_file_to_jd_with_rt(LLVMMemoryBufferRef membuf,
                               LLVMOrcJITDylibRef jd,
                               LLVMOrcResourceTrackerRef rt,
-                              bool search_action = false)
+                              search_request_t *req)
 {
     char *msg = nullptr;
 
@@ -1078,8 +1086,6 @@ add_object_file_to_jd_with_rt(LLVMMemoryBufferRef membuf,
 
     auto it = LLVMObjectFileCopySymbolIterator(bref);
 
-    static std::regex act_regex("unit_[0-9]+_[0-9]+_action");
-
     while(!LLVMObjectFileIsSymbolIteratorAtEnd(bref, it))
     {
         auto sname = LLVMGetSymbolName(it);
@@ -1088,9 +1094,14 @@ add_object_file_to_jd_with_rt(LLVMMemoryBufferRef membuf,
         {
             auto addr = sym->getValue();
 
-            if (search_action  &&  std::regex_match(sname, act_regex))
+            if (!req) continue;
+
+            for (int i=0; req[i].prefix; ++i)
             {
-                ret = addr;
+                if (std::strncmp(sname, req[i].prefix, req[i].length) == 0)
+                {
+                    req[i].addr = addr;
+                }
             }
         }
 
@@ -1102,20 +1113,16 @@ add_object_file_to_jd_with_rt(LLVMMemoryBufferRef membuf,
     //-------------------------------------------------------------
     LLVMDisposeBinary(bref);
 
-
 //  unwrap(jd)->dump(outs());
-
-
-    return ret;
 }
 
 //---------------------------------------------------------------------
-static LLVMOrcJITTargetAddress
+static void
 add_object_file_to_jd(LLVMMemoryBufferRef membuf,
                       LLVMOrcJITDylibRef jd,
-                      bool search_action = false)
+                      search_request_t *req)
 {
-    return add_object_file_to_jd_with_rt(membuf, jd, LLVMOrcJITDylibGetDefaultResourceTracker(jd), search_action);
+    add_object_file_to_jd_with_rt(membuf, jd, LLVMOrcJITDylibGetDefaultResourceTracker(jd), req);
 }
 
 //---------------------------------------------------------------------
@@ -1141,13 +1148,38 @@ voidc_template_ctx_t<T, TArgs...>::add_object_file_to_jit(LLVMMemoryBufferRef me
 
     setup_link_order(jd);
 
-    add_object_file_to_jd(membuf, jd);
+    search_request_t req[] =
+    {
+        { "voidc.init_func.", 16, 0 },
+        { "voidc.term_func.", 16, 0 },
 
-    auto err = unwrap(voidc_global_ctx_t::jit)->initialize(*unwrap(jd));
+        { 0, 0, 0 }
+    };
+
+    add_object_file_to_jd(membuf, jd, req);
+
+    if (auto addr = req[0].addr)
+    {
+        void (*init_fun)() = (void (*)())addr;
+
+        init_fun();
+    }
 
     unwrap(jd)->setLinkOrder({{unwrap(vctx.base_jd), JITDylibLookupFlags::MatchAllSymbols}});       //- Sic!    WTF?
 
     deque_jd.push_front(jd);
+
+    if (auto addr = req[1].addr)
+    {
+        auto cleaner = [](void *data)
+        {
+            void (*term_fun)() = (void (*)())data;
+
+            term_fun();
+        };
+
+        this->add_cleaner(cleaner, (void *)addr);
+    }
 }
 
 
@@ -1586,10 +1618,10 @@ voidc_local_ctx_t::prepare_unit_action(int line, int column)
 {
     assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
 
-    std::string hdr = "unit_" + std::to_string(line) + "_" + std::to_string(column);
+    std::string tail = std::to_string(line) + "_" + std::to_string(column);
 
-    std::string mod_name = hdr + "_module";
-    std::string fun_name = hdr + "_action";
+    std::string mod_name = "voidc.unit_module_" + tail;
+    std::string fun_name = "voidc.unit_action_" + tail;
 
     module = LLVMModuleCreateWithNameInContext(mod_name.c_str(), global_ctx.llvm_ctx);
 
@@ -1661,17 +1693,35 @@ voidc_local_ctx_t::run_unit_action(void)
 
     auto rt = LLVMOrcJITDylibCreateResourceTracker(jd);
 
-    auto addr = add_object_file_to_jd_with_rt(unit_buffer, jd, rt, true);
+    search_request_t req[] =
+    {
+        { "voidc.init_func.", 16, 0 },
+        { "voidc.term_func.", 16, 0 },
 
-    auto e0 = unwrap(voidc_global_ctx_t::jit)->initialize(*unwrap(jd));
+        { "voidc.unit_action_", 18, 0 },
 
-    void (*unit_action)() = (void (*)())addr;
+        { 0, 0, 0 }
+    };
+
+    add_object_file_to_jd_with_rt(unit_buffer, jd, rt, req);
+
+    if (auto addr = req[0].addr)
+    {
+        void (*init_fun)() = (void (*)())addr;
+
+        init_fun();
+    }
+
+    void (*unit_action)() = (void (*)())req[2].addr;
 
     unit_action();
 
-//  unwrap(jd)->dump(outs());
+    if (auto addr = req[1].addr)
+    {
+        void (*term_fun)() = (void (*)())addr;
 
-    auto e1 = unwrap(voidc_global_ctx_t::jit)->deinitialize(*unwrap(jd));
+        term_fun();
+    }
 
     flush_unit_symbols();
 

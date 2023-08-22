@@ -285,11 +285,13 @@ append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) -> void
 
         v_break();
 
-    case v_type_kind_array:         //- "Contravariant" !!!
+    case v_type_kind_array:
+
+        v_std_string_append(str, "(");
 
         append_type(str, dict, v_type_array_get_element_type(t));
 
-        v_std_string_append(str, "[");
+        v_std_string_append(str, ")[");
 
         v_std_string_append_number(str, v_type_array_get_length(t));
 

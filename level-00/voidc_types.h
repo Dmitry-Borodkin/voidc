@@ -446,7 +446,7 @@ public:
     v_type_vector_t    *make_vector_type(v_type_t *et, unsigned count);
     v_type_svector_t   *make_svector_type(v_type_t *et, unsigned count);
 
-private:
+protected:
     std::unique_ptr<v_type_void_t> _void_type;
 
     std::unique_ptr<v_type_f16_t>  _f16_type;
