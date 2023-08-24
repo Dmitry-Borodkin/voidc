@@ -81,6 +81,8 @@
     v_add_symbol("q_prepare_function_parameters", q_ref, q("v.prepare_function_parameters"));
 
     v_add_symbol("voidc_definitions_context_q", q_ref, q("voidc.definitions_context"));
+
+    v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 }
 
 
@@ -908,11 +910,11 @@
     {
         if (!v_type_is_struct(to_type))  v_break();
 
-        typs = v_type_struct_get_element_types(to_type);
+        typs_0 = v_type_struct_get_element_types(to_type)[0];
 
-        incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
+        if (!v_type_is_struct(typs_0))  v_break();
 
-        if (typs[0] != incomplete_array_type_tag)  v_break();
+        if (v_type_struct_get_name_q(typs_0) != voidc_incomplete_array_type_tag)  v_break();
 
         v_set_result_type(type);        //- Sic!!!
 

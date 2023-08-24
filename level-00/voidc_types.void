@@ -176,6 +176,11 @@
 //  ft = v_function_type(v_type_ptr, typ0, 1, false);
 //  v_export_symbol_type("v_struct_type_named", ft);
 
+    v_store(v_quark_t, typ0);           //- Struct name quark
+
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
+    v_export_symbol_type("v_struct_type_named_q", ft);
+
     v_store(type_ptr, typ0);            //- Element types
 //  v_store(unsigned, typ1);            //- Element count
     v_store(bool,     typ2);            //- Is packed
@@ -192,6 +197,11 @@
 
     ft = v_function_type(char_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_struct_get_name", ft);
+
+//  v_store(v_type_ptr, typ0);          //-
+
+    ft = v_function_type(v_quark_t, typ0, 1, false);
+    v_export_symbol_type("v_type_struct_get_name_q", ft);
 
 //  v_store(v_type_ptr, typ0);          //-
 

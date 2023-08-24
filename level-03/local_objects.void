@@ -42,6 +42,8 @@
     v_add_symbol("voidc_internal_branch_target_leave_q", q_ref, q("voidc.internal_branch_target_leave"));
 
     v_add_symbol("voidc_obtain_special_result_value_q", q_ref, q("voidc.obtain_special_result_value"));
+
+    v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 }
 
 
@@ -1116,9 +1118,9 @@ my_op_braces_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t)
 
         typs = v_type_struct_get_element_types(tr);
 
-        incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
+        if (!v_type_is_struct(typs[0]))  v_break();
 
-        if (typs[0] != incomplete_array_type_tag)  v_break();
+        if (v_type_struct_get_name_q(typs[0]) != voidc_incomplete_array_type_tag)  v_break();
 
         tr := v_array_type(typs[1], N);
     }

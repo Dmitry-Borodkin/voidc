@@ -52,6 +52,8 @@
     v_add_symbol("q_op_infix_eq",          q_ref, q("v.op_infix_eq"));
     v_add_symbol("q_op_infix_ne",          q_ref, q("v.op_infix_ne"));
     v_add_symbol("q_op_postfix_index",     q_ref, q("v.op_postfix_index"));
+
+    v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 }
 
 
@@ -1112,7 +1114,7 @@
 
     if (flag)
     {
-        if (v_type_is_pointer(e0))  v_set_result_type(intptr_t);
+        if (v_type_is_pointer(e0))  v_set_result_type(v_find_type("intptr_t"));
         else                        v_set_result_type(e0);
     }
     else
@@ -3912,7 +3914,7 @@
                 typ0 = v_alloca(v_type_ptr, 2);
                 typ1 = v_getelementptr(typ0, 1);
 
-                incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
+                incomplete_array_type_tag = v_struct_type_named_q(voidc_incomplete_array_type_tag);     //- Sic!
 
                 v_store(incomplete_array_type_tag, typ0);
                 v_store(v_cast(agg_v, v_type_ptr), typ1);

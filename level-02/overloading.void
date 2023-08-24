@@ -45,6 +45,8 @@
     v_add_symbol("q_op_infix_ge", q_ref, q("v.op_infix_ge"));
     v_add_symbol("q_op_infix_eq", q_ref, q("v.op_infix_eq"));
     v_add_symbol("q_op_infix_ne", q_ref, q("v.op_infix_ne"));
+
+    v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 }
 
 
@@ -441,7 +443,7 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         if (v_type_is_pointer(e0))
         {
-            v_set_result_type(intptr_t);
+            v_set_result_type(v_find_type("intptr_t"));
 
             v_break();
         }
@@ -1931,7 +1933,7 @@ static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             typs = v_alloca(v_type_ptr, 2);
 
-            incomplete_array_type_tag = v_struct_type_named("voidc.incomplete_array_type_tag");     //- Sic!
+            incomplete_array_type_tag = v_struct_type_named_q(voidc_incomplete_array_type_tag);     //- Sic!
 
             typs[0] := incomplete_array_type_tag;
             typs[1] := t;

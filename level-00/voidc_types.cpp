@@ -710,6 +710,14 @@ v_type_refptr_get_address_space(v_type_t *type)
 
 //---------------------------------------------------------------------
 v_type_t *
+v_struct_type_named_q(v_quark_t qname)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_struct_type(qname);
+}
+
+v_type_t *
 v_struct_type_named(const char *name)
 {
     auto &gctx = *voidc_global_ctx_t::target;
@@ -729,6 +737,12 @@ bool
 v_type_is_struct(v_type_t *type)
 {
     return bool(dynamic_cast<v_type_struct_t *>(type));
+}
+
+v_quark_t
+v_type_struct_get_name_q(v_type_t *type)
+{
+    return  static_cast<v_type_struct_t *>(type)->name();
 }
 
 const char *
