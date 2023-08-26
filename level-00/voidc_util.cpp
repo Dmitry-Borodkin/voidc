@@ -457,6 +457,7 @@ void static_initialize(void)
     DEF_U(list_get_size)
     DEF_U(list_get_item)
 
+    DEF_U(list_concat)
     DEF_U(list_insert)
     DEF_U(list_erase)
 
@@ -685,6 +686,7 @@ v_util_make_list_util_list_impl(util_list_t *ret, const std::any *items, size_t 
     (*ret) = std::make_shared<const util_list_data_t>(items, items+count);
 }
 
+//---------------------------------------------------------------------
 void
 v_util_list_append_util_list_impl(util_list_t *ret, const util_list_t *list, const std::any *items, size_t count)
 {
@@ -704,6 +706,12 @@ v_util_list_get_item_util_list_impl(const util_list_t *list, size_t idx)
 }
 
 //---------------------------------------------------------------------
+void
+v_util_list_concat_util_list_impl(util_list_t *ret, const util_list_t *lhs, const util_list_t *rhs)
+{
+    (*ret) = std::make_shared<const util_list_data_t>(**lhs + **rhs);
+}
+
 void
 v_util_list_insert_util_list_impl(util_list_t *ret, const util_list_t *list, size_t pos, const std::any *items, size_t count)
 {

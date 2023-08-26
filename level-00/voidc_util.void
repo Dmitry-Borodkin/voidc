@@ -35,6 +35,7 @@
     v_add_symbol("q_list_append",            qt, qp("v_list_append"));
     v_add_symbol("q_list_get_size",          qt, qp("v_list_get_size"));
     v_add_symbol("q_list_get_item",          qt, qp("v_list_get_item"));
+    v_add_symbol("q_list_concat",            qt, qp("v_list_concat"));
     v_add_symbol("q_list_insert",            qt, qp("v_list_insert"));
     v_add_symbol("q_list_erase",             qt, qp("v_list_erase"));
     v_add_symbol("q_make_map",               qt, qp("v_make_map"));
@@ -686,18 +687,20 @@
 
     v_export_symbol_type("v_util_register_itcmep_impl", register_batch_ft);
 
-    v_export_symbol_type("v_util_register_make_list_nil_impl",  register_wtyp_ft);
-    v_export_symbol_type("v_util_register_make_list_impl",      register_wtyp_ft);
-    v_export_symbol_type("v_util_register_list_append_impl",    register_wtyp_ft);
-    v_export_symbol_type("v_util_register_list_get_size_impl",  register_ft);
-    v_export_symbol_type("v_util_register_list_get_item_impl",  register_wtyp_ft);
+    v_export_symbol_type("v_util_register_make_list_nil_impl", register_wtyp_ft);
+    v_export_symbol_type("v_util_register_make_list_impl",     register_wtyp_ft);
+
+    v_export_symbol_type("v_util_register_list_append_impl",   register_wtyp_ft);
+    v_export_symbol_type("v_util_register_list_get_size_impl", register_ft);
+    v_export_symbol_type("v_util_register_list_get_item_impl", register_wtyp_ft);
 
     v_export_symbol_type("v_util_register_list_agsgi_impl", register_batch_wtyp_ft);
 
+    v_export_symbol_type("v_util_register_list_concat_impl", register_ft);
     v_export_symbol_type("v_util_register_list_insert_impl", register_wtyp_ft);
     v_export_symbol_type("v_util_register_list_erase_impl",  register_ft);
 
-    v_export_symbol_type("v_util_register_list_i_e_impl", register_batch_wtyp_ft);
+    v_export_symbol_type("v_util_register_list_cie_impl", register_batch_wtyp_ft);
 
     v_export_symbol_type("v_util_register_make_map_impl",     register_wtyp_ft);
     v_export_symbol_type("v_util_register_map_get_size_impl", register_ft);
@@ -2265,6 +2268,82 @@
 
 
     //-------------------------------------------------------------
+    //- list_concat registering
+    //-------------------------------------------------------------
+    //- v_util_register_list_concat_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- {
+    //-     arg0 = v_alloca(v_type_ptr, 3);
+    //-     arg1 = v_getelementptr(arg0, 1);
+    //-     arg2 = v_getelementptr(arg0, 2);
+    //-
+    //-     val_t_ptr = v_pointer_type(val_t_type, 0);
+    //-
+    //-     v_store(val_t_ptr, arg0);
+    //-     v_store(val_t_ptr, arg1);
+    //-     v_store(val_t_ptr, arg2);
+    //-
+    //-     fun_type = v_function_type(void, arg0, 3, false);
+    //-
+    //-     v_util_registering_helper(q_list_concat, val_t_type, fun_name, fun_type);
+    //- }
+    //-------------------------------------------------------------
+    list_concat_f   = v_obtain_function("v_util_register_list_concat_impl", lltyp);
+    list_concat_ft_ = v_load(lltyp);
+
+    val_t_type = LLVMGetParam(list_concat_f, 0);
+    fun_name   = LLVMGetParam(list_concat_f, 1);
+    item_type  = LLVMGetParam(list_concat_f, 2);
+
+    entry = LLVMAppendBasicBlock(list_concat_f, "entry");
+    LLVMPositionBuilderAtEnd(builder, entry);
+
+
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n3, "arg0");
+
+    v_store(n1, val0);
+
+    arg1 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg1");
+
+    v_store(n2, val0);
+
+    arg2 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg2");
+
+
+    v_store(val_t_type, val0);
+    v_store(n0,         val1);
+
+    val_t_ptr = LLVMBuildCall2(builder, pointer_type_ft_, pointer_type_f, val0, 2, "val_t_ptr");
+
+
+    LLVMBuildStore(builder, val_t_ptr,   arg0);
+
+    LLVMBuildStore(builder, val_t_ptr,   arg1);
+
+    LLVMBuildStore(builder, val_t_ptr,   arg2);
+
+
+    v_store(void_type, val0);
+    v_store(arg0,      val1);
+    v_store(n3,        val2);
+    v_store(false_v,   val3);
+
+    fun_type = LLVMBuildCall2(builder, function_type_ft_, function_type_f, val0, 4, "fun_type");
+
+
+    dict_qp = v_obtain_global("q_list_concat", 0);
+    dict_q  = LLVMBuildLoad2(builder, v_quark_t_, dict_qp, "");
+
+    v_store(dict_q,     val0);
+    v_store(val_t_type, val1);
+    v_store(fun_name,   val2);
+    v_store(fun_type,   val3);
+
+    LLVMBuildCall2(builder, util_reg_helper_ft_, util_reg_helper_f, val0, 4, "");
+
+    LLVMBuildRetVoid(builder);
+
+
+    //-------------------------------------------------------------
     //- list_insert registering
     //-------------------------------------------------------------
     //- v_util_register_list_insert_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) -> void
@@ -2439,14 +2518,23 @@
 
 
     //-------------------------------------------------------------
-    //- list insert/erase batch registering
+    //- list concat/insert/erase batch registering
     //-------------------------------------------------------------
-    //- v_util_register_list_i_e_impl: (val_t_type: v_type_ptr, item_type: v_type_ptr,
+    //- v_util_register_list_cie_impl: (val_t_type: v_type_ptr, item_type: v_type_ptr,
     //-                                 prefix: char_ptr, typename: char_ptr) -> void
     //- {
     //-     sstr = v_alloca(v_std_string_t);
     //-
     //-     v_util_initialize_std_string_impl(sstr, 1);
+    //-
+    //-     v_std_string_set(sstr, prefix);
+    //-     v_std_string_append(sstr, "_list_concat_");
+    //-     v_std_string_append(sstr, typename);
+    //-     v_std_string_append(sstr, "_impl");
+    //-
+    //-     fun_name = v_std_string_get(sstr);
+    //-
+    //-     v_util_register_list_concat_impl(val_t_type, fun_name);
     //-
     //-     v_std_string_set(sstr, prefix);
     //-     v_std_string_append(sstr, "_list_insert_");
@@ -2469,14 +2557,14 @@
     //-     v_util_terminate_std_string_impl(sstr, 1);
     //- }
     //-------------------------------------------------------------
-    list_i_e_f = v_obtain_function("v_util_register_list_i_e_impl", 0);
+    list_cie_f = v_obtain_function("v_util_register_list_cie_impl", 0);
 
-    val_t_type = LLVMGetParam(list_i_e_f, 0);
-    item_type  = LLVMGetParam(list_i_e_f, 1);
-    prefix     = LLVMGetParam(list_i_e_f, 2);
-    typename   = LLVMGetParam(list_i_e_f, 3);
+    val_t_type = LLVMGetParam(list_cie_f, 0);
+    item_type  = LLVMGetParam(list_cie_f, 1);
+    prefix     = LLVMGetParam(list_cie_f, 2);
+    typename   = LLVMGetParam(list_cie_f, 3);
 
-    entry = LLVMAppendBasicBlock(list_i_e_f, "entry");
+    entry = LLVMAppendBasicBlock(list_cie_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
@@ -2487,6 +2575,27 @@
     LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val0, 2, "");
 
 
+    v_store(prefix, val1);
+    LLVMBuildCall2(builder, sstr_set_ft_, sstr_set_f, val0, 2, "");
+
+    str_list_concat = LLVMBuildGlobalStringPtr(builder, "_list_concat_", "str_list_concat");
+    v_store(str_list_concat, val1);
+    LLVMBuildCall2(builder, sstr_append_ft_, sstr_append_f, val0, 2, "");
+
+    v_store(typename, val1);
+    LLVMBuildCall2(builder, sstr_append_ft_, sstr_append_f, val0, 2, "");
+
+    v_store(str_impl, val1);
+    LLVMBuildCall2(builder, sstr_append_ft_, sstr_append_f, val0, 2, "");
+
+    fun_name = LLVMBuildCall2(builder, sstr_get_ft_, sstr_get_f, val0, 1, "fun_name");
+
+    v_store(val_t_type, val0);
+    v_store(fun_name,   val1);
+    LLVMBuildCall2(builder, list_concat_ft_, list_concat_f, val0, 2, "");
+
+
+    v_store(sstr, val0);
     v_store(prefix, val1);
     LLVMBuildCall2(builder, sstr_set_ft_, sstr_set_f, val0, 2, "");
 
@@ -3473,7 +3582,7 @@
 
     v_util_register_list_agsgi_impl(v_util_list_t, v_std_any_t, "v_util", "util_list");
 
-    v_util_register_list_i_e_impl(v_util_list_t, v_std_any_t, "v_util", "util_list");
+    v_util_register_list_cie_impl(v_util_list_t, v_std_any_t, "v_util", "util_list");
 }
 
 {   typ0 = v_alloca(v_type_ptr);
