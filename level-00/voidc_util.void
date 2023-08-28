@@ -3517,11 +3517,14 @@
     type = v_int_type(64);      v_util_register_std_any_gs_vp_impl(type, "v_util", "int64_t");
     type = v_uint_type(64);     v_util_register_std_any_gs_vp_impl(type, "v_util", "uint64_t");
 
-    type = v_int_type(128);     v_util_register_std_any_gs_vp_impl(type, "v_util", "int128_t");
-    type = v_uint_type(128);    v_util_register_std_any_gs_vp_impl(type, "v_util", "uint128_t");
-
-    type = v_int_type(256);     v_util_register_std_any_gs_vp_impl(type, "v_util", "int256_t");
-    type = v_uint_type(256);    v_util_register_std_any_gs_vp_impl(type, "v_util", "uint256_t");
+    //-----------------------------------------------------------------
+    type = v_array_type(intptr_t, 2);   v_util_register_std_any_gs_pointer_impl(type, "v_util", "intptr_tx2");
+    type = v_array_type(intptr_t, 3);   v_util_register_std_any_gs_pointer_impl(type, "v_util", "intptr_tx3");
+    type = v_array_type(intptr_t, 4);   v_util_register_std_any_gs_pointer_impl(type, "v_util", "intptr_tx4");
+    type = v_array_type(intptr_t, 5);   v_util_register_std_any_gs_pointer_impl(type, "v_util", "intptr_tx5");
+    type = v_array_type(intptr_t, 6);   v_util_register_std_any_gs_pointer_impl(type, "v_util", "intptr_tx6");
+    type = v_array_type(intptr_t, 7);   v_util_register_std_any_gs_pointer_impl(type, "v_util", "intptr_tx7");
+    type = v_array_type(intptr_t, 8);   v_util_register_std_any_gs_pointer_impl(type, "v_util", "intptr_tx8");
 
     //-----------------------------------------------------------------
     v_util_register_std_any_gs_pointer_impl(v_std_string_t, "v_util", "std_string");

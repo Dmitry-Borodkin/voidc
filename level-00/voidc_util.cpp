@@ -644,12 +644,21 @@ DEF(uint32_t, uint32_t)
 DEF(int64_t,  int64_t)
 DEF(uint64_t, uint64_t)
 
-DEF(         _BitInt(128), int128_t)
-DEF(unsigned _BitInt(128), uint128_t)
-DEF(         _BitInt(256), int256_t)
-DEF(unsigned _BitInt(256), uint256_t)
-
 DEF_PTR(std::string, std_string)
+
+#define DEF_INTPTR_ARRAY(n) \
+typedef intptr_t intptr_tx##n[n]; \
+DEF_PTR(intptr_tx##n, intptr_tx##n)
+
+DEF_INTPTR_ARRAY(2)
+DEF_INTPTR_ARRAY(3)
+DEF_INTPTR_ARRAY(4)
+DEF_INTPTR_ARRAY(5)
+DEF_INTPTR_ARRAY(6)
+DEF_INTPTR_ARRAY(7)
+DEF_INTPTR_ARRAY(8)
+
+#undef DEF_INTPTR_ARRAY
 
 #undef DEF
 #undef DEF_PTR
