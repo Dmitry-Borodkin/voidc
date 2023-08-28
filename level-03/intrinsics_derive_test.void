@@ -45,9 +45,6 @@ alwaysinline
     }
 }
 
-alwaysinline
-(v_transfer(_)): (dst: *unique_ptr_int, src: *unique_ptr_int, N: size_t) -> void = derive;
-
 
 alwaysinline
 (*_): (sp: &unique_ptr_int) -> &int
@@ -129,8 +126,6 @@ struct qwe_t
 
 (v_initialize(_)): (*qwe_t, size_t) -> void = derive;
 (v_terminate(_)):  (*qwe_t, size_t) -> void = derive;
-
-(v_transfer(_)): (*qwe_t, *qwe_t, size_t) -> void = derive;
 
 
 //---------------------------------------------------------------------

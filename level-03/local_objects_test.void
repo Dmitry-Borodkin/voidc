@@ -29,7 +29,7 @@ test_t = struct { v_std_any_t; };
 (v_initialize(_)): (*test_t, size_t) -> void = derive;
 (v_terminate(_)):  (*test_t, size_t) -> void = derive;
 
-(v_transfer(_)): (*test_t, *test_t, size_t) -> void = derive;
+(v_copy(_)): (*test_t, *const test_t, size_t) -> void = derive;
 
 { v_debug_print_module(1); }
 {

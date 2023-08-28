@@ -34,7 +34,10 @@
 
     v_add_symbol("q_initialize", q_ref, q("v_initialize"));
     v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
-    v_add_symbol("q_transfer",   q_ref, q("v_transfer"));
+    v_add_symbol("q_copy",       q_ref, q("v_copy"));
+    v_add_symbol("q_move",       q_ref, q("v_move"));
+
+    v_add_symbol("q_transfer", q_ref, q("v.transfer"));
 
     v_add_symbol("q_getelementptr", q_ref, q("v_getelementptr"));
 
@@ -302,6 +305,8 @@ voidc_make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
                                     t: *v_type_t, v0: LLVMValueRef, v1: LLVMValueRef
                                     ) -> void
 {
+    //- assert(q == q_initialize  ||  q == q_terminate  ||  q == q_transfer);       //- Sic!
+
     expr = v_alloca(v_ast_expr_t, 3);
     v_initialize(expr, 3);
     defer v_terminate(expr, 3);
@@ -320,6 +325,8 @@ voidc_make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 
     length: &uint64_t := 1;
 
+    et: &v_type_ptr := t;
+
     if (v_type_is_array(t))
     {
         v_ast_make_expr_integer(expr+2, 0);
@@ -329,8 +336,6 @@ voidc_make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
         v_list_append(expr_list+0, expr_list+0, expr+2, 1);
 
         if (is_trans) v_make_list(expr_list+1, expr+1, 2);
-
-        et: &v_type_ptr := t;
 
         loop
         {
@@ -358,7 +363,24 @@ voidc_make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
     {
         v_ast_make_expr_integer(expr+2, (length: intptr_t));
 
-        v_ast_make_stmt_call(stmt, 0, q, expr+0, 3);
+        void_fun: &*void := v_undef();
+        void_aux: &*void := v_undef();
+
+        ft: &v_type_ptr   := v_undef();
+        fv: &LLVMValueRef := v_undef();
+
+        e_q: &v_quark_t := v_undef();
+
+        if (v_util_lookup_function_dict(et, q_copy, void_fun, void_aux, ft, fv))
+        {
+            e_q := q_copy;
+        }
+        else    //- Sic!
+        {
+            e_q := q_move;
+        }
+
+        v_ast_make_stmt_call(stmt, 0, e_q, expr+0, 3);
     }
     else
     {
@@ -717,7 +739,7 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
 
         if (ttag == type)
         {
-            if (v_type_is_special(type, q_transfer))            //- q_transfer ?
+            if (v_type_is_special(type, q_initialize))          //- Sic!
             block
             {
                 if (vtag == TEMPORARY_VTAG) v_break();
@@ -729,7 +751,7 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
                 v_initialize(stmt);
                 defer v_terminate(stmt);
 
-                voidc_make_special_intrinsic_call(stmt, q_transfer, ttag, vtag, value);
+                voidc_make_special_intrinsic_call(stmt, q_transfer, ttag, vtag, value);     //- Sic!
 
                 v_ast_accept_visitor((stmt: *v_ast_base_t), v_get_compiler());
 
@@ -840,7 +862,7 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
 
             v_set_result_type(v_reference_type(dst_typ, as));
         }
-        else if (v_type_is_special(dst_typ, q_transfer))            //- q_transfer ?
+        else if (v_type_is_special(dst_typ, q_initialize))          //- Sic!
         block
         {
             if (vtag == TEMPORARY_VTAG) v_break();      //- ?..
