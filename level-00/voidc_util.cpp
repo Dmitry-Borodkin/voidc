@@ -647,7 +647,7 @@ DEF(uint64_t, uint64_t)
 DEF_PTR(std::string, std_string)
 
 #define DEF_INTPTR_ARRAY(n) \
-typedef intptr_t intptr_tx##n[n]; \
+struct intptr_tx##n { intptr_t _[n]; }; \
 DEF_PTR(intptr_tx##n, intptr_tx##n)
 
 DEF_INTPTR_ARRAY(2)
