@@ -391,8 +391,6 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     q = op_table[(aux: int)][2];    //- Quark
 
-    builder = v_target_get_builder();
-
     void_fun: &*void := 0;
     void_aux: &*void := 0;
 
@@ -483,6 +481,8 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     vr: &LLVMValueRef := v1;
 
+    builder = v_target_get_builder();
+
     if (compile)
     {
         v = LLVMBuildLoad2(builder, v_type_get_llvm_type(e0), v0, "");
@@ -536,8 +536,6 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
-
-    builder = v_target_get_builder();
 
     if (v_util_lookup_function_dict(t0, q0, void_fun, void_aux, ft, fv))
     {
@@ -1325,8 +1323,6 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     t0 = v_get_result_type();
     v0 = v_get_result_value();
 
-    builder = v_target_get_builder();
-
     q = op_table[(aux: int)][2];    //- Quark
 
     void_fun: &*void := 0;
@@ -1458,8 +1454,6 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
 
     void_fun: &*void := 0;
     void_aux: &*void := v_undef();
-
-    builder = v_target_get_builder();
 
     q = q_op_postfix_call;
 
@@ -1811,8 +1805,6 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     agg_t: &v_type_ptr   := v_get_result_type();
     agg_v: &LLVMValueRef := v_get_result_value();
 
-
-    builder = v_target_get_builder();
 
     q = q_op_postfix_index;
 

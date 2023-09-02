@@ -40,8 +40,7 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
 
     v_add_symbol("q_initialize", q_ref, q("v_initialize"));
     v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
-
-    v_add_symbol("q_transfer", q_ref, q("v.transfer"));
+    v_add_symbol("q_copy",       q_ref, q("v_copy"));
 
     v_add_symbol("voidc_compile_type_q", q_ref, q("voidc.compile_type"));
 
@@ -270,7 +269,7 @@ my_compile_unit_var_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 
                stmt: &v_ast_stmt_t := {};
 
-               voidc_make_special_intrinsic_call(&stmt, q_transfer, t, vv, v);          //- Sic!
+               voidc_make_special_intrinsic_call(&stmt, q_copy, t, vv, v);              //- Sic!
 
                v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
             }
@@ -425,7 +424,7 @@ my_compile_unit_val_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 
                stmt: &v_ast_stmt_t := {};
 
-               voidc_make_special_intrinsic_call(&stmt, q_transfer, t, vv, v);          //- Sic!
+               voidc_make_special_intrinsic_call(&stmt, q_copy, t, vv, v);              //- Sic!
 
                v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
             }
