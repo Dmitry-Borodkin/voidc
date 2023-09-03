@@ -66,22 +66,25 @@ op_table_item_t = v_struct("struct.op_table_item",
     *const char,    //- 0 - Name
     int,            //- 1 - Kind
     v_quark_t,      //- 2 - Quark (left)
-    v_quark_t       //- 3 - Quark (right)
+    v_quark_t,      //- 3 - Quark (right)
+
+    *void,          //- 4 - helper function (if any)
+    *void           //- 5 - aux for helper  (if any)
 });
 
 op_table: &op_table_item_t[] :=
 {
-    {"v.op_infix_assign",      opk_assign   },
-    {"v.op_infix_add_assign",  opk_assign   },
-    {"v.op_infix_sub_assign",  opk_assign   },
-    {"v.op_infix_mul_assign",  opk_assign   },
-    {"v.op_infix_div_assign",  opk_assign   },
-    {"v.op_infix_rem_assign",  opk_assign   },
-    {"v.op_infix_shl_assign",  opk_assign   },
-    {"v.op_infix_shr_assign",  opk_assign   },
-    {"v.op_infix_and_assign",  opk_assign   },
-    {"v.op_infix_xor_assign",  opk_assign   },
-    {"v.op_infix_or_assign",   opk_assign   },
+    {"v.op_infix_assign",      opk_assign,  0,0, 0 },
+    {"v.op_infix_add_assign",  opk_assign,  0,0, voidc_internal_compile_add_helper, (true:  *void) },
+    {"v.op_infix_sub_assign",  opk_assign,  0,0, voidc_internal_compile_sub_helper, (true:  *void) },
+    {"v.op_infix_mul_assign",  opk_assign,  0,0, voidc_internal_compile_mul_helper, (false: *void) },
+    {"v.op_infix_div_assign",  opk_assign,  0,0, voidc_internal_compile_div_helper, (false: *void) },
+    {"v.op_infix_rem_assign",  opk_assign,  0,0, voidc_internal_compile_rem_helper, (false: *void) },
+    {"v.op_infix_shl_assign",  opk_assign,  0,0, voidc_internal_compile_shl_helper, (false: *void) },
+    {"v.op_infix_shr_assign",  opk_assign,  0,0, voidc_internal_compile_shr_helper, (false: *void) },
+    {"v.op_infix_and_assign",  opk_assign,  0,0, voidc_internal_compile_and_helper, (false: *void) },
+    {"v.op_infix_xor_assign",  opk_assign,  0,0, voidc_internal_compile_xor_helper, (false: *void) },
+    {"v.op_infix_or_assign",   opk_assign,  0,0, voidc_internal_compile_or_helper,  (false: *void) },
 
 //  {"v.op_infix_to",          opk_binary   },          //- ?!?!?!?!?!?!?!?
 
@@ -95,32 +98,32 @@ op_table: &op_table_item_t[] :=
     {"v.op_infix_eq",          opk_relation },
     {"v.op_infix_ne",          opk_relation },
 
-    {"v.op_infix_or",          opk_binary   },
-    {"v.op_infix_xor",         opk_binary   },
-    {"v.op_infix_and",         opk_binary   },
+    {"v.op_infix_or",          opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_or_helper },
+    {"v.op_infix_xor",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_xor_helper },
+    {"v.op_infix_and",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_and_helper },
 
-    {"v.op_infix_shl",         opk_binary   },
-    {"v.op_infix_shr",         opk_binary   },
-    {"v.op_infix_add",         opk_binary   },
-    {"v.op_infix_sub",         opk_binary   },
-    {"v.op_infix_mul",         opk_binary   },
-    {"v.op_infix_div",         opk_binary   },
-    {"v.op_infix_rem",         opk_binary   },
+    {"v.op_infix_shl",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_shl_helper },
+    {"v.op_infix_shr",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_shr_helper },
+    {"v.op_infix_add",         opk_binary,  0,0, voidc_internal_compile_op_binary_addsub_helper, voidc_internal_compile_infix_add_helper },
+    {"v.op_infix_sub",         opk_binary,  0,0, voidc_internal_compile_op_binary_addsub_helper, voidc_internal_compile_infix_sub_helper },
+    {"v.op_infix_mul",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_mul_helper },
+    {"v.op_infix_div",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_div_helper },
+    {"v.op_infix_rem",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_rem_helper },
 
-    {"v.op_prefix_inc",        opk_unary    },
-    {"v.op_prefix_dec",        opk_unary    },
-    {"v.op_prefix_plus",       opk_unary    },
-    {"v.op_prefix_minus",      opk_unary    },
-    {"v.op_prefix_star",       opk_unary    },
-    {"v.op_prefix_amp",        opk_unary    },
-    {"v.op_prefix_bang",       opk_unary    },
-    {"v.op_prefix_tilda",      opk_unary    },
+    {"v.op_prefix_inc",        opk_unary },
+    {"v.op_prefix_dec",        opk_unary },
+    {"v.op_prefix_plus",       opk_unary },
+    {"v.op_prefix_minus",      opk_unary },
+    {"v.op_prefix_star",       opk_unary },
+    {"v.op_prefix_amp",        opk_unary },
+    {"v.op_prefix_bang",       opk_unary },
+    {"v.op_prefix_tilda",      opk_unary },
 
-    {"v.op_prefix_const",      opk_unary    },          //- ...
-    {"v.op_prefix_volatile",   opk_unary    },          //- ...
+    {"v.op_prefix_const",      opk_unary },          //- ...
+    {"v.op_prefix_volatile",   opk_unary },          //- ...
 
-    {"v.op_postfix_inc",       opk_unary    },
-    {"v.op_postfix_dec",       opk_unary    },
+    {"v.op_postfix_inc",       opk_unary },
+    {"v.op_postfix_dec",       opk_unary },
 
     {0}     //- Sic...
 };
@@ -389,7 +392,9 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     t0 = v_get_result_type();
     v0 = v_get_result_value();
 
-    q = op_table[(aux: int)][2];    //- Quark
+    op_data = op_table[(aux: int)];
+
+    q = op_data[2];     //- Quark
 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
@@ -432,78 +437,30 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     //- Default treatment...
 
-    e0 = v_type_refptr_get_element_type(t0);
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
 
-    switch((aux: int))
-    {
-    case id_infix_add_assign:
-    case id_infix_sub_assign:
+    v_ast_make_expr_compiled(expr, t0, v0);
 
-        if (v_type_is_pointer(e0))
-        {
-            v_set_result_type(v_find_type("intptr_t"));
-
-            v_break();
-        }
-
-        //- Fallthrough
-
-    default:
-
-        v_set_result_type(e0);
-    }
-
-    v_set_result_value(0);
-
-    rhs = v_list_get_item(args, 2);             //- "Value"
-
-    v_ast_accept_visitor((rhs : v_ast_base_ptr), vis);
-
-    t1 = v_get_result_type();
-    v1 = v_get_result_value();
-
-    compile: &*((v_type_ptr, LLVMValueRef, LLVMValueRef) -> LLVMValueRef) := 0;
-
-    switch((aux: int))
-    {
-    case id_infix_add_assign:   compile := voidc_internal_compile_add_helper;   v_break();
-    case id_infix_sub_assign:   compile := voidc_internal_compile_sub_helper;   v_break();
-    case id_infix_mul_assign:   compile := voidc_internal_compile_mul_helper;   v_break();
-    case id_infix_div_assign:   compile := voidc_internal_compile_div_helper;   v_break();
-    case id_infix_rem_assign:   compile := voidc_internal_compile_rem_helper;   v_break();
-    case id_infix_shl_assign:   compile := voidc_internal_compile_shl_helper;   v_break();
-    case id_infix_shr_assign:   compile := voidc_internal_compile_shr_helper;   v_break();
-    case id_infix_and_assign:   compile := voidc_internal_compile_and_helper;   v_break();
-    case id_infix_xor_assign:   compile := voidc_internal_compile_xor_helper;   v_break();
-    case id_infix_or_assign:    compile := voidc_internal_compile_or_helper;    v_break();
-    }
-
-
-    vr: &LLVMValueRef := v1;
-
-    builder = v_target_get_builder();
-
-    if (compile)
-    {
-        v = LLVMBuildLoad2(builder, v_type_get_llvm_type(e0), v0, "");
-
-        vr := compile(e0, v, v1);
-    }
-    else
-    {
-        if (v_type_is_pointer(v_type_get_scalar_type(e0)))      //- WTF ?!?!?!?
-        {
-            vr := v_convert_to_type(t1, v1, e0);
-        }
-    }
-
-    LLVMBuildStore(builder, vr, v0);
-
+    ast0 = expr;                            //- "Place", compiled
+    ast1 = v_list_get_item(args, 2);        //- "Value"
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    v_adopt_result(t0, v0);
+    compile = (op_data[4] : *((v_type_ptr, LLVMValueRef, LLVMValueRef) -> LLVMValueRef));
+
+    if (compile)
+    {
+        flag = (op_data[5] : bool);
+
+        voidc_internal_compile_op_assign_helper(vis, ast0, ast1, compile, flag);
+    }
+    else
+    {
+        voidc_internal_compile_op_infix_assign_helper(vis, ast0, ast1);        //- Sic !?!?!?!?!?!?!?!
+    }
 }
 
 
@@ -529,7 +486,9 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     t0 = v_get_result_type();
     v0 = v_get_result_value();
 
-    q0 = op_table[(aux: int)][2];       //- Quark (left)
+    op_data = op_table[(aux: int)];
+
+    q0 = op_data[2];        //- Quark (left)
 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
@@ -582,7 +541,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     t1 = v_get_result_type();
     v1 = v_get_result_value();
 
-    q1 = op_table[(aux: int)][3];       //- Quark (right)
+    q1 = op_data[3];        //- Quark (right)
 
     if (v_util_lookup_function_dict(t1, q1, void_fun, void_aux, ft, fv))
     {
@@ -620,65 +579,22 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     //- Default treatment...
 
-    v_set_result_type(UNREFERENCE_TAG);
-    v_set_result_value(0);
+    expr = v_alloca(v_ast_expr_t, 2);
+    v_initialize(expr, 2);
+    defer v_terminate(expr, 2);
 
-    v_adopt_result(t0, v0);
-
-    t0: &v_type_ptr   := v_get_result_type();
-    v0: &LLVMValueRef := v_get_result_value();
-
-    v_set_result_type(UNREFERENCE_TAG);
-    v_set_result_value(0);
-
-    v_adopt_result(t1, v1);
-
-    t1: &v_type_ptr   := v_get_result_type();
-    v1: &LLVMValueRef := v_get_result_value();
-
-    {   compile: &*((&v_type_ptr, &LLVMValueRef, &v_type_ptr, &LLVMValueRef) -> LLVMValueRef) := 0;
-
-        switch((aux: int))
-        {
-        case id_infix_add:  compile := voidc_internal_compile_infix_add_helper; v_break();
-        case id_infix_sub:  compile := voidc_internal_compile_infix_sub_helper; v_break();
-        }
-
-        if (compile)
-        {
-            v = compile(t0, v0, t1, v1);
-
-            v_set_result_type(ttag);
-            v_set_result_value(vtag);
-
-            v_adopt_result(t0, v);
-
-            v_return();
-        }
-    }
-
-    compile: &*((v_type_ptr, LLVMValueRef, LLVMValueRef) -> LLVMValueRef) := 0;
-
-    switch((aux: int))
-    {
-    case id_infix_mul:  compile := voidc_internal_compile_mul_helper;   v_break();
-    case id_infix_div:  compile := voidc_internal_compile_div_helper;   v_break();
-    case id_infix_rem:  compile := voidc_internal_compile_rem_helper;   v_break();
-    case id_infix_shl:  compile := voidc_internal_compile_shl_helper;   v_break();
-    case id_infix_shr:  compile := voidc_internal_compile_shr_helper;   v_break();
-    case id_infix_and:  compile := voidc_internal_compile_and_helper;   v_break();
-    case id_infix_xor:  compile := voidc_internal_compile_xor_helper;   v_break();
-    case id_infix_or:   compile := voidc_internal_compile_or_helper;    v_break();
-    }
-
-    voidc_internal_convert_to_common_type_helper(t0, v0, t1, v1);
-
-    v = compile(t0, v0, v1);
+    v_ast_make_expr_compiled(expr+0, t0, v0);
+    v_ast_make_expr_compiled(expr+1, t1, v1);
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    v_adopt_result(t0, v);
+
+    helper = (op_data[4] : *((*voidc_visitor_t, *v_ast_expr_t, *v_ast_expr_t, *void) -> void));
+
+    compile = op_data[5];
+
+    helper(vis, expr+0, expr+1, compile);
 }
 
 
