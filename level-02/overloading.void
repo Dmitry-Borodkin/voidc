@@ -791,6 +791,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             //- Second argument
 
             v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_value(0);
 
             v_ast_accept_visitor((ast[i+1] : v_ast_base_ptr), vis);
 

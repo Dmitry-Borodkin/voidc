@@ -2344,6 +2344,121 @@
 }
 
 //---------------------------------------------------------------------
+//- ... - utility
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr, 7);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
+    typ5 = v_getelementptr(typ0, 5);
+    typ6 = v_getelementptr(typ0, 6);
+
+    type_ref  = v_reference_type(v_type_ptr, 0);
+    value_ref = v_reference_type(LLVMValueRef, 0);
+
+    v_store(voidc_visitor_ptr, typ0);
+    v_store(void_ptr,          typ1);
+    v_store(v_type_ptr,        typ2);
+    v_store(LLVMValueRef,      typ3);
+    v_store(v_ast_expr_ptr,    typ4);
+    v_store(type_ref,          typ5);
+    v_store(value_ref,         typ6);
+
+    ft = v_function_type(LLVMValueRef, typ0, 7, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_single_relation", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "aux", void_ptr);
+    v_add_parameter_name(f, 2, "t0",  v_type_ptr);
+    v_add_parameter_name(f, 3, "v0",  LLVMValueRef);
+    v_add_parameter_name(f, 4, "rhs", v_ast_expr_ptr);
+    v_add_parameter_name(f, 5, "t1",  type_ref);
+    v_add_parameter_name(f, 6, "v1",  value_ref);
+}
+{
+    l_t0 = v_reference(v_alloca(v_type_ptr));
+    l_v0 = v_reference(v_alloca(LLVMValueRef));
+    l_t1 = v_reference(v_alloca(v_type_ptr));
+    l_v1 = v_reference(v_alloca(LLVMValueRef));
+
+    v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
+
+    v_adopt_result(t0, v0);
+
+    v_assign(l_t0, v_get_result_type());
+    v_assign(l_v0, v_get_result_value());
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(v_cast(rhs, v_ast_base_ptr), vis);
+
+    v_assign(t1, v_get_result_type());
+    v_assign(v1, v_get_result_value());
+
+    v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
+
+    v_adopt_result(t1, v1);
+
+    v_assign(l_t1, v_get_result_type());
+    v_assign(l_v1, v_get_result_value());
+
+    convert_to_common_type(l_t0, l_v0, l_t1, l_v1);
+
+    builder = v_target_get_builder();
+
+    st = v_type_get_scalar_type(l_t0);
+
+    if (v_type_is_floating_point(st))
+    {
+        opc = v_reference(v_alloca(LLVMRealPredicate));
+
+        switch(v_cast(aux, int))
+        {
+        case rk_eq: v_assign(opc, LLVMRealOEQ); v_break();      //- 'O' ?...
+        case rk_ne: v_assign(opc, LLVMRealUNE); v_break();      //- 'U' ?!?!?..
+        case rk_lt: v_assign(opc, LLVMRealOLT); v_break();      //- 'O' ?...
+        case rk_le: v_assign(opc, LLVMRealOLE); v_break();      //- 'O' ?...
+        case rk_gt: v_assign(opc, LLVMRealOGT); v_break();      //- 'O' ?...
+        case rk_ge: v_assign(opc, LLVMRealOGE); v_break();      //- 'O' ?...
+        }
+
+        v_return(LLVMBuildFCmp(builder, opc, l_v0, l_v1, ""));
+    }
+    else
+    {
+        opc = v_reference(v_alloca(LLVMIntPredicate));
+
+        s = v_reference(v_alloca(bool));
+
+        v_assign(s, false);
+
+        if (v_type_is_integer(st))  v_assign(s, v_type_integer_is_signed(st));
+
+        switch(v_cast(aux, int))
+        {
+        case rk_eq: v_assign(opc, LLVMIntEQ);   v_break();
+        case rk_ne: v_assign(opc, LLVMIntNE);   v_break();
+
+        case rk_lt: if (s)  v_assign(opc, LLVMIntSLT);  else  v_assign(opc, LLVMIntULT);  v_break();
+        case rk_le: if (s)  v_assign(opc, LLVMIntSLE);  else  v_assign(opc, LLVMIntULE);  v_break();
+        case rk_gt: if (s)  v_assign(opc, LLVMIntSGT);  else  v_assign(opc, LLVMIntUGT);  v_break();
+        case rk_ge: if (s)  v_assign(opc, LLVMIntSGE);  else  v_assign(opc, LLVMIntUGE);  v_break();
+        }
+
+        v_return(LLVMBuildICmp(builder, opc, l_v0, l_v1, ""));
+    }
+}
+
+//---------------------------------------------------------------------
 //- check_relation - utility
 //---------------------------------------------------------------------
 {
@@ -2522,22 +2637,16 @@
     }
 
 
-    typ = v_reference(v_alloca(v_type_ptr));
-    val = v_reference(v_alloca(LLVMValueRef));
-
-    v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_type(INVIOLABLE_TAG);
     v_set_result_value(0);
 
     v_ast_accept_visitor(v_cast(v_load(ast), v_ast_base_ptr), visitor);
 
+    typ = v_reference(v_alloca(v_type_ptr));
+    val = v_reference(v_alloca(LLVMValueRef));
+
     v_assign(typ, v_get_result_type());
     v_assign(val, v_get_result_value());
-
-
-    t0 = v_reference(v_alloca(v_type_ptr));
-    v0 = v_reference(v_alloca(LLVMValueRef));
-    t1 = v_reference(v_alloca(v_type_ptr));
-    v1 = v_reference(v_alloca(LLVMValueRef));
 
     r = v_reference(v_alloca(LLVMValueRef));
 
@@ -2555,67 +2664,7 @@
 
         ast_i = v_load(v_getelementptr(ast, i));
 
-        v_set_result_type(UNREFERENCE_TAG);
-        v_set_result_value(0);
-
-        v_ast_accept_visitor(v_cast(ast_i, v_ast_base_ptr), visitor);
-
-        t = v_get_result_type();
-        v = v_get_result_value();
-
-        v_assign(t0, typ);
-        v_assign(v0, val);
-        v_assign(t1, t);
-        v_assign(v1, v);
-
-        convert_to_common_type(t0, v0, t1, v1);
-
-        v_assign(typ, t);
-        v_assign(val, v);
-
-
-        st = v_type_get_scalar_type(t0);
-
-
-        if (v_type_is_floating_point(st))
-        {
-            opc = v_reference(v_alloca(LLVMRealPredicate));
-
-            switch(rel_i)
-            {
-            case rk_eq: v_assign(opc, LLVMRealOEQ); v_break();      //- 'O' ?...
-            case rk_ne: v_assign(opc, LLVMRealUNE); v_break();      //- 'U' ?!?!?..
-            case rk_lt: v_assign(opc, LLVMRealOLT); v_break();      //- 'O' ?...
-            case rk_le: v_assign(opc, LLVMRealOLE); v_break();      //- 'O' ?...
-            case rk_gt: v_assign(opc, LLVMRealOGT); v_break();      //- 'O' ?...
-            case rk_ge: v_assign(opc, LLVMRealOGE); v_break();      //- 'O' ?...
-            }
-
-            v_assign(r, LLVMBuildFCmp(builder, opc, v0, v1, ""));
-        }
-        else
-        {
-            opc = v_reference(v_alloca(LLVMIntPredicate));
-
-            s = v_reference(v_alloca(bool));
-
-            v_assign(s, false);
-
-            if (v_type_is_integer(st))  v_assign(s, v_type_integer_is_signed(st));
-
-            switch(rel_i)
-            {
-            case rk_eq: v_assign(opc, LLVMIntEQ);   v_break();
-            case rk_ne: v_assign(opc, LLVMIntNE);   v_break();
-
-            case rk_lt: if (s)  v_assign(opc, LLVMIntSLT);  else  v_assign(opc, LLVMIntULT);  v_break();
-            case rk_le: if (s)  v_assign(opc, LLVMIntSLE);  else  v_assign(opc, LLVMIntULE);  v_break();
-            case rk_gt: if (s)  v_assign(opc, LLVMIntSGT);  else  v_assign(opc, LLVMIntUGT);  v_break();
-            case rk_ge: if (s)  v_assign(opc, LLVMIntSGE);  else  v_assign(opc, LLVMIntUGE);  v_break();
-            }
-
-            v_assign(r, LLVMBuildICmp(builder, opc, v0, v1, ""));
-        }
+        v_assign(r, compile_single_relation(visitor, v_cast(rel_i, void_ptr), typ, val, ast_i, typ, val));
 
         if (branch_if_false_b)
         {
@@ -2648,29 +2697,29 @@
     v_free(rel);
 
 
-    if (v_type_is_vector(t0))
+    if (v_type_is_vector(typ))
     {
-        sz = v_type_vector_get_size(t0);
+        sz = v_type_vector_get_size(typ);
 
-        if (v_type_vector_is_scalable(t0))
+        if (v_type_vector_is_scalable(typ))
         {
-            v_assign(t0, v_svector_type(_bool, sz));
+            v_assign(typ, v_svector_type(_bool, sz));
         }
         else
         {
-            v_assign(t0, v_vector_type(_bool, sz));
+            v_assign(typ, v_vector_type(_bool, sz));
         }
     }
     else
     {
-        v_assign(t0, _bool);
+        v_assign(typ, _bool);
     }
 
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    v_adopt_result(t0, r);
+    v_adopt_result(typ, r);
 }
 
 
