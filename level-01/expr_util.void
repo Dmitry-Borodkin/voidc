@@ -27,7 +27,9 @@
 
 
 //---------------------------------------------------------------------
-{   v_add_type("void_ptr", v_pointer_type(void, 0));
+{   void_ptr = v_pointer_type(void, 0);
+
+    v_add_type("void_ptr", void_ptr);
     v_add_type("char_ptr", v_pointer_type(char, 0));
 
     v_add_type("int_ptr", v_pointer_type(int, 0));
@@ -37,6 +39,8 @@
     v_add_type("type_ptr_ptr", v_pointer_type(v_type_ptr, 0));
 
     v_add_type("expr_ptr_ptr", v_pointer_type(v_ast_expr_ptr, 0));
+
+    v_add_type("void_ptr_ptr", v_pointer_type(void_ptr, 0));
 
 
     q_ref = v_reference_type(v_quark_t, 0);
@@ -2326,25 +2330,175 @@
 
 
 //---------------------------------------------------------------------
-//- "relation_kind" - utility
+//- compile_eq - utility...
 //---------------------------------------------------------------------
 {
-    int_ = v_type_get_llvm_type(int);
-
-    v_add_constant("rk_eq", int, LLVMConstInt(int_, 1, 0));
-    v_add_constant("rk_ne", int, LLVMConstInt(int_, 2, 0));
-    v_add_constant("rk_lt", int, LLVMConstInt(int_, 3, 0));
-    v_add_constant("rk_le", int, LLVMConstInt(int_, 4, 0));
-    v_add_constant("rk_gt", int, LLVMConstInt(int_, 5, 0));
-    v_add_constant("rk_ge", int, LLVMConstInt(int_, 6, 0));
-
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    f = v_function_hack("compile_eq", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t0", v_type_ptr);
+    v_add_parameter_name(f, 1, "v0", LLVMValueRef);
+    v_add_parameter_name(f, 2, "v1", LLVMValueRef);
+}
+{
+    builder = v_target_get_builder();
+
+    st = v_type_get_scalar_type(t0);
+
+    if (v_type_is_floating_point(st))
+    {
+        v_return(LLVMBuildFCmp(builder, LLVMRealOEQ, v0, v1, ""));      //- 'O' ?
+    }
+
+    v_return(LLVMBuildICmp(builder, LLVMIntEQ, v0, v1, ""));
 }
 
 //---------------------------------------------------------------------
-//- ... - utility
+//- compile_ne - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_ne", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t0", v_type_ptr);
+    v_add_parameter_name(f, 1, "v0", LLVMValueRef);
+    v_add_parameter_name(f, 2, "v1", LLVMValueRef);
+}
+{
+    builder = v_target_get_builder();
+
+    st = v_type_get_scalar_type(t0);
+
+    if (v_type_is_floating_point(st))
+    {
+        v_return(LLVMBuildFCmp(builder, LLVMRealUNE, v0, v1, ""));      //- 'U' ?
+    }
+
+    v_return(LLVMBuildICmp(builder, LLVMIntNE, v0, v1, ""));
+}
+
+//---------------------------------------------------------------------
+//- compile_lt - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_lt", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t0", v_type_ptr);
+    v_add_parameter_name(f, 1, "v0", LLVMValueRef);
+    v_add_parameter_name(f, 2, "v1", LLVMValueRef);
+}
+{
+    builder = v_target_get_builder();
+
+    st = v_type_get_scalar_type(t0);
+
+    if (v_type_is_floating_point(st))
+    {
+        v_return(LLVMBuildFCmp(builder, LLVMRealOLT, v0, v1, ""));      //- 'O' ?
+    }
+
+    s = v_type_integer_is_signed(st);
+
+    if (s)  v_return(LLVMBuildICmp(builder, LLVMIntSLT, v0, v1, ""));
+    else    v_return(LLVMBuildICmp(builder, LLVMIntULT, v0, v1, ""));
+}
+
+//---------------------------------------------------------------------
+//- compile_le - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_le", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t0", v_type_ptr);
+    v_add_parameter_name(f, 1, "v0", LLVMValueRef);
+    v_add_parameter_name(f, 2, "v1", LLVMValueRef);
+}
+{
+    builder = v_target_get_builder();
+
+    st = v_type_get_scalar_type(t0);
+
+    if (v_type_is_floating_point(st))
+    {
+        v_return(LLVMBuildFCmp(builder, LLVMRealOLE, v0, v1, ""));      //- 'O' ?
+    }
+
+    s = v_type_integer_is_signed(st);
+
+    if (s)  v_return(LLVMBuildICmp(builder, LLVMIntSLE, v0, v1, ""));
+    else    v_return(LLVMBuildICmp(builder, LLVMIntULE, v0, v1, ""));
+}
+
+//---------------------------------------------------------------------
+//- compile_gt - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_gt", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t0", v_type_ptr);
+    v_add_parameter_name(f, 1, "v0", LLVMValueRef);
+    v_add_parameter_name(f, 2, "v1", LLVMValueRef);
+}
+{
+    builder = v_target_get_builder();
+
+    st = v_type_get_scalar_type(t0);
+
+    if (v_type_is_floating_point(st))
+    {
+        v_return(LLVMBuildFCmp(builder, LLVMRealOGT, v0, v1, ""));      //- 'O' ?
+    }
+
+    s = v_type_integer_is_signed(st);
+
+    if (s)  v_return(LLVMBuildICmp(builder, LLVMIntSGT, v0, v1, ""));
+    else    v_return(LLVMBuildICmp(builder, LLVMIntUGT, v0, v1, ""));
+}
+
+//---------------------------------------------------------------------
+//- compile_ge - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_ge", compile_op_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t0", v_type_ptr);
+    v_add_parameter_name(f, 1, "v0", LLVMValueRef);
+    v_add_parameter_name(f, 2, "v1", LLVMValueRef);
+}
+{
+    builder = v_target_get_builder();
+
+    st = v_type_get_scalar_type(t0);
+
+    if (v_type_is_floating_point(st))
+    {
+        v_return(LLVMBuildFCmp(builder, LLVMRealOGE, v0, v1, ""));      //- 'O' ?
+    }
+
+    s = v_type_integer_is_signed(st);
+
+    if (s)  v_return(LLVMBuildICmp(builder, LLVMIntSGE, v0, v1, ""));
+    else    v_return(LLVMBuildICmp(builder, LLVMIntUGE, v0, v1, ""));
+}
+
+//---------------------------------------------------------------------
+//- compile_op_relation_helper - utility
 //---------------------------------------------------------------------
 {
     typ0 = v_alloca(v_type_ptr, 7);
@@ -2368,18 +2522,20 @@
 
     ft = v_function_type(LLVMValueRef, typ0, 7, false);
 
+    v_add_type("compile_op_relation_helper_ft", ft);
+
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_single_relation", ft);
+    f = v_function_hack("compile_op_relation_helper", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux", void_ptr);
-    v_add_parameter_name(f, 2, "t0",  v_type_ptr);
-    v_add_parameter_name(f, 3, "v0",  LLVMValueRef);
-    v_add_parameter_name(f, 4, "rhs", v_ast_expr_ptr);
-    v_add_parameter_name(f, 5, "t1",  type_ref);
-    v_add_parameter_name(f, 6, "v1",  value_ref);
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "compile", void_ptr);
+    v_add_parameter_name(f, 2, "t0",      v_type_ptr);
+    v_add_parameter_name(f, 3, "v0",      LLVMValueRef);
+    v_add_parameter_name(f, 4, "rhs",     v_ast_expr_ptr);
+    v_add_parameter_name(f, 5, "t1",      type_ref);
+    v_add_parameter_name(f, 6, "v1",      value_ref);
 }
 {
     l_t0 = v_reference(v_alloca(v_type_ptr));
@@ -2398,7 +2554,7 @@
     v_set_result_type(INVIOLABLE_TAG);
     v_set_result_value(0);
 
-    v_ast_accept_visitor(v_cast(rhs, v_ast_base_ptr), vis);
+    v_ast_accept_visitor(v_cast(rhs, v_ast_base_ptr), visitor);
 
     v_assign(t1, v_get_result_type());
     v_assign(v1, v_get_result_value());
@@ -2413,49 +2569,9 @@
 
     convert_to_common_type(l_t0, l_v0, l_t1, l_v1);
 
-    builder = v_target_get_builder();
+    compile = v_cast(compile, compile_op_ft_ptr);
 
-    st = v_type_get_scalar_type(l_t0);
-
-    if (v_type_is_floating_point(st))
-    {
-        opc = v_reference(v_alloca(LLVMRealPredicate));
-
-        switch(v_cast(aux, int))
-        {
-        case rk_eq: v_assign(opc, LLVMRealOEQ); v_break();      //- 'O' ?...
-        case rk_ne: v_assign(opc, LLVMRealUNE); v_break();      //- 'U' ?!?!?..
-        case rk_lt: v_assign(opc, LLVMRealOLT); v_break();      //- 'O' ?...
-        case rk_le: v_assign(opc, LLVMRealOLE); v_break();      //- 'O' ?...
-        case rk_gt: v_assign(opc, LLVMRealOGT); v_break();      //- 'O' ?...
-        case rk_ge: v_assign(opc, LLVMRealOGE); v_break();      //- 'O' ?...
-        }
-
-        v_return(LLVMBuildFCmp(builder, opc, l_v0, l_v1, ""));
-    }
-    else
-    {
-        opc = v_reference(v_alloca(LLVMIntPredicate));
-
-        s = v_reference(v_alloca(bool));
-
-        v_assign(s, false);
-
-        if (v_type_is_integer(st))  v_assign(s, v_type_integer_is_signed(st));
-
-        switch(v_cast(aux, int))
-        {
-        case rk_eq: v_assign(opc, LLVMIntEQ);   v_break();
-        case rk_ne: v_assign(opc, LLVMIntNE);   v_break();
-
-        case rk_lt: if (s)  v_assign(opc, LLVMIntSLT);  else  v_assign(opc, LLVMIntULT);  v_break();
-        case rk_le: if (s)  v_assign(opc, LLVMIntSLE);  else  v_assign(opc, LLVMIntULE);  v_break();
-        case rk_gt: if (s)  v_assign(opc, LLVMIntSGT);  else  v_assign(opc, LLVMIntUGT);  v_break();
-        case rk_ge: if (s)  v_assign(opc, LLVMIntSGE);  else  v_assign(opc, LLVMIntUGE);  v_break();
-        }
-
-        v_return(LLVMBuildICmp(builder, opc, l_v0, l_v1, ""));
-    }
+    v_return(compile(l_t0, l_v0, l_v1));
 }
 
 //---------------------------------------------------------------------
@@ -2470,7 +2586,9 @@
     v_store(expr_ptr_ptr,   typ1);
     v_store(expr_ptr_ptr,   typ2);
 
-    ft = v_function_type(int, typ0, 3, false);
+    ft = v_function_type(void_ptr, typ0, 3, false);
+
+    v_add_type("check_relation_ft", ft);
 
     //-----------------------------------------------------------------
     f = v_function_hack("check_relation", ft);
@@ -2497,16 +2615,16 @@
 
     qname = v_ast_expr_identifier_get_name_q(etmp);
 
-    rk = v_reference(v_alloca(int));
+    cr = v_reference(v_alloca(void_ptr));
 
     block
     {
-        if (v_icmp(LLVMIntEQ, qname, q_op_infix_lt))  { v_assign(rk, rk_lt); v_break(); }
-        if (v_icmp(LLVMIntEQ, qname, q_op_infix_le))  { v_assign(rk, rk_le); v_break(); }
-        if (v_icmp(LLVMIntEQ, qname, q_op_infix_gt))  { v_assign(rk, rk_gt); v_break(); }
-        if (v_icmp(LLVMIntEQ, qname, q_op_infix_ge))  { v_assign(rk, rk_ge); v_break(); }
-        if (v_icmp(LLVMIntEQ, qname, q_op_infix_eq))  { v_assign(rk, rk_eq); v_break(); }
-        if (v_icmp(LLVMIntEQ, qname, q_op_infix_ne))  { v_assign(rk, rk_ne); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_lt))  { v_assign(cr, compile_lt); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_le))  { v_assign(cr, compile_le); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_gt))  { v_assign(cr, compile_gt); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_ge))  { v_assign(cr, compile_ge); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_eq))  { v_assign(cr, compile_eq); v_break(); }
+        if (v_icmp(LLVMIntEQ, qname, q_op_infix_ne))  { v_assign(cr, compile_ne); v_break(); }
 
         v_return(0);
     }
@@ -2515,7 +2633,7 @@
     else if (rhs) ;
     else
     {
-        v_return(rk);
+        v_return(cr);
     }
 
     lst = v_ast_expr_call_get_arg_list(arg);
@@ -2523,7 +2641,7 @@
     if (lhs)  v_store(v_list_get_item(lst, 1), lhs);
     if (rhs)  v_store(v_list_get_item(lst, 2), rhs);
 
-    v_return(rk);
+    v_return(cr);
 }
 
 //---------------------------------------------------------------------
@@ -2536,7 +2654,7 @@
 
     v_store(voidc_visitor_ptr, typ0);
     v_store(v_ast_base_ptr,    typ1);
-    v_store(int,               typ2);
+    v_store(void_ptr,          typ2);
 
     ft = v_function_type(void, typ0, 3, false);
 
@@ -2547,7 +2665,7 @@
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "self",    v_ast_base_ptr);
-    v_add_parameter_name(f, 2, "kind",    int);
+    v_add_parameter_name(f, 2, "compile", void_ptr);
 }
 {
     call = v_cast(self, v_ast_expr_ptr);
@@ -2574,10 +2692,10 @@
 
     Nm1 = v_binop(LLVMSub, N, 1);
 
-    rel = v_malloc(int, Nm1);
+    rel = v_malloc(void_ptr, Nm1);
 
     {   ast_i = v_reference(v_alloca(expr_ptr_ptr));
-        rel_i = v_reference(v_alloca(int_ptr));
+        rel_i = v_reference(v_alloca(void_ptr_ptr));
 
         i = v_binop(LLVMSub, N, 2);
 
@@ -2587,21 +2705,21 @@
         v_store(v_list_get_item(arg_list, 1), ast_i);
         v_store(v_list_get_item(arg_list, 2), v_getelementptr(ast_i, 1));
 
-        v_store(kind, rel_i);
+        v_store(compile, rel_i);
 
         loop
         {
             ast_i1 = v_getelementptr(ast_i, -1);
 
-            rk = check_relation(v_load(ast_i), ast_i1, ast_i);
+            cr = check_relation(v_load(ast_i), ast_i1, ast_i);
 
-            if (rk) ;
+            if (cr) ;
             else    v_break();
 
             v_assign(ast_i, ast_i1);
             v_assign(rel_i, v_getelementptr(rel_i, -1));
 
-            v_store(rk, rel_i);
+            v_store(cr, rel_i);
         }
     }
 
@@ -2664,7 +2782,7 @@
 
         ast_i = v_load(v_getelementptr(ast, i));
 
-        v_assign(r, compile_single_relation(visitor, v_cast(rel_i, void_ptr), typ, val, ast_i, typ, val));
+        v_assign(r, compile_op_relation_helper(visitor, rel_i, typ, val, ast_i, typ, val));
 
         if (branch_if_false_b)
         {
@@ -2737,7 +2855,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    relation_helper(visitor, self, rk_le);
+    relation_helper(visitor, self, compile_le);
 }
 
 //---------------------------------------------------------------------
@@ -2754,7 +2872,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    relation_helper(visitor, self, rk_lt);
+    relation_helper(visitor, self, compile_lt);
 }
 //---------------------------------------------------------------------
 //- op_infix_ge - compiler intrinsic
@@ -2770,7 +2888,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    relation_helper(visitor, self, rk_ge);
+    relation_helper(visitor, self, compile_ge);
 }
 
 //---------------------------------------------------------------------
@@ -2787,7 +2905,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    relation_helper(visitor, self, rk_gt);
+    relation_helper(visitor, self, compile_gt);
 }
 
 //---------------------------------------------------------------------
@@ -2804,7 +2922,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    relation_helper(visitor, self, rk_eq);
+    relation_helper(visitor, self, compile_eq);
 }
 
 //---------------------------------------------------------------------
@@ -2821,7 +2939,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    relation_helper(visitor, self, rk_ne);
+    relation_helper(visitor, self, compile_ne);
 }
 
 
@@ -3344,7 +3462,7 @@
 
     pf = v_type_is_pointer(st);
 
-    if (pf) v_set_result_type(int);         //- ?
+    if (pf) v_set_result_type(v_find_type("int"));      //- ...
     else    v_set_result_type(st);
 
     v_set_result_value(0);
@@ -4663,6 +4781,17 @@
     v_add_symbol("voidc_internal_compile_op_binary_helper",
                  compile_op_binary_helper_ft,
                  compile_op_binary_helper);
+
+    v_add_symbol("voidc_internal_compile_eq_helper", compile_op_ft, compile_eq);
+    v_add_symbol("voidc_internal_compile_ne_helper", compile_op_ft, compile_ne);
+    v_add_symbol("voidc_internal_compile_lt_helper", compile_op_ft, compile_lt);
+    v_add_symbol("voidc_internal_compile_le_helper", compile_op_ft, compile_le);
+    v_add_symbol("voidc_internal_compile_gt_helper", compile_op_ft, compile_gt);
+    v_add_symbol("voidc_internal_compile_ge_helper", compile_op_ft, compile_ge);
+
+    v_add_symbol("voidc_internal_compile_op_relation_helper",
+                 compile_op_relation_helper_ft,
+                 compile_op_relation_helper);
 }
 
 

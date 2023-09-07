@@ -74,41 +74,41 @@ op_table_item_t = v_struct("struct.op_table_item",
 
 op_table: &op_table_item_t[] :=
 {
-    {"v.op_infix_assign",      opk_assign,  0,0, 0 },
-    {"v.op_infix_add_assign",  opk_assign,  0,0, voidc_internal_compile_add_helper, (true:  *void) },
-    {"v.op_infix_sub_assign",  opk_assign,  0,0, voidc_internal_compile_sub_helper, (true:  *void) },
-    {"v.op_infix_mul_assign",  opk_assign,  0,0, voidc_internal_compile_mul_helper, (false: *void) },
-    {"v.op_infix_div_assign",  opk_assign,  0,0, voidc_internal_compile_div_helper, (false: *void) },
-    {"v.op_infix_rem_assign",  opk_assign,  0,0, voidc_internal_compile_rem_helper, (false: *void) },
-    {"v.op_infix_shl_assign",  opk_assign,  0,0, voidc_internal_compile_shl_helper, (false: *void) },
-    {"v.op_infix_shr_assign",  opk_assign,  0,0, voidc_internal_compile_shr_helper, (false: *void) },
-    {"v.op_infix_and_assign",  opk_assign,  0,0, voidc_internal_compile_and_helper, (false: *void) },
-    {"v.op_infix_xor_assign",  opk_assign,  0,0, voidc_internal_compile_xor_helper, (false: *void) },
-    {"v.op_infix_or_assign",   opk_assign,  0,0, voidc_internal_compile_or_helper,  (false: *void) },
+    {"v.op_infix_assign",      opk_assign,   0,0, 0 },
+    {"v.op_infix_add_assign",  opk_assign,   0,0, voidc_internal_compile_add_helper, (true:  *void) },
+    {"v.op_infix_sub_assign",  opk_assign,   0,0, voidc_internal_compile_sub_helper, (true:  *void) },
+    {"v.op_infix_mul_assign",  opk_assign,   0,0, voidc_internal_compile_mul_helper, (false: *void) },
+    {"v.op_infix_div_assign",  opk_assign,   0,0, voidc_internal_compile_div_helper, (false: *void) },
+    {"v.op_infix_rem_assign",  opk_assign,   0,0, voidc_internal_compile_rem_helper, (false: *void) },
+    {"v.op_infix_shl_assign",  opk_assign,   0,0, voidc_internal_compile_shl_helper, (false: *void) },
+    {"v.op_infix_shr_assign",  opk_assign,   0,0, voidc_internal_compile_shr_helper, (false: *void) },
+    {"v.op_infix_and_assign",  opk_assign,   0,0, voidc_internal_compile_and_helper, (false: *void) },
+    {"v.op_infix_xor_assign",  opk_assign,   0,0, voidc_internal_compile_xor_helper, (false: *void) },
+    {"v.op_infix_or_assign",   opk_assign,   0,0, voidc_internal_compile_or_helper,  (false: *void) },
 
-//  {"v.op_infix_to",          opk_binary   },          //- ?!?!?!?!?!?!?!?
+//  {"v.op_infix_to",          opk_binary    },          //- ?!?!?!?!?!?!?!?
 
-    {"v.op_infix_logical_or",  opk_logical  },
-    {"v.op_infix_logical_and", opk_logical  },
+    {"v.op_infix_logical_or",  opk_logical   },
+    {"v.op_infix_logical_and", opk_logical   },
 
-    {"v.op_infix_lt",          opk_relation },
-    {"v.op_infix_le",          opk_relation },
-    {"v.op_infix_gt",          opk_relation },
-    {"v.op_infix_ge",          opk_relation },
-    {"v.op_infix_eq",          opk_relation },
-    {"v.op_infix_ne",          opk_relation },
+    {"v.op_infix_lt",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_lt_helper },
+    {"v.op_infix_le",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_le_helper },
+    {"v.op_infix_gt",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_gt_helper },
+    {"v.op_infix_ge",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_ge_helper },
+    {"v.op_infix_eq",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_eq_helper },
+    {"v.op_infix_ne",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_ne_helper },
 
-    {"v.op_infix_or",          opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_or_helper },
-    {"v.op_infix_xor",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_xor_helper },
-    {"v.op_infix_and",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_and_helper },
+    {"v.op_infix_or",          opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_or_helper },
+    {"v.op_infix_xor",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_xor_helper },
+    {"v.op_infix_and",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_and_helper },
 
-    {"v.op_infix_shl",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_shl_helper },
-    {"v.op_infix_shr",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_shr_helper },
-    {"v.op_infix_add",         opk_binary,  0,0, voidc_internal_compile_op_binary_addsub_helper, voidc_internal_compile_infix_add_helper },
-    {"v.op_infix_sub",         opk_binary,  0,0, voidc_internal_compile_op_binary_addsub_helper, voidc_internal_compile_infix_sub_helper },
-    {"v.op_infix_mul",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_mul_helper },
-    {"v.op_infix_div",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_div_helper },
-    {"v.op_infix_rem",         opk_binary,  0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_rem_helper },
+    {"v.op_infix_shl",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_shl_helper },
+    {"v.op_infix_shr",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_shr_helper },
+    {"v.op_infix_add",         opk_binary,   0,0, voidc_internal_compile_op_binary_addsub_helper, voidc_internal_compile_infix_add_helper },
+    {"v.op_infix_sub",         opk_binary,   0,0, voidc_internal_compile_op_binary_addsub_helper, voidc_internal_compile_infix_sub_helper },
+    {"v.op_infix_mul",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_mul_helper },
+    {"v.op_infix_div",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_div_helper },
+    {"v.op_infix_rem",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_rem_helper },
 
     {"v.op_prefix_inc",        opk_unary },
     {"v.op_prefix_dec",        opk_unary },
@@ -738,7 +738,9 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         t0 := typ;
         v0 := val;
 
-        q0 = op_table[rel_i][2];            //- Quark (left)
+        op_data = op_table[rel_i];
+
+        q0 = op_data[2];                    //- Quark (left)
 
         void_fun: &*void := 0;
         void_aux: &*void := 0;
@@ -798,7 +800,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             t1 := v_get_result_type();
             v1 := v_get_result_value();
 
-            q1 = op_table[rel_i][3];            //- Quark (right)
+            q1 = op_data[3];                    //- Quark (right)
 
             if (v_util_lookup_function_dict(t1, q1, void_fun, void_aux, ft, fv))
             {
@@ -848,65 +850,18 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             //- Default treatment...
 
-            v_set_result_type(UNREFERENCE_TAG);
-            v_set_result_value(0);
+            expr = v_alloca(v_ast_expr_t);
+            v_initialize(expr);
+            defer v_terminate(expr);
 
-            v_adopt_result(t0, v0);
+            v_ast_make_expr_compiled(expr, t1, v1);
 
-            t0 := v_get_result_type();
-            v0 := v_get_result_value();
+            helper = (op_data[4] : *((*voidc_visitor_t, *void, *v_type_t, LLVMValueRef,
+                                      *v_ast_expr_t, &*v_type_t, &LLVMValueRef) -> LLVMValueRef));
 
-            v_set_result_type(UNREFERENCE_TAG);
-            v_set_result_value(0);
+            compile = op_data[5];
 
-            v_adopt_result(t1, v1);
-
-            t1 := v_get_result_type();
-            v1 := v_get_result_value();
-
-            voidc_internal_convert_to_common_type_helper(t0, v0, t1, v1);
-
-
-            st = v_type_get_scalar_type(t0);
-
-
-            if (v_type_is_floating_point(st))
-            {
-                opc: &LLVMRealPredicate := v_undef();
-
-                switch(rel_i)
-                {
-                case id_infix_eq: opc := LLVMRealOEQ; v_break();    //- 'O' ?...
-                case id_infix_ne: opc := LLVMRealUNE; v_break();    //- 'U' ?!?!?..
-                case id_infix_lt: opc := LLVMRealOLT; v_break();    //- 'O' ?...
-                case id_infix_le: opc := LLVMRealOLE; v_break();    //- 'O' ?...
-                case id_infix_gt: opc := LLVMRealOGT; v_break();    //- 'O' ?...
-                case id_infix_ge: opc := LLVMRealOGE; v_break();    //- 'O' ?...
-                }
-
-                r := LLVMBuildFCmp(builder, opc, v0, v1, "");
-            }
-            else
-            {
-                opc: &LLVMIntPredicate := v_undef();
-
-                s: &bool := false;
-
-                if (v_type_is_integer(st))  s := v_type_integer_is_signed(st);
-
-                switch(rel_i)
-                {
-                case id_infix_eq: opc := LLVMIntEQ; v_break();
-                case id_infix_ne: opc := LLVMIntNE; v_break();
-
-                case id_infix_lt: if (s)  opc := LLVMIntSLT;  else  opc := LLVMIntULT;  v_break();
-                case id_infix_le: if (s)  opc := LLVMIntSLE;  else  opc := LLVMIntULE;  v_break();
-                case id_infix_gt: if (s)  opc := LLVMIntSGT;  else  opc := LLVMIntUGT;  v_break();
-                case id_infix_ge: if (s)  opc := LLVMIntSGE;  else  opc := LLVMIntUGE;  v_break();
-                }
-
-                r := LLVMBuildICmp(builder, opc, v0, v1, "");
-            }
+            r := helper(vis, compile, t0, v0, expr, t1, v1);
         }
 
         if (branch_if_false_b)
