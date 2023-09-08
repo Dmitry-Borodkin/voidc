@@ -42,6 +42,9 @@
 
     v_add_type("void_ptr_ptr", v_pointer_type(void_ptr, 0));
 
+    v_add_type("type_ref",  v_reference_type(v_type_ptr, 0));
+    v_add_type("value_ref", v_reference_type(LLVMValueRef, 0));
+
 
     q_ref = v_reference_type(v_quark_t, 0);
 
@@ -623,9 +626,6 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
-    type_ref  = v_reference_type(v_type_ptr, 0);
-    value_ref = v_reference_type(LLVMValueRef, 0);
-
     v_store(v_type_ptr,   typ0);
     v_store(LLVMValueRef, typ1);
     v_store(type_ref,     typ2);
@@ -835,9 +835,6 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
-    type_ref  = v_reference_type(v_type_ptr, 0);
-    value_ref = v_reference_type(LLVMValueRef, 0);
-
     v_store(type_ref,     typ0);
     v_store(value_ref,    typ1);
     v_store(type_ref,     typ2);
@@ -1011,9 +1008,6 @@
     typ4 = v_getelementptr(typ0, 4);
     typ5 = v_getelementptr(typ0, 5);
 
-    type_ref  = v_reference_type(v_type_ptr, 0);
-    value_ref = v_reference_type(LLVMValueRef, 0);
-
     v_store(v_ast_expr_ptr,    typ0);
     v_store(v_ast_expr_ptr,    typ1);
     v_store(voidc_visitor_ptr, typ2);
@@ -1073,9 +1067,6 @@
     typ5 = v_getelementptr(typ0, 5);
     typ6 = v_getelementptr(typ0, 6);
     typ7 = v_getelementptr(typ0, 7);
-
-    type_ref  = v_reference_type(v_type_ptr, 0);
-    value_ref = v_reference_type(LLVMValueRef, 0);
 
     v_store(v_ast_expr_ptr,      typ0);
     v_store(v_ast_expr_ptr,      typ1);
@@ -2509,9 +2500,6 @@
     typ5 = v_getelementptr(typ0, 5);
     typ6 = v_getelementptr(typ0, 6);
 
-    type_ref  = v_reference_type(v_type_ptr, 0);
-    value_ref = v_reference_type(LLVMValueRef, 0);
-
     v_store(voidc_visitor_ptr, typ0);
     v_store(void_ptr,          typ1);
     v_store(v_type_ptr,        typ2);
@@ -2990,8 +2978,6 @@
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
 
-    type_ref  = v_reference_type(v_type_ptr, 0);
-
     v_store(v_type_ptr,   typ0);
     v_store(LLVMValueRef, typ1);
     v_store(v_type_ptr,   typ2);
@@ -3095,8 +3081,6 @@
 //- compile_infix_add - utility
 //---------------------------------------------------------------------
 {
-    type_ref  = v_reference_type(v_type_ptr, 0);
-
     //-----------------------------------------------------------------
     f = v_function_hack("compile_infix_add", compile_infix_ft);
 
@@ -3217,8 +3201,6 @@
 //- compile_infix_sub - utility
 //---------------------------------------------------------------------
 {
-    type_ref  = v_reference_type(v_type_ptr, 0);
-
     //-----------------------------------------------------------------
     f = v_function_hack("compile_infix_sub", compile_infix_ft);
 
@@ -3401,52 +3383,35 @@
 
 
 //---------------------------------------------------------------------
-//- inc_dec_helper
+//- compile_inc_dec_helper - utility...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 4);
+    typ0 = v_alloca(v_type_ptr, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
 
     v_store(voidc_visitor_ptr, typ0);
-    v_store(v_ast_base_ptr,    typ1);
-    v_store(intptr_t,          typ2);
-    v_store(bool,              typ3);
+    v_store(type_ref,          typ1);
+    v_store(LLVMValueRef,      typ2);
+    v_store(int,               typ3);
+    v_store(bool,              typ4);
 
-    ft = v_function_type(void, typ0, 4, false);
+    ft = v_function_type(LLVMValueRef, typ0, 5, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("inc_dec_helper", ft);
+    f = v_function_hack("compile_inc_dec_helper", ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "self",    v_ast_base_ptr);
-    v_add_parameter_name(f, 2, "delta",   intptr_t);
-    v_add_parameter_name(f, 3, "is_pref", bool);
+    v_add_parameter_name(f, 1, "t",       type_ref);
+    v_add_parameter_name(f, 2, "v",       LLVMValueRef);
+    v_add_parameter_name(f, 3, "delta",   int);
+    v_add_parameter_name(f, 4, "is_pref", bool);
 }
 {
-    call = v_cast(self, v_ast_expr_ptr);
-
-    arg_list = v_ast_expr_call_get_arg_list(call);
-
-    ast = v_list_get_item(arg_list, 1);
-
-
-    ttag = v_get_result_type();
-    vtag = v_get_result_value();
-
-
-    v_set_result_type(INVIOLABLE_TAG);
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
-
-    t = v_get_result_type();
-    v = v_get_result_value();
-
-
     et = v_type_refptr_get_element_type(t);
 
     st = v_type_get_scalar_type(et);
@@ -3471,6 +3436,8 @@
 
     step_t = v_get_result_type();
     step_v = v_get_result_value();
+
+    v_terminate(step);
 
 
     var_v = v_reference(v_alloca(LLVMValueRef));
@@ -3511,14 +3478,395 @@
     LLVMBuildStore(builder, var_v, v);
 
 
+    if (is_pref)
+    {
+        v_return(v);
+    }
+    else
+    {
+        v_assign(t, et);
+
+        v_return(ev);
+    }
+}
+
+//---------------------------------------------------------------------
+//- compile_prefix_inc - utility...
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    v_store(voidc_visitor_ptr, typ0);
+    v_store(type_ref,          typ1);
+    v_store(LLVMValueRef,      typ2);
+
+    ft = v_function_type(LLVMValueRef, typ0, 3, false);
+
+    v_add_type("compile_op_unary_ft", ft);
+    v_add_type("compile_op_unary_ptr", v_pointer_type(ft, 0));
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_prefix_inc", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v_return(compile_inc_dec_helper(vis, t, v, 1, true));
+}
+
+//---------------------------------------------------------------------
+//- compile_prefix_dec - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_prefix_dec", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v_return(compile_inc_dec_helper(vis, t, v, -1, true));
+}
+
+//---------------------------------------------------------------------
+//- compile_prefix_plus - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_prefix_plus", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v_return(v);        //- Sic!
+}
+
+//---------------------------------------------------------------------
+//- compile_prefix_minus - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_prefix_minus", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
+
+    v_adopt_result(t, v);
+
+    v_assign(t, v_get_result_type());
+
+    v = v_get_result_value();
+
+    builder = v_target_get_builder();
+
+    if (v_type_is_floating_point(v_type_get_scalar_type(t)))
+    {
+        v_return(LLVMBuildFNeg(builder, v, ""));
+    }
+    else
+    {
+        v_return(LLVMBuildNeg(builder, v, ""));
+    }
+}
+
+//---------------------------------------------------------------------
+//- compile_prefix_star - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_prefix_star", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    vr = v_reference(v_alloca(LLVMValueRef));
+
+    v_assign(vr, v);
+
+    if (v_type_is_reference(t))
+    {
+        v_assign(t, v_type_refptr_get_element_type(t));
+
+        builder = v_target_get_builder();
+
+        v_assign(vr, LLVMBuildLoad2(builder, v_type_get_llvm_type(t), v, ""));
+    }
+
+    e = v_type_refptr_get_element_type(t);
+    a = v_type_refptr_get_address_space(t);
+
+    v_assign(t, v_reference_type(e, a));
+
+    v_return(vr);
+}
+
+//---------------------------------------------------------------------
+//- compile_prefix_amp - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_prefix_amp", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v = v_assign(v_reference(v_alloca(LLVMValueRef)), v);
+
+    if (v_type_is_reference(t))
+    {
+        e = v_type_refptr_get_element_type(t);
+        a = v_type_refptr_get_address_space(t);
+
+        v_assign(t, v_pointer_type(e, a));
+    }
+    else
+    {
+        if (LLVMIsConstant(v))
+        {
+            v1 = LLVMAddGlobal(v_get_module(), v_type_get_llvm_type(t), "tmp");
+
+            LLVMSetInitializer(v1, v);
+
+            LLVMSetLinkage(v1, LLVMPrivateLinkage);
+
+            LLVMSetUnnamedAddress(v1, LLVMGlobalUnnamedAddr);
+
+            LLVMSetGlobalConstant(v1, true);
+
+            v_assign(v, v1);
+        }
+        else
+        {
+            v_assign(v, v_make_temporary(t, v));
+        }
+
+        v_assign(t, v_pointer_type(t, 0));
+    }
+
+    v_return(v);
+}
+
+//---------------------------------------------------------------------
+//- compile_prefix_bang - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_prefix_bang", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
+
+    v_adopt_result(t, v);
+
+    v_assign(t, v_get_result_type());
+
+    v = v_get_result_value();
+
+    builder = v_target_get_builder();
+
+    vr = LLVMBuildIsNull(builder, v, "");
+
+    bool_ = v_find_type("bool");
+
+    if (v_type_is_vector(t))
+    {
+        sz = v_type_vector_get_size(t);
+
+        s = v_type_vector_is_scalable(t);
+
+        if (s)  v_assign(t, v_svector_type(bool_, sz));
+        else    v_assign(t, v_vector_type(bool_, sz));
+    }
+    else
+    {
+        v_assign(t, bool_);
+    }
+
+    v_return(vr);
+}
+
+//---------------------------------------------------------------------
+//- compile_prefix_tilda - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_prefix_tilda", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v_set_result_type(UNREFERENCE_TAG);
+    v_set_result_value(0);
+
+    v_adopt_result(t, v);
+
+    v_assign(t, v_get_result_type());
+
+    v = v_get_result_value();
+
+    builder = v_target_get_builder();
+
+    v_return(LLVMBuildNot(builder, v, ""));
+}
+
+//---------------------------------------------------------------------
+//- compile_postfix_inc - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_postfix_inc", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v_return(compile_inc_dec_helper(vis, t, v, 1, false));
+}
+
+//---------------------------------------------------------------------
+//- compile_postfix_dec - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_postfix_dec", compile_op_unary_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "vis", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "t",   type_ref);
+    v_add_parameter_name(f, 2, "v",   LLVMValueRef);
+}
+{
+    v_return(compile_inc_dec_helper(vis, t, v, -1, false));
+}
+
+//---------------------------------------------------------------------
+//- compile_op_unary_helper_ft - utility
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    v_store(voidc_visitor_ptr, typ0);
+    v_store(v_ast_expr_ptr,    typ1);
+    v_store(void_ptr,          typ2);               //- Sic!
+
+    ft = v_function_type(void, typ0, 3, false);
+
+    v_add_type("compile_op_unary_helper_ft", ft);
+}
+
+//---------------------------------------------------------------------
+//- compile_op_unary_helper - utility
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_op_unary_helper", compile_op_unary_helper_ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "arg",     v_ast_expr_ptr);
+    v_add_parameter_name(f, 2, "compile", void_ptr);
+}
+{
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(v_cast(arg, v_ast_base_ptr), visitor);
+
+    t = v_get_result_type();
+    v = v_get_result_value();
+
+    t = v_assign(v_reference(v_alloca(v_type_ptr)), t);
+
+    compile = v_cast(compile, compile_op_unary_ptr);
+
+    v = compile(visitor, t, v);
+
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    if (is_pref)  v_adopt_result( t,  v);
-    else          v_adopt_result(et, ev);
+    v_adopt_result(t, v);
+}
 
+//---------------------------------------------------------------------
+//- op_unary_helper - utility
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
 
-    v_terminate(step);
+    v_store(voidc_visitor_ptr, typ0);
+    v_store(v_ast_base_ptr,    typ1);
+    v_store(void_ptr,          typ2);               //- Sic!
+
+    ft = v_function_type(void, typ0, 3, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("op_unary_helper", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 1, "self",    v_ast_base_ptr);
+    v_add_parameter_name(f, 2, "compile", void_ptr);
+}
+{
+    call = v_cast(self, v_ast_expr_ptr);
+
+    args = v_ast_expr_call_get_arg_list(call);
+
+    arg = v_list_get_item(args, 1);
+
+    compile_op_unary_helper(visitor, arg, compile);
 }
 
 //---------------------------------------------------------------------
@@ -3535,7 +3883,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    inc_dec_helper(visitor, self, 1, true);
+    op_unary_helper(visitor, self, compile_prefix_inc);
 }
 
 //---------------------------------------------------------------------
@@ -3552,7 +3900,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    inc_dec_helper(visitor, self, -1, true);
+    op_unary_helper(visitor, self, compile_prefix_dec);
 }
 
 //---------------------------------------------------------------------
@@ -3569,15 +3917,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    call = v_cast(self, v_ast_expr_ptr);
-
-    arg_list = v_ast_expr_call_get_arg_list(call);
-
-    ast = v_list_get_item(arg_list, 1);
-
-    v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
-
-    v_terminate(ast);
+    op_unary_helper(visitor, self, compile_prefix_plus);
 }
 
 //---------------------------------------------------------------------
@@ -3594,43 +3934,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    call = v_cast(self, v_ast_expr_ptr);
-
-    arg_list = v_ast_expr_call_get_arg_list(call);
-
-    ast = v_list_get_item(arg_list, 1);
-
-
-    ttag = v_get_result_type();
-    vtag = v_get_result_value();
-
-
-    v_set_result_type(UNREFERENCE_TAG);
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
-
-    t = v_get_result_type();
-    v = v_get_result_value();
-
-
-    builder = v_target_get_builder();
-
-    val = v_reference(v_alloca(LLVMValueRef));
-
-    if (v_type_is_floating_point(v_type_get_scalar_type(t)))
-    {
-        v_assign(val, LLVMBuildFNeg(builder, v, ""));
-    }
-    else
-    {
-        v_assign(val, LLVMBuildNeg(builder, v, ""));
-    }
-
-    v_set_result_type(ttag);
-    v_set_result_value(vtag);
-
-    v_adopt_result(t, val);
+    op_unary_helper(visitor, self, compile_prefix_minus);
 }
 
 //---------------------------------------------------------------------
@@ -3663,11 +3967,8 @@
 
     v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 
-    t = v_reference(v_alloca(v_type_ptr));
-    v = v_reference(v_alloca(LLVMValueRef));
-
-    v_assign(t, v_get_result_type());
-    v_assign(v, v_get_result_value());
+    t = v_get_result_type();
+    v = v_get_result_value();
 
     if (v_icmp(LLVMIntEQ, t, v_static_type_t))          //- Type
     {
@@ -3679,19 +3980,9 @@
     }
     else                                                //- Value
     {
-        if (v_type_is_reference(t))
-        {
-            v_assign(t, v_type_refptr_get_element_type(t));
+        t = v_assign(v_reference(v_alloca(v_type_ptr)), t);
 
-            builder = v_target_get_builder();
-
-            v_assign(v, LLVMBuildLoad2(builder, v_type_get_llvm_type(t), v, ""));
-        }
-
-        e = v_type_refptr_get_element_type(t);
-        a = v_type_refptr_get_address_space(t);
-
-        v_assign(t, v_reference_type(e, a));
+        v = compile_prefix_star(visitor, t, v);
 
         v_set_result_type(ttag);
         v_set_result_value(vtag);
@@ -3730,11 +4021,8 @@
 
     v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
 
-    t = v_reference(v_alloca(v_type_ptr));
-    v = v_reference(v_alloca(LLVMValueRef));
-
-    v_assign(t, v_get_result_type());
-    v_assign(v, v_get_result_value());
+    t = v_get_result_type();
+    v = v_get_result_value();
 
     if (v_icmp(LLVMIntEQ, t, v_static_type_t))          //- Type
     {
@@ -3746,36 +4034,9 @@
     }
     else                                                //- Value
     {
-        if (v_type_is_reference(t))
-        {
-            e = v_type_refptr_get_element_type(t);
-            a = v_type_refptr_get_address_space(t);
+        t = v_assign(v_reference(v_alloca(v_type_ptr)), t);
 
-            v_assign(t, v_pointer_type(e, a));
-        }
-        else
-        {
-            if (LLVMIsConstant(v))
-            {
-                v1 = LLVMAddGlobal(v_get_module(), v_type_get_llvm_type(t), "tmp");
-
-                LLVMSetInitializer(v1, v);
-
-                LLVMSetLinkage(v1, LLVMPrivateLinkage);
-
-                LLVMSetUnnamedAddress(v1, LLVMGlobalUnnamedAddr);
-
-                LLVMSetGlobalConstant(v1, true);
-
-                v_assign(v, v1);
-            }
-            else
-            {
-                v_assign(v, v_make_temporary(t, v));
-            }
-
-            v_assign(t, v_pointer_type(t, 0));
-        }
+        v = compile_prefix_amp(visitor, t, v);
 
         v_set_result_type(ttag);
         v_set_result_value(vtag);
@@ -3798,35 +4059,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    call = v_cast(self, v_ast_expr_ptr);
-
-    arg_list = v_ast_expr_call_get_arg_list(call);
-
-    ast = v_list_get_item(arg_list, 1);
-
-
-    ttag = v_get_result_type();
-    vtag = v_get_result_value();
-
-
-    v_set_result_type(UNREFERENCE_TAG);
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
-
-    t = v_get_result_type();
-    v = v_get_result_value();
-
-
-    builder = v_target_get_builder();
-
-    val = LLVMBuildIsNull(builder, v, "");
-
-
-    v_set_result_type(ttag);
-    v_set_result_value(vtag);
-
-    v_adopt_result(t, val);
+    op_unary_helper(visitor, self, compile_prefix_bang);
 }
 
 //---------------------------------------------------------------------
@@ -3843,37 +4076,8 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    call = v_cast(self, v_ast_expr_ptr);
-
-    arg_list = v_ast_expr_call_get_arg_list(call);
-
-    ast = v_list_get_item(arg_list, 1);
-
-
-    ttag = v_get_result_type();
-    vtag = v_get_result_value();
-
-
-    v_set_result_type(UNREFERENCE_TAG);
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(v_cast(ast, v_ast_base_ptr), visitor);
-
-    t = v_get_result_type();
-    v = v_get_result_value();
-
-
-    builder = v_target_get_builder();
-
-    val = LLVMBuildNot(builder, v, "");
-
-
-    v_set_result_type(ttag);
-    v_set_result_value(vtag);
-
-    v_adopt_result(t, val);
+    op_unary_helper(visitor, self, compile_prefix_tilda);
 }
-
 
 //---------------------------------------------------------------------
 //- op_postfix_inc - compiler intrinsic
@@ -3889,7 +4093,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    inc_dec_helper(visitor, self, 1, false);
+    op_unary_helper(visitor, self, compile_postfix_inc);
 }
 
 //---------------------------------------------------------------------
@@ -3906,7 +4110,7 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    inc_dec_helper(visitor, self, -1, false);
+    op_unary_helper(visitor, self, compile_postfix_dec);
 }
 
 
@@ -4792,6 +4996,21 @@
     v_add_symbol("voidc_internal_compile_op_relation_helper",
                  compile_op_relation_helper_ft,
                  compile_op_relation_helper);
+
+    v_add_symbol("voidc_internal_compile_prefix_inc",   compile_op_unary_ft, compile_prefix_inc);
+    v_add_symbol("voidc_internal_compile_prefix_dec",   compile_op_unary_ft, compile_prefix_dec);
+    v_add_symbol("voidc_internal_compile_prefix_plus",  compile_op_unary_ft, compile_prefix_plus);
+    v_add_symbol("voidc_internal_compile_prefix_minus", compile_op_unary_ft, compile_prefix_minus);
+    v_add_symbol("voidc_internal_compile_prefix_star",  compile_op_unary_ft, compile_prefix_star);
+    v_add_symbol("voidc_internal_compile_prefix_amp",   compile_op_unary_ft, compile_prefix_amp);
+    v_add_symbol("voidc_internal_compile_prefix_bang",  compile_op_unary_ft, compile_prefix_bang);
+    v_add_symbol("voidc_internal_compile_prefix_tilda", compile_op_unary_ft, compile_prefix_tilda);
+    v_add_symbol("voidc_internal_compile_postfix_inc",  compile_op_unary_ft, compile_postfix_inc);
+    v_add_symbol("voidc_internal_compile_postfix_dec",  compile_op_unary_ft, compile_postfix_dec);
+
+    v_add_symbol("voidc_internal_compile_op_unary_helper",
+                 compile_op_unary_helper_ft,
+                 compile_op_unary_helper);
 }
 
 

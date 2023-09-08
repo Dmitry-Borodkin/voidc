@@ -110,20 +110,20 @@ op_table: &op_table_item_t[] :=
     {"v.op_infix_div",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_div_helper },
     {"v.op_infix_rem",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_rem_helper },
 
-    {"v.op_prefix_inc",        opk_unary },
-    {"v.op_prefix_dec",        opk_unary },
-    {"v.op_prefix_plus",       opk_unary },
-    {"v.op_prefix_minus",      opk_unary },
-    {"v.op_prefix_star",       opk_unary },
-    {"v.op_prefix_amp",        opk_unary },
-    {"v.op_prefix_bang",       opk_unary },
-    {"v.op_prefix_tilda",      opk_unary },
+    {"v.op_prefix_inc",        opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_inc },
+    {"v.op_prefix_dec",        opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_dec },
+    {"v.op_prefix_plus",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_plus },
+    {"v.op_prefix_minus",      opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_minus },
+    {"v.op_prefix_star",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_star },
+    {"v.op_prefix_amp",        opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_amp },
+    {"v.op_prefix_bang",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_bang },
+    {"v.op_prefix_tilda",      opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_tilda},
 
-    {"v.op_prefix_const",      opk_unary },          //- ...
-    {"v.op_prefix_volatile",   opk_unary },          //- ...
+    {"v.op_prefix_const",      opk_unary,    0,0, 0 },          //- ...
+    {"v.op_prefix_volatile",   opk_unary,    0,0, 0 },          //- ...
 
-    {"v.op_postfix_inc",       opk_unary },
-    {"v.op_postfix_dec",       opk_unary },
+    {"v.op_postfix_inc",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_postfix_inc },
+    {"v.op_postfix_dec",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_postfix_dec },
 
     {0}     //- Sic...
 };
@@ -920,263 +920,6 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 private
-inc_dec_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef, delta: int, is_pref: bool) -> LLVMValueRef
-{
-    et = v_type_refptr_get_element_type(t);
-
-    st = v_type_get_scalar_type(et);
-
-
-    step = v_alloca(v_ast_expr_t);
-    v_initialize(step);
-    defer v_terminate(step);
-
-    v_ast_make_expr_integer(step, delta);
-
-    step_base = (step: v_ast_base_ptr);
-
-
-    pf = v_type_is_pointer(st);
-
-    if (pf) v_set_result_type(int);         //- ?
-    else    v_set_result_type(st);
-
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(step_base, vis);
-
-    step_t = v_get_result_type();
-    step_v = v_get_result_value();
-
-
-    var_v: &LLVMValueRef := v_undef();
-
-    if (v_type_is_vector(et))
-    {
-        var_t: &v_type_ptr := et;
-
-        voidc_internal_vectorize_scalar(step_t, step_v, var_t, var_v);
-    }
-    else
-    {
-        var_v := step_v;
-    }
-
-
-    builder = v_target_get_builder();
-
-    ev = LLVMBuildLoad2(builder, v_type_get_llvm_type(et), v, "");
-
-    if (pf)
-    {
-        est = v_type_refptr_get_element_type(st);
-
-        var_v := LLVMBuildGEP2(builder, v_type_get_llvm_type(est), ev, &var_v, 1, "");
-    }
-    else if (v_type_is_floating_point(st))
-    {
-        var_v := LLVMBuildFAdd(builder, ev, var_v, "");
-    }
-    else
-    {
-        var_v := LLVMBuildAdd(builder, ev, var_v, "");
-    }
-
-    LLVMBuildStore(builder, var_v, v);
-
-
-    if (is_pref)
-    {
-        v_return(v);
-    }
-    else
-    {
-        t := et;
-
-        v_return(ev);
-    }
-}
-
-//---------------------------------------------------------------------
-private
-compile_prefix_inc_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v_return(inc_dec_helper(vis, t, v, 1, true));
-}
-
-//---------------------------------------------------------------------
-private
-compile_prefix_dec_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v_return(inc_dec_helper(vis, t, v, -1, true));
-}
-
-//---------------------------------------------------------------------
-private
-compile_prefix_plus_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v_return(v);
-}
-
-//---------------------------------------------------------------------
-private
-compile_prefix_minus_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v_set_result_type(UNREFERENCE_TAG);
-    v_set_result_value(0);
-
-    v_adopt_result(t, v);
-
-    t := v_get_result_type();
-
-    v = v_get_result_value();
-
-    builder = v_target_get_builder();
-
-    if (v_type_is_floating_point(v_type_get_scalar_type(t)))
-    {
-        v_return(LLVMBuildFNeg(builder, v, ""));
-    }
-    else
-    {
-        v_return(LLVMBuildNeg(builder, v, ""));
-    }
-}
-
-//---------------------------------------------------------------------
-private
-compile_prefix_star_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    vr: &LLVMValueRef := v;
-
-    if (v_type_is_reference(t))
-    {
-        t := v_type_refptr_get_element_type(t);
-
-        builder = v_target_get_builder();
-
-        vr := LLVMBuildLoad2(builder, v_type_get_llvm_type(t), v, "");
-    }
-
-    e = v_type_refptr_get_element_type(t);
-    a = v_type_refptr_get_address_space(t);
-
-    t := v_reference_type(e, a);
-
-    v_return(vr);
-}
-
-//---------------------------------------------------------------------
-private
-compile_prefix_amp_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v: &LLVMValueRef := v;
-
-    if (v_type_is_reference(t))
-    {
-        e = v_type_refptr_get_element_type(t);
-        a = v_type_refptr_get_address_space(t);
-
-        t := v_pointer_type(e, a);
-    }
-    else
-    {
-        if (LLVMIsConstant(v))
-        {
-            v1 = LLVMAddGlobal(v_get_module(), v_type_get_llvm_type(t), "tmp");
-
-            LLVMSetInitializer(v1, v);
-
-            LLVMSetLinkage(v1, LLVMPrivateLinkage);
-
-            LLVMSetUnnamedAddress(v1, LLVMGlobalUnnamedAddr);
-
-            LLVMSetGlobalConstant(v1, true);
-
-            v := v1;
-        }
-        else
-        {
-            v := v_make_temporary(t, v);
-        }
-
-        t := v_pointer_type(t, 0);
-    }
-
-    v_return(v);
-}
-
-//---------------------------------------------------------------------
-private
-compile_prefix_bang_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v_set_result_type(UNREFERENCE_TAG);
-    v_set_result_value(0);
-
-    v_adopt_result(t, v);
-
-    t := v_get_result_type();
-
-    v = v_get_result_value();
-
-    builder = v_target_get_builder();
-
-    vr = LLVMBuildIsNull(builder, v, "");
-
-    if (v_type_is_vector(t))
-    {
-        b = v_find_type("bool");
-
-        sz = v_type_vector_get_size(t);
-
-        s = v_type_vector_is_scalable(t);
-
-        if (s)  t := v_svector_type(b, sz);
-        else    t := v_vector_type(b, sz);
-    }
-    else
-    {
-        t := v_find_type("bool");
-    }
-
-    v_return(vr);
-}
-
-//---------------------------------------------------------------------
-private
-compile_prefix_tilda_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v_set_result_type(UNREFERENCE_TAG);
-    v_set_result_value(0);
-
-    v_adopt_result(t, v);
-
-    t := v_get_result_type();
-
-    v = v_get_result_value();
-
-    builder = v_target_get_builder();
-
-    v_return(LLVMBuildNot(builder, v, ""));
-}
-
-//---------------------------------------------------------------------
-private
-compile_postfix_inc_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v_return(inc_dec_helper(vis, t, v, 1, false));
-}
-
-//---------------------------------------------------------------------
-private
-compile_postfix_dec_helper: (vis: voidc_visitor_ptr, t: &v_type_ptr, v: LLVMValueRef) -> LLVMValueRef
-{
-    v_return(inc_dec_helper(vis, t, v, -1, false));
-}
-
-
-//---------------------------------------------------------------------
-private
 op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                      self: v_ast_base_ptr) -> void
 {
@@ -1195,7 +938,9 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     t0 = v_get_result_type();
     v0 = v_get_result_value();
 
-    q = op_table[(aux: int)][2];    //- Quark
+    op_data = op_table[(aux: int)];
+
+    q = op_data[2];             //- Quark
 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
@@ -1232,30 +977,20 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     //- Default treatment...
 
-    compile: &*((voidc_visitor_ptr, &v_type_ptr, LLVMValueRef) -> LLVMValueRef) := 0;
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
 
-    switch((aux: int))
-    {
-    case id_prefix_inc:     compile := compile_prefix_inc_helper;    v_break();
-    case id_prefix_dec:     compile := compile_prefix_dec_helper;    v_break();
-    case id_prefix_plus:    compile := compile_prefix_plus_helper;   v_break();
-    case id_prefix_minus:   compile := compile_prefix_minus_helper;  v_break();
-    case id_prefix_star:    compile := compile_prefix_star_helper;   v_break();
-    case id_prefix_amp:     compile := compile_prefix_amp_helper;    v_break();
-    case id_prefix_bang:    compile := compile_prefix_bang_helper;   v_break();
-    case id_prefix_tilda:   compile := compile_prefix_tilda_helper;  v_break();
-    case id_postfix_inc:    compile := compile_postfix_inc_helper;   v_break();
-    case id_postfix_dec:    compile := compile_postfix_dec_helper;   v_break();
-    }
+    v_ast_make_expr_compiled(expr, t0, v0);
 
-    t0: &v_type_ptr := t0;          //- Sic!
+    helper = (op_data[4] : *((*voidc_visitor_t, *v_ast_expr_t, *void) -> void));
 
-    v = compile(vis, t0, v0);
+    compile = op_data[5];
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    v_adopt_result(t0, v);
+    helper(vis, expr, compile);
 }
 
 
@@ -1415,11 +1150,10 @@ compile_expr_call: (vis: voidc_visitor_ptr, *void,
     void_aux: &*void := v_undef();
 
     if (v_ast_base_get_visitor_method_tag((fexpr: v_ast_base_ptr)) == v_ast_expr_identifier_visitor_method_tag)
-    block
     {
         fname_q = v_ast_expr_identifier_get_name_q(fexpr);
 
-        if (void_fun := v_get_intrinsic_q(fname_q, &void_aux))  v_break();
+        void_fun := v_get_intrinsic_q(fname_q, &void_aux);
     }
 
     if (fun = (void_fun: *voidc_intrinsic_t))       //- Compile-time intrinsic?
