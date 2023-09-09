@@ -990,7 +990,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    helper(vis, expr, compile);
+    if (helper) helper(vis, expr, compile);
 }
 
 

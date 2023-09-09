@@ -559,12 +559,6 @@
 
     v_add_symbol("expr_call_tag",       q_ref, q("expr_call"));
     v_add_symbol("expr_identifier_tag", q_ref, q("expr_identifier"));
-
-    //-------------------------------------------------------------
-    q = v_quark_from_string;
-
-    v_store(q("operator_unary"),  v_getelementptr(voidc_ast_operator_unary_vtable,  0, 2));
-    v_store(q("operator_binary"), v_getelementptr(voidc_ast_operator_binary_vtable, 0, 2));
 }
 
 //---------------------------------------------------------------------
@@ -1619,11 +1613,11 @@
 }
 
 //---------------------------------------------------------------------
-//- op_infix_add_assign - compiler intrinsic
+//- op_addsub_assign_intrinsic - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_add_assign", voidc_intrinsic_t);
+    f = v_function_hack("op_addsub_assign_intrinsic", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1632,15 +1626,17 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    op_assign_helper(visitor, self, compile_add, true);
+    compile = v_cast(aux, compile_op_ft_ptr);
+
+    op_assign_helper(visitor, self, compile, true);
 }
 
 //---------------------------------------------------------------------
-//- op_infix_sub_assign - compiler intrinsic
+//- op_infix_assign_intrinsic - compiler intrinsic
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_sub_assign", voidc_intrinsic_t);
+    f = v_function_hack("op_infix_assign_intrinsic", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1649,143 +1645,9 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    op_assign_helper(visitor, self, compile_sub, true);
-}
+    compile = v_cast(aux, compile_op_ft_ptr);
 
-//---------------------------------------------------------------------
-//- op_infix_mul_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_mul_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_assign_helper(visitor, self, compile_mul, false);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_div_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_div_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_assign_helper(visitor, self, compile_div, false);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_rem_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_rem_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_assign_helper(visitor, self, compile_rem, false);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_shl_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_shl_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_assign_helper(visitor, self, compile_shl, false);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_shr_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_shr_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_assign_helper(visitor, self, compile_shr, false);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_and_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_and_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_assign_helper(visitor, self, compile_and, false);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_xor_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_xor_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_assign_helper(visitor, self, compile_xor, false);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_or_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_or_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_assign_helper(visitor, self, compile_or, false);
+    op_assign_helper(visitor, self, compile, false);
 }
 
 
@@ -2233,27 +2095,17 @@
 }
 
 //---------------------------------------------------------------------
-//- op_binary_helper - utility
+//- op_binary_intrinsic - compiler intrinsic
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-
-    v_store(voidc_visitor_ptr, typ0);
-    v_store(v_ast_base_ptr,    typ1);
-    v_store(void_ptr,          typ2);               //- Sic!
-
-    ft = v_function_type(void, typ0, 3, false);
-
     //-----------------------------------------------------------------
-    f = v_function_hack("op_binary_helper", ft);
+    f = v_function_hack("op_binary_intrinsic", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "self",    v_ast_base_ptr);
-    v_add_parameter_name(f, 2, "compile", void_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
     call = v_cast(self, v_ast_expr_ptr);
@@ -2264,59 +2116,7 @@
     ast1 = v_list_get_item(args, 2);        //- Sic!
 
 
-    compile_op_binary_helper(visitor, ast0, ast1, compile);
-}
-
-
-//---------------------------------------------------------------------
-//- op_infix_and - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_and", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_helper(visitor, self, compile_and);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_xor - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_xor", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_helper(visitor, self, compile_xor);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_or - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_or", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_helper(visitor, self, compile_or);
+    compile_op_binary_helper(visitor, ast0, ast1, aux);
 }
 
 
@@ -2633,27 +2433,17 @@
 }
 
 //---------------------------------------------------------------------
-//- relation_helper - utility
+//- relation_intrinsic - compiler intrinsic
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-
-    v_store(voidc_visitor_ptr, typ0);
-    v_store(v_ast_base_ptr,    typ1);
-    v_store(void_ptr,          typ2);
-
-    ft = v_function_type(void, typ0, 3, false);
-
     //-----------------------------------------------------------------
-    f = v_function_hack("relation_helper", ft);
+    f = v_function_hack("relation_intrinsic", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "self",    v_ast_base_ptr);
-    v_add_parameter_name(f, 2, "compile", void_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
     call = v_cast(self, v_ast_expr_ptr);
@@ -2693,7 +2483,7 @@
         v_store(v_list_get_item(arg_list, 1), ast_i);
         v_store(v_list_get_item(arg_list, 2), v_getelementptr(ast_i, 1));
 
-        v_store(compile, rel_i);
+        v_store(aux, rel_i);
 
         loop
         {
@@ -2830,145 +2620,6 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_le - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_le", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    relation_helper(visitor, self, compile_le);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_lt - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_lt", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    relation_helper(visitor, self, compile_lt);
-}
-//---------------------------------------------------------------------
-//- op_infix_ge - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_ge", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    relation_helper(visitor, self, compile_ge);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_gt - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_gt", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    relation_helper(visitor, self, compile_gt);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_eq - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_eq", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    relation_helper(visitor, self, compile_eq);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_ne - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_ne", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    relation_helper(visitor, self, compile_ne);
-}
-
-
-//---------------------------------------------------------------------
-//- op_infix_shl - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_shl", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_helper(visitor, self, compile_shl);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_shr - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_shr", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_helper(visitor, self, compile_shr);
-}
-
-
-
-
-//---------------------------------------------------------------------
 //- compile_infix_ft - utility
 //---------------------------------------------------------------------
 {
@@ -3042,27 +2693,17 @@
 }
 
 //---------------------------------------------------------------------
-//- op_binary_addsub_helper - utility
+//- op_binary_addsub_intrinsic - compiler intrinsic
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-
-    v_store(voidc_visitor_ptr, typ0);
-    v_store(v_ast_base_ptr,    typ1);
-    v_store(void_ptr,          typ2);               //- Sic!
-
-    ft = v_function_type(void, typ0, 3, false);
-
     //-----------------------------------------------------------------
-    f = v_function_hack("op_binary_addsub_helper", ft);
+    f = v_function_hack("op_binary_addsub_intrinsic", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "self",    v_ast_base_ptr);
-    v_add_parameter_name(f, 2, "compile", void_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
     call = v_cast(self, v_ast_expr_ptr);
@@ -3073,7 +2714,7 @@
     ast1 = v_list_get_item(args, 2);        //- Sic!
 
 
-    compile_op_binary_addsub_helper(visitor, ast0, ast1, compile);
+    compile_op_binary_addsub_helper(visitor, ast0, ast1, aux);
 }
 
 
@@ -3180,22 +2821,6 @@
     }
 }
 
-//---------------------------------------------------------------------
-//- op_infix_add - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_add", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_addsub_helper(visitor, self, compile_infix_add);
-}
 
 //---------------------------------------------------------------------
 //- compile_infix_sub - utility
@@ -3311,74 +2936,6 @@
     v_assign(t, t0);
 
     v_return(v);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_sub - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_sub", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_addsub_helper(visitor, self, compile_infix_sub);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_mul - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_mul", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_helper(visitor, self, compile_mul);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_div - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_div", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_helper(visitor, self, compile_div);
-}
-
-//---------------------------------------------------------------------
-//- op_infix_rem - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_rem", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_binary_helper(visitor, self, compile_rem);
 }
 
 
@@ -3837,27 +3394,17 @@
 }
 
 //---------------------------------------------------------------------
-//- op_unary_helper - utility
+//- op_unary_intrinsic - utility
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-
-    v_store(voidc_visitor_ptr, typ0);
-    v_store(v_ast_base_ptr,    typ1);
-    v_store(void_ptr,          typ2);               //- Sic!
-
-    ft = v_function_type(void, typ0, 3, false);
-
     //-----------------------------------------------------------------
-    f = v_function_hack("op_unary_helper", ft);
+    f = v_function_hack("op_unary_intrinsic", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "self",    v_ast_base_ptr);
-    v_add_parameter_name(f, 2, "compile", void_ptr);
+    v_add_parameter_name(f, 1, "aux",     void_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
     call = v_cast(self, v_ast_expr_ptr);
@@ -3866,76 +3413,9 @@
 
     arg = v_list_get_item(args, 1);
 
-    compile_op_unary_helper(visitor, arg, compile);
+    compile_op_unary_helper(visitor, arg, aux);
 }
 
-//---------------------------------------------------------------------
-//- op_prefix_inc - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_inc", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_unary_helper(visitor, self, compile_prefix_inc);
-}
-
-//---------------------------------------------------------------------
-//- op_prefix_dec - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_dec", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_unary_helper(visitor, self, compile_prefix_dec);
-}
-
-//---------------------------------------------------------------------
-//- op_prefix_plus - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_plus", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_unary_helper(visitor, self, compile_prefix_plus);
-}
-
-//---------------------------------------------------------------------
-//- op_prefix_minus - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_minus", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_unary_helper(visitor, self, compile_prefix_minus);
-}
 
 //---------------------------------------------------------------------
 //- op_prefix_star - compiler intrinsic
@@ -4043,92 +3523,6 @@
 
         v_adopt_result(t, v);
     }
-}
-
-//---------------------------------------------------------------------
-//- op_prefix_bang - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_bang", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_unary_helper(visitor, self, compile_prefix_bang);
-}
-
-//---------------------------------------------------------------------
-//- op_prefix_tilda - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_prefix_tilda", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_unary_helper(visitor, self, compile_prefix_tilda);
-}
-
-//---------------------------------------------------------------------
-//- op_postfix_inc - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_postfix_inc", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_unary_helper(visitor, self, compile_postfix_inc);
-}
-
-//---------------------------------------------------------------------
-//- op_postfix_dec - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_postfix_dec", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    op_unary_helper(visitor, self, compile_postfix_dec);
-}
-
-
-//---------------------------------------------------------------------
-//- op_postfix_call - compiler intrinsic                        DEAD!!!
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_postfix_call", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    //- WTF !?!?!?!?!
 }
 
 
@@ -4538,70 +3932,6 @@
 
 
 //---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
-{
-    module = v_get_module();
-
-    count = v_list_get_size(expr_oplist);
-
-    count = v_cast(count, int);
-
-    val0 = v_malloc(LLVMValueRef, count);
-
-    i = v_reference(v_alloca(int));
-
-    v_assign(i, 0);
-
-    loop
-    {
-        if (v_icmp(LLVMIntEQ, i, count))  v_break();
-
-
-        op = v_list_get_item(expr_oplist, i);
-
-        void_obj = v_ast_generic_get_object(op);
-
-        quark = v_load(v_cast(void_obj, quark_ptr));        //- Sic!!!
-
-        name = v_getelementptr(v_quark_to_string(quark), 2);    //- Skip "v."
-
-        fv = LLVMGetNamedFunction(module, name);
-
-        LLVMSetLinkage(fv, LLVMPrivateLinkage);
-
-
-        v_store(fv, v_getelementptr(val0, i));
-
-        v_assign(i, v_binop(LLVMAdd, i, 1));
-    }
-
-
-    elt_t = v_pointer_type(voidc_intrinsic_t, 0);
-    tab_t = v_array_type(elt_t, v_cast(count, uint64_t));
-
-    elt_t_ = v_type_get_llvm_type(elt_t);
-    tab_t_ = v_type_get_llvm_type(tab_t);
-
-    tab_g = LLVMAddGlobal(module, tab_t_, "voidc_ast_operator_method_table");
-
-    tab_v = LLVMConstArray(elt_t_, val0, count);
-
-    LLVMSetInitializer(tab_g, tab_v);
-
-
-    v_add_symbol("voidc_ast_operator_method_table", tab_t, 0);     //- Sic!
-
-
-    v_free(val0);
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
-}
-
-
-//---------------------------------------------------------------------
 //- int - type intrinsic
 //---------------------------------------------------------------------
 {
@@ -4890,38 +4220,56 @@
     v_function_hack("voidc_ast_add_operator_methods", ft);
 }
 {
-    vis = v_get_compiler();
+    v_add_intrinsic("v.op_infix_assign",     op_infix_assign,            0);
+    v_add_intrinsic("v.op_infix_add_assign", op_addsub_assign_intrinsic, compile_add);
+    v_add_intrinsic("v.op_infix_sub_assign", op_addsub_assign_intrinsic, compile_sub);
+    v_add_intrinsic("v.op_infix_mul_assign", op_infix_assign_intrinsic,  compile_mul);
+    v_add_intrinsic("v.op_infix_div_assign", op_infix_assign_intrinsic,  compile_div);
+    v_add_intrinsic("v.op_infix_rem_assign", op_infix_assign_intrinsic,  compile_rem);
+    v_add_intrinsic("v.op_infix_shl_assign", op_infix_assign_intrinsic,  compile_shl);
+    v_add_intrinsic("v.op_infix_shr_assign", op_infix_assign_intrinsic,  compile_shr);
+    v_add_intrinsic("v.op_infix_and_assign", op_infix_assign_intrinsic,  compile_and);
+    v_add_intrinsic("v.op_infix_xor_assign", op_infix_assign_intrinsic,  compile_xor);
+    v_add_intrinsic("v.op_infix_or_assign",  op_infix_assign_intrinsic,  compile_or);
 
+    v_add_intrinsic("v.op_infix_logical_or",  op_infix_logical_or,  0);
+    v_add_intrinsic("v.op_infix_logical_and", op_infix_logical_and, 0);
 
-    count = v_list_get_size(expr_oplist);
+    v_add_intrinsic("v.op_infix_or",  op_binary_intrinsic, compile_or);
+    v_add_intrinsic("v.op_infix_xor", op_binary_intrinsic, compile_xor);
+    v_add_intrinsic("v.op_infix_and", op_binary_intrinsic, compile_and);
 
-    count = v_cast(count, int);
+    v_add_intrinsic("v.op_infix_lt",  relation_intrinsic, compile_lt);
+    v_add_intrinsic("v.op_infix_le",  relation_intrinsic, compile_le);
+    v_add_intrinsic("v.op_infix_gt",  relation_intrinsic, compile_gt);
+    v_add_intrinsic("v.op_infix_ge",  relation_intrinsic, compile_ge);
+    v_add_intrinsic("v.op_infix_eq",  relation_intrinsic, compile_eq);
+    v_add_intrinsic("v.op_infix_ne",  relation_intrinsic, compile_ne);
 
+    v_add_intrinsic("v.op_infix_shl", op_binary_intrinsic, compile_shl);
+    v_add_intrinsic("v.op_infix_shr", op_binary_intrinsic, compile_shr);
 
-    i = v_reference(v_alloca(int));
+    v_add_intrinsic("v.op_infix_add", op_binary_addsub_intrinsic, compile_infix_add);
+    v_add_intrinsic("v.op_infix_sub", op_binary_addsub_intrinsic, compile_infix_sub);
 
-    v_assign(i, 0);
+    v_add_intrinsic("v.op_infix_mul", op_binary_intrinsic, compile_mul);
+    v_add_intrinsic("v.op_infix_div", op_binary_intrinsic, compile_div);
+    v_add_intrinsic("v.op_infix_rem", op_binary_intrinsic, compile_rem);
 
-    loop
-    {
-        if (v_icmp(LLVMIntEQ, i, count))  v_break();
+    v_add_intrinsic("v.op_prefix_inc",    op_unary_intrinsic, compile_prefix_inc);
+    v_add_intrinsic("v.op_prefix_dec",    op_unary_intrinsic, compile_prefix_dec);
+    v_add_intrinsic("v.op_prefix_plus",   op_unary_intrinsic, compile_prefix_plus);
+    v_add_intrinsic("v.op_prefix_minus",  op_unary_intrinsic, compile_prefix_minus);
+    v_add_intrinsic("v.op_prefix_star",   op_prefix_star,     0);
+    v_add_intrinsic("v.op_prefix_amp",    op_prefix_amp,      0);
+    v_add_intrinsic("v.op_prefix_bang",   op_unary_intrinsic, compile_prefix_bang);
+    v_add_intrinsic("v.op_prefix_tilda",  op_unary_intrinsic, compile_prefix_tilda);
+    v_add_intrinsic("v.op_postfix_inc",   op_unary_intrinsic, compile_postfix_inc);
+    v_add_intrinsic("v.op_postfix_dec",   op_unary_intrinsic, compile_postfix_dec);
 
+    v_add_intrinsic("v.op_postfix_index", op_postfix_index,   0);
 
-        op = v_list_get_item(expr_oplist, i);
-
-        void_obj = v_ast_generic_get_object(op);
-
-        quark = v_load(v_cast(void_obj, quark_ptr));        //- Sic!!!
-
-        ti = v_getelementptr(voidc_ast_operator_method_table, 0, i);
-
-        m = v_load(ti);
-
-        v_add_intrinsic_q(quark, m, 0);
-
-
-        v_assign(i, v_binop(LLVMAdd, i, 1));
-    }
+    v_add_intrinsic("v.op_parentheses",   op_parentheses,     0);
 
 
     //-------------------------------------------------------------
