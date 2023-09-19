@@ -1421,94 +1421,6 @@
 
 
 //---------------------------------------------------------------------
-//- compile_op_infix_assign_helper_ft - utility...
-//---------------------------------------------------------------------
-{
-    typ0 = v_alloca(v_type_ptr, 3);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-
-    v_store(voidc_visitor_ptr,   typ0);
-    v_store(v_ast_expr_ptr,      typ1);
-    v_store(v_ast_expr_ptr,      typ2);
-
-    ft = v_function_type(void, typ0, 3, false);
-
-    v_add_type("compile_op_infix_assign_helper_ft", ft);
-}
-
-//---------------------------------------------------------------------
-//- compile_op_infix_assign_helper - utility...
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("compile_op_infix_assign_helper", compile_op_infix_assign_helper_ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "ast0",    v_ast_expr_ptr);
-    v_add_parameter_name(f, 2, "ast1",    v_ast_expr_ptr);
-}
-{
-    ttag = v_get_result_type();
-    vtag = v_get_result_value();
-
-
-    t0 = v_reference(v_alloca(v_type_ptr));
-    v0 = v_reference(v_alloca(LLVMValueRef));
-    t1 = v_reference(v_alloca(v_type_ptr));
-    v1 = v_reference(v_alloca(LLVMValueRef));
-
-    prepare_assign_arguments(ast0, ast1, visitor, t0, v0, t1, v1, false);
-
-
-    e0 = v_type_refptr_get_element_type(t0);
-
-    if (v_type_is_pointer(v_type_get_scalar_type(e0)))
-    {
-        v_assign(v1, v_convert_to_type(t1, v1, e0));
-    }
-
-
-    builder = v_target_get_builder();
-
-    LLVMBuildStore(builder, v1, v0);
-
-
-    v_set_result_type(ttag);
-    v_set_result_value(vtag);
-
-    v_adopt_result(t0, v0);
-}
-
-
-//---------------------------------------------------------------------
-//- op_infix_assign - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_infix_assign", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "aux",     void_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    call = v_cast(self, v_ast_expr_ptr);
-
-    args = v_ast_expr_call_get_arg_list(call);
-
-    ast0 = v_list_get_item(args, 1);        //- Sic!
-    ast1 = v_list_get_item(args, 2);        //- Sic!
-
-    compile_op_infix_assign_helper(visitor, ast0, ast1);
-}
-
-
-//---------------------------------------------------------------------
 //- compile_op_assign_helper_ft - utility
 //---------------------------------------------------------------------
 {
@@ -1561,11 +1473,18 @@
 
     e0 = v_type_refptr_get_element_type(t0);
 
-    v = LLVMBuildLoad2(builder, v_type_get_llvm_type(e0), v0, "");
+    if (compile)
+    {
+        v = LLVMBuildLoad2(builder, v_type_get_llvm_type(e0), v0, "");
 
-    v = compile(e0, v, v1);
+        v_assign(v1, compile(e0, v, v1));
+    }
+    else if (v_type_is_pointer(v_type_get_scalar_type(e0)))
+    {
+        v_assign(v1, v_convert_to_type(t1, v1, e0));
+    }
 
-    LLVMBuildStore(builder, v, v0);
+    LLVMBuildStore(builder, v1, v0);
 
 
     v_set_result_type(ttag);
@@ -4220,7 +4139,7 @@
     v_function_hack("voidc_ast_add_operator_methods", ft);
 }
 {
-    v_add_intrinsic("v.op_infix_assign",     op_infix_assign,            0);
+    v_add_intrinsic("v.op_infix_assign",     op_infix_assign_intrinsic,  0);
     v_add_intrinsic("v.op_infix_add_assign", op_addsub_assign_intrinsic, compile_add);
     v_add_intrinsic("v.op_infix_sub_assign", op_addsub_assign_intrinsic, compile_sub);
     v_add_intrinsic("v.op_infix_mul_assign", op_infix_assign_intrinsic,  compile_mul);
@@ -4317,10 +4236,6 @@
     v_add_symbol("voidc_internal_compile_infix_sub_helper", compile_infix_ft, compile_infix_sub);
 
     v_add_symbol("voidc_internal_convert_to_common_type_helper", convert_to_common_type_ft, convert_to_common_type);
-
-    v_add_symbol("voidc_internal_compile_op_infix_assign_helper",
-                 compile_op_infix_assign_helper_ft,
-                 compile_op_infix_assign_helper);
 
     v_add_symbol("voidc_internal_compile_op_assign_helper",
                  compile_op_assign_helper_ft,

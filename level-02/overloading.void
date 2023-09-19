@@ -74,7 +74,7 @@ op_table_item_t = v_struct("struct.op_table_item",
 
 op_table: &op_table_item_t[] :=
 {
-    {"v.op_infix_assign",      opk_assign,   0,0, 0 },
+    {"v.op_infix_assign",      opk_assign,   0,0, 0,                                 (false: *void) },
     {"v.op_infix_add_assign",  opk_assign,   0,0, voidc_internal_compile_add_helper, (true:  *void) },
     {"v.op_infix_sub_assign",  opk_assign,   0,0, voidc_internal_compile_sub_helper, (true:  *void) },
     {"v.op_infix_mul_assign",  opk_assign,   0,0, voidc_internal_compile_mul_helper, (false: *void) },
@@ -451,16 +451,9 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
     compile = (op_data[4] : *((v_type_ptr, LLVMValueRef, LLVMValueRef) -> LLVMValueRef));
 
-    if (compile)
-    {
-        flag = (op_data[5] : bool);
+    flag = (op_data[5] : bool);
 
-        voidc_internal_compile_op_assign_helper(vis, ast0, ast1, compile, flag);
-    }
-    else
-    {
-        voidc_internal_compile_op_infix_assign_helper(vis, ast0, ast1);        //- Sic !?!?!?!?!?!?!?!
-    }
+    voidc_internal_compile_op_assign_helper(vis, ast0, ast1, compile, flag);
 }
 
 
