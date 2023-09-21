@@ -3,7 +3,6 @@
 
     v_import("llvm-c/Core.void");
     v_import("llvm-c/TargetMachine.void");
-    v_import("llvm-c/Transform/PassManagerBuilder.void");
 
     v_import("printf.void");
 }
@@ -70,32 +69,6 @@
     LLVMClearInsertionPosition(builder);
 
     LLVMDisposeBuilder(builder);
-
-    //-----------------------------------------------------------------
-    pass_manager = LLVMCreatePassManager();
-
-    pm_builder = LLVMPassManagerBuilderCreate();
-
-    LLVMPassManagerBuilderSetOptLevel(pm_builder, 3);       //- -O3
-//  LLVMPassManagerBuilderSetSizeLevel(pm_builder, 2);      //- -Oz
-
-    LLVMPassManagerBuilderPopulateModulePassManager(pm_builder, pass_manager);
-
-    LLVMPassManagerBuilderDispose(pm_builder);
-
-    //-----------------------------------------------------------------
-    dl = LLVMCreateTargetDataLayout(target_machine);
-    tr = LLVMGetTargetMachineTriple(target_machine);
-
-    LLVMSetModuleDataLayout(module, dl);
-    LLVMSetTarget(module, tr);
-
-    LLVMDisposeMessage(tr);
-    LLVMDisposeTargetData(dl);
-
-    LLVMRunPassManager(pass_manager, module);
-
-    LLVMDisposePassManager(pass_manager);
 
     //-----------------------------------------------------------------
     msg = LLVMPrintModuleToString(module);

@@ -11,8 +11,7 @@
 #include <llvm-c/TargetMachine.h>
 #include <llvm-c/Analysis.h>
 #include <llvm-c/Object.h>
-#include <llvm-c/Transforms/PassManagerBuilder.h>
-#include <llvm-c/Transforms/IPO.h>
+#include <llvm-c/Transforms/PassBuilder.h>
 
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/CBindingWrapping.h>
@@ -939,7 +938,7 @@ voidc_template_ctx_t<T, TArgs...>::add_symbol_value(v_quark_t raw_name_q, void *
 
     if (vjit->lookup(*unwrap(base_jd), raw_name)) return;
 
-    unit_symbols[vjit->mangleAndIntern(raw_name)] = JITEvaluatedSymbol::fromPointer(value);
+    unit_symbols[vjit->mangleAndIntern(raw_name)] = { ExecutorAddr::fromPtr(value), JITSymbolFlags::Exported };
 }
 
 //---------------------------------------------------------------------
@@ -1239,7 +1238,6 @@ base_global_ctx_t  *         voidc_global_ctx_t::target;
 LLVMOrcLLJITRef voidc_global_ctx_t::jit;
 
 LLVMTargetMachineRef voidc_global_ctx_t::target_machine;
-LLVMPassManagerRef   voidc_global_ctx_t::pass_manager;
 
 VOIDC_DLLEXPORT_END
 
@@ -1403,26 +1401,10 @@ voidc_global_ctx_t::static_initialize(void)
     voidc_triple       = LLVMGetTargetMachineTriple(target_machine);
 
     //-------------------------------------------------------------
-    pass_manager = LLVMCreatePassManager();
-
-    {   auto pm_builder = LLVMPassManagerBuilderCreate();
-
-        LLVMPassManagerBuilderSetOptLevel(pm_builder, 3);       //- -O3
-//      LLVMPassManagerBuilderSetSizeLevel(pm_builder, 2);      //- -Oz
-
-        LLVMPassManagerBuilderPopulateModulePassManager(pm_builder, pass_manager);
-
-        LLVMPassManagerBuilderDispose(pm_builder);
-    }
-
-    LLVMAddAlwaysInlinerPass(pass_manager);
-
-    //-------------------------------------------------------------
 #define DEF(name) \
     voidc->add_symbol_value(q("voidc_" #name), (void *)name);
 
     DEF(target_machine)
-    DEF(pass_manager)
 
 #undef DEF
 
@@ -1459,8 +1441,6 @@ voidc_global_ctx_t::static_terminate(void)
 
     voidc_types_static_terminate();
 
-    LLVMDisposePassManager(pass_manager);
-
     LLVMDisposeMessage(voidc_triple);
     LLVMDisposeTargetData(voidc->data_layout);
 
@@ -1486,9 +1466,23 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
     LLVMSetModuleDataLayout(module, voidc->data_layout);
     LLVMSetTarget(module, voidc_triple);
 
-    LLVMRunPassManager(pass_manager, module);
-    LLVMRunPassManager(pass_manager, module);           //- WTF ?!?!?!?!?!?!?
+    //-------------------------------------------------------------
+    auto opts = LLVMCreatePassBuilderOptions();
 
+    auto err = LLVMRunPasses(module, "default<O3>,always-inline", target_machine, opts);
+
+    if (err)
+    {
+        auto msg = LLVMGetErrorMessage(err);
+
+        printf("LLVMRunPasses: %s\n", msg);
+
+        LLVMDisposeErrorMessage(msg);
+    }
+
+    LLVMDisposePassBuilderOptions(opts);
+
+    //-------------------------------------------------------------
     if (verify_jit_module_optimized)  verify_module(module);
 }
 
