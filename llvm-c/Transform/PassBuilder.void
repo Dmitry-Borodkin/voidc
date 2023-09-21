@@ -1,0 +1,115 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2023 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+
+//- Imports ------------------------------------------------
+{
+    voidc_import("llvm-c/prelude.void");
+
+    v_export_import("llvm-c/Error.void");
+    v_export_import("llvm-c/TargetMachine.void");
+    v_export_import("llvm-c/Types.void");
+}
+
+//- Types --------------------------------------------------
+{
+    v0 = v_struct_type_named("struct.LLVMOpaquePassBuilderOptions");
+    v1 = v_pointer_type(v0, 0);
+    v_export_type("LLVMPassBuilderOptionsRef", v1);
+
+}
+
+//- Functions ----------------------------------------------
+{
+    arg0 = v_alloca(v_type_ptr, 4);
+    arg1 = v_getelementptr(arg0, 1);
+    arg2 = v_getelementptr(arg0, 2);
+    arg3 = v_getelementptr(arg0, 3);
+
+    v0_LLVMModuleRef = v_find_type("LLVMModuleRef");
+    v_store(v0_LLVMModuleRef, arg0);
+    v1_char = v_find_type("char");
+    v2 = v_pointer_type(v1_char, 0);
+    v_store(v2, arg1);
+    v3_LLVMTargetMachineRef = v_find_type("LLVMTargetMachineRef");
+    v_store(v3_LLVMTargetMachineRef, arg2);
+    v4_LLVMPassBuilderOptionsRef = v_find_type("LLVMPassBuilderOptionsRef");
+    v_store(v4_LLVMPassBuilderOptionsRef, arg3);
+    v5_LLVMErrorRef = v_find_type("LLVMErrorRef");
+    v6 = v_function_type(v5_LLVMErrorRef, arg0, 4, false);
+    v_export_symbol_type("LLVMRunPasses", v6);
+
+    v7 = v_function_type(v4_LLVMPassBuilderOptionsRef, arg0, 0, false);
+    v_export_symbol_type("LLVMCreatePassBuilderOptions", v7);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v8_LLVMBool = v_find_type("LLVMBool");
+    v_store(v8_LLVMBool, arg1);
+    v9_void = v_find_type("void");
+    v10 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetVerifyEach", v10);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v8_LLVMBool, arg1);
+    v11 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetDebugLogging", v11);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v8_LLVMBool, arg1);
+    v12 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetLoopInterleaving", v12);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v8_LLVMBool, arg1);
+    v13 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetLoopVectorization", v13);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v8_LLVMBool, arg1);
+    v14 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetSLPVectorization", v14);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v8_LLVMBool, arg1);
+    v15 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetLoopUnrolling", v15);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v8_LLVMBool, arg1);
+    v16 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetForgetAllSCEVInLoopUnroll", v16);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v17_unsigned = v_find_type("unsigned");
+    v_store(v17_unsigned, arg1);
+    v18 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetLicmMssaOptCap", v18);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v17_unsigned, arg1);
+    v19 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetLicmMssaNoAccForPromotionCap", v19);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v8_LLVMBool, arg1);
+    v20 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetCallGraphProfile", v20);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v_store(v8_LLVMBool, arg1);
+    v21 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetMergeFunctions", v21);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v22_int = v_find_type("int");
+    v_store(v22_int, arg1);
+    v23 = v_function_type(v9_void, arg0, 2, false);
+    v_export_symbol_type("LLVMPassBuilderOptionsSetInlinerThreshold", v23);
+
+    v_store(v4_LLVMPassBuilderOptionsRef, arg0);
+    v24 = v_function_type(v9_void, arg0, 1, false);
+    v_export_symbol_type("LLVMDisposePassBuilderOptions", v24);
+
+}
+
