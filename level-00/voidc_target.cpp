@@ -1469,7 +1469,7 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
     //-------------------------------------------------------------
     auto opts = LLVMCreatePassBuilderOptions();
 
-    auto err = LLVMRunPasses(module, "default<O3>,always-inline", target_machine, opts);
+    auto err = LLVMRunPasses(module, "default<O3>", target_machine, opts);
 
     if (err)
     {
