@@ -123,8 +123,8 @@
     //- "Function hack" compiler visitor method
     //-----------------------------------------------------------------
     //- private
-    //- voidc_function_hack_visitor_method: (visitor: voidc_visitor_ptr,
-    //-                                      aux:     void_ptr,
+    //- voidc_function_hack_visitor_method: (aux:     void_ptr,
+    //-                                      visitor: voidc_visitor_ptr,
     //-                                      self:    v_ast_base_ptr
     //-                                     ) -> void
     //- {
@@ -158,8 +158,8 @@
     method_f = v_obtain_function("voidc_function_hack_visitor_method", 0);
     LLVMSetLinkage(method_f, LLVMPrivateLinkage);
 
-    visitor = LLVMGetParam(method_f, 0);
-    aux     = LLVMGetParam(method_f, 1);
+    aux     = LLVMGetParam(method_f, 0);
+    visitor = LLVMGetParam(method_f, 1);
     self    = LLVMGetParam(method_f, 2);
 
     entry = LLVMAppendBasicBlock(method_f, "entry");
@@ -448,7 +448,7 @@
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic
     //-----------------------------------------------------------------
-    //- voidc_function_hack_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
+    //- voidc_function_hack_intrinsic: (aux: void_ptr, visitor: voidc_visitor_ptr,
     //-                                 self: v_ast_base_ptr
     //-                                ) -> void
     //- {
@@ -522,8 +522,8 @@
     //-----------------------------------------------------------------
     intrinsic_f = v_obtain_function("voidc_function_hack_intrinsic", 0);
 
-    visitor = LLVMGetParam(intrinsic_f, 0);
-    aux     = LLVMGetParam(intrinsic_f, 1);
+    aux     = LLVMGetParam(intrinsic_f, 0);
+    visitor = LLVMGetParam(intrinsic_f, 1);
     self    = LLVMGetParam(intrinsic_f, 2);
 
     entry = LLVMAppendBasicBlock(intrinsic_f, "entry");
@@ -777,7 +777,7 @@
     //-----------------------------------------------------------------
     //- "Return" intrinsic
     //-----------------------------------------------------------------
-    //- voidc_function_hack_return_intrinsic: (visitor: voidc_visitor_ptr, aux: void_ptr,
+    //- voidc_function_hack_return_intrinsic: (aux: void_ptr, visitor: voidc_visitor_ptr,
     //-                                        self: v_ast_base_ptr
     //-                                       ) -> void
     //- {
@@ -817,8 +817,8 @@
     //-----------------------------------------------------------------
     return_f = v_obtain_function("voidc_function_hack_return_intrinsic", 0);
 
-    visitor = LLVMGetParam(return_f, 0);
-    aux     = LLVMGetParam(return_f, 1);
+    aux     = LLVMGetParam(return_f, 0);
+    visitor = LLVMGetParam(return_f, 1);
     self    = LLVMGetParam(return_f, 2);
 
     entry = LLVMAppendBasicBlock(return_f, "entry");
@@ -985,8 +985,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_intrinsic", voidc_intrinsic_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", voidc_visitor_ptr, p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",     void_ptr,          p1);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("aux",     void_ptr,          p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("visitor", voidc_visitor_ptr, p1);
     p2 = LLVMGetParam(f, 2);    v_add_variable("self",    v_ast_base_ptr,    p2);
 }
 {
@@ -1033,8 +1033,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_not_intrinsic", voidc_intrinsic_t);
 
-    p0 = LLVMGetParam(f, 0);    v_add_variable("visitor", voidc_visitor_ptr, p0);
-    p1 = LLVMGetParam(f, 1);    v_add_variable("aux",     void_ptr,          p1);
+    p0 = LLVMGetParam(f, 0);    v_add_variable("aux",     void_ptr,          p0);
+    p1 = LLVMGetParam(f, 1);    v_add_variable("visitor", voidc_visitor_ptr, p1);
     p2 = LLVMGetParam(f, 2);    v_add_variable("self",    v_ast_base_ptr,    p2);
 }
 {

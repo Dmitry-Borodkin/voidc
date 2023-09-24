@@ -76,9 +76,9 @@ public:
 
         auto &[void_fun, aux] = vis->void_methods.at(q);
 
-        typedef void (*FunT)(const visitor_t *, void *, const ast_base_t *);
+        typedef void (*FunT)(void *, const visitor_t *, const ast_base_t *);
 
-        reinterpret_cast<FunT>(void_fun)(&vis, aux, &obj);
+        reinterpret_cast<FunT>(void_fun)(aux, &vis, &obj);
     }
 
 private:

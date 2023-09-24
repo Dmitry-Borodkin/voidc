@@ -825,7 +825,7 @@ register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const c
 
 //---------------------------------------------------------------------
 private
-compute_key_quark_type_intrinsic: (vis: *voidc_visitor_t, aux: *void,
+compute_key_quark_type_intrinsic: (aux: *void, vis: *voidc_visitor_t,
                                    ft: *v_type_t,
                                    iq: &intptr_t, t: &*v_type_t
                                   ) -> void
@@ -854,14 +854,14 @@ compute_key_quark_type: (vis: *voidc_visitor_t,
 
     void_fun = v_get_intrinsic_q(compute_key_quark_type_q, &void_aux);
 
-    compute_key_quark_type_ft = (vis: *voidc_visitor_t, aux: *void,
+    compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
                                  ft: *v_type_t,
                                  iq: &intptr_t, t: &*v_type_t
                                 ) -> void;
 
     compute_key_quark_type_fun = (void_fun: *compute_key_quark_type_ft);
 
-    compute_key_quark_type_fun(vis, void_aux, ft, iq, t);
+    compute_key_quark_type_fun(void_aux, vis, ft, iq, t);
 }
 
 //---------------------------------------------------------------------
@@ -886,7 +886,7 @@ register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool, sstr: *v_std
 
 //---------------------------------------------------------------------
 private
-compile_unit_spec_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     list = (self: v_ast_generic_list_ptr);
 
@@ -938,7 +938,7 @@ compile_unit_spec_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_bas
 
 //---------------------------------------------------------------------
 private
-compile_unit_spec_fun_renm: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+compile_unit_spec_fun_renm: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     list = (self: v_ast_generic_list_ptr);
 
@@ -968,7 +968,7 @@ compile_unit_spec_fun_renm: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_bas
 
 //---------------------------------------------------------------------
 private
-v_internal_spec_fun_decl_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     call = (self: v_ast_expr_ptr);
 
@@ -1014,7 +1014,7 @@ v_internal_spec_fun_decl_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v
 
 //---------------------------------------------------------------------
 private
-v_internal_spec_fun_renm_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+v_internal_spec_fun_renm_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     call = (self: v_ast_expr_ptr);
 

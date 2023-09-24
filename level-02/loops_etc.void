@@ -131,7 +131,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
 
 
 //---------------------------------------------------------------------
-v_internal_copy_variable_intrinsic: (vis: voidc_visitor_ptr, *void,
+v_internal_copy_variable_intrinsic: (*void, vis: voidc_visitor_ptr,
                                      self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));

@@ -86,7 +86,7 @@ struct obtain_special_result_value_global_ctx_t
 //- obtain_special_result_value_global ...
 //---------------------------------------------------------------------
 private
-obtain_special_result_value_global: (vis: *voidc_visitor_t, aux: *void, t: *v_type_t) -> LLVMValueRef
+obtain_special_result_value_global: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
 {
     //- assert(v_type_is_special(t, q_initialize));
 
@@ -150,13 +150,13 @@ struct my_obtain_special_result_value_ctx_t
     global_flag: bool;
     global_ctx:  obtain_special_result_value_global_ctx_t;
 
-    fun: *((vis: *voidc_visitor_t, *void, t: *v_type_t) -> LLVMValueRef);
+    fun: *((*void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef);
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
-my_obtain_special_result_value_helper: (vis: *voidc_visitor_t, aux: *void, t: *v_type_t) -> LLVMValueRef
+my_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
 {
     //- assert(v_type_is_special(t, q_initialize));
 
@@ -171,11 +171,11 @@ my_obtain_special_result_value_helper: (vis: *voidc_visitor_t, aux: *void, t: *v
 
         ctx.global_flag := true;
 
-        v_return(obtain_special_result_value_global(vis, &ctx.global_ctx, t));
+        v_return(obtain_special_result_value_global(&ctx.global_ctx, vis, t));
 
     default:
 
-        v_return(ctx.fun(vis, ctx.aux, t));
+        v_return(ctx.fun(ctx.aux, vis, t));
     }
 }
 
@@ -184,7 +184,7 @@ my_obtain_special_result_value_helper: (vis: *voidc_visitor_t, aux: *void, t: *v
 //- my_compile_unit_var_defn - visitor method
 //---------------------------------------------------------------------
 private
-my_compile_unit_var_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     ctx = *(aux: *my_obtain_special_result_value_ctx_t);
 
@@ -265,7 +265,7 @@ my_compile_unit_var_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 
             if (!ctx.global_flag)
             {
-               vv = obtain_special_result_value_global(vis, &ctx.global_ctx, t);        //- Sic!!!
+               vv = obtain_special_result_value_global(&ctx.global_ctx, vis, t);        //- Sic!!!
 
                stmt: &v_ast_stmt_t := {};
 
@@ -342,7 +342,7 @@ my_compile_unit_var_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 //- my_compile_unit_val_defn - visitor method
 //---------------------------------------------------------------------
 private
-my_compile_unit_val_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     ctx = *(aux: *my_obtain_special_result_value_ctx_t);
 
@@ -420,7 +420,7 @@ my_compile_unit_val_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
         {
             if (!ctx.global_flag)
             {
-               vv = obtain_special_result_value_global(vis, &ctx.global_ctx, t);        //- Sic!!!
+               vv = obtain_special_result_value_global(&ctx.global_ctx, vis, t);        //- Sic!!!
 
                stmt: &v_ast_stmt_t := {};
 
@@ -542,7 +542,7 @@ my_compile_unit_val_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_
 //- my_compile_expr_identifier - visitor method
 //---------------------------------------------------------------------
 private
-my_compile_expr_identifier: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     ident = (self: *v_ast_expr_t);
 
@@ -646,7 +646,7 @@ private global_module_number: &unsigned := 0;           //- Sic!!!
 
 //---------------------------------------------------------------------
 private
-my_compile_defn_list_unit: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     if (visitor = v_get_compiler(), visitor != vis)
     {
@@ -709,7 +709,7 @@ my_compile_defn_list_unit: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 
 
     //--------------------------
-    ctx.fun(vis, ctx.aux, self);
+    ctx.fun(ctx.aux, vis, self);
     //--------------------------
 
 
@@ -1027,7 +1027,7 @@ voidc_enable_global_objects_compiler: () -> void
     //-----------------------------------------------------------------
     q = voidc_obtain_special_result_value_q;
 
-    fun_t = *((vis: *voidc_visitor_t, *void, t: *v_type_t) -> LLVMValueRef);
+    fun_t = *((*void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef);
 
     obtain_spec.fun := (v_get_intrinsic_q(q, &obtain_spec.aux) : fun_t);
 

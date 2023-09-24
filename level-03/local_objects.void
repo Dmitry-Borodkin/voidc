@@ -49,7 +49,7 @@
 
 //=====================================================================
 private
-my_fake_utility_intrinsic: (*voidc_visitor_t, aux: *void, *v_ast_base_t,
+my_fake_utility_intrinsic: (aux: *void, *voidc_visitor_t, *v_ast_base_t,
                             *v_type_t, LLVMValueRef) -> void
 {
     q = v_quark_to_string((aux: v_quark_t));
@@ -470,7 +470,7 @@ obtain_special_result_value_variable: (vis: *voidc_visitor_t, t: *v_type_t) -> L
 //- voidc_obtain_special_result_value ...
 //---------------------------------------------------------------------
 private
-voidc_obtain_special_result_value_helper: (vis: *voidc_visitor_t, aux: *void, t: *v_type_t) -> LLVMValueRef
+voidc_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
 {
     //- assert(v_type_is_special(t, q_initialize));
 
@@ -514,9 +514,9 @@ voidc_obtain_special_result_value: (vis: *voidc_visitor_t, t: *v_type_t) -> LLVM
 
     void_fun = v_get_intrinsic_q(voidc_obtain_special_result_value_q, &aux);
 
-    fun_t = (vis: *voidc_visitor_t, *void, t: *v_type_t) -> LLVMValueRef;
+    fun_t = (*void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef;
 
-    v_return((void_fun: *fun_t)(vis, aux, t));
+    v_return((void_fun: *fun_t)(aux, vis, t));
 }
 
 
@@ -530,13 +530,13 @@ export GLOBAL_VTAG    = ((-2: intptr_t) : LLVMValueRef);
 private
 struct my_compile_stmt_hook_t
 {
-    fun: *((*voidc_visitor_t, *void, *v_ast_base_t) -> void);
+    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) -> void);
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
-my_compile_stmt: (vis: *voidc_visitor_t, void_aux: *void, self: *v_ast_base_t) -> void
+my_compile_stmt: (void_aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     expr = v_ast_stmt_get_expr((self: *v_ast_stmt_t));
     if (v_empty(expr))  v_return();                             //- Sic!
@@ -548,7 +548,7 @@ my_compile_stmt: (vis: *voidc_visitor_t, void_aux: *void, self: *v_ast_base_t) -
 
     aux = *(void_aux: *my_compile_stmt_hook_t);
 
-    aux.fun(vis, aux.aux, self);
+    aux.fun(aux.aux, vis, self);
 }
 
 
@@ -556,7 +556,7 @@ my_compile_stmt: (vis: *voidc_visitor_t, void_aux: *void, self: *v_ast_base_t) -
 //- voidc_llvm_build_call_helper ...
 //---------------------------------------------------------------------
 private
-my_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t,
+my_llvm_build_call_helper_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                                       ft: v_type_ptr, fv: LLVMValueRef,
                                       arg_ptrs: **v_ast_expr_t, arg_count: unsigned
                                      ) -> void
@@ -875,13 +875,13 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
 private
 struct my_return_intrinsic_ctx_t
 {
-    fun: *((*voidc_visitor_t, *void, *v_ast_base_t) -> void);
+    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) -> void);
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
-my_return_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+my_return_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     call = (self: *v_ast_expr_t);
 
@@ -899,7 +899,7 @@ my_return_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) ->
         {
             ctx = *(aux: *my_return_intrinsic_ctx_t);
 
-            ctx.fun(vis, ctx.aux, self);
+            ctx.fun(ctx.aux, vis, self);
 
             v_return();
         }
@@ -934,7 +934,7 @@ my_return_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) ->
 
 //=====================================================================
 private
-v_get_return_value_intrinsic: (*voidc_visitor_t, *void, *v_ast_base_t) -> void
+v_get_return_value_intrinsic: (*void, *voidc_visitor_t, *v_ast_base_t) -> void
 {
     ret_type  = v_get_variable_type_q(voidc_internal_return_value_q);
     ret_value = v_get_variable_value_q(voidc_internal_return_value_q);
@@ -945,7 +945,7 @@ v_get_return_value_intrinsic: (*voidc_visitor_t, *void, *v_ast_base_t) -> void
 
 //---------------------------------------------------------------------
 private
-v_get_object_pointer_intrinsic: (vis: *voidc_visitor_t, *void, self: *v_ast_base_t) -> void
+v_get_object_pointer_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -969,7 +969,7 @@ v_get_object_pointer_intrinsic: (vis: *voidc_visitor_t, *void, self: *v_ast_base
 
 //=====================================================================
 private
-my_internal_var_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+my_internal_var_defn_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -1042,7 +1042,7 @@ my_internal_var_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast
 
 //---------------------------------------------------------------------
 private
-my_internal_val_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+my_internal_val_defn_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -1089,13 +1089,13 @@ my_internal_val_defn_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast
 private
 struct my_op_braces_intrinsic_ctx_t
 {
-    fun: *((*voidc_visitor_t, *void, *v_ast_base_t) -> void);
+    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) -> void);
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
-my_op_braces_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -1135,7 +1135,7 @@ my_op_braces_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t)
 
         ctx = *(aux: *my_op_braces_intrinsic_ctx_t);
 
-        ctx.fun(vis, ctx.aux, self);
+        ctx.fun(ctx.aux, vis, self);
 
         v_return();
     }

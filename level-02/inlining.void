@@ -176,7 +176,7 @@ obtain_module_for_inlining: (void_mod: *void) -> LLVMModuleRef
 
 //---------------------------------------------------------------------
 private
-compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     ctx = *(aux: *inlining_aux_t);
 
@@ -191,7 +191,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
         //- No inlining... --------------------------------------------
 
         //--------------------------
-        ctx.fun(vis, ctx.aux, self);
+        ctx.fun(ctx.aux, vis, self);
         //--------------------------
 
         v_return();
@@ -223,7 +223,7 @@ compile_unit_inline_fun_defn: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_b
     }
 
     //------------------------------------------
-    ctx.fun(vis, ctx.aux, self);        //- Sic!
+    ctx.fun(ctx.aux, vis, self);        //- Sic!
     //------------------------------------------
 
     v_set_obtain_module(saved_obtain_module_fun, saved_obtain_module_ctx);

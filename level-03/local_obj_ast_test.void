@@ -105,7 +105,7 @@ mk_stmt: (name: *const char, expr: v_ast_expr_t) -> v_ast_stmt_t
 
 //---------------------------------------------------------------------
 private
-mk_ast_list_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();

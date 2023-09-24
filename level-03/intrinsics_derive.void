@@ -26,7 +26,7 @@
 
 //---------------------------------------------------------------------
 private
-compute_key_quark_type_ft = (vis: *voidc_visitor_t, aux: *void,
+compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
                              ft: *v_type_t,
                              iq: &intptr_t, t: &*v_type_t
                             ) -> void;
@@ -149,7 +149,7 @@ voidc_intrinsic_quarks_ctor: () -> void
 
 //---------------------------------------------------------------------
 private
-compute_key_quark_type: (vis: *voidc_visitor_t, aux: *void,
+compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
                          ft: *v_type_t,
                          iq: &intptr_t, t: &*v_type_t
                         ) -> void
@@ -172,7 +172,7 @@ compute_key_quark_type: (vis: *voidc_visitor_t, aux: *void,
 
     ctx = *(aux: *voidc_compute_key_quark_type_ctx_t);
 
-    ctx.fun(vis, ctx.aux, ft, iq, t);
+    ctx.fun(ctx.aux, vis, ft, iq, t);
 }
 
 //---------------------------------------------------------------------
@@ -231,7 +231,7 @@ mk_unit_spec_fun_derive_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_a
 
 //---------------------------------------------------------------------
 private
-spec_fun_derive_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+spec_fun_derive_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     call = (self: *v_ast_expr_t);
 

@@ -96,7 +96,7 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
 
 //---------------------------------------------------------------------
 private
-intrinsic_p1_t = (vis: voidc_visitor_ptr, aux: *void,
+intrinsic_p1_t = (aux: *void, vis: voidc_visitor_ptr,
                   self: v_ast_base_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef
                  ) -> void;
@@ -186,7 +186,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 
     if (fun = (void_fun: *intrinsic_p1_t))
     {
-        fun(vis, void_aux, self, t0, v0);
+        fun(void_aux, vis, self, t0, v0);
 
         if (!spc_flag)  v_return();
 
@@ -237,7 +237,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
 //- ...
 //---------------------------------------------------------------------
 private
-op_postfix_dot_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+op_postfix_dot_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                            self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -267,7 +267,7 @@ op_postfix_dot_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 //- ...
 //---------------------------------------------------------------------
 private
-op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+op_postfix_tildato_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -304,7 +304,7 @@ op_postfix_tildato_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             v_set_result_type(INVIOLABLE_TAG);
             v_set_result_value(0);
 
-            fun(vis, void_aux, self, t0, v0);
+            fun(void_aux, vis, self, t0, v0);
 
             t0 := v_get_result_type();
             v0 := v_get_result_value();
@@ -443,7 +443,7 @@ voidc_enable_projections: () -> void
 {   voidc_unit_begin_module("static_type_projections_module"); }
 
 //---------------------------------------------------------------------
-voidc_internal_static_type_projection_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+voidc_internal_static_type_projection_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                                   self: v_ast_base_ptr,
                                                   t0: v_type_ptr, v0: LLVMValueRef
                                                   ) -> void

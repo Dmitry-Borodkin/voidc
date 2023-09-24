@@ -206,7 +206,7 @@ v_ast_make_expr_compiled: (expr: *v_ast_expr_t, t: *v_type_t, v: LLVMValueRef) -
 
 //---------------------------------------------------------------------
 private
-compile_expr_compiled: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+compile_expr_compiled: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
 
@@ -279,7 +279,7 @@ v_ast_make_expr_compile_hook: (ret: *v_ast_expr_t, expr: *v_ast_expr_t, t: &*v_t
 
 //---------------------------------------------------------------------
 private
-compile_expr_compile_hook: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+compile_expr_compile_hook: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
 
@@ -300,7 +300,7 @@ compile_expr_compile_hook: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 //- voidc_llvm_build_call_helper
 //---------------------------------------------------------------------
 private
-voidc_llvm_build_call_helper_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t,
+voidc_llvm_build_call_helper_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                                          ft: v_type_ptr, fv: LLVMValueRef,
                                          arg_ptrs: **v_ast_expr_t, arg_count: unsigned
                                         ) -> void
@@ -350,22 +350,22 @@ voidc_llvm_build_call_helper: (vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     void_fun = v_get_intrinsic_q(voidc_llvm_build_call_helper_q, &aux);
 
-    fun_t = (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t,
+    fun_t = (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
              ft: v_type_ptr, fv: LLVMValueRef,
              arg_ptrs: **v_ast_expr_t, arg_count: unsigned
             ) -> void;
 
-    (void_fun: *fun_t)(vis, aux, self, ft, fv, arg_ptrs, arg_count);
+    (void_fun: *fun_t)(aux, vis, self, ft, fv, arg_ptrs, arg_count);
 }
 
 
 //---------------------------------------------------------------------
-intrinsic_p1_t = (vis: voidc_visitor_ptr, aux: *void,
+intrinsic_p1_t = (aux: *void, vis: voidc_visitor_ptr,
                   self: v_ast_base_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef
                  ) -> void;
 
-intrinsic_p2_t = (vis: voidc_visitor_ptr, aux: *void,
+intrinsic_p2_t = (aux: *void, vis: voidc_visitor_ptr,
                   self: v_ast_base_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef,
                   t1: v_type_ptr, v1: LLVMValueRef
@@ -374,7 +374,7 @@ intrinsic_p2_t = (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 private
-op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+op_assign_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                       self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -411,7 +411,7 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             v_set_result_type(ttag);
             v_set_result_value(vtag);
 
-            fun(vis, void_aux, self, t0, v0);
+            fun(void_aux, vis, self, t0, v0);
         }
         else
         {
@@ -459,7 +459,7 @@ op_assign_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 private
-op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+op_binary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                       self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -498,7 +498,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             v_set_result_type(ttag);
             v_set_result_value(vtag);
 
-            fun(vis, void_aux, self, t0, v0);
+            fun(void_aux, vis, self, t0, v0);
         }
         else
         {
@@ -545,7 +545,7 @@ op_binary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             v_set_result_type(ttag);
             v_set_result_value(vtag);
 
-            fun(vis, void_aux, self, t0, v0, t1, v1);
+            fun(void_aux, vis, self, t0, v0, t1, v1);
         }
         else
         {
@@ -636,7 +636,7 @@ check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr
 
 //---------------------------------------------------------------------
 private
-op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                         self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -745,7 +745,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             //- Got overloading!
 
-            intrinsic_p12_t = (vis: voidc_visitor_ptr, aux: *void,
+            intrinsic_p12_t = (aux: *void, vis: voidc_visitor_ptr,
                                ast: *v_ast_expr_ptr,
                                t0:  v_type_ptr, v0:  LLVMValueRef,
                                t1: &v_type_ptr, v1: &LLVMValueRef
@@ -756,7 +756,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                 v_set_result_type(ttag);        //- Sic !?!
                 v_set_result_value(vtag);       //- Sic !?!
 
-                fun(vis, void_aux, ast+i, t0, v0, t1, v1);                      //- Without "self" !?!?!?!?!
+                fun(void_aux, vis, ast+i, t0, v0, t1, v1);                      //- Without "self" !?!?!?!?!
             }
             else
             {
@@ -799,7 +799,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
             {
                 //- Got overloading!
 
-                intrinsic_p22_t = (vis: voidc_visitor_ptr, aux: *void,
+                intrinsic_p22_t = (aux: *void, vis: voidc_visitor_ptr,
                                    ast: *v_ast_expr_ptr,
                                    t0: v_type_ptr, v0: LLVMValueRef,
                                    t1: v_type_ptr, v1: LLVMValueRef
@@ -810,7 +810,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                     v_set_result_type(ttag);        //- Sic !?!
                     v_set_result_value(vtag);       //- Sic !?!
 
-                    fun(vis, void_aux, ast+i, t0, v0, t1, v1);                      //- Without "self" !?!?!?!?!
+                    fun(void_aux, vis, ast+i, t0, v0, t1, v1);                      //- Without "self" !?!?!?!?!
                 }
                 else
                 {
@@ -913,7 +913,7 @@ op_relation_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 private
-op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+op_unary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                      self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -950,7 +950,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
         if (fun = (void_fun: *intrinsic_p1_t))
         {
-            fun(vis, void_aux, self, t0, v0);
+            fun(void_aux, vis, self, t0, v0);
         }
         else
         {
@@ -989,7 +989,7 @@ op_unary_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 private
-static_type_prefix_star_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+static_type_prefix_star_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                     self: v_ast_base_ptr,
                                     t0: v_type_ptr, v0: LLVMValueRef
                                    ) -> void
@@ -1006,7 +1006,7 @@ static_type_prefix_star_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 private
-static_type_prefix_amp_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+static_type_prefix_amp_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                    self: v_ast_base_ptr,
                                    t0: v_type_ptr, v0: LLVMValueRef
                                   ) -> void
@@ -1023,7 +1023,7 @@ static_type_prefix_amp_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 private
-static_type_prefix_cv_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+static_type_prefix_cv_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                   self: v_ast_base_ptr,
                                   t0: v_type_ptr, v0: LLVMValueRef
                                  ) -> void
@@ -1064,7 +1064,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
     {
         //- Got overloading!
 
-        intrinsic_t = (vis: voidc_visitor_ptr, aux: *void,
+        intrinsic_t = (aux: *void, vis: voidc_visitor_ptr,
                        self: v_ast_base_ptr,
                        args: v_ast_expr_list_ptr,
                        t0: v_type_ptr, v0: LLVMValueRef
@@ -1075,7 +1075,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
             v_set_result_type(ttag);
             v_set_result_value(vtag);
 
-            fun(vis, void_aux, self, args, t, v);
+            fun(void_aux, vis, self, args, t, v);
 
             v_return();
         }
@@ -1133,7 +1133,7 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
 
 //---------------------------------------------------------------------
 private
-compile_expr_call: (vis: voidc_visitor_ptr, *void,
+compile_expr_call: (*void, vis: voidc_visitor_ptr,
                     self: v_ast_base_ptr) -> void
 {
     fexpr = v_ast_expr_call_get_fun_expr((self: v_ast_expr_ptr));
@@ -1151,7 +1151,7 @@ compile_expr_call: (vis: voidc_visitor_ptr, *void,
 
     if (fun = (void_fun: *voidc_intrinsic_t))       //- Compile-time intrinsic?
     {
-        fun(vis, void_aux, self);
+        fun(void_aux, vis, self);
 
         v_return();
     }
@@ -1217,7 +1217,7 @@ check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t)
 
 //---------------------------------------------------------------------
 private
-op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+op_postfix_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                              self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -1275,7 +1275,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
         {
             //- Got overloading!
 
-            intrinsic_t = (vis: voidc_visitor_ptr, aux: *void,
+            intrinsic_t = (aux: *void, vis: voidc_visitor_ptr,
                            self: v_ast_base_ptr,
                            agg_t: v_type_ptr, agg_v: LLVMValueRef,
                            idx: *v_ast_expr_list_ptr, count: int
@@ -1286,7 +1286,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
                 v_set_result_type(ttag);
                 v_set_result_value(vtag);
 
-                fun(vis, void_aux, self, agg_t, agg_v, idx+i, N-i);
+                fun(void_aux, vis, self, agg_t, agg_v, idx+i, N-i);
 
                 v_return();
             }
@@ -1347,7 +1347,7 @@ op_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
 
 //---------------------------------------------------------------------
 private
-static_type_postfix_index_intrinsic: (vis: voidc_visitor_ptr, aux: *void,
+static_type_postfix_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                       self: v_ast_base_ptr,
                                       agg_t: v_type_ptr, agg_v: LLVMValueRef,
                                       idx: *v_ast_expr_list_ptr, count: int

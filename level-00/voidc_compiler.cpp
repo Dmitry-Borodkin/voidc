@@ -12,7 +12,7 @@
 //- AST Visitor - Compiler (level 0) ...
 //=====================================================================
 static
-void compile_stmt_list(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_stmt_list(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &list = static_cast<const ast_stmt_list_data_t &>(**self);
 
@@ -23,7 +23,7 @@ void compile_stmt_list(const visitor_t *vis, void *, const ast_base_t *self)
 }
 
 static
-void compile_expr_list(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_expr_list(void *, const visitor_t *vis, const ast_base_t *self)
 {
     assert(false);      //- Sic!!!
 }
@@ -33,7 +33,7 @@ void compile_expr_list(const visitor_t *vis, void *, const ast_base_t *self)
 //- unit
 //---------------------------------------------------------------------
 static
-void compile_unit(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_unit(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &unit = static_cast<const ast_unit_data_t &>(**self);
 
@@ -64,7 +64,7 @@ void compile_unit(const visitor_t *vis, void *, const ast_base_t *self)
 //- stmt
 //---------------------------------------------------------------------
 static
-void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_stmt(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &stmt = static_cast<const ast_stmt_data_t &>(**self);
 
@@ -111,7 +111,7 @@ void compile_stmt(const visitor_t *vis, void *, const ast_base_t *self)
 //- expr_call
 //---------------------------------------------------------------------
 static
-void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_expr_call(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
@@ -132,9 +132,9 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        typedef void (*intrinsic_t)(const visitor_t *vis, void *aux, const ast_base_t *self);
+        typedef void (*intrinsic_t)(void *aux, const visitor_t *vis, const ast_base_t *self);
 
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, void_aux, self);
+        reinterpret_cast<intrinsic_t>(void_fun)(void_aux, vis, self);
 
         return;
     }
@@ -195,7 +195,7 @@ void compile_expr_call(const visitor_t *vis, void *, const ast_base_t *self)
 //- expr_identifier
 //---------------------------------------------------------------------
 static
-void compile_expr_identifier(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_expr_identifier(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &ident = static_cast<const ast_expr_identifier_data_t &>(**self);
 
@@ -237,7 +237,7 @@ void compile_expr_identifier(const visitor_t *vis, void *, const ast_base_t *sel
 //- expr_integer
 //---------------------------------------------------------------------
 static
-void compile_expr_integer(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_expr_integer(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &dnum = static_cast<const ast_expr_integer_data_t &>(**self);
 
@@ -291,7 +291,7 @@ void compile_expr_integer(const visitor_t *vis, void *, const ast_base_t *self)
 //- expr_string
 //---------------------------------------------------------------------
 static
-void compile_expr_string(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_expr_string(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &dstr = static_cast<const ast_expr_string_data_t &>(**self);
 
@@ -314,7 +314,7 @@ void compile_expr_string(const visitor_t *vis, void *, const ast_base_t *self)
 //- expr_char
 //---------------------------------------------------------------------
 static
-void compile_expr_char(const visitor_t *vis, void *, const ast_base_t *self)
+void compile_expr_char(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &dchr = static_cast<const ast_expr_char_data_t &>(**self);
 
@@ -333,7 +333,7 @@ void compile_expr_char(const visitor_t *vis, void *, const ast_base_t *self)
 //- Intrinsics (true)
 //=====================================================================
 static void
-v_alloca(const visitor_t *vis, void *, const ast_base_t *self)
+v_alloca(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
@@ -383,7 +383,7 @@ v_alloca(const visitor_t *vis, void *, const ast_base_t *self)
 
 //---------------------------------------------------------------------
 static void
-v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
+v_getelementptr(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
@@ -497,7 +497,7 @@ v_getelementptr(const visitor_t *vis, void *, const ast_base_t *self)
 
 //---------------------------------------------------------------------
 static void
-v_store(const visitor_t *vis, void *, const ast_base_t *self)
+v_store(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
@@ -523,7 +523,7 @@ v_store(const visitor_t *vis, void *, const ast_base_t *self)
 
 //---------------------------------------------------------------------
 static void
-v_load(const visitor_t *vis, void *, const ast_base_t *self)
+v_load(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
@@ -552,7 +552,7 @@ v_load(const visitor_t *vis, void *, const ast_base_t *self)
 
 //---------------------------------------------------------------------
 static void
-v_cast(const visitor_t *vis, void *, const ast_base_t *self)
+v_cast(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
@@ -740,7 +740,7 @@ v_cast(const visitor_t *vis, void *, const ast_base_t *self)
 
 //---------------------------------------------------------------------
 static void
-v_pointer(const visitor_t *vis, void *, const ast_base_t *self)
+v_pointer(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
@@ -798,7 +798,7 @@ v_pointer(const visitor_t *vis, void *, const ast_base_t *self)
 
 //---------------------------------------------------------------------
 static void
-v_reference(const visitor_t *vis, void *, const ast_base_t *self)
+v_reference(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 
@@ -828,7 +828,7 @@ v_reference(const visitor_t *vis, void *, const ast_base_t *self)
 
 //---------------------------------------------------------------------
 static void
-v_assign(const visitor_t *vis, void *, const ast_base_t *self)
+v_assign(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &call = static_cast<const ast_expr_call_data_t &>(**self);
 

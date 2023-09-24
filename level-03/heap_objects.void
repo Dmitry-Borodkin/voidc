@@ -130,7 +130,7 @@ mk_expr_new_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t
 //- ...
 //---------------------------------------------------------------------
 private
-v_aligned_alloc_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+v_aligned_alloc_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -157,7 +157,7 @@ v_aligned_alloc_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base
 
 //---------------------------------------------------------------------
 private
-v_aligned_free_intrinsic: (vis: *voidc_visitor_t, aux: *void, self: *v_ast_base_t) -> void
+v_aligned_free_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -268,7 +268,7 @@ check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t)
 
 //---------------------------------------------------------------------
 private
-op_prefix_new_intrinsic: (vis: *voidc_visitor_t, aux: *void,
+op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
                           self: *v_ast_base_t) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
@@ -605,7 +605,7 @@ op_prefix_new_intrinsic: (vis: *voidc_visitor_t, aux: *void,
 //- ...
 //---------------------------------------------------------------------
 private
-op_prefix_delete_intrinsic: (vis: *voidc_visitor_t, aux: *void,
+op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
                              self: *v_ast_base_t) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
@@ -699,7 +699,7 @@ op_prefix_delete_intrinsic: (vis: *voidc_visitor_t, aux: *void,
 //- ...
 //---------------------------------------------------------------------
 private
-op_prefix_delete_array_intrinsic: (vis: *voidc_visitor_t, aux: *void,
+op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
                                    self: *v_ast_base_t) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
@@ -847,7 +847,7 @@ op_prefix_delete_array_intrinsic: (vis: *voidc_visitor_t, aux: *void,
 
 
 //=====================================================================
-compute_key_quark_type_ft = (vis: *voidc_visitor_t, aux: *void,
+compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
                              ft: *v_type_t,
                              iq: &intptr_t, t: &*v_type_t
                             ) -> void;
@@ -860,7 +860,7 @@ struct voidc_compute_key_quark_type_ctx_t
 
 //---------------------------------------------------------------------
 private
-compute_key_quark_type: (vis: *voidc_visitor_t, aux: *void,
+compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
                          ft: *v_type_t,
                          iq: &intptr_t, t: &*v_type_t
                         ) -> void
@@ -908,7 +908,7 @@ compute_key_quark_type: (vis: *voidc_visitor_t, aux: *void,
 
     ctx = *(aux: *voidc_compute_key_quark_type_ctx_t);
 
-    ctx.fun(vis, ctx.aux, ft, iq, t);
+    ctx.fun(ctx.aux, vis, ft, iq, t);
 }
 
 

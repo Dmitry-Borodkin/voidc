@@ -48,7 +48,7 @@ voidc_aggregates_internal_gloabls_cleaner: (*void) -> void
 
 
 //---------------------------------------------------------------------
-v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
+v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
                         self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -153,7 +153,7 @@ v_op_braces_intrinsic: (vis: voidc_visitor_ptr, *void,
 //---------------------------------------------------------------------
 //- v_struct ...
 //---------------------------------------------------------------------
-v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
+v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
                      self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -238,7 +238,7 @@ v_struct_intrinsic: (vis: voidc_visitor_ptr, *void,
 //---------------------------------------------------------------------
 //- v_typed ...
 //---------------------------------------------------------------------
-v_typed_intrinsic: (vis: voidc_visitor_ptr, *void,
+v_typed_intrinsic: (*void, vis: voidc_visitor_ptr,
                     self: v_ast_base_ptr) -> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));

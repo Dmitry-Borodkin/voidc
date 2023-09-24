@@ -675,7 +675,7 @@ voidc_import_helper(const char *name, bool _export)
 
 //---------------------------------------------------------------------
 static void
-v_local_import(const visitor_t *vis, void *, const ast_base_t *self)
+v_local_import(void *, const visitor_t *vis, const ast_base_t *self)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;

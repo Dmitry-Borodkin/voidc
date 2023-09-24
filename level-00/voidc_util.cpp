@@ -72,7 +72,7 @@ bool lookup_function_dict(v_type_t *type, v_quark_t quark,
 
 //---------------------------------------------------------------------
 extern "C"
-typedef void (*intrinsic_t)(const visitor_t *vis, void *aux, const ast_base_t *self,
+typedef void (*intrinsic_t)(void *aux, const visitor_t *vis, const ast_base_t *self,
                             v_type_t *type, LLVMValueRef value);
 
 
@@ -80,7 +80,7 @@ typedef void (*intrinsic_t)(const visitor_t *vis, void *aux, const ast_base_t *s
 //- Intrinsics (true)
 //---------------------------------------------------------------------
 static
-void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
+void v_universal_intrinsic(void *void_quark, const visitor_t *vis, const ast_base_t *self)
 {
     auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
@@ -116,7 +116,7 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
         lctx.result_type  = ttag;
         lctx.result_value = vtag;
 
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, res_type, res_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, res_type, res_value);
 
         return;
     }
@@ -178,7 +178,7 @@ void v_universal_intrinsic(const visitor_t *vis, void *void_quark, const ast_bas
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
+void v_std_any_get_value_intrinsic(void *void_quark, const visitor_t *vis, const ast_base_t *self)
 {
     auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
@@ -217,7 +217,7 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
         lctx.result_type  = ttag;
         lctx.result_value = vtag;
 
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, tr, vr);
+        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, tr, vr);
 
         return;
     }
@@ -239,7 +239,7 @@ void v_std_any_get_value_intrinsic(const visitor_t *vis, void *void_quark, const
 
 //---------------------------------------------------------------------
 static
-void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
+void v_std_any_get_pointer_intrinsic(void *void_quark, const visitor_t *vis, const ast_base_t *self)
 {
     auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
@@ -278,7 +278,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
         lctx.result_type  = ttag;
         lctx.result_value = vtag;
 
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, tr, vr);
+        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, tr, vr);
 
         return;
     }
@@ -304,7 +304,7 @@ void v_std_any_get_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
+void v_std_any_set_value_intrinsic(void *void_quark, const visitor_t *vis, const ast_base_t *self)
 {
     auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
@@ -331,7 +331,7 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, lctx.result_type, lctx.result_value);
 
         return;
     }
@@ -354,7 +354,7 @@ void v_std_any_set_value_intrinsic(const visitor_t *vis, void *void_quark, const
 
 //---------------------------------------------------------------------
 static
-void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, const ast_base_t *self)
+void v_std_any_set_pointer_intrinsic(void *void_quark, const visitor_t *vis, const ast_base_t *self)
 {
     auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
@@ -381,7 +381,7 @@ void v_std_any_set_pointer_intrinsic(const visitor_t *vis, void *void_quark, con
 
     if (void_fun)       //- Compile-time intrinsic?
     {
-        reinterpret_cast<intrinsic_t>(void_fun)(vis, aux, self, lctx.result_type, lctx.result_value);
+        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, lctx.result_type, lctx.result_value);
 
         return;
     }
