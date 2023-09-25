@@ -15,6 +15,7 @@
     v_import("loop.void");
     v_import("switch.void");
     v_import("memory.void");
+    v_import("handlers.void");
 }
 
 //{ v_import("printf.void"); }
@@ -703,24 +704,14 @@
 
     ft = v_function_type(LLVMValueRef, typ0, 4, false);
 
-    v_add_type("convert_to_type_ft", ft);
-
     //-----------------------------------------------------------------
     //- convert_to_type_ctx_t ...
     //-----------------------------------------------------------------
-    convert_to_type_ctx_t = v_struct_type_named("struct.convert_to_type_ctx_t");
+    ctx_t = v_handler_type(ft);
 
-    ft_ptr = v_pointer_type(ft, 0);
-
-    v_store(ft_ptr,   typ0);
-    v_store(void_ptr, typ1);
-
-    v_type_struct_set_body(convert_to_type_ctx_t, typ0, 2, false);
-
-    convert_to_type_ctx_ptr = v_pointer_type(convert_to_type_ctx_t, 0);
-
-    v_add_type("convert_to_type_ctx_t",   convert_to_type_ctx_t);
-    v_add_type("convert_to_type_ctx_ptr", convert_to_type_ctx_ptr);
+    v_add_type("convert_to_type_ft",      ft);
+    v_add_type("convert_to_type_ctx_t",   ctx_t);
+    v_add_type("convert_to_type_ctx_ptr", v_pointer_type(ctx_t, 0));
 }
 
 //---------------------------------------------------------------------
@@ -777,10 +768,7 @@
     {
         ctx = v_cast(void_ctx, convert_to_type_ctx_ptr);
 
-        saved_fun = v_load(v_getelementptr(ctx, 0, 0));
-        saved_ctx = v_load(v_getelementptr(ctx, 0, 1));
-
-        v_return(saved_fun(saved_ctx, type, value, to_type));         //- Sic!!!
+        v_return( v_handle(ctx, type, value, to_type) );            //- Sic!!!
     }
 
     is_vec0 = v_type_is_vector(type);

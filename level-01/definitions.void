@@ -16,6 +16,7 @@
     v_import("loop.void");
     v_import("grammar.void");
     v_import("memory.void");
+    v_import("handlers.void");
     v_import("expression.void");
     v_import("defer.void");
 }
@@ -37,11 +38,6 @@
 //---------------------------------------------------------------------
 {   v_add_type("void_ptr", v_pointer_type(void, 0));
     v_add_type("char_ptr", v_pointer_type(char, 0));
-
-    convert_to_type_ctx_t = v_struct_type_named("struct.convert_to_type_ctx_t");
-
-    v_add_type("convert_to_type_ctx_t",   convert_to_type_ctx_t);
-    v_add_type("convert_to_type_ctx_ptr", v_pointer_type(convert_to_type_ctx_t, 0));
 
     q_ref = v_reference_type(v_quark_t, 0);
 
@@ -83,6 +79,25 @@
     v_add_symbol("voidc_definitions_context_q", q_ref, q("voidc.definitions_context"));
 
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
+}
+
+{   typ0 = v_alloca(v_type_ptr, 4);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+    typ3 = v_getelementptr(typ0, 3);
+
+    v_store(void_ptr,     typ0);
+    v_store(v_type_ptr,   typ1);
+    v_store(LLVMValueRef, typ2);
+    v_store(v_type_ptr,   typ3);
+
+    ft = v_function_type(LLVMValueRef, typ0, 4, false);
+
+    ctx_t = v_handler_type(ft);
+
+    v_add_type("convert_to_type_ft",      ft);
+    v_add_type("convert_to_type_ctx_t",   ctx_t);
+    v_add_type("convert_to_type_ctx_ptr", v_pointer_type(ctx_t, 0));
 }
 
 
@@ -881,20 +896,8 @@
 //- convert_to_type - utility...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 4);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-    typ3 = v_getelementptr(typ0, 3);
-
-    v_store(void_ptr,     typ0);
-    v_store(v_type_ptr,   typ1);
-    v_store(LLVMValueRef, typ2);
-    v_store(v_type_ptr,   typ3);
-
-    ft = v_function_type(LLVMValueRef, typ0, 4, false);
-
     //-----------------------------------------------------------------
-    f = v_function_hack("convert_to_type", ft);
+    f = v_function_hack("convert_to_type", convert_to_type_ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -921,12 +924,9 @@
         v_return(value);
     }
 
-    ctx = *v_cast(void_ctx, convert_to_type_ctx_ptr);
+    ctx = v_cast(void_ctx, convert_to_type_ctx_ptr);
 
-    saved_fun = ctx[0];
-    saved_ctx = ctx[1];
-
-    v_return(saved_fun(saved_ctx, type, value, to_type));         //- Sic!!!
+    v_return( v_handle(ctx, type, value, to_type) );        //- Sic!!!
 }
 
 
