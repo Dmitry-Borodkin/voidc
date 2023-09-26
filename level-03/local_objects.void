@@ -245,10 +245,10 @@ v_type_function_obtain_llvm_type_hook: (*void, ft: *v_type_t) -> LLVMTypeRef
 
 //=====================================================================
 private
-struct my_prepare_function_parameters_ctx_t
+my_prepare_function_parameters_ctx_t = struct
 {
-    fun: *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) -> void);
-    aux: *void;
+    *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) -> void);
+    *void;
 };
 
 //---------------------------------------------------------------------
@@ -264,9 +264,9 @@ my_prepare_function_parameters: (aux: *void, fun: LLVMValueRef,
 
     if (!v_type_is_special(tr, q_initialize))
     {
-        ctx = *(aux: *my_prepare_function_parameters_ctx_t);
+        ctx = (aux: *my_prepare_function_parameters_ctx_t);
 
-        ctx.fun(ctx.aux, fun, qualif, fun_name, fun_type, fun_args);
+        v_handle(ctx, fun, qualif, fun_name, fun_type, fun_args);
 
         v_return();
     }
@@ -1218,13 +1218,11 @@ voidc_enable_local_objects_compiler: () -> void
     //-----------------------------------------------------------------
     ctx = *v_malloc(my_local_objects_ctx_t);
 
-    q = v_quark_from_string("v.prepare_function_parameters");
+    fun_params = voidc_definitions_context_get_fun_params();
 
-    void_fun = v_get_intrinsic_q(q, &ctx.fun_params.aux);
+    ctx.fun_params := fun_params;
 
-    ctx.fun_params.fun := (void_fun : *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) -> void));
-
-    v_add_intrinsic_q(q, my_prepare_function_parameters, &ctx.fun_params);
+    fun_params := { my_prepare_function_parameters, &ctx.fun_params };
 
     //-----------------------------------------------------------------
     q = voidc_obtain_special_result_value_q;

@@ -74,48 +74,57 @@
 
     v_add_symbol("q_op_infix_assign", q_ref, q("v.op_infix_assign"));
 
-    v_add_symbol("q_prepare_function_parameters", q_ref, q("v.prepare_function_parameters"));
-
     v_add_symbol("voidc_definitions_context_q", q_ref, q("voidc.definitions_context"));
 
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 }
 
-{   typ0 = v_alloca(v_type_ptr, 4);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-    typ3 = v_getelementptr(typ0, 3);
+{   typ = v_alloca(v_type_ptr, 6);
 
-    v_store(void_ptr,     typ0);
-    v_store(v_type_ptr,   typ1);
-    v_store(LLVMValueRef, typ2);
-    v_store(v_type_ptr,   typ3);
+    typ[0] := void_ptr;
+    typ[1] := v_type_ptr;
+    typ[2] := LLVMValueRef;
+    typ[3] := v_type_ptr;
 
-    ft = v_function_type(LLVMValueRef, typ0, 4, false);
+    ft = v_function_type(LLVMValueRef, typ, 4, false);
 
     ctx_t = v_handler_type(ft);
 
-    v_add_type("convert_to_type_ft",      ft);
-    v_add_type("convert_to_type_ctx_t",   ctx_t);
-    v_add_type("convert_to_type_ctx_ptr", v_pointer_type(ctx_t, 0));
+    v_add_type("convert_to_type_ft",    ft);
+    v_add_type("convert_to_type_ctx_t", ctx_t);
+
+    typ[0] := void_ptr;
+    typ[1] := LLVMValueRef;
+    typ[2] := intptr_t;
+    typ[3] := char_ptr;
+    typ[4] := v_type_ptr;
+    typ[5] := v_ast_generic_list_ptr;
+
+    ft = v_function_type(void, typ, 6, false);
+
+    ctx_t = v_handler_type(ft);
+
+    v_add_type("v_prepare_function_parameters_ft",    ft);
+    v_add_type("v_prepare_function_parameters_ctx_t", ctx_t);
 }
 
 
 //---------------------------------------------------------------------
 //- Context ...
 //---------------------------------------------------------------------
-{   typ = v_alloca(v_type_ptr, 6);
+{   typ = v_alloca(v_type_ptr, 7);
 
-    typ[0] := bool;                         //- "export_flag"
-    typ[1] := LLVMModuleRef;                //- "saved_module"
-    typ[2] := LLVMModuleRef;                //- "defn_module"
-    typ[3] := convert_to_type_ctx_t;        //- "convert_ctx"
-    typ[4] := v_ast_stmt_list_ptr;          //- "stmt_list"
-    typ[5] := LLVMModuleRef;                //- "mod_const"
+    typ[0] := bool;                                 //- "export_flag"
+    typ[1] := LLVMModuleRef;                        //- "saved_module"
+    typ[2] := LLVMModuleRef;                        //- "defn_module"
+    typ[3] := convert_to_type_ctx_t;                //- "convert_ctx"
+    typ[4] := v_ast_stmt_list_ptr;                  //- "stmt_list"
+    typ[5] := LLVMModuleRef;                        //- "mod_const"
+    typ[6] := v_prepare_function_parameters_ctx_t;  //- "fun_params"
 
     ctx_type = v_struct_type_named("struct.voidc_definitions_ctx_t");
 
-    v_type_struct_set_body(ctx_type, typ, 6, false);
+    v_type_struct_set_body(ctx_type, typ, 7, false);
 
     v_add_type("definitions_ctx_t", ctx_type);
 }
@@ -128,6 +137,7 @@
     v_add_constant("ctx_convert_ctx",  int, LLVMConstInt(int_, 3, 0));
     v_add_constant("ctx_stmt_list",    int, LLVMConstInt(int_, 4, 0));
     v_add_constant("ctx_mod_const",    int, LLVMConstInt(int_, 5, 0));
+    v_add_constant("ctx_fun_params",   int, LLVMConstInt(int_, 6, 0));
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
@@ -293,19 +303,30 @@
     v_return(ctx[ctx_mod_const]);
 }
 
+//---------------------------------------------------------------------
+//- Get "definitions context" "fun_params" ...                      ???
+//---------------------------------------------------------------------
+{
+    rt = v_reference_type(v_prepare_function_parameters_ctx_t, 0);
+
+    ft = v_function_type(rt, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_definitions_context_get_fun_params", ft);
+}
+{
+    any = v_get_property_q(voidc_definitions_context_q);
+
+    ctx = *v_cast(v_std_any_get_value(intptr_t, any), *definitions_ctx_t);
+
+    v_return(ctx[ctx_fun_params]);
+}
+
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
-    bool_ref = v_reference_type(bool, 0);
-    mod_ref  = v_reference_type(LLVMModuleRef, 0);
-
-    v_make_global("export_flag", bool_ref);
-
-    v_make_global("saved_module", mod_ref);
-    v_make_global("defn_module",  mod_ref);
-
     v_make_global("op_infix_to",        v_ast_expr_t);
     v_make_global("op_prefix_const",    v_ast_expr_t);
     v_make_global("op_prefix_volatile", v_ast_expr_t);
@@ -924,7 +945,7 @@
         v_return(value);
     }
 
-    ctx = v_cast(void_ctx, convert_to_type_ctx_ptr);
+    ctx = v_cast(void_ctx, *convert_to_type_ctx_t);
 
     v_return( v_handle(ctx, type, value, to_type) );        //- Sic!!!
 }
@@ -1150,20 +1171,8 @@
 //- v_prepare_function_parameters_default ...
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ptr, 6);
-    typ[0] := void_ptr;
-    typ[1] := LLVMValueRef;
-    typ[2] := intptr_t;
-    typ[3] := char_ptr;
-    typ[4] := v_type_ptr;
-    typ[5] := v_ast_generic_list_ptr;
-
-    ft = v_function_type(void, typ, 6, false);
-
-    v_add_type("v_prepare_function_parameters_t", ft);
-
     //-----------------------------------------------------------------
-    f = v_function_hack("v_prepare_function_parameters_default", ft);
+    f = v_function_hack("v_prepare_function_parameters_default", v_prepare_function_parameters_ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1250,12 +1259,7 @@
 
         if (private)  LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-        aux = *v_alloca(void_ptr);
-        void_fun = v_get_intrinsic_q(q_prepare_function_parameters, &aux);
-
-        fun = v_cast(void_fun, *v_prepare_function_parameters_t);
-
-        fun(aux, f, qualif, fun_name, fun_type, fun_args);
+        v_handle(&def_ctx[ctx_fun_params], f, qualif, fun_name, fun_type, fun_args);
 
         v_ast_accept_visitor(fun_body, vis);
 
@@ -2174,6 +2178,12 @@
 
     v_set_convert_to_type(convert_to_type, &convert_ctx);
 
+    //-----------------------------------------------------------------
+    fun_params = def_ctx[ctx_fun_params];
+
+    fun_params[0] := v_prepare_function_parameters_default;
+    fun_params[1] := 0;
+
     //-------------------------------------------------------------
     voidc_visitor_set_void_method(vis, vis, br_item_list_q,   compile_br_item_list,   &def_ctx);
     voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q,  compile_unit_fun_defn,  &def_ctx);
@@ -2192,9 +2202,6 @@
     v_add_intrinsic_q(q("v.internal.val_defn"), v_internal_val_defn_intrinsic, 0);
 
     v_add_intrinsic_q(q("v_undef"), v_undef_intrinsic, 0);
-
-    //-----------------------------------------------------------------
-    v_add_intrinsic_q(q_prepare_function_parameters, v_prepare_function_parameters_default, 0);     //- ???
 
     //-----------------------------------------------------------------
     add_definitions_context(&def_ctx);
@@ -2420,8 +2427,6 @@
 //- ...
 //---------------------------------------------------------------------
 {
-    export_flag := false;
-
     v_initialize(op_infix_to);
     v_initialize(op_prefix_const);
     v_initialize(op_prefix_volatile);
@@ -2447,6 +2452,7 @@
 
     v_make_export_symbol("voidc_definitions_context_get_stmt_list");        //- ???
     v_make_export_symbol("voidc_definitions_context_get_mod_const");        //- ???
+    v_make_export_symbol("voidc_definitions_context_get_fun_params");       //- ???
 
     v_make_export_symbol("voidc_enable_definitions_compiler");
     v_make_export_symbol("voidc_enable_definitions");
