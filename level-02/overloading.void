@@ -37,7 +37,7 @@
     v_add_symbol("expr_compiled_q",     q_ref, q("expr_compiled"));
     v_add_symbol("expr_compile_hook_q", q_ref, q("expr_compile_hook"));
 
-    v_add_symbol("voidc_llvm_build_call_helper_q", q_ref, q("voidc.llvm_build_call_helper"));
+    v_add_symbol("voidc_overloading_context_q", q_ref, q("voidc.overloading_context"));
 
     v_add_symbol("q_op_infix_lt", q_ref, q("v.op_infix_lt"));
     v_add_symbol("q_op_infix_le", q_ref, q("v.op_infix_le"));
@@ -124,10 +124,17 @@ op_table: &op_table_item_t[] :=
 
     {"v.op_postfix_inc",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_postfix_inc },
     {"v.op_postfix_dec",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_postfix_dec },
-
-    {0}     //- Sic...
 };
 
+//---------------------------------------------------------------------
+{   t = v_find_symbol_type("op_table");
+
+    n = v_type_array_get_length(v_type_refptr_get_element_type(t));
+
+    int_ = v_type_get_llvm_type(v_find_type("int"));
+
+    v_add_constant("op_table_length", int, LLVMConstInt(int_, n, 0));
+}
 
 //---------------------------------------------------------------------
 op_table_ctor: () -> void
@@ -138,8 +145,10 @@ op_table_ctor: () -> void
 
     int_ = v_type_get_llvm_type(int);
 
-    for (i: &int := 0; name = op_table[i][0]; ++i)
+    for (i: &int := 0; i < op_table_length; ++i)
     {
+        name = op_table[i][0];
+
         op_table[i][2] := v_quark_from_string(name);
 
         if (k = op_table[i][1],  k == opk_binary  ||  k == opk_relation)
@@ -297,13 +306,91 @@ compile_expr_compile_hook: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) -
 
 
 //---------------------------------------------------------------------
-//- voidc_llvm_build_call_helper
+//- overloading_ctx_t ...
+//---------------------------------------------------------------------
+export
+voidc_llvm_build_call_helper_t = v_struct(
+{
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, **v_ast_expr_t, unsigned) -> void),
+    *void
+});
+
+export
+voidc_compile_expr_call_helper_t = v_struct(
+{
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_ast_expr_list_t, *v_type_t, LLVMValueRef) -> void),
+    *void
+});
+
+
+
+
 //---------------------------------------------------------------------
 private
-voidc_llvm_build_call_helper_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                                         ft: v_type_ptr, fv: LLVMValueRef,
-                                         arg_ptrs: **v_ast_expr_t, arg_count: unsigned
-                                        ) -> void
+overloading_ctx_t = v_struct("struct.overloading_ctx_t",
+{
+    v_struct({*v_struct("struct.overloading_ctx_t"), int})[op_table_length],        //- 0
+
+    voidc_llvm_build_call_helper_t,                                                 //- 1
+    voidc_compile_expr_call_helper_t,                                               //- 2
+
+
+});
+
+
+//---------------------------------------------------------------------
+private
+add_overloading_context: (ctx: *overloading_ctx_t) -> void
+{
+    any = v_alloca(v_std_any_t);
+    v_initialize(any);
+    defer v_terminate(any);
+
+    v_std_any_set_value(any, v_cast(ctx, intptr_t));
+
+    v_add_property_q(voidc_overloading_context_q, any);
+}
+
+//---------------------------------------------------------------------
+private
+get_overloading_context: () -> *overloading_ctx_t
+{
+    any = v_get_property_q(voidc_overloading_context_q);
+
+    ctx = (v_std_any_get_value(intptr_t, any) : *overloading_ctx_t);
+
+    v_return(ctx);
+}
+
+
+//---------------------------------------------------------------------
+export
+voidc_overloading_context_get_llvm_build_call_helper: () -> &voidc_llvm_build_call_helper_t
+{
+    ctx = *get_overloading_context();
+
+    v_return(ctx[1]);
+}
+
+//---------------------------------------------------------------------
+export
+voidc_overloading_context_get_compile_expr_call_helper: () -> &voidc_compile_expr_call_helper_t
+{
+    ctx = *get_overloading_context();
+
+    v_return(ctx[2]);
+}
+
+
+
+//---------------------------------------------------------------------
+//- llvm_build_call_helper ...
+//---------------------------------------------------------------------
+private
+llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                         ft: *v_type_t, fv: LLVMValueRef,
+                         arg_ptrs: **v_ast_expr_t, arg_count: unsigned
+                        ) -> void
 {
     par_count = v_type_function_get_param_count(ft);
     par_types = v_type_function_get_param_types(ft);
@@ -340,24 +427,6 @@ voidc_llvm_build_call_helper_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_
     v_adopt_result(tr, vr);
 }
 
-export
-voidc_llvm_build_call_helper: (vis: *voidc_visitor_t, self: *v_ast_base_t,
-                               ft: v_type_ptr, fv: LLVMValueRef,
-                               arg_ptrs: **v_ast_expr_t, arg_count: unsigned
-                              ) -> void
-{
-    aux: &*void := v_undef();
-
-    void_fun = v_get_intrinsic_q(voidc_llvm_build_call_helper_q, &aux);
-
-    fun_t = (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-             ft: v_type_ptr, fv: LLVMValueRef,
-             arg_ptrs: **v_ast_expr_t, arg_count: unsigned
-            ) -> void;
-
-    (void_fun: *fun_t)(aux, vis, self, ft, fv, arg_ptrs, arg_count);
-}
-
 
 //---------------------------------------------------------------------
 intrinsic_p1_t = (aux: *void, vis: voidc_visitor_ptr,
@@ -392,7 +461,13 @@ op_assign_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
     t0 = v_get_result_type();
     v0 = v_get_result_value();
 
-    op_data = op_table[(aux: int)];
+    aux = *(aux: *v_struct({ *overloading_ctx_t, int }));
+
+    ctx = *aux[0];
+
+    id = aux[1];
+
+    op_data = op_table[id];
 
     q = op_data[2];     //- Quark
 
@@ -429,7 +504,7 @@ op_assign_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
             v_set_result_type(ttag);
             v_set_result_value(vtag);
 
-            voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, 2);
+            v_handle(&ctx[1], vis, self, ft, fv, arg_ptrs, 2);
         }
 
         v_return();
@@ -479,7 +554,13 @@ op_binary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
     t0 = v_get_result_type();
     v0 = v_get_result_value();
 
-    op_data = op_table[(aux: int)];
+    aux = *(aux: *v_struct({ *overloading_ctx_t, int }));
+
+    ctx = *aux[0];
+
+    id = aux[1];
+
+    op_data = op_table[id];
 
     q0 = op_data[2];        //- Quark (left)
 
@@ -516,7 +597,7 @@ op_binary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
             v_set_result_type(ttag);
             v_set_result_value(vtag);
 
-            voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, 2);
+            v_handle(&ctx[1], vis, self, ft, fv, arg_ptrs, 2);
         }
 
         v_return();
@@ -564,7 +645,7 @@ op_binary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
             v_set_result_type(ttag);
             v_set_result_value(vtag);
 
-            voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, 2);
+            v_handle(&ctx[1], vis, self, ft, fv, arg_ptrs, 2);
         }
 
         v_return();
@@ -656,6 +737,12 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
     rel = v_malloc(int, Nm1);
     defer v_free(rel);
 
+    aux = *(aux: *v_struct({ *overloading_ctx_t, int }));
+
+    ctx = *aux[0];
+
+    id = aux[1];
+
     {   i = N - 2;
 
         ast_i: &*v_ast_expr_ptr := ast + i;
@@ -664,7 +751,7 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
         ast_i[0] := v_list_get_item(args, 1);
         ast_i[1] := v_list_get_item(args, 2);
 
-        *rel_i := (aux: int);
+        *rel_i := id;
 
         while(ast_i1 = ast_i-1, rk = check_relation(*ast_i, ast_i1, ast_i))
         {
@@ -776,7 +863,7 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                 v_set_result_type(ttag);
                 v_set_result_value(vtag);
 
-                voidc_llvm_build_call_helper(vis, 0, ft, fv, arg_ptrs, 2);      //- Without "self" !?!?!?!?!
+                v_handle(&ctx[1], vis, 0, ft, fv, arg_ptrs, 2);                 //- Without "self" !?!?!?!?!
             }
 
             r := v_get_result_value();
@@ -829,7 +916,7 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                     v_set_result_type(ttag);
                     v_set_result_value(vtag);
 
-                    voidc_llvm_build_call_helper(vis, 0, ft, fv, arg_ptrs, 2);      //- Without "self" !?!?!?!?!
+                    v_handle(&ctx[1], vis, 0, ft, fv, arg_ptrs, 2);                 //- Without "self" !?!?!?!?!
                 }
 
                 r := v_get_result_value();
@@ -931,7 +1018,13 @@ op_unary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
     t0 = v_get_result_type();
     v0 = v_get_result_value();
 
-    op_data = op_table[(aux: int)];
+    aux = *(aux: *v_struct({ *overloading_ctx_t, int }));
+
+    ctx = *aux[0];
+
+    id = aux[1];
+
+    op_data = op_table[id];
 
     q = op_data[2];             //- Quark
 
@@ -962,7 +1055,7 @@ op_unary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
             arg_ptr: &v_ast_expr_ptr := expr;               //- Value, compiled
 
-            voidc_llvm_build_call_helper(vis, self, ft, fv, &arg_ptr, 1);
+            v_handle(&ctx[1], vis, self, ft, fv, &arg_ptr, 1);
         }
 
         v_return();
@@ -1042,12 +1135,12 @@ static_type_prefix_cv_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
 
 //---------------------------------------------------------------------
-export
-voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
-                                          self: v_ast_base_ptr,
-                                          args: v_ast_expr_list_ptr,
-                                          t: v_type_ptr, v: LLVMValueRef
-                                         ) -> void
+private
+compile_expr_call_helper: (aux: *void, vis: voidc_visitor_ptr,
+                           self: v_ast_base_ptr,
+                           args: v_ast_expr_list_ptr,
+                           t: v_type_ptr, v: LLVMValueRef
+                          ) -> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -1128,12 +1221,14 @@ voidc_internal_compile_expr_call_helper: (vis: voidc_visitor_ptr,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, (arg_count: unsigned));
+    ctx = *(aux: *overloading_ctx_t);
+
+    v_handle(&ctx[1], vis, self, ft, fv, arg_ptrs, (arg_count: unsigned));
 }
 
 //---------------------------------------------------------------------
 private
-compile_expr_call: (*void, vis: voidc_visitor_ptr,
+compile_expr_call: (aux: *void, vis: voidc_visitor_ptr,
                     self: v_ast_base_ptr) -> void
 {
     fexpr = v_ast_expr_call_get_fun_expr((self: v_ast_expr_ptr));
@@ -1172,7 +1267,9 @@ compile_expr_call: (*void, vis: voidc_visitor_ptr,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    voidc_internal_compile_expr_call_helper(vis, self, args, t, v);
+    ctx = *(aux: *overloading_ctx_t);
+
+    v_handle(&ctx[2], vis, self, args, t, v);
 }
 
 
@@ -1261,6 +1358,8 @@ op_postfix_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
     agg_v: &LLVMValueRef := v_get_result_value();
 
 
+    ctx = *(aux: *overloading_ctx_t);
+
     q = q_op_postfix_index;
 
     void_fun: &*void := 0;
@@ -1317,7 +1416,7 @@ op_postfix_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                 v_set_result_type(agg_t);
                 v_set_result_value(0);
 
-                voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, (arg_count: unsigned));
+                v_handle(&ctx[1], vis, self, ft, fv, arg_ptrs, (arg_count: unsigned));
 
                 agg_v := v_get_result_value();
             }
@@ -1412,9 +1511,17 @@ voidc_enable_overloading_compiler: () -> void
     voidc_visitor_set_void_method(vis, vis, expr_compiled_q,     compile_expr_compiled,     0);
     voidc_visitor_set_void_method(vis, vis, expr_compile_hook_q, compile_expr_compile_hook, 0);
 
-    v_add_intrinsic_q(voidc_llvm_build_call_helper_q, voidc_llvm_build_call_helper_intrinsic, 0);
+    //-------------------------------------------------------------
+    ctx = *v_malloc(overloading_ctx_t) := 0;
 
-    for (id: &int := 0; op_table[id][0]; ++id)
+    free: (*void) -> void;
+
+    v_add_local_cleaner(free, &ctx);
+
+    add_overloading_context(&ctx);
+
+    //-------------------------------------------------------------
+    for (id: &int := 0; id < op_table_length; ++id)
     {
         void_fun: & *void := v_undef();
 
@@ -1429,9 +1536,16 @@ voidc_enable_overloading_compiler: () -> void
 
         if (!void_fun)  v_continue();
 
-        v_add_intrinsic_q(op_table[id][2], void_fun, (id: *void));
+        ctx[0][id] := { &ctx, id };
+
+        v_add_intrinsic_q(op_table[id][2], void_fun, ctx[0] + id);
     }
 
+    //-------------------------------------------------------------
+    ctx[1] := {llvm_build_call_helper, 0};
+    ctx[2] := {compile_expr_call_helper, &ctx};
+
+    //-------------------------------------------------------------
     q_static_type_prefix_amp      = q("v.static_type_prefix_amp");
     q_static_type_prefix_const    = q("v.static_type_prefix_const");
     q_static_type_prefix_volatile = q("v.static_type_prefix_volatile");
@@ -1449,9 +1563,10 @@ voidc_enable_overloading_compiler: () -> void
     v_add_intrinsic_q(q_static_type_prefix_const,    static_type_prefix_cv_intrinsic, 0);
     v_add_intrinsic_q(q_static_type_prefix_volatile, static_type_prefix_cv_intrinsic, 0);
 
-    voidc_visitor_set_void_method(vis, vis, expr_call_q, compile_expr_call, 0);
+    voidc_visitor_set_void_method(vis, vis, expr_call_q, compile_expr_call, &ctx);
 
-    v_add_intrinsic_q(q_op_postfix_index, op_postfix_index_intrinsic, 0);
+    //-------------------------------------------------------------
+    v_add_intrinsic_q(q_op_postfix_index, op_postfix_index_intrinsic, &ctx);
 
     v_util_function_dict_set(v_static_type_t, q_op_postfix_index, q_static_type_postfix_index);
 

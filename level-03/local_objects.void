@@ -553,13 +553,13 @@ my_compile_stmt: (void_aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -
 
 
 //---------------------------------------------------------------------
-//- voidc_llvm_build_call_helper ...
+//- llvm_build_call_helper ...
 //---------------------------------------------------------------------
 private
-my_llvm_build_call_helper_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                                      ft: v_type_ptr, fv: LLVMValueRef,
-                                      arg_ptrs: **v_ast_expr_t, arg_count: unsigned
-                                     ) -> void
+my_llvm_build_call_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                            ft: v_type_ptr, fv: LLVMValueRef,
+                            arg_ptrs: **v_ast_expr_t, arg_count: unsigned
+                           ) -> void
 {
     par_count = v_type_function_get_param_count(ft);
     par_types = v_type_function_get_param_types(ft);
@@ -1239,9 +1239,10 @@ voidc_enable_local_objects_compiler: () -> void
     voidc_visitor_set_void_method(vis, vis, q, my_compile_stmt, &ctx.stmt_hook);
 
     //-----------------------------------------------------------------
-    q = v_quark_from_string("voidc.llvm_build_call_helper");
+    hnd = voidc_overloading_context_get_llvm_build_call_helper();
 
-    v_add_intrinsic_q(q, my_llvm_build_call_helper_intrinsic, 0);
+    hnd[0] := my_llvm_build_call_helper;
+    hnd[1] := 0;
 
     ctx.adopt_result.fun := v_get_adopt_result(&ctx.adopt_result.ctx);
 

@@ -277,9 +277,7 @@
     f = v_function_hack("voidc_definitions_context_get_stmt_list", ft);
 }
 {
-    any = v_get_property_q(voidc_definitions_context_q);
-
-    ctx = *v_cast(v_std_any_get_value(intptr_t, any), *definitions_ctx_t);
+    ctx = *get_definitions_context();
 
     v_return(ctx[ctx_stmt_list]);
 }
@@ -296,9 +294,7 @@
     f = v_function_hack("voidc_definitions_context_get_mod_const", ft);
 }
 {
-    any = v_get_property_q(voidc_definitions_context_q);
-
-    ctx = *v_cast(v_std_any_get_value(intptr_t, any), *definitions_ctx_t);
+    ctx = *get_definitions_context();
 
     v_return(ctx[ctx_mod_const]);
 }
@@ -315,9 +311,7 @@
     f = v_function_hack("voidc_definitions_context_get_fun_params", ft);
 }
 {
-    any = v_get_property_q(voidc_definitions_context_q);
-
-    ctx = *v_cast(v_std_any_get_value(intptr_t, any), *definitions_ctx_t);
+    ctx = *get_definitions_context();
 
     v_return(ctx[ctx_fun_params]);
 }

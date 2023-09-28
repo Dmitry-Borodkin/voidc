@@ -280,6 +280,9 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
     if (v_list_get_size(args) > 1)  value := v_list_get_item(args, 1);
 
     //-----------------------------------------------------------------
+    hnd = (aux: *voidc_llvm_build_call_helper_t);
+
+    //-----------------------------------------------------------------
     N: &int := 0;
 
     {   ast: &*v_ast_expr_t := type;
@@ -415,7 +418,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
                 arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
 
-                voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptr, 2);
+                v_handle(hnd, vis, self, ft, fv, arg_ptr, 2);
             }
         }
         else            //- single
@@ -434,7 +437,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
                 arg_ptr: &v_ast_expr_ptr := &expr;
 
-                voidc_llvm_build_call_helper(vis, self, ft, fv, &arg_ptr, 1);
+                v_handle(hnd, vis, self, ft, fv, &arg_ptr, 1);
             }
         }
 
@@ -662,7 +665,9 @@ op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
             arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
 
-            voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptr, 2);
+            hnd = (aux: *voidc_llvm_build_call_helper_t);
+
+            v_handle(hnd, vis, self, ft, fv, arg_ptr, 2);
         }
 
         v_return();
@@ -758,7 +763,9 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
             arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
 
-            voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptr, 2);
+            hnd = (aux: *voidc_llvm_build_call_helper_t);
+
+            v_handle(hnd, vis, self, ft, fv, arg_ptr, 2);
         }
 
         v_return();
@@ -966,9 +973,11 @@ voidc_enable_heap_objects_compiler: () -> void
     v_add_intrinsic_q(q_aligned_alloc, v_aligned_alloc_intrinsic, &ctx.alloc);
     v_add_intrinsic_q(q_aligned_free,  v_aligned_free_intrinsic,  &ctx.alloc);
 
-    v_add_intrinsic_q(q_op_prefix_new,          op_prefix_new_intrinsic,          0);
-    v_add_intrinsic_q(q_op_prefix_delete,       op_prefix_delete_intrinsic,       0);
-    v_add_intrinsic_q(q_op_prefix_delete_array, op_prefix_delete_array_intrinsic, 0);
+    hnd = &voidc_overloading_context_get_llvm_build_call_helper();
+
+    v_add_intrinsic_q(q_op_prefix_new,          op_prefix_new_intrinsic,          hnd);
+    v_add_intrinsic_q(q_op_prefix_delete,       op_prefix_delete_intrinsic,       hnd);
+    v_add_intrinsic_q(q_op_prefix_delete_array, op_prefix_delete_array_intrinsic, hnd);
 
     q = v_quark_from_string("voidc.compute_key_quark_type");
 

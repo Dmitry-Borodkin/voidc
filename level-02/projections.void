@@ -52,6 +52,19 @@ voidc_projections_internal_globals_cleaner: (*void) -> void
 
 
 //---------------------------------------------------------------------
+//- projections_ctx_t ...
+//---------------------------------------------------------------------
+private
+projections_ctx_t = v_struct("struct.projections_ctx_t",
+{
+    *voidc_llvm_build_call_helper_t,        //- 0
+    *voidc_compile_expr_call_helper_t,      //- 1
+
+
+});
+
+
+//---------------------------------------------------------------------
 //- mk_projection - grammar action
 //---------------------------------------------------------------------
 private
@@ -106,8 +119,8 @@ intrinsic_p1_t = (aux: *void, vis: voidc_visitor_ptr,
 //- ...
 //---------------------------------------------------------------------
 private
-op_postfix_dot_helper: (vis: voidc_visitor_ptr,
-                        self: v_ast_base_ptr,
+op_postfix_dot_helper: (ctx: &projections_ctx_t, vis: *voidc_visitor_t,
+                        self: *v_ast_base_t,
                         t0: v_type_ptr, v0: LLVMValueRef
                        ) -> void
 {
@@ -220,7 +233,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
         v_set_result_type(tr);
         v_set_result_value(0);
 
-        voidc_llvm_build_call_helper(vis, self, ft, fv, arg_ptrs, arg_count);
+        v_handle(ctx[0], vis, self, ft, fv, arg_ptrs, arg_count);
 
         vr := v_get_result_value();
     }
@@ -228,7 +241,7 @@ op_postfix_dot_helper: (vis: voidc_visitor_ptr,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    if (spc_flag)  voidc_internal_compile_expr_call_helper(vis, self, alst, tr, vr);
+    if (spc_flag)  v_handle(ctx[1], vis, self, alst, tr, vr);
     else           v_adopt_result(tr, vr);
 }
 
@@ -259,7 +272,9 @@ op_postfix_dot_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    op_postfix_dot_helper(vis, self, t0, v0);
+    ctx = *(aux: *projections_ctx_t);
+
+    op_postfix_dot_helper(ctx, vis, self, t0, v0);
 }
 
 
@@ -284,6 +299,8 @@ op_postfix_tildato_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
     t0: &v_type_ptr   := v_get_result_type();
     v0: &LLVMValueRef := v_get_result_value();
+
+    ctx = *(aux: *projections_ctx_t);
 
     builder = v_target_get_builder();
 
@@ -324,7 +341,7 @@ op_postfix_tildato_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
             v_set_result_type(t0);
             v_set_result_value(0);
 
-            voidc_llvm_build_call_helper(vis, self, ft, fv, &arg_ptr, 1);
+            v_handle(ctx[0], vis, self, ft, fv, &arg_ptr, 1);
 
             v0 := v_get_result_value();
         }
@@ -348,7 +365,7 @@ op_postfix_tildato_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    op_postfix_dot_helper(vis, self, t0, v0);
+    op_postfix_dot_helper(ctx, vis, self, t0, v0);
 }
 
 
@@ -366,8 +383,20 @@ voidc_enable_projections_compiler: () -> void
 
     v_op_postfix_tildato_q = v_quark_from_string("v.op_postfix_tildato");
 
-    v_add_intrinsic_q(v_op_postfix_dot_q,     op_postfix_dot_intrinsic,     0);
-    v_add_intrinsic_q(v_op_postfix_tildato_q, op_postfix_tildato_intrinsic, 0);
+    //-------------------------------------------------------------
+    ctx = *v_malloc(projections_ctx_t) := 0;
+
+    free: (*void) -> void;
+
+    v_add_local_cleaner(free, &ctx);
+
+    //-------------------------------------------------------------
+    ctx[0] := &voidc_overloading_context_get_llvm_build_call_helper();
+    ctx[1] := &voidc_overloading_context_get_compile_expr_call_helper();
+
+    //-------------------------------------------------------------
+    v_add_intrinsic_q(v_op_postfix_dot_q,     op_postfix_dot_intrinsic,     &ctx);
+    v_add_intrinsic_q(v_op_postfix_tildato_q, op_postfix_tildato_intrinsic, &ctx);
 }
 
 
