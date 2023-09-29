@@ -27,22 +27,22 @@ double = float(64);
 
 Vector = v_struct("struct.my_vector_2d", { double[2] });
 
-vector_x_ref: (v: &Vector) -> &double
+vector_x_ref: (v: &Vector) ~> &double
 {
     v_return(v[0][0]);
 }
 
-vector_y_ref: (v: &Vector) -> &double
+vector_y_ref: (v: &Vector) ~> &double
 {
     v_return(v[0][1]);
 }
 
-vector_x: (v: Vector) -> double
+vector_x: (v: Vector) ~> double
 {
     v_return(v[0][0]);
 }
 
-vector_y: (v: Vector) -> double
+vector_y: (v: Vector) ~> double
 {
     v_return(v[0][1]);
 }
@@ -77,7 +77,7 @@ vector_y: (v: Vector) -> double
 
 
 //---------------------------------------------------------------------
-vector_add_ref: (v: &Vector, x: double, y: double) -> &Vector
+vector_add_ref: (v: &Vector, x: double, y: double) ~> &Vector
 {
     v.x += x;
     v.y += y;
@@ -85,7 +85,7 @@ vector_add_ref: (v: &Vector, x: double, y: double) -> &Vector
     v_return(v);
 }
 
-vector_add: (v: Vector, x: double, y: double) -> Vector
+vector_add: (v: Vector, x: double, y: double) ~> Vector
 {
     v_return({{v.x+x, v.y+y}});
 }
@@ -127,15 +127,15 @@ vector_add: (v: Vector, x: double, y: double) -> Vector
 
     p = &v;
 
-    p~>add(0.3, 0.4);
+    p->add(0.3, 0.4);
 
-    printf("p: (%g, %g)\n", p~>x, p~>y);
+    printf("p: (%g, %g)\n", p->x, p->y);
 
     w = v_load(p).add(-0.3, -0.4);
 
     printf("w: (%g, %g)\n", w.x, w.y);
 
-    printf("p: (%g, %g)\n", p~>x, p~>y);
+    printf("p: (%g, %g)\n", p->x, p->y);
 
 }
 
@@ -161,11 +161,11 @@ vector_add: (v: Vector, x: double, y: double) -> Vector
 
 
 //---------------------------------------------------------------------
-foo_t = v_struct("struct.foo_t", { *((*const char, ...) -> int) });
+foo_t = v_struct("struct.foo_t", { *((*const char, ...) ~> int) });
 
 foo_ref = &foo_t;
 
-foo_bar: (f: foo_t) -> *((*const char, ...) -> int)
+foo_bar: (f: foo_t) ~> *((*const char, ...) ~> int)
 {
     v_return(f[0]);
 }

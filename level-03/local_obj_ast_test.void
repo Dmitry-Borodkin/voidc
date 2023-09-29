@@ -39,7 +39,7 @@
 
 
 //---------------------------------------------------------------------
-mk_expr_identifier: (id: *const char) -> v_ast_expr_t
+mk_expr_identifier: (id: *const char) ~> v_ast_expr_t
 {
     ret = v_get_return_value();
 
@@ -47,7 +47,7 @@ mk_expr_identifier: (id: *const char) -> v_ast_expr_t
 }
 
 //---------------------------------------------------------------------
-mk_expr_integer: (num: intptr_t) -> v_ast_expr_t
+mk_expr_integer: (num: intptr_t) ~> v_ast_expr_t
 {
     ret = v_get_return_value();
 
@@ -55,7 +55,7 @@ mk_expr_integer: (num: intptr_t) -> v_ast_expr_t
 }
 
 //---------------------------------------------------------------------
-mk_expr_string: (str: *const char) -> v_ast_expr_t
+mk_expr_string: (str: *const char) ~> v_ast_expr_t
 {
     ret = v_get_return_value();
 
@@ -63,7 +63,7 @@ mk_expr_string: (str: *const char) -> v_ast_expr_t
 }
 
 //---------------------------------------------------------------------
-mk_expr_char: (c: char32_t) -> v_ast_expr_t
+mk_expr_char: (c: char32_t) ~> v_ast_expr_t
 {
     ret = v_get_return_value();
 
@@ -72,7 +72,7 @@ mk_expr_char: (c: char32_t) -> v_ast_expr_t
 
 
 //---------------------------------------------------------------------
-mk_expr_compiled: (t: *v_type_t, v: LLVMValueRef) -> v_ast_expr_t
+mk_expr_compiled: (t: *v_type_t, v: LLVMValueRef) ~> v_ast_expr_t
 {
     ret = v_get_return_value();
 
@@ -81,7 +81,7 @@ mk_expr_compiled: (t: *v_type_t, v: LLVMValueRef) -> v_ast_expr_t
 
 
 //---------------------------------------------------------------------
-mk_expr_call: (fun: v_ast_expr_t, args: v_ast_expr_list_t) -> v_ast_expr_t
+mk_expr_call: (fun: v_ast_expr_t, args: v_ast_expr_list_t) ~> v_ast_expr_t
 {
     ret = v_get_return_value();
 
@@ -93,7 +93,7 @@ mk_expr_call: (fun: v_ast_expr_t, args: v_ast_expr_list_t) -> v_ast_expr_t
 
 
 //---------------------------------------------------------------------
-mk_stmt: (name: *const char, expr: v_ast_expr_t) -> v_ast_stmt_t
+mk_stmt: (name: *const char, expr: v_ast_expr_t) ~> v_ast_stmt_t
 {
     ret = v_get_return_value();
 
@@ -105,7 +105,7 @@ mk_stmt: (name: *const char, expr: v_ast_expr_t) -> v_ast_stmt_t
 
 //---------------------------------------------------------------------
 private
-mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -282,42 +282,42 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
 
 //---------------------------------------------------------------------
-(_:=_): (p: &v_ast_expr_t, v: v_ast_expr_t) -> &v_ast_expr_t
+(_:=_): (p: &v_ast_expr_t, v: v_ast_expr_t) ~> &v_ast_expr_t
 {
     v_copy(&p, v_get_object_pointer(v));
 
     v_return(p);
 }
 
-(_:=_): (p: &v_ast_expr_list_t, v: v_ast_expr_list_t) -> &v_ast_expr_list_t
+(_:=_): (p: &v_ast_expr_list_t, v: v_ast_expr_list_t) ~> &v_ast_expr_list_t
 {
     v_copy(&p, v_get_object_pointer(v));
 
     v_return(p);
 }
 
-(_:=_): (p: &v_ast_stmt_t, v: v_ast_stmt_t) -> &v_ast_stmt_t
+(_:=_): (p: &v_ast_stmt_t, v: v_ast_stmt_t) ~> &v_ast_stmt_t
 {
     v_copy(&p, v_get_object_pointer(v));
 
     v_return(p);
 }
 
-(_:=_): (p: &v_ast_stmt_list_t, v: v_ast_stmt_list_t) -> &v_ast_stmt_list_t
+(_:=_): (p: &v_ast_stmt_list_t, v: v_ast_stmt_list_t) ~> &v_ast_stmt_list_t
 {
     v_copy(&p, v_get_object_pointer(v));
 
     v_return(p);
 }
 
-(_:=_): (p: &v_ast_base_t, v: v_ast_base_t) -> &v_ast_base_t
+(_:=_): (p: &v_ast_base_t, v: v_ast_base_t) ~> &v_ast_base_t
 {
     v_copy(&p, v_get_object_pointer(v));
 
     v_return(p);
 }
 
-(_:=_): (p: &v_ast_generic_list_t, v: v_ast_generic_list_t) -> &v_ast_generic_list_t
+(_:=_): (p: &v_ast_generic_list_t, v: v_ast_generic_list_t) ~> &v_ast_generic_list_t
 {
     v_copy(&p, v_get_object_pointer(v));
 
@@ -325,21 +325,21 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 }
 
 //---------------------------------------------------------------------
-(_+=_): (l: &v_ast_expr_list_t, e: v_ast_expr_t) -> &v_ast_expr_list_t
+(_+=_): (l: &v_ast_expr_list_t, e: v_ast_expr_t) ~> &v_ast_expr_list_t
 {
     v_list_append(&l, &l, v_get_object_pointer(e));
 
     v_return(l);
 }
 
-(_+=_): (l: &v_ast_stmt_list_t, s: v_ast_stmt_t) -> &v_ast_stmt_list_t
+(_+=_): (l: &v_ast_stmt_list_t, s: v_ast_stmt_t) ~> &v_ast_stmt_list_t
 {
     v_list_append(&l, &l, v_get_object_pointer(s));
 
     v_return(l);
 }
 
-(_+=_): (l: &v_ast_generic_list_t, s: v_ast_base_t) -> &v_ast_generic_list_t
+(_+=_): (l: &v_ast_generic_list_t, s: v_ast_base_t) ~> &v_ast_generic_list_t
 {
     v_list_append(&l, &l, v_get_object_pointer(s));
 
@@ -348,7 +348,7 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
 
 //---------------------------------------------------------------------
-enable_local_obj_ast_test: () -> void
+enable_local_obj_ast_test: () ~> void
 {
     v_add_intrinsic("mk_expr_list",    mk_ast_list_intrinsic, v_find_type("v_ast_expr_list_t"));
     v_add_intrinsic("mk_stmt_list",    mk_ast_list_intrinsic, v_find_type("v_ast_stmt_list_t"));

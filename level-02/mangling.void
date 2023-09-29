@@ -70,7 +70,7 @@ struct v_trp_dict_t
 
 //---------------------------------------------------------------------
 private
-dict_init: (dict: &v_trp_dict_t) -> void
+dict_init: (dict: &v_trp_dict_t) ~> void
 {
     v_initialize(&dict.map);
     v_make_map(&dict.map);
@@ -79,7 +79,7 @@ dict_init: (dict: &v_trp_dict_t) -> void
 }
 
 private
-dict_term: (dict: &v_trp_dict_t) -> void
+dict_term: (dict: &v_trp_dict_t) ~> void
 {
     v_terminate(&dict.map);
 }
@@ -87,7 +87,7 @@ dict_term: (dict: &v_trp_dict_t) -> void
 
 //---------------------------------------------------------------------
 private
-dict_find: (dict: &v_trp_dict_t, key: *v_type_t) -> intptr_t
+dict_find: (dict: &v_trp_dict_t, key: *v_type_t) ~> intptr_t
 {
     a = v_map_find(&dict.map, (key: intptr_t));
 
@@ -100,7 +100,7 @@ dict_find: (dict: &v_trp_dict_t, key: *v_type_t) -> intptr_t
 
 //---------------------------------------------------------------------
 private
-dict_insert: (dict: &v_trp_dict_t, key: *v_type_t) -> void
+dict_insert: (dict: &v_trp_dict_t, key: *v_type_t) ~> void
 {
     a = v_alloca(v_std_any_t);
     v_initialize(a);
@@ -114,7 +114,7 @@ dict_insert: (dict: &v_trp_dict_t, key: *v_type_t) -> void
 
 //---------------------------------------------------------------------
 private
-append_string_repr: (str: v_std_string_ptr, s: *const char) -> void
+append_string_repr: (str: v_std_string_ptr, s: *const char) ~> void
 {
     s: &*const char := s;
 
@@ -149,7 +149,7 @@ append_string_repr: (str: v_std_string_ptr, s: *const char) -> void
 
 //---------------------------------------------------------------------
 private
-append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) -> void
+append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) ~> void
 {
     if (idx = dict_find(dict, t), idx >= 0)
     {
@@ -206,7 +206,7 @@ append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) -> void
             v_std_string_append(str, "...");
         }
 
-        v_std_string_append(str, ") -> ");
+        v_std_string_append(str, ") ~> ");
 
         append_type(str, dict, v_type_function_get_return_type(t));
 
@@ -332,7 +332,7 @@ OUTBUFSIZE = 8*16;      //- ?...
 
 //---------------------------------------------------------------------
 private
-encode_base62: (ctx: &v_myz_ctx_t) -> bool
+encode_base62: (ctx: &v_myz_ctx_t) ~> bool
 {
     sstr = (ctx.aux_out: *v_std_string_t);
 
@@ -383,7 +383,7 @@ encode_base62: (ctx: &v_myz_ctx_t) -> bool
 
 //---------------------------------------------------------------------
 export
-voidc_internal_std_string_append_type: (sstr: *v_std_string_t, t: *v_type_t) -> void
+voidc_internal_std_string_append_type: (sstr: *v_std_string_t, t: *v_type_t) ~> void
 {
     dict: &v_trp_dict_t := v_undef();
     dict_init(dict);
@@ -395,7 +395,7 @@ voidc_internal_std_string_append_type: (sstr: *v_std_string_t, t: *v_type_t) -> 
 
 //---------------------------------------------------------------------
 private
-append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) -> void
+append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) ~> void
 {
     stmp = v_alloca(v_std_string_t);
     v_initialize(stmp);
@@ -444,7 +444,7 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) -> void
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_infix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_infix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     op = v_std_any_get_pointer(v_ast_expr_t, any);
 
@@ -459,7 +459,7 @@ mk_spec_ident_infix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_infix_right_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_infix_right_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     op = v_std_any_get_pointer(v_ast_expr_t, any);
 
@@ -486,7 +486,7 @@ mk_spec_ident_infix_right_grammar_action: (ret: *v_std_any_t, *void, any: *v_std
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     op = v_std_any_get_pointer(v_ast_expr_t, any);
 
@@ -528,7 +528,7 @@ mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_prefix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_prefix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     op = v_std_any_get_pointer(v_ast_expr_t, any);
 
@@ -544,7 +544,7 @@ mk_spec_ident_prefix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_
 
 //---------------------------------------------------------------------
 private
-mk_qlf_spec_ident_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_qlf_spec_ident_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     qualif = v_std_any_get_value(intptr_t, any+0);
     quark  = v_std_any_get_value(intptr_t, any+1);
@@ -567,7 +567,7 @@ mk_qlf_spec_ident_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, 
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     q_si = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
@@ -586,7 +586,7 @@ mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     head = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
     body = v_std_any_get_pointer(v_ast_stmt_list_t,    any+1);
@@ -608,7 +608,7 @@ mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     quark = v_std_any_get_value(intptr_t, any+0);
     fname = v_std_any_get_pointer(v_std_string_t, any+1);
@@ -632,7 +632,7 @@ mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
 //---------------------------------------------------------------------
 private
-mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     quark = v_std_any_get_value(intptr_t, any+0);
 
@@ -669,7 +669,7 @@ mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
 //---------------------------------------------------------------------
 private
-mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     quark = v_std_any_get_value(intptr_t, any+0);
 
@@ -705,7 +705,7 @@ mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
 //---------------------------------------------------------------------
 private
-type_is_initializable: (t: *v_type_t) -> bool
+type_is_initializable: (t: *v_type_t) ~> bool
 {
     switch(v_type_get_kind(t))
     {
@@ -725,7 +725,7 @@ type_is_initializable: (t: *v_type_t) -> bool
 
 //---------------------------------------------------------------------
 private
-register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const char, q: v_quark_t, t: *v_type_t) -> void
+register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const char, q: v_quark_t, t: *v_type_t) ~> void
 {
     qname = v_quark_from_string(fn);
 
@@ -828,7 +828,7 @@ private
 compute_key_quark_type_intrinsic: (aux: *void, vis: *voidc_visitor_t,
                                    ft: *v_type_t,
                                    iq: &intptr_t, t: &*v_type_t
-                                  ) -> void
+                                  ) ~> void
 {
     types = v_type_function_get_param_types(ft);
 
@@ -848,7 +848,7 @@ private
 compute_key_quark_type: (vis: *voidc_visitor_t,
                          ft: *v_type_t,
                          iq: &intptr_t, t: &*v_type_t
-                        ) -> void
+                        ) ~> void
 {
     void_aux: &*void := v_undef();
 
@@ -857,7 +857,7 @@ compute_key_quark_type: (vis: *voidc_visitor_t,
     compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
                                  ft: *v_type_t,
                                  iq: &intptr_t, t: &*v_type_t
-                                ) -> void;
+                                ) ~> void;
 
     compute_key_quark_type_fun = (void_fun: *compute_key_quark_type_ft);
 
@@ -866,7 +866,7 @@ compute_key_quark_type: (vis: *voidc_visitor_t,
 
 //---------------------------------------------------------------------
 private
-register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool, sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) -> void
+register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool, sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) ~> void
 {
     iq: &intptr_t := iq;
     t: &*v_type_t := v_undef();
@@ -886,7 +886,7 @@ register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool, sstr: *v_std
 
 //---------------------------------------------------------------------
 private
-compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     list = (self: v_ast_generic_list_ptr);
 
@@ -911,9 +911,9 @@ compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
         v_initialize(expr);
         defer v_terminate(expr);
 
-        op_infix_to: *v_ast_expr_t;         //- Sic!!!
+        op_infix_tildato: *v_ast_expr_t;        //- Sic!!!
 
-        v_ast_make_expr_op_binary(expr, op_infix_to, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
+        v_ast_make_expr_op_binary(expr, op_infix_tildato, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
@@ -938,7 +938,7 @@ compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 
 //---------------------------------------------------------------------
 private
-compile_unit_spec_fun_renm: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+compile_unit_spec_fun_renm: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     list = (self: v_ast_generic_list_ptr);
 
@@ -968,7 +968,7 @@ compile_unit_spec_fun_renm: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 
 //---------------------------------------------------------------------
 private
-v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     call = (self: v_ast_expr_ptr);
 
@@ -987,9 +987,9 @@ v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v
         v_initialize(expr);
         defer v_terminate(expr);
 
-        op_infix_to: *v_ast_expr_t;         //- Sic!!!
+        op_infix_tildato: *v_ast_expr_t;        //- Sic!!!
 
-        v_ast_make_expr_op_binary(expr, op_infix_to, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
+        v_ast_make_expr_op_binary(expr, op_infix_tildato, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
@@ -1014,7 +1014,7 @@ v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v
 
 //---------------------------------------------------------------------
 private
-v_internal_spec_fun_renm_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+v_internal_spec_fun_renm_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     call = (self: v_ast_expr_ptr);
 
@@ -1054,7 +1054,7 @@ v_internal_spec_fun_renm_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v
 //- Enable mangling
 //---------------------------------------------------------------------
 export
-voidc_enable_mangling_compiler: () -> void
+voidc_enable_mangling_compiler: () ~> void
 {
     vis = v_get_compiler();
 
@@ -1075,7 +1075,7 @@ voidc_enable_mangling_compiler: () -> void
 //- Enable mangling
 //---------------------------------------------------------------------
 export
-voidc_enable_mangling: () -> void
+voidc_enable_mangling: () ~> void
 {
     voidc_enable_mangling_compiler();
 
@@ -1107,7 +1107,7 @@ voidc_enable_mangling: () -> void
         spec_ident = '(' _ '_' !ident_cont _ op:infix _ '_' _ ')'       { mk_spec_ident_infix(op) }
                    / '(' _ '_' !ident_cont _ op:infix _ "__" _ ')'      { mk_spec_ident_infix_right(op) }
                    / '(' _ '_' !ident_cont _ op:postfix _ ')'           { mk_spec_ident_postfix(op) }
-                   / '(' _ '_' _ "~>" _ ')'                             { mk_spec_ident_postfix(op_postfix_tildato) }
+                   / '(' _ '_' _ "->" _ ')'                             { mk_spec_ident_postfix(op_postfix_to) }
                    / '(' _ op:prefix _ '_' _ ')'                        { mk_spec_ident_prefix(op) }
                    ;
 
@@ -1115,7 +1115,7 @@ voidc_enable_mangling: () -> void
         qlf_spec_ident = q:qualif_flags _ si:spec_ident      { mk_qlf_spec_ident(q, si) };
 
 
-        unit_spec_fun_defn_hdr = qf:qlf_spec_ident _':'_ a:bracketed _"->"_ r:expr    { mk_unit_spec_fun_defn_hdr(qf, a, r) };
+        unit_spec_fun_defn_hdr = qf:qlf_spec_ident _':'_ a:bracketed _"~>"_ r:expr    { mk_unit_spec_fun_defn_hdr(qf, a, r) };
 
         unit_spec_fun_defn = h:unit_spec_fun_defn_hdr _';'                      { mk_unit_spec_fun_defn(h, 0) }
                            / h:unit_spec_fun_defn_hdr _'{'_ l:stmt_list _'}'    { mk_unit_spec_fun_defn(h, l) }
@@ -1126,7 +1126,7 @@ voidc_enable_mangling: () -> void
                    ;
 
 
-        stmt_defn += si:spec_ident _':'_ a:bracketed _"->"_ r:expr _';'     { mk_stmt_spec_fun_decl(si, a, r) }
+        stmt_defn += si:spec_ident _':'_ a:bracketed _"~>"_ r:expr _';'     { mk_stmt_spec_fun_decl(si, a, r) }
                    / si:spec_ident _'='_ f:expr _';'                        { mk_stmt_spec_fun_renm(si, f) }
                    ;
     }

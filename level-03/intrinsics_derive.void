@@ -29,7 +29,7 @@ private
 compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
                              ft: *v_type_t,
                              iq: &intptr_t, t: &*v_type_t
-                            ) -> void;
+                            ) ~> void;
 
 private
 struct voidc_compute_key_quark_type_ctx_t
@@ -82,7 +82,7 @@ intrinsic_quarks: &voidc_intrinsic_quarks_item_t[] :=
 };
 
 private
-quarks_compare: (void_lhs: *const void, void_rhs: *const void) -> int
+quarks_compare: (void_lhs: *const void, void_rhs: *const void) ~> int
 {
     lhs = *(void_lhs: *voidc_intrinsic_quarks_item_t);
     rhs = *(void_rhs: *voidc_intrinsic_quarks_item_t);
@@ -91,12 +91,12 @@ quarks_compare: (void_lhs: *const void, void_rhs: *const void) -> int
 }
 
 //---------------------------------------------------------------------
-qsort: (ptr: *void, count: size_t, size: size_t, comp: *((*const void, *const void) -> int)) -> void;
+qsort: (ptr: *void, count: size_t, size: size_t, comp: *((*const void, *const void) ~> int)) ~> void;
 
-bsearch: (key: *const void, ptr: *const void, count: size_t, size: size_t, comp: *((*const void, *const void) -> int)) -> *void;
+bsearch: (key: *const void, ptr: *const void, count: size_t, size: size_t, comp: *((*const void, *const void) ~> int)) ~> *void;
 
 //---------------------------------------------------------------------
-voidc_intrinsic_quarks_ctor: () -> void
+voidc_intrinsic_quarks_ctor: () ~> void
 {
     t = v_find_symbol_type("intrinsic_quarks");
 
@@ -152,7 +152,7 @@ private
 compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
                          ft: *v_type_t,
                          iq: &intptr_t, t: &*v_type_t
-                        ) -> void
+                        ) ~> void
 {
     if (iq > 0)
     {
@@ -177,7 +177,7 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
 
 //---------------------------------------------------------------------
 private
-mk_spec_ident_identifier_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_spec_ident_identifier_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     id = v_std_any_get_pointer(v_std_string_t, any);
 
@@ -188,7 +188,7 @@ mk_spec_ident_identifier_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_derive_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_unit_spec_fun_derive_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     head = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
@@ -231,7 +231,7 @@ mk_unit_spec_fun_derive_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_a
 
 //---------------------------------------------------------------------
 private
-spec_fun_derive_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+spec_fun_derive_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     call = (self: *v_ast_expr_t);
 
@@ -469,7 +469,7 @@ spec_fun_derive_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 //- Enable intrinsics derive
 //---------------------------------------------------------------------
 export
-voidc_enable_intrinsics_derive_compiler: () -> void
+voidc_enable_intrinsics_derive_compiler: () ~> void
 {
     vis = v_get_compiler();
 
@@ -520,7 +520,7 @@ voidc_enable_intrinsics_derive_compiler: () -> void
 
     v_add_intrinsic_q(q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
 
-    free: (*void) -> void;
+    free: (*void) ~> void;
 
     v_add_local_cleaner(free, &ctx);
 }
@@ -529,7 +529,7 @@ voidc_enable_intrinsics_derive_compiler: () -> void
 //- Enable intrinsics derive
 //---------------------------------------------------------------------
 export
-voidc_enable_intrinsics_derive: () -> void
+voidc_enable_intrinsics_derive: () ~> void
 {
     voidc_enable_intrinsics_derive_compiler();
 

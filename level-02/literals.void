@@ -33,7 +33,7 @@
 
 //---------------------------------------------------------------------
 v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
-                              self: v_ast_base_ptr) -> void
+                              self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -135,7 +135,7 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
 
 //---------------------------------------------------------------------
 v_literal_real_intrinsic: (*void, vis: voidc_visitor_ptr,
-                           self: v_ast_base_ptr) -> void
+                           self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -202,7 +202,7 @@ v_literal_real_intrinsic: (*void, vis: voidc_visitor_ptr,
 //- mk_numeric_literal - grammar action
 //---------------------------------------------------------------------
 //{ v_debug_print_module(1); }
-mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
+mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
 {
 //    printf("mk_numeric_literal_grammar_action\n");
 //    defer printf("mk_numeric_literal_grammar_action leave\n");
@@ -237,7 +237,7 @@ mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_pt
 //- Enable literals
 //---------------------------------------------------------------------
 export
-voidc_enable_literals_compiler: () -> void
+voidc_enable_literals_compiler: () ~> void
 {
     v_return_if(v_get_intrinsic_q(q_literal_integer, 0));
 
@@ -250,7 +250,7 @@ voidc_enable_literals_compiler: () -> void
 //- Enable literals
 //---------------------------------------------------------------------
 export
-voidc_enable_literals: () -> void
+voidc_enable_literals: () ~> void
 {
     voidc_enable_literals_compiler();
 

@@ -28,12 +28,12 @@ export
 double = float(64);         //- Sic!
 
 export
-sin: (double) -> double;
+sin: (double) ~> double;
 
 export
-sprintf: (str: *char, format: *const char, ...) -> int;
+sprintf: (str: *char, format: *const char, ...) ~> int;
 
-round: (double) -> double;
+round: (double) ~> double;
 
 
 //---------------------------------------------------------------------
@@ -50,13 +50,13 @@ round: (double) -> double;
 {   v_set_export_flag(true); }
 
 
-qwerty: (i:int, j:&int) -> void
+qwerty: (i:int, j:&int) ~> void
 {
     j := (round(1000000*sin(i)) : int);
 }
 
 
-foo: (bar: *((int, &int) -> void), i: int, j: &int) -> void
+foo: (bar: *((int, &int) ~> void), i: int, j: &int) ~> void
 {
     bar(i, j);
 }

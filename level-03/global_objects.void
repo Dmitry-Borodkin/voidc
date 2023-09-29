@@ -86,7 +86,7 @@ obtain_special_result_value_global_ctx_t = struct
 //- obtain_special_result_value_global ...
 //---------------------------------------------------------------------
 private
-obtain_special_result_value_global: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
+obtain_special_result_value_global: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef
 {
     //- assert(v_type_is_special(t, q_initialize));
 
@@ -150,13 +150,13 @@ my_obtain_special_result_value_ctx_t = struct
     global_flag: bool;
     global_ctx:  obtain_special_result_value_global_ctx_t;
 
-    fun: *((*void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef);
+    fun: *((*void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef);
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
-my_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef
+my_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef
 {
     //- assert(v_type_is_special(t, q_initialize));
 
@@ -184,7 +184,7 @@ my_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v
 //- my_compile_unit_var_defn - visitor method
 //---------------------------------------------------------------------
 private
-my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     ctx = *(aux: *my_obtain_special_result_value_ctx_t);
 
@@ -342,7 +342,7 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 //- my_compile_unit_val_defn - visitor method
 //---------------------------------------------------------------------
 private
-my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     ctx = *(aux: *my_obtain_special_result_value_ctx_t);
 
@@ -542,7 +542,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 //- my_compile_expr_identifier - visitor method
 //---------------------------------------------------------------------
 private
-my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     ident = (self: *v_ast_expr_t);
 
@@ -555,13 +555,13 @@ my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
     {
         struct FILE;
 
-        fprintf: (*FILE, *const char, ...) -> int;
+        fprintf: (*FILE, *const char, ...) ~> int;
 
         stderr: &*FILE;
 
         fprintf(stderr, "Identifier not found: %s\n", v_quark_to_string(qname));
 
-        abort: () -> void;
+        abort: () ~> void;
 
         abort();            //- Sic!!!
     }
@@ -646,7 +646,7 @@ private global_module_number: &unsigned := 0;           //- Sic!!!
 
 //---------------------------------------------------------------------
 private
-my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     if (visitor = v_get_compiler(), visitor != vis)
     {
@@ -680,7 +680,7 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
         filename = v_target_local_ctx_get_filename(v_target_get_voidc_local_ctx());
 
-        strlen: (*const char) -> size_t;
+        strlen: (*const char) ~> size_t;
 
         LLVMSetSourceFileName(module, filename, strlen(filename));
 
@@ -738,7 +738,7 @@ my_finish_module_globals_ctx_t = struct
 {
     global_ctx: *obtain_special_result_value_global_ctx_t;
 
-    fun: *((*void, LLVMModuleRef) -> void);
+    fun: *((*void, LLVMModuleRef) ~> void);
     ctx: *void;
 };
 
@@ -752,7 +752,7 @@ cdtors: &(*const char)[2] :=
 
 //---------------------------------------------------------------------
 private
-my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) -> void
+my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) ~> void
 {
     ctx = *(void_ctx: *my_finish_module_globals_ctx_t);
 
@@ -894,7 +894,7 @@ my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) -> void
 private
 struct voidc_finish_module_cdtors_ctx_t
 {
-    fun: *((*void, LLVMModuleRef) -> void);
+    fun: *((*void, LLVMModuleRef) ~> void);
     ctx: *void;
 };
 
@@ -908,10 +908,10 @@ item_t = struct
 };
 
 private
-qsort: (ptr: *void, count: size_t, size: size_t, comp: *((*const void, *const void) -> int)) -> void;
+qsort: (ptr: *void, count: size_t, size: size_t, comp: *((*const void, *const void) ~> int)) ~> void;
 
 private
-compare: (void_lhs: *const void, void_rhs: *const void) -> int
+compare: (void_lhs: *const void, void_rhs: *const void) ~> int
 {
     lhs = *(void_lhs: *const item_t);
     rhs = *(void_rhs: *const item_t);
@@ -929,7 +929,7 @@ prefs: &(*const char)[2] :=
 
 //---------------------------------------------------------------------
 private
-voidc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) -> void
+voidc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) ~> void
 {
     llvm_ctx = v_target_get_llvm_ctx();
 
@@ -1013,7 +1013,7 @@ struct v_global_objects_ctx_t
 //- Enable global objects
 //---------------------------------------------------------------------
 export
-voidc_enable_global_objects_compiler: () -> void
+voidc_enable_global_objects_compiler: () ~> void
 {
     v_return_if(v_find_constant_q(enabled_q, 0, 0));
 
@@ -1027,7 +1027,7 @@ voidc_enable_global_objects_compiler: () -> void
     //-----------------------------------------------------------------
     q = voidc_obtain_special_result_value_q;
 
-    fun_t = *((*void, vis: *voidc_visitor_t, t: *v_type_t) -> LLVMValueRef);
+    fun_t = *((*void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef);
 
     obtain_spec.fun := (v_get_intrinsic_q(q, &obtain_spec.aux) : fun_t);
 
@@ -1066,7 +1066,7 @@ voidc_enable_global_objects_compiler: () -> void
     v_set_finish_module(my_finish_module_globals, &ctx.fin_globals);
 
     //-----------------------------------------------------------------
-    free: (*void) -> void;
+    free: (*void) ~> void;
 
     v_add_local_cleaner(free, &ctx);
 }
@@ -1076,7 +1076,7 @@ voidc_enable_global_objects_compiler: () -> void
 //- Enable global objects
 //---------------------------------------------------------------------
 export
-voidc_enable_global_objects: () -> void
+voidc_enable_global_objects: () ~> void
 {
     voidc_enable_global_objects_compiler();
 

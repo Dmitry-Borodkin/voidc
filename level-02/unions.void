@@ -80,7 +80,7 @@ struct v_ast_expr_union_t
 
 //---------------------------------------------------------------------
 private
-ast_expr_union_init: (void_obj: *void) -> void
+ast_expr_union_init: (void_obj: *void) ~> void
 {
     obj = *(void_obj: *v_ast_expr_union_t);
 
@@ -92,7 +92,7 @@ ast_expr_union_init: (void_obj: *void) -> void
 
 //---------------------------------------------------------------------
 private
-ast_expr_union_term: (void_obj: *void) -> void
+ast_expr_union_term: (void_obj: *void) ~> void
 {
     obj = *(void_obj: *v_ast_expr_union_t);
 
@@ -113,7 +113,7 @@ v_ast_make_expr_union: (ret: *v_ast_expr_t,
                         name: *v_ast_expr_t,
                         body: *v_ast_stmt_list_t,
                         export: bool
-                       ) -> void
+                       ) ~> void
 {
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
@@ -138,7 +138,7 @@ v_ast_make_expr_union: (ret: *v_ast_expr_t,
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_expr_union_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
+mk_expr_union_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
 {
     name   = v_std_any_get_pointer(v_ast_expr_t, any+0);
     body   = v_std_any_get_pointer(v_ast_stmt_list_t, any+1);
@@ -154,7 +154,7 @@ mk_expr_union_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
 
 //---------------------------------------------------------------------
 private
-mk_unit_union_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
+mk_unit_union_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
 {
     qualif = v_std_any_get_value(intptr_t, any+0);
     expr   = v_std_any_get_pointer(v_ast_expr_t, any+1);
@@ -190,7 +190,7 @@ export
 voidc_internal_union_cast_intrinsic: (aux: *void, vis: *voidc_visitor_t,
                                       self: v_ast_base_ptr,
                                       t0: v_type_ptr, v0: LLVMValueRef
-                                     ) -> void
+                                     ) ~> void
 {
     typ = (aux: *v_type_t);
 
@@ -201,7 +201,7 @@ voidc_internal_union_cast_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 private
 compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
                      self: *v_ast_base_t
-                    ) -> void
+                    ) ~> void
 {
     void_obj = v_ast_generic_get_object((self: v_ast_expr_ptr));
 
@@ -489,7 +489,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
 private
 compile_unit_union_defn: (aux: *void, vis: *voidc_visitor_t,
                           self: *v_ast_base_t
-                         ) -> void
+                         ) ~> void
 {
     list = (self: *v_ast_generic_list_t);
 
@@ -503,7 +503,7 @@ compile_unit_union_defn: (aux: *void, vis: *voidc_visitor_t,
 //- Enable unions
 //---------------------------------------------------------------------
 export
-voidc_enable_unions_compiler: () -> void
+voidc_enable_unions_compiler: () ~> void
 {
     vis = v_get_compiler();
 
@@ -517,7 +517,7 @@ voidc_enable_unions_compiler: () -> void
 //- Enable unions
 //---------------------------------------------------------------------
 export
-voidc_enable_unions: () -> void
+voidc_enable_unions: () ~> void
 {
     voidc_enable_unions_compiler();
 

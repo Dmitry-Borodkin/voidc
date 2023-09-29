@@ -29,7 +29,7 @@
 
 //---------------------------------------------------------------------
 private alwaysinline
-foo: (s: *const char) -> int
+foo: (s: *const char) ~> int
 {
     printf("foo(%s)\n", s);
 
@@ -42,7 +42,7 @@ asd = foo("asd");
 
 
 private
-bar: (s: *const char) -> v_std_string_t
+bar: (s: *const char) ~> v_std_string_t
 {
     ret = v_get_return_value();
 
@@ -89,7 +89,7 @@ ptr_variable: &*int := v_undef();
 
 
 //---------------------------------------------------------------------
-try_ctors: () -> void
+try_ctors: () ~> void
 {
     v = *ptr_variable;
 
@@ -99,11 +99,11 @@ try_ctors: () -> void
 
 //---------------------------------------------------------------------
 private
-try_ctors_ctor: () -> void
+try_ctors_ctor: () ~> void
 {
     printf("try_ctors_ctor\n");
 
-    v_find_symbol_value: (*const char) -> *void;
+    v_find_symbol_value: (*const char) ~> *void;
 
     ptr_variable := (v_find_symbol_value("try_variable") : *int);
 
@@ -111,23 +111,23 @@ try_ctors_ctor: () -> void
 }
 
 private
-try_ctors_dtor: () -> void
+try_ctors_dtor: () ~> void
 {
     printf("try_ctors_dtor\n");
 }
 
-private try_ctors_ctor_0: () -> void { printf("try_ctors_ctor_0\n"); }
-private try_ctors_dtor_0: () -> void { printf("try_ctors_dtor_0\n"); }
+private try_ctors_ctor_0: () ~> void { printf("try_ctors_ctor_0\n"); }
+private try_ctors_dtor_0: () ~> void { printf("try_ctors_dtor_0\n"); }
 
-private try_ctors_ctor_1: () -> void { printf("try_ctors_ctor_1\n"); }
-private try_ctors_dtor_1: () -> void { printf("try_ctors_dtor_1\n"); }
+private try_ctors_ctor_1: () ~> void { printf("try_ctors_ctor_1\n"); }
+private try_ctors_dtor_1: () ~> void { printf("try_ctors_dtor_1\n"); }
 
-private try_ctors_ctor_2: () -> void { printf("try_ctors_ctor_2\n"); }
-private try_ctors_dtor_2: () -> void { printf("try_ctors_dtor_2\n"); }
+private try_ctors_ctor_2: () ~> void { printf("try_ctors_ctor_2\n"); }
+private try_ctors_dtor_2: () ~> void { printf("try_ctors_dtor_2\n"); }
 
 
 private
-llvm_global_cdtors_item_t = v_struct({int(32), *(() -> void), *void});
+llvm_global_cdtors_item_t = v_struct({int(32), *(() ~> void), *void});
 
 my_llvm_global_ctors: &llvm_global_cdtors_item_t[] :=
 {

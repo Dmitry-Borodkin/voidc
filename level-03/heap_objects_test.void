@@ -98,17 +98,17 @@ struct some_t
     x: int;
 };
 
-(v_initialize(_)): (data: *some_t, count: size_t) -> void
+(v_initialize(_)): (data: *some_t, count: size_t) ~> void
 {
     printf("v_initialize(%p: *some_t, %zd)\n", data, count);
 }
 
-(v_terminate(_)): (data: *some_t, count: size_t) -> void
+(v_terminate(_)): (data: *some_t, count: size_t) ~> void
 {
     printf("v_terminate(%p: *some_t, %zd)\n", data, count);
 }
 
-(v_copy(_)): (dst: *some_t, src: *some_t, count: size_t) -> void
+(v_copy(_)): (dst: *some_t, src: *some_t, count: size_t) ~> void
 {
     printf("v_copy(%p: *some_t, %p, %zd)\n", dst, src, count);
 
@@ -116,7 +116,7 @@ struct some_t
 }
 
 
-(new _): (fixed: size_t) -> *some_t
+(new _): (fixed: size_t) ~> *some_t
 {
     ret = v_malloc(some_t, fixed);
 
@@ -127,7 +127,7 @@ struct some_t
     v_return(ret);
 }
 
-(delete _): (data: *some_t, fixed: size_t) -> void
+(delete _): (data: *some_t, fixed: size_t) ~> void
 {
     v_terminate(data, fixed);
 
@@ -161,19 +161,19 @@ struct some_t
 
 
 //---------------------------------------------------------------------
-(new[] _): (fixed: size_t, dynamic: size_t) -> *some_t
+(new[] _): (fixed: size_t, dynamic: size_t) ~> *some_t
 {
     alloc_t = struct { num: size_t; data: some_t[0]; };
 
-    size = (&(0: *alloc_t)~>data[fixed*dynamic] : size_t);
+    size = (&(0: *alloc_t)->data[fixed*dynamic] : size_t);
 
     void_data = v_aligned_alloc(alloc_t.align, size);
 
     data = (void_data : *alloc_t);
 
-    data~>num := dynamic;
+    data->num := dynamic;
 
-    ret = &data~>data[0];
+    ret = &data->data[0];
 
     printf("new[] (some_t[%zd])[%zd]: %p\n", fixed, dynamic, ret);
 
@@ -182,15 +182,15 @@ struct some_t
     v_return(ret);
 }
 
-(delete[] _): (data: *some_t, fixed: size_t) -> void
+(delete[] _): (data: *some_t, fixed: size_t) ~> void
 {
     alloc_t = struct { num: size_t; data: some_t[0]; };
 
-    shift = (&(0: *alloc_t)~>data[0] : size_t);
+    shift = (&(0: *alloc_t)->data[0] : size_t);
 
     alloc_p = ((data: *char) - shift : *alloc_t);
 
-    dynamic = alloc_p~>num;
+    dynamic = alloc_p->num;
 
     v_terminate(data, fixed*dynamic);
 

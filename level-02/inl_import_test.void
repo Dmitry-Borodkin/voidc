@@ -46,43 +46,43 @@ struct vec2
 
 //---------------------------------------------------------------------
 alwaysinline
-(_+_): (a: &vec2, b: &vec2) -> vec2
+(_+_): (a: &vec2, b: &vec2) ~> vec2
 {
     v_return({a.x+b.x, a.y+b.y});
 }
 
 alwaysinline
-(_-_): (a: &vec2, b: &vec2) -> vec2
+(_-_): (a: &vec2, b: &vec2) ~> vec2
 {
     v_return({a.x-b.x, a.y-b.y});
 }
 
 alwaysinline
-(+_): (a: &vec2) -> vec2
+(+_): (a: &vec2) ~> vec2
 {
     v_return(a);
 }
 
 alwaysinline
-(-_): (a: &vec2) -> vec2
+(-_): (a: &vec2) ~> vec2
 {
     v_return({-a.x, -a.y});
 }
 
 alwaysinline
-(_*__): (k: double, v: &vec2) -> vec2
+(_*__): (k: double, v: &vec2) ~> vec2
 {
     v_return({k*v.x, k*v.y});
 }
 
 alwaysinline
-(_*_): (v: &vec2, k: double) -> vec2
+(_*_): (v: &vec2, k: double) ~> vec2
 {
     v_return({v.x*k, v.y*k});
 }
 
 alwaysinline
-(_/_): (v: &vec2, k: double) -> vec2
+(_/_): (v: &vec2, k: double) ~> vec2
 {
     v_return({v.x/k, v.y/k});
 }

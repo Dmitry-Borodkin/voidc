@@ -321,7 +321,7 @@
 //- ...
 //---------------------------------------------------------------------
 {
-    v_make_global("op_infix_to",        v_ast_expr_t);
+    v_make_global("op_infix_tildato",   v_ast_expr_t);
     v_make_global("op_prefix_const",    v_ast_expr_t);
     v_make_global("op_prefix_volatile", v_ast_expr_t);
 
@@ -344,7 +344,7 @@
 {
 //  printf("voidc_definitions_internal_globals_cleaner\n");
 
-    v_terminate(op_infix_to);
+    v_terminate(op_infix_tildato);
     v_terminate(op_prefix_const);
     v_terminate(op_prefix_volatile);
 }
@@ -1345,7 +1345,7 @@
         v_initialize(expr);
         defer v_terminate(expr);
 
-        v_ast_make_expr_op_binary(expr, op_infix_to, v_cast(params, v_ast_expr_ptr), v_cast(ret_type, v_ast_expr_ptr));
+        v_ast_make_expr_op_binary(expr, op_infix_tildato, v_cast(params, v_ast_expr_ptr), v_cast(ret_type, v_ast_expr_ptr));
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
@@ -1981,11 +1981,11 @@
 
 
 //---------------------------------------------------------------------
-//- op_infix_to - compiler intrinsic (types only(!))
+//- op_infix_tildato - compiler intrinsic (types only(!))
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_op_infix_to", voidc_intrinsic_t);
+    f = v_function_hack("compile_op_infix_tildato", voidc_intrinsic_t);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -1994,8 +1994,8 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-//  printf("compile_op_infix_to\n");
-//  defer printf("compile_op_infix_to leave\n");
+//  printf("compile_op_infix_tildato\n");
+//  defer printf("compile_op_infix_tildato leave\n");
 
     call = v_cast(self, v_ast_expr_ptr);
 
@@ -2187,9 +2187,9 @@
 
     q = v_quark_from_string;
 
-    v_add_intrinsic_q(q("v.op_infix_to"),        compile_op_infix_to,  0);
-    v_add_intrinsic_q(q("v.op_prefix_const"),    compile_op_prefix_cv, 0);
-    v_add_intrinsic_q(q("v.op_prefix_volatile"), compile_op_prefix_cv, 0);
+    v_add_intrinsic_q(q("v.op_infix_tildato"),   compile_op_infix_tildato,  0);
+    v_add_intrinsic_q(q("v.op_prefix_const"),    compile_op_prefix_cv,      0);
+    v_add_intrinsic_q(q("v.op_prefix_volatile"), compile_op_prefix_cv,      0);
 
     v_add_intrinsic_q(q("v.internal.var_decl"), v_internal_var_decl_intrinsic, 0);
     v_add_intrinsic_q(q("v.internal.var_defn"), v_internal_var_defn_intrinsic, 0);
@@ -2253,11 +2253,11 @@
     v_initialize(any, 6);
     defer v_terminate(any, 6);
 
-    any_to       = any + 0;
+    any_tildato  = any + 0;
     any_const    = any + 1;
     any_volatile = any + 2;
 
-    v_std_any_set_pointer(any_to,       op_infix_to);
+    v_std_any_set_pointer(any_tildato,  op_infix_tildato);
     v_std_any_set_pointer(any_const,    op_prefix_const);
     v_std_any_set_pointer(any_volatile, op_prefix_volatile);
 
@@ -2279,7 +2279,7 @@
     grammar gr0
     {
     values:
-        op_infix_to        = any_to;
+        op_infix_tildato   = any_tildato;
         op_prefix_const    = any_const;
         op_prefix_volatile = any_volatile;
 
@@ -2309,7 +2309,7 @@
                 ;
 
 
-        infix += "->"   { op_infix_to };
+        infix += "~>"   { op_infix_tildato };
 
 
         bracketed = '('_ l:br_item_list _')'    { mk_bracketed(op_parentheses, l) }
@@ -2349,7 +2349,7 @@
         qlf_ident = q:qualif_flags _ i:identifier       { mk_qlf_ident(q, i) };
 
 
-        unit_fun_defn_hdr = qf:qlf_ident _':'_ a:bracketed _"->"_ r:expr    { mk_unit_fun_defn_hdr(qf, a, r) };
+        unit_fun_defn_hdr = qf:qlf_ident _':'_ a:bracketed _"~>"_ r:expr    { mk_unit_fun_defn_hdr(qf, a, r) };
 
         unit_fun_defn = h:unit_fun_defn_hdr _';'                    { mk_unit_fun_defn(h, 0) }
                       / h:unit_fun_defn_hdr _'{'_ l:stmt_list _'}'  { mk_unit_fun_defn(h, l) }
@@ -2421,7 +2421,7 @@
 //- ...
 //---------------------------------------------------------------------
 {
-    v_initialize(op_infix_to);
+    v_initialize(op_infix_tildato);
     v_initialize(op_prefix_const);
     v_initialize(op_prefix_volatile);
 
@@ -2430,7 +2430,7 @@
 
     q = v_quark_from_string;
 
-    op_binary(op_infix_to, q("v.op_infix_to"), 2000, 0, 0);                 //- "Lowest" priority, right-assoc
+    op_binary(op_infix_tildato, q("v.op_infix_tildato"), 2000, 0, 0);       //- "Lowest" priority, right-assoc
 
     op_unary(op_prefix_const,    q("v.op_prefix_const"),    20000, 0);      //- "Prefix" priority
     op_unary(op_prefix_volatile, q("v.op_prefix_volatile"), 20000, 0);      //- "Prefix" priority

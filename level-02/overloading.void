@@ -137,7 +137,7 @@ op_table: &op_table_item_t[] :=
 }
 
 //---------------------------------------------------------------------
-op_table_ctor: () -> void
+op_table_ctor: () ~> void
 {
     sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
@@ -201,7 +201,7 @@ ast_expr_compiled_vtable: &v_ast_generic_vtable := {0, 0};
 
 //---------------------------------------------------------------------
 export
-v_ast_make_expr_compiled: (expr: *v_ast_expr_t, t: *v_type_t, v: LLVMValueRef) -> void
+v_ast_make_expr_compiled: (expr: *v_ast_expr_t, t: *v_type_t, v: LLVMValueRef) ~> void
 {
     v_ast_make_generic(expr, &ast_expr_compiled_vtable, ast_expr_compiled_size);
 
@@ -215,7 +215,7 @@ v_ast_make_expr_compiled: (expr: *v_ast_expr_t, t: *v_type_t, v: LLVMValueRef) -
 
 //---------------------------------------------------------------------
 private
-compile_expr_compiled: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+compile_expr_compiled: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
 
@@ -243,7 +243,7 @@ ast_expr_compile_hook_t = v_struct("struct.v_ast_expr_compile_hook",
 }
 
 private
-ast_expr_compile_hook_init: (void_obj: *void) -> void
+ast_expr_compile_hook_init: (void_obj: *void) ~> void
 {
     obj = *(void_obj: *ast_expr_compile_hook_t);
 
@@ -251,7 +251,7 @@ ast_expr_compile_hook_init: (void_obj: *void) -> void
 }
 
 private
-ast_expr_compile_hook_term: (void_obj: *void) -> void
+ast_expr_compile_hook_term: (void_obj: *void) ~> void
 {
     obj = *(void_obj: *ast_expr_compile_hook_t);
 
@@ -266,7 +266,7 @@ ast_expr_compile_hook_vtable: &v_ast_generic_vtable :=
 
 //---------------------------------------------------------------------
 export
-v_ast_make_expr_compile_hook: (ret: *v_ast_expr_t, expr: *v_ast_expr_t, t: &*v_type_t, v: &LLVMValueRef) -> void
+v_ast_make_expr_compile_hook: (ret: *v_ast_expr_t, expr: *v_ast_expr_t, t: &*v_type_t, v: &LLVMValueRef) ~> void
 {
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
@@ -288,7 +288,7 @@ v_ast_make_expr_compile_hook: (ret: *v_ast_expr_t, expr: *v_ast_expr_t, t: &*v_t
 
 //---------------------------------------------------------------------
 private
-compile_expr_compile_hook: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+compile_expr_compile_hook: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
 
@@ -311,28 +311,28 @@ compile_expr_compile_hook: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) -
 export
 voidc_llvm_build_call_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, **v_ast_expr_t, unsigned) -> void),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, **v_ast_expr_t, unsigned) ~> void),
     *void
 });
 
 export
 voidc_compile_expr_call_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_ast_expr_list_t, *v_type_t, LLVMValueRef) -> void),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_ast_expr_list_t, *v_type_t, LLVMValueRef) ~> void),
     *void
 });
 
 export
 voidc_compile_op_assign_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t, *v_ast_expr_t) -> void),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t, *v_ast_expr_t) ~> void),
     *void
 });
 
 export
 voidc_compile_op_binary_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t, v_quark_t, *v_ast_expr_t) -> void),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t, v_quark_t, *v_ast_expr_t) ~> void),
     *void
 });
 
@@ -340,7 +340,7 @@ export
 voidc_compile_op_relation_helper_t = v_struct(
 {
     *((*void, *voidc_visitor_t, **v_ast_expr_t, int, v_quark_t, v_quark_t,
-       *v_type_t, LLVMValueRef, &*v_type_t, &LLVMValueRef) -> LLVMValueRef),
+       *v_type_t, LLVMValueRef, &*v_type_t, &LLVMValueRef) ~> LLVMValueRef),
 
     *void
 });
@@ -348,14 +348,14 @@ voidc_compile_op_relation_helper_t = v_struct(
 export
 voidc_compile_op_unary_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t) -> void),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t) ~> void),
     *void
 });
 
 export
 voidc_compile_op_postfix_index_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, &*v_type_t, &LLVMValueRef, **v_ast_expr_list_t, int) -> bool),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, &*v_type_t, &LLVMValueRef, **v_ast_expr_list_t, int) ~> bool),
     *void
 });
 
@@ -379,7 +379,7 @@ overloading_ctx_t = v_struct("struct.v_overloading_ctx",
 
 //---------------------------------------------------------------------
 private
-add_overloading_context: (ctx: *overloading_ctx_t) -> void
+add_overloading_context: (ctx: *overloading_ctx_t) ~> void
 {
     any = v_alloca(v_std_any_t);
     v_initialize(any);
@@ -392,7 +392,7 @@ add_overloading_context: (ctx: *overloading_ctx_t) -> void
 
 //---------------------------------------------------------------------
 private
-get_overloading_context: () -> *overloading_ctx_t
+get_overloading_context: () ~> *overloading_ctx_t
 {
     any = v_get_property_q(voidc_overloading_context_q);
 
@@ -404,7 +404,7 @@ get_overloading_context: () -> *overloading_ctx_t
 
 //---------------------------------------------------------------------
 export
-voidc_overloading_context_get_llvm_build_call_helper: () -> &voidc_llvm_build_call_helper_t
+voidc_overloading_context_get_llvm_build_call_helper: () ~> &voidc_llvm_build_call_helper_t
 {
     ctx = *get_overloading_context();
 
@@ -413,7 +413,7 @@ voidc_overloading_context_get_llvm_build_call_helper: () -> &voidc_llvm_build_ca
 
 //---------------------------------------------------------------------
 export
-voidc_overloading_context_get_compile_expr_call_helper: () -> &voidc_compile_expr_call_helper_t
+voidc_overloading_context_get_compile_expr_call_helper: () ~> &voidc_compile_expr_call_helper_t
 {
     ctx = *get_overloading_context();
 
@@ -422,7 +422,7 @@ voidc_overloading_context_get_compile_expr_call_helper: () -> &voidc_compile_exp
 
 //---------------------------------------------------------------------
 export
-voidc_overloading_context_get_compile_op_assign_helper: () -> &voidc_compile_op_assign_helper_t
+voidc_overloading_context_get_compile_op_assign_helper: () ~> &voidc_compile_op_assign_helper_t
 {
     ctx = *get_overloading_context();
 
@@ -431,7 +431,7 @@ voidc_overloading_context_get_compile_op_assign_helper: () -> &voidc_compile_op_
 
 //---------------------------------------------------------------------
 export
-voidc_overloading_context_get_compile_op_binary_helper: () -> &voidc_compile_op_binary_helper_t
+voidc_overloading_context_get_compile_op_binary_helper: () ~> &voidc_compile_op_binary_helper_t
 {
     ctx = *get_overloading_context();
 
@@ -440,7 +440,7 @@ voidc_overloading_context_get_compile_op_binary_helper: () -> &voidc_compile_op_
 
 //---------------------------------------------------------------------
 export
-voidc_overloading_context_get_compile_op_relation_helper: () -> &voidc_compile_op_relation_helper_t
+voidc_overloading_context_get_compile_op_relation_helper: () ~> &voidc_compile_op_relation_helper_t
 {
     ctx = *get_overloading_context();
 
@@ -449,7 +449,7 @@ voidc_overloading_context_get_compile_op_relation_helper: () -> &voidc_compile_o
 
 //---------------------------------------------------------------------
 export
-voidc_overloading_context_get_compile_op_unary_helper: () -> &voidc_compile_op_unary_helper_t
+voidc_overloading_context_get_compile_op_unary_helper: () ~> &voidc_compile_op_unary_helper_t
 {
     ctx = *get_overloading_context();
 
@@ -458,7 +458,7 @@ voidc_overloading_context_get_compile_op_unary_helper: () -> &voidc_compile_op_u
 
 //---------------------------------------------------------------------
 export
-voidc_overloading_context_get_compile_op_postfix_index_helper: () -> &voidc_compile_op_postfix_index_helper_t
+voidc_overloading_context_get_compile_op_postfix_index_helper: () ~> &voidc_compile_op_postfix_index_helper_t
 {
     ctx = *get_overloading_context();
 
@@ -474,7 +474,7 @@ private
 llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                          ft: *v_type_t, fv: LLVMValueRef,
                          arg_ptrs: **v_ast_expr_t, arg_count: unsigned
-                        ) -> void
+                        ) ~> void
 {
     par_count = v_type_function_get_param_count(ft);
     par_types = v_type_function_get_param_types(ft);
@@ -516,20 +516,20 @@ llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 intrinsic_p1_t = (aux: *void, vis: voidc_visitor_ptr,
                   self: v_ast_base_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef
-                 ) -> void;
+                 ) ~> void;
 
 intrinsic_p2_t = (aux: *void, vis: voidc_visitor_ptr,
                   self: v_ast_base_ptr,
                   t0: v_type_ptr, v0: LLVMValueRef,
                   t1: v_type_ptr, v1: LLVMValueRef
-                 ) -> void;
+                 ) ~> void;
 
 
 //---------------------------------------------------------------------
 private
 op_assign_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                    t0: *v_type_t, v0: LLVMValueRef, id: int, q: v_quark_t,
-                   rhs: *v_ast_expr_t) -> void
+                   rhs: *v_ast_expr_t) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -591,7 +591,7 @@ op_assign_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    compile = (op_data[4] : *((v_type_ptr, LLVMValueRef, LLVMValueRef) -> LLVMValueRef));
+    compile = (op_data[4] : *((v_type_ptr, LLVMValueRef, LLVMValueRef) ~> LLVMValueRef));
 
     flag = (op_data[5] : bool);
 
@@ -601,7 +601,7 @@ op_assign_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 //---------------------------------------------------------------------
 private
 op_assign_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
-                      self: v_ast_base_ptr) -> void
+                      self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -641,7 +641,7 @@ op_assign_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 private
 op_binary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                    t0: *v_type_t, v0: LLVMValueRef, id: int, q0: v_quark_t, q1: v_quark_t,
-                   rhs: *v_ast_expr_t) -> void
+                   rhs: *v_ast_expr_t) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -746,7 +746,7 @@ op_binary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     v_set_result_value(vtag);
 
 
-    helper = (op_data[4] : *((*voidc_visitor_t, *v_ast_expr_t, *v_ast_expr_t, *void) -> void));
+    helper = (op_data[4] : *((*voidc_visitor_t, *v_ast_expr_t, *v_ast_expr_t, *void) ~> void));
 
     compile = op_data[5];
 
@@ -756,7 +756,7 @@ op_binary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 //---------------------------------------------------------------------
 private
 op_binary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
-                      self: v_ast_base_ptr) -> void
+                      self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -802,7 +802,7 @@ op_relation_helper: (aux: *void, vis: *voidc_visitor_t,
                      id: int, q0: v_quark_t, q1: v_quark_t,
                      t0:  *v_type_t, v0:  LLVMValueRef,
                      t1: &*v_type_t, v1: &LLVMValueRef
-                    ) -> LLVMValueRef
+                    ) ~> LLVMValueRef
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -827,7 +827,7 @@ op_relation_helper: (aux: *void, vis: *voidc_visitor_t,
                            ast: **v_ast_expr_t,
                            t0:  *v_type_t, v0:  LLVMValueRef,
                            t1: &*v_type_t, v1: &LLVMValueRef
-                          ) -> void;
+                          ) ~> void;
 
         if (fun = (void_fun: *intrinsic_p12_t))
         {
@@ -879,7 +879,7 @@ op_relation_helper: (aux: *void, vis: *voidc_visitor_t,
                                ast: **v_ast_expr_t,
                                t0: *v_type_t, v0: LLVMValueRef,
                                t1: *v_type_t, v1: LLVMValueRef
-                              ) -> void;
+                              ) ~> void;
 
             if (fun = (void_fun: *intrinsic_p22_t))
             {
@@ -923,7 +923,7 @@ op_relation_helper: (aux: *void, vis: *voidc_visitor_t,
         v_ast_make_expr_compiled(expr, t1, v1);
 
         helper = (op_data[4] : *((*voidc_visitor_t, *void, *v_type_t, LLVMValueRef,
-                                  *v_ast_expr_t, &*v_type_t, &LLVMValueRef) -> LLVMValueRef));
+                                  *v_ast_expr_t, &*v_type_t, &LLVMValueRef) ~> LLVMValueRef));
 
         compile = op_data[5];
 
@@ -938,7 +938,7 @@ op_relation_helper: (aux: *void, vis: *voidc_visitor_t,
 
 //---------------------------------------------------------------------
 private
-check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr) -> int
+check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr) ~> int
 {
     get_tag = v_ast_base_get_visitor_method_tag;
 
@@ -982,7 +982,7 @@ check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr
 //---------------------------------------------------------------------
 private
 op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
-                        self: v_ast_base_ptr) -> void
+                        self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -1151,7 +1151,7 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 private
 op_unary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                   t0: *v_type_t, v0: LLVMValueRef, id: int, q: v_quark_t
-                 ) -> void
+                 ) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -1201,7 +1201,7 @@ op_unary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     v_ast_make_expr_compiled(expr, t0, v0);
 
-    helper = (op_data[4] : *((*voidc_visitor_t, *v_ast_expr_t, *void) -> void));
+    helper = (op_data[4] : *((*voidc_visitor_t, *v_ast_expr_t, *void) ~> void));
 
     compile = op_data[5];
 
@@ -1214,7 +1214,7 @@ op_unary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 //---------------------------------------------------------------------
 private
 op_unary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
-                     self: v_ast_base_ptr) -> void
+                     self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -1253,7 +1253,7 @@ private
 static_type_prefix_star_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                     self: v_ast_base_ptr,
                                     t0: v_type_ptr, v0: LLVMValueRef
-                                   ) -> void
+                                   ) ~> void
 {
     //- assert(t0 == v_static_type_t);
 
@@ -1270,7 +1270,7 @@ private
 static_type_prefix_amp_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                    self: v_ast_base_ptr,
                                    t0: v_type_ptr, v0: LLVMValueRef
-                                  ) -> void
+                                  ) ~> void
 {
     //- assert(t0 == v_static_type_t);
 
@@ -1287,7 +1287,7 @@ private
 static_type_prefix_cv_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                   self: v_ast_base_ptr,
                                   t0: v_type_ptr, v0: LLVMValueRef
-                                 ) -> void
+                                 ) ~> void
 {
     //- assert(t0 == v_static_type_t);
 
@@ -1308,7 +1308,7 @@ compile_expr_call_helper: (aux: *void, vis: voidc_visitor_ptr,
                            self: v_ast_base_ptr,
                            args: v_ast_expr_list_ptr,
                            t: v_type_ptr, v: LLVMValueRef
-                          ) -> void
+                          ) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -1329,7 +1329,7 @@ compile_expr_call_helper: (aux: *void, vis: voidc_visitor_ptr,
                        self: v_ast_base_ptr,
                        args: v_ast_expr_list_ptr,
                        t0: v_type_ptr, v0: LLVMValueRef
-                      ) -> void;
+                      ) ~> void;
 
         if (fun = (void_fun: *intrinsic_t))
         {
@@ -1397,7 +1397,7 @@ compile_expr_call_helper: (aux: *void, vis: voidc_visitor_ptr,
 //---------------------------------------------------------------------
 private
 compile_expr_call: (aux: *void, vis: voidc_visitor_ptr,
-                    self: v_ast_base_ptr) -> void
+                    self: v_ast_base_ptr) ~> void
 {
     fexpr = v_ast_expr_call_get_fun_expr((self: v_ast_expr_ptr));
     args  = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
@@ -1447,7 +1447,7 @@ op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t,
                           self: *v_ast_base_t,
                           agg_t: &*v_type_t, agg_v: &LLVMValueRef,
                           idx: **v_ast_expr_list_t, count: int
-                         ) -> bool
+                         ) ~> bool
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -1470,7 +1470,7 @@ op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t,
                        self: *v_ast_base_t,
                        agg_t: v_type_ptr, agg_v: LLVMValueRef,
                        idx: **v_ast_expr_list_t, count: int
-                      ) -> void;
+                      ) ~> void;
 
         if (fun = (void_fun: *intrinsic_t))
         {
@@ -1533,7 +1533,7 @@ op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t,
 
 //---------------------------------------------------------------------
 private
-check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t) -> bool
+check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t) ~> bool
 {
     tag = v_ast_base_get_visitor_method_tag((arg: v_ast_base_ptr));
 
@@ -1573,7 +1573,7 @@ check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t)
 //---------------------------------------------------------------------
 private
 op_postfix_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
-                             self: v_ast_base_ptr) -> void
+                             self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -1641,7 +1641,7 @@ static_type_postfix_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                       self: v_ast_base_ptr,
                                       agg_t: v_type_ptr, agg_v: LLVMValueRef,
                                       idx: *v_ast_expr_list_ptr, count: int
-                                     ) -> void
+                                     ) ~> void
 {
     t: &v_type_ptr := (agg_v: *v_type_t);
 
@@ -1689,7 +1689,7 @@ static_type_postfix_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 //- Enable overloading
 //---------------------------------------------------------------------
 export
-voidc_enable_overloading_compiler: () -> void
+voidc_enable_overloading_compiler: () ~> void
 {
     vis = v_get_compiler();
 
@@ -1705,7 +1705,7 @@ voidc_enable_overloading_compiler: () -> void
     //-------------------------------------------------------------
     ctx = *v_malloc(overloading_ctx_t) := 0;
 
-    free: (*void) -> void;
+    free: (*void) ~> void;
 
     v_add_local_cleaner(free, &ctx);
 
@@ -1774,7 +1774,7 @@ voidc_enable_overloading_compiler: () -> void
 //- Enable overloading
 //---------------------------------------------------------------------
 export
-voidc_enable_overloading: () -> void
+voidc_enable_overloading: () ~> void
 {
     voidc_enable_overloading_compiler();
 }

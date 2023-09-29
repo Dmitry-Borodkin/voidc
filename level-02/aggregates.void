@@ -41,7 +41,7 @@
 //---------------------------------------------------------------------
 v_op_braces: &v_ast_expr_t := v_undef();
 
-voidc_aggregates_internal_gloabls_cleaner: (*void) -> void
+voidc_aggregates_internal_gloabls_cleaner: (*void) ~> void
 {
     v_terminate(&v_op_braces);
 }
@@ -49,7 +49,7 @@ voidc_aggregates_internal_gloabls_cleaner: (*void) -> void
 
 //---------------------------------------------------------------------
 v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
-                        self: v_ast_base_ptr) -> void
+                        self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -154,7 +154,7 @@ v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
 //- v_struct ...
 //---------------------------------------------------------------------
 v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
-                     self: v_ast_base_ptr) -> void
+                     self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -239,7 +239,7 @@ v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
 //- v_typed ...
 //---------------------------------------------------------------------
 v_typed_intrinsic: (*void, vis: voidc_visitor_ptr,
-                    self: v_ast_base_ptr) -> void
+                    self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -274,7 +274,7 @@ v_typed_intrinsic: (*void, vis: voidc_visitor_ptr,
 //- Enable aggregates
 //---------------------------------------------------------------------
 export
-voidc_enable_aggregates_compiler: () -> void
+voidc_enable_aggregates_compiler: () ~> void
 {
     v_return_if(v_get_intrinsic_q(q_op_braces, 0));
 
@@ -293,7 +293,7 @@ voidc_enable_aggregates_compiler: () -> void
 //- Enable aggregates
 //---------------------------------------------------------------------
 export
-voidc_enable_aggregates: () -> void
+voidc_enable_aggregates: () ~> void
 {
     voidc_enable_aggregates_compiler();
 

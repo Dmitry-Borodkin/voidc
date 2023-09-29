@@ -28,7 +28,7 @@
 
 //---------------------------------------------------------------------
 export
-voidc_unit_begin_module: (name: *const char) -> LLVMModuleRef
+voidc_unit_begin_module: (name: *const char) ~> LLVMModuleRef
 {
     module = LLVMModuleCreateWithName(name);
 
@@ -42,7 +42,7 @@ voidc_unit_begin_module: (name: *const char) -> LLVMModuleRef
 
 //---------------------------------------------------------------------
 export
-voidc_unit_end_module: () -> void
+voidc_unit_end_module: () ~> void
 {
     module = v_get_module();
 

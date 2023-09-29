@@ -102,7 +102,7 @@ struct v_inline_function_data_t
 
 //---------------------------------------------------------------------
 private
-inline_function_data_cleaner: (void_data: *void) -> void
+inline_function_data_cleaner: (void_data: *void) ~> void
 {
     data = *(void_data: *v_inline_function_data_t);
 
@@ -118,7 +118,7 @@ export
 voidc_internal_create_inline_function_data: (flags: intptr_t, fun_name: *const char,
                                              module: LLVMModuleRef,
                                              buffer: *const char, size: size_t
-                                            ) -> void
+                                            ) ~> void
 {
     data = *v_malloc(v_inline_function_data_t) := 0;
 
@@ -162,7 +162,7 @@ voidc_internal_create_inline_function_data: (flags: intptr_t, fun_name: *const c
 //- Compiler method, etc...
 //---------------------------------------------------------------------
 private
-obtain_module_for_inlining: (void_mod: *void) -> LLVMModuleRef
+obtain_module_for_inlining: (void_mod: *void) ~> LLVMModuleRef
 {
     mod = *(void_mod: *LLVMModuleRef);
 
@@ -176,7 +176,7 @@ obtain_module_for_inlining: (void_mod: *void) -> LLVMModuleRef
 
 //---------------------------------------------------------------------
 private
-compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     ctx = *(aux: *v_inlining_aux_t);
 
@@ -328,13 +328,13 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
 private
 struct v_finish_module_ctx_t
 {
-    fun: *((*void, LLVMModuleRef) -> void);
+    fun: *((*void, LLVMModuleRef) ~> void);
     ctx: *void;
 };
 
 //---------------------------------------------------------------------
 private
-finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) -> void
+finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) ~> void
 {
     sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
@@ -378,26 +378,26 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) -> void
 
         if (!hack)  v_break();      //- Nothing to do ...
 
-        for (; hack; hack := hack~>hack)
+        for (; hack; hack := hack->hack)
         {
-            if (!hack~>module)
+            if (!hack->module)
             {
-                //- assert(hack~>membuf);
+                //- assert(hack->membuf);
 
-                ok = LLVMParseBitcodeInContext2(llvm_ctx, hack~>membuf, &hack~>module);
+                ok = LLVMParseBitcodeInContext2(llvm_ctx, hack->membuf, &hack->module);
 
                 //- assert(ok == 0);        //- ?
             }
 
-            //- assert(hack~>module);
+            //- assert(hack->module);
 
-            m = LLVMCloneModule(hack~>module);
+            m = LLVMCloneModule(hack->module);
 
             ok = LLVMLinkModules2(module, m);
 
             //- assert(ok == 0);        //- ?
 
-            f = LLVMGetNamedFunction(module, v_quark_to_string(hack~>quark));
+            f = LLVMGetNamedFunction(module, v_quark_to_string(hack->quark));
 
             LLVMSetLinkage(f, LLVMPrivateLinkage);
         }
@@ -405,7 +405,7 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) -> void
 
     ctx = (void_ctx: *v_finish_module_ctx_t);
 
-    if (ctx  &&  ctx~>fun)  ctx~>fun(ctx~>ctx, module);
+    if (ctx  &&  ctx->fun)  ctx->fun(ctx->ctx, module);
 }
 
 
@@ -421,14 +421,14 @@ struct v_inlining_ctx_t
 };
 
 private
-free: (*char) -> void;
+free: (*char) ~> void;
 
 
 //---------------------------------------------------------------------
 //- Enable inlining
 //---------------------------------------------------------------------
 export
-voidc_enable_inlining_compiler: () -> void
+voidc_enable_inlining_compiler: () ~> void
 {
     v_return_if(v_find_constant_q(enabled_q, 0, 0));
 
@@ -457,7 +457,7 @@ voidc_enable_inlining_compiler: () -> void
     v_set_finish_module(finish_module_inlining, &ctx.finish_module_ctx);
 
 
-    v_add_local_cleaner(v_cast(free, *((*void) -> void)), &ctx);
+    v_add_local_cleaner(v_cast(free, *((*void) ~> void)), &ctx);
 }
 
 
@@ -465,7 +465,7 @@ voidc_enable_inlining_compiler: () -> void
 //- Enable inlining
 //---------------------------------------------------------------------
 export
-voidc_enable_inlining: () -> void
+voidc_enable_inlining: () ~> void
 {
     voidc_enable_inlining_compiler();
 

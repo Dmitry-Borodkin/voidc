@@ -38,9 +38,9 @@
 //---------------------------------------------------------------------
 byte = uint(8);
 
-printf: (*const char, ...) -> int;
+printf: (*const char, ...) ~> int;
 
-exit: (int) -> void;
+exit: (int) ~> void;
 
 
 //---------------------------------------------------------------------
@@ -63,10 +63,10 @@ struct v_myz_ctx_t
     buffer_out: uint(8);            //- Output bits buffer
 
     //-------------------------------------------------------------
-    check_in: *((&v_myz_ctx_t) -> bool);
+    check_in: *((&v_myz_ctx_t) ~> bool);
     aux_in:   *void;
 
-    check_out: *((&v_myz_ctx_t) -> bool);
+    check_out: *((&v_myz_ctx_t) ~> bool);
     aux_out:   *void;
 
     //- ...
@@ -78,7 +78,7 @@ struct v_myz_ctx_t
 //- Get one byte
 //---------------------------------------------------------------------
 private
-myz_get_byte: (ctx: &v_myz_ctx_t) -> byte
+myz_get_byte: (ctx: &v_myz_ctx_t) ~> byte
 {
     if (ctx.avail_in == 0  &&  !(ctx.check_in  &&  ctx.check_in(ctx)))
     {
@@ -98,7 +98,7 @@ myz_get_byte: (ctx: &v_myz_ctx_t) -> byte
 //- Get one bit
 //---------------------------------------------------------------------
 private
-myz_get_bit: (ctx: &v_myz_ctx_t) -> bool
+myz_get_bit: (ctx: &v_myz_ctx_t) ~> bool
 {
     if (ctx.remain_in == 0)
     {
@@ -121,7 +121,7 @@ myz_get_bit: (ctx: &v_myz_ctx_t) -> bool
 //- Read bits
 //---------------------------------------------------------------------
 private
-myz_read_bits: (ctx: &v_myz_ctx_t, bits: int) -> unsigned
+myz_read_bits: (ctx: &v_myz_ctx_t, bits: int) ~> unsigned
 {
     code: &unsigned := 0;
 
@@ -139,7 +139,7 @@ myz_read_bits: (ctx: &v_myz_ctx_t, bits: int) -> unsigned
 //- Check "End Of Data"
 //---------------------------------------------------------------------
 private
-myz_check_eod: (ctx: &v_myz_ctx_t) -> bool
+myz_check_eod: (ctx: &v_myz_ctx_t) ~> bool
 {
     if (ctx.avail_in != 0)  v_return(false);
 
@@ -155,7 +155,7 @@ myz_check_eod: (ctx: &v_myz_ctx_t) -> bool
 //- Put one byte
 //---------------------------------------------------------------------
 private
-myz_put_byte: (ctx: &v_myz_ctx_t, b: byte) -> void
+myz_put_byte: (ctx: &v_myz_ctx_t, b: byte) ~> void
 {
     if (ctx.avail_out == 0  &&  !(ctx.check_out  &&  ctx.check_out(ctx)))
     {
@@ -175,7 +175,7 @@ myz_put_byte: (ctx: &v_myz_ctx_t, b: byte) -> void
 //- Put one bit
 //---------------------------------------------------------------------
 private
-myz_put_bit: (ctx: &v_myz_ctx_t, bit: bool) -> void
+myz_put_bit: (ctx: &v_myz_ctx_t, bit: bool) ~> void
 {
     b = ctx.buffer_out;
     n = ctx.remain_out;
@@ -197,7 +197,7 @@ myz_put_bit: (ctx: &v_myz_ctx_t, bit: bool) -> void
 //- Write bits
 //---------------------------------------------------------------------
 private
-myz_write_bits: (ctx: &v_myz_ctx_t, code: unsigned, bits: int) -> void
+myz_write_bits: (ctx: &v_myz_ctx_t, code: unsigned, bits: int) ~> void
 {
     code: &unsigned := code;
 
@@ -213,7 +213,7 @@ myz_write_bits: (ctx: &v_myz_ctx_t, code: unsigned, bits: int) -> void
 //- Write "End Of Data"
 //---------------------------------------------------------------------
 private
-myz_write_eod: (ctx: &v_myz_ctx_t) -> void
+myz_write_eod: (ctx: &v_myz_ctx_t) ~> void
 {
     myz_write_bits(ctx, 1, 8);
 }
@@ -236,7 +236,7 @@ struct v_myz_dict_enc_t
 
 //---------------------------------------------------------------------
 private
-dict_enc_init: (dict: &v_myz_dict_enc_t) -> void
+dict_enc_init: (dict: &v_myz_dict_enc_t) ~> void
 {
     v_initialize(&dict.list);
 
@@ -245,14 +245,14 @@ dict_enc_init: (dict: &v_myz_dict_enc_t) -> void
 
 //---------------------------------------------------------------------
 private
-dict_enc_term: (dict: &v_myz_dict_enc_t) -> void
+dict_enc_term: (dict: &v_myz_dict_enc_t) ~> void
 {
     v_terminate(&dict.list);
 }
 
 //---------------------------------------------------------------------
 private
-dict_enc_expand: (dict: &v_myz_dict_enc_t) -> &v_myz_enc_t
+dict_enc_expand: (dict: &v_myz_dict_enc_t) ~> &v_myz_enc_t
 {
     item = v_alloca(v_ast_base_t);
     v_initialize(item);
@@ -273,7 +273,7 @@ dict_enc_expand: (dict: &v_myz_dict_enc_t) -> &v_myz_enc_t
 
 //---------------------------------------------------------------------
 private
-dict_enc_at: (dict: &v_myz_dict_enc_t, i: int) -> &v_myz_enc_t
+dict_enc_at: (dict: &v_myz_dict_enc_t, i: int) ~> &v_myz_enc_t
 {
     void_obj = v_ast_generic_get_object(v_list_get_item(&dict.list, i));
 
@@ -300,7 +300,7 @@ dict_enc_at: (dict: &v_myz_dict_enc_t, i: int) -> &v_myz_enc_t
 //- Encoding ...
 //---------------------------------------------------------------------
 export
-v_myz_encode: (ctx: &v_myz_ctx_t) -> void
+v_myz_encode: (ctx: &v_myz_ctx_t) ~> void
 {
     bits: &unsigned := 9;
 
@@ -372,7 +372,7 @@ struct v_myz_dict_dec_t
 
 //---------------------------------------------------------------------
 private
-dict_dec_init: (dict: &v_myz_dict_dec_t) -> void
+dict_dec_init: (dict: &v_myz_dict_dec_t) ~> void
 {
     v_initialize(&dict.list);
 
@@ -381,14 +381,14 @@ dict_dec_init: (dict: &v_myz_dict_dec_t) -> void
 
 //---------------------------------------------------------------------
 private
-dict_dec_term: (dict: &v_myz_dict_dec_t) -> void
+dict_dec_term: (dict: &v_myz_dict_dec_t) ~> void
 {
     v_terminate(&dict.list);
 }
 
 //---------------------------------------------------------------------
 private
-dict_dec_expand: (dict: &v_myz_dict_dec_t) -> &v_myz_dec_t
+dict_dec_expand: (dict: &v_myz_dict_dec_t) ~> &v_myz_dec_t
 {
     item = v_alloca(v_ast_base_t);
     v_initialize(item);
@@ -409,7 +409,7 @@ dict_dec_expand: (dict: &v_myz_dict_dec_t) -> &v_myz_dec_t
 
 //---------------------------------------------------------------------
 private
-dict_dec_at: (dict: &v_myz_dict_dec_t, i: int) -> &v_myz_dec_t
+dict_dec_at: (dict: &v_myz_dict_dec_t, i: int) ~> &v_myz_dec_t
 {
     void_obj = v_ast_generic_get_object(v_list_get_item(&dict.list, i));
 
@@ -438,7 +438,7 @@ dict_dec_at: (dict: &v_myz_dict_dec_t, i: int) -> &v_myz_dec_t
 //- Decoding ...
 //---------------------------------------------------------------------
 export
-v_myz_decode: (ctx: &v_myz_ctx_t) -> void
+v_myz_decode: (ctx: &v_myz_ctx_t) ~> void
 {
     bits: &unsigned := 9;
 

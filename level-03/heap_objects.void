@@ -69,7 +69,7 @@ op_prefix_delete_array: &v_ast_expr_t := v_undef();
 
 //---------------------------------------------------------------------
 private
-voidc_heap_objects_internal_globals_cleaner: (*void) -> void
+voidc_heap_objects_internal_globals_cleaner: (*void) ~> void
 {
     v_terminate(&op_prefix_new);
     v_terminate(&op_prefix_new_array);
@@ -78,7 +78,7 @@ voidc_heap_objects_internal_globals_cleaner: (*void) -> void
 }
 
 //---------------------------------------------------------------------
-voidc_heap_objects_internal_globals_ctor: () -> void
+voidc_heap_objects_internal_globals_ctor: () ~> void
 {
     v_initialize(&op_prefix_new);
     v_initialize(&op_prefix_new_array);
@@ -98,7 +98,7 @@ voidc_heap_objects_internal_globals_ctor: () -> void
 //- ... grammar_action ...
 //---------------------------------------------------------------------
 private
-mk_expr_new_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) -> void
+mk_expr_new_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     type   = v_std_any_get_pointer(v_ast_expr_t,      any+0);
     values = v_std_any_get_pointer(v_ast_expr_list_t, any+1);
@@ -130,7 +130,7 @@ mk_expr_new_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t
 //- ...
 //---------------------------------------------------------------------
 private
-v_aligned_alloc_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+v_aligned_alloc_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -157,7 +157,7 @@ v_aligned_alloc_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
 //---------------------------------------------------------------------
 private
-v_aligned_free_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> void
+v_aligned_free_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -180,7 +180,7 @@ private
 make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
                               t: *v_type_t, v: LLVMValueRef,
                               length: size_t, idx_v: LLVMValueRef
-                              ) -> void
+                              ) ~> void
 {
     length: &size_t := length;
 
@@ -229,7 +229,7 @@ make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 //- ... ??? ...
 //---------------------------------------------------------------------
 private
-check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t) -> bool
+check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t) ~> bool
 {
     tag = v_ast_base_get_visitor_method_tag((arg: *v_ast_base_t));
 
@@ -269,7 +269,7 @@ check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t)
 //---------------------------------------------------------------------
 private
 op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
-                          self: *v_ast_base_t) -> void
+                          self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -402,7 +402,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
         if (N > 0)      //- array?
         {
-            intrinsic_array_t = (*voidc_visitor_t, *void, *v_ast_base_t, size_t, LLVMValueRef) -> void;
+            intrinsic_array_t = (*voidc_visitor_t, *void, *v_ast_base_t, size_t, LLVMValueRef) ~> void;
 
             if (fun = (void_fun: *intrinsic_array_t))
             {
@@ -423,7 +423,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
         }
         else            //- single
         {
-            intrinsic_single_t = (*voidc_visitor_t, *void, *v_ast_base_t, size_t) -> void;
+            intrinsic_single_t = (*voidc_visitor_t, *void, *v_ast_base_t, size_t) ~> void;
 
             if (fun = (void_fun: *intrinsic_single_t))
             {
@@ -609,7 +609,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 //---------------------------------------------------------------------
 private
 op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
-                             self: *v_ast_base_t) -> void
+                             self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -649,7 +649,7 @@ op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
 
-        intrinsic_single_t = (*voidc_visitor_t, *void, *v_ast_base_t, LLVMValueRef, size_t) -> void;
+        intrinsic_single_t = (*voidc_visitor_t, *void, *v_ast_base_t, LLVMValueRef, size_t) ~> void;
 
         if (fun = (void_fun: *intrinsic_single_t))
         {
@@ -705,7 +705,7 @@ op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 //---------------------------------------------------------------------
 private
 op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
-                                   self: *v_ast_base_t) -> void
+                                   self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -747,7 +747,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
 
-        intrinsic_single_t = (*voidc_visitor_t, *void, *v_ast_base_t, LLVMValueRef, size_t) -> void;
+        intrinsic_single_t = (*voidc_visitor_t, *void, *v_ast_base_t, LLVMValueRef, size_t) ~> void;
 
         if (fun = (void_fun: *intrinsic_single_t))
         {
@@ -857,7 +857,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
                              ft: *v_type_t,
                              iq: &intptr_t, t: &*v_type_t
-                            ) -> void;
+                            ) ~> void;
 
 struct voidc_compute_key_quark_type_ctx_t
 {
@@ -870,7 +870,7 @@ private
 compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
                          ft: *v_type_t,
                          iq: &intptr_t, t: &*v_type_t
-                        ) -> void
+                        ) ~> void
 {
     if (iq > 0)
     {
@@ -932,7 +932,7 @@ struct voidc_internal_heap_objects_ctx_t
 //- Enable heap objects
 //---------------------------------------------------------------------
 export
-voidc_enable_heap_objects_compiler: () -> void
+voidc_enable_heap_objects_compiler: () ~> void
 {
     v_return_if(v_get_intrinsic_q(q_op_prefix_new, 0));
 
@@ -987,7 +987,7 @@ voidc_enable_heap_objects_compiler: () -> void
 
     v_add_intrinsic_q(q, compute_key_quark_type, &ctx.quark);
 
-    free: (*void) -> void;
+    free: (*void) ~> void;
 
     v_add_local_cleaner(free, &ctx);
 }
@@ -996,7 +996,7 @@ voidc_enable_heap_objects_compiler: () -> void
 //- Enable heap objects
 //---------------------------------------------------------------------
 export
-voidc_enable_heap_objects: () -> void
+voidc_enable_heap_objects: () ~> void
 {
     voidc_enable_heap_objects_compiler();
 

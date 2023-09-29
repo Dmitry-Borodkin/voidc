@@ -26,10 +26,10 @@ test_t = struct { v_std_any_t; };
     printf("f: %d\n", (f: int));
 }
 
-(v_initialize(_)): (*test_t, size_t) -> void = derive;
-(v_terminate(_)):  (*test_t, size_t) -> void = derive;
+(v_initialize(_)): (*test_t, size_t) ~> void = derive;
+(v_terminate(_)):  (*test_t, size_t) ~> void = derive;
 
-(v_copy(_)): (*test_t, *const test_t, size_t) -> void = derive;
+(v_copy(_)): (*test_t, *const test_t, size_t) ~> void = derive;
 
 { v_debug_print_module(1); }
 {
@@ -143,14 +143,14 @@ test_t = struct { v_std_any_t; };
     voidc_verify_jit_module_optimized(true);
 }
 
-(_[]): (l: v_ast_expr_list_t, i: size_t) -> v_ast_expr_t
+(_[]): (l: v_ast_expr_list_t, i: size_t) ~> v_ast_expr_t
 {
     p = v_get_object_pointer(l);
 
     v_return(*v_list_get_item(p, i));
 }
 
-(_[]): (l: &v_ast_expr_list_t, i: size_t) -> &v_ast_expr_t
+(_[]): (l: &v_ast_expr_list_t, i: size_t) ~> &v_ast_expr_t
 {
     v_return(*v_list_get_item(&l, i));
 }

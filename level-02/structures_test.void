@@ -53,7 +53,7 @@ s: &qwerty_t := { 7, 19, &r, "s" };
 {
     q: &qwerty_t := s;
 
-    q.y += r.p~>y;
+    q.y += r.p->y;
 
     printf("q: { x: %d, y: %ld, _, \"%s\" }\n", q.x, q.y, q[3]);
 
@@ -62,7 +62,7 @@ s: &qwerty_t := { 7, 19, &r, "s" };
 
 //---------------------------------------------------------------------
 {
-    printf("a.d: %g, a.p~>d: %g\n", a.d, a.p~>d);
+    printf("a.d: %g, a.p->d: %g\n", a.d, a.p->d);
 
     printf("M_PI: %.99g\n", M_PI);
     printf("M_PI: %.13a\n", M_PI);

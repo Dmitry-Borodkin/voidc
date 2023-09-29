@@ -43,7 +43,7 @@
 
 
 //---------------------------------------------------------------------
-mk_stmt_while_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
+mk_stmt_while_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
 {
     cond = v_std_any_get_pointer(v_ast_stmt_list_t, any+0);
     stmt = v_std_any_get_pointer(v_ast_stmt_t,      any+1);
@@ -132,7 +132,7 @@ mk_stmt_while_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
 
 //---------------------------------------------------------------------
 v_internal_copy_variable_intrinsic: (*void, vis: voidc_visitor_ptr,
-                                     self: v_ast_base_ptr) -> void
+                                     self: v_ast_base_ptr) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
@@ -151,7 +151,7 @@ v_internal_copy_variable_intrinsic: (*void, vis: voidc_visitor_ptr,
 }
 
 //---------------------------------------------------------------------
-mk_stmt_for_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
+mk_stmt_for_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
 {
     init = v_std_any_get_pointer(v_ast_stmt_list_t, any+0);
     cond = v_std_any_get_pointer(v_ast_stmt_list_t, any+1);
@@ -379,7 +379,7 @@ mk_stmt_for_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size
 
 
 //---------------------------------------------------------------------
-mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
+mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
 {
     cond = v_std_any_get_pointer(v_ast_stmt_list_t, any+0);
     tstm = v_std_any_get_pointer(v_ast_stmt_t,      any+1);
@@ -462,7 +462,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_an
 
 
 //---------------------------------------------------------------------
-mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) -> void
+mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
 {
     estm = v_std_any_get_pointer(v_ast_stmt_list_t,    any+0);
     glst = v_std_any_get_pointer(v_ast_generic_list_t, any+1);
@@ -545,7 +545,7 @@ mk_stmt_switch_2_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr,
 //- Enable loops etc
 //---------------------------------------------------------------------
 export
-voidc_enable_loops_etc_compiler: () -> void
+voidc_enable_loops_etc_compiler: () ~> void
 {
     copy_variable_q = v_quark_from_string("v.internal.copy_variable");
 
@@ -565,7 +565,7 @@ voidc_enable_loops_etc_compiler: () -> void
 //- Enable loops etc
 //---------------------------------------------------------------------
 export
-voidc_enable_loops_etc: () -> void
+voidc_enable_loops_etc: () ~> void
 {
     voidc_enable_loops_etc_compiler();
 
