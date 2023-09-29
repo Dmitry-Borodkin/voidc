@@ -74,7 +74,7 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
 //- obtain_special_result_value_global_ctx_t ...
 //---------------------------------------------------------------------
 private
-struct obtain_special_result_value_global_ctx_t
+obtain_special_result_value_global_ctx_t = struct
 {
     name: *const char;
 
@@ -145,7 +145,7 @@ obtain_special_result_value_global: (aux: *void, vis: *voidc_visitor_t, t: *v_ty
 //- voidc_obtain_special_result_value ...
 //---------------------------------------------------------------------
 private
-struct my_obtain_special_result_value_ctx_t
+my_obtain_special_result_value_ctx_t = struct
 {
     global_flag: bool;
     global_ctx:  obtain_special_result_value_global_ctx_t;
@@ -633,7 +633,7 @@ my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 //- my_compile_defn_list_unit - visitor method
 //---------------------------------------------------------------------
 private
-struct my_compile_defn_list_unit_ctx_t
+my_compile_defn_list_unit_ctx_t = struct
 {
     obtain_spec: my_obtain_special_result_value_ctx_t;
 
@@ -734,7 +734,7 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 //- Generate/update global ctors/dtors tables...
 //---------------------------------------------------------------------
 private
-struct my_finish_module_globals_ctx_t
+my_finish_module_globals_ctx_t = struct
 {
     global_ctx: *obtain_special_result_value_global_ctx_t;
 
@@ -900,7 +900,7 @@ struct voidc_finish_module_cdtors_ctx_t
 
 //---------------------------------------------------------------------
 private
-struct item_t
+item_t = struct
 {
     pri: int;
 
@@ -1002,7 +1002,7 @@ voidc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) -> void
 
 //=====================================================================
 private
-struct my_global_objects_ctx_t
+struct v_global_objects_ctx_t
 {
     unit:        my_compile_defn_list_unit_ctx_t;
     fin_globals: my_finish_module_globals_ctx_t;
@@ -1020,7 +1020,7 @@ voidc_enable_global_objects_compiler: () -> void
     v_add_constant_q(enabled_q, void, 0);
 
     //-----------------------------------------------------------------
-    ctx = *v_malloc(my_global_objects_ctx_t) := 0;
+    ctx = *v_malloc(v_global_objects_ctx_t) := 0;
 
     obtain_spec = ctx.unit.obtain_spec;
 

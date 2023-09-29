@@ -61,7 +61,7 @@ opk_relation = 2;
 opk_binary   = 3;
 opk_unary    = 4;
 
-op_table_item_t = v_struct("struct.op_table_item",
+op_table_item_t = v_struct("struct.v_op_table_item",
 {
     *const char,    //- 0 - Name
     int,            //- 1 - Kind
@@ -186,7 +186,7 @@ op_table_ctor: () -> void
 //- ast_expr_compiled_t ...
 //---------------------------------------------------------------------
 private
-ast_expr_compiled_t = v_struct("struct.ast_expr_compiled_t",
+ast_expr_compiled_t = v_struct("struct.v_ast_expr_compiled",
 {
     *v_type_t,          //- 0 - compiled type
     LLVMValueRef,       //- 1 - compiled value
@@ -229,7 +229,7 @@ compile_expr_compiled: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) -> vo
 //- ast_expr_compile_hook_t ...
 //---------------------------------------------------------------------
 private
-ast_expr_compile_hook_t = v_struct("struct.ast_expr_compile_hook_t",
+ast_expr_compile_hook_t = v_struct("struct.v_ast_expr_compile_hook",
 {
     v_ast_expr_t,       //- 0 - expr  to compile
 
@@ -362,9 +362,9 @@ voidc_compile_op_postfix_index_helper_t = v_struct(
 
 //---------------------------------------------------------------------
 private
-overloading_ctx_t = v_struct("struct.overloading_ctx_t",
+overloading_ctx_t = v_struct("struct.v_overloading_ctx",
 {
-    v_struct({*v_struct("struct.overloading_ctx_t"), int})[op_table_length],        //- 0
+    v_struct({*v_struct("struct.v_overloading_ctx"), int})[op_table_length],        //- 0
 
     voidc_llvm_build_call_helper_t,                     //- 1
     voidc_compile_expr_call_helper_t,                   //- 2
@@ -954,12 +954,12 @@ check_relation: (arg: v_ast_expr_ptr, lhs: *v_ast_expr_ptr, rhs: *v_ast_expr_ptr
 
     block
     {
+        if (qname == q_op_infix_eq)  { rk := id_infix_eq; v_break(); }
+        if (qname == q_op_infix_ne)  { rk := id_infix_ne; v_break(); }
         if (qname == q_op_infix_lt)  { rk := id_infix_lt; v_break(); }
         if (qname == q_op_infix_le)  { rk := id_infix_le; v_break(); }
         if (qname == q_op_infix_gt)  { rk := id_infix_gt; v_break(); }
         if (qname == q_op_infix_ge)  { rk := id_infix_ge; v_break(); }
-        if (qname == q_op_infix_eq)  { rk := id_infix_eq; v_break(); }
-        if (qname == q_op_infix_ne)  { rk := id_infix_ne; v_break(); }
 
         v_return(0);
     }

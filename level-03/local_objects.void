@@ -372,7 +372,7 @@ voidc_make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 
 //---------------------------------------------------------------------
 private
-struct my_temporary_cleaner_ctx_t
+my_temporary_cleaner_ctx_t = struct
 {
     typ: *v_type_t;
     val: LLVMValueRef;
@@ -528,7 +528,7 @@ export GLOBAL_VTAG    = ((-2: intptr_t) : LLVMValueRef);
 
 //---------------------------------------------------------------------
 private
-struct my_compile_stmt_hook_t
+my_compile_stmt_hook_t = struct
 {
     fun: *((*void, *voidc_visitor_t, *v_ast_base_t) -> void);
     aux: *void;
@@ -629,7 +629,7 @@ my_llvm_build_call_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 //- adopt_result ...
 //---------------------------------------------------------------------
 private
-struct my_adopt_result_ctx_t
+my_adopt_result_ctx_t = struct
 {
     fun: *((*void, *v_type_t, LLVMValueRef) -> void);
     ctx: *void;
@@ -873,7 +873,7 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) -> void
 
 //=====================================================================
 private
-struct my_return_intrinsic_ctx_t
+my_return_intrinsic_ctx_t = struct
 {
     fun: *((*void, *voidc_visitor_t, *v_ast_base_t) -> void);
     aux: *void;
@@ -1087,7 +1087,7 @@ my_internal_val_defn_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast
 
 //=====================================================================
 private
-struct my_op_braces_intrinsic_ctx_t
+my_op_braces_intrinsic_ctx_t = struct
 {
     fun: *((*void, *voidc_visitor_t, *v_ast_base_t) -> void);
     aux: *void;
@@ -1189,7 +1189,7 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
 //=====================================================================
 private
-struct my_local_objects_ctx_t
+struct v_local_objects_ctx_t
 {
     obtain_special_result_value_flag: bool;
 
@@ -1216,7 +1216,7 @@ voidc_enable_local_objects_compiler: () -> void
     v_type_set_obtain_llvm_type_fun(v_type_kind_function, v_type_function_obtain_llvm_type_hook, 0);
 
     //-----------------------------------------------------------------
-    ctx = *v_malloc(my_local_objects_ctx_t);
+    ctx = *v_malloc(v_local_objects_ctx_t);
 
     fun_params = voidc_definitions_context_get_fun_params();
 
