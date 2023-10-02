@@ -280,7 +280,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
     if (v_list_get_size(args) > 1)  value := v_list_get_item(args, 1);
 
     //-----------------------------------------------------------------
-    hnd = (aux: *voidc_llvm_build_call_helper_t);
+    llvm_build_call = (aux: *voidc_llvm_build_call_helper_t);
 
     //-----------------------------------------------------------------
     N: &int := 0;
@@ -418,7 +418,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
                 arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
 
-                v_handle(hnd, vis, self, ft, fv, arg_ptr, 2);
+                llvm_build_call(vis, self, ft, fv, arg_ptr, 2);
             }
         }
         else            //- single
@@ -437,7 +437,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
                 arg_ptr: &v_ast_expr_ptr := &expr;
 
-                v_handle(hnd, vis, self, ft, fv, &arg_ptr, 1);
+                llvm_build_call(vis, self, ft, fv, &arg_ptr, 1);
             }
         }
 
@@ -667,7 +667,7 @@ op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
             hnd = (aux: *voidc_llvm_build_call_helper_t);
 
-            v_handle(hnd, vis, self, ft, fv, arg_ptr, 2);
+            hnd(vis, self, ft, fv, arg_ptr, 2);
         }
 
         v_return();
@@ -765,7 +765,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
             hnd = (aux: *voidc_llvm_build_call_helper_t);
 
-            v_handle(hnd, vis, self, ft, fv, arg_ptr, 2);
+            hnd(vis, self, ft, fv, arg_ptr, 2);
         }
 
         v_return();

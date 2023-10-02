@@ -178,7 +178,7 @@ obtain_module_for_inlining: (void_mod: *void) ~> LLVMModuleRef
 private
 compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    ctx = *(aux: *v_inlining_aux_t);
+    ctx = (aux: *v_inlining_aux_t);
 
     list = (self: v_ast_generic_list_ptr);
 
@@ -191,7 +191,7 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
         //- No inlining... --------------------------------------------
 
         //--------------------------
-        ctx.fun(ctx.aux, vis, self);
+        v_handle(ctx, vis, self);
         //--------------------------
 
         v_return();
@@ -223,7 +223,7 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
     }
 
     //------------------------------------------
-    ctx.fun(ctx.aux, vis, self);        //- Sic!
+    v_handle(ctx, vis, self);           //- Sic!
     //------------------------------------------
 
     v_set_obtain_module(saved_obtain_module_fun, saved_obtain_module_ctx);
@@ -405,7 +405,7 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) ~> void
 
     ctx = (void_ctx: *v_finish_module_ctx_t);
 
-    if (ctx  &&  ctx->fun)  ctx->fun(ctx->ctx, module);
+    if (ctx  &&  ctx->fun)  v_handle(ctx, module);
 }
 
 
@@ -421,7 +421,7 @@ struct v_inlining_ctx_t
 };
 
 private
-free: (*char) ~> void;
+free: (*void) ~> void;
 
 
 //---------------------------------------------------------------------
@@ -457,7 +457,7 @@ voidc_enable_inlining_compiler: () ~> void
     v_set_finish_module(finish_module_inlining, &ctx.finish_module_ctx);
 
 
-    v_add_local_cleaner(v_cast(free, *((*void) ~> void)), &ctx);
+    v_add_local_cleaner(free, &ctx);
 }
 
 

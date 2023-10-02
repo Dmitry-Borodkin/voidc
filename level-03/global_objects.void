@@ -1025,13 +1025,12 @@ voidc_enable_global_objects_compiler: () ~> void
     obtain_spec = ctx.unit.obtain_spec;
 
     //-----------------------------------------------------------------
-    q = voidc_obtain_special_result_value_q;
+    handler = voidc_local_objects_context_get_obtain_special_result_value_helper();
 
-    fun_t = *((*void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef);
+    obtain_spec.fun := handler.fun;
+    obtain_spec.aux := handler.aux;
 
-    obtain_spec.fun := (v_get_intrinsic_q(q, &obtain_spec.aux) : fun_t);
-
-    v_add_intrinsic_q(q, my_obtain_special_result_value_helper, &obtain_spec);
+    handler := {my_obtain_special_result_value_helper, &obtain_spec};
 
     //-----------------------------------------------------------------
     vis = v_get_compiler();

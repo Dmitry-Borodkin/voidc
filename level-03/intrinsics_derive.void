@@ -26,21 +26,6 @@
 
 //---------------------------------------------------------------------
 private
-compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
-                             ft: *v_type_t,
-                             iq: &intptr_t, t: &*v_type_t
-                            ) ~> void;
-
-private
-struct voidc_compute_key_quark_type_ctx_t
-{
-    fun: *compute_key_quark_type_ft;
-    aux: *void;
-};
-
-
-//---------------------------------------------------------------------
-private
 struct voidc_intrinsic_quarks_item_t
 {
     name:  *const char;
@@ -170,9 +155,9 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
         }
     }
 
-    ctx = *(aux: *voidc_compute_key_quark_type_ctx_t);
+    ctx = (aux: *voidc_compute_key_quark_type_t);
 
-    ctx.fun(ctx.aux, vis, ft, iq, t);
+    ctx(vis, ft, iq, t);
 }
 
 //---------------------------------------------------------------------
@@ -510,19 +495,19 @@ voidc_enable_intrinsics_derive_compiler: () ~> void
         }
     }
 
-    q = v_quark_from_string("voidc.compute_key_quark_type");
+    ctx = *v_malloc(voidc_compute_key_quark_type_t);
 
-    ctx = *v_malloc(voidc_compute_key_quark_type_ctx_t);
+    hnd = voidc_mangling_context_get_compute_key_quark_type();
 
-    ctx.fun := (v_get_intrinsic_q(q, &ctx.aux) : *compute_key_quark_type_ft);
+    ctx := hnd;
 
-    v_add_intrinsic_q(q, compute_key_quark_type, &ctx);
-
-    v_add_intrinsic_q(q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
+    hnd := {compute_key_quark_type, &ctx};
 
     free: (*void) ~> void;
 
     v_add_local_cleaner(free, &ctx);
+
+    v_add_intrinsic_q(q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
 }
 
 //---------------------------------------------------------------------
