@@ -1134,7 +1134,13 @@ voidc_enable_mangling_compiler: () ~> void
     v_add_intrinsic_q(q("v.internal.spec_fun_renm"), v_internal_spec_fun_renm_intrinsic, &ctx);
 
     //-------------------------------------------------------------
-    v_enable_handler(voidc_compute_key_quark_type_t);
+    gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    if (gctx == vctx)
+    {
+        v_enable_handler(voidc_compute_key_quark_type_t);
+    }
 }
 
 //---------------------------------------------------------------------

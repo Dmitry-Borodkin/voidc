@@ -574,8 +574,14 @@ voidc_enable_projections_compiler: () ~> void
     v_add_intrinsic_q(v_op_postfix_to_q,  op_postfix_to_intrinsic,  &ctx);
 
     //-------------------------------------------------------------
-    v_enable_handler(voidc_compile_op_postfix_dot_helper_t);
-    v_enable_handler(voidc_compile_op_postfix_to_helper_t);
+    gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    if (gctx == vctx)
+    {
+        v_enable_handler(voidc_compile_op_postfix_dot_helper_t);
+        v_enable_handler(voidc_compile_op_postfix_to_helper_t);
+    }
 }
 
 

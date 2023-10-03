@@ -1063,7 +1063,7 @@ my_internal_var_defn_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast
 
         if (!ctx.obtain_spec_flag)
         {
-           vv = ctx.obtain_spec(vis, t);        //- Sic!!!
+           vv = obtain_special_result_value_variable(vis, t);       //- Sic!!!
 
            stmt = v_alloca(v_ast_stmt_t);
            v_initialize(stmt);
@@ -1309,7 +1309,13 @@ voidc_enable_local_objects_compiler: () ~> void
     v_add_local_cleaner(free, &ctx);
 
     //-----------------------------------------------------------------
-    v_enable_handler(voidc_obtain_special_result_value_helper_t);
+    gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    if (gctx == vctx)
+    {
+        v_enable_handler(voidc_obtain_special_result_value_helper_t);
+    }
 }
 
 
