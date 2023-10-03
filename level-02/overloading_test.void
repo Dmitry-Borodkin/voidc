@@ -29,28 +29,28 @@ complex = v_struct("struct.complex",
 
 
 //---------------------------------------------------------------------
-complex_add_assign: (a: &complex, b: complex) -> &complex
+complex_add_assign: (a: &complex, b: complex) ~> &complex
 {
     a := { a[0]+b[0], a[1]+b[1] };
 
     v_return(a);
 }
 
-complex_sub_assign: (a: &complex, b: complex) -> &complex
+complex_sub_assign: (a: &complex, b: complex) ~> &complex
 {
     a := { a[0]-b[0], a[1]-b[1] };
 
     v_return(a);
 }
 
-complex_mul_assign: (a: &complex, b: complex) -> &complex
+complex_mul_assign: (a: &complex, b: complex) ~> &complex
 {
     a := { a[0]*b[0] - a[1]*b[1], a[0]*b[1] + a[1]*b[0] };
 
     v_return(a);
 }
 
-complex_div_assign: (a: &complex, b: complex) -> &complex
+complex_div_assign: (a: &complex, b: complex) ~> &complex
 {
     d = b[0]*b[0] + b[1]*b[1];
 
@@ -73,22 +73,22 @@ complex_div_assign: (a: &complex, b: complex) -> &complex
 
 
 //---------------------------------------------------------------------
-complex_add: (a: complex, b: complex) -> complex
+complex_add: (a: complex, b: complex) ~> complex
 {
     v_return({ a[0]+b[0], a[1]+b[1] });
 }
 
-complex_sub: (a: complex, b: complex) -> complex
+complex_sub: (a: complex, b: complex) ~> complex
 {
     v_return({ a[0]-b[0], a[1]-b[1] });
 }
 
-complex_mul: (a: complex, b: complex) -> complex
+complex_mul: (a: complex, b: complex) ~> complex
 {
     v_return({ a[0]*b[0] - a[1]*b[1], a[0]*b[1] + a[1]*b[0] });
 }
 
-complex_div: (a: complex, b: complex) -> complex
+complex_div: (a: complex, b: complex) ~> complex
 {
     d = b[0]*b[0] + b[1]*b[1];
 
@@ -114,8 +114,8 @@ complex_div: (a: complex, b: complex) -> complex
 
 
 //---------------------------------------------------------------------
-sin: (double) -> double;
-cos: (double) -> double;
+sin: (double) ~> double;
+cos: (double) ~> double;
 
 M_PI = 3.14159265358979323846264338327950288419716939937510582;
 
@@ -149,22 +149,22 @@ number = v_struct("struct.number",
 
 
 //---------------------------------------------------------------------
-number_add_assign: (a: &number, b: number) -> &number
+number_add_assign: (a: &number, b: number) ~> &number
 {
     v_return(a := {a[0] + b[0]});
 }
 
-number_sub_assign: (a: &number, b: number) -> &number
+number_sub_assign: (a: &number, b: number) ~> &number
 {
     v_return(a := {a[0] - b[0]});
 }
 
-number_mul_assign: (a: &number, b: number) -> &number
+number_mul_assign: (a: &number, b: number) ~> &number
 {
     v_return(a := {a[0] * b[0]});
 }
 
-number_div_assign: (a: &number, b: number) -> &number
+number_div_assign: (a: &number, b: number) ~> &number
 {
     v_return(a := {a[0] / b[0]});
 }
@@ -183,22 +183,22 @@ number_div_assign: (a: &number, b: number) -> &number
 
 
 //---------------------------------------------------------------------
-number_add: (a: number, b: number) -> number
+number_add: (a: number, b: number) ~> number
 {
     v_return({a[0] + b[0]});
 }
 
-number_sub: (a: number, b: number) -> number
+number_sub: (a: number, b: number) ~> number
 {
     v_return({a[0] - b[0]});
 }
 
-number_mul: (a: number, b: number) -> number
+number_mul: (a: number, b: number) ~> number
 {
     v_return({a[0] * b[0]});
 }
 
-number_div: (a: number, b: number) -> number
+number_div: (a: number, b: number) ~> number
 {
     v_return({a[0] / b[0]});
 }
@@ -222,12 +222,12 @@ number_div: (a: number, b: number) -> number
 
 
 //---------------------------------------------------------------------
-number_eq: (a: number, b: number) -> bool   { v_return(a[0] == b[0]); }
-number_ne: (a: number, b: number) -> bool   { v_return(a[0] != b[0]); }
-number_lt: (a: number, b: number) -> bool   { v_return(a[0] <  b[0]); }
-number_le: (a: number, b: number) -> bool   { v_return(a[0] <= b[0]); }
-number_gt: (a: number, b: number) -> bool   { v_return(a[0] >  b[0]); }
-number_ge: (a: number, b: number) -> bool   { v_return(a[0] >= b[0]); }
+number_eq: (a: number, b: number) ~> bool   { v_return(a[0] == b[0]); }
+number_ne: (a: number, b: number) ~> bool   { v_return(a[0] != b[0]); }
+number_lt: (a: number, b: number) ~> bool   { v_return(a[0] <  b[0]); }
+number_le: (a: number, b: number) ~> bool   { v_return(a[0] <= b[0]); }
+number_gt: (a: number, b: number) ~> bool   { v_return(a[0] >  b[0]); }
+number_ge: (a: number, b: number) ~> bool   { v_return(a[0] >= b[0]); }
 
 //---------------------------------------------------------------------
 {

@@ -200,7 +200,7 @@
     //-----------------------------------------------------------------
     //- void v_make_export_symbol(const char *sym_name);
     //-----------------------------------------------------------------
-    //- v_make_export_symbol: (sym_name: char_ptr) -> void
+    //- v_make_export_symbol: (sym_name: char_ptr) ~> void
     //- {
     //-     sym_type = v_find_symbol_type(sym_name);
     //-
@@ -240,7 +240,7 @@
     //-----------------------------------------------------------------
     //- LLVMValueRef v_obtain_function(const char *fun_name, LLVMTypeRef *ft_p);
     //-----------------------------------------------------------------
-    //- v_obtain_function: (fun_name: char_ptr, ft_p: llvm_type_ref_ptr) -> LLVMValueRef
+    //- v_obtain_function: (fun_name: char_ptr, ft_p: llvm_type_ref_ptr) ~> LLVMValueRef
     //- {
     //-     module = v_get_module();
     //-
@@ -375,7 +375,7 @@
     //-----------------------------------------------------------------
     //- LLVMValueRef v_obtain_global(const char *var_name, LLVMTypeRef *vt_p);
     //-----------------------------------------------------------------
-    //- v_obtain_global: (var_name: char_ptr, vt_p: llvm_type_ref_ptr) -> LLVMValueRef
+    //- v_obtain_global: (var_name: char_ptr, vt_p: llvm_type_ref_ptr) ~> LLVMValueRef
     //- {
     //-     module = v_get_module();
     //-
@@ -763,7 +763,7 @@
     //-------------------------------------------------------------
     //- v_util_registering_helper: (q_dict: v_quark_t, val_t_type: v_type_ptr,
     //-                             fun_name: char_ptr, fun_type: v_type_ptr
-    //-                            ) -> void
+    //-                            ) ~> void
     //- {
     //-     qname = v_quark_from_string(fun_name);
     //-
@@ -817,7 +817,7 @@
     //- Init/term registering helper
     //-------------------------------------------------------------
     //- private
-    //- init_term_helper: (val_t_type: v_type_ptr, fun_name: char_ptr, q_dict: v_quark_t) -> void
+    //- init_term_helper: (val_t_type: v_type_ptr, fun_name: char_ptr, q_dict: v_quark_t) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -894,7 +894,7 @@
     //-------------------------------------------------------------
     //- Init registering
     //-------------------------------------------------------------
-    //- v_util_register_initialize_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_initialize_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     init_term_helper(val_t_type, fun_name, q_initialize);
     //- }
@@ -924,7 +924,7 @@
     //-------------------------------------------------------------
     //- Terminate registering
     //-------------------------------------------------------------
-    //- v_util_register_terminate_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_terminate_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     init_term_helper(val_t_type, fun_name, q_terminate);
     //- }
@@ -955,7 +955,7 @@
     //- Copy/move registering helper
     //-------------------------------------------------------------
     //- private
-    //- copy_move_helper: (val_t_type: v_type_ptr, fun_name: char_ptr, q_dict: v_quark_t) -> void
+    //- copy_move_helper: (val_t_type: v_type_ptr, fun_name: char_ptr, q_dict: v_quark_t) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 3);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -1029,7 +1029,7 @@
     //-------------------------------------------------------------
     //- Copy registering
     //-------------------------------------------------------------
-    //- v_util_register_copy_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_copy_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     copy_move_helper(val_t_type, fun_name, q_copy);
     //- }
@@ -1059,7 +1059,7 @@
     //-------------------------------------------------------------
     //- Move registering
     //-------------------------------------------------------------
-    //- v_util_register_move_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_move_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     copy_move_helper(val_t_type, fun_name, q_move);
     //- }
@@ -1089,7 +1089,7 @@
     //-------------------------------------------------------------
     //- "Empty" registering
     //-------------------------------------------------------------
-    //- v_util_register_empty_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_empty_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
@@ -1150,10 +1150,10 @@
     //-------------------------------------------------------------
     //- Init/Term/Copy/Move/Empty batch registering
     //-------------------------------------------------------------
-    //- v_util_initialize_std_string_impl: (s: v_std_string_ptr, n: size_t) -> void;
-    //- v_util_terminate_std_string_impl: (s: v_std_string_ptr, n: size_t) -> void;
+    //- v_util_initialize_std_string_impl: (s: v_std_string_ptr, n: size_t) ~> void;
+    //- v_util_terminate_std_string_impl: (s: v_std_string_ptr, n: size_t) ~> void;
     //-
-    //- v_util_register_itcme_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
+    //- v_util_register_itcme_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) ~> void
     //- {
     //-     sstr = v_alloca(v_std_string_t);
     //-
@@ -1363,7 +1363,7 @@
     //-------------------------------------------------------------
     //- std::any get_value registering
     //-------------------------------------------------------------
-    //- v_util_register_std_any_get_value_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_std_any_get_value_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
@@ -1416,7 +1416,7 @@
     //-------------------------------------------------------------
     //- std::any get_pointer registering
     //-------------------------------------------------------------
-    //- v_util_register_std_any_get_pointer_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_std_any_get_pointer_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
@@ -1475,7 +1475,7 @@
     //-------------------------------------------------------------
     //- std::any set_value registering
     //-------------------------------------------------------------
-    //- v_util_register_std_any_set_value_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_std_any_set_value_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -1534,7 +1534,7 @@
     //-------------------------------------------------------------
     //- std::any set_pointer registering
     //-------------------------------------------------------------
-    //- v_util_register_std_any_set_pointer_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_std_any_set_pointer_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -1601,7 +1601,7 @@
     //-------------------------------------------------------------
     //- std::any get_value/set_value batch registering
     //-------------------------------------------------------------
-    //- v_util_register_std_any_gs_value_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
+    //- v_util_register_std_any_gs_value_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) ~> void
     //- {
     //-     sstr = v_alloca(v_std_string_t);
     //-
@@ -1698,7 +1698,7 @@
     //-------------------------------------------------------------
     //- std::any get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- v_util_register_std_any_gs_pointer_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
+    //- v_util_register_std_any_gs_pointer_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) ~> void
     //- {
     //-     sstr = v_alloca(v_std_string_t);
     //-
@@ -1795,7 +1795,7 @@
     //-------------------------------------------------------------
     //- std::any get_value/set_value/get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- v_util_register_std_any_gs_vp_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
+    //- v_util_register_std_any_gs_vp_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) ~> void
     //- {
     //-     v_util_register_std_any_gs_value_impl(val_t_type, prefix, typename);
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);
@@ -1824,7 +1824,7 @@
     //-------------------------------------------------------------
     //- Init/Term/Copy/Move/Empty and std::any get_pointer/set_pointer batch registering
     //-------------------------------------------------------------
-    //- v_util_register_itcmep_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) -> void
+    //- v_util_register_itcmep_impl: (val_t_type: v_type_ptr, prefix: char_ptr, typename: char_ptr) ~> void
     //- {
     //-     v_util_register_itcme_impl(val_t_type, prefix, typename);
     //-     v_util_register_std_any_gs_pointer_impl(val_t_type, prefix, typename);
@@ -1853,7 +1853,7 @@
     //-------------------------------------------------------------
     //- make_list_nil registering
     //-------------------------------------------------------------
-    //- v_util_register_make_list_nil_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, fun_type: v_type_ptr) -> void
+    //- v_util_register_make_list_nil_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, fun_type: v_type_ptr) ~> void
     //- {
     //-     v_util_registering_helper(q_make_list_nil, val_t_type, fun_name, fun_type);
     //- }
@@ -1884,7 +1884,7 @@
     //-------------------------------------------------------------
     //- make_list registering
     //-------------------------------------------------------------
-    //- v_util_register_make_list_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, fun_type: v_type_ptr) -> void
+    //- v_util_register_make_list_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, fun_type: v_type_ptr) ~> void
     //- {
     //-     v_util_registering_helper(q_make_list, val_t_type, fun_name, fun_type);
     //- }
@@ -1915,7 +1915,7 @@
     //-------------------------------------------------------------
     //- list_append registering
     //-------------------------------------------------------------
-    //- v_util_register_list_append_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) -> void
+    //- v_util_register_list_append_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 4);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -2006,7 +2006,7 @@
     //-------------------------------------------------------------
     //- list_get_size registering
     //-------------------------------------------------------------
-    //- v_util_register_list_get_size_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_list_get_size_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
@@ -2065,7 +2065,7 @@
     //-------------------------------------------------------------
     //- list_get_item registering
     //-------------------------------------------------------------
-    //- v_util_register_list_get_item_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) -> void
+    //- v_util_register_list_get_item_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -2141,7 +2141,7 @@
     //- list append/get_size/get_item batch registering
     //-------------------------------------------------------------
     //- v_util_register_list_agsgi_impl: (val_t_type: v_type_ptr, item_type: v_type_ptr,
-    //-                                   prefix: char_ptr, typename: char_ptr) -> void
+    //-                                   prefix: char_ptr, typename: char_ptr) ~> void
     //- {
     //-     sstr = v_alloca(v_std_string_t);
     //-
@@ -2270,7 +2270,7 @@
     //-------------------------------------------------------------
     //- list_concat registering
     //-------------------------------------------------------------
-    //- v_util_register_list_concat_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_list_concat_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 3);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -2346,7 +2346,7 @@
     //-------------------------------------------------------------
     //- list_insert registering
     //-------------------------------------------------------------
-    //- v_util_register_list_insert_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) -> void
+    //- v_util_register_list_insert_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, item_type: v_type_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 5);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -2445,7 +2445,7 @@
     //-------------------------------------------------------------
     //- list_erase registering
     //-------------------------------------------------------------
-    //- v_util_register_list_erase_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_list_erase_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 3);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -2521,7 +2521,7 @@
     //- list concat/insert/erase batch registering
     //-------------------------------------------------------------
     //- v_util_register_list_cie_impl: (val_t_type: v_type_ptr, item_type: v_type_ptr,
-    //-                                 prefix: char_ptr, typename: char_ptr) -> void
+    //-                                 prefix: char_ptr, typename: char_ptr) ~> void
     //- {
     //-     sstr = v_alloca(v_std_string_t);
     //-
@@ -2649,7 +2649,7 @@
     //-------------------------------------------------------------
     //- make_map registering
     //-------------------------------------------------------------
-    //- v_util_register_make_map_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, fun_type: v_type_ptr) -> void
+    //- v_util_register_make_map_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, fun_type: v_type_ptr) ~> void
     //- {
     //-     v_util_registering_helper(q_make_map, val_t_type, fun_name, fun_type);
     //- }
@@ -2680,7 +2680,7 @@
     //-------------------------------------------------------------
     //- map_get_size registering
     //-------------------------------------------------------------
-    //- v_util_register_map_get_size_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_map_get_size_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
@@ -2740,7 +2740,7 @@
     //- map_find registering
     //-------------------------------------------------------------
     //- v_util_register_map_find_impl: (val_t_type: v_type_ptr, fun_name: char_ptr,
-    //-                                 key_type: v_type_ptr, value_type: v_type_ptr) -> void
+    //-                                 key_type: v_type_ptr, value_type: v_type_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -2817,7 +2817,7 @@
     //- map_insert registering
     //-------------------------------------------------------------
     //- v_util_register_map_insert_impl: (val_t_type: v_type_ptr, fun_name: char_ptr,
-    //-                                   key_type: v_type_ptr, value_type: v_type_ptr) -> void
+    //-                                   key_type: v_type_ptr, value_type: v_type_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 4);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -2909,7 +2909,7 @@
     //-------------------------------------------------------------
     //- map_erase registering
     //-------------------------------------------------------------
-    //- v_util_register_list_erase_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, key_type: v_type_ptr) -> void
+    //- v_util_register_list_erase_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, key_type: v_type_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 2);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -2977,7 +2977,7 @@
     //- map get_size/find/insert/erase batch registering
     //-------------------------------------------------------------
     //- v_util_register_map_gsfie_impl: (val_t_type: v_type_ptr, key_type: v_type_ptr, value_type: v_type_ptr,
-    //-                                  prefix: char_ptr, typename: char_ptr) -> void
+    //-                                  prefix: char_ptr, typename: char_ptr) ~> void
     //- {
     //-     sstr = v_alloca(v_std_string_t);
     //-
@@ -3161,7 +3161,7 @@
     //-------------------------------------------------------------
     //- ast_make_generic registering
     //-------------------------------------------------------------
-    //- v_util_register_ast_make_generic_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_ast_make_generic_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr, 3);
     //-     arg1 = v_getelementptr(arg0, 1);
@@ -3240,7 +3240,7 @@
     //-------------------------------------------------------------
     //- ast_generic_get_vtable registering
     //-------------------------------------------------------------
-    //- v_util_register_ast_generic_get_vtable_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_ast_generic_get_vtable_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
@@ -3299,7 +3299,7 @@
     //-------------------------------------------------------------
     //- ast_generic_get_object registering
     //-------------------------------------------------------------
-    //- v_util_register_ast_generic_get_object_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) -> void
+    //- v_util_register_ast_generic_get_object_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
     //-     arg0 = v_alloca(v_type_ptr);
     //-
@@ -3362,7 +3362,7 @@
     //- ast_generic make/get_vtable/get_object batch registering
     //-------------------------------------------------------------
     //- v_util_register_ast_generic_mkgvgo_impl: (val_t_type: v_type_ptr,
-    //-                                           prefix_: char_ptr, name_: char_ptr) -> void
+    //-                                           prefix_: char_ptr, name_: char_ptr) ~> void
     //- {
     //-     sstr = v_alloca(v_std_string_t);
     //-

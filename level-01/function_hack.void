@@ -126,7 +126,7 @@
     //- voidc_function_hack_visitor_method: (aux:     void_ptr,
     //-                                      visitor: voidc_visitor_ptr,
     //-                                      self:    v_ast_base_ptr
-    //-                                     ) -> void
+    //-                                     ) ~> void
     //- {
     //-     unit = v_cast(self, v_ast_unit_ptr);
     //-
@@ -269,7 +269,7 @@
     //-----------------------------------------------------------------
     //- "Function hack" intrinsic helper
     //-----------------------------------------------------------------
-    //- voidc_function_hack_intrinsic_helper: (fun_name: char_ptr, fun_type: v_type_ptr) -> LLVMValueRef
+    //- voidc_function_hack_intrinsic_helper: (fun_name: char_ptr, fun_type: v_type_ptr) ~> LLVMValueRef
     //- {
     //-     v_add_symbol(fun_name, fun_type, 0);
     //-
@@ -450,7 +450,7 @@
     //-----------------------------------------------------------------
     //- voidc_function_hack_intrinsic: (aux: void_ptr, visitor: voidc_visitor_ptr,
     //-                                 self: v_ast_base_ptr
-    //-                                ) -> void
+    //-                                ) ~> void
     //- {
     //-     call = v_cast(self, v_ast_expr_ptr);
     //-
@@ -779,7 +779,7 @@
     //-----------------------------------------------------------------
     //- voidc_function_hack_return_intrinsic: (aux: void_ptr, visitor: voidc_visitor_ptr,
     //-                                        self: v_ast_base_ptr
-    //-                                       ) -> void
+    //-                                       ) ~> void
     //- {
     //-     call = v_cast(self, v_ast_expr_ptr);
     //-
