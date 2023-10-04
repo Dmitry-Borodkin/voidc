@@ -156,6 +156,7 @@ prim = ident | integer | string | char
   - Any other valid non-null Unicode Code Points are *allowed*.
 
 So, as you can see, the Starter Language is rather limited:
+
 - There are no keywords.
 - There are no operators.
 - There is no arithmetic.
@@ -215,6 +216,7 @@ printf("v: %g\n", v);
 ```
 
 Please note, in contrast to C, in the Starter Language:
+
 - The identifier to the left of the `=` symbol does NOT denote a variable.
 - The `=` symbol does NOT denote an assignment.
 
