@@ -171,6 +171,7 @@ Well... To get an idea you can check the ["hello_jit.void"](../hello_jit.void) e
 In Void you *must* "write program to write program"(c)...
 
 All the Starter Language really allows is to call functions. Sequentially.
+
 ```
 printf("Hello!\n");
 printf("Hello again!\n");
@@ -178,16 +179,19 @@ printf("Hello one more time!\n");
 ```
 
 Function calls can be nested and "curried" (like in C).
+
 ```
 foo(bar("Hi", 42), 'Ы')(1, 2, 3)(-7);
 ```
 
 What a function returns can be "named" by an identifier.
+
 ```
 n = strlen("Some string");
 ```
 
 These identifiers can be used in subsequent statements.
+
 ```
 C = 'Ъ';
 
@@ -195,6 +199,7 @@ printf("Cyrillic Capital Letter Hard Sign: %d\n", C);
 ```
 
 Identifiers also can be "shadowed" by subsequent "renamings" (like in Rust).
+
 ```
 u = "1";
 u = atof(u);
@@ -263,6 +268,7 @@ Yes! You can use integers of any bitwidth accepted by LLVM.
 And they can also be signed or unsigned.
 
 API in "C" syntax:
+
 ```C
 v_type_ptr v_int_type(unsigned width);          // Signed
 v_type_ptr v_uint_type(unsigned width);         // Unsigned
