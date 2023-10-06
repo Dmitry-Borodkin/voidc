@@ -342,6 +342,23 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 //- my_compile_unit_val_defn - visitor method
 //---------------------------------------------------------------------
 private
+check_parent: (v: LLVMValueRef) ~> bool
+{
+    if (gv = LLVMIsAGlobalValue(v))
+    {
+        if (LLVMGetGlobalParent(gv))  v_return(true);
+    }
+
+    for (n = LLVMGetNumOperands(v), i: &int := 0; i < n; ++i)
+    {
+        if (check_parent(LLVMGetOperand(v, i)))  v_return(true);
+    }
+
+    v_return(false);
+}
+
+//---------------------------------------------------------------------
+private
 my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     ctx = *(aux: *my_obtain_special_result_value_ctx_t);
@@ -399,20 +416,26 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     t = v_get_result_type();
     v = v_get_result_value();
 
+    is_strong_constant = (t != v_static_type_t  &&  LLVMIsConstant(v)  &&  !check_parent(v));       //- Must be parentless!
+
     if (t == v_static_type_t)
     {
         if (export) v_export_type(name, (v: v_type_ptr));
         else        v_add_type(name, (v: v_type_ptr));
     }
-    else if (LLVMIsConstant(v))
+    else if (is_strong_constant)
     {
         if (export) v_export_constant(name, t, v);
         else        v_add_constant(name, t, v);
     }
-    else    //- ???
+    else    //- Instruction or "weak" constant...
     {
-        if (export) v_export_symbol_type(name, t);
-        else        v_add_symbol(name, t, 0);
+        tt: &*v_type_t := t;
+
+        if (v_type_is_reference(t))   tt := v_reference_type(t, 0);     //- HACK: double reference!
+
+        if (export) v_export_symbol_type(name, tt);
+        else        v_add_symbol(name, tt, 0);
 
         flag: &bool := true;
 
@@ -476,7 +499,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     v_ast_make_expr_string(&expr[0], name);
 
 
-    if (t != v_static_type_t  &&  LLVMIsConstant(v))
+    if (is_strong_constant)
     {
         t_ = v_type_get_llvm_type(t);
 
@@ -515,13 +538,24 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
         if (export) v_ast_make_stmt_call(&stmt, 0, q_export_type, expr, 2);
         else        v_ast_make_stmt_call(&stmt, 0, q_add_type,    expr, 2);
     }
-    else if (LLVMIsConstant(v))
+    else if (is_strong_constant)
     {
         if (export) v_ast_make_stmt_call(&stmt, 0, q_export_constant, expr, 3);
         else        v_ast_make_stmt_call(&stmt, 0, q_add_constant,    expr, 3);
     }
-    else
+    else    //- Instruction or "weak" constant...
     {
+        if (v_type_is_reference(t))         //- HACK: double reference!
+        {
+            v_ast_make_expr_integer(&expr[1], (v_reference_type(t, 0) : intptr_t));         //- Sic!!!
+
+            v_ast_make_stmt_call(&stmt, typ_q, voidc_compile_type_q, &expr[1], 1);
+
+            v_list_append(stmt_list, stmt_list, &stmt);
+
+            v_ast_make_expr_identifier_q(&expr[1], typ_q);
+        }
+
         if (export)
         {
             v_ast_make_stmt_call(&stmt, 0, q_export_symbol_type, expr, 2);
@@ -605,9 +639,16 @@ my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 
         //- Got symbol!
 
-        if (v_type_is_reference(t)) v_break();
+        if (v_type_is_reference(t))
+        {
+            et = v_type_refptr_get_element_type(t);
 
-        //- assert(v_type_is_pointer(t));
+            if (!v_type_is_reference(et))   v_break();
+
+            //- HACK: double reference!
+        }
+
+        //- assert(v_type_is_pointer(t)  ||  v_type_is_reference(t));       //- Sic!
 
         et = v_type_refptr_get_element_type(t);
 
