@@ -116,7 +116,7 @@ In fact, Void as a language *has no* fixed/constant/static syntax/semantics...
 Instead, it has a minimalist "starter language" and a set of "language development" tools.
 Then the language is *developed*, and this development is organized into so-called "levels".
 
-For the moment (Jul 2023) there are only four levels:
+For the moment (Oct 2023) there are four levels:
 
   - Level 0.0 - "Starter Language" and compiler API.
   - Level 0.1 - Control flow, grammars, expressions and declarations/definitions.

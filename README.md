@@ -9,7 +9,7 @@ Extensibility of Void is practically limitless (any syntax/semantics),
 restricted only by decidability and ~your money~ imagination.
 
 
-#### Hello, world:
+#### Hello world:
 
 ```C
 {   v_import("printf.void"); }      // Import declaration of C's "printf"
@@ -59,13 +59,42 @@ See more details in [tutorial](doc/tutorial.md).
   - ...
 
 
-For the moment (Jul 2023), language seems to be ready just for some early experiments...
+For the moment (Oct 2023), language seems to be ready just for some early experiments...
 
+#### Yet another example:
+
+```
+{ v_import("mainline.void"); }      // Import "mainline" language
+{ v_enable_mainline(); }            // "Enable" it
+
+//---------------------------------------------------------------------
+num_t = uint(1024);                 // 1024 bits, unsigned
+
+check_fruits: (a: &num_t, b: &num_t, c: &num_t) ~> bool     // By reference
+{
+    ab = a + b;     ac = a + c;     bc = b + c;
+
+    v_return(a*ab*ac + b*ab*bc + c*ac*bc == 4*ab*ac*bc);
+}
+
+//---------------------------------------------------------------------
+// Constants
+
+A: num_t = 154476802108746166441951315019919837485664325669565431700026634898253202035277999;
+B: num_t =  36875131794129999827197811565225474825492979968971970996283137471637224634055579;
+C: num_t =   4373612677928697257861252602371390152816537558161613618621437993378423467772036;
+
+//---------------------------------------------------------------------
+{   printf: (*const char, ...) ~> int;              // Declaration
+
+    if (check_fruits(A, B, C))  printf("\nOK\n");
+    else                        printf("\nFail\n");
+}
+```
 
 **Note:** Void is *not* intended to be seen as a complete/finished/whatever programming language in usual sense...
 In fact, it is merely a toolkit/workshop/boilerplate/etc. for development of programming languages *per se*,
 and for development of *itself* particularly.
-
 
 #### Nearest TODO(s):
 
@@ -108,7 +137,7 @@ $ ./mk_build
 
 ## Usage
 
-Currently (Jul 2023) `voidc` works mainly from it's source directory.
+Currently (Oct 2023) `voidc` works mainly from it's source directory.
 
 You can try some of:
 
@@ -125,7 +154,7 @@ BTW, first time it can take a while due to long (idk, 10-30 sec) compilation of 
 After that, try:
 
 ```bash
-$ build/voidc level-03/heap_objects_test.void
+$ build/voidc level-03/global_objects_test.void
 ```
 
 This "script" (with imports) uses almost all language features developed so far.
