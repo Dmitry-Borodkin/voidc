@@ -96,6 +96,76 @@ C: num_t =   4373612677928697257861252602371390152816537558161613618621437993378
 In fact, it is merely a toolkit/workshop/boilerplate/etc. for development of programming languages *per se*,
 and for development of *itself* particularly.
 
+#### One more example:
+
+```
+{ v_import("mainline.void"); }
+{ v_enable_mainline(); }
+
+//---------------------------------------------------------------------
+double = float(64);                 // Kinda, "typedef"
+
+sqrt: (double) ~> double;
+ceil: (double) ~> double;
+log:  (double) ~> double;
+
+//---------------------------------------------------------------------
+N = 10001;                                      // For N-th prime ...
+
+S = (N*(log(N) + log(log(N))) : int) + 1;       // ... should be enough
+
+sieve = new bool[S];
+
+//---------------------------------------------------------------------
+{   memset: (s: *void, c: int, n: size_t) ~> *void;
+
+    memset(sieve, 0, S);
+
+    sieve[2] := true;
+
+    for (i: &int := 3; i < S; i += 2)
+    {
+        sieve[i] := true;
+    }
+
+    R = (ceil(sqrt(S)) : int);
+
+    for (i: &int := 3; i < R; i += 2)
+    {
+        if (sieve[i])
+        {
+            for (k: &int := i*i, i2 = 2*i; k < S; k += i2)
+            {
+                sieve[k] := false;
+            }
+        }
+    }
+}
+
+//---------------------------------------------------------------------
+{   n: &int := 1;
+    p: &int := 3;
+
+    for (; p < S; p += 2)
+    {
+        if (sieve[p])
+        {
+            ++n;
+
+            if (n == N) v_break();
+        }
+    }
+
+    printf: (*const char, ...) ~> int;
+
+    if (n == N) printf("Found: %d\n", p);
+    else        printf("Not found\n");
+}
+
+//---------------------------------------------------------------------
+{ delete[] sieve; }
+```
+
 #### Nearest TODO(s):
 
   - Documenting everything written so far;
