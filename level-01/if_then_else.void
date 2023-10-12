@@ -207,11 +207,11 @@
 //---------------------------------------------------------------------
 //- mk_stmt_if_then_else - grammar action
 //---------------------------------------------------------------------
-//- fun mk_stmt_if_then_else_grammar_action(ret:       v_std_any_ptr,
-//-                                         aux:       void_ptr,
-//-                                         any0:      v_std_any_ptr,
-//-                                         any_count: size_t
-//-                                        )
+//- mk_stmt_if_then_else_grammar_action: (ret:       v_std_any_ptr,
+//-                                       aux:       void_ptr,
+//-                                       any0:      v_std_any_ptr,
+//-                                       any_count: size_t
+//-                                      ) ~> void
 //- {
 //-     par_else = v_getelementptr(any0, 2);
 //-
@@ -343,12 +343,10 @@
 
 
 //---------------------------------------------------------------------
-//- compile_ast_stmt_if_then_else_branch_helper
-//---------------------------------------------------------------------
-//- fun compile_ast_stmt_if_then_else_branch_helper(visitor:  voidc_visitor_ptr,
-//-                                                 stmt:     v_ast_stmt_ptr,
-//-                                                 bblock_v: bblock_ptr
-//-                                                )
+//- compile_ast_stmt_if_then_else_branch_helper: (visitor:  voidc_visitor_ptr,
+//-                                               stmt:     v_ast_stmt_ptr,
+//-                                               bblock_v: bblock_ptr
+//-                                              ) ~> void
 //- {
 //-     builder = v_target_get_builder();
 //-
@@ -550,9 +548,7 @@
 
 
 //---------------------------------------------------------------------
-//- compile_ast_stmt_if_then_else_join_helper
-//---------------------------------------------------------------------
-//- fun compile_ast_stmt_if_then_else_join_helper(bblock: LLVMBasicBlockRef)
+//- compile_ast_stmt_if_then_else_join_helper: (bblock: LLVMBasicBlockRef) ~> void
 //- {
 //-     if (bblock) ;
 //-     else

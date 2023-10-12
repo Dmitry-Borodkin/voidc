@@ -666,7 +666,7 @@ mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
     v_list_append(lst, head, ast, 1);
 
-    v_std_any_set_pointer(ret, lst);
+    v_std_any_set_pointer(ret, (lst: *v_ast_base_t));
 }
 
 //---------------------------------------------------------------------
@@ -690,7 +690,7 @@ mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
     v_make_list(lst, unit_spec_fun_renm_q, ast, 2);         //- Sic!!!
 
-    v_std_any_set_pointer(ret, lst);
+    v_std_any_set_pointer(ret, (lst: *v_ast_base_t));
 }
 
 //---------------------------------------------------------------------

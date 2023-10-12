@@ -114,7 +114,7 @@ N = 10001;                                      // For N-th prime ...
 
 S = (N*(log(N) + log(log(N))) : int) + 1;       // ... should be enough
 
-sieve = new bool[S];
+sieve = new bool[S];    defer delete[] sieve;
 
 //---------------------------------------------------------------------
 {   memset: (s: *void, c: int, n: size_t) ~> *void;
@@ -161,9 +161,6 @@ sieve = new bool[S];
     if (n == N) printf("Found: %d\n", p);
     else        printf("Not found\n");
 }
-
-//---------------------------------------------------------------------
-{ delete[] sieve; }
 ```
 
 #### Nearest TODO(s):

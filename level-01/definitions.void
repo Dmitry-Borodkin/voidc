@@ -574,7 +574,7 @@
 
     v_list_append(lst, head, ast, 1);
 
-    v_std_any_set_pointer(ret, lst);
+    v_std_any_set_pointer(ret, v_cast(lst, v_ast_base_ptr));        //- Sic!!!
 }
 
 //---------------------------------------------------------------------
@@ -641,7 +641,7 @@
 
     v_make_list(lst, unit_var_defn_q, ast, 4);
 
-    v_std_any_set_pointer(ret, lst);
+    v_std_any_set_pointer(ret, v_cast(lst, v_ast_base_ptr));        //- Sic!!!
 }
 
 //---------------------------------------------------------------------
@@ -683,7 +683,7 @@
 
     v_make_list(lst, unit_val_defn_q, ast, 4);
 
-    v_std_any_set_pointer(ret, lst);
+    v_std_any_set_pointer(ret, v_cast(lst, v_ast_base_ptr));        //- Sic!!!
 }
 
 
@@ -705,16 +705,16 @@
 //  printf("mk_unit_defn_list_grammar_action\n");
 
     list = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
-    item = v_std_any_get_pointer(v_ast_generic_list_t, any+1);
+    item = v_std_any_get_pointer(v_ast_base_t,         any+1);
 
     lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
-    if (list)   v_list_append(lst, list, v_cast(item, v_ast_base_ptr));
+    if (list)   v_list_append(lst, list, item);
     else
     {
-        v_make_list(lst, 0, v_cast(item, v_ast_base_ptr), 1);
+        v_make_list(lst, 0, item, 1);
     }
 
     v_std_any_set_pointer(ret, lst);

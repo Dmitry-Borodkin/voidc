@@ -363,6 +363,22 @@ v_type_ptr v_void_type();               //- As is...
 This type also predefined as `void`...
 
 
+...
+
+
+
+### Basic predefined compile-time intrinsics.
+
+...
+
+
+
+
+
+
+
+
+
 
 
 
