@@ -363,8 +363,30 @@ v_type_ptr v_void_type();               //- As is...
 This type also predefined as `void`...
 
 
-...
+### Some notes on data/types representation ...
 
+- `char` is the same as `v_int_type(8)`.
+- `int` - host's C's `int`.
+- `unsigned` - C's `unsigned int`.
+- `intptr_t` has the same size/alignment as `v_pointer_type(void, 0)`.
+- BTW, the pointer to `void` is perfectly *allowed* ...
+- `'ю'` - character literals are of type `char32_t` which is the `v_uint_type(32)`.
+
+- String literal represented as a *constant value* of type 'array of `char`', encoded in UTF-8, null-terminated.
+
+```
+str = "Hello world!\n";         // ... v_array_type(char, 14)
+```
+
+- Such strings can be *promoted* to pointers "on demand" (like in C):
+
+```
+str = "world";
+
+printf("Hello %s!\n", str);
+```
+
+...
 
 
 ### Basic predefined compile-time intrinsics.

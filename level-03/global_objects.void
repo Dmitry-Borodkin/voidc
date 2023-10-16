@@ -499,12 +499,14 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     }
     else    //- Instruction or "weak" constant...
     {
-        tt: &*v_type_t := t;
+        if (export) v_export_constant(name, t, 0);          //- Sic!
+        else        v_add_constant(name, t, 0);             //- Sic!
 
-        if (v_type_is_reference(t))   tt := v_reference_type(t, 0);     //- HACK: double reference!
+        {   tt = v_reference_type(t, 0);                    //- HACK!
 
-        if (export) v_export_symbol_type(name, tt);
-        else        v_add_symbol(name, tt, 0);
+            if (export) v_export_symbol_type(name, tt);
+            else        v_add_symbol(name, tt, 0);
+        }
 
         flag: &bool := true;
 
@@ -625,27 +627,21 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     }
     else    //- Instruction or "weak" constant...
     {
-        if (v_type_is_reference(t))         //- HACK: double reference!
-        {
-            v_ast_make_expr_integer(&expr[1], (v_reference_type(t, 0) : intptr_t));         //- Sic!!!
+        v_ast_make_expr_integer(&expr[2], 0);
 
-            v_ast_make_stmt_call(&stmt, typ_q, voidc_compile_type_q, &expr[1], 1);
+        if (export) v_ast_make_stmt_call(&stmt, 0, q_export_constant, expr, 3);         //- Sic!
+        else        v_ast_make_stmt_call(&stmt, 0, q_add_constant,    expr, 3);         //- Sic!
 
-            v_list_append(stmt_list, stmt_list, &stmt);
+        v_ast_make_expr_integer(&expr[1], (v_reference_type(t, 0) : intptr_t));         //- HACK!
 
-            v_ast_make_expr_identifier_q(&expr[1], typ_q);
-        }
+        v_ast_make_stmt_call(&stmt, typ_q, voidc_compile_type_q, &expr[1], 1);
 
-        if (export)
-        {
-            v_ast_make_stmt_call(&stmt, 0, q_export_symbol_type, expr, 2);
-        }
-        else
-        {
-            v_ast_make_expr_integer(&expr[2], 0);
+        v_list_append(stmt_list, stmt_list, &stmt);
 
-            v_ast_make_stmt_call(&stmt, 0, q_add_symbol, expr, 3);
-        }
+        v_ast_make_expr_identifier_q(&expr[1], typ_q);
+
+        if (export) v_ast_make_stmt_call(&stmt, 0, q_export_symbol_type, expr, 2);
+        else        v_ast_make_stmt_call(&stmt, 0, q_add_symbol,         expr, 3);
     }
 
     v_list_append(stmt_list, stmt_list, &stmt);
@@ -744,31 +740,19 @@ my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
     block
     {
         if (v_get_variable_q(qname, 0, 0))  v_break();
-        if (v_find_constant_q(qname, 0, 0)) v_break();
 
-        //- Got symbol!
+        {   u: &LLVMValueRef := 0;
 
-        if (v_type_is_reference(t))
-        {
-            et = v_type_refptr_get_element_type(t);
+            if (!v_find_constant_q(qname, 0, &u)) v_break();
 
-            if (!v_type_is_reference(et))   v_break();
-
-            //- HACK: double reference!
+            if (u)  v_break();
         }
 
-        //- assert(v_type_is_pointer(t)  ||  v_type_is_reference(t));       //- Sic!
+        //- assert(v_type_is_reference(t));         //- HACK!
 
-        et = v_type_refptr_get_element_type(t);
+        t := v_type_refptr_get_element_type(t);     //- Sic!!!
 
-        if (v_type_is_function(et)) v_break();
-        if (v_type_is_void(et))     v_break();
-
-        if (v_type_is_struct(et)  &&  v_type_struct_is_opaque(et))  v_break();      //- ???
-
-        t := et;        //- Sic!!!
-
-        if (v_type_is_special(et, q_initialize))  v_break();
+        if (v_type_is_special(t, q_initialize)) v_break();
 
         builder = v_target_get_builder();
 

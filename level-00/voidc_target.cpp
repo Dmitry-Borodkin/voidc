@@ -417,7 +417,7 @@ base_local_ctx_t::obtain_identifier(v_quark_t name, v_type_t * &type, LLVMValueR
     {
         auto raw_name = check_alias(name);
 
-        if (!find_constant(raw_name, t, v))
+        if (!find_constant(raw_name, t, v)  ||  !v)         //- Sic!
         {
             t = get_symbol_type(raw_name);
 
