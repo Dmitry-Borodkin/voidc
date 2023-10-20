@@ -998,6 +998,9 @@ v_get_return_value_intrinsic: (*void, *voidc_visitor_t, *v_ast_base_t) ~> void
 private
 v_get_object_pointer_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("v_get_object_pointer_intrinsic: start\n");
+//defer printf("v_get_object_pointer_intrinsic: finish\n");
+
     arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     ttag = v_get_result_type();

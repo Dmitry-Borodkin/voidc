@@ -277,7 +277,7 @@ v_type_ptr v_uint_type(unsigned width);         // Unsigned
 ```
 
 There are number of predefined integral types which correspond to tagret's "C" integral types.
-Some of them: `char`, `short`, `int`, `long`, `intptr_t` etc...
+Some of them: `char`, `short`, `int`, `unsigned`, `long`, `intptr_t` etc...
 
 Predefined type `bool` is the `v_uint_type(1)`. Named constants `false` and `true` have obvious type and values...
 
@@ -365,14 +365,9 @@ This type also predefined as `void`...
 
 ### Some notes on data/types representation ...
 
-- `char` is the same as `v_int_type(8)`.
-- `int` - host's C's `int`.
-- `unsigned` - C's `unsigned int`.
-- `intptr_t` has the same size/alignment as `v_pointer_type(void, 0)`.
-- BTW, the pointer to `void` is perfectly *allowed* ...
 - `'ю'` - character literals are of type `char32_t` which is the `v_uint_type(32)`.
 
-- String literal represented as a *constant value* of type 'array of `char`', encoded in UTF-8, null-terminated.
+- String literal represented as a (constant) *value* of type 'array of `char`', encoded in UTF-8, null-terminated.
 
 ```
 str = "Hello world!\n";         // ... v_array_type(char, 14)
