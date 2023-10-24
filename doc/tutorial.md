@@ -381,22 +381,74 @@ str = "world";
 printf("Hello %s!\n", str);
 ```
 
+- There's some kind of (C-like) *promotion* of arithmetic types...
+
+```
+printf("sqrt(2) = %g\n", sqrt(2));          //- C's "double sqrt(double)"
+```
+
 ...
 
 
 ### Basic predefined compile-time intrinsics.
 
+
+#### `v_alloca()` - allocate memory in stack.
+
+```
+dp_1 = v_alloca(data_t);        // One element
+dp_N = v_alloca(data_t, N);     // Array of N elements
+```
+
+Directly translates to the LLVM's `alloca` instruction. Returns a value of type `v_pointer_type(data_t, <adsp>)`,
+where `<adsp>` denotes the LLVM's "default address space for stack" (usually `0`)...
+
+`N` corresponds to the `<NumElements>` argument from LLVM's `alloca` instruction description.
+In the Starter Language this argument can be any expression that yields a non-negative integer
+of "reasonable" bitwidth and value...
+
+The semantics of the `data_t` argument is quite tricky and requires special explanation:
+
+1. `v_alloca()` is a ***compile-time** intrinsic function*. So it works at the *compilation* phase.
+
+2. By the first argument (`data_t`) this *ct-intrinsic* should determine **type** (`v_type_ptr`).
+
+3. The type API functions described earlier work at the *execution* phase.
+
+4. So, the code like *this* just does not work:
+
+```
+data_t = v_array_type(char, 32);      // Ok. So far, so good...
+
+a = v_alloca(data_t);                 // BANG! Lovely a "Segmentation fault" at compile-time...
+```
+
+5. In the Starter Language, the first argument to `v_alloca` can only be in the form of an *identifier*.
+And this identifier must be defined "especially" (e.g. in prior units):
+
+```
+{   t = v_array_type(char, 32);
+    v_add_type("data_t", t);            // Define "name" for type
+}
+
+{   a = v_alloca(data_t);               // Ok...
+    // ...
+}
+```
+
+The details of `v_add_type()` we'll leave for the "Reference Manual"...
+
+
+#### `v_getelementptr()` - LLVM-fashioned pointer arithmetics.
+
+
+
+
+
+
+
+
 ...
-
-
-
-
-
-
-
-
-
-
 
 
 
