@@ -222,6 +222,11 @@ Please note, in contrast to C, in the Starter Language:
 
 In fact, the semantics of `=` in Void is almost the same as in LLVM IR (with respect to "shadowing").
 
+Informally, it's possible to think of `=` as a kind of *definition* operator.
+It just "sticks" a label with the identifier on the left to the value received on the right...
+
+Also this is very similar to `<-` from the monadic "do" notation (in Haskell).
+
 
 #### Not all functions are the same...
 
@@ -266,7 +271,7 @@ Like `LLVMTypeRef`, `v_type_ptr` looks like a pointer to some opaque structure
 
 Void's integer types are all LLVM's ones with additional "attribute" of *signedness*.
 
-Yes! You can use integers of any bitwidth accepted by LLVM.
+Yes! You can use integers of any bitwidth accepted by LLVM (i.e. 1 - 2<sup>23</sup>).
 And they can also be signed or unsigned.
 
 API in "C" syntax:
@@ -286,8 +291,8 @@ Predefined type `bool` is the `v_uint_type(1)`. Named constants `false` and `tru
 
 ```C
 v_type_ptr v_f16_type();            // LLVM's half
-v_type_ptr v_f32_type();            // LLVM's float
-v_type_ptr v_f64_type();            // LLVM's double
+v_type_ptr v_f32_type();            // LLVM's float     - C's
+v_type_ptr v_f64_type();            // LLVM's double    - C's
 v_type_ptr v_f128_type();           // LLVM's fp128
 ```
 
@@ -342,7 +347,7 @@ v_type_ptr v_struct_type(v_type_ptr *elts, unsigned count, bool packed);    // U
 void v_type_struct_set_body(v_type_ptr typ, v_type_ptr *elts, unsigned count, bool packed);
 ```
 
-Similar to LLVM's struct types...
+Similar to LLVM's struct types. Fields are unnamed, indexed by numbers...
 
 
 #### Function types.
@@ -407,13 +412,13 @@ where `<adsp>` denotes the LLVM's "default address space for stack" (usually `0`
 In the Starter Language this argument can be any expression that yields a non-negative integer
 of "reasonable" bitwidth and value...
 
-The semantics of the `data_t` argument is quite tricky and requires special explanation:
+`data_t` denotes a *type*. But exact semantics of this parameter is quite tricky and requires special explanation:
 
 1. `v_alloca()` is a ***compile-time** intrinsic function*. So it works at the *compilation* phase.
 
 2. By the first argument (`data_t`) this *ct-intrinsic* should determine **type** (`v_type_ptr`).
 
-3. The type API functions described earlier work at the *execution* phase.
+3. The type API functions described earlier work at the *execution* phase (in some sense).
 
 4. So, the code like *this* just does not work:
 
@@ -441,12 +446,20 @@ The details of `v_add_type()` we'll leave for the "Reference Manual"...
 
 #### `v_getelementptr()` - LLVM-fashioned pointer arithmetics.
 
+```
+{   v_add_type("data_t", v_array_type(char, 32)); }
 
+{   a = v_alloca(data_t, 5);        // Allocate array of 5 data_t items. a: pointer to data_t
 
+    a0 = v_getelementptr(a, 0);     // Address of the first element.    a0: pointer to data_t
+    a1 = v_getelementptr(a, 1);     // Address of the second element.   a1: pointer to data_t
 
-
-
-
+    a00 = v_getelementptr(a, 0, 0);     // Address of the first element of a0.  a00: pointer to char
+    a01 = v_getelementptr(a, 0, 1);     // Address of the second element of a0. a01: pointer to char
+    a10 = v_getelementptr(a, 1, 0);     // Address of the first element of a1.  a10: pointer to char
+    a11 = v_getelementptr(a, 1, 1);     // Address of the second element of a1. a11: pointer to char
+}
+```
 
 ...
 

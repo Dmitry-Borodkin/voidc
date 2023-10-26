@@ -231,7 +231,7 @@ And yes, first-time compilation of it can take even longer...
 ## Contributing
 Of course, contributions are **welcome**!
 But I must warn you that at this point I am a complete newbie
-to things like GitHub, project/community support, etc.
+to things like GitHub, project/community maintaining, etc.
 
 So, for any friendly help (on these topics especially) I'll be greatly appreciated!
 
