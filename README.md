@@ -9,6 +9,9 @@ Extensibility of Void is practically limitless (any syntax/semantics),
 restricted only by decidability and ~your money~ imagination.
 
 
+Here is the author's blog dedicated to this project: [Void Blog](https://github.com/Dmitry-Borodkin/void_blog).
+
+
 #### Hello world:
 
 ```C
