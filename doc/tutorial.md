@@ -2,7 +2,8 @@
 # The Void Programming Language Tutorial
 
 **Disclaimer:** this tutorial assumes the reader has a rather good knowledge of C/C++,
-understands basic notions of LLVM-C API, and in general "has an idea of how compilers work"...
+understands very basic concepts about code generation using LLVM,
+and in general "has an idea of how compilers work"...
 
 
 ## The "Hello, world" example:
@@ -102,7 +103,7 @@ As is often the case in programming, it is best to read it *sdrawkcab*:
 
 - And "finally", the first couple of statements prepare the memory (in stack) for the list of argument types.
 
-Many important details have been omitted for brevity. We'll come back to them later.
+Many important details have been omitted for brevity...
 
 The second unit, in similiar way as the first one, declares the `printf` function.
 Note the use of the `v_pointer_type` function.
@@ -116,14 +117,17 @@ In fact, Void as a language *has no* fixed/constant/static syntax/semantics...
 Instead, it has a minimalist "starter language" and a set of "language development" tools.
 Then the language is *developed*, and this development is organized into so-called "levels".
 
-For the moment (Oct 2023) there are four levels:
+For the moment (Nov 2023) there are four levels:
 
   - Level 0.0 - "Starter Language" and compiler API.
   - Level 0.1 - Control flow, grammars, expressions and declarations/definitions.
   - Level 0.2 - "C on steroids"...
   - Level 0.3 - Kinda, objects...
 
-Let's take a look of them closer.
+All these levels together form the so-called "Mainline Language".
+
+First we'll go over the Starter Language a little. Just to feel "how it started".
+Then we'll take a closer look at the Mainline Language. To find out "how it's going"...
 
 
 ### The Starter Language.
@@ -249,6 +253,15 @@ They can generate code "in their own way" and/or change the state of the compile
 *Ct-intrinsics* are the most widely used "language development" tools mentioned above.
 
 
+#### Void's Reserved Names
+
+Identifiers starting with `v_` and `voidc_` are reserved for the needs
+of the `voidc` compiler itself and the (future) standard library...
+
+In addition, careless use of external identifiers starting with `_`, `LLVM`, etc.
+can lead to collisions with the C/C++ and LLVM libraries.
+
+
 ### The Void's Types.
 
 Starter Language's typing can be described as *static* and *implicit*.
@@ -264,7 +277,7 @@ This API is designed to be similar (in spirit) to the LLVM-C API associated with
 The implementation of Void's types is also very similar to LLVM's.
 
 As you can probably guessed, the name of the type of the Void's types representation is `v_type_ptr`.
-Like `LLVMTypeRef`, `v_type_ptr` looks like a pointer to some opaque structure
+Like `LLVMTypeRef`, `v_type_ptr` looks like a pointer to some opaque structure.
 
 
 #### Integer types.
@@ -362,7 +375,7 @@ Similar to LLVM's (and C's) function types...
 #### Void type.
 
 ```C
-v_type_ptr v_void_type();               //- As is...
+v_type_ptr v_void_type();               // As is...
 ```
 
 This type also predefined as `void`...
@@ -389,79 +402,65 @@ printf("Hello %s!\n", str);
 - There's some kind of (C-like) *promotion* of arithmetic types...
 
 ```
-printf("sqrt(2) = %g\n", sqrt(2));          //- C's "double sqrt(double)"
+printf("sqrt(2) = %g\n", sqrt(2));          // C's "double sqrt(double)"
 ```
 
-...
+### The Mainline Language.
+
+The "Mainline Language" is obtained by applying a sequence of extensions,
+grouped in the form of so-called "levels". Each subsequent extension builds on the previous ones.
+
+You can imagine this development as a passage of a computer game.
+The main character is, in fact, our “Language”.
+At the beginning, he has the “rank” of “Starter” and can do almost nothing.
+But during the game, our hero goes through a whole series of “adventures”
+and acquires new skills and abilities.
+And at some point it reaches the “rank” of “Mainline”...
+
+In addition to “levels” there will also be “versions” and they should not be confused.
+Versions refer to the "game" as a whole.
+The “game” itself will “evolve” from version to version.
+The levels will change (slightly) and new levels will be added...
+
+There are no versions in our project yet, but at some point they will inevitably appear...
+
+Now let's find out what's new in the Mainline Language.
 
 
-### Basic predefined compile-time intrinsics.
+#### How to "turn on" Mainline Language.
 
-
-#### `v_alloca()` - allocate memory in stack.
-
-```
-dp_1 = v_alloca(data_t);        // One element
-dp_N = v_alloca(data_t, N);     // Array of N elements
-```
-
-Directly translates to the LLVM's `alloca` instruction. Returns a value of type `v_pointer_type(data_t, <adsp>)`,
-where `<adsp>` denotes the LLVM's "default address space for stack" (usually `0`)...
-
-`N` corresponds to the `<NumElements>` argument from LLVM's `alloca` instruction description.
-In the Starter Language this argument can be any expression that yields a non-negative integer
-of "reasonable" bitwidth and value...
-
-`data_t` denotes a *type*. But exact semantics of this parameter is quite tricky and requires special explanation:
-
-1. `v_alloca()` is a ***compile-time** intrinsic function*. So it works at the *compilation* phase.
-
-2. By the first argument (`data_t`) this *ct-intrinsic* should determine **type** (`v_type_ptr`).
-
-3. The type API functions described earlier work at the *execution* phase (in some sense).
-
-4. So, the code like *this* just does not work:
+The simplest (but not the only) way is to place these two units at the beginning of the source file:
 
 ```
-data_t = v_array_type(char, 32);      // Ok. So far, so good...
-
-a = v_alloca(data_t);                 // BANG! Lovely a "Segmentation fault" at compile-time...
+{ v_import("mainline.void"); }      // Import the Mainline Language
+{ v_enable_mainline(); }            // "Enable" it
 ```
 
-5. In the Starter Language, the first argument to `v_alloca` can only be in the form of an *identifier*.
-And this identifier must be defined "especially" (e.g. in prior units):
+The first unit imports all the necessary tools for the Mainline Language to work,
+but the current language **does not change**.
+The import process will compile quite a lot of code for the first time,
+which can take quite a long time.
+But subsequent imports will be significantly faster thanks to "pre-*compilation*" (Python style)...
 
-```
-{   t = v_array_type(char, 32);
-    v_add_type("data_t", t);            // Define "name" for type
-}
+The second unit calls the `v_enable_mainline` function, imported from `mainline.void`.
+This function "enables" all the tools of the Mainline Language:
 
-{   a = v_alloca(data_t);               // Ok...
-    // ...
-}
-```
+- Changes the grammar (and parser).
+- Adds new “node types” to the AST hierarchy.
+- "Teaches" the compiler to work with these new types of AST nodes.
 
-The details of `v_add_type()` we'll leave for the "Reference Manual"...
+As a result, immediately after the second unit (right after its `}`)
+the “new compiler” of Mainline Language starts working, which allows you to use all the new features...
 
 
-#### `v_getelementptr()` - LLVM-fashioned pointer arithmetics.
+#### Definitions and declarations.
 
-```
-{   v_add_type("data_t", v_array_type(char, 32)); }
 
-{   a = v_alloca(data_t, 5);        // Allocate array of 5 data_t items. a: pointer to data_t
 
-    a0 = v_getelementptr(a, 0);     // Address of the first element.    a0: pointer to data_t
-    a1 = v_getelementptr(a, 1);     // Address of the second element.   a1: pointer to data_t
 
-    a00 = v_getelementptr(a, 0, 0);     // Address of the first element of a0.  a00: pointer to char
-    a01 = v_getelementptr(a, 0, 1);     // Address of the second element of a0. a01: pointer to char
-    a10 = v_getelementptr(a, 1, 0);     // Address of the first element of a1.  a10: pointer to char
-    a11 = v_getelementptr(a, 1, 1);     // Address of the second element of a1. a11: pointer to char
-}
-```
 
-...
+
+
 
 
 
