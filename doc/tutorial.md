@@ -424,8 +424,6 @@ The levels will change (slightly) and new levels will be added...
 
 There are no versions in our project yet, but at some point they will inevitably appear...
 
-Now let's find out what's new in the Mainline Language.
-
 
 #### How to "turn on" Mainline Language.
 
@@ -455,12 +453,74 @@ the “new compiler” of Mainline Language starts working, which allows you to 
 
 #### Definitions and declarations.
 
+The most important innovations:
+
+- A new kind of units containing a set of definitions or declarations.
+- A new kind of “statements” - definition or declaration.
+
+Example:
 
 
+```
+// ...
+// Unit of definitions/declarations:
 
+double = float(64);             // Kinda, "typedef"
 
+ceil: (double) ~> double;       // Declarations...
+sqrt: (double) ~> double;
 
+printf: (*const char, ...) ~> int;
 
+S = 1000;                       // Size of sieve - constant, int type
+
+sieve: &bool[S] := 0;           // Mutable array of bool, zero initialized
+
+// "Usual" unit:
+{
+    sieve[2] := true;           // Assignment ...
+
+    for (i: &int := 3; i < S; i += 2)   sieve[i] := true;
+
+    R = (ceil(sqrt(S)) : int);      // ... cast ...
+
+    for (i: &int := 3; i < R; i += 2)
+    {
+        if (!sieve[i])  v_continue();
+
+        for (k: &int := i*i, i2 = 2*i; k < S; k += i2)
+        {
+            sieve[k] := false;
+        }
+    }
+
+    for (i: &int := 0; i < S; ++i)
+    {
+        if (sieve[i])  printf("%d\n", i);
+    }
+}
+```
+
+In this example you can see two units:
+
+- The first, in a new format, contains definitions and declarations.
+- The second, in familiar braces, contains many new constructions...
+
+New units usually occupy all the space between two traditional units
+and must contain at least one definition or declaration.
+Let's see what we have there:
+
+- Definition of the type `double`, in a familiar style. And yes, we now have type expression syntax!
+- Declarations of some C functions. In a "mathematical" style.
+The `~>` operator "hints" that these are *imperative* functions.
+Parentheses around the parameter list are mandatory.
+- Definition of an integer constant. The default type is `int`.
+If you need something else, please indicate explicitly, for example: `Sz: size_t = 65536;`
+- Definition of a **mutable** variable. The type must be *reference*. The `:=` operator means initialization.
+If you omit the initialization and leave only the type, you get a *declaration*...
+
+All the above definitions/declarations are *global* and are visible in all subsequent units.
+The order is important! Every identifier must be defined or declared before it can be used.
 
 
 
