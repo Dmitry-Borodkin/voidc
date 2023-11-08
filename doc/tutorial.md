@@ -455,10 +455,10 @@ the “new compiler” of Mainline Language starts working, which allows you to 
 
 The most important innovations:
 
-- A new kind of units containing a set of definitions or declarations.
+- A new kind of units containing a set of definitions/declarations.
 - A new kind of “statements” - definition or declaration.
 
-Example:
+Example (assuming Mainline Language is already enabled):
 
 
 ```
@@ -470,7 +470,7 @@ double = float(64);             // Kinda, "typedef"
 ceil: (double) ~> double;       // Declarations...
 sqrt: (double) ~> double;
 
-printf: (*const char, ...) ~> int;
+printf: (*const char, ...) ~> int;          // Good old printf...
 
 S = 1000;                       // Size of sieve - constant, int type
 
@@ -506,7 +506,7 @@ In this example you can see two units:
 - The first, in a new format, contains definitions and declarations.
 - The second, in familiar braces, contains many new constructions...
 
-New units usually occupy all the space between two traditional units
+New kind units usually occupy all the space between two "traditional" units
 and must contain at least one definition or declaration.
 Let's see what we have there:
 
@@ -521,6 +521,24 @@ If you omit the initialization and leave only the type, you get a *declaration*.
 
 All the above definitions/declarations are *global* and are visible in all subsequent units.
 The order is important! Every identifier must be defined or declared before it can be used.
+
+Now let's see what's interesting in the second unit:
+
+- Expressions in C style with some features:
+
+    - The assignment operator symbol looks like `:=` (same as initialization).
+    - The cast operator looks like `( <value> : <type> )`. Parentheses are mandatory.
+    - For other details of the expressions, see below...
+
+- C-style flow control constructs:
+
+    - `for` loop with some C++ style tricks. Quite familiar `if`...
+    - `v_continue()` looks a little unusual, but is quite recognizable.
+    - More details on flow control below...
+
+
+
+
 
 
 
