@@ -6,7 +6,7 @@ understands very basic concepts about code generation using LLVM,
 and in general "has an idea of how compilers work"...
 
 
-## The "Hello, world" example:
+### The "Hello, world" example:
 
 ```
 {   v_import("printf.void"); }      // Import declaration of C's "printf"
@@ -130,9 +130,9 @@ First we'll go over the Starter Language a little. Just to feel "how it started"
 Then we'll take a closer look at the Mainline Language. To find out "how it's going"...
 
 
-### The Starter Language.
+## The Starter Language.
 
-#### Syntax (and a bit of semantics).
+### Syntax (and a bit of semantics).
 
 - The `voidc` awaits source files properly encoded in UTF-8.
 - Parser works at a Unicode Code Point "granularity".
@@ -232,7 +232,7 @@ It just "sticks" a label with the identifier on the left to the value received o
 Also this is very similar to `<-` from the monadic "do" notation (in Haskell).
 
 
-#### Not all functions are the same...
+### Not all functions are the same...
 
 Let's look at [The extended "Hello, world" example](#the-extended-hello-world-example).
 In it's code there are several "function calls".
@@ -253,7 +253,7 @@ They can generate code "in their own way" and/or change the state of the compile
 *Ct-intrinsics* are the most widely used "language development" tools mentioned above.
 
 
-#### Void's Reserved Names
+### Void's Reserved Names
 
 Identifiers starting with `v_` and `voidc_` are reserved for the needs
 of the `voidc` compiler itself and the (future) standard library...
@@ -405,7 +405,7 @@ printf("Hello %s!\n", str);
 printf("sqrt(2) = %g\n", sqrt(2));          // C's "double sqrt(double)"
 ```
 
-### The Mainline Language.
+## The Mainline Language.
 
 The "Mainline Language" is obtained by applying a sequence of extensions,
 grouped in the form of so-called "levels". Each subsequent extension builds on the previous ones.
@@ -425,7 +425,7 @@ The levels will change (slightly) and new levels will be added...
 There are no versions in our project yet, but at some point they will inevitably appear...
 
 
-#### How to "turn on" Mainline Language.
+### How to "turn on" Mainline Language.
 
 The simplest (but not the only) way is to place these two units at the beginning of the source file:
 
@@ -451,12 +451,10 @@ As a result, immediately after the second unit (right after its `}`)
 the “new compiler” of Mainline Language starts working, which allows you to use all the new features...
 
 
-#### Definitions and declarations.
-
-The most important innovations:
+### The *most* important innovations:
 
 - A new kind of units containing a set of definitions/declarations.
-- A new kind of “statements” - definition or declaration.
+- A new kind of “statements” - definitions and declarations.
 
 Example (assuming Mainline Language is already enabled):
 
@@ -535,6 +533,54 @@ Now let's see what's interesting in the second unit:
     - `for` loop with some C++ style tricks. Quite familiar `if`...
     - `v_continue()` looks a little unusual, but is quite recognizable.
     - More details on flow control below...
+
+...
+
+
+### Definitions and declarations.
+
+These "statements" are of two kinds:
+
+#### *Definitions*.
+
+Usually contains `=` or `:=` operators.
+
+##### Defining *constants* in syntax: `<name> : <type> = <value> ;` or the familiar `<name> = <expression> ;`.
+
+- `<name>` can be an identifier or a so-called *special identifier*.
+- `<type>` and `<value>` are *expressions*.
+- `<expression>` can denote a *type*.
+
+```
+num_t = uint(13);                           // "typedef" - unsigned integer of 13 bits
+
+v: vec(num_t, 5) = { 2, 3, 5, 7, 11 };      // Constant value of vector of 5 num_t
+
+u = 1.5 * v;
+
+w: vec(float(64), 5) = { 3.0, 4.5, 7.5, 10.5, 16.5 };
+
+f = u == w;                                 // same as  f: vec(bool, 5) = true;
+```
+
+##### Defining *variables* in syntax: `<name> : <type> := <value> ;`.
+
+- `<name>` is the usual identifier of a variable located in memory.
+- `<type>` is an expression that must denote a *reference* type.
+- `<value>` is an expression that specifies the initial value. Special (universal) cases:
+
+    - `0` - zero initialization.
+    - `v_undef()` - the initial value is undefined.
+
+##### Defining *functions* in syntax: `<name> : <type> { <body> }`.
+
+- `<name>` can be an identifier or a so-called *special identifier*.
+- `<type>` is an "expression" that must denote a *function* *proto*-type.
+- `<body>` - list of statements...
+
+#### *Declarations*.
+
+
 
 
 
