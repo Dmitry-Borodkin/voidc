@@ -5,7 +5,6 @@
 #ifndef VOIDC_AST_H
 #define VOIDC_AST_H
 
-#include "voidc_types.h"
 #include "voidc_quark.h"
 #include "voidc_dllexport.h"
 
