@@ -965,9 +965,12 @@ main(int argc, char *argv[])
 
                 static const auto shebang_q = v_quark_from_string("shebang");
 
-                pctx.grammar.parse(shebang_q, pctx);
+                if (pctx.grammar.parsers.find(shebang_q))
+                {
+                    pctx.grammar.parse(shebang_q, pctx);
 
-                pctx.memo.clear();
+                    pctx.memo.clear();
+                }
             }
 
             while(auto unit = parse_unit())
