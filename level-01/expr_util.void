@@ -4184,6 +4184,43 @@
     v_function_hack("voidc_ast_add_operator_methods", ft);
 }
 {
+    {   sstr = v_alloca(v_std_string_t);
+        v_initialize(sstr);
+
+        count = v_list_get_size(expr_oplist);
+        count = v_cast(count, int);
+
+        i = v_reference(v_alloca(int));
+
+        v_assign(i, 0);
+
+        loop
+        {
+            if (v_icmp(LLVMIntEQ, i, count))  v_break();
+
+
+            op = v_list_get_item(expr_oplist, i);
+
+            void_obj = v_ast_generic_get_object(op);
+
+            quark = v_load(v_cast(void_obj, quark_ptr));        //- Sic!!!
+
+            name = v_getelementptr(v_quark_to_string(quark), 2);    //- Skip "v."
+
+            v_std_string_set(sstr, "v_");
+
+            v_std_string_append(sstr, name);
+
+            v_add_symbol(v_std_string_get(sstr), v_ast_expr_t, op);
+
+
+            v_assign(i, v_binop(LLVMAdd, i, 1));
+        }
+
+        v_terminate(sstr);
+    }
+
+    //-----------------------------------------------------------------
     v_add_intrinsic("v.op_infix_assign",     op_infix_assign_intrinsic,  0);
     v_add_intrinsic("v.op_infix_add_assign", op_addsub_assign_intrinsic, compile_add);
     v_add_intrinsic("v.op_infix_sub_assign", op_addsub_assign_intrinsic, compile_sub);
