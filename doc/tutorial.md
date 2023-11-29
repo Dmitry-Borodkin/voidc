@@ -221,7 +221,7 @@ printf("v: %g\n", v);
 
 Please note, in contrast to C, in the Starter Language:
 
-- The identifier to the left of the `=` symbol does NOT denote a variable.
+- The identifier to the left of the `=` symbol does NOT denote a *variable*.
 - The `=` symbol does NOT denote an assignment.
 
 In fact, the semantics of `=` in Void is almost the same as in LLVM IR (with respect to "shadowing").
@@ -534,8 +534,6 @@ Now let's see what's interesting in the second unit:
     - `v_continue()` looks a little unusual, but is quite recognizable.
     - More details on flow control below...
 
-...
-
 
 ### Definitions and declarations.
 
@@ -545,25 +543,33 @@ These "statements" are of two kinds:
 
 Usually contains `=` or `:=` operators.
 
-##### Defining *constants* in syntax: `<name> : <type> = <value> ;` or the familiar `<name> = <expression> ;`.
+##### Defining *constants*.
+
+Syntax - `<name> : <type> = <value> ;` or the familiar `<name> = <expression> ;`:
 
 - `<name>` can be an identifier or a so-called *special identifier*.
-- `<type>` and `<value>` are *expressions*.
+- `<type>` and `<value>` are usually *expressions*.
 - `<expression>` can denote a *type*.
 
+Example:
+
 ```
-num_t = uint(13);                           // "typedef" - unsigned integer of 13 bits
+U = 'U';                                    // U : char32_t
 
-v: vec(num_t, 5) = { 2, 3, 5, 7, 11 };      // Constant value of vector of 5 num_t
+s = "Hello World";                          // s : char[12]
 
-u = 1.5 * v;
+f = s[6] == U+2;                            // Same as  f = true;
 
-w: vec(float(64), 5) = { 3.0, 4.5, 7.5, 10.5, 16.5 };
+ss: (*const char)[] = { "foo", s+6 };       // ss : (*const char)[2]
 
-f = u == w;                                 // same as  f: vec(bool, 5) = true;
+tt = ss[f];                                 // tt : *const char
+
+{ printf("Hello %s!\n", tt); }              // ...
 ```
 
-##### Defining *variables* in syntax: `<name> : <type> := <value> ;`.
+##### Defining *variables*.
+
+Syntax - `<name> : <type> := <value> ;`:
 
 - `<name>` is the usual identifier of a variable located in memory.
 - `<type>` is an expression that must denote a *reference* type.
@@ -572,21 +578,47 @@ f = u == w;                                 // same as  f: vec(bool, 5) = true;
     - `0` - zero initialization.
     - `v_undef()` - the initial value is undefined.
 
-##### Defining *functions* in syntax: `<name> : <type> { <body> }`.
+Example:
+
+```
+i: &int := 1;                               // Just int
+
+j: &int[5] := { i+0, i+1, i+2, i+3, i+4 };  // Array of ints
+
+k: &(*int)[3] := { j+0, j+1, j+2 };         // Array of pointers
+
+f = j[2] == 3;                              // Almost the same as  f = true;
+
+g = k[2] == &j[2];                          // Almost the same as  g = true;
+```
+
+##### Defining *functions*.
+
+Syntax - `<name> : <type> { <body> }`:
 
 - `<name>` can be an identifier or a so-called *special identifier*.
 - `<type>` is an "expression" that must denote a *function* *proto*-type.
 - `<body>` - list of statements...
 
+Example:
+
+```
+multiply: (a: int, b: int) ~> int           // By value
+{
+    v_return(a * b);                        // ...
+}
+```
+
 #### *Declarations*.
 
+General syntax - `<name> : <type> ;`:
+
+- `<name>` can be an identifier or a so-called *special identifier*.
+- `<type>` is a type expression.
 
 
 
-
-
-
-
+...
 
 
 ######  To be continued...

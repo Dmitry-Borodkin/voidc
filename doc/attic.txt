@@ -68,7 +68,43 @@ The details of `v_add_type()` we'll leave for the "Reference Manual"...
 }
 ```
 
-...
+
+-----------------------------------------------------------------------
+
+```
+num_t = uint(11);                           // "typedef" - unsigned integer of 11 bits
+
+v: vec(num_t, 5) = { 2, 3, 5, 7, 11 };      // Constant value of vector of 5 num_t
+
+u: vec(float(64), 5)[3] = { 1.0*v, 1.5*v, 2.0*v };
+
+w: vec(float(64), 5) = { 3.0, 4.5, 7.5, 10.5, 16.5 };
+
+f = u[1] == w;                              // Same as  f: vec(bool, 5) = true;
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
