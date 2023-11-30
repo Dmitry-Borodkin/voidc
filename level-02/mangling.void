@@ -496,7 +496,7 @@ voidc_mangling_context_get_compute_key_quark_type: () ~> &voidc_compute_key_quar
     q = v_quark_ptr_from_string;
 
     v_add_symbol("q_op_postfix_dot",     q_ref, q("v.op_postfix_dot"));
-    v_add_symbol("q_op_postfix_tildato", q_ref, q("v.op_postfix_tildato"));
+    v_add_symbol("q_op_postfix_tildeto", q_ref, q("v.op_postfix_tildeto"));
 
     v_add_symbol("unit_spec_fun_defn_q", q_ref, q("unit_spec_fun_defn"));
     v_add_symbol("unit_spec_fun_renm_q", q_ref, q("unit_spec_fun_renm"));
@@ -957,9 +957,9 @@ compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
         v_initialize(expr);
         defer v_terminate(expr);
 
-        op_infix_tildato: *v_ast_expr_t;        //- Sic!!!
+        op_infix_tildeto: *v_ast_expr_t;        //- Sic!!!
 
-        v_ast_make_expr_op_binary(expr, op_infix_tildato, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
+        v_ast_make_expr_op_binary(expr, op_infix_tildeto, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
@@ -1037,9 +1037,9 @@ v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v
         v_initialize(expr);
         defer v_terminate(expr);
 
-        op_infix_tildato: *v_ast_expr_t;        //- Sic!!!
+        op_infix_tildeto: *v_ast_expr_t;        //- Sic!!!
 
-        v_ast_make_expr_op_binary(expr, op_infix_tildato, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
+        v_ast_make_expr_op_binary(expr, op_infix_tildeto, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);

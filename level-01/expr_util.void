@@ -541,7 +541,7 @@
     add_op_unary("v.op_prefix_star",       20000);
     add_op_unary("v.op_prefix_amp",        20000);
     add_op_unary("v.op_prefix_bang",       20000);
-    add_op_unary("v.op_prefix_tilda",      20000);
+    add_op_unary("v.op_prefix_tilde",      20000);
 
     //-------------------------------------------------------------
     add_op_unary("v.op_postfix_inc",       30000);
@@ -3191,11 +3191,11 @@
 }
 
 //---------------------------------------------------------------------
-//- compile_prefix_tilda - utility...
+//- compile_prefix_tilde - utility...
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("compile_prefix_tilda", compile_op_unary_ft);
+    f = v_function_hack("compile_prefix_tilde", compile_op_unary_ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -4264,7 +4264,7 @@
     v_add_intrinsic("v.op_prefix_star",   op_prefix_star,     0);
     v_add_intrinsic("v.op_prefix_amp",    op_prefix_amp,      0);
     v_add_intrinsic("v.op_prefix_bang",   op_unary_intrinsic, compile_prefix_bang);
-    v_add_intrinsic("v.op_prefix_tilda",  op_unary_intrinsic, compile_prefix_tilda);
+    v_add_intrinsic("v.op_prefix_tilde",  op_unary_intrinsic, compile_prefix_tilde);
     v_add_intrinsic("v.op_postfix_inc",   op_unary_intrinsic, compile_postfix_inc);
     v_add_intrinsic("v.op_postfix_dec",   op_unary_intrinsic, compile_postfix_dec);
 
@@ -4349,7 +4349,7 @@
     v_add_symbol("voidc_internal_compile_prefix_star",  compile_op_unary_ft, compile_prefix_star);
     v_add_symbol("voidc_internal_compile_prefix_amp",   compile_op_unary_ft, compile_prefix_amp);
     v_add_symbol("voidc_internal_compile_prefix_bang",  compile_op_unary_ft, compile_prefix_bang);
-    v_add_symbol("voidc_internal_compile_prefix_tilda", compile_op_unary_ft, compile_prefix_tilda);
+    v_add_symbol("voidc_internal_compile_prefix_tilde", compile_op_unary_ft, compile_prefix_tilde);
     v_add_symbol("voidc_internal_compile_postfix_inc",  compile_op_unary_ft, compile_postfix_inc);
     v_add_symbol("voidc_internal_compile_postfix_dec",  compile_op_unary_ft, compile_postfix_dec);
 

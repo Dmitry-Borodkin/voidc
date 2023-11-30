@@ -855,7 +855,7 @@
                / '*'        { op_prefix_star }
                / '&'        { op_prefix_amp }
                / '!'        { op_prefix_bang }
-               / '~'        { op_prefix_tilda }
+               / '~'        { op_prefix_tilde }
                ;
 
         bracketed = '(' _ e:expr _ ')'      { mk_bracketed(op_parentheses, e) }     //- TODO...
