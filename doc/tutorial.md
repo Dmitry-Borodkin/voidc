@@ -617,6 +617,81 @@ General syntax - `<name> : <type> ;`:
 - `<type>` is a type expression.
 
 
+Depending on what `<type>` is, different cases are possible...
+
+##### *Function* declarations.
+
+`<type>` must be a function type.
+
+Example:
+
+```
+qsort: (ptr: *void, cn: size_t, sz: size_t, cmp: *((*const void, *const void) ~> int)) ~> void;
+
+compare: (a: *const void, b: *const void) ~> int
+{
+    a = *(a: *const int);
+    b = *(b: *const int);
+
+    if (a < b)  v_return(-1);
+    if (a > b)  v_return(+1);
+    v_return(0);
+}
+
+{   ints: &int[] := { 0, 4, 2, 3, 1 };
+
+    qsort(ints, 5, int.size, compare);
+
+    for (i: &int := 0; i < 5; ++i)  printf("%d ", ints[i]);
+
+    printf("\n");
+}
+```
+
+##### *Variable* declarations.
+
+`<type>` must be a reference type.
+
+Example:
+
+```
+struct FILE;                    // Definition of opaque structure type
+
+stdin:  &*FILE;                 // Declarations of C's stdio streams
+stdout: &*FILE;                 // ...
+stderr: &*FILE;                 // ...
+
+fprintf: (*FILE, *const char, ...) ~> int;
+
+(_.printf()) = fprintf;         // Definition of a "special identifier" for fprintf.
+
+{   fprintf(stdout, "Hello!\n");
+
+    stdout.printf("Hello %s...\n", "again");
+}
+```
+
+##### *Constant* declarations.
+
+For now (Dec 2023) this is a *very* experimental case...
+
+...
+
+
+### Expressions.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ...
 
