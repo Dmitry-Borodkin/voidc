@@ -34,6 +34,7 @@
     void_ptr = v_pointer_type(void, 0);
     char_ptr = v_pointer_type(char, 0);
 
+    //-------------------------------------------------------------
     v_store(char_ptr,   typ0);              //- Symbol name
     v_store(v_type_ptr, typ1);              //- Symbol type
 
@@ -61,6 +62,7 @@
     v_export_symbol_type("v_export_type", ft);
     v_export_symbol_type("v_add_type", ft);
 
+    //-------------------------------------------------------------
 //  v_store(char_ptr, typ0);                //- Struct name
 
     ft = v_function_type(v_type_ptr, typ0, 1, false);
@@ -92,6 +94,7 @@
     v_store(void_ptr,   typ2);              //- Symbol value
 
     ft = v_function_type(void, typ0, 3, false);
+
     v_export_symbol_type("v_export_symbol_q", ft);
     v_export_symbol_type("v_add_symbol_q", ft);
 
@@ -147,6 +150,7 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
+    //-------------------------------------------------------------
     v_store(void_ptr, typ0);                //- ctx
 
     om_ft = v_function_type(LLVMModuleRef, typ0, 1, false);
@@ -168,6 +172,7 @@
     ft = v_function_type(LLVMModuleRef, typ0, 0, false);
     v_export_symbol_type("v_obtain_module", ft);
 
+    //-------------------------------------------------------------
     v_store(void_ptr,      typ0);           //- ctx
     v_store(LLVMModuleRef, typ1);           //- module
 
@@ -191,6 +196,7 @@
     ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("v_finish_module", ft);
 
+    //-------------------------------------------------------------
     v_type_ptr_ptr   = v_pointer_type(v_type_ptr, 0);
     LLVMValueRef_ptr = v_pointer_type(LLVMValueRef, 0);
 
@@ -208,6 +214,7 @@
     ft = v_function_type(bool, typ0, 3, false);
     v_export_symbol_type("v_obtain_identifier_q", ft);
 
+    //-------------------------------------------------------------
     v_store(v_type_ptr,   typ0);            //- Source type
     v_store(LLVMValueRef, typ1);            //- Source value
     v_store(v_type_ptr,   typ2);            //- Destination type
@@ -235,6 +242,7 @@
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_set_convert_to_type", ft);
 
+    //-------------------------------------------------------------
     v_store(char_ptr,     typ0);            //- Constant/variable name
     v_store(v_type_ptr,   typ1);            //- Constant/variable type
     v_store(LLVMValueRef, typ2);            //- Constant/variable value
@@ -256,6 +264,7 @@
     v_export_symbol_type("v_get_variable_value", ft);
     v_export_symbol_type("v_find_constant_value", ft);
 
+    //-------------------------------------------------------------
     v_store(v_quark_t,    typ0);            //- Constant/variable name quark
 //  v_store(v_type_ptr,   typ1);            //- Constant/variable type
 //  v_store(LLVMValueRef, typ2);            //- Constant/variable value
@@ -280,6 +289,7 @@
     t_ptr = v_pointer_type(v_type_ptr, 0);
     v_ptr = v_pointer_type(LLVMValueRef, 0);
 
+    //-------------------------------------------------------------
     v_store(char_ptr, typ0);                //- Constant/variable name
     v_store(t_ptr,    typ1);                //- For type
     v_store(v_ptr,    typ2);                //- For value
@@ -301,6 +311,7 @@
     ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_find_type", ft);
 
+    //-------------------------------------------------------------
     v_store(v_quark_t, typ0);               //- Constant/variable name quark
 //  v_store(t_ptr,     typ1);               //- For type
 //  v_store(v_ptr,     typ2);               //- For value
@@ -314,6 +325,8 @@
     ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_find_symbol_type_q", ft);
 
+//  v_store(v_quark_t, typ0);               //- Symbol name quark
+
     ft = v_function_type(void_ptr, typ0, 1, false);
     v_export_symbol_type("v_find_symbol_value_q", ft);
 
@@ -322,6 +335,7 @@
     ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_find_type_q", ft);
 
+    //-------------------------------------------------------------
     v_store(char_ptr, typ0);                //- Alias name
     v_store(char_ptr, typ1);                //- Aliasee
 
@@ -346,6 +360,7 @@
     ft = v_function_type(v_quark_t, typ0, 1, false);
     v_export_symbol_type("v_check_alias_q", ft);
 
+    //-------------------------------------------------------------
     v_store(v_type_ptr,   typ0);            //- type
     v_store(LLVMValueRef, typ1);            //- value
 
@@ -371,6 +386,7 @@
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_set_make_temporary", ft);
 
+    //-------------------------------------------------------------
     v_store(int, typ0);                     //- Number of prints/modules...
 
     ft = v_function_type(void, typ0, 1, false);
@@ -382,6 +398,7 @@
     ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("voidc_verify_jit_module_optimized", ft);
 
+    //-------------------------------------------------------------
     v_store(int, typ0);                     //- line
     v_store(int, typ1);                     //- column
 
@@ -394,7 +411,9 @@
     ft = v_function_type(LLVMValueRef, typ0, 2, false);
     v_export_symbol_type("v_prepare_function", ft);
 
+    //-------------------------------------------------------------
     ft = v_function_type(void, 0, 0, false);
+
     v_export_symbol_type("voidc_finish_unit_action", ft);
     v_export_symbol_type("voidc_flush_unit_symbols", ft);
     v_export_symbol_type("v_clear_variables", ft);
@@ -415,9 +434,11 @@
     ft = v_function_type(LLVMModuleRef, 0, 0, false);
     v_export_symbol_type("v_get_module", ft);
 
+    //-------------------------------------------------------------
     v_store(LLVMModuleRef, typ0);           //-
 
     ft = v_function_type(void, typ0, 1, false);
+
     v_export_symbol_type("v_set_module", ft);
     v_export_symbol_type("v_verify_module", ft);
     v_export_symbol_type("voidc_prepare_module_for_jit", ft);
@@ -428,6 +449,7 @@
     v_store(bool,          typ1);           //- do_load
 
     ft = v_function_type(void, typ0, 2, false);
+
     v_export_symbol_type("voidc_unit_load_module_to_jit", ft);
     v_export_symbol_type("voidc_unit_load_local_module_to_jit", ft);
 
@@ -438,9 +460,11 @@
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("voidc_compile_load_module_to_jit", ft);
 
+    //-------------------------------------------------------------
     v_store(LLVMMemoryBufferRef, typ0);     //-
 
     ft = v_function_type(void, typ0, 1, false);
+
     v_export_symbol_type("voidc_add_object_file_to_jit", ft);
     v_export_symbol_type("voidc_add_local_object_file_to_jit", ft);
     v_export_symbol_type("voidc_set_unit_buffer", ft);
@@ -449,6 +473,7 @@
 //  v_store(bool,                typ1);     //- do_load
 
     ft = v_function_type(void, typ0, 2, false);
+
     v_export_symbol_type("voidc_unit_load_object_file_to_jit", ft);
     v_export_symbol_type("voidc_unit_load_local_object_file_to_jit", ft);
 
@@ -460,9 +485,11 @@
     v_export_symbol_type("voidc_compile_load_object_file_to_jit", ft);
 
 
+    //-------------------------------------------------------------
     ft = v_function_type(LLVMMemoryBufferRef, 0, 0, false);
     v_export_symbol_type("voidc_get_unit_buffer", ft);
 
+    //-------------------------------------------------------------
     ft = v_function_type(v_type_ptr, 0, 0, false);
     v_export_symbol_type("v_get_result_type", ft);
 
@@ -479,6 +506,7 @@
     ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("v_set_result_value", ft);
 
+    //-------------------------------------------------------------
     v_store(v_type_ptr,   typ0);            //-
     v_store(LLVMValueRef, typ1);            //-
 
@@ -514,19 +542,23 @@
     visitor_ptr = v_pointer_type(voidc_visitor_t, 0);
     base_ptr    = v_pointer_type(v_ast_base_t, 0);
 
+    //-------------------------------------------------------------
     v_store(void_ptr,    typ0);             //- aux
     v_store(visitor_ptr, typ1);             //- visitor
     v_store(base_ptr,    typ2);             //- self (AST)
 
     intrinsic_t = v_function_type(void, typ0, 3, false);
+
     v_export_type("voidc_intrinsic_t", intrinsic_t);
     v_export_type("voidc_visitor_method_t", intrinsic_t);       //- Sic!?!
 
+    //-------------------------------------------------------------
     v_store(char_ptr, typ0);                //- Intrinsic name
     v_store(void_ptr, typ1);                //- Intrinsic function
     v_store(void_ptr, typ2);                //- aux
 
     ft = v_function_type(void, typ0, 3, false);
+
     v_export_symbol_type("v_export_intrinsic", ft);
     v_export_symbol_type("v_add_intrinsic",    ft);
 
@@ -535,9 +567,11 @@
 //  v_store(void_ptr,  typ2);               //- aux
 
     ft = v_function_type(void, typ0, 3, false);
+
     v_export_symbol_type("v_export_intrinsic_q", ft);
     v_export_symbol_type("v_add_intrinsic_q",    ft);
 
+    //-------------------------------------------------------------
     void_ptr_ptr = v_pointer_type(void_ptr, 0);
 
     v_store(char_ptr,     typ0);            //- Intrinsic name
@@ -564,6 +598,7 @@
     v_store(v_std_any_ptr, typ1);           //- Property value
 
     ft = v_function_type(void, typ0, 2, false);
+
     v_export_symbol_type("v_export_property", ft);
     v_export_symbol_type("v_add_property",    ft);
 
@@ -571,6 +606,7 @@
     v_store(v_std_any_ptr, typ1);           //- Property value
 
     ft = v_function_type(void, typ0, 2, false);
+
     v_export_symbol_type("v_export_property_q", ft);
     v_export_symbol_type("v_add_property_q",    ft);
 
@@ -630,13 +666,16 @@
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
 
+    //-------------------------------------------------------------
     ft = v_function_type(v_target_global_ctx_ptr, 0, 0, false);
+
     v_export_symbol_type("v_target_get_voidc_global_ctx", ft);
     v_export_symbol_type("v_target_get_global_ctx", ft);
 
     v_store(v_target_global_ctx_ptr, typ0);         //-
 
     ft = v_function_type(void, typ0, 1, false);
+
     v_export_symbol_type("v_target_set_global_ctx", ft);
     v_export_symbol_type("v_target_destroy_global_ctx", ft);
 
@@ -650,10 +689,12 @@
     v_store(char_ptr,                typ0);         //- Source file name (kind of...)
     v_store(v_target_global_ctx_ptr, typ1);         //- Parent global context
 
+    //-------------------------------------------------------------
     ft = v_function_type(v_target_local_ctx_ptr, typ0, 2, false);
     v_export_symbol_type("v_target_create_local_ctx", ft);
 
     ft = v_function_type(v_target_local_ctx_ptr, 0, 0, false);
+
     v_export_symbol_type("v_target_get_local_ctx", ft);
     v_export_symbol_type("v_target_get_voidc_local_ctx", ft);
 
@@ -665,11 +706,14 @@
     ft = v_function_type(char_ptr, typ0, 1, false);
     v_export_symbol_type("v_target_local_ctx_get_filename", ft);
 
+    //-------------------------------------------------------------
     ft = v_function_type(LLVMBuilderRef, 0, 0, false);
+
     v_export_symbol_type("v_target_get_voidc_builder", ft);
     v_export_symbol_type("v_target_get_builder", ft);
 
     ft = v_function_type(LLVMTargetDataRef, 0, 0, false);
+
     v_export_symbol_type("v_target_get_voidc_data_layout", ft);
     v_export_symbol_type("v_target_get_data_layout", ft);
 
@@ -678,6 +722,7 @@
     ft = v_function_type(void, typ0, 1, false);
     v_export_symbol_type("v_target_set_data_layout", ft);
 
+    //-------------------------------------------------------------
     ft = v_function_type(bool, 0, 0, false);
     v_export_symbol_type("v_target_local_ctx_has_parent", ft);
 }

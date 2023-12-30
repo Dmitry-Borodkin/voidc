@@ -63,7 +63,7 @@
     v_export_symbol_type("v_type_get_property", ft);
 
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
     v_store(v_type_ptr, typ0);          //-
 
     ft = v_function_type(int, typ0, 1, false);
@@ -79,7 +79,7 @@
     ft = v_function_type(v_type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_get_scalar_type", ft);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
     ft = v_function_type(v_type_ptr, 0, 0, false);
     v_export_symbol_type("v_void_type", ft);
 
@@ -88,7 +88,7 @@
     ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_void", ft);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
     ft = v_function_type(v_type_ptr, 0, 0, false);
     v_export_symbol_type("v_f16_type",  ft);
     v_export_symbol_type("v_f32_type",  ft);
@@ -100,7 +100,7 @@
     ft = v_function_type(bool, typ0, 1, false);
     v_export_symbol_type("v_type_is_floating_point", ft);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
     v_store(unsigned, typ0);            //- Width
 
     ft = v_function_type(v_type_ptr, typ0, 1, false);
@@ -116,7 +116,7 @@
     ft = v_function_type(unsigned, typ0, 1, false);
     v_export_symbol_type("v_type_integer_get_width", ft);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
 //  v_store(v_type_ptr, typ0);          //- Return type
 //  v_store(type_ptr,   typ1);          //- Parameter types
 //  v_store(unsigned,   typ2);          //- Parameter count
@@ -146,7 +146,7 @@
     ft = v_function_type(type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_function_get_param_types", ft);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
 //  v_store(v_type_ptr, typ0);          //- Element type
     v_store(unsigned,   typ1);          //- Address space
 
@@ -170,7 +170,7 @@
     ft = v_function_type(unsigned, typ0, 1, false);
     v_export_symbol_type("v_type_refptr_get_address_space", ft);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
 //  v_store(char_ptr, typ0);            //- Struct name
 //
 //  ft = v_function_type(v_type_ptr, typ0, 1, false);
@@ -227,7 +227,7 @@
     ft = v_function_type(type_ptr, typ0, 1, false);
     v_export_symbol_type("v_type_struct_get_element_types", ft);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
 //  v_store(v_type_ptr, typ0);          //- Element type
     v_store(uint64_t,   typ1);          //- Array length
 
@@ -249,7 +249,7 @@
     ft = v_function_type(uint64_t, typ0, 1, false);
     v_export_symbol_type("v_type_array_get_length", ft);
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
 //  v_store(v_type_ptr, typ0);          //- Element type
     v_store(unsigned,   typ1);          //- Vector size
 
@@ -278,7 +278,7 @@
     v_export_symbol_type("v_type_vector_is_scalable", ft);
 
 
-    //-----------------------------------------------------------------
+    //-------------------------------------------------------------
     v_store(void_ptr,   typ0);          //- aux
     v_store(v_type_ptr, typ1);          //-
 

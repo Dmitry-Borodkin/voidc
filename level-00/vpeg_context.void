@@ -30,18 +30,23 @@
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
 
+    //-------------------------------------------------------------
     v_store(v_peg_grammar_ptr, typ0);
 
     ft = v_function_type(void, typ0, 1, false);
+
     v_export_symbol_type("v_peg_get_grammar", ft);
     v_export_symbol_type("v_peg_set_grammar", ft);
 
+    //-------------------------------------------------------------
     v_store(v_peg_context_ptr, typ0);
 
     ft = v_function_type(void, typ0, 1, false);
+
     v_export_symbol_type("v_peg_get_context", ft);
     v_export_symbol_type("v_peg_set_context", ft);
 
+    //-------------------------------------------------------------
     void_ptr = v_pointer_type(void, 0);
 
     v_store(void_ptr, typ0);
@@ -57,12 +62,14 @@
     ft = v_function_type(void, typ0, 4, false);
     v_export_symbol_type("v_peg_make_context", ft);
 
+    //-------------------------------------------------------------
     v_store(v_std_any_ptr, typ0);
     v_store(v_quark_t,     typ1);
 
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_peg_parse", ft);
 
+    //-------------------------------------------------------------
     v_store(v_std_string_ptr, typ0);
     v_store(size_t,           typ1);
     v_store(size_t,           typ2);
@@ -70,6 +77,7 @@
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_peg_take_string", ft);
 
+    //-------------------------------------------------------------
     size_t_ref = v_reference_type(size_t, 0);
 
     v_store(size_t,     typ0);
@@ -131,6 +139,20 @@
     //-----------------------------------------------------------------
     //- bool voidc_has_grammar(void)
     //-----------------------------------------------------------------
+    //- voidc_has_grammar: () ~> bool
+    //- {
+    //-     grm = v_alloca(v_peg_grammar_t);
+    //-     v_initialize(grm);
+    //-
+    //-     v_peg_get_grammar(grm);
+    //-
+    //-     ok = !v_empty(grm);
+    //-
+    //-     v_terminate(grm);
+    //-
+    //-     v_return(ok);
+    //- }
+    //-----------------------------------------------------------------
     has_grammar_f = v_obtain_function("voidc_has_grammar", lltyp);
 
     entry = LLVMAppendBasicBlock(has_grammar_f, "entry");
@@ -171,6 +193,22 @@
 
     //-----------------------------------------------------------------
     //- bool voidc_grammar_has_parser(const char *name)
+    //-----------------------------------------------------------------
+    //- voidc_grammar_has_parser: (name: *const char) ~> bool
+    //- {
+    //-     grm = v_alloca(v_peg_grammar_t);
+    //-     v_initialize(grm);
+    //-
+    //-     v_peg_get_grammar(grm);
+    //-
+    //-     pp = v_peg_grammar_get_parser(grm, name, 0);
+    //-
+    //-     ok = pp != 0;
+    //-
+    //-     v_terminate(grm);
+    //-
+    //-     v_return(ok);
+    //- }
     //-----------------------------------------------------------------
     has_parser_f = v_obtain_function("voidc_grammar_has_parser", lltyp);
 

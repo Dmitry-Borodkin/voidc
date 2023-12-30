@@ -28,26 +28,13 @@
 }
 
 //---------------------------------------------------------------------
-{   base_ptr = v_pointer_type(v_ast_base_t, 0);
-    v_export_type("v_ast_base_ptr", base_ptr);
-
-    unit_ptr = v_pointer_type(v_ast_unit_t, 0);
-    v_export_type("v_ast_unit_ptr", unit_ptr);
-
-    stmt_list_ptr = v_pointer_type(v_ast_stmt_list_t, 0);
-    v_export_type("v_ast_stmt_list_ptr", stmt_list_ptr);
-
-    stmt_ptr = v_pointer_type(v_ast_stmt_t, 0);
-    v_export_type("v_ast_stmt_ptr", stmt_ptr);
-
-    expr_list_ptr = v_pointer_type(v_ast_expr_list_t, 0);
-    v_export_type("v_ast_expr_list_ptr", expr_list_ptr);
-
-    expr_ptr = v_pointer_type(v_ast_expr_t, 0);
-    v_export_type("v_ast_expr_ptr", expr_ptr);
-
-    generic_list_ptr = v_pointer_type(v_ast_generic_list_t, 0);
-    v_export_type("v_ast_generic_list_ptr", generic_list_ptr);
+{   v_export_type("v_ast_base_ptr",         v_pointer_type(v_ast_base_t,         0));
+    v_export_type("v_ast_unit_ptr",         v_pointer_type(v_ast_unit_t,         0));
+    v_export_type("v_ast_stmt_list_ptr",    v_pointer_type(v_ast_stmt_list_t,    0));
+    v_export_type("v_ast_stmt_ptr",         v_pointer_type(v_ast_stmt_t,         0));
+    v_export_type("v_ast_expr_list_ptr",    v_pointer_type(v_ast_expr_list_t,    0));
+    v_export_type("v_ast_expr_ptr",         v_pointer_type(v_ast_expr_t,         0));
+    v_export_type("v_ast_generic_list_ptr", v_pointer_type(v_ast_generic_list_t, 0));
 }
 
 //---------------------------------------------------------------------
@@ -320,18 +307,18 @@
 
 
     //-------------------------------------------------------------
-    quark_ref = v_reference_type(v_quark_t, 0);
+    q_ref = v_reference_type(v_quark_t, 0);
 
-    v_export_symbol_type("v_ast_stmt_list_visitor_method_tag", quark_ref);
-    v_export_symbol_type("v_ast_expr_list_visitor_method_tag", quark_ref);
+    v_export_symbol_type("v_ast_stmt_list_visitor_method_tag", q_ref);
+    v_export_symbol_type("v_ast_expr_list_visitor_method_tag", q_ref);
 
-    v_export_symbol_type("v_ast_unit_visitor_method_tag",            quark_ref);
-    v_export_symbol_type("v_ast_stmt_visitor_method_tag",            quark_ref);
-    v_export_symbol_type("v_ast_expr_call_visitor_method_tag",       quark_ref);
-    v_export_symbol_type("v_ast_expr_identifier_visitor_method_tag", quark_ref);
-    v_export_symbol_type("v_ast_expr_integer_visitor_method_tag",    quark_ref);
-    v_export_symbol_type("v_ast_expr_string_visitor_method_tag",     quark_ref);
-    v_export_symbol_type("v_ast_expr_char_visitor_method_tag",       quark_ref);
+    v_export_symbol_type("v_ast_unit_visitor_method_tag",            q_ref);
+    v_export_symbol_type("v_ast_stmt_visitor_method_tag",            q_ref);
+    v_export_symbol_type("v_ast_expr_call_visitor_method_tag",       q_ref);
+    v_export_symbol_type("v_ast_expr_identifier_visitor_method_tag", q_ref);
+    v_export_symbol_type("v_ast_expr_integer_visitor_method_tag",    q_ref);
+    v_export_symbol_type("v_ast_expr_string_visitor_method_tag",     q_ref);
+    v_export_symbol_type("v_ast_expr_char_visitor_method_tag",       q_ref);
 
 
     //-------------------------------------------------------------

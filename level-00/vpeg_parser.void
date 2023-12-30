@@ -35,24 +35,23 @@
 
     typ = v_alloca(v_type_ptr);
 
+    //-------------------------------------------------------------
     v_store(v_peg_parser_ptr, typ);
 
-    fun_t = v_function_type(int, typ, 1, false);
-
-    v_export_symbol_type("v_peg_parser_get_kind", fun_t);
+    ft = v_function_type(int, typ, 1, false);
+    v_export_symbol_type("v_peg_parser_get_kind", ft);
 
     v_store(v_peg_action_ptr, typ);
 
-    fun_t = v_function_type(int, typ, 1, false);
-
-    v_export_symbol_type("v_peg_action_get_kind", fun_t);
+    ft = v_function_type(int, typ, 1, false);
+    v_export_symbol_type("v_peg_action_get_kind", ft);
 
     v_store(v_peg_argument_ptr, typ);
 
-    fun_t = v_function_type(int, typ, 1, false);
+    ft = v_function_type(int, typ, 1, false);
+    v_export_symbol_type("v_peg_argument_get_kind", ft);
 
-    v_export_symbol_type("v_peg_argument_get_kind", fun_t);
-
+    //-------------------------------------------------------------
     q = v_quark_from_string;
 
     q_kind = q("v_kind");
@@ -69,217 +68,259 @@
 
     char_ptr = v_pointer_type(char, 0);
 
+    //-------------------------------------------------------------
     v_store(v_peg_parser_ptr, typ0);
 
-    fun_t = v_function_type(int, typ0, 1, false);
+    ft = v_function_type(int, typ0, 1, false);
+    v_export_symbol_type("v_peg_parser_get_parsers_count", ft);
 
-    v_export_symbol_type("v_peg_parser_get_parsers_count", fun_t);
-
+//  v_store(v_peg_parser_ptr, typ0);
     v_store(v_peg_parser_ptr, typ1);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_parser_get_parsers", ft);
 
-    v_export_symbol_type("v_peg_parser_get_parsers", fun_t);
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
+//  v_store(v_peg_parser_ptr, typ1);
+    v_store(int,              typ2);
 
-    v_store(int, typ2);
+    ft = v_function_type(void, typ0, 3, false);
 
-    fun_t = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_peg_make_choice_parser",   ft);
+    v_export_symbol_type("v_peg_make_sequence_parser", ft);
 
-    v_export_symbol_type("v_peg_make_choice_parser",   fun_t);
-    v_export_symbol_type("v_peg_make_sequence_parser", fun_t);
-
+//  v_store(v_peg_parser_ptr, typ0);
+//  v_store(v_peg_parser_ptr, typ1);
     v_store(v_peg_parser_ptr, typ2);
 
-    fun_t = v_function_type(void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
 
-    v_export_symbol_type("v_peg_choice_parser_append",   fun_t);
-    v_export_symbol_type("v_peg_choice_parser_concat",   fun_t);
-    v_export_symbol_type("v_peg_sequence_parser_append", fun_t);
-    v_export_symbol_type("v_peg_sequence_parser_concat", fun_t);
+    v_export_symbol_type("v_peg_choice_parser_append",   ft);
+    v_export_symbol_type("v_peg_choice_parser_concat",   ft);
+    v_export_symbol_type("v_peg_sequence_parser_append", ft);
+    v_export_symbol_type("v_peg_sequence_parser_concat", ft);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
+//  v_store(v_peg_parser_ptr, typ1);
 
-    v_export_symbol_type("v_peg_make_and_parser",      fun_t);
-    v_export_symbol_type("v_peg_make_not_parser",      fun_t);
-    v_export_symbol_type("v_peg_make_question_parser", fun_t);
-    v_export_symbol_type("v_peg_make_star_parser",     fun_t);
-    v_export_symbol_type("v_peg_make_plus_parser",     fun_t);
+    ft = v_function_type(void, typ0, 2, false);
 
+    v_export_symbol_type("v_peg_make_and_parser",      ft);
+    v_export_symbol_type("v_peg_make_not_parser",      ft);
+    v_export_symbol_type("v_peg_make_question_parser", ft);
+    v_export_symbol_type("v_peg_make_star_parser",     ft);
+    v_export_symbol_type("v_peg_make_plus_parser",     ft);
+
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
     v_store(char_ptr,         typ1);
 //  v_store(v_peg_parser_ptr, typ2);
 
-    fun_t = v_function_type(void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_peg_make_catch_variable_parser", ft);
 
-    v_export_symbol_type("v_peg_make_catch_variable_parser", fun_t);
+//  v_store(v_peg_parser_ptr, typ0);
 
-    fun_t = v_function_type(char_ptr, typ0, 1, false);
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_catch_variable_parser_get_name", ft);
 
-    v_export_symbol_type("v_peg_catch_variable_parser_get_name", fun_t);
-
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
     v_store(v_peg_parser_ptr, typ1);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_catch_string_parser", ft);
 
-    v_export_symbol_type("v_peg_make_catch_string_parser", fun_t);
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
+    v_store(char_ptr,         typ1);
 
-    v_store(char_ptr, typ1);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_identifier_parser", ft);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+//  v_store(v_peg_parser_ptr, typ0);
 
-    v_export_symbol_type("v_peg_make_identifier_parser", fun_t);
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_identifier_parser_get_identifier", ft);
 
-    fun_t = v_function_type(char_ptr, typ0, 1, false);
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
+    v_store(int,              typ1);
 
-    v_export_symbol_type("v_peg_identifier_parser_get_identifier", fun_t);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_backref_parser", ft);
 
-    v_store(int, typ1);
+//  v_store(v_peg_parser_ptr, typ0);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(int, typ0, 1, false);
+    v_export_symbol_type("v_peg_backref_parser_get_number", ft);
 
-    v_export_symbol_type("v_peg_make_backref_parser", fun_t);
-
-    fun_t = v_function_type(int, typ0, 1, false);
-
-    v_export_symbol_type("v_peg_backref_parser_get_number", fun_t);
-
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
     v_store(v_peg_action_ptr, typ1);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_action_parser", ft);
 
-    v_export_symbol_type("v_peg_make_action_parser", fun_t);
+//  v_store(v_peg_parser_ptr, typ0);
 
-    fun_t = v_function_type(v_peg_action_ptr, typ0, 1, false);
+    ft = v_function_type(v_peg_action_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_action_parser_get_action", ft);
 
-    v_export_symbol_type("v_peg_action_parser_get_action", fun_t);
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
+    v_store(char_ptr,         typ1);
 
-    v_store(char_ptr, typ1);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_literal_parser", ft);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+//  v_store(v_peg_parser_ptr, typ0);
 
-    v_export_symbol_type("v_peg_make_literal_parser", fun_t);
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_literal_parser_get_literal", ft);
 
-    fun_t = v_function_type(char_ptr, typ0, 1, false);
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
+    v_store(char32_t,         typ1);
 
-    v_export_symbol_type("v_peg_literal_parser_get_literal", fun_t);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_character_parser", ft);
 
-    v_store(char32_t, typ1);
+//  v_store(v_peg_parser_ptr, typ0);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(char32_t, typ0, 1, false);
+    v_export_symbol_type("v_peg_character_parser_get_character", ft);
 
-    v_export_symbol_type("v_peg_make_character_parser", fun_t);
-
-    fun_t = v_function_type(char32_t, typ0, 1, false);
-
-    v_export_symbol_type("v_peg_character_parser_get_character", fun_t);
-
+    //-------------------------------------------------------------
     range_t = v_array_type(char32_t, 2);
 
     v_export_type("v_peg_class_parser_range_t", range_t);
 
     range_ptr_t = v_pointer_type(range_t, 0);
 
-    v_store(range_ptr_t, typ1);
-    v_store(int,         typ2);
+//  v_store(v_peg_parser_ptr, typ0);
+    v_store(range_ptr_t,      typ1);
+    v_store(int,              typ2);
 
-    fun_t = v_function_type(void, typ0, 3, false);
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_peg_make_class_parser", ft);
 
-    v_export_symbol_type("v_peg_make_class_parser", fun_t);
+//  v_store(v_peg_parser_ptr, typ0);
 
-    fun_t = v_function_type(int, typ0, 1, false);
+    ft = v_function_type(int, typ0, 1, false);
+    v_export_symbol_type("v_peg_class_parser_get_ranges_count", ft);
 
-    v_export_symbol_type("v_peg_class_parser_get_ranges_count", fun_t);
+//  v_store(v_peg_parser_ptr, typ0);
 
-    fun_t = v_function_type(range_ptr_t, typ0, 1, false);
+    ft = v_function_type(range_ptr_t, typ0, 1, false);
+    v_export_symbol_type("v_peg_class_parser_get_ranges", ft);
 
-    v_export_symbol_type("v_peg_class_parser_get_ranges", fun_t);
+    //-------------------------------------------------------------
+//  v_store(v_peg_parser_ptr, typ0);
 
-    fun_t = v_function_type(void, typ0, 1, false);
-
-    v_export_symbol_type("v_peg_make_dot_parser", fun_t);
+    ft = v_function_type(void, typ0, 1, false);
+    v_export_symbol_type("v_peg_make_dot_parser", ft);
 
     v_store(v_peg_action_ptr,   typ0);
     v_store(char_ptr,           typ1);
     v_store(v_peg_argument_ptr, typ2);
     v_store(int,                typ3);
 
-    fun_t = v_function_type(void, typ0, 4, false);
+    //-------------------------------------------------------------
+    ft = v_function_type(void, typ0, 4, false);
+    v_export_symbol_type("v_peg_make_call_action", ft);
 
-    v_export_symbol_type("v_peg_make_call_action", fun_t);
+//  v_store(v_peg_action_ptr,   typ0);
 
-    fun_t = v_function_type(char_ptr, typ0, 1, false);
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_call_action_get_function_name", ft);
 
-    v_export_symbol_type("v_peg_call_action_get_function_name", fun_t);
+//  v_store(v_peg_action_ptr,   typ0);
 
-    fun_t = v_function_type(int, typ0, 1, false);
+    ft = v_function_type(int, typ0, 1, false);
+    v_export_symbol_type("v_peg_call_action_get_arguments_count", ft);
 
-    v_export_symbol_type("v_peg_call_action_get_arguments_count", fun_t);
+//  v_store(v_peg_action_ptr,   typ0);
 
-    fun_t = v_function_type(v_peg_argument_ptr, typ0, 1, false);
+    ft = v_function_type(v_peg_argument_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_call_action_get_arguments", ft);
 
-    v_export_symbol_type("v_peg_call_action_get_arguments", fun_t);
-
+    //-------------------------------------------------------------
+//  v_store(v_peg_action_ptr,   typ0);
     v_store(v_peg_argument_ptr, typ1);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_return_action", ft);
 
-    v_export_symbol_type("v_peg_make_return_action", fun_t);
+//  v_store(v_peg_action_ptr,   typ0);
 
-    fun_t = v_function_type(v_peg_argument_ptr, typ0, 1, false);
+    ft = v_function_type(v_peg_argument_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_return_action_get_argument", ft);
 
-    v_export_symbol_type("v_peg_return_action_get_argument", fun_t);
-
+    //-------------------------------------------------------------
     v_store(v_peg_argument_ptr, typ0);
     v_store(char_ptr,           typ1);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_identifier_argument", ft);
 
-    v_export_symbol_type("v_peg_make_identifier_argument", fun_t);
+//  v_store(v_peg_argument_ptr, typ0);
 
-    fun_t = v_function_type(char_ptr, typ0, 1, false);
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_identifier_argument_get_identifier", ft);
 
-    v_export_symbol_type("v_peg_identifier_argument_get_identifier", fun_t);
+    //-------------------------------------------------------------
+//  v_store(v_peg_argument_ptr, typ0);
+    v_store(int,                typ1);
+    v_store(int,                typ2);
 
-    v_store(int, typ1);
-    v_store(int, typ2);
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_peg_make_backref_argument", ft);
 
-    fun_t = v_function_type(void, typ0, 3, false);
+//  v_store(v_peg_argument_ptr, typ0);
 
-    v_export_symbol_type("v_peg_make_backref_argument", fun_t);
+    ft = v_function_type(int, typ0, 1, false);
 
-    fun_t = v_function_type(int, typ0, 1, false);
+    v_export_symbol_type("v_peg_backref_argument_get_number", ft);
+    v_export_symbol_type("v_peg_backref_argument_get_kind",   ft);
 
-    v_export_symbol_type("v_peg_backref_argument_get_number", fun_t);
-    v_export_symbol_type("v_peg_backref_argument_get_kind",   fun_t);
+    //-------------------------------------------------------------
+//  v_store(v_peg_argument_ptr, typ0);
+    v_store(intptr_t,           typ1);
 
-    v_store(intptr_t, typ1);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_integer_argument", ft);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+//  v_store(v_peg_argument_ptr, typ0);
 
-    v_export_symbol_type("v_peg_make_integer_argument", fun_t);
+    ft = v_function_type(intptr_t, typ0, 1, false);
+    v_export_symbol_type("v_peg_integer_argument_get_number", ft);
 
-    fun_t = v_function_type(intptr_t, typ0, 1, false);
+    //-------------------------------------------------------------
+//  v_store(v_peg_argument_ptr, typ0);
+    v_store(char_ptr,           typ1);
 
-    v_export_symbol_type("v_peg_integer_argument_get_number", fun_t);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_literal_argument", ft);
 
-    v_store(char_ptr, typ1);
+//  v_store(v_peg_argument_ptr, typ0);
 
-    fun_t = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(char_ptr, typ0, 1, false);
+    v_export_symbol_type("v_peg_literal_argument_get_literal", ft);
 
-    v_export_symbol_type("v_peg_make_literal_argument", fun_t);
+    //-------------------------------------------------------------
+//  v_store(v_peg_argument_ptr, typ0);
+    v_store(char32_t,           typ1);
 
-    fun_t = v_function_type(char_ptr, typ0, 1, false);
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_make_character_argument", ft);
 
-    v_export_symbol_type("v_peg_literal_argument_get_literal", fun_t);
+//  v_store(v_peg_argument_ptr, typ0);
 
-    v_store(char32_t, typ1);
-
-    fun_t = v_function_type(void, typ0, 2, false);
-
-    v_export_symbol_type("v_peg_make_character_argument", fun_t);
-
-    fun_t = v_function_type(char32_t, typ0, 1, false);
-
-    v_export_symbol_type("v_peg_character_argument_get_character", fun_t);
+    ft = v_function_type(char32_t, typ0, 1, false);
+    v_export_symbol_type("v_peg_character_argument_get_character", ft);
 }
 
 
