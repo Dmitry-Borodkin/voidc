@@ -134,7 +134,7 @@ obtain_llvm_type_array(void *, const v_type_t *typ)
 
     auto et = t->element_type()->llvm_type();
 
-    return  LLVMArrayType(et, t->length());
+    return  LLVMArrayType2(et, t->length());
 }
 
 
