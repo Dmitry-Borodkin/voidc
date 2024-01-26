@@ -1038,23 +1038,13 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
     cmp_result_v: &LLVMValueRef := 0;
 
-    branch_if_false_b: &LLVMBasicBlockRef := 0;
+    branch_if_false_b: &LLVMBasicBlockRef := v_undef();
 
     _bool = v_find_type("bool");
 
     bool_ = v_type_get_llvm_type(_bool);
 
     llvm_ctx = v_target_get_llvm_ctx();
-
-    if (N != 2)
-    {
-        cmp_result_v := LLVMBuildAlloca(builder, bool_, "");
-
-        LLVMBuildStore(builder, LLVMConstNull(bool_), cmp_result_v);
-
-        branch_if_false_b := LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_false_b");
-    }
-
 
     v_set_result_type(INVIOLABLE_TAG);
     v_set_result_value(0);
@@ -1093,7 +1083,27 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
         typ := t1;
         val := v1;
 
-        if (branch_if_false_b)
+        if (!cmp_result_v)
+        {
+            if (LLVMIsAConstantInt(r))
+            {
+                f = LLVMConstIntGetZExtValue(r);
+
+                if (f)  v_continue();
+                else    v_break();          //- Sic!!!
+            }
+
+            if (N != 2)
+            {
+                cmp_result_v := LLVMBuildAlloca(builder, bool_, "");
+
+                LLVMBuildStore(builder, LLVMConstNull(bool_), cmp_result_v);
+
+                branch_if_false_b := LLVMAppendBasicBlockInContext(llvm_ctx, cur_f, "branch_if_false_b");
+            }
+        }
+
+        if (cmp_result_v)
         {
             if (i < N-2)
             {

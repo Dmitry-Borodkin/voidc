@@ -76,6 +76,8 @@ public:
 
         auto &[void_fun, aux] = vis->void_methods.at(q);
 
+//      printf("visit: %p, %s, %p, %p\n", &vis, v_quark_to_string(q), void_fun, aux);
+
         typedef void (*FunT)(void *, const visitor_t *, const ast_base_t *);
 
         reinterpret_cast<FunT>(void_fun)(aux, &vis, &obj);

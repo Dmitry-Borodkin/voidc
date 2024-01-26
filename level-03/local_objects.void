@@ -1025,6 +1025,9 @@ v_get_object_pointer_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base
 private
 my_internal_var_defn_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("my_internal_var_defn_intrinsic\n");
+//defer printf("my_internal_var_defn_intrinsic leave\n");
+
     ctx = *(aux: *local_objects_ctx_t);
 
     arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
@@ -1145,6 +1148,9 @@ my_internal_val_defn_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base
 private
 my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("my_op_braces_intrinsic\n");
+//defer printf("my_op_braces_intrinsic leave\n");
+
     ctx = *(aux: *local_objects_ctx_t);
 
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
