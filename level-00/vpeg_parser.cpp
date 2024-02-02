@@ -913,6 +913,32 @@ v_peg_character_argument_get_character(const argument_t *ptr)
 
 
 //---------------------------------------------------------------------
+void
+v_peg_parser_parse(std::any *ret, const parser_t *parser)
+{
+    auto &ctx = *context_data_t::current_ctx;
+
+    *ret = (*parser)->parse(ctx);
+}
+
+void
+v_peg_action_act(std::any *ret, const action_t *action)
+{
+    auto &ctx = *context_data_t::current_ctx;
+
+    *ret = (*action)->act(ctx);
+}
+
+void
+v_peg_argument_value(std::any *ret, const argument_t *argument)
+{
+    auto &ctx = *context_data_t::current_ctx;
+
+    *ret = (*argument)->value(ctx);
+}
+
+
+//---------------------------------------------------------------------
 VOIDC_DLLEXPORT_END
 
 

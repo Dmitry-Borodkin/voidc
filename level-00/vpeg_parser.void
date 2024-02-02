@@ -321,6 +321,26 @@
 
     ft = v_function_type(char32_t, typ0, 1, false);
     v_export_symbol_type("v_peg_character_argument_get_character", ft);
+
+
+    //-------------------------------------------------------------
+    v_store(v_std_any_ptr,    typ0);
+    v_store(v_peg_parser_ptr, typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_parser_parse", ft);
+
+//  v_store(v_std_any_ptr,    typ0);
+    v_store(v_peg_action_ptr, typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_action_act", ft);
+
+//  v_store(v_std_any_ptr,      typ0);
+    v_store(v_peg_argument_ptr, typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_peg_argument_value", ft);
 }
 
 
