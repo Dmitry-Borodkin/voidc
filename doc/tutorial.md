@@ -609,6 +609,34 @@ multiply: (a: int, b: int) ~> int           // By value
 }
 ```
 
+##### Defining struct/union *types* with named fields.
+
+Syntax (in EBNF-like notation):
+
+```EBNF
+... = ("struct"|"union") [identifier] ['{' {[identifier ':'] expression ';'} '}'] ';'
+```
+
+Structures and unions are in many ways similar to C ones. See details below.
+
+Example:
+
+```
+struct FILE;            // Opaque structure
+
+struct Coords
+{
+    x: double;
+    y: double;
+};
+
+union IntRep
+{
+    i: int;
+    s: char[int.size];
+};
+```
+
 #### *Declarations*.
 
 General syntax - `<name> : <type> ;`:
