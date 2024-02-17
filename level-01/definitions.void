@@ -978,10 +978,39 @@
 
     if (v_type_is_pointer(type))
     {
-        type := v_type_refptr_get_element_type(type);       //- Sic!
+        type := v_type_refptr_get_element_type(type);       //- Sic!    WTF !?!?!?!
     }
 
-    v_add_symbol(name, type, 0);
+    module = v_get_module();
+
+    cname = v_check_alias(name);
+
+    v = *v_alloca(LLVMValueRef);
+
+    if (v_type_is_function(type))
+    {
+        v := LLVMGetNamedFunction(module, cname);
+
+        if (!v) v := LLVMAddFunction(module, cname, v_type_get_llvm_type(type));
+
+        type := v_pointer_type(type, 0);        //- Sic!
+    }
+    else
+    {
+        v := LLVMGetNamedGlobal(module, cname);
+
+        is_reference = v_type_is_reference(type);
+
+        st = *v_alloca(v_type_ptr) := type;
+
+        if (is_reference)   st := v_type_refptr_get_element_type(type);
+
+        if (!v) v := LLVMAddGlobal(module, v_type_get_llvm_type(st), cname);
+
+        if (!is_reference)  type := v_pointer_type(type, 0);        //- Sic!
+    }
+
+    v_add_variable(name, type, v);
 }
 
 //---------------------------------------------------------------------

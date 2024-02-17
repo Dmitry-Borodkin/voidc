@@ -613,7 +613,7 @@ void v_std_string_append_char(std::string *ptr, char32_t c)
         d[0] = (0x1E << (6-r)) | (c & (0x3F >> r));
     }
 
-    ptr->append(d);
+    ptr->append(d, r+1);            //- Sic!
 }
 
 void v_std_string_append_number(std::string *ptr, intptr_t n)
