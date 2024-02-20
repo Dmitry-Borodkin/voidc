@@ -16,6 +16,8 @@
 //---------------------------------------------------------------------
 v_type_t::~v_type_t() {}
 
+v_type_generic_t::arg_t::~arg_t() {}
+
 
 //---------------------------------------------------------------------
 extern "C"
@@ -163,6 +165,17 @@ obtain_llvm_type_svector(void *, const v_type_t *typ)
 
 
 //---------------------------------------------------------------------
+static
+LLVMTypeRef
+obtain_llvm_type_generic(void *, const v_type_t *typ)
+{
+    assert(false && "Not implemented!");
+
+    return 0;
+}
+
+
+//---------------------------------------------------------------------
 }   //- extern "C"
 
 
@@ -266,6 +279,8 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
 
     DEF2(vector)
     DEF2(svector)
+
+    DEF2(generic)
 
 #undef DEF2
 #undef DEF
@@ -409,6 +424,72 @@ voidc_types_ctx_t::make_svector_type(v_type_t *et, unsigned count)
 }
 
 
+//---------------------------------------------------------------------
+v_type_generic_t *
+voidc_types_ctx_t::make_generic_type(v_quark_t cons, v_type_generic_t::arg_t * const *args, unsigned count)
+{
+    assert((std::all_of(args, args+count, [this](auto a){ return &a->context == this; })));
+
+    v_type_generic_t::key_t key = { cons, {args, args+count} };
+
+    return make_type_helper(generic_types, key);
+}
+
+//---------------------------------------------------------------------
+template <typename T, typename K> inline
+T *
+voidc_types_ctx_t::make_arg_helper(types_map_t<T, K> &tmap, const K &key)
+{
+    auto [it, nx] = tmap.try_emplace(key, nullptr);
+
+    if (nx)
+    {
+        auto t = new T(*this, it->first);
+
+        it->second.reset(t);
+    }
+
+    return  it->second.get();
+}
+
+//---------------------------------------------------------------------
+v_type_generic_t::arg_number_t *
+voidc_types_ctx_t::make_number_arg(uint64_t num)
+{
+    return make_arg_helper(number_args, num);
+}
+
+v_type_generic_t::arg_string_t *
+voidc_types_ctx_t::make_string_arg(const std::string &str)
+{
+    return make_arg_helper(string_args, str);
+}
+
+v_type_generic_t::arg_quark_t *
+voidc_types_ctx_t::make_quark_arg(v_quark_t q)
+{
+    return make_arg_helper(quark_args, q);
+}
+
+v_type_generic_t::arg_type_t *
+voidc_types_ctx_t::make_type_arg(v_type_t *t)
+{
+    assert(&t->context == this);
+
+    return make_arg_helper(type_args, t);
+}
+
+v_type_generic_t::arg_cons_t *
+voidc_types_ctx_t::make_cons_arg(v_quark_t cons, v_type_generic_t::arg_t * const *args, unsigned count)
+{
+    assert((std::all_of(args, args+count, [this](auto a){ return &a->context == this; })));
+
+    v_type_generic_t::arg_cons_t::key_t key = { cons, {args, args+count} };
+
+    return make_arg_helper(cons_args, key);
+}
+
+
 //-----------------------------------------------------------------
 //- ...
 //-----------------------------------------------------------------
@@ -443,6 +524,21 @@ void voidc_types_static_initialize(void)
     DEF(array)
     DEF(vector)
     DEF(svector)
+    DEF(generic)
+
+#undef DEF
+
+#define DEF(kind) \
+    auto kind##_q = v_quark_from_string("v_type_generic_arg_kind_" #kind); \
+    gctx.decls.constants_insert({kind##_q, int_type}); \
+    gctx.constant_values.insert({kind##_q, \
+        LLVMConstInt(int_llvm_type, v_type_generic_t::arg_t::k_##kind, 0)});
+
+    DEF(number)
+    DEF(string)
+    DEF(quark)
+    DEF(type)
+    DEF(cons)
 
 #undef DEF
 }
@@ -851,6 +947,157 @@ bool
 v_type_vector_is_scalable(v_type_t *type)
 {
     return static_cast<v_type_vector_t *>(type)->is_scalable();
+}
+
+
+//---------------------------------------------------------------------
+v_type_t *
+v_generic_type(v_quark_t cons, v_type_generic_t::arg_t * const *args, unsigned count)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_generic_type(cons, args, count);
+}
+
+bool
+v_type_is_generic(v_type_t *type)
+{
+    return bool(dynamic_cast<v_type_generic_t *>(type));
+}
+
+v_quark_t
+v_type_generic_get_cons(v_type_t *type)
+{
+    return static_cast<v_type_generic_t *>(type)->cons();
+}
+
+unsigned
+v_type_generic_get_arg_count(v_type_t *type)
+{
+    return static_cast<v_type_generic_t *>(type)->arg_count();
+}
+
+v_type_generic_t::arg_t * const *
+v_type_generic_get_args(v_type_t *type)
+{
+    return static_cast<v_type_generic_t *>(type)->args();
+}
+
+//---------------------------------------------------------------------
+v_type_generic_t::arg_t *
+v_type_generic_number_arg(uint64_t num)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_number_arg(num);
+}
+
+bool
+v_type_generic_arg_is_number(v_type_generic_t::arg_t *arg)
+{
+    return bool(dynamic_cast<v_type_generic_t::arg_number_t *>(arg));
+}
+
+uint64_t
+v_type_generic_arg_number_get_number(v_type_generic_t::arg_t *arg)
+{
+    return static_cast<v_type_generic_t::arg_number_t *>(arg)->number();
+}
+
+//---------------------------------------------------------------------
+v_type_generic_t::arg_t *
+v_type_generic_string_arg(const std::string *str)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_string_arg(*str);
+}
+
+bool
+v_type_generic_arg_is_string(v_type_generic_t::arg_t *arg)
+{
+    return bool(dynamic_cast<v_type_generic_t::arg_string_t *>(arg));
+}
+
+const std::string *
+v_type_generic_arg_string_get_string(v_type_generic_t::arg_t *arg)
+{
+    return &static_cast<v_type_generic_t::arg_string_t *>(arg)->string();
+}
+
+//---------------------------------------------------------------------
+v_type_generic_t::arg_t *
+v_type_generic_quark_arg(v_quark_t q)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_quark_arg(q);
+}
+
+bool
+v_type_generic_arg_is_quark(v_type_generic_t::arg_t *arg)
+{
+    return bool(dynamic_cast<v_type_generic_t::arg_quark_t *>(arg));
+}
+
+v_quark_t
+v_type_generic_arg_quark_get_quark(v_type_generic_t::arg_t *arg)
+{
+    return static_cast<v_type_generic_t::arg_quark_t *>(arg)->quark();
+}
+
+//---------------------------------------------------------------------
+v_type_generic_t::arg_t *
+v_type_generic_type_arg(v_type_t *t)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_type_arg(t);
+}
+
+bool
+v_type_generic_arg_is_type(v_type_generic_t::arg_t *arg)
+{
+    return bool(dynamic_cast<v_type_generic_t::arg_type_t *>(arg));
+}
+
+v_type_t *
+v_type_generic_arg_type_get_type(v_type_generic_t::arg_t *arg)
+{
+    return static_cast<v_type_generic_t::arg_type_t *>(arg)->type();
+}
+
+//---------------------------------------------------------------------
+v_type_generic_t::arg_t *
+v_type_generic_cons_arg(v_quark_t cons, v_type_generic_t::arg_t * const *args, unsigned count)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+
+    return gctx.make_cons_arg(cons, args, count);
+}
+
+bool
+v_type_generic_arg_is_cons(v_type_generic_t::arg_t *arg)
+{
+    return bool(dynamic_cast<v_type_generic_t::arg_cons_t *>(arg));
+}
+
+v_quark_t
+v_type_generic_arg_cons_get_cons(v_type_generic_t::arg_t *arg)
+{
+    return static_cast<v_type_generic_t::arg_cons_t *>(arg)->cons();
+}
+
+unsigned
+v_type_generic_arg_cons_get_arg_count(v_type_generic_t::arg_t *arg)
+{
+    return static_cast<v_type_generic_t::arg_cons_t *>(arg)->arg_count();
+}
+
+v_type_generic_t::arg_t * const *
+v_type_generic_arg_cons_get_args(v_type_generic_t::arg_t *arg)
+{
+    return static_cast<v_type_generic_t::arg_cons_t *>(arg)->args();
 }
 
 

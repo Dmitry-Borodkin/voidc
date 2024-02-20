@@ -51,7 +51,9 @@ struct v_type_t
         k_vector,       //- 12 - Fixed vector
         k_svector,      //- 13 - Scalable vector
 
-        k_count         //- 14 - Number of kinds...
+        k_generic,      //- 14 - ...
+
+        k_count         //- 15 - Number of kinds...
     };
 
     virtual kind_t kind(void) const = 0;
@@ -379,6 +381,203 @@ using v_type_svector_t = v_type_vector_tag_t<v_type_t::k_svector>;
 
 
 //---------------------------------------------------------------------
+//- Generic types
+//---------------------------------------------------------------------
+class v_type_generic_t : public v_type_tag_t<v_type_t, v_type_t::k_generic>
+{
+public:
+    class arg_t;
+    class arg_number_t;
+    class arg_string_t;
+    class arg_quark_t;
+    class arg_type_t;
+    class arg_cons_t;
+
+private:
+    friend class voidc_types_ctx_t;
+
+    using key_t = std::pair<v_quark_t, std::vector<arg_t *>>;
+
+    const key_t &key;
+
+    explicit v_type_generic_t(voidc_types_ctx_t &ctx, const key_t &_key)
+      : v_type_tag_t(ctx),
+        key(_key)
+    {}
+
+    v_type_generic_t(const v_type_generic_t &) = delete;
+    v_type_generic_t &operator=(const v_type_generic_t &) = delete;
+
+public:
+    v_quark_t cons(void) const { return key.first; }
+
+    unsigned arg_count(void) const { return unsigned(key.second.size()); }
+
+    arg_t * const *args(void) const { return key.second.data(); }
+};
+
+//---------------------------------------------------------------------
+struct v_type_generic_t::arg_t
+{
+    virtual ~arg_t();
+
+    enum kind_t
+    {
+        k_number,       //-  0 - ...
+        k_string,       //-  1 - ...
+        k_quark,        //-  2 - ...
+        k_type,         //-  3 - ...
+        k_cons,         //-  4 - ...
+
+        k_count         //-  5 - Number of kinds...
+    };
+
+    virtual kind_t kind(void) const = 0;
+
+    voidc_types_ctx_t &context;
+
+protected:
+    explicit arg_t(voidc_types_ctx_t &ctx)
+      : context(ctx)
+    {}
+
+    friend class voidc_types_ctx_t;
+
+private:
+    arg_t(const arg_t &) = delete;
+    arg_t &operator=(const arg_t &) = delete;
+};
+
+//---------------------------------------------------------------------
+template<v_type_generic_t::arg_t::kind_t tag>
+struct v_type_generic_arg_tag_t : public v_type_generic_t::arg_t
+{
+    v_type_generic_t::arg_t::kind_t kind(void) const override
+    {
+        return tag;
+    }
+
+protected:
+    explicit v_type_generic_arg_tag_t(voidc_types_ctx_t &ctx)
+      : v_type_generic_t::arg_t(ctx)
+    {}
+
+private:
+    v_type_generic_arg_tag_t(const v_type_generic_arg_tag_t &) = delete;
+    v_type_generic_arg_tag_t &operator=(const v_type_generic_arg_tag_t &) = delete;
+};
+
+//---------------------------------------------------------------------
+class v_type_generic_t::arg_number_t : public v_type_generic_arg_tag_t<arg_t::k_number>
+{
+    friend class voidc_types_ctx_t;
+
+    using key_t = uint64_t;
+
+    const key_t &key;
+
+    explicit arg_number_t(voidc_types_ctx_t &ctx, const key_t &_key)
+      : v_type_generic_arg_tag_t(ctx),
+        key(_key)
+    {}
+
+    arg_number_t(const arg_number_t &) = delete;
+    arg_number_t &operator=(const arg_number_t &) = delete;
+
+public:
+    uint64_t number(void) const { return key; }
+};
+
+//---------------------------------------------------------------------
+class v_type_generic_t::arg_string_t : public v_type_generic_arg_tag_t<arg_t::k_string>
+{
+    friend class voidc_types_ctx_t;
+
+    using key_t = std::string;
+
+    const key_t &key;
+
+    explicit arg_string_t(voidc_types_ctx_t &ctx, const key_t &_key)
+      : v_type_generic_arg_tag_t(ctx),
+        key(_key)
+    {}
+
+    arg_string_t(const arg_string_t &) = delete;
+    arg_string_t &operator=(const arg_string_t &) = delete;
+
+public:
+    const std::string &string(void) const { return key; }
+};
+
+//---------------------------------------------------------------------
+class v_type_generic_t::arg_quark_t : public v_type_generic_arg_tag_t<arg_t::k_quark>
+{
+    friend class voidc_types_ctx_t;
+
+    using key_t = v_quark_t;
+
+    const key_t &key;
+
+    explicit arg_quark_t(voidc_types_ctx_t &ctx, const key_t &_key)
+      : v_type_generic_arg_tag_t(ctx),
+        key(_key)
+    {}
+
+    arg_quark_t(const arg_quark_t &) = delete;
+    arg_quark_t &operator=(const arg_quark_t &) = delete;
+
+public:
+    v_quark_t quark(void) const { return key; }
+};
+
+//---------------------------------------------------------------------
+class v_type_generic_t::arg_type_t : public v_type_generic_arg_tag_t<arg_t::k_type>
+{
+    friend class voidc_types_ctx_t;
+
+    using key_t = v_type_t *;
+
+    const key_t &key;
+
+    explicit arg_type_t(voidc_types_ctx_t &ctx, const key_t &_key)
+      : v_type_generic_arg_tag_t(ctx),
+        key(_key)
+    {}
+
+    arg_type_t(const arg_type_t &) = delete;
+    arg_type_t &operator=(const arg_type_t &) = delete;
+
+public:
+    v_type_t *type(void) const { return key; }
+};
+
+//---------------------------------------------------------------------
+class v_type_generic_t::arg_cons_t : public v_type_generic_arg_tag_t<arg_t::k_cons>
+{
+    friend class voidc_types_ctx_t;
+
+    using key_t = std::pair<v_quark_t, std::vector<arg_t *>>;
+
+    const key_t &key;
+
+    explicit arg_cons_t(voidc_types_ctx_t &ctx, const key_t &_key)
+      : v_type_generic_arg_tag_t(ctx),
+        key(_key)
+    {}
+
+    arg_cons_t(const arg_cons_t &) = delete;
+    arg_cons_t &operator=(const arg_cons_t &) = delete;
+
+public:
+    v_quark_t cons(void) const { return key.first; }
+
+    unsigned arg_count(void) const { return unsigned(key.second.size()); }
+
+    arg_t * const *args(void) const { return key.second.data(); }
+};
+
+
+//---------------------------------------------------------------------
 //- Intrinsics (functions)
 //---------------------------------------------------------------------
 extern "C"
@@ -446,6 +645,14 @@ public:
     v_type_vector_t    *make_vector_type(v_type_t *et, unsigned count);
     v_type_svector_t   *make_svector_type(v_type_t *et, unsigned count);
 
+    v_type_generic_t   *make_generic_type(v_quark_t cons, v_type_generic_t::arg_t * const *args, unsigned count);
+
+    v_type_generic_t::arg_number_t *make_number_arg(uint64_t num);
+    v_type_generic_t::arg_string_t *make_string_arg(const std::string &str);
+    v_type_generic_t::arg_quark_t  *make_quark_arg(v_quark_t q);
+    v_type_generic_t::arg_type_t   *make_type_arg(v_type_t *t);
+    v_type_generic_t::arg_cons_t   *make_cons_arg(v_quark_t cons, v_type_generic_t::arg_t * const *args, unsigned count);
+
 protected:
     std::unique_ptr<v_type_void_t> _void_type;
 
@@ -475,6 +682,17 @@ protected:
 
     types_map_t<v_type_vector_t>  vector_types;
     types_map_t<v_type_svector_t> svector_types;
+
+    types_map_t<v_type_generic_t> generic_types;
+
+    template <typename T, typename K = typename T::key_t> inline
+    T *make_arg_helper(types_map_t<T, K> &tmap, const K &key);
+
+    types_map_t<v_type_generic_t::arg_number_t>  number_args;
+    types_map_t<v_type_generic_t::arg_string_t>  string_args;
+    types_map_t<v_type_generic_t::arg_quark_t>   quark_args;
+    types_map_t<v_type_generic_t::arg_type_t>    type_args;
+    types_map_t<v_type_generic_t::arg_cons_t>    cons_args;
 
 private:
     struct hooks_t
