@@ -30,6 +30,11 @@
 
 
 //---------------------------------------------------------------------
+{   v_add_type("void_ptr", v_pointer_type(void, 0));
+}
+
+
+//---------------------------------------------------------------------
 //- Types dictionary...
 //---------------------------------------------------------------------
 {   v_add_type("dict_t",   v_util_map_t);               //- Sic !!!
@@ -41,13 +46,14 @@
 //- Context type
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ptr, 3);
+    typ = v_alloca(v_type_ptr, 4);
 
     typ[0] := unsigned;                 //- Stack length
     typ[1] := LLVMValueRef;             //- The stack...
     typ[2] := dict_t;                   //- Types dictionary
+    typ[3] := LLVMValueRef;             //- std_string temporary
 
-    ctx_t = v_struct_type(typ, 3, false);
+    ctx_t = v_struct_type(typ, 4, false);
 
     ctx_ref = v_reference_type(ctx_t, 0);
 
@@ -62,15 +68,32 @@
     v_add_constant("stk_length", int, LLVMConstInt(int_, 0, 0));
     v_add_constant("stk_stack",  int, LLVMConstInt(int_, 1, 0));
     v_add_constant("stk_dict",   int, LLVMConstInt(int_, 2, 0));
+    v_add_constant("stk_string", int, LLVMConstInt(int_, 3, 0));
+
+    unsigned_                   = v_type_get_llvm_type(unsigned);
+    bool_                       = v_type_get_llvm_type(bool);
+    uint64_t_                   = v_type_get_llvm_type(uint64_t);
+    size_t_                     = v_type_get_llvm_type(size_t);
+    v_type_ptr_                 = v_type_get_llvm_type(v_type_ptr);
+    v_type_ptr_ptr_             = v_type_get_llvm_type(v_pointer_type(v_type_ptr, 0));
+    v_std_string_t_             = v_type_get_llvm_type(v_std_string_t);
+    v_std_string_ptr_           = v_type_get_llvm_type(v_std_string_ptr);
+    v_type_generic_arg_ptr_     = v_type_get_llvm_type(v_type_generic_arg_ptr);
+    v_type_generic_arg_ptr_ptr_ = v_type_get_llvm_type(v_pointer_type(v_type_generic_arg_ptr, 0));
 
     llvm_opaque_type = v_type_refptr_get_element_type(LLVMTypeRef);
 
-    v_add_symbol("int_",            llvm_opaque_type, int_);
-    v_add_symbol("unsigned_",       llvm_opaque_type, v_type_get_llvm_type(unsigned));
-    v_add_symbol("bool_",           llvm_opaque_type, v_type_get_llvm_type(bool));
-    v_add_symbol("uint64_t_",       llvm_opaque_type, v_type_get_llvm_type(uint64_t));
-    v_add_symbol("v_type_ptr_",     llvm_opaque_type, v_type_get_llvm_type(v_type_ptr));
-    v_add_symbol("v_type_ptr_ptr_", llvm_opaque_type, v_type_get_llvm_type(v_pointer_type(v_type_ptr, 0)));
+    v_add_symbol("int_",                        llvm_opaque_type, int_);
+    v_add_symbol("unsigned_",                   llvm_opaque_type, unsigned_);
+    v_add_symbol("bool_",                       llvm_opaque_type, bool_);
+    v_add_symbol("uint64_t_",                   llvm_opaque_type, uint64_t_);
+    v_add_symbol("size_t_",                     llvm_opaque_type, size_t_);
+    v_add_symbol("v_type_ptr_",                 llvm_opaque_type, v_type_ptr_);
+    v_add_symbol("v_type_ptr_ptr_",             llvm_opaque_type, v_type_ptr_ptr_);
+    v_add_symbol("v_std_string_t_",             llvm_opaque_type, v_std_string_t_);
+    v_add_symbol("v_std_string_ptr_",           llvm_opaque_type, v_std_string_ptr_);
+    v_add_symbol("v_type_generic_arg_ptr_",     llvm_opaque_type, v_type_generic_arg_ptr_);
+    v_add_symbol("v_type_generic_arg_ptr_ptr_", llvm_opaque_type, v_type_generic_arg_ptr_ptr_);
 }
 
 
@@ -91,7 +114,7 @@
 {   typ = v_alloca(v_type_ptr, 2);
 
     typ[0] := dict_ptr;
-    typ[1] := v_type_ptr;
+    typ[1] := void_ptr;
 
     ft = v_function_type(LLVMValueRef, typ, 2, false);
 
@@ -101,7 +124,7 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "dict", dict_ptr);
-    v_add_parameter_name(f, 1, "key",  v_type_ptr);
+    v_add_parameter_name(f, 1, "key",  void_ptr);
 }
 {
     a = v_map_find(dict, v_cast(key, intptr_t));
@@ -117,7 +140,7 @@
 {   typ = v_alloca(v_type_ptr, 3);
 
     typ[0] := dict_ptr;
-    typ[1] := v_type_ptr;
+    typ[1] := void_ptr;
     typ[2] := LLVMValueRef;
 
     ft = v_function_type(void, typ, 3, false);
@@ -128,7 +151,7 @@
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "dict",  dict_ptr);
-    v_add_parameter_name(f, 1, "key",   v_type_ptr);
+    v_add_parameter_name(f, 1, "key",   void_ptr);
     v_add_parameter_name(f, 2, "value", LLVMValueRef);
 }
 {
@@ -186,6 +209,8 @@
     v_initialize(&ctx[stk_dict]);
 
     v_make_map(&ctx[stk_dict]);             //- Sic!!!
+
+    ctx[stk_string] := 0;
 }
 
 //---------------------------------------------------------------------
@@ -200,6 +225,23 @@
     v_add_parameter_name(f, 0, "ctx", ctx_ref);
 }
 {
+    if (ctx[stk_string])
+    {
+        builder = v_target_get_builder();
+
+        lltyp = v_alloca(LLVMTypeRef);
+
+        sstr_term_f   = v_obtain_function("v_util_terminate_std_string_impl", lltyp);
+        sstr_term_ft_ = v_load(lltyp);
+
+        val = v_alloca(LLVMValueRef, 2);
+
+        val[0] := ctx[stk_string];
+        val[1] := LLVMConstInt(size_t_, 1, 0);
+
+        LLVMBuildCall2(builder, sstr_term_ft_, sstr_term_f, val, 2, "");
+    }
+
     v_terminate(&ctx[stk_dict]);
 }
 
@@ -245,12 +287,35 @@
 {
     typ = v_alloca(v_type_ptr, 2);
 
-    typ[0] := v_type_ptr;       //- Argument
-    typ[1] := ctx_ref;          //- Working context
+    typ[0] := v_type_ptr;               //- ...
+    typ[1] := ctx_ref;                  //- Working context
 
     ft = v_function_type(LLVMValueRef, typ, 2, false);
+    v_add_symbol("voidc_compile_type", ft, 0);
+    v_add_type("voidc_compile_type_ft", ft);
+
+    typ[0] := v_quark_t;                //- ...
+//  typ[1] := ctx_ref;                  //- Working context
+
+    ft = v_function_type(LLVMValueRef, typ, 2, false);
+    v_add_symbol("voidc_compile_quark", ft, 0);
+    v_add_type("voidc_compile_quark_ft", ft);
+
+    typ[0] := v_type_generic_arg_ptr;   //- ...
+//  typ[1] := ctx_ref;                  //- Working context
+
+    ft = v_function_type(LLVMValueRef, typ, 2, false);
+    v_add_symbol("voidc_compile_type_generic_arg", ft, 0);
+    v_add_type("voidc_compile_type_generic_arg_ft", ft);
+}
+
+
+//---------------------------------------------------------------------
+//- voidc_compile_type
+//---------------------------------------------------------------------
+{
     //-----------------------------------------------------------------
-    f = v_function_hack("voidc_compile_type", ft);
+    f = v_function_hack("voidc_compile_type", voidc_compile_type_ft);
 
     v_add_parameter_name(f, 0, "type", v_type_ptr);
     v_add_parameter_name(f, 1, "ctx",  ctx_ref);
@@ -281,6 +346,7 @@
     case v_type_kind_array:     fn := "v_array_type";       v_break();
     case v_type_kind_vector:    fn := "v_vector_type";      v_break();
     case v_type_kind_svector:   fn := "v_svector_type";     v_break();
+    case v_type_kind_generic:   fn := "v_generic_type";     v_break();
     }
 
     lltyp = v_alloca(LLVMTypeRef);
@@ -408,16 +474,16 @@
 
     case v_type_kind_struct:
         {
-            name = v_type_struct_get_name(type);
+            qname = v_type_struct_get_name_q(type);
 
-            if (name)
+            if (qname)
             {
-                name_v = LLVMBuildGlobalStringPtr(builder, name, "");
+                qname_v = voidc_compile_quark(qname, ctx);
 
-                struct_type_named_f   = v_obtain_function("v_struct_type_named", lltyp);
-                struct_type_named_ft_ = v_load(lltyp);
+                struct_type_named_q_f   = v_obtain_function("v_struct_type_named_q", lltyp);
+                struct_type_named_q_ft_ = v_load(lltyp);
 
-                ret := LLVMBuildCall2(builder, struct_type_named_ft_, struct_type_named_f, &name_v, 1, "");
+                ret := LLVMBuildCall2(builder, struct_type_named_q_ft_, struct_type_named_q_f, &qname_v, 1, "");
 
                 dict_insert(&ctx[stk_dict], type, ret);     //- Sic!
             }
@@ -481,7 +547,7 @@
                 packed_v := LLVMConstInt(bool_, p, 0);
             }
 
-            if (name)
+            if (qname)
             {
                 if (has_body)
                 {
@@ -552,9 +618,298 @@
 
             v_break();
         }
+
+    case v_type_kind_generic:
+        {
+            val = v_alloca(LLVMValueRef, 3);
+
+            val[0] := voidc_compile_quark(v_type_generic_get_cons(type), ctx);
+
+            n = v_type_generic_get_arg_count(type);
+
+            if (n)
+            {
+                a_a = v_type_generic_get_args(type);
+
+                a_v = v_malloc(LLVMValueRef, n);
+                defer v_free(a_v);
+
+                i = *v_alloca(int) := 0;
+
+                loop
+                {
+                    if (i == n) v_break();
+
+                    a_v[i] := voidc_compile_type_generic_arg(a_a[i], ctx);
+
+                    ++i;
+                }
+
+                {   r = dict_find(&ctx[stk_dict], type);
+
+                    if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
+                }
+
+                val[1] := ctx[stk_stack];
+
+                i := 0;
+
+                loop
+                {
+                    if (i == n) v_break();
+
+                    i_v = LLVMConstInt(int_, i, 0);
+
+                    val_i_v = LLVMBuildGEP2(builder, v_type_generic_arg_ptr_, val[1], &i_v, 1, "");
+
+                    LLVMBuildStore(builder, a_v[i], val_i_v);
+
+                    ++i;
+                }
+
+                ctx_stk_push(ctx, n);
+            }
+            else
+            {
+                val[1] := LLVMConstNull(v_type_generic_arg_ptr_ptr_);
+            }
+
+            val[2] := LLVMConstInt(int_, n, 0);
+
+            ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
+
+            v_break();
+        }
     }
 
     dict_insert(&ctx[stk_dict], type, ret);
+
+    v_return(ret);
+}
+
+
+//---------------------------------------------------------------------
+//- voidc_compile_quark
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_compile_quark", voidc_compile_quark_ft);
+
+    v_add_parameter_name(f, 0, "quark", v_quark_t);
+    v_add_parameter_name(f, 1, "ctx",   ctx_ref);
+}
+{
+    qstr = v_quark_to_string(quark);            //- Sic!
+
+    {   r = dict_find(&ctx[stk_dict], qstr);
+
+        if (r)  v_return(r);
+    }
+
+    builder = v_target_get_builder();
+
+    qstr_v = LLVMBuildGlobalStringPtr(builder, qstr, "");
+
+    lltyp = v_alloca(LLVMTypeRef);
+
+    quark_from_string_f   = v_obtain_function("v_quark_from_string", lltyp);
+    quark_from_string_ft_ = v_load(lltyp);
+
+    ret = LLVMBuildCall2(builder, quark_from_string_ft_, quark_from_string_f, &qstr_v, 1, "");
+
+    dict_insert(&ctx[stk_dict], qstr, ret);     //- Sic!
+
+    v_return(ret);
+}
+
+
+//---------------------------------------------------------------------
+//- voidc_compile_type_generic_arg
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("voidc_compile_type_generic_arg", voidc_compile_type_generic_arg_ft);
+
+    v_add_parameter_name(f, 0, "arg", v_type_generic_arg_ptr);
+    v_add_parameter_name(f, 1, "ctx", ctx_ref);
+}
+{
+    {   r = dict_find(&ctx[stk_dict], arg);
+
+        if (r)  v_return(r);
+    }
+
+    fn = *v_alloca(*char);
+
+    k = v_kind(arg);
+
+    switch(k)
+    {
+    case v_type_generic_arg_kind_number:    fn := "v_type_generic_number_arg";      v_break();
+    case v_type_generic_arg_kind_string:    fn := "v_type_generic_string_arg";      v_break();
+    case v_type_generic_arg_kind_quark:     fn := "v_type_generic_quark_arg";       v_break();
+    case v_type_generic_arg_kind_type:      fn := "v_type_generic_type_arg";        v_break();
+    case v_type_generic_arg_kind_cons:      fn := "v_type_generic_cons_arg";        v_break();
+    }
+
+    lltyp = v_alloca(LLVMTypeRef);
+
+    f   = v_obtain_function(fn, lltyp);
+    ft_ = v_load(lltyp);
+
+    builder = v_target_get_builder();
+
+    ret = *v_alloca(LLVMValueRef);
+
+    switch(k)
+    {
+    case v_type_generic_arg_kind_number:
+        {
+            num = v_type_generic_arg_number_get_number(arg);
+
+            val = LLVMConstInt(uint64_t_, num, 0);
+
+            ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+
+            v_break();
+        }
+
+    case v_type_generic_arg_kind_string:
+        {
+            if (!ctx[stk_string])
+            {
+                ctx[stk_string] := LLVMBuildAlloca(builder, v_std_string_t_, "");
+
+                sstr_init_f   = v_obtain_function("v_util_initialize_std_string_impl", lltyp);
+                sstr_init_ft_ = v_load(lltyp);
+
+                val = v_alloca(LLVMValueRef, 2);
+
+                val[0] := ctx[stk_string];
+                val[1] := LLVMConstInt(size_t_, 1, 0);
+
+                LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val, 2, "");
+            }
+
+            astr_size = *v_alloca(size_t);
+            astr_data = v_std_string_get_data(v_type_generic_arg_string_get_string(arg), &astr_size);
+
+            astr_const = LLVMConstString(astr_data, v_cast(astr_size, unsigned), 1);
+            astr_const_type = LLVMTypeOf(astr_const);
+
+            astr_glob = LLVMAddGlobal(v_get_module(), astr_const_type, "astr_g");
+
+            LLVMSetLinkage(astr_glob, LLVMPrivateLinkage);
+
+            LLVMSetInitializer(astr_glob, astr_const);
+
+            val = v_alloca(LLVMValueRef, 3);
+
+            val[0] := LLVMConstInt(int_, 0, 0);
+            val[1] := val[0];
+
+            astr_const_ptr = LLVMBuildInBoundsGEP2(builder, astr_const_type, astr_glob, val, 2, "astr_const_ptr");
+
+            sstr_set_data_f   = v_obtain_function("v_std_string_set_data", lltyp);
+            sstr_set_data_ft_ = v_load(lltyp);
+
+            val[0] := ctx[stk_string];
+            val[1] := astr_const_ptr;
+            val[2] := LLVMConstInt(size_t_, astr_size, 0);
+
+            LLVMBuildCall2(builder, sstr_set_data_ft_, sstr_set_data_f, val, 3, "");
+
+            ret := LLVMBuildCall2(builder, ft_, f, &ctx[stk_string], 1, "");
+
+            v_break();
+        }
+
+    case v_type_generic_arg_kind_quark:
+        {
+            quark = v_type_generic_arg_quark_get_quark(arg);
+
+            val = voidc_compile_quark(quark, ctx);
+
+            ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+
+            v_break();
+        }
+
+    case v_type_generic_arg_kind_type:
+        {
+            type = v_type_generic_arg_type_get_type(arg);
+
+            val = voidc_compile_type(type, ctx);
+
+            ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+
+            v_break();
+        }
+
+    case v_type_generic_arg_kind_cons:
+        {
+            val = v_alloca(LLVMValueRef, 3);
+
+            val[0] := voidc_compile_quark(v_type_generic_arg_cons_get_cons(arg), ctx);
+
+            n = v_type_generic_arg_cons_get_arg_count(arg);
+
+            if (n)
+            {
+                a_a = v_type_generic_arg_cons_get_args(arg);
+
+                a_v = v_malloc(LLVMValueRef, n);
+                defer v_free(a_v);
+
+                i = *v_alloca(int) := 0;
+
+                loop
+                {
+                    if (i == n) v_break();
+
+                    a_v[i] := voidc_compile_type_generic_arg(a_a[i], ctx);
+
+                    ++i;
+                }
+
+                {   r = dict_find(&ctx[stk_dict], arg);
+
+                    if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
+                }
+
+                val[1] := ctx[stk_stack];
+
+                i := 0;
+
+                loop
+                {
+                    if (i == n) v_break();
+
+                    i_v = LLVMConstInt(int_, i, 0);
+
+                    val_i_v = LLVMBuildGEP2(builder, v_type_generic_arg_ptr_, val[1], &i_v, 1, "");
+
+                    LLVMBuildStore(builder, a_v[i], val_i_v);
+
+                    ++i;
+                }
+
+                ctx_stk_push(ctx, n);
+            }
+            else
+            {
+                val[1] := LLVMConstNull(v_type_generic_arg_ptr_ptr_);
+            }
+
+            val[2] := LLVMConstInt(int_, n, 0);
+
+            ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
+
+            v_break();
+        }
+    }
+
+    dict_insert(&ctx[stk_dict], arg, ret);
 
     v_return(ret);
 }
@@ -586,6 +941,8 @@
     v_make_export_symbol("voidc_compile_type_ctx_set_stack");
 
     v_make_export_symbol("voidc_compile_type");
+    v_make_export_symbol("voidc_compile_quark");
+    v_make_export_symbol("voidc_compile_type_generic_arg");
 }
 
 

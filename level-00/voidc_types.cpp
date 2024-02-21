@@ -984,6 +984,13 @@ v_type_generic_get_args(v_type_t *type)
 }
 
 //---------------------------------------------------------------------
+int
+v_type_generic_arg_get_kind(v_type_generic_t::arg_t *arg)
+{
+    return arg->kind();
+}
+
+//---------------------------------------------------------------------
 v_type_generic_t::arg_t *
 v_type_generic_number_arg(uint64_t num)
 {

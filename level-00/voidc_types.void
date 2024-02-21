@@ -317,6 +317,12 @@
     v_export_symbol_type("v_type_generic_get_args", ft);
 
     //-------------------------------------------------------------
+    v_store(v_type_generic_arg_ptr, typ0);      //-
+
+    ft = v_function_type(int, typ0, 1, false);
+    v_export_symbol_type("v_type_generic_arg_get_kind", ft);
+
+    //-------------------------------------------------------------
     v_store(uint64_t,               typ0);      //- number
 
     ft = v_function_type(v_type_generic_arg_ptr, typ0, 1, false);
