@@ -501,6 +501,8 @@ base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
 
     assert(vars.size() == 0);           //- Sic!
 
+    push_variables();                   //- Sic !!!
+
     vars = vars.set(voidc_internal_function_type_q, {type, nullptr});
 
     auto ft_ = type->llvm_type();
@@ -564,6 +566,8 @@ base_local_ctx_t::finish_function(void)
     }
 
     LLVMClearInsertionPosition(global_ctx.builder);
+
+    pop_variables();            //- Sic !!!
 
     vars = variables_t();       //- Sic!
 }
