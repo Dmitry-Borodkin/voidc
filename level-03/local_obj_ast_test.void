@@ -180,7 +180,7 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     lltyp: &LLVMTypeRef :=  v_undef();
 
-    llvm_stacksave_f = v_obtain_function("llvm.stacksave", &lltyp);
+    llvm_stacksave_f = v_obtain_function(voidc_llvm_stacksave_name, &lltyp);
 
     blk = LLVMBuildCall2(builder, lltyp, llvm_stacksave_f, 0, 0, "blk");
 
@@ -278,7 +278,7 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
     }
 
 
-    llvm_stackrestore_f = v_obtain_function("llvm.stackrestore", &lltyp);
+    llvm_stackrestore_f = v_obtain_function(voidc_llvm_stackrestore_name, &lltyp);
 
     LLVMBuildCall2(builder, lltyp, llvm_stackrestore_f, &blk, 1, "");
 

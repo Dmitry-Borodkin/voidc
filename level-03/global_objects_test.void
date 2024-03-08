@@ -112,7 +112,7 @@ try_ctors_ctor: () ~> void
 {
     printf("try_ctors_ctor\n");
 
-    v_find_symbol_value: (*const char) ~> *void;
+//  v_find_symbol_value: (*const char) ~> *void;
 
     ptr_variable := (v_find_symbol_value("try_variable") : *int);
 
@@ -185,6 +185,28 @@ my_llvm_global_dtors: &llvm_global_cdtors_item_t[] :=
 
     printf("}\n");
 }
+
+
+//=====================================================================
+block
+{
+    printf("Hello from block!\n");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

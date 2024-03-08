@@ -563,7 +563,7 @@
 
     builder = v_target_get_builder();
 
-    llvm_stacksave_f   = v_obtain_function("llvm.stacksave", lltyp);
+    llvm_stacksave_f   = v_obtain_function(voidc_llvm_stacksave_name, lltyp);
     llvm_stacksave_ft_ = v_load(lltyp);
 
     switch = LLVMBuildCall2(builder, llvm_stacksave_ft_, llvm_stacksave_f, 0, 0, "switch");
@@ -752,7 +752,7 @@
 
     v_store(switch, val0);
 
-    llvm_stackrestore_f   = v_obtain_function("llvm.stackrestore", lltyp);
+    llvm_stackrestore_f   = v_obtain_function(voidc_llvm_stackrestore_name, lltyp);
     llvm_stackrestore_ft_ = v_load(lltyp);
 
     LLVMBuildCall2(builder, llvm_stackrestore_ft_, llvm_stackrestore_f, val0, 1, "");

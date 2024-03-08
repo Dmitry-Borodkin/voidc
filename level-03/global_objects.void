@@ -56,10 +56,11 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
     v_add_symbol("LLVMGetNamedGlobal_q", q_ref, q("LLVMGetNamedGlobal"));
     v_add_symbol("LLVMGetInitializer_q", q_ref, q("LLVMGetInitializer"));
 
-    v_add_symbol("unit_var_defn_q",   q_ref, q("unit_var_defn"));
-    v_add_symbol("unit_val_defn_q",   q_ref, q("unit_val_defn"));
-    v_add_symbol("unit_defer_defn_q", q_ref, q("unit_defer_defn"));
-    v_add_symbol("defn_list_unit_q",  q_ref, q("defn_list_unit"));
+    v_add_symbol("unit_var_defn_q",  q_ref, q("unit_var_defn"));
+    v_add_symbol("unit_val_defn_q",  q_ref, q("unit_val_defn"));
+    v_add_symbol("unit_stmt_init_q", q_ref, q("unit_stmt_init"));
+    v_add_symbol("unit_stmt_term_q", q_ref, q("unit_stmt_term"));
+    v_add_symbol("defn_list_unit_q", q_ref, q("defn_list_unit"));
 
     v_add_symbol("mod_const_q", q_ref, q("voidc.constants_module"));
 
@@ -72,50 +73,76 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
 
 
 //---------------------------------------------------------------------
-//- v_ast_unit_defer_defn_t ...
+//- v_ast_unit_stmt_t ...
 //---------------------------------------------------------------------
 export
-struct v_ast_unit_defer_defn_t
+struct v_ast_unit_stmt_t
 {
-    body: v_ast_stmt_t;                 //- "Deferred" statement...
+    body: v_ast_stmt_t;                 //- Statement...
 };
 
 //---------------------------------------------------------------------
 private
-ast_unit_defer_defn_init: (void_obj: *void) ~> void
+ast_unit_stmt_init: (void_obj: *void) ~> void
 {
-    obj = *(void_obj: *v_ast_unit_defer_defn_t);
+    obj = *(void_obj: *v_ast_unit_stmt_t);
 
     v_initialize(&obj.body);
 }
 
 //---------------------------------------------------------------------
 private
-ast_unit_defer_defn_term: (void_obj: *void) ~> void
+ast_unit_stmt_term: (void_obj: *void) ~> void
 {
-    obj = *(void_obj: *v_ast_unit_defer_defn_t);
+    obj = *(void_obj: *v_ast_unit_stmt_t);
 
     v_terminate(&obj.body);
 }
 
+
 //---------------------------------------------------------------------
-ast_unit_defer_defn_vtable: &v_ast_generic_vtable :=
+ast_unit_stmt_init_vtable: &v_ast_generic_vtable :=
 {
-    ast_unit_defer_defn_init,
-    ast_unit_defer_defn_term,
+    ast_unit_stmt_init,
+    ast_unit_stmt_term,
 };
 
 //---------------------------------------------------------------------
 export
-v_ast_make_unit_defer_defn: (ret: *v_ast_base_t, body: *v_ast_stmt_t) ~> void
+v_ast_make_unit_stmt_init: (ret: *v_ast_base_t, body: *v_ast_stmt_t) ~> void
 {
     atmp: &v_ast_base_t := {};      atmp = &atmp;
 
-    v_ast_make_generic(atmp, &ast_unit_defer_defn_vtable, v_ast_unit_defer_defn_t.size);
+    v_ast_make_generic(atmp, &ast_unit_stmt_init_vtable, v_ast_unit_stmt_t.size);
 
     void_obj = v_ast_generic_get_object(atmp);
 
-    obj = *(void_obj: *v_ast_unit_defer_defn_t);
+    obj = *(void_obj: *v_ast_unit_stmt_t);
+
+    if (body)  v_copy(&obj.body, body);
+
+    v_copy(ret,  atmp);
+}
+
+
+//---------------------------------------------------------------------
+ast_unit_stmt_term_vtable: &v_ast_generic_vtable :=
+{
+    ast_unit_stmt_init,
+    ast_unit_stmt_term,
+};
+
+//---------------------------------------------------------------------
+export
+v_ast_make_unit_stmt_term: (ret: *v_ast_base_t, body: *v_ast_stmt_t) ~> void
+{
+    atmp: &v_ast_base_t := {};      atmp = &atmp;
+
+    v_ast_make_generic(atmp, &ast_unit_stmt_term_vtable, v_ast_unit_stmt_t.size);
+
+    void_obj = v_ast_generic_get_object(atmp);
+
+    obj = *(void_obj: *v_ast_unit_stmt_t);
 
     if (body)  v_copy(&obj.body, body);
 
@@ -127,13 +154,26 @@ v_ast_make_unit_defer_defn: (ret: *v_ast_base_t, body: *v_ast_stmt_t) ~> void
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_unit_defer_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_unit_stmt_init_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
 {
     body = v_std_any_get_pointer(v_ast_stmt_t, any+0);
 
     defn: &v_ast_base_t := {};      defn = &defn;
 
-    v_ast_make_unit_defer_defn(defn, body);
+    v_ast_make_unit_stmt_init(defn, body);
+
+    v_std_any_set_pointer(ret, defn);
+}
+
+//---------------------------------------------------------------------
+private
+mk_unit_stmt_term_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+{
+    body = v_std_any_get_pointer(v_ast_stmt_t, any+0);
+
+    defn: &v_ast_base_t := {};      defn = &defn;
+
+    v_ast_make_unit_stmt_term(defn, body);
 
     v_std_any_set_pointer(ret, defn);
 }
@@ -145,10 +185,10 @@ mk_unit_defer_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_pt
 private
 obtain_special_result_value_global_ctx_t = struct
 {
-    name: *const char;
+    name: *const char;                  //- Global variable name
 
-    init: LLVMBasicBlockRef;
-    term: LLVMBasicBlockRef;
+    init_list: v_util_list_t;           //- List of initializers
+    term_list: v_util_list_t;           //- List of terminators
 };
 
 //---------------------------------------------------------------------
@@ -185,28 +225,7 @@ obtain_special_result_value_global: (aux: *void, vis: *voidc_visitor_t, t: *v_ty
 
     v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
 
-    builder = v_target_get_builder();
-
-    if (b = LLVMGetInsertBlock(builder), ctx.init != b)   ctx.init := b;
-
     //--------------------------------------------------------------
-    if (v_type_is_special(t, q_terminate))
-    {
-        v_save_builder_ip();
-
-        instr = LLVMGetFirstInstruction(ctx.term);
-
-        LLVMPositionBuilder(builder, ctx.term, instr);
-
-        voidc_make_special_intrinsic_call(&stmt, q_terminate, t, v, 0);
-
-        v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
-
-        //- assert(ctx.term == LLVMGetInsertBlock(builder));            //- Sic!
-
-        v_restore_builder_ip();
-    }
-
     v_return(v);
 }
 
@@ -250,11 +269,98 @@ my_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v
 
 
 //---------------------------------------------------------------------
+//- prepare_initterm_function - utility
+//---------------------------------------------------------------------
+private
+prepare_initterm_function: (name: *const char) ~> void
+{
+    ft  = v_function_type(v_void_type(), 0, 0, false);
+    ft_ = v_type_get_llvm_type(ft);
+
+    f = LLVMAddFunction(v_get_module(), name, ft_);
+
+    sz: &size_t := v_undef();
+
+    uname = LLVMGetValueName2(f, &sz);          //- Get unique name...
+
+    f = v_prepare_function(uname, ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+}
+
+//---------------------------------------------------------------------
+//- finish_initterm_function - utility
+//---------------------------------------------------------------------
+private
+finish_initterm_function: (list: &v_util_list_t) ~> void
+{
+    builder = v_target_get_builder();
+
+    bb = LLVMGetInsertBlock(builder);
+
+    fv = LLVMGetBasicBlockParent(bb);
+
+    is_empty = LLVMCountBasicBlocks(fv) <= 2  &&  !LLVMGetFirstInstruction(LLVMGetEntryBasicBlock(fv));
+
+    v_finish_function();
+
+    if (is_empty)
+    {
+        //- Remove empty initializer/terminator
+
+        LLVMDeleteFunction(fv);
+    }
+    else
+    {
+        any: &v_std_any_t := {};
+
+        v_std_any_set_value(&any, (fv: intptr_t));
+
+        v_list_append(&list, &list, &any);
+    }
+}
+
+//---------------------------------------------------------------------
+//- prepare_initializer_function - utility
+//---------------------------------------------------------------------
+private
+prepare_initializer_function: () ~> void
+{
+    prepare_initterm_function("v.internal_global_initializer");
+}
+
+//---------------------------------------------------------------------
+//- finish_initializer_function - utility
+//---------------------------------------------------------------------
+private
+finish_initializer_function: (ctx: &obtain_special_result_value_global_ctx_t) ~> void
+{
+    finish_initterm_function(ctx.init_list);
+}
+
+//---------------------------------------------------------------------
+//- generate_terminator_function - utility
+//---------------------------------------------------------------------
+private
+generate_terminator_function: (body: &v_ast_stmt_t, ctx: &obtain_special_result_value_global_ctx_t, vis: *voidc_visitor_t) ~> void
+{
+    prepare_initterm_function("v.internal_global_terminator");
+
+    v_ast_accept_visitor((&body: *v_ast_base_t), vis);
+
+    finish_initterm_function(ctx.term_list);
+}
+
+
+//---------------------------------------------------------------------
 //- my_compile_unit_var_defn - visitor method
 //---------------------------------------------------------------------
 private
 my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("my_compile_unit_var_defn start\n");
+//defer printf("my_compile_unit_var_defn finish\n");
+
     ctx = *(aux: *my_obtain_special_result_value_ctx_t);
 
     //-------------------------------------------------------------
@@ -287,8 +393,6 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     var_type: &*v_type_t := (v_get_result_value() : *v_type_t);
     sym_type: &*v_type_t := var_type;
 
-    builder = v_target_get_builder();
-
     if (v_empty(value))
     block
     {
@@ -318,7 +422,7 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         ctx.global_ctx.name := name;
 
-        LLVMPositionBuilderAtEnd(builder, ctx.global_ctx.init);
+        prepare_initializer_function();
 
         v_ast_accept_visitor(value, vis);
 
@@ -374,8 +478,24 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
             {
                 LLVMSetInitializer(value_g, LLVMGetUndef(v_type_get_llvm_type(t)));
 
+                builder = v_target_get_builder();
+
                 LLVMBuildStore(builder, v, value_g);
             }
+        }
+
+        finish_initializer_function(ctx.global_ctx);
+
+        if (export) v_export_symbol_type(name, sym_type);           //- WTF ???
+        else        v_add_symbol(name, sym_type, 0);                //- WTF ???
+
+        if (!flag  &&  v_type_is_special(t, q_terminate))
+        {
+            stmt: &v_ast_stmt_t := {};
+
+            voidc_make_special_intrinsic_call(&stmt, q_terminate, t, v, 0);
+
+            generate_terminator_function(stmt, ctx.global_ctx, vis);
         }
 
         v_set_module(0);
@@ -461,6 +581,9 @@ check_parent: (v: LLVMValueRef) ~> bool
 private
 my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("my_compile_unit_val_defn start\n");
+//defer printf("my_compile_unit_val_defn finish\n");
+
     ctx = *(aux: *my_obtain_special_result_value_ctx_t);
 
     //-------------------------------------------------------------
@@ -507,9 +630,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     ctx.global_ctx.name := name;
 
-    builder = v_target_get_builder();
-
-    LLVMPositionBuilderAtEnd(builder, ctx.global_ctx.init);
+    prepare_initializer_function();
 
     v_ast_accept_visitor(value, vis);
 
@@ -522,11 +643,15 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     if (t == v_static_type_t)
     {
+        finish_initializer_function(ctx.global_ctx);
+
         if (export) v_export_type(name, (v: v_type_ptr));
         else        v_add_type(name, (v: v_type_ptr));
     }
     else if (is_strict_constant)
     {
+        finish_initializer_function(ctx.global_ctx);
+
         if (export) v_export_constant(name, t, v);
         else        v_add_constant(name, t, v);
     }
@@ -577,10 +702,32 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
             {
                 LLVMSetInitializer(value_g, LLVMGetUndef(v_type_get_llvm_type(t)));
 
+                builder = v_target_get_builder();
+
                 LLVMBuildStore(builder, v, value_g);
 
                 //- TODO: How to make it "constant" ?!?!?!?!?
             }
+        }
+
+        finish_initializer_function(ctx.global_ctx);
+
+        if (export) v_export_constant(name, t, 0);          //- Sic!        //- WTF ???
+        else        v_add_constant(name, t, 0);             //- Sic!        //- WTF ???
+                                                                            //- WTF ???
+        {   tt = v_reference_type(t, 0);                    //- HACK!       //- WTF ???
+                                                                            //- WTF ???
+            if (export) v_export_symbol_type(name, tt);                     //- WTF ???
+            else        v_add_symbol(name, tt, 0);                          //- WTF ???
+        }                                                                   //- WTF ???
+
+        if (!flag  &&  v_type_is_special(t, q_terminate))
+        {
+            stmt: &v_ast_stmt_t := {};
+
+            voidc_make_special_intrinsic_call(&stmt, q_terminate, t, v, 0);
+
+            generate_terminator_function(stmt, ctx.global_ctx, vis);
         }
     }
 
@@ -683,30 +830,63 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
 //---------------------------------------------------------------------
 private
-compile_unit_defer_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+compile_unit_stmt_init: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("compile_unit_stmt_init start\n");
+//defer printf("compile_unit_stmt_init finish\n");
+
     ctx = *(aux: *obtain_special_result_value_global_ctx_t);
 
     //-------------------------------------------------------------
     void_obj = v_ast_generic_get_object(self);
 
-    obj = *(void_obj: *v_ast_unit_defer_defn_t);
+    obj = *(void_obj: *v_ast_unit_stmt_t);
 
     if (v_empty(&obj.body))   v_return();
 
-    v_save_builder_ip();
+    //-------------------------------------------------------------
+    module = v_get_module();
 
-    instr = LLVMGetFirstInstruction(ctx.term);
+    if (!module)  v_set_module(v_obtain_module());
 
-    builder = v_target_get_builder();
+    //-------------------------------------------------------------
+    prepare_initializer_function();
 
-    LLVMPositionBuilder(builder, ctx.term, instr);
+    v_ast_accept_visitor((&obj.body: *v_ast_base_t), vis);      //- Sic!
 
-    v_ast_accept_visitor((&obj.body: *v_ast_base_t), vis);
+    finish_initializer_function(ctx);
 
-    //- assert(ctx.term == LLVMGetInsertBlock(builder));            //- Sic!
+    //-------------------------------------------------------------
+    if (!module)  v_set_module(0);
+}
 
-    v_restore_builder_ip();
+
+//---------------------------------------------------------------------
+private
+compile_unit_stmt_term: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("compile_unit_stmt_term start\n");
+//defer printf("compile_unit_stmt_term finish\n");
+
+    ctx = *(aux: *obtain_special_result_value_global_ctx_t);
+
+    //-------------------------------------------------------------
+    void_obj = v_ast_generic_get_object(self);
+
+    obj = *(void_obj: *v_ast_unit_stmt_t);
+
+    if (v_empty(&obj.body))   v_return();
+
+    //-------------------------------------------------------------
+    module = v_get_module();
+
+    if (!module)  v_set_module(v_obtain_module());
+
+    //-------------------------------------------------------------
+    generate_terminator_function(obj.body, ctx, vis);
+
+    //-------------------------------------------------------------
+    if (!module)  v_set_module(0);
 }
 
 
@@ -833,7 +1013,7 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
     if (!saved_module)                  //- "direct declarations"
     {
-        //- assert(!global_ctx.init);
+        //- assert(!LLVMGetInsertBlock(v_target_get_builder()));
 
         //- voidc_guard_target(...);
 
@@ -853,26 +1033,6 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
         v_set_module(module);
     }
-
-    if (!global_ctx.init)
-    {
-        ft = v_type_get_llvm_type(v_function_type(v_void_type(), 0, 0, false));
-
-        f_init = LLVMAddFunction(module, "v.internal_module_global_initializer", ft);
-        f_term = LLVMAddFunction(module, "v.internal_module_global_terminator",  ft);
-
-        LLVMSetLinkage(f_init, LLVMPrivateLinkage);
-        LLVMSetLinkage(f_term, LLVMPrivateLinkage);
-
-        llvm_ctx = v_target_get_llvm_ctx();
-
-        global_ctx.init := LLVMAppendBasicBlockInContext(llvm_ctx, f_init, "entry");
-        global_ctx.term := LLVMAppendBasicBlockInContext(llvm_ctx, f_term, "entry");
-    }
-
-    builder = v_target_get_builder();
-
-    LLVMPositionBuilderAtEnd(builder, global_ctx.init);
 
 
     //--------------------------
@@ -925,16 +1085,22 @@ my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) ~> void
 
     global_ctx = *ctx.global_ctx;
 
-    block
+    //--------------------------------------------------------------
+    lists: &(*v_util_list_t)[2] := {&global_ctx.init_list, &global_ctx.term_list };
+
+    for (i: &int := 0; i < 2; ++i)
     {
-        if (bb = global_ctx.init)
-        {
-            fv = LLVMGetBasicBlockParent(bb);
+        list = lists[i];
 
-            mod = LLVMGetGlobalParent(fv);
+        if (!v_list_get_size(list)) v_continue();
 
-            if (mod == module)  v_break();
-        }
+        any = v_list_get_item(list, 0);
+
+        fv = (v_std_any_get_value(intptr_t, any) : LLVMValueRef);
+
+        mod = LLVMGetGlobalParent(fv);
+
+        if (mod == module)  v_continue();
 
         if (ctx.fun)  ctx.fun(ctx.ctx, module);
 
@@ -969,36 +1135,17 @@ my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) ~> void
     };
 
     //--------------------------------------------------------------
-    bbtab: &LLVMBasicBlockRef[2] := { global_ctx.init, global_ctx.term };
-
     for (i: &int := 0; i < 2; ++i)
     {
-        bb = bbtab[i];
+        list = lists[i];
 
-        fv = LLVMGetBasicBlockParent(bb);
-
-        count = LLVMCountBasicBlocks(fv);
-
-        if (count > 1  ||  LLVMGetFirstInstruction(bb))
+        if (list_size = v_list_get_size(list))
         {
-            //- Got initializations/terminations...
+            list_size = (list_size: unsigned);
 
-            if (!LLVMGetBasicBlockTerminator(bb))
-            {
-                builder = v_target_get_builder();
-
-                LLVMPositionBuilderAtEnd(builder, bb);
-
-                LLVMBuildRetVoid(builder);
-            }
-
-            val[1] := fv;
-
-            elt_v = LLVMConstStruct(val, 3, 0);
+            N: &unsigned := list_size;
 
             cdname = cdtors[i];
-
-            N: &unsigned := 1;
 
             ev: &*LLVMValueRef := v_undef();
 
@@ -1021,10 +1168,39 @@ my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) ~> void
             }
             else
             {
-                ev := new LLVMValueRef[1];
+                ev := new LLVMValueRef[list_size];
             }
 
-            ev[N-1] := elt_v;
+            if (i == 0)     //- initializers?
+            {
+                ev = ev + (N - list_size);
+
+                for (j: &int := 0; j < list_size; ++j)
+                {
+                    any = v_list_get_item(list, j);
+
+                    val[1] := (v_std_any_get_value(intptr_t, any) : LLVMValueRef);
+
+                    elt_v = LLVMConstStruct(val, 3, 0);
+
+                    ev[j] := elt_v;
+                }
+            }
+            else            //- terminators
+            {
+                ev = ev + (N - 1);
+
+                for (j: &int := list_size-1; j >= 0; --j)
+                {
+                    any = v_list_get_item(list, j);
+
+                    val[1] := (v_std_any_get_value(intptr_t, any) : LLVMValueRef);
+
+                    elt_v = LLVMConstStruct(val, 3, 0);
+
+                    ev[-j] := elt_v;
+                }
+            }
 
             tab_t  = v_array_type(elt_t, N);
             tab_t_ = v_type_get_llvm_type(tab_t);
@@ -1038,17 +1214,13 @@ my_finish_module_globals: (void_ctx: *void, module: LLVMModuleRef) ~> void
             LLVMSetInitializer(cdtors_g, tab_v);
 
             delete[] ev;
-        }
-        else
-        {
-            //- Remove empty initializations/terminations...
 
-            LLVMDeleteFunction(fv);
+            v_make_list_nil(list);
         }
     }
 
     //--------------------------------------------------------------
-    global_ctx := 0;
+    global_ctx.name := 0;
 
     //--------------------------------------------------------------
     if (ctx.fun)  ctx.fun(ctx.ctx, module);
@@ -1175,6 +1347,20 @@ struct v_global_objects_ctx_t
 };
 
 //---------------------------------------------------------------------
+private
+global_objects_ctx_cleaner: (aux: *void) ~> void
+{
+    ctx = *(aux: *v_global_objects_ctx_t);
+
+    v_terminate(&ctx.unit.obtain_spec.global_ctx.term_list);
+    v_terminate(&ctx.unit.obtain_spec.global_ctx.init_list);
+
+    free: (*void) ~> void;
+
+    free(&ctx);
+}
+
+//---------------------------------------------------------------------
 //- Enable global objects
 //---------------------------------------------------------------------
 export
@@ -1188,6 +1374,12 @@ voidc_enable_global_objects_compiler: () ~> void
     ctx = *v_malloc(v_global_objects_ctx_t) := 0;
 
     obtain_spec = ctx.unit.obtain_spec;
+
+    v_initialize(&obtain_spec.global_ctx.init_list);
+    v_initialize(&obtain_spec.global_ctx.term_list);
+
+    v_make_list_nil(&obtain_spec.global_ctx.init_list);
+    v_make_list_nil(&obtain_spec.global_ctx.term_list);
 
     //-----------------------------------------------------------------
     handler = voidc_local_objects_context_get_obtain_special_result_value_helper();
@@ -1203,7 +1395,8 @@ voidc_enable_global_objects_compiler: () ~> void
     voidc_visitor_set_void_method(vis, vis, unit_var_defn_q, my_compile_unit_var_defn, &obtain_spec);
     voidc_visitor_set_void_method(vis, vis, unit_val_defn_q, my_compile_unit_val_defn, &obtain_spec);
 
-    voidc_visitor_set_void_method(vis, vis, unit_defer_defn_q, compile_unit_defer_defn, &obtain_spec.global_ctx);
+    voidc_visitor_set_void_method(vis, vis, unit_stmt_init_q, compile_unit_stmt_init, &obtain_spec.global_ctx);
+    voidc_visitor_set_void_method(vis, vis, unit_stmt_term_q, compile_unit_stmt_term, &obtain_spec.global_ctx);
 
     q = v_ast_expr_identifier_visitor_method_tag;
 
@@ -1232,9 +1425,7 @@ voidc_enable_global_objects_compiler: () ~> void
     v_set_finish_module(my_finish_module_globals, &ctx.fin_globals);
 
     //-----------------------------------------------------------------
-    free: (*void) ~> void;
-
-    v_add_local_cleaner(free, &ctx);
+    v_add_local_cleaner(global_objects_ctx_cleaner, &ctx);
 }
 
 
@@ -1252,19 +1443,33 @@ voidc_enable_global_objects: () ~> void
 
     v_peg_get_grammar(gr0);
 
-    v_return_if(v_peg_grammar_get_action(gr0, "mk_unit_defer_defn", 0));
+    v_return_if(v_peg_grammar_get_action(gr0, "mk_unit_stmt_init", 0));
 
     //-----------------------------------------------------------------
     grammar gr0
     {
     actions:
-        mk_unit_defer_defn = mk_unit_defer_defn_grammar_action;
+        mk_unit_stmt_init = mk_unit_stmt_init_grammar_action;
+        mk_unit_stmt_term = mk_unit_stmt_term_grammar_action;
 
     parsers:
+        stmt_big_block = "block" _'{'_ l:stmt_list _'}'     { mk_stmt_block(l, 1) };    //- Sic!
 
-        unit_defer_defn = "defer" !ident_cont _ s:stmt  { mk_unit_defer_defn(s) };
+        unit_stmt_init = stmt_big_block
+                       / stmt_if_then_else
+                       / stmt_loop
+                       / stmt_switch
+                       / stmt_while
+                       / stmt_for
+                       ;
 
-        unit_defn += unit_defer_defn;
+
+        unit_stmt_term = stmt_defer;
+
+
+        unit_defn += s:unit_stmt_init   { mk_unit_stmt_init(s) }
+                   / s:unit_stmt_term   { mk_unit_stmt_term(s) }
+                   ;
     }
 
     v_peg_set_grammar(gr0);
@@ -1280,7 +1485,8 @@ voidc_enable_global_objects: () ~> void
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   ast_unit_defer_defn_vtable[2] := unit_defer_defn_q;
+{   ast_unit_stmt_init_vtable[2] := unit_stmt_init_q;
+    ast_unit_stmt_term_vtable[2] := unit_stmt_term_q;
 }
 
 

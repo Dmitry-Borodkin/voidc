@@ -68,11 +68,6 @@ public:
         immer::map<v_quark_t, intrinsic_t> intrinsics;
         immer::map<v_quark_t, std::any>    properties;
 
-        bool empty(void) const
-        {
-            return (aliases.empty() && constants.empty() && symbols.empty() && intrinsics.empty() && properties.empty());
-        }
-
         void aliases_insert   (std::pair<v_quark_t, v_quark_t>   v) { aliases    = aliases.insert(v); }
         void constants_insert (std::pair<v_quark_t, v_type_t *>  v) { constants  = constants.insert(v); }
         void symbols_insert   (std::pair<v_quark_t, v_type_t *>  v) { symbols    = symbols.insert(v); }

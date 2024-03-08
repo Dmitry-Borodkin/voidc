@@ -33,8 +33,6 @@ DEFINE_SIMPLE_CONVERSION_FUNCTIONS(LLJIT, LLVMOrcLLJITRef)
 void
 base_compile_ctx_t::declarations_t::insert(const declarations_t &other)
 {
-    if (other.empty())  return;
-
     for (auto it : other.aliases)     aliases_insert(it);
     for (auto it : other.constants)   constants_insert(it);
     for (auto it : other.symbols)     symbols_insert(it);
@@ -161,6 +159,19 @@ base_global_ctx_t::initialize(void)
 
     decls.symbols_insert({llvm_stacksave_q,    stacksave_ft});
     decls.symbols_insert({llvm_stackrestore_q, stackrestore_ft});
+
+    //-----------------------------------------------------------------
+    auto add_quark_name = [&](const char *name, v_quark_t quark)
+    {
+        auto qname = q(name);
+
+        decls.symbols_insert({qname, char_type});
+
+        add_symbol_value(qname, (void *)v_quark_to_string(quark));
+    };
+
+    add_quark_name("voidc_llvm_stacksave_name",    llvm_stacksave_q);
+    add_quark_name("voidc_llvm_stackrestore_name", llvm_stackrestore_q);
 }
 
 
@@ -1341,8 +1352,14 @@ voidc_global_ctx_t::static_initialize(void)
     voidc_internal_function_type_q       = q("voidc.internal_function_type");
     voidc_internal_return_value_q        = q("voidc.internal_return_value");
     voidc_internal_branch_target_leave_q = q("voidc.internal_branch_target_leave");
+
+#if LLVM_VERSION_MAJOR < 18
     llvm_stacksave_q                     = q("llvm.stacksave");
     llvm_stackrestore_q                  = q("llvm.stackrestore");
+#else
+    llvm_stacksave_q                     = q("llvm.stacksave.p0");
+    llvm_stackrestore_q                  = q("llvm.stackrestore.p0");
+#endif
 
     //-------------------------------------------------------------
     LLVMInitializeAllTargetInfos();
