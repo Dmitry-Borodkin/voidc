@@ -694,44 +694,15 @@ protected:
     types_map_t<v_type_generic_t::arg_type_t>    type_args;
     types_map_t<v_type_generic_t::arg_cons_t>    cons_args;
 
-private:
-    struct hooks_t
-    {
-        hook_initialize_t initialize_fun = [](void *, v_type_t *){};
-        void *            initialize_aux = nullptr;
-
-        hook_obtain_llvm_type_t obtain_llvm_type_fun;
-        void *                  obtain_llvm_type_aux;
-    };
-
-    hooks_t hooks[v_type_t::k_count];
+protected:
+    bool is_initialized = false;
 
 public:
-    hook_initialize_t get_initialize_fun(int k, void **paux)
-    {
-        if (paux) *paux = hooks[k].initialize_aux;
+    hook_initialize_t get_initialize_fun(int k, void **paux);
+    void set_initialize_fun(int k, hook_initialize_t fun, void *aux);
 
-        return  hooks[k].initialize_fun;
-    }
-
-    void set_initialize_fun(int k, hook_initialize_t fun, void *aux)
-    {
-        hooks[k].initialize_fun = fun;
-        hooks[k].initialize_aux = aux;
-    }
-
-    hook_obtain_llvm_type_t get_obtain_llvm_type_fun(int k, void **paux)
-    {
-        if (paux) *paux = hooks[k].obtain_llvm_type_aux;
-
-        return  hooks[k].obtain_llvm_type_fun;
-    }
-
-    void set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux)
-    {
-        hooks[k].obtain_llvm_type_fun = fun;
-        hooks[k].obtain_llvm_type_aux = aux;
-    }
+    hook_obtain_llvm_type_t get_obtain_llvm_type_fun(int k, void **paux);
+    void set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux);
 
 public:
     v_type_void_t * const void_type;
@@ -767,6 +738,13 @@ v_type_t::obtain_llvm_type(void) const
 //---------------------------------------------------------------------
 void voidc_types_static_initialize(void);
 void voidc_types_static_terminate(void);
+
+void voidc_types_make_voidc_constants(void);
+
+//---------------------------------------------------------------------
+class base_global_ctx_t;
+
+void voidc_types_make_level_0_intrinsics(base_global_ctx_t &gctx);
 
 
 #endif  //- VOIDC_TYPES_H

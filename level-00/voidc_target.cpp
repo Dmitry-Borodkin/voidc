@@ -50,6 +50,10 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     char_ptr_type(make_pointer_type(char_type, 0)),         //- address space 0 !?
     void_ptr_type(make_pointer_type(void_type, 0))          //- address space 0 !?
 {
+    is_initialized = true;
+
+    voidc_types_make_level_0_intrinsics(*this);
+
     make_level_0_intrinsics(*this);
 }
 
@@ -1371,9 +1375,11 @@ voidc_global_ctx_t::static_initialize(void)
     LLVMOrcCreateLLJIT(&jit, 0);            //- Sic!
 
     //-------------------------------------------------------------
+    voidc_types_static_initialize();        //- Sic!
+
     target = new voidc_global_ctx_t();      //- Sic!
 
-    voidc_types_static_initialize();        //- Sic!
+    voidc_types_make_voidc_constants();     //- Sic!
 
     static_cast<voidc_global_ctx_t *>(target)->initialize();    //- Sic!
 
