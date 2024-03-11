@@ -333,7 +333,11 @@ v_type_function_obtain_llvm_type_hook: (*void, ft: *v_type_t) ~> LLVMTypeRef
 
     var_arg = v_type_function_is_var_arg(ft);
 
-    v_return(LLVMFunctionType(ret, par, n, var_arg));
+    ret = LLVMFunctionType(ret, par, n, var_arg);
+
+    v_type_set_cached_llvm_type(ft, ret);
+
+    v_return(ret);
 }
 
 

@@ -34,35 +34,45 @@ static
 LLVMTypeRef
 obtain_llvm_type_void(void *, const v_type_t *typ)
 {
-    return  LLVMVoidTypeInContext(typ->context.llvm_ctx);
+    typ->cached_llvm_type = LLVMVoidTypeInContext(typ->context.llvm_ctx);
+
+    return  typ->cached_llvm_type;
 }
 
 static
 LLVMTypeRef
 obtain_llvm_type_f16(void *, const v_type_t *typ)
 {
-    return  LLVMHalfTypeInContext(typ->context.llvm_ctx);
+    typ->cached_llvm_type = LLVMHalfTypeInContext(typ->context.llvm_ctx);
+
+    return  typ->cached_llvm_type;
 }
 
 static
 LLVMTypeRef
 obtain_llvm_type_f32(void *, const v_type_t *typ)
 {
-    return  LLVMFloatTypeInContext(typ->context.llvm_ctx);
+    typ->cached_llvm_type = LLVMFloatTypeInContext(typ->context.llvm_ctx);
+
+    return  typ->cached_llvm_type;
 }
 
 static
 LLVMTypeRef
 obtain_llvm_type_f64(void *, const v_type_t *typ)
 {
-    return  LLVMDoubleTypeInContext(typ->context.llvm_ctx);
+    typ->cached_llvm_type = LLVMDoubleTypeInContext(typ->context.llvm_ctx);
+
+    return  typ->cached_llvm_type;
 }
 
 static
 LLVMTypeRef
 obtain_llvm_type_f128(void *, const v_type_t *typ)
 {
-    return  LLVMFP128TypeInContext(typ->context.llvm_ctx);
+    typ->cached_llvm_type = LLVMFP128TypeInContext(typ->context.llvm_ctx);
+
+    return  typ->cached_llvm_type;
 }
 
 
@@ -73,7 +83,9 @@ obtain_llvm_type_integer(void *, const v_type_t *typ)
 {
     auto t = static_cast<const v_type_integer_t *>(typ);
 
-    return  LLVMIntTypeInContext(typ->context.llvm_ctx, t->width());
+    typ->cached_llvm_type = LLVMIntTypeInContext(typ->context.llvm_ctx, t->width());
+
+    return  typ->cached_llvm_type;
 }
 
 
@@ -94,7 +106,9 @@ obtain_llvm_type_function(void *, const v_type_t *typ)
         ft[i] = params[i]->llvm_type();
     }
 
-    return  LLVMFunctionType(t->return_type()->llvm_type(), ft, pcount, t->is_var_arg());
+    typ->cached_llvm_type = LLVMFunctionType(t->return_type()->llvm_type(), ft, pcount, t->is_var_arg());
+
+    return  typ->cached_llvm_type;
 }
 
 
@@ -105,7 +119,9 @@ obtain_llvm_type_refptr(void *, const v_type_t *typ)
 {
     auto t = static_cast<const v_type_refptr_t *>(typ);
 
-    return  LLVMPointerTypeInContext(typ->context.llvm_ctx, t->address_space());
+    typ->cached_llvm_type = LLVMPointerTypeInContext(typ->context.llvm_ctx, t->address_space());
+
+    return  typ->cached_llvm_type;
 }
 
 
@@ -128,7 +144,9 @@ obtain_llvm_type_struct(void *, const v_type_t *typ)
         elts[i] = types[i]->llvm_type();
     }
 
-    return  LLVMStructTypeInContext(typ->context.llvm_ctx, elts, count, t->is_packed());
+    typ->cached_llvm_type = LLVMStructTypeInContext(typ->context.llvm_ctx, elts, count, t->is_packed());
+
+    return  typ->cached_llvm_type;
 }
 
 
@@ -141,7 +159,9 @@ obtain_llvm_type_array(void *, const v_type_t *typ)
 
     auto et = t->element_type()->llvm_type();
 
-    return  LLVMArrayType2(et, t->length());
+    typ->cached_llvm_type = LLVMArrayType2(et, t->length());
+
+    return  typ->cached_llvm_type;
 }
 
 
@@ -154,7 +174,9 @@ obtain_llvm_type_vector(void *, const v_type_t *typ)
 
     auto et = t->element_type()->llvm_type();
 
-    return  LLVMVectorType(et, t->size());
+    typ->cached_llvm_type = LLVMVectorType(et, t->size());
+
+    return  typ->cached_llvm_type;
 }
 
 static
@@ -165,7 +187,9 @@ obtain_llvm_type_svector(void *, const v_type_t *typ)
 
     auto et = t->element_type()->llvm_type();
 
-    return  LLVMScalableVectorType(et, t->size());
+    typ->cached_llvm_type = LLVMScalableVectorType(et, t->size());
+
+    return  typ->cached_llvm_type;
 }
 
 
@@ -276,15 +300,22 @@ voidc_types_ctx_t::make_type_helper(types_map_t<T, K> &tmap, const K &key)
         auto t = new T(*this, it->first);
 
         it->second.reset(t);
+    }
 
+    auto *t = it->second.get();
+
+    if (t->cached_llvm_type == LLVMTypeRef(-1))
+    {
         void *aux;
 
         auto fun = get_initialize_fun(t->kind(), &aux);
 
         if (fun)  fun(aux, t);
+
+        t->cached_llvm_type = nullptr;
     }
 
-    return  it->second.get();
+    return  t;
 }
 
 
@@ -659,6 +690,16 @@ extern "C"
 {
 
 VOIDC_DLLEXPORT_BEGIN_FUNCTION
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+void
+v_type_set_cached_llvm_type(v_type_t *typ, LLVMTypeRef llvm_typ)
+{
+    typ->cached_llvm_type = llvm_typ;
+}
 
 
 //---------------------------------------------------------------------

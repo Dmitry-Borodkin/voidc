@@ -8,6 +8,7 @@
 #include "voidc_quark.h"
 #include "voidc_dllexport.h"
 
+#include <cassert>
 #include <utility>
 #include <map>
 #include <vector>
@@ -75,16 +76,16 @@ private:
     inline
     LLVMTypeRef obtain_llvm_type(void) const;
 
-    LLVMTypeRef cached_llvm_type = nullptr;
-
-    friend class v_type_struct_t;       //- Sic!
-
 public:
+    mutable LLVMTypeRef cached_llvm_type = LLVMTypeRef(-1);         //- "Not initialized"
+
     LLVMTypeRef llvm_type(void)
     {
-        if (!cached_llvm_type)  cached_llvm_type = obtain_llvm_type();
+        assert(cached_llvm_type != LLVMTypeRef(-1));
 
-        return cached_llvm_type;
+        if (cached_llvm_type)   return cached_llvm_type;
+
+        return  obtain_llvm_type();
     }
 
 public:
@@ -129,7 +130,9 @@ class v_type_simple_t : public v_type_tag_t<v_type_t, tag>
 
     explicit v_type_simple_t(voidc_types_ctx_t &ctx)
       : v_type_tag_t<v_type_t, tag>(ctx)
-    {}
+    {
+        this->cached_llvm_type = nullptr;           //- ?!?!?!?!?!?
+    }
 
     v_type_simple_t(const v_type_simple_t &) = delete;
     v_type_simple_t &operator=(const v_type_simple_t &) = delete;

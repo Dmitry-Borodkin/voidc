@@ -416,6 +416,13 @@
 
 
     //-------------------------------------------------------------
+    v_store(v_type_ptr,    typ0);
+    v_store(LLVMTypeRef,   typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_type_set_cached_llvm_type", ft);
+
+    //-------------------------------------------------------------
     v_store(void_ptr,   typ0);          //- aux
     v_store(v_type_ptr, typ1);          //-
 
