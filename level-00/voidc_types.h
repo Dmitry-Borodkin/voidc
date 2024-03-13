@@ -81,7 +81,7 @@ public:
 
     LLVMTypeRef llvm_type(void)
     {
-        assert(cached_llvm_type != LLVMTypeRef(-1));
+//      assert(cached_llvm_type != LLVMTypeRef(-1));
 
         if (cached_llvm_type)   return cached_llvm_type;
 
@@ -130,9 +130,7 @@ class v_type_simple_t : public v_type_tag_t<v_type_t, tag>
 
     explicit v_type_simple_t(voidc_types_ctx_t &ctx)
       : v_type_tag_t<v_type_t, tag>(ctx)
-    {
-        this->cached_llvm_type = nullptr;           //- ?!?!?!?!?!?
-    }
+    {}
 
     v_type_simple_t(const v_type_simple_t &) = delete;
     v_type_simple_t &operator=(const v_type_simple_t &) = delete;
@@ -614,6 +612,9 @@ typedef LLVMTypeRef (*hook_obtain_llvm_type_t)(void *aux, const v_type_t *typ);
 //=====================================================================
 class voidc_types_ctx_t
 {
+    bool is_initialized = false;
+
+    friend class base_global_ctx_t;
 
 public:
     voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size);
@@ -625,12 +626,12 @@ public:
     const LLVMTypeRef opaque_struct_type;
 
 public:
-    v_type_void_t      *make_void_type(void) { return void_type; }
+    v_type_void_t      *make_void_type(void);
 
-    v_type_f16_t       *make_f16_type(void)  { return _f16_type.get(); }
-    v_type_f32_t       *make_f32_type(void)  { return _f32_type.get(); }
-    v_type_f64_t       *make_f64_type(void)  { return _f64_type.get(); }
-    v_type_f128_t      *make_f128_type(void) { return _f128_type.get(); }
+    v_type_f16_t       *make_f16_type(void);
+    v_type_f32_t       *make_f32_type(void);
+    v_type_f64_t       *make_f64_type(void);
+    v_type_f128_t      *make_f128_type(void);
 
     v_type_int_t       *make_int_type(unsigned bits);
     v_type_uint_t      *make_uint_type(unsigned bits);
@@ -664,6 +665,12 @@ protected:
     std::unique_ptr<v_type_f64_t>  _f64_type;
     std::unique_ptr<v_type_f128_t> _f128_type;
 
+    template <typename T> inline
+    T *check_cached_llvm_type(T *t);
+
+    template <typename T> inline
+    T *make_type_helper(std::unique_ptr<T> &tptr);
+
     template <typename T, typename K = typename T::key_t>
     using types_map_t = std::map<K, std::unique_ptr<T>>;
 
@@ -696,9 +703,6 @@ protected:
     types_map_t<v_type_generic_t::arg_quark_t>   quark_args;
     types_map_t<v_type_generic_t::arg_type_t>    type_args;
     types_map_t<v_type_generic_t::arg_cons_t>    cons_args;
-
-protected:
-    bool is_initialized = false;
 
 public:
     hook_initialize_t get_initialize_fun(int k, void **paux);

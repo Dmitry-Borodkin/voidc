@@ -255,14 +255,7 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
   : llvm_ctx(ctx),
     opaque_struct_type(LLVMStructTypeInContext(ctx, nullptr, 0, false)),        //- Sic!!!
 
-    _void_type(new v_type_void_t(*this)),
-
-    _f16_type (new v_type_f16_t (*this)),
-    _f32_type (new v_type_f32_t (*this)),
-    _f64_type (new v_type_f64_t (*this)),
-    _f128_type(new v_type_f128_t(*this)),
-
-    void_type(_void_type.get()),
+    void_type     (make_void_type()),
 
     bool_type     (make_uint_type(1)),
     char_type     (make_int_type(8)),
@@ -289,6 +282,44 @@ voidc_types_ctx_t::~voidc_types_ctx_t()
 
 
 //---------------------------------------------------------------------
+template <typename T> inline
+T *
+voidc_types_ctx_t::check_cached_llvm_type(T *t)
+{
+    if (t->cached_llvm_type == LLVMTypeRef(-1))
+    {
+        void *aux;
+
+        auto fun = get_initialize_fun(t->kind(), &aux);
+
+        if (fun)  fun(aux, t);
+
+        t->cached_llvm_type = nullptr;
+    }
+
+    return  t;
+}
+
+
+//---------------------------------------------------------------------
+template <typename T> inline
+T *
+voidc_types_ctx_t::make_type_helper(std::unique_ptr<T> &tptr)
+{
+    if (!tptr)  tptr.reset(new T(*this));
+
+    return check_cached_llvm_type(tptr.get());
+}
+
+//---------------------------------------------------------------------
+v_type_void_t * voidc_types_ctx_t::make_void_type(void) { return make_type_helper(_void_type); }
+v_type_f16_t  * voidc_types_ctx_t::make_f16_type(void)  { return make_type_helper(_f16_type);  }
+v_type_f32_t  * voidc_types_ctx_t::make_f32_type(void)  { return make_type_helper(_f32_type);  }
+v_type_f64_t  * voidc_types_ctx_t::make_f64_type(void)  { return make_type_helper(_f64_type);  }
+v_type_f128_t * voidc_types_ctx_t::make_f128_type(void) { return make_type_helper(_f128_type); }
+
+
+//---------------------------------------------------------------------
 template <typename T, typename K> inline
 T *
 voidc_types_ctx_t::make_type_helper(types_map_t<T, K> &tmap, const K &key)
@@ -302,20 +333,7 @@ voidc_types_ctx_t::make_type_helper(types_map_t<T, K> &tmap, const K &key)
         it->second.reset(t);
     }
 
-    auto *t = it->second.get();
-
-    if (t->cached_llvm_type == LLVMTypeRef(-1))
-    {
-        void *aux;
-
-        auto fun = get_initialize_fun(t->kind(), &aux);
-
-        if (fun)  fun(aux, t);
-
-        t->cached_llvm_type = nullptr;
-    }
-
-    return  t;
+    return check_cached_llvm_type(it->second.get());
 }
 
 
