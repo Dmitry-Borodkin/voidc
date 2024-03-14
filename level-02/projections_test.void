@@ -52,10 +52,10 @@ vector_y: (v: Vector) ~> double
 
     q = v_quark_from_string;
 
-    v_util_function_dict_set(vector_ref, q(".x"), q("vector_x_ref"));
-    v_util_function_dict_set(vector_ref, q(".y"), q("vector_y_ref"));
-    v_util_function_dict_set(Vector,     q(".x"), q("vector_x"));
-    v_util_function_dict_set(Vector,     q(".y"), q("vector_y"));
+    v_util_function_dict_set(q(".x"), vector_ref, q("vector_x_ref"));
+    v_util_function_dict_set(q(".y"), vector_ref, q("vector_y_ref"));
+    v_util_function_dict_set(q(".x"), Vector,     q("vector_x"));
+    v_util_function_dict_set(q(".y"), Vector,     q("vector_y"));
 }
 
 
@@ -95,8 +95,8 @@ vector_add: (v: Vector, x: double, y: double) ~> Vector
 
     q = v_quark_from_string;
 
-    v_util_function_dict_set(vector_ref, q(".add()"), q("vector_add_ref"));
-    v_util_function_dict_set(Vector,     q(".add()"), q("vector_add"));
+    v_util_function_dict_set(q(".add()"), vector_ref, q("vector_add_ref"));
+    v_util_function_dict_set(q(".add()"), Vector,     q("vector_add"));
 }
 
 
@@ -146,8 +146,8 @@ vector_add: (v: Vector, x: double, y: double) ~> Vector
 
     q = v_quark_from_string;
 
-    v_util_function_dict_set(char_ptr,     q(".my_printf()"), q("printf"));
-    v_util_function_dict_set(char_ptr_ref, q(".my_printf()"), q("printf"));
+    v_util_function_dict_set(q(".my_printf()"), char_ptr,     q("printf"));
+    v_util_function_dict_set(q(".my_printf()"), char_ptr_ref, q("printf"));
 }
 
 //---------------------------------------------------------------------
@@ -175,8 +175,8 @@ foo: &foo_t := { printf };
 {
     q = v_quark_from_string;
 
-    v_util_function_dict_set(foo_t,   q(".fun"), q("foo_bar"));
-    v_util_function_dict_set(foo_ref, q(".fun"), q("foo_bar"));
+    v_util_function_dict_set(q(".fun"), foo_t,   q("foo_bar"));
+    v_util_function_dict_set(q(".fun"), foo_ref, q("foo_bar"));
 }
 
 //---------------------------------------------------------------------

@@ -373,7 +373,7 @@ spec_fun_derive_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
         v_ast_make_expr_identifier_q(expr+2, q_getelementptr);
 
-        if (v_util_lookup_function_dict(et, quark, void_fun, void_aux, ft, fv))
+        if (v_util_lookup_function_dict(quark, et, void_fun, void_aux, ft, fv))
         {
             v_ast_make_expr_call(expr+0, expr+2, expr_list+0);
 

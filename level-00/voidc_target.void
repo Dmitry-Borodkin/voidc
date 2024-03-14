@@ -623,6 +623,43 @@
 
 
 //---------------------------------------------------------------------
+{   typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    v_store(char_ptr,   typ0);              //- ...
+    v_store(v_type_ptr, typ1);              //- ...
+    v_store(char_ptr,   typ2);              //- ...
+
+    ft = v_function_type(void, typ0, 3, false);
+
+    v_export_symbol_type("v_export_overload", ft);
+    v_export_symbol_type("v_add_overload",    ft);
+
+    v_store(v_quark_t,  typ0);              //-
+    v_store(v_type_ptr, typ1);              //-
+    v_store(v_quark_t,  typ2);              //-
+
+    ft = v_function_type(void, typ0, 3, false);
+
+    v_export_symbol_type("v_export_overload_q", ft);
+    v_export_symbol_type("v_add_overload_q",    ft);
+
+    v_store(char_ptr,   typ0);              //- ...
+    v_store(v_type_ptr, typ1);              //- ...
+
+    ft = v_function_type(char_ptr, typ0, 2, false);
+    v_export_symbol_type("v_get_overload", ft);
+
+    v_store(v_quark_t,  typ0);              //- ...
+    v_store(v_type_ptr, typ1);              //- ...
+
+    ft = v_function_type(v_quark_t, typ0, 2, false);
+    v_export_symbol_type("v_get_overload_q", ft);
+}
+
+
+//---------------------------------------------------------------------
 {   typ0 = v_alloca(v_type_ptr, 2);
     typ1 = v_getelementptr(typ0, 1);
 

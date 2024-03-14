@@ -212,7 +212,7 @@ v_type_check_special: (t: *v_type_t, q: v_quark_t) ~> void
 
     q_checked = v_quark_from_string(v_std_string_get(sstr));
 
-    if (v_type_get_property(t, q_checked))  v_return();
+    if (v_get_overload_q(q_checked, t))  v_return();
 
     block
     {
@@ -224,7 +224,7 @@ v_type_check_special: (t: *v_type_t, q: v_quark_t) ~> void
 
         if (v_type_is_struct(t))
         {
-            if (v_type_get_property(t, q))  v_break();
+            if (v_get_overload_q(q, t))  v_break();
 
             flag: &bool := false;
 
@@ -246,7 +246,7 @@ v_type_check_special: (t: *v_type_t, q: v_quark_t) ~> void
 
                 q_fake = v_quark_from_string(v_std_string_get(sstr));
 
-                v_util_function_dict_set(t, q, q_fake);
+                v_util_function_dict_set(q, t, q_fake);
             }
 
             v_break();
@@ -255,13 +255,7 @@ v_type_check_special: (t: *v_type_t, q: v_quark_t) ~> void
         //- ?!? ...
     }
 
-    any = v_alloca(v_std_any_t);
-    v_initialize(any);
-    defer v_terminate(any);
-
-    v_std_any_set_value(any, true);
-
-    v_type_set_property(t, q_checked, any);
+    v_add_overload_q(q_checked, t, q_checked);          //- ?!?!?
 }
 
 
@@ -283,7 +277,7 @@ v_type_is_special: (t: *v_type_t, q: v_quark_t) ~> bool
 
     v_type_check_special(t, q);
 
-    v_return(v_type_get_property(t, q) != 0);
+    v_return(v_get_overload_q(q, t) != 0);
 }
 
 

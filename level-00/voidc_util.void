@@ -62,8 +62,8 @@
 
     char_ptr = v_pointer_type(char, 0);
 
-    v_store(v_type_ptr, typ0);
-    v_store(v_quark_t,  typ1);
+    v_store(v_quark_t,  typ0);
+    v_store(v_type_ptr, typ1);
     v_store(v_quark_t,  typ2);
 
     ft = v_function_type(void, typ0, 3, false);
@@ -78,8 +78,8 @@
     v_type_ptr_ref   = v_reference_type(v_type_ptr,   0);
     LLVMValueRef_ref = v_reference_type(LLVMValueRef, 0);
 
-    v_store(v_type_ptr,       typ0);
-    v_store(v_quark_t,        typ1);
+    v_store(v_quark_t,        typ0);
+    v_store(v_type_ptr,       typ1);
     v_store(void_ptr_ref,     typ2);
     v_store(void_ptr_ref,     typ3);
     v_store(v_type_ptr_ref,   typ4);
@@ -93,8 +93,8 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_util_function_dict_set(v_type_t,             q_kind, v_quark_from_string("v_type_get_kind"));
-    v_util_function_dict_set(v_type_generic_arg_t, q_kind, v_quark_from_string("v_type_generic_arg_get_kind"));
+{   v_util_function_dict_set(q_kind, v_type_t,             v_quark_from_string("v_type_get_kind"));
+    v_util_function_dict_set(q_kind, v_type_generic_arg_t, v_quark_from_string("v_type_generic_arg_get_kind"));
 }
 
 
@@ -770,7 +770,7 @@
     //-
     //-     v_export_symbol_type_q(qname, fun_type);
     //-
-    //-     v_util_function_dict_set(val_t_type, q_dict, qname);
+    //-     v_util_function_dict_set(q_dict, val_t_type, qname);
     //- }
     //-------------------------------------------------------------
     util_reg_helper_f   = v_obtain_function("v_util_registering_helper", lltyp);
@@ -802,8 +802,8 @@
     LLVMBuildCall2(builder, export_symbol_type_q_ft_, export_symbol_type_q_f, val0, 2, "");
 
 
-    v_store(val_t_type, val0);
-    v_store(q_dict,     val1);
+    v_store(q_dict,     val0);
+    v_store(val_t_type, val1);
     v_store(qname,      val2);
 
     dict_set_f   = v_obtain_function("v_util_function_dict_set", lltyp);

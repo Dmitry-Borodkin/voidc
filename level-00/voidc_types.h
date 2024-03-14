@@ -87,9 +87,6 @@ public:
 
         return  obtain_llvm_type();
     }
-
-public:
-    std::unordered_map<v_quark_t, std::any> properties;
 };
 
 //---------------------------------------------------------------------

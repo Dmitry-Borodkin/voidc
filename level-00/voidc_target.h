@@ -68,11 +68,15 @@ public:
         immer::map<v_quark_t, intrinsic_t> intrinsics;
         immer::map<v_quark_t, std::any>    properties;
 
+        immer::map<v_quark_t, immer::map<v_type_t *, v_quark_t>> overloads;
+
         void aliases_insert   (std::pair<v_quark_t, v_quark_t>   v) { aliases    = aliases.insert(v); }
         void constants_insert (std::pair<v_quark_t, v_type_t *>  v) { constants  = constants.insert(v); }
         void symbols_insert   (std::pair<v_quark_t, v_type_t *>  v) { symbols    = symbols.insert(v); }
         void intrinsics_insert(std::pair<v_quark_t, intrinsic_t> v) { intrinsics = intrinsics.insert(v); }
         void properties_insert(std::pair<v_quark_t, std::any>    v) { properties = properties.insert(v); }
+
+        void overloads_insert(v_quark_t, v_type_t *, v_quark_t);
 
         void insert(const declarations_t &other);
     };
@@ -189,6 +193,9 @@ public:
 
     void export_property(v_quark_t name, const std::any &value);
     void add_property(v_quark_t name, const std::any &value);
+
+    void export_overload(v_quark_t name, v_type_t *type, v_quark_t over);
+    void add_overload(v_quark_t name, v_type_t *type, v_quark_t over);
 
     virtual void export_type(v_quark_t raw_name, v_type_t *type);
     virtual void add_type(v_quark_t raw_name, v_type_t *type);

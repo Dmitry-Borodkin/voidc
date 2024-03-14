@@ -31,6 +31,20 @@ DEFINE_SIMPLE_CONVERSION_FUNCTIONS(LLJIT, LLVMOrcLLJITRef)
 //- Base Compilation Context
 //---------------------------------------------------------------------
 void
+base_compile_ctx_t::declarations_t::overloads_insert(v_quark_t q, v_type_t *t, v_quark_t r)
+{
+    if (auto *map = overloads.find(q))
+    {
+        overloads = overloads.set(q, map->set(t, r));
+    }
+    else
+    {
+        overloads = overloads.set(q, immer::map<v_type_t *, v_quark_t>({{t, r}}));
+    }
+}
+
+//---------------------------------------------------------------------
+void
 base_compile_ctx_t::declarations_t::insert(const declarations_t &other)
 {
     for (auto it : other.aliases)     aliases_insert(it);
@@ -38,6 +52,14 @@ base_compile_ctx_t::declarations_t::insert(const declarations_t &other)
     for (auto it : other.symbols)     symbols_insert(it);
     for (auto it : other.intrinsics)  intrinsics_insert(it);
     for (auto it : other.properties)  properties_insert(it);
+
+    for (auto i : other.overloads)
+    {
+        for (auto j : i.second)
+        {
+            overloads_insert(i.first, j.first, j.second);
+        }
+    }
 }
 
 
@@ -300,6 +322,23 @@ void
 base_local_ctx_t::add_property(v_quark_t name, const std::any &value)
 {
     decls.properties_insert({name, value});
+}
+
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::export_overload(v_quark_t name, v_type_t *type, v_quark_t over)
+{
+    if (export_decls)   export_decls->overloads_insert(name, type, over);
+
+    decls.overloads_insert(name, type, over);
+}
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::add_overload(v_quark_t name, v_type_t *type, v_quark_t over)
+{
+    decls.overloads_insert(name, type, over);
 }
 
 
@@ -3040,6 +3079,68 @@ v_get_property(const char *name)
     if (!qname)  return nullptr;
 
     return v_get_property_q(qname);
+}
+
+
+//---------------------------------------------------------------------
+void
+v_export_overload_q(v_quark_t qname, v_type_t *type, v_quark_t over)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.export_overload(qname, type, over);
+}
+
+void
+v_export_overload(const char *name, v_type_t *type, const char *over)
+{
+    v_export_overload_q(v_quark_from_string(name), type, v_quark_from_string(over));
+}
+
+void
+v_add_overload_q(v_quark_t qname, v_type_t *type, v_quark_t over)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.add_overload(qname, type, over);
+}
+
+void
+v_add_overload(const char *name, v_type_t *type, const char *over)
+{
+    v_add_overload_q(v_quark_from_string(name), type, v_quark_from_string(over));
+}
+
+v_quark_t
+v_get_overload_q(v_quark_t qname, v_type_t *type)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (auto *i = lctx.decls.overloads.find(qname))
+    {
+        if (auto *j = i->find(type))
+        {
+            return *j;
+        }
+    }
+
+    return 0;
+}
+
+const char *
+v_get_overload(const char *name, v_type_t *type)
+{
+    auto qname = v_quark_try_string(name);
+
+    if (!qname)  return nullptr;
+
+    auto q = v_get_overload_q(qname, type);
+
+    if (q)  return v_quark_to_string(q);
+    else    return nullptr;
 }
 
 

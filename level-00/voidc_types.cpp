@@ -721,27 +721,6 @@ v_type_set_cached_llvm_type(v_type_t *typ, LLVMTypeRef llvm_typ)
 
 
 //---------------------------------------------------------------------
-//- Properties ...
-//---------------------------------------------------------------------
-void
-v_type_set_property(v_type_t *typ, v_quark_t key, const std::any *val)
-{
-    typ->properties[key] = *val;
-}
-
-const std::any *
-v_type_get_property(v_type_t *typ, v_quark_t key)
-{
-    auto &props = typ->properties;
-
-    auto it = props.find(key);
-
-    if (it != props.end())  return &it->second;
-    else                    return nullptr;
-}
-
-
-//---------------------------------------------------------------------
 int
 v_type_get_kind(v_type_t *type)
 {

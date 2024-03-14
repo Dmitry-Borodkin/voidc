@@ -52,24 +52,7 @@
     void_ptr = v_pointer_type(void, 0);
 
     //-------------------------------------------------------------
-    v_std_any_ptr = v_pointer_type(v_std_any_t, 0);         //- Sic!
-
     v_std_string_ptr = v_pointer_type(v_std_string_t, 0);   //- Sic!
-
-    //-------------------------------------------------------------
-    v_store(v_type_ptr,    typ0);
-    v_store(v_quark_t,     typ1);
-    v_store(v_std_any_ptr, typ2);
-
-    ft = v_function_type(void, typ0, 3, false);
-    v_export_symbol_type("v_type_set_property", ft);
-
-//  v_store(v_type_ptr, typ0);
-//  v_store(v_quark_t,  typ1);
-
-    ft = v_function_type(v_std_any_ptr, typ0, 2, false);
-    v_export_symbol_type("v_type_get_property", ft);
-
 
     //-------------------------------------------------------------
     v_store(v_type_ptr, typ0);          //-

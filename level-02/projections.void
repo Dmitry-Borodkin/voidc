@@ -215,13 +215,13 @@ op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (!v_util_lookup_function_dict(t0, quark, void_fun, void_aux, ft, fv))
+    if (!v_util_lookup_function_dict(quark, t0, void_fun, void_aux, ft, fv))
     {
         spc_flag := true;       //- assert(alst);
 
         quark := q0;
 
-        v_util_lookup_function_dict(t0, quark, void_fun, void_aux, ft, fv);        //- Sic!!!
+        v_util_lookup_function_dict(quark, t0, void_fun, void_aux, ft, fv);        //- Sic!!!
     }
 
     //- Overloading only!
@@ -383,7 +383,7 @@ op_postfix_to_helper: (aux: *void, vis: voidc_visitor_ptr,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(t0, q, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(q, t0, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -471,7 +471,7 @@ op_postfix_to_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
     ft: &v_type_ptr   := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(t0, q, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_function_dict(q, t0, void_fun, void_aux, ft, fv))
     {
         //- Got overloading!
 
@@ -674,8 +674,8 @@ voidc_internal_static_type_projection_intrinsic: (aux: *void, vis: voidc_visitor
     q_static_type_sizeof  = q("v.static_type_sizeof");
     q_static_type_alignof = q("v.static_type_alignof");
 
-    v_util_function_dict_set(v_static_type_t, q(".size"),  q_static_type_sizeof);
-    v_util_function_dict_set(v_static_type_t, q(".align"), q_static_type_alignof);
+    v_util_function_dict_set(q(".size"),  v_static_type_t, q_static_type_sizeof);
+    v_util_function_dict_set(q(".align"), v_static_type_t, q_static_type_alignof);
 
     v_export_intrinsic_q(q_static_type_sizeof,  voidc_internal_static_type_projection_intrinsic, LLVMSizeOf);
     v_export_intrinsic_q(q_static_type_alignof, voidc_internal_static_type_projection_intrinsic, LLVMAlignOf);
