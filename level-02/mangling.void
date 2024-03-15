@@ -87,7 +87,7 @@ dict_term: (dict: &v_trp_dict_t) ~> void
 
 //---------------------------------------------------------------------
 private
-dict_find: (dict: &v_trp_dict_t, key: *v_type_t) ~> intptr_t
+dict_find: (dict: &v_trp_dict_t, key: *void) ~> intptr_t
 {
     a = v_map_find(&dict.map, (key: intptr_t));
 
@@ -100,7 +100,7 @@ dict_find: (dict: &v_trp_dict_t, key: *v_type_t) ~> intptr_t
 
 //---------------------------------------------------------------------
 private
-dict_insert: (dict: &v_trp_dict_t, key: *v_type_t) ~> void
+dict_insert: (dict: &v_trp_dict_t, key: *void) ~> void
 {
     a = v_alloca(v_std_any_t);
     v_initialize(a);
@@ -114,7 +114,7 @@ dict_insert: (dict: &v_trp_dict_t, key: *v_type_t) ~> void
 
 //---------------------------------------------------------------------
 private
-append_string_repr: (str: v_std_string_ptr, s: *const char) ~> void
+append_string_repr: (str: v_std_string_ptr, s: *const char, l: size_t) ~> void
 {
     s: &*const char := s;
 
@@ -122,10 +122,13 @@ append_string_repr: (str: v_std_string_ptr, s: *const char) ~> void
 
     buf: &char[2] := 0;
 
-    while(c = *s++)
+    for (i: &int := 0; i < l; ++i)
     {
+        c = *s++;
+
         switch((c: char32_t))
         {
+        case   0 :  v_std_string_append(str, "\\0");  v_break();    //- Sic!
         case '\n':  v_std_string_append(str, "\\n");  v_break();
         case '\r':  v_std_string_append(str, "\\r");  v_break();
         case '\t':  v_std_string_append(str, "\\t");  v_break();
@@ -148,6 +151,11 @@ append_string_repr: (str: v_std_string_ptr, s: *const char) ~> void
 
 
 //---------------------------------------------------------------------
+private append_type:             (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t)             ~> void;
+private append_quark:            (str: *v_std_string_t, dict: &v_trp_dict_t, q: v_quark_t)             ~> void;
+private append_type_generic_arg: (str: *v_std_string_t, dict: &v_trp_dict_t, a: *v_type_generic_arg_t) ~> void;
+
+//---------------------------------------------------------------------
 private
 append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) ~> void
 {
@@ -160,7 +168,7 @@ append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) ~> void
 
     flag: &bool := false;
 
-    switch(k = v_kind(t))
+    switch(v_kind(t))
     {
     case v_type_kind_void:  v_std_string_append(str, "void");       v_break();
     case v_type_kind_f16:   v_std_string_append(str, "float(16)");  v_break();
@@ -252,9 +260,9 @@ append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) ~> void
 
         v_std_string_append(str, "v_struct(");
 
-        if (n = v_type_struct_get_name(t))
+        if (q = v_type_struct_get_name_q(t))
         {
-            append_string_repr(str, n);
+            append_quark(str, dict, q);
 
             flag := true;
         }
@@ -319,9 +327,130 @@ append_type: (str: *v_std_string_t, dict: &v_trp_dict_t, t: *v_type_t) ~> void
         v_std_string_append(str, ")");
 
         v_break();
+
+    case v_type_kind_generic:
+
+        v_std_string_append(str, "v_generic(");
+
+        append_quark(str, dict, v_type_generic_get_cons(t));
+
+        if (n = v_type_generic_get_arg_count(t))
+        {
+            args = v_type_generic_get_args(t);
+
+            for (i: &int := 0; i < n; ++i)
+            {
+                v_std_string_append(str, ", ");
+
+                append_type_generic_arg(str, dict, args[i]);
+            }
+        }
+
+        v_std_string_append(str, ")");
+
+        v_break();
     }
 
     dict_insert(dict, t);
+}
+
+//---------------------------------------------------------------------
+private
+append_quark: (str: *v_std_string_t, dict: &v_trp_dict_t, q: v_quark_t) ~> void
+{
+    qstr = v_quark_to_string(q);                //- Sic!
+
+    if (idx = dict_find(dict, qstr), idx >= 0)
+    {
+        v_std_string_append_number(str, idx);
+
+        v_return();
+    }
+
+    append_string_repr(str, qstr, v_quark_to_string_size(q));
+
+    dict_insert(dict, qstr);
+}
+
+//---------------------------------------------------------------------
+private
+append_type_generic_arg: (str: *v_std_string_t, dict: &v_trp_dict_t, a: *v_type_generic_arg_t) ~> void
+{
+    if (idx = dict_find(dict, a), idx >= 0)
+    {
+        v_std_string_append_number(str, idx);
+
+        v_return();
+    }
+
+    switch(v_kind(a))
+    {
+    case v_type_generic_arg_kind_number:
+
+        v_std_string_append(str, "N(");
+
+        v_std_string_append_number(str, v_type_generic_arg_number_get_number(a));
+
+        v_std_string_append(str, ")");
+
+        v_break();
+
+    case v_type_generic_arg_kind_string:
+
+        v_std_string_append(str, "S(");
+
+        sstr = v_type_generic_arg_string_get_string(a);
+
+        append_string_repr(str, v_std_string_get(sstr), v_std_string_get_size(sstr));
+
+        v_std_string_append(str, ")");
+
+        v_break();
+
+    case v_type_generic_arg_kind_quark:
+
+        v_std_string_append(str, "Q(");
+
+        append_quark(str, dict, v_type_generic_arg_quark_get_quark(a));
+
+        v_std_string_append(str, ")");
+
+        v_break();
+
+    case v_type_generic_arg_kind_type:
+
+        v_std_string_append(str, "T(");
+
+        append_type(str, dict, v_type_generic_arg_type_get_type(a));
+
+        v_std_string_append(str, ")");
+
+        v_break();
+
+    case v_type_generic_arg_kind_cons:
+
+        v_std_string_append(str, "C(");
+
+        append_quark(str, dict, v_type_generic_arg_cons_get_cons(a));
+
+        if (n = v_type_generic_arg_cons_get_arg_count(a))
+        {
+            args = v_type_generic_arg_cons_get_args(a);
+
+            for (i: &int := 0; i < n; ++i)
+            {
+                v_std_string_append(str, ", ");
+
+                append_type_generic_arg(str, dict, args[i]);
+            }
+        }
+
+        v_std_string_append(str, ")");
+
+        v_break();
+    }
+
+    dict_insert(dict, a);
 }
 
 
@@ -401,7 +530,7 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) ~> void
     v_initialize(stmp);
     defer v_terminate(stmp);
 
-    append_string_repr(stmp, v_quark_to_string(q));
+    append_string_repr(stmp, v_quark_to_string(q), v_quark_to_string_size(q));
 
     v_std_string_append(stmp, ", ");
 
@@ -770,7 +899,7 @@ mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 private
 type_is_initializable: (t: *v_type_t) ~> bool
 {
-    switch(v_type_get_kind(t))
+    switch(v_kind(t))
     {
     case v_type_kind_array:
         v_return(type_is_initializable(v_type_array_get_element_type(t)));

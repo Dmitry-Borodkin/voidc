@@ -372,32 +372,132 @@
 
     case v_type_kind_int:
     case v_type_kind_uint:
-        {
-            w = v_type_integer_get_width(type);
 
-            val = LLVMConstInt(unsigned_, w, 0);
+        w = v_type_integer_get_width(type);
 
-            ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+        val = LLVMConstInt(unsigned_, w, 0);
 
-            v_break();
-        }
+        ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+
+        v_break();
 
     case v_type_kind_function:
-        {
-            val = v_alloca(LLVMValueRef, 4);
 
-            val[0] := voidc_compile_type(v_type_function_get_return_type(type), ctx);
+        val = v_alloca(LLVMValueRef, 4);
+
+        val[0] := voidc_compile_type(v_type_function_get_return_type(type), ctx);
+
+        {   r = dict_find(&ctx[stk_dict], type);
+
+            if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
+        }
+
+        n = v_type_function_get_param_count(type);
+
+        if (n)
+        {
+            a_t = v_type_function_get_param_types(type);
+
+            a_v = v_malloc(LLVMValueRef, n);
+            defer v_free(a_v);
+
+            i = *v_alloca(int) := 0;
+
+            loop
+            {
+                if (i == n) v_break();
+
+                a_v[i] := voidc_compile_type(a_t[i], ctx);
+
+                ++i;
+            }
 
             {   r = dict_find(&ctx[stk_dict], type);
 
                 if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
             }
 
-            n = v_type_function_get_param_count(type);
+            val[1] := ctx[stk_stack];
+
+            i := 0;
+
+            loop
+            {
+                if (i == n) v_break();
+
+                i_v = LLVMConstInt(int_, i, 0);
+
+                val_i_v = LLVMBuildGEP2(builder, v_type_ptr_, val[1], &i_v, 1, "");
+
+                LLVMBuildStore(builder, a_v[i], val_i_v);
+
+                ++i;
+            }
+
+            ctx_stk_push(ctx, n);
+        }
+        else
+        {
+            val[1] := LLVMConstNull(v_type_ptr_ptr_);
+        }
+
+        val[2] := LLVMConstInt(int_, n, 0);
+
+        v = v_type_function_is_var_arg(type);
+
+        val[3] := LLVMConstInt(bool_, v, 0);
+
+        ret := LLVMBuildCall2(builder, ft_, f, val, 4, "");
+
+        v_break();
+
+    case v_type_kind_pointer:
+    case v_type_kind_reference:
+
+        val = v_alloca(LLVMValueRef, 2);
+
+        val[0] := voidc_compile_type(v_type_refptr_get_element_type(type), ctx);
+
+        {   r = dict_find(&ctx[stk_dict], type);
+
+            if (r)  v_return(r);
+        }
+
+        val[1] := LLVMConstInt(unsigned_, v_type_refptr_get_address_space(type), 0);
+
+        ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
+
+        v_break();
+
+    case v_type_kind_struct:
+
+        qname = v_type_struct_get_name_q(type);
+
+        if (qname)
+        {
+            qname_v = voidc_compile_quark(qname, ctx);
+
+            struct_type_named_q_f   = v_obtain_function("v_struct_type_named_q", lltyp);
+            struct_type_named_q_ft_ = v_load(lltyp);
+
+            ret := LLVMBuildCall2(builder, struct_type_named_q_ft_, struct_type_named_q_f, &qname_v, 1, "");
+
+            dict_insert(&ctx[stk_dict], type, ret);     //- Sic!
+        }
+
+        elts_v   = *v_alloca(LLVMValueRef);
+        count_v  = *v_alloca(LLVMValueRef);
+        packed_v = *v_alloca(LLVMValueRef);
+
+        has_body = !v_type_struct_is_opaque(type);
+
+        if (has_body)
+        {
+            n = v_type_struct_get_element_count(type);
 
             if (n)
             {
-                a_t = v_type_function_get_param_types(type);
+                a_t = v_type_struct_get_element_types(type);
 
                 a_v = v_malloc(LLVMValueRef, n);
                 defer v_free(a_v);
@@ -413,12 +513,7 @@
                     ++i;
                 }
 
-                {   r = dict_find(&ctx[stk_dict], type);
-
-                    if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
-                }
-
-                val[1] := ctx[stk_stack];
+                elts_v := ctx[stk_stack];
 
                 i := 0;
 
@@ -428,9 +523,9 @@
 
                     i_v = LLVMConstInt(int_, i, 0);
 
-                    val_i_v = LLVMBuildGEP2(builder, v_type_ptr_, val[1], &i_v, 1, "");
+                    elt_i_v = LLVMBuildGEP2(builder, v_type_ptr_, elts_v, &i_v, 1, "");
 
-                    LLVMBuildStore(builder, a_v[i], val_i_v);
+                    LLVMBuildStore(builder, a_v[i], elt_i_v);
 
                     ++i;
                 }
@@ -439,247 +534,146 @@
             }
             else
             {
-                val[1] := LLVMConstNull(v_type_ptr_ptr_);
+                elts_v := LLVMConstNull(v_type_ptr_ptr_);
             }
 
-            val[2] := LLVMConstInt(int_, n, 0);
+            count_v := LLVMConstInt(unsigned_, n, 0);
 
-            v = v_type_function_is_var_arg(type);
+            p = v_type_struct_is_packed(type);
 
-            val[3] := LLVMConstInt(bool_, v, 0);
-
-            ret := LLVMBuildCall2(builder, ft_, f, val, 4, "");
-
-            v_break();
+            packed_v := LLVMConstInt(bool_, p, 0);
         }
 
-    case v_type_kind_pointer:
-    case v_type_kind_reference:
+        if (qname)
         {
-            val = v_alloca(LLVMValueRef, 2);
-
-            val[0] := voidc_compile_type(v_type_refptr_get_element_type(type), ctx);
-
-            {   r = dict_find(&ctx[stk_dict], type);
-
-                if (r)  v_return(r);
-            }
-
-            val[1] := LLVMConstInt(unsigned_, v_type_refptr_get_address_space(type), 0);
-
-            ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
-
-            v_break();
-        }
-
-    case v_type_kind_struct:
-        {
-            qname = v_type_struct_get_name_q(type);
-
-            if (qname)
-            {
-                qname_v = voidc_compile_quark(qname, ctx);
-
-                struct_type_named_q_f   = v_obtain_function("v_struct_type_named_q", lltyp);
-                struct_type_named_q_ft_ = v_load(lltyp);
-
-                ret := LLVMBuildCall2(builder, struct_type_named_q_ft_, struct_type_named_q_f, &qname_v, 1, "");
-
-                dict_insert(&ctx[stk_dict], type, ret);     //- Sic!
-            }
-
-            elts_v   = *v_alloca(LLVMValueRef);
-            count_v  = *v_alloca(LLVMValueRef);
-            packed_v = *v_alloca(LLVMValueRef);
-
-            has_body = !v_type_struct_is_opaque(type);
-
             if (has_body)
             {
-                n = v_type_struct_get_element_count(type);
+                val = v_alloca(LLVMValueRef, 4);
 
-                if (n)
-                {
-                    a_t = v_type_struct_get_element_types(type);
+                val[0] := ret;
+                val[1] := elts_v;
+                val[2] := count_v;
+                val[3] := packed_v;
 
-                    a_v = v_malloc(LLVMValueRef, n);
-                    defer v_free(a_v);
+                set_body_f   = v_obtain_function("v_type_struct_set_body", lltyp);
+                set_body_ft_ = v_load(lltyp);
 
-                    i = *v_alloca(int) := 0;
-
-                    loop
-                    {
-                        if (i == n) v_break();
-
-                        a_v[i] := voidc_compile_type(a_t[i], ctx);
-
-                        ++i;
-                    }
-
-                    elts_v := ctx[stk_stack];
-
-                    i := 0;
-
-                    loop
-                    {
-                        if (i == n) v_break();
-
-                        i_v = LLVMConstInt(int_, i, 0);
-
-                        elt_i_v = LLVMBuildGEP2(builder, v_type_ptr_, elts_v, &i_v, 1, "");
-
-                        LLVMBuildStore(builder, a_v[i], elt_i_v);
-
-                        ++i;
-                    }
-
-                    ctx_stk_push(ctx, n);
-                }
-                else
-                {
-                    elts_v := LLVMConstNull(v_type_ptr_ptr_);
-                }
-
-                count_v := LLVMConstInt(unsigned_, n, 0);
-
-                p = v_type_struct_is_packed(type);
-
-                packed_v := LLVMConstInt(bool_, p, 0);
+                LLVMBuildCall2(builder, set_body_ft_, set_body_f, val, 4, "");
             }
 
-            if (qname)
-            {
-                if (has_body)
-                {
-                    val = v_alloca(LLVMValueRef, 4);
-
-                    val[0] := ret;
-                    val[1] := elts_v;
-                    val[2] := count_v;
-                    val[3] := packed_v;
-
-                    set_body_f   = v_obtain_function("v_type_struct_set_body", lltyp);
-                    set_body_ft_ = v_load(lltyp);
-
-                    LLVMBuildCall2(builder, set_body_ft_, set_body_f, val, 4, "");
-                }
-
-                v_return(ret);      //- Sic!
-            }
-            else
-            {
-                //- assert(has_body);
-
-                val = v_alloca(LLVMValueRef, 3);
-
-                val[0] := elts_v;
-                val[1] := count_v;
-                val[2] := packed_v;
-
-                ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
-            }
-
-            v_break();
+            v_return(ret);      //- Sic!
         }
+        else
+        {
+            //- assert(has_body);
+
+            val = v_alloca(LLVMValueRef, 3);
+
+            val[0] := elts_v;
+            val[1] := count_v;
+            val[2] := packed_v;
+
+            ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
+        }
+
+        v_break();
 
     case v_type_kind_array:
-        {
-            val = v_alloca(LLVMValueRef, 2);
 
-            val[0] := voidc_compile_type(v_type_array_get_element_type(type), ctx);
+        val = v_alloca(LLVMValueRef, 2);
 
-            {   r = dict_find(&ctx[stk_dict], type);
+        val[0] := voidc_compile_type(v_type_array_get_element_type(type), ctx);
 
-                if (r)  v_return(r);
-            }
+        {   r = dict_find(&ctx[stk_dict], type);
 
-            val[1] := LLVMConstInt(uint64_t_, v_type_array_get_length(type), 0);
-
-            ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
-
-            v_break();
+            if (r)  v_return(r);
         }
+
+        val[1] := LLVMConstInt(uint64_t_, v_type_array_get_length(type), 0);
+
+        ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
+
+        v_break();
 
     case v_type_kind_vector:
     case v_type_kind_svector:
-        {
-            val = v_alloca(LLVMValueRef, 2);
 
-            val[0] := voidc_compile_type(v_type_vector_get_element_type(type), ctx);
+        val = v_alloca(LLVMValueRef, 2);
+
+        val[0] := voidc_compile_type(v_type_vector_get_element_type(type), ctx);
+
+        {   r = dict_find(&ctx[stk_dict], type);
+
+            if (r)  v_return(r);
+        }
+
+        val[1] := LLVMConstInt(unsigned_, v_type_vector_get_size(type), 0);
+
+        ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
+
+        v_break();
+
+
+    case v_type_kind_generic:
+
+        val = v_alloca(LLVMValueRef, 3);
+
+        val[0] := voidc_compile_quark(v_type_generic_get_cons(type), ctx);
+
+        n = v_type_generic_get_arg_count(type);
+
+        if (n)
+        {
+            a_a = v_type_generic_get_args(type);
+
+            a_v = v_malloc(LLVMValueRef, n);
+            defer v_free(a_v);
+
+            i = *v_alloca(int) := 0;
+
+            loop
+            {
+                if (i == n) v_break();
+
+                a_v[i] := voidc_compile_type_generic_arg(a_a[i], ctx);
+
+                ++i;
+            }
 
             {   r = dict_find(&ctx[stk_dict], type);
 
-                if (r)  v_return(r);
+                if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
             }
 
-            val[1] := LLVMConstInt(unsigned_, v_type_vector_get_size(type), 0);
+            val[1] := ctx[stk_stack];
 
-            ret := LLVMBuildCall2(builder, ft_, f, val, 2, "");
+            i := 0;
 
-            v_break();
+            loop
+            {
+                if (i == n) v_break();
+
+                i_v = LLVMConstInt(int_, i, 0);
+
+                val_i_v = LLVMBuildGEP2(builder, v_type_generic_arg_ptr_, val[1], &i_v, 1, "");
+
+                LLVMBuildStore(builder, a_v[i], val_i_v);
+
+                ++i;
+            }
+
+            ctx_stk_push(ctx, n);
         }
-
-    case v_type_kind_generic:
+        else
         {
-            val = v_alloca(LLVMValueRef, 3);
-
-            val[0] := voidc_compile_quark(v_type_generic_get_cons(type), ctx);
-
-            n = v_type_generic_get_arg_count(type);
-
-            if (n)
-            {
-                a_a = v_type_generic_get_args(type);
-
-                a_v = v_malloc(LLVMValueRef, n);
-                defer v_free(a_v);
-
-                i = *v_alloca(int) := 0;
-
-                loop
-                {
-                    if (i == n) v_break();
-
-                    a_v[i] := voidc_compile_type_generic_arg(a_a[i], ctx);
-
-                    ++i;
-                }
-
-                {   r = dict_find(&ctx[stk_dict], type);
-
-                    if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
-                }
-
-                val[1] := ctx[stk_stack];
-
-                i := 0;
-
-                loop
-                {
-                    if (i == n) v_break();
-
-                    i_v = LLVMConstInt(int_, i, 0);
-
-                    val_i_v = LLVMBuildGEP2(builder, v_type_generic_arg_ptr_, val[1], &i_v, 1, "");
-
-                    LLVMBuildStore(builder, a_v[i], val_i_v);
-
-                    ++i;
-                }
-
-                ctx_stk_push(ctx, n);
-            }
-            else
-            {
-                val[1] := LLVMConstNull(v_type_generic_arg_ptr_ptr_);
-            }
-
-            val[2] := LLVMConstInt(int_, n, 0);
-
-            ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
-
-            v_break();
+            val[1] := LLVMConstNull(v_type_generic_arg_ptr_ptr_);
         }
+
+        val[2] := LLVMConstInt(int_, n, 0);
+
+        ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
+
+        v_break();
     }
 
     dict_insert(&ctx[stk_dict], type, ret);
@@ -764,149 +758,144 @@
     switch(k)
     {
     case v_type_generic_arg_kind_number:
-        {
-            num = v_type_generic_arg_number_get_number(arg);
 
-            val = LLVMConstInt(uint64_t_, num, 0);
+        num = v_type_generic_arg_number_get_number(arg);
 
-            ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+        val = LLVMConstInt(uint64_t_, num, 0);
 
-            v_break();
-        }
+        ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+
+        v_break();
 
     case v_type_generic_arg_kind_string:
+
+        if (!ctx[stk_string])
         {
-            if (!ctx[stk_string])
-            {
-                ctx[stk_string] := LLVMBuildAlloca(builder, v_std_string_t_, "");
+            ctx[stk_string] := LLVMBuildAlloca(builder, v_std_string_t_, "");
 
-                sstr_init_f   = v_obtain_function("v_util_initialize_std_string_impl", lltyp);
-                sstr_init_ft_ = v_load(lltyp);
+            sstr_init_f   = v_obtain_function("v_util_initialize_std_string_impl", lltyp);
+            sstr_init_ft_ = v_load(lltyp);
 
-                val = v_alloca(LLVMValueRef, 2);
-
-                val[0] := ctx[stk_string];
-                val[1] := LLVMConstInt(size_t_, 1, 0);
-
-                LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val, 2, "");
-            }
-
-            astr_size = *v_alloca(size_t);
-            astr_data = v_std_string_get_data(v_type_generic_arg_string_get_string(arg), &astr_size);
-
-            astr_const = LLVMConstString(astr_data, v_cast(astr_size, unsigned), 1);
-            astr_const_type = LLVMTypeOf(astr_const);
-
-            astr_glob = LLVMAddGlobal(v_get_module(), astr_const_type, "astr_g");
-
-            LLVMSetLinkage(astr_glob, LLVMPrivateLinkage);
-
-            LLVMSetInitializer(astr_glob, astr_const);
-
-            val = v_alloca(LLVMValueRef, 3);
-
-            val[0] := LLVMConstInt(int_, 0, 0);
-            val[1] := val[0];
-
-            astr_const_ptr = LLVMBuildInBoundsGEP2(builder, astr_const_type, astr_glob, val, 2, "astr_const_ptr");
-
-            sstr_set_data_f   = v_obtain_function("v_std_string_set_data", lltyp);
-            sstr_set_data_ft_ = v_load(lltyp);
+            val = v_alloca(LLVMValueRef, 2);
 
             val[0] := ctx[stk_string];
-            val[1] := astr_const_ptr;
-            val[2] := LLVMConstInt(size_t_, astr_size, 0);
+            val[1] := LLVMConstInt(size_t_, 1, 0);
 
-            LLVMBuildCall2(builder, sstr_set_data_ft_, sstr_set_data_f, val, 3, "");
-
-            ret := LLVMBuildCall2(builder, ft_, f, &ctx[stk_string], 1, "");
-
-            v_break();
+            LLVMBuildCall2(builder, sstr_init_ft_, sstr_init_f, val, 2, "");
         }
+
+        astr_size = *v_alloca(size_t);
+        astr_data = v_std_string_get_data(v_type_generic_arg_string_get_string(arg), &astr_size);
+
+        astr_const = LLVMConstString(astr_data, v_cast(astr_size, unsigned), 1);
+        astr_const_type = LLVMTypeOf(astr_const);
+
+        astr_glob = LLVMAddGlobal(v_get_module(), astr_const_type, "astr_g");
+
+        LLVMSetLinkage(astr_glob, LLVMPrivateLinkage);
+
+        LLVMSetInitializer(astr_glob, astr_const);
+
+        val = v_alloca(LLVMValueRef, 3);
+
+        val[0] := LLVMConstInt(int_, 0, 0);
+        val[1] := val[0];
+
+        astr_const_ptr = LLVMBuildInBoundsGEP2(builder, astr_const_type, astr_glob, val, 2, "astr_const_ptr");
+
+        sstr_set_data_f   = v_obtain_function("v_std_string_set_data", lltyp);
+        sstr_set_data_ft_ = v_load(lltyp);
+
+        val[0] := ctx[stk_string];
+        val[1] := astr_const_ptr;
+        val[2] := LLVMConstInt(size_t_, astr_size, 0);
+
+        LLVMBuildCall2(builder, sstr_set_data_ft_, sstr_set_data_f, val, 3, "");
+
+        ret := LLVMBuildCall2(builder, ft_, f, &ctx[stk_string], 1, "");
+
+        v_break();
 
     case v_type_generic_arg_kind_quark:
-        {
-            quark = v_type_generic_arg_quark_get_quark(arg);
 
-            val = voidc_compile_quark(quark, ctx);
+        quark = v_type_generic_arg_quark_get_quark(arg);
 
-            ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+        val = voidc_compile_quark(quark, ctx);
 
-            v_break();
-        }
+        ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+
+        v_break();
 
     case v_type_generic_arg_kind_type:
-        {
-            type = v_type_generic_arg_type_get_type(arg);
 
-            val = voidc_compile_type(type, ctx);
+        type = v_type_generic_arg_type_get_type(arg);
 
-            ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+        val = voidc_compile_type(type, ctx);
 
-            v_break();
-        }
+        ret := LLVMBuildCall2(builder, ft_, f, &val, 1, "");
+
+        v_break();
 
     case v_type_generic_arg_kind_cons:
+
+        val = v_alloca(LLVMValueRef, 3);
+
+        val[0] := voidc_compile_quark(v_type_generic_arg_cons_get_cons(arg), ctx);
+
+        n = v_type_generic_arg_cons_get_arg_count(arg);
+
+        if (n)
         {
-            val = v_alloca(LLVMValueRef, 3);
+            a_a = v_type_generic_arg_cons_get_args(arg);
 
-            val[0] := voidc_compile_quark(v_type_generic_arg_cons_get_cons(arg), ctx);
+            a_v = v_malloc(LLVMValueRef, n);
+            defer v_free(a_v);
 
-            n = v_type_generic_arg_cons_get_arg_count(arg);
+            i = *v_alloca(int) := 0;
 
-            if (n)
+            loop
             {
-                a_a = v_type_generic_arg_cons_get_args(arg);
+                if (i == n) v_break();
 
-                a_v = v_malloc(LLVMValueRef, n);
-                defer v_free(a_v);
+                a_v[i] := voidc_compile_type_generic_arg(a_a[i], ctx);
 
-                i = *v_alloca(int) := 0;
-
-                loop
-                {
-                    if (i == n) v_break();
-
-                    a_v[i] := voidc_compile_type_generic_arg(a_a[i], ctx);
-
-                    ++i;
-                }
-
-                {   r = dict_find(&ctx[stk_dict], arg);
-
-                    if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
-                }
-
-                val[1] := ctx[stk_stack];
-
-                i := 0;
-
-                loop
-                {
-                    if (i == n) v_break();
-
-                    i_v = LLVMConstInt(int_, i, 0);
-
-                    val_i_v = LLVMBuildGEP2(builder, v_type_generic_arg_ptr_, val[1], &i_v, 1, "");
-
-                    LLVMBuildStore(builder, a_v[i], val_i_v);
-
-                    ++i;
-                }
-
-                ctx_stk_push(ctx, n);
-            }
-            else
-            {
-                val[1] := LLVMConstNull(v_type_generic_arg_ptr_ptr_);
+                ++i;
             }
 
-            val[2] := LLVMConstInt(int_, n, 0);
+            {   r = dict_find(&ctx[stk_dict], arg);
 
-            ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
+                if (r)  v_return(r);                //- ?!?!?!?!?!?!?!?
+            }
 
-            v_break();
+            val[1] := ctx[stk_stack];
+
+            i := 0;
+
+            loop
+            {
+                if (i == n) v_break();
+
+                i_v = LLVMConstInt(int_, i, 0);
+
+                val_i_v = LLVMBuildGEP2(builder, v_type_generic_arg_ptr_, val[1], &i_v, 1, "");
+
+                LLVMBuildStore(builder, a_v[i], val_i_v);
+
+                ++i;
+            }
+
+            ctx_stk_push(ctx, n);
         }
+        else
+        {
+            val[1] := LLVMConstNull(v_type_generic_arg_ptr_ptr_);
+        }
+
+        val[2] := LLVMConstInt(int_, n, 0);
+
+        ret := LLVMBuildCall2(builder, ft_, f, val, 3, "");
+
+        v_break();
     }
 
     dict_insert(&ctx[stk_dict], arg, ret);

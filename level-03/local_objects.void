@@ -192,7 +192,7 @@ v_type_is_special: (t: *v_type_t, q: v_quark_t) ~> bool;
 //---------------------------------------------------------------------
 v_type_check_special: (t: *v_type_t, q: v_quark_t) ~> void
 {
-    switch(v_type_get_kind(t))
+    switch(v_kind(t))
     {
     case v_type_kind_array:
     case v_type_kind_struct:
@@ -263,7 +263,7 @@ v_type_check_special: (t: *v_type_t, q: v_quark_t) ~> void
 export
 v_type_is_special: (t: *v_type_t, q: v_quark_t) ~> bool
 {
-    switch(v_type_get_kind(t))
+    switch(v_kind(t))
     {
     case v_type_kind_array:
         v_return(v_type_is_special(v_type_array_get_element_type(t), q));
