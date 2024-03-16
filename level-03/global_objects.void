@@ -1453,8 +1453,6 @@ voidc_enable_global_objects: () ~> void
         mk_unit_stmt_term = mk_unit_stmt_term_grammar_action;
 
     parsers:
-        stmt_big_block = "block" _'{'_ l:stmt_list _'}'     { mk_stmt_block(l, 1) };    //- Sic!
-
         unit_stmt_init = stmt_big_block
                        / stmt_if_then_else
                        / stmt_loop

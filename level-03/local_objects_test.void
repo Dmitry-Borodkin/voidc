@@ -183,3 +183,35 @@ test_t = struct { v_std_any_t; };
 }
 
 
+//---------------------------------------------------------------------
+//{   v_debug_print_module(2);
+//    voidc_verify_jit_module_optimized(true);
+//}
+{
+    printf("\n");
+
+    s: &v_std_string_t := block
+    {
+        ss: &v_std_string_t := {};
+
+        v_std_string_set(&ss, "qwe");
+
+        v_break(ss);
+    };
+
+    printf("s: %s\n", v_std_string_get(&s));
+
+    x: &int := block { v_break(42); };
+
+    printf("x: %d\n", x);
+
+    u: &int[2] := block { v_break({7, 77}); };
+
+    printf("u: (%d, %d)\n", u[0], u[1]);
+
+    v: vec(int, 2) = block { v_break({8, 88}); };
+
+    printf("v: [%d, %d]\n", v[0], v[1]);
+}
+
+

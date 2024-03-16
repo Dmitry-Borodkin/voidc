@@ -402,9 +402,8 @@
 
     continue_q = v_quark_from_string("v_continue");
 
-    v_export_intrinsic_q(continue_q, voidc_intrinsic_continue, 0);
-
-    v_export_intrinsic_q(break_q, v_break_intrinsic, 0);                        //- Re-export from "stmt_block" (?)
+    v_add_intrinsic_q(continue_q, voidc_intrinsic_continue, 0);
+    v_add_intrinsic_q(break_q, v_break_intrinsic, 0);
 }
 
 
