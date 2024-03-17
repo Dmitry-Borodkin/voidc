@@ -23,15 +23,8 @@
 }
 
 
-//---------------------------------------------------------------------
-{   module = LLVMModuleCreateWithName("voidc_arithmetic_intrinsic_module");
-
-    v_set_module(module);       //- Sic!
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
-}
+//=====================================================================
+{   voidc_unit_begin_module("voidc_arithmetic_intrinsic_module"); }
 
 
 //---------------------------------------------------------------------
@@ -290,21 +283,11 @@
 }
 
 
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+
 //---------------------------------------------------------------------
-//- ...
-//---------------------------------------------------------------------
-{
-    module = v_get_module();
-
-    //-----------------------------------------------------------------
-//  v_debug_print_module(1);
-
-    voidc_unit_load_module_to_jit(module, true);
-
-    LLVMDisposeModule(module);
-    v_set_module(0);
-}
-
 {   v_export_intrinsic("v_binop", voidc_binop_intrinsic, 0);
     v_export_intrinsic("v_icmp",  voidc_icmp_intrinsic, 0);
     v_export_intrinsic("v_fcmp",  voidc_fcmp_intrinsic, 0);

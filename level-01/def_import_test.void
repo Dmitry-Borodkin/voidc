@@ -2,8 +2,8 @@
 
     v_import("llvm-c/Core.void");
 
+    v_import("function_hack.void");
     v_import("expression.void");
-
     v_import("definitions.void");
 }
 
@@ -13,17 +13,10 @@
 
 
 //=====================================================================
-{   module = LLVMModuleCreateWithName("def_import_test_module");
-
-    v_set_module(module);
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
-}
+{   voidc_unit_begin_module("def_import_test_module"); }
 
 
-//=====================================================================
+//---------------------------------------------------------------------
 export
 double = float(64);         //- Sic!
 
@@ -99,16 +92,6 @@ zz: & float(64) := 0;
 
 
 //=====================================================================
-{
-    module = v_get_module();
-
-    //-----------------------------------------------------------------
-//  v_debug_print_module(1);
-
-    voidc_unit_load_module_to_jit(module, true);
-
-    LLVMDisposeModule(module);
-    v_set_module(0);
-}
+{   voidc_unit_end_module(); }
 
 
