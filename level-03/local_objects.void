@@ -1071,12 +1071,9 @@ compile_expr_stmt: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
     is_special = v_type_is_special(ttag, q_initialize);
 
-    tr  = ttag;                         //- Sic !!!
-    tr_ = v_type_get_llvm_type(tr);
+    tr = ttag;                          //- Sic !!!
 
     vr: &LLVMValueRef := v_undef();
-
-    builder = v_target_get_builder();
 
     if (is_special)
     {
@@ -1086,7 +1083,7 @@ compile_expr_stmt: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
     }
     else
     {
-        vr := LLVMBuildAlloca(builder, tr_, "vr_v");
+        vr := v_make_temporary(tr, 0);
     }
 
     void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
@@ -1103,6 +1100,10 @@ compile_expr_stmt: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
     if (!is_special)
     {
+        builder = v_target_get_builder();
+
+        tr_ = v_type_get_llvm_type(tr);
+
         vr := LLVMBuildLoad2(builder, tr_, vr, "vr");
     }
 
