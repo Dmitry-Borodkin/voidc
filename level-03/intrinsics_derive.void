@@ -453,6 +453,10 @@ spec_fun_derive_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 //---------------------------------------------------------------------
 //- Enable intrinsics derive
 //---------------------------------------------------------------------
+private
+intrinsic_table: &(*void)[2] := {spec_fun_derive_intrinsic, 0};
+
+//---------------------------------------------------------------------
 export
 voidc_enable_intrinsics_derive_compiler: () ~> void
 {
@@ -465,23 +469,20 @@ voidc_enable_intrinsics_derive_compiler: () ~> void
 
         if (gctx != vctx) v_target_set_global_ctx(vctx);
 
-        if (!v_get_intrinsic("v_binop", 0))
+        if (!v_get_intrinsic("v_binop"))
         {
             v_import("level-01/arithmetic.void");
         }
 
         if (gctx != vctx)
         {
-            binop_aux: &*void := v_undef();
-            binop_fun = v_get_intrinsic("v_binop", &binop_aux);
-
-            icmp_aux: &*void := v_undef();
-            icmp_fun = v_get_intrinsic("v_icmp", &icmp_aux);
+            binop_intr = v_get_intrinsic("v_binop");
+            icmp_intr  = v_get_intrinsic("v_icmp");
 
             v_target_set_global_ctx(gctx);
 
-            v_add_intrinsic("v_binop", binop_fun, binop_aux);
-            v_add_intrinsic("v_icmp",  icmp_fun,  icmp_aux);
+            v_add_intrinsic("v_binop", binop_intr);
+            v_add_intrinsic("v_icmp",  icmp_intr);
         }
 
         if (!v_find_constant("LLVMIntSGE", 0, 0))
@@ -507,7 +508,7 @@ voidc_enable_intrinsics_derive_compiler: () ~> void
 
     v_add_local_cleaner(free, &ctx);
 
-    v_add_intrinsic_q(q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
+    v_add_intrinsic_q(q_internal_spec_fun_derive, intrinsic_table);
 }
 
 //---------------------------------------------------------------------

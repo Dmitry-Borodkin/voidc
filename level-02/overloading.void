@@ -371,6 +371,7 @@ overloading_ctx_t = v_struct("struct.v_overloading_ctx",
     voidc_compile_op_unary_helper_t,                    //- 6
     voidc_compile_op_postfix_index_helper_t,            //- 7
 
+    (*void)[op_table_length + 1][2],                    //- 8 - intrinsics table
 });
 
 
@@ -382,7 +383,7 @@ add_overloading_context: (ctx: *overloading_ctx_t) ~> void
     v_initialize(any);
     defer v_terminate(any);
 
-    v_std_any_set_value(any, v_cast(ctx, intptr_t));
+    v_std_any_set_value(any, (ctx: intptr_t));
 
     v_add_property_q(voidc_overloading_context_q, any);
 }
@@ -1416,7 +1417,11 @@ compile_expr_call: (aux: *void, vis: voidc_visitor_ptr,
     {
         fname_q = v_ast_expr_identifier_get_name_q(fexpr);
 
-        void_fun := v_get_intrinsic_q(fname_q, &void_aux);
+        if (p = v_get_intrinsic_q(fname_q))
+        {
+            void_fun := p[0];
+            void_aux := p[1];
+        }
     }
 
     if (fun = (void_fun: *voidc_intrinsic_t))       //- Compile-time intrinsic?
@@ -1747,6 +1752,10 @@ compile_handler_call_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 }
 
 //---------------------------------------------------------------------
+private
+handler_call_intrinsic_table: &(*void)[2] := {compile_handler_call_intrinsic, 0};
+
+//---------------------------------------------------------------------
 export
 v_enable_handler: (t: *v_type_t) ~> void
 {
@@ -1760,16 +1769,29 @@ v_enable_handler: (t: *v_type_t) ~> void
 
     q_handler_type_ref    = q("v.handler_type_ref");
     q_handler_type_ptr    = q("v.handler_type_ptr");
-    q_handler_type_refptr = q("v.handler_type_refprt");
+    q_handler_type_refptr = q("v.handler_type_refptr");
 
     v_util_function_dict_set(q_op_postfix_call,  rt, q_handler_type_ref);
     v_util_function_dict_set(q_op_postfix_call,  pt, q_handler_type_ptr);
     v_util_function_dict_set(q_op_postfix_call, rpt, q_handler_type_refptr);
 
-    v_add_intrinsic_q(q_handler_type_ref,    compile_handler_call_intrinsic, 0);
-    v_add_intrinsic_q(q_handler_type_ptr,    compile_handler_call_intrinsic, 0);
-    v_add_intrinsic_q(q_handler_type_refptr, compile_handler_call_intrinsic, 0);
+    v_add_intrinsic_q(q_handler_type_ref,    handler_call_intrinsic_table);
+    v_add_intrinsic_q(q_handler_type_ptr,    handler_call_intrinsic_table);
+    v_add_intrinsic_q(q_handler_type_refptr, handler_call_intrinsic_table);
 }
+
+
+//---------------------------------------------------------------------
+//- Intrinsics table ...
+//---------------------------------------------------------------------
+private
+intrinsics_table: &(*void)[4][2] :=
+{
+    {static_type_prefix_star_intrinsic,   0},       //- 0
+    {static_type_prefix_amp_intrinsic,    0},       //- 1
+    {static_type_prefix_cv_intrinsic,     0},       //- 2 - Sic!
+    {static_type_postfix_index_intrinsic, 0},       //- 3
+};
 
 
 //---------------------------------------------------------------------
@@ -1784,7 +1806,7 @@ voidc_enable_overloading_compiler: () ~> void
 
     q_static_type_prefix_star = q("v.static_type_prefix_star");
 
-    v_return_if(v_get_intrinsic_q(q_static_type_prefix_star, 0));
+    v_return_if(v_get_intrinsic_q(q_static_type_prefix_star));
 
     voidc_visitor_set_void_method(vis, vis, expr_compiled_q,     compile_expr_compiled,     0);
     voidc_visitor_set_void_method(vis, vis, expr_compile_hook_q, compile_expr_compile_hook, 0);
@@ -1816,7 +1838,9 @@ voidc_enable_overloading_compiler: () ~> void
 
         ctx[0][id] := { &ctx, id };
 
-        v_add_intrinsic_q(op_table[id][2], void_fun, ctx[0] + id);
+        ctx[8][id] := { void_fun, ctx[0] + id };
+
+        v_add_intrinsic_q(op_table[id][2], ctx[8][id]);
     }
 
     //-------------------------------------------------------------
@@ -1837,23 +1861,25 @@ voidc_enable_overloading_compiler: () ~> void
     v_util_function_dict_set(q("v.op_prefix_star"), v_static_type_t, q_static_type_prefix_star);
     v_util_function_dict_set(q("v.op_prefix_amp"),  v_static_type_t, q_static_type_prefix_amp);
 
-    v_add_intrinsic_q(q_static_type_prefix_star, static_type_prefix_star_intrinsic, 0);
-    v_add_intrinsic_q(q_static_type_prefix_amp,  static_type_prefix_amp_intrinsic,  0);
+    v_add_intrinsic_q(q_static_type_prefix_star, intrinsics_table[0]);
+    v_add_intrinsic_q(q_static_type_prefix_amp,  intrinsics_table[1]);
 
     v_util_function_dict_set(q("v.op_prefix_const"),    v_static_type_t, q_static_type_prefix_const);
     v_util_function_dict_set(q("v.op_prefix_volatile"), v_static_type_t, q_static_type_prefix_volatile);
 
-    v_add_intrinsic_q(q_static_type_prefix_const,    static_type_prefix_cv_intrinsic, 0);
-    v_add_intrinsic_q(q_static_type_prefix_volatile, static_type_prefix_cv_intrinsic, 0);
+    v_add_intrinsic_q(q_static_type_prefix_const,    intrinsics_table[2]);          //- Sic!
+    v_add_intrinsic_q(q_static_type_prefix_volatile, intrinsics_table[2]);          //- Sic!
 
     voidc_visitor_set_void_method(vis, vis, expr_call_q, compile_expr_call, &ctx);
 
     //-------------------------------------------------------------
-    v_add_intrinsic_q(q_op_postfix_index, op_postfix_index_intrinsic, &ctx);
+    ctx[8][op_table_length] := {op_postfix_index_intrinsic, &ctx};
+
+    v_add_intrinsic_q(q_op_postfix_index, ctx[8][op_table_length]);
 
     v_util_function_dict_set(q_op_postfix_index, v_static_type_t, q_static_type_postfix_index);
 
-    v_add_intrinsic_q(q_static_type_postfix_index, static_type_postfix_index_intrinsic, 0);
+    v_add_intrinsic_q(q_static_type_postfix_index, intrinsics_table[3]);
 
     //-------------------------------------------------------------
     gctx = v_target_get_global_ctx();

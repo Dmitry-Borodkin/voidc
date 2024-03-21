@@ -144,13 +144,13 @@ voidc_internal_create_inline_function_data: (flags: intptr_t, fun_name: *const c
 
     if (flags & qf_export)
     {
-        v_export_intrinsic(iname, &data, 0);
+        v_export_intrinsic(iname, (&data: *const *void));
 
         v_add_cleaner(inline_function_data_cleaner, &data);
     }
     else
     {
-        v_add_intrinsic(iname, &data, 0);
+        v_add_intrinsic(iname, (&data: *const *void));
 
         v_add_local_cleaner(inline_function_data_cleaner, &data);
     }
@@ -361,7 +361,7 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) ~> void
 
             iname = v_std_string_get(sstr);
 
-            if (void_data = v_get_intrinsic(iname, 0))
+            if (void_data = v_get_intrinsic(iname))
             {
                 data = *(void_data: *v_inline_function_data_t);
 

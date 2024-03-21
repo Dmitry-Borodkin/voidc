@@ -26,6 +26,8 @@
 
     q = v_quark_ptr_from_string;
 
+    v_add_symbol("q_break", q_ref, q("v_break"));
+
     v_add_symbol("voidc_internal_branch_target_break_variable_q", q_ref, q("voidc.internal_branch_target_break_variable"));
     v_add_symbol("voidc_internal_branch_target_break_q",          q_ref, q("voidc.internal_branch_target_break"));
     v_add_symbol("voidc_internal_branch_target_leave_q",          q_ref, q("voidc.internal_branch_target_leave"));
@@ -144,8 +146,7 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_skip_unit_save(1);
 }
 
 {   v_add_symbol("voidc_ast_stmt_block_vtable", v_ast_generic_vtable, 0);
@@ -456,6 +457,37 @@
 
 
 //---------------------------------------------------------------------
+//- Intrinsics table ...
+//---------------------------------------------------------------------
+{   v_add_symbol("voidc_block_intrinsics_table", v_array_type(void_ptr, 2), 0);
+}
+
+{   module = v_get_module();
+
+    intrinsics_table = v_obtain_global("voidc_block_intrinsics_table", 0);
+
+    LLVMSetLinkage(intrinsics_table, LLVMPrivateLinkage);
+
+    void_ptr_ = v_type_get_llvm_type(void_ptr);
+
+    vp_0 = LLVMConstNull(void_ptr_);
+
+    break_f = v_obtain_function("voidc_intrinsic_break", 0);
+
+    val0 = v_alloca(LLVMValueRef, 2);
+    val1 = v_getelementptr(val0, 1);
+
+    v_store(break_f, val0);
+    v_store(vp_0,    val1);
+
+    LLVMSetInitializer(intrinsics_table, LLVMConstArray2(void_ptr_, val0, 2));
+
+    //-----------------------------------------------------------------
+    voidc_skip_unit_save(1);
+}
+
+
+//---------------------------------------------------------------------
 //- Enable statement block compilation
 //---------------------------------------------------------------------
 {
@@ -474,9 +506,7 @@
 
     voidc_visitor_set_void_method(vis, vis, quark, compile_ast_stmt_block_t, 0);
 
-    break_q = v_quark_from_string("v_break");
-
-    v_add_intrinsic_q(break_q, voidc_intrinsic_break, 0);
+    v_add_intrinsic_q(q_break, v_getelementptr(voidc_block_intrinsics_table, 0, 0));
 }
 
 

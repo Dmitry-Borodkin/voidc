@@ -46,11 +46,13 @@
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    malloc_f = v_function_hack("voidc_memory_malloc_intrinsic", voidc_intrinsic_t);
+    f = v_function_hack("voidc_memory_malloc_intrinsic", voidc_intrinsic_t);
 
-    aux  = v_add_parameter_name(malloc_f, 0, "aux",  void_ptr);
-    vis  = v_add_parameter_name(malloc_f, 1, "vis",  voidc_visitor_ptr);
-    self = v_add_parameter_name(malloc_f, 2, "self", v_ast_base_ptr);
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    aux  = v_add_parameter_name(f, 0, "aux",  void_ptr);
+    vis  = v_add_parameter_name(f, 1, "vis",  voidc_visitor_ptr);
+    self = v_add_parameter_name(f, 2, "self", v_ast_base_ptr);
 }
 {
     call = v_cast(self, v_ast_expr_ptr);
@@ -121,6 +123,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_memory_free_intrinsic", voidc_intrinsic_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "aux",     void_ptr);
     v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
@@ -147,13 +151,47 @@
 }
 
 
+//---------------------------------------------------------------------
+//- Intrinsics table ...
+//---------------------------------------------------------------------
+{   v_add_symbol("voidc_memory_intrinsics_table", v_array_type(void_ptr, 4), 0);
+}
+
+{   module = v_get_module();
+
+    intrinsics_table = v_obtain_global("voidc_memory_intrinsics_table", 0);
+
+    void_ptr_ = v_type_get_llvm_type(void_ptr);
+
+    vp_0 = LLVMConstNull(void_ptr_);
+
+    malloc_f = v_obtain_function("voidc_memory_malloc_intrinsic", 0);
+    free_f   = v_obtain_function("voidc_memory_free_intrinsic",  0);
+
+    val0 = v_alloca(LLVMValueRef, 4);
+    val1 = v_getelementptr(val0, 1);
+    val2 = v_getelementptr(val0, 2);
+    val3 = v_getelementptr(val0, 3);
+
+    v_store(malloc_f, val0);
+    v_store(vp_0,     val1);
+    v_store(free_f,   val2);
+    v_store(vp_0,     val3);
+
+    LLVMSetInitializer(intrinsics_table, LLVMConstArray2(void_ptr_, val0, 4));
+
+    //-----------------------------------------------------------------
+    voidc_skip_unit_save(1);
+}
+
+
 //=====================================================================
 {   voidc_unit_end_module(); }
 
 
 //---------------------------------------------------------------------
-{   v_export_intrinsic("v_malloc", voidc_memory_malloc_intrinsic, 0);
-    v_export_intrinsic("v_free",   voidc_memory_free_intrinsic,   0);
+{   v_export_intrinsic("v_malloc", v_getelementptr(voidc_memory_intrinsics_table, 0, 0));
+    v_export_intrinsic("v_free",   v_getelementptr(voidc_memory_intrinsics_table, 0, 2));
 }
 
 

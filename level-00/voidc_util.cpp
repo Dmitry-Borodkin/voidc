@@ -45,8 +45,8 @@ bool lookup_function_dict(v_quark_t quark, v_type_t *type,
 
     if (auto p = lctx.decls.intrinsics.find(*qname))
     {
-        void_fun = p->first;
-        aux      = p->second;
+        void_fun = (*p)[0];
+        aux      = (*p)[1];
 
         return true;
     }
@@ -417,58 +417,71 @@ using util_map_t = std::shared_ptr<const util_map_data_t>;
 //---------------------------------------------------------------------
 //- Static init/term ...
 //---------------------------------------------------------------------
+#define DEFINE_INTRINSICS(DEF)                       \
+    DEF(initialize,             universal)           \
+    DEF(terminate,              universal)           \
+    DEF(copy,                   universal)           \
+    DEF(move,                   universal)           \
+    DEF(empty,                  universal)           \
+    DEF(kind,                   universal)           \
+    DEF(std_any_get_value,      std_any_get_value)   \
+    DEF(std_any_get_pointer,    std_any_get_pointer) \
+    DEF(std_any_set_value,      std_any_set_value)   \
+    DEF(std_any_set_pointer,    std_any_set_pointer) \
+    DEF(make_list_nil,          universal)           \
+    DEF(make_list,              universal)           \
+    DEF(list_append,            universal)           \
+    DEF(list_get_size,          universal)           \
+    DEF(list_get_item,          universal)           \
+    DEF(list_concat,            universal)           \
+    DEF(list_insert,            universal)           \
+    DEF(list_erase,             universal)           \
+    DEF(make_map,               universal)           \
+    DEF(map_get_size,           universal)           \
+    DEF(map_find,               universal)           \
+    DEF(map_insert,             universal)           \
+    DEF(map_erase,              universal)           \
+    DEF(ast_make_generic,       universal)           \
+    DEF(ast_generic_get_vtable, universal)           \
+    DEF(ast_generic_get_object, universal)           \
+
+//---------------------------------------------------------------------
+enum
+{
+#define DEF(name, fname)    inm_##name,
+
+    DEFINE_INTRINSICS(DEF)
+
+#undef DEF
+
+    inm_count
+};
+
+//---------------------------------------------------------------------
+static void * intrinsics_table[inm_count][2] =
+{
+#define DEF(name, fname)  {(void *)v_##fname##_intrinsic, nullptr},
+
+    DEFINE_INTRINSICS(DEF)
+
+#undef DEF
+};
+
+//---------------------------------------------------------------------
 void static_initialize(void)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
     auto q = v_quark_from_string;
 
-#define DEF2(name, fname) \
+#define DEF(name, fname) \
     auto name##_q = q("v_" #name); \
-    vctx.decls.intrinsics_insert({name##_q, {(void *)fname, (void *)uintptr_t(name##_q)}});
+    intrinsics_table[inm_##name][1] = (void *)uintptr_t(name##_q); \
+    vctx.decls.intrinsics_insert({name##_q, intrinsics_table[inm_##name]}); \
 
-#define DEF_U(name) DEF2(name, v_universal_intrinsic)
-
-#define DEF(name) DEF2(name, v_##name##_intrinsic)
-
-    DEF_U(initialize)
-    DEF_U(terminate)
-
-    DEF_U(copy)
-    DEF_U(move)
-
-    DEF_U(empty)
-    DEF_U(kind)
-
-    DEF(std_any_get_value)
-    DEF(std_any_get_pointer)
-    DEF(std_any_set_value)
-    DEF(std_any_set_pointer)
-
-    DEF_U(make_list_nil)
-    DEF_U(make_list)
-
-    DEF_U(list_append)
-    DEF_U(list_get_size)
-    DEF_U(list_get_item)
-
-    DEF_U(list_concat)
-    DEF_U(list_insert)
-    DEF_U(list_erase)
-
-    DEF_U(make_map)
-    DEF_U(map_get_size)
-    DEF_U(map_find)
-    DEF_U(map_insert)
-    DEF_U(map_erase)
-
-    DEF_U(ast_make_generic)
-    DEF_U(ast_generic_get_vtable)
-    DEF_U(ast_generic_get_object)
+    DEFINE_INTRINSICS(DEF)
 
 #undef DEF
-#undef DEF_U
-#undef DEF2
 
     //-----------------------------------------------------------------
 #define DEF(ctype, name) \

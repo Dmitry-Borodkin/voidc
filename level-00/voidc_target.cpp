@@ -293,18 +293,18 @@ base_local_ctx_t::add_symbol(v_quark_t raw_name, v_type_t *type, void *value)
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::export_intrinsic(v_quark_t fun_name, void *fun, void *aux)
+base_local_ctx_t::export_intrinsic(v_quark_t fun_name, void * const * h)
 {
-    if (export_decls)   export_decls->intrinsics_insert({fun_name, {fun, aux}});
+    if (export_decls)   export_decls->intrinsics_insert({fun_name, h});
 
-    decls.intrinsics_insert({fun_name, {fun, aux}});
+    decls.intrinsics_insert({fun_name, h});
 }
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::add_intrinsic(v_quark_t fun_name, void *fun, void *aux)
+base_local_ctx_t::add_intrinsic(v_quark_t fun_name, void * const * h)
 {
-    decls.intrinsics_insert({fun_name, {fun, aux}});
+    decls.intrinsics_insert({fun_name, h});
 }
 
 
@@ -2971,37 +2971,37 @@ v_check_alias(const char *name)
 
 //---------------------------------------------------------------------
 void
-v_export_intrinsic_q(v_quark_t qname, void *fun, void *aux)
+v_export_intrinsic_q(v_quark_t qname, void * const * h)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.export_intrinsic(qname, fun, aux);
+    lctx.export_intrinsic(qname, h);
 }
 
 void
-v_export_intrinsic(const char *name, void *fun, void *aux)
+v_export_intrinsic(const char *name, void * const * h)
 {
-    v_export_intrinsic_q(v_quark_from_string(name), fun, aux);
+    v_export_intrinsic_q(v_quark_from_string(name), h);
 }
 
 void
-v_add_intrinsic_q(v_quark_t qname, void *fun, void *aux)
+v_add_intrinsic_q(v_quark_t qname, void * const * h)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.add_intrinsic(qname, fun, aux);
+    lctx.add_intrinsic(qname, h);
 }
 
 void
-v_add_intrinsic(const char *name, void *fun, void *aux)
+v_add_intrinsic(const char *name, void * const * h)
 {
-    v_add_intrinsic_q(v_quark_from_string(name), fun, aux);
+    v_add_intrinsic_q(v_quark_from_string(name), h);
 }
 
-void *
-v_get_intrinsic_q(v_quark_t qname, void **aux)
+void * const *
+v_get_intrinsic_q(v_quark_t qname)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -3010,22 +3010,20 @@ v_get_intrinsic_q(v_quark_t qname, void **aux)
 
     if (auto p = intrinsics.find(qname))
     {
-        if (aux)  *aux = p->second;
-
-        return  p->first;
+        return *p;
     }
 
     return nullptr;
 }
 
-void *
-v_get_intrinsic(const char *name, void **aux)
+void * const *
+v_get_intrinsic(const char *name)
 {
     auto qname = v_quark_try_string(name);
 
     if (!qname)  return nullptr;
 
-    return v_get_intrinsic_q(qname, aux);
+    return v_get_intrinsic_q(qname);
 }
 
 

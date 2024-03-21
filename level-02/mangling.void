@@ -568,8 +568,7 @@ voidc_compute_key_quark_type_t = struct
 {   v_enable_handler(voidc_compute_key_quark_type_t);
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_skip_unit_save(1);
 }
 
 
@@ -579,6 +578,8 @@ struct v_mangling_ctx_t
 {
     compute_key_quark_type: voidc_compute_key_quark_type_t;
 
+    spec_fun_decl: (*void)[2];
+    spec_fun_renm: (*void)[2];
 };
 
 
@@ -590,7 +591,7 @@ add_mangling_context: (ctx: *v_mangling_ctx_t) ~> void
     v_initialize(any);
     defer v_terminate(any);
 
-    v_std_any_set_value(any, v_cast(ctx, intptr_t));
+    v_std_any_set_value(any, (ctx: intptr_t));
 
     v_add_property_q(voidc_mangling_context_q, any);
 }
@@ -1256,10 +1257,13 @@ voidc_enable_mangling_compiler: () ~> void
     voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn, &ctx);
     voidc_visitor_set_void_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm, &ctx);
 
+    ctx.spec_fun_decl := {v_internal_spec_fun_decl_intrinsic, &ctx};
+    ctx.spec_fun_renm := {v_internal_spec_fun_renm_intrinsic, &ctx};
+
     q = v_quark_from_string;
 
-    v_add_intrinsic_q(q("v.internal.spec_fun_decl"), v_internal_spec_fun_decl_intrinsic, &ctx);
-    v_add_intrinsic_q(q("v.internal.spec_fun_renm"), v_internal_spec_fun_renm_intrinsic, &ctx);
+    v_add_intrinsic_q(q("v.internal.spec_fun_decl"), ctx.spec_fun_decl);
+    v_add_intrinsic_q(q("v.internal.spec_fun_renm"), ctx.spec_fun_renm);
 
     //-------------------------------------------------------------
     gctx = v_target_get_global_ctx();

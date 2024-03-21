@@ -40,6 +40,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_handle_intrinsic", voidc_intrinsic_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "aux",  void_ptr);
     v_add_parameter_name(f, 1, "vis",  voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "self", v_ast_base_ptr);
@@ -77,7 +79,7 @@
 
     val_count = v_assign(v_reference(v_alloca(unsigned)), arg_count);
 
-    if (v_icmp(LLVMIntULT, val_count, v_cast(1, unsigned))) v_assign(val_count, 2);
+    if (v_icmp(LLVMIntULT, val_count, v_cast(2, unsigned))) v_assign(val_count, 2);
 
     val = v_malloc(LLVMValueRef, val_count);
 
@@ -179,12 +181,41 @@
 }
 
 
+//---------------------------------------------------------------------
+//- Intrinsics table ...
+//---------------------------------------------------------------------
+{   v_add_symbol("voidc_handlers_intrinsics_table", v_array_type(void_ptr, 2), 0);
+}
+
+{   module = v_get_module();
+
+    intrinsics_table = v_obtain_global("voidc_handlers_intrinsics_table", 0);
+
+    void_ptr_ = v_type_get_llvm_type(void_ptr);
+
+    vp_0 = LLVMConstNull(void_ptr_);
+
+    handle_f = v_obtain_function("v_handle_intrinsic", 0);
+
+    val0 = v_alloca(LLVMValueRef, 2);
+    val1 = v_getelementptr(val0, 1);
+
+    v_store(handle_f, val0);
+    v_store(vp_0,     val1);
+
+    LLVMSetInitializer(intrinsics_table, LLVMConstArray2(void_ptr_, val0, 2));
+
+    //-----------------------------------------------------------------
+    voidc_skip_unit_save(1);
+}
+
+
 //=====================================================================
 {   voidc_unit_end_module(); }
 
 
 //---------------------------------------------------------------------
-{   v_export_intrinsic("v_handle", v_handle_intrinsic, 0);
+{   v_export_intrinsic("v_handle", v_getelementptr(voidc_handlers_intrinsics_table, 0, 0));
 
     v_make_export_symbol("v_handler_type");
 }

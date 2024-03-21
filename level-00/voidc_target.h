@@ -17,6 +17,7 @@
 #include <forward_list>
 #include <deque>
 #include <utility>
+#include <array>
 
 #include <immer/map.hpp>
 
@@ -58,7 +59,7 @@ public:
     virtual ~base_compile_ctx_t() = default;
 
 public:
-    using intrinsic_t = std::pair<void *, void *>;          //- I.e. (function, context)
+    using intrinsic_t = void * const *;         //- I.e. pointer to {function, context}
 
     struct declarations_t
     {
@@ -188,8 +189,8 @@ public:
     void export_symbol(v_quark_t raw_name, v_type_t *type, void *value);
     void add_symbol(v_quark_t raw_name, v_type_t *type, void *value);
 
-    void export_intrinsic(v_quark_t fun_name, void *fun, void *aux=nullptr);
-    void add_intrinsic(v_quark_t fun_name, void *fun, void *aux=nullptr);
+    void export_intrinsic(v_quark_t fun_name, intrinsic_t);
+    void add_intrinsic(v_quark_t fun_name, intrinsic_t);
 
     void export_property(v_quark_t name, const std::any &value);
     void add_property(v_quark_t name, const std::any &value);

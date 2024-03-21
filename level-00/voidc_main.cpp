@@ -422,6 +422,8 @@ private:
 //--------------------------------------------------------------------
 static bool trace_imports = false;
 
+static int skip_unit_save = 0;
+
 static void
 v_import_helper(const char *name, bool _export)
 {
@@ -590,11 +592,18 @@ v_import_helper(const char *name, bool _export)
 
                 if (lctx.unit_buffer)   //- Sic!
                 {
-                    size_t len = LLVMGetBufferSize(lctx.unit_buffer);
+                    if (skip_unit_save > 0)
+                    {
+                        skip_unit_save -= 1;
+                    }
+                    else
+                    {
+                        size_t len = LLVMGetBufferSize(lctx.unit_buffer);
 
-                    std::fwrite((char *)&len, sizeof(len), 1, outfs);
+                        std::fwrite((char *)&len, sizeof(len), 1, outfs);
 
-                    std::fwrite(LLVMGetBufferStart(lctx.unit_buffer), len, 1, outfs);
+                        std::fwrite(LLVMGetBufferStart(lctx.unit_buffer), len, 1, outfs);
+                    }
 
                     LLVMDisposeMemoryBuffer(lctx.unit_buffer);
 
@@ -693,6 +702,9 @@ v_local_import(void *, const visitor_t *vis, const ast_base_t *self)
     lctx.pop_builder_ip();
 }
 
+//---------------------------------------------------------------------
+static void * const intrinsics_table[2] = {(void *)v_local_import, nullptr};
+
 
 //--------------------------------------------------------------------
 extern "C"
@@ -736,6 +748,14 @@ voidc_guard_target(const char *errmsg)
     if (voidc_global_ctx_t::target == voidc_global_ctx_t::voidc)  return;
 
     throw  std::runtime_error(std::string("voidc_guard_target: ") + errmsg);
+}
+
+
+//--------------------------------------------------------------------
+void
+voidc_skip_unit_save(int n)
+{
+    skip_unit_save = n;
 }
 
 
@@ -899,7 +919,11 @@ main(int argc, char *argv[])
         gctx.decls.symbols_insert({q("voidc_import"),        import_f_type});
         gctx.decls.symbols_insert({q("voidc_guard_target"),  import_f_type});       //- Kind of...
 
-        gctx.decls.intrinsics_insert({q("v_local_import"), {(void *)v_local_import, nullptr}});
+        gctx.decls.intrinsics_insert({q("v_local_import"), intrinsics_table});
+
+        v_type_t *skip_unit_type = gctx.make_function_type(gctx.void_type, &gctx.int_type, 1, false);
+
+        gctx.decls.symbols_insert({q("voidc_skip_unit_save"), skip_unit_type});
 
 #ifdef _WIN32
         gctx.add_symbol_value(q("stdout"), stdout);
