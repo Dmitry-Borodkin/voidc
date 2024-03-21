@@ -854,18 +854,6 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
 
 //=====================================================================
-compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
-                             ft: *v_type_t,
-                             iq: &intptr_t, t: &*v_type_t
-                            ) ~> void;
-
-struct voidc_compute_key_quark_type_ctx_t
-{
-    fun: *compute_key_quark_type_ft;
-    aux: *void;
-};
-
-//---------------------------------------------------------------------
 private
 compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
                          ft: *v_type_t,
@@ -913,9 +901,9 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
         }
     }
 
-    ctx = *(aux: *voidc_compute_key_quark_type_ctx_t);
+    ctx = *(aux: *voidc_compute_key_quark_type_t);
 
-    ctx.fun(ctx.aux, vis, ft, iq, t);
+    ctx[0](ctx[1], vis, ft, iq, t);             //- ... compute_key_quark_type ...
 }
 
 
@@ -924,7 +912,7 @@ private
 struct voidc_internal_heap_objects_ctx_t
 {
     alloc: voidc_internal_aligned_alloc_ctx_t;
-    quark: voidc_compute_key_quark_type_ctx_t;
+    quark: voidc_compute_key_quark_type_t;
 };
 
 
@@ -983,9 +971,11 @@ voidc_enable_heap_objects_compiler: () ~> void
 
     vis = v_get_compiler();
 
-    ctx.quark.fun := (v_get_intrinsic_q(q, &ctx.quark.aux) : *compute_key_quark_type_ft);
+    hnd = voidc_mangling_context_get_compute_key_quark_type();
 
-    v_add_intrinsic_q(q, compute_key_quark_type, &ctx.quark);
+    ctx.quark := hnd;
+
+    hnd := {compute_key_quark_type, &ctx.quark};
 
     free: (*void) ~> void;
 
