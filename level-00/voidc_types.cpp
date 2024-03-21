@@ -20,34 +20,6 @@ v_type_generic_t::arg_t::~arg_t() {}
 
 
 //---------------------------------------------------------------------
-#define DEFINE_TYPE_KINDS(DEF) \
-\
-    DEF(void) \
-    DEF(f16) \
-    DEF(f32) \
-    DEF(f64) \
-    DEF(f128) \
-    DEF(int) \
-    DEF(uint) \
-    DEF(function) \
-    DEF(pointer) \
-    DEF(reference) \
-    DEF(struct) \
-    DEF(array) \
-    DEF(vector) \
-    DEF(svector) \
-    DEF(generic) \
-
-#define DEFINE_TYPE_GENERIC_ARG_KINDS(DEF) \
-\
-    DEF(number) \
-    DEF(string) \
-    DEF(quark) \
-    DEF(type) \
-    DEF(cons) \
-
-
-//---------------------------------------------------------------------
 static v_quark_t obtain_llvm_type_quarks[v_type_t::k_count];
 static v_quark_t initialize_quarks[v_type_t::k_count];
 
@@ -269,9 +241,10 @@ v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
 
     cached_llvm_type = nullptr;         //- Sic!!!
 
-    auto *h = context.get_initialize_hook(kind());
+    void *aux;
+    auto *fun = context.get_initialize_fun(kind(), &aux);
 
-    reinterpret_cast<hook_initialize_t>(h[0])(h[1], this);                  //- Second time!
+    fun(aux, this);                     //- Second time!
 }
 
 
@@ -315,9 +288,11 @@ voidc_types_ctx_t::check_cached_llvm_type(T *t)
 {
     if (t->cached_llvm_type == LLVMTypeRef(-1))
     {
-        auto *h = get_initialize_hook(t->kind());
+        void *aux;
 
-        if (h)  reinterpret_cast<hook_initialize_t>(h[0])(h[1], t);
+        auto fun = get_initialize_fun(t->kind(), &aux);
+
+        if (fun)  fun(aux, t);
 
         t->cached_llvm_type = nullptr;
     }
@@ -538,8 +513,8 @@ voidc_types_ctx_t::make_cons_arg(v_quark_t cons, v_type_generic_t::arg_t * const
 
 
 //---------------------------------------------------------------------
-void * const *
-voidc_types_ctx_t::get_initialize_hook(int k)
+hook_initialize_t
+voidc_types_ctx_t::get_initialize_fun(int k, void **paux)
 {
     auto *gctx = static_cast<base_global_ctx_t *>(this);
     auto *lctx = gctx->local_ctx;
@@ -550,25 +525,27 @@ voidc_types_ctx_t::get_initialize_hook(int k)
 
     if (lctx) intrinsics = &lctx->decls.intrinsics;
 
-    if (auto p = intrinsics->find(initialize_quarks[k]))
+    if (auto *p = intrinsics->find(initialize_quarks[k]))
     {
-        return *p;
+        if (paux) *paux = p->second;
+
+        return  hook_initialize_t(p->first);
     }
 
     return nullptr;
 }
 
 void
-voidc_types_ctx_t::set_initialize_hook(int k, void * const * h)
+voidc_types_ctx_t::set_initialize_fun(int k, hook_initialize_t fun, void *aux)
 {
     auto &gctx = *static_cast<base_global_ctx_t *>(this);
     auto &lctx = *gctx.local_ctx;
 
-    lctx.decls.intrinsics_insert({initialize_quarks[k], h});
+    lctx.decls.intrinsics_insert({initialize_quarks[k], {(void *)fun, aux}});
 }
 
-void * const *
-voidc_types_ctx_t::get_obtain_llvm_type_hook(int k)
+hook_obtain_llvm_type_t
+voidc_types_ctx_t::get_obtain_llvm_type_fun(int k, void **paux)
 {
     auto *gctx = static_cast<base_global_ctx_t *>(this);
     auto *lctx = gctx->local_ctx;
@@ -579,21 +556,23 @@ voidc_types_ctx_t::get_obtain_llvm_type_hook(int k)
 
     if (lctx) intrinsics = &lctx->decls.intrinsics;
 
-    if (auto p = intrinsics->find(obtain_llvm_type_quarks[k]))
+    if (auto *p = intrinsics->find(obtain_llvm_type_quarks[k]))
     {
-        return *p;
+        if (paux)   *paux = p->second;
+
+        return hook_obtain_llvm_type_t(p->first);
     }
 
     return nullptr;
 }
 
 void
-voidc_types_ctx_t::set_obtain_llvm_type_hook(int k, void * const * h)
+voidc_types_ctx_t::set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux)
 {
     auto &gctx = *static_cast<base_global_ctx_t *>(this);
     auto &lctx = *gctx.local_ctx;
 
-    lctx.decls.intrinsics_insert({obtain_llvm_type_quarks[k], h});
+    lctx.decls.intrinsics_insert({obtain_llvm_type_quarks[k], {(void *)fun, aux}});
 }
 
 
@@ -612,7 +591,21 @@ void voidc_types_static_initialize(void)
     obtain_llvm_type_quarks[v_type_t::k_##kind] = q("v.type_obtain_llvm_type_" #kind); \
     initialize_quarks[v_type_t::k_##kind] = q("v.type_initialize_" #kind);
 
-    DEFINE_TYPE_KINDS(DEF)
+    DEF(void)
+    DEF(f16)
+    DEF(f32)
+    DEF(f64)
+    DEF(f128)
+    DEF(int)
+    DEF(uint)
+    DEF(function)
+    DEF(pointer)
+    DEF(reference)
+    DEF(struct)
+    DEF(array)
+    DEF(vector)
+    DEF(svector)
+    DEF(generic)
 
 #undef DEF
 }
@@ -636,7 +629,21 @@ void voidc_types_make_voidc_constants(void)
     vctx.constant_values.insert({kind##_q, \
         LLVMConstInt(int_llvm_type, v_type_t::k_##kind, 0)});
 
-    DEFINE_TYPE_KINDS(DEF)
+    DEF(void)
+    DEF(f16)
+    DEF(f32)
+    DEF(f64)
+    DEF(f128)
+    DEF(int)
+    DEF(uint)
+    DEF(function)
+    DEF(pointer)
+    DEF(reference)
+    DEF(struct)
+    DEF(array)
+    DEF(vector)
+    DEF(svector)
+    DEF(generic)
 
 #undef DEF
 
@@ -646,7 +653,11 @@ void voidc_types_make_voidc_constants(void)
     vctx.constant_values.insert({kind##_q, \
         LLVMConstInt(int_llvm_type, v_type_generic_t::arg_t::k_##kind, 0)});
 
-    DEFINE_TYPE_GENERIC_ARG_KINDS(DEF)
+    DEF(number)
+    DEF(string)
+    DEF(quark)
+    DEF(type)
+    DEF(cons)
 
 #undef DEF
 }
@@ -654,40 +665,38 @@ void voidc_types_make_voidc_constants(void)
 //-----------------------------------------------------------------
 static void dummy_fun(void *, v_type_t *) {}
 
-static void * const dummy_intrinsic[2] = {(void *)dummy_fun, nullptr};
-
-static void * const intrinsics_table[v_type_t::k_count][2] =
-{
-    {(void *)obtain_llvm_type_void,     nullptr},       //-  0 - void
-
-    {(void *)obtain_llvm_type_f16,      nullptr},       //-  1 - f16
-    {(void *)obtain_llvm_type_f32,      nullptr},       //-  2 - f32
-    {(void *)obtain_llvm_type_f64,      nullptr},       //-  3 - f64
-    {(void *)obtain_llvm_type_f128,     nullptr},       //-  4 - f128
-
-    {(void *)obtain_llvm_type_integer,  nullptr},       //-  5 - int
-    {(void *)obtain_llvm_type_integer,  nullptr},       //-  6 - uint
-
-    {(void *)obtain_llvm_type_function, nullptr},       //-  7 - function
-    {(void *)obtain_llvm_type_refptr,   nullptr},       //-  8 - pointer
-    {(void *)obtain_llvm_type_refptr,   nullptr},       //-  9 - reference
-    {(void *)obtain_llvm_type_struct,   nullptr},       //- 10 - struct
-    {(void *)obtain_llvm_type_array,    nullptr},       //- 11 - array
-
-    {(void *)obtain_llvm_type_vector,   nullptr},       //- 12 - vector
-    {(void *)obtain_llvm_type_svector,  nullptr},       //- 13 - svector
-
-    {(void *)obtain_llvm_type_generic,  nullptr}        //- 14 - generic
-};
-
 void voidc_types_make_level_0_intrinsics(base_global_ctx_t &gctx)
 {
-#define DEF(kind) \
-    gctx.decls.intrinsics_insert({initialize_quarks[v_type_t::k_##kind],       dummy_intrinsic}); \
-    gctx.decls.intrinsics_insert({obtain_llvm_type_quarks[v_type_t::k_##kind], intrinsics_table[v_type_t::k_##kind]}); \
+#define DEF(tag, fun) \
+    gctx.decls.intrinsics_insert({obtain_llvm_type_quarks[v_type_t::k_##tag], {(void *)obtain_llvm_type_##fun, nullptr}}); \
+    gctx.decls.intrinsics_insert({initialize_quarks[v_type_t::k_##tag], {(void *)dummy_fun, nullptr}});
 
-    DEFINE_TYPE_KINDS(DEF)
+#define DEF2(tag)   DEF(tag, tag)
 
+    DEF2(void)
+
+    DEF2(f16)
+    DEF2(f32)
+    DEF2(f64)
+    DEF2(f128)
+
+    DEF(int,  integer)
+    DEF(uint, integer)
+
+    DEF2(function)
+
+    DEF(pointer,   refptr)
+    DEF(reference, refptr)
+
+    DEF2(struct)
+    DEF2(array)
+
+    DEF2(vector)
+    DEF2(svector)
+
+    DEF2(generic)
+
+#undef DEF2
 #undef DEF
 }
 
@@ -1241,36 +1250,36 @@ v_type_generic_arg_cons_get_args(v_type_generic_t::arg_t *arg)
 
 
 //---------------------------------------------------------------------
-void * const *
-v_type_get_initialize_hook(int k)
+hook_initialize_t
+v_type_get_initialize_fun(int k, void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    return gctx.get_initialize_hook(k);
+    return gctx.get_initialize_fun(k, paux);
 }
 
 void
-v_type_set_initialize_hook(int k, void * const * h)
+v_type_set_initialize_fun(int k, hook_initialize_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.set_initialize_hook(k, h);
+    gctx.set_initialize_fun(k, fun, aux);
 }
 
-void * const *
-v_type_get_obtain_llvm_type_hook(int k)
+hook_obtain_llvm_type_t
+v_type_get_obtain_llvm_type_fun(int k, void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    return gctx.get_obtain_llvm_type_hook(k);
+    return gctx.get_obtain_llvm_type_fun(k, paux);
 }
 
 void
-v_type_set_obtain_llvm_type_hook(int k, void * const * h)
+v_type_set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.set_obtain_llvm_type_hook(k, h);
+    gctx.set_obtain_llvm_type_fun(k, fun, aux);
 }
 
 

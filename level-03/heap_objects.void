@@ -854,6 +854,18 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
 
 //=====================================================================
+compute_key_quark_type_ft = (aux: *void, vis: *voidc_visitor_t,
+                             ft: *v_type_t,
+                             iq: &intptr_t, t: &*v_type_t
+                            ) ~> void;
+
+struct voidc_compute_key_quark_type_ctx_t
+{
+    fun: *compute_key_quark_type_ft;
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
 private
 compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
                          ft: *v_type_t,
@@ -901,9 +913,9 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
         }
     }
 
-    ctx = *(aux: *voidc_compute_key_quark_type_t);
+    ctx = *(aux: *voidc_compute_key_quark_type_ctx_t);
 
-    ctx[0](ctx[1], vis, ft, iq, t);             //- ... compute_key_quark_type ...
+    ctx.fun(ctx.aux, vis, ft, iq, t);
 }
 
 
@@ -912,13 +924,7 @@ private
 struct voidc_internal_heap_objects_ctx_t
 {
     alloc: voidc_internal_aligned_alloc_ctx_t;
-    quark: voidc_compute_key_quark_type_t;
-
-    alloc_intrinsic:        (*void)[2];
-    free_intrinsic:         (*void)[2];
-    new_intrinsic:          (*void)[2];
-    delete_intrinsic:       (*void)[2];
-    delete_array_intrinsic: (*void)[2];
+    quark: voidc_compute_key_quark_type_ctx_t;
 };
 
 
@@ -928,7 +934,7 @@ struct voidc_internal_heap_objects_ctx_t
 export
 voidc_enable_heap_objects_compiler: () ~> void
 {
-    v_return_if(v_get_intrinsic_q(q_op_prefix_new));
+    v_return_if(v_get_intrinsic_q(q_op_prefix_new, 0));
 
     ctx = *v_malloc(voidc_internal_heap_objects_ctx_t);
 
@@ -964,27 +970,22 @@ voidc_enable_heap_objects_compiler: () ~> void
         }
     }
 
-    ctx.alloc_intrinsic := {v_aligned_alloc_intrinsic, &ctx.alloc};
-    ctx.free_intrinsic  := {v_aligned_free_intrinsic,  &ctx.alloc};
-
-    v_add_intrinsic_q(q_aligned_alloc, ctx.alloc_intrinsic);
-    v_add_intrinsic_q(q_aligned_free,  ctx.free_intrinsic);
+    v_add_intrinsic_q(q_aligned_alloc, v_aligned_alloc_intrinsic, &ctx.alloc);
+    v_add_intrinsic_q(q_aligned_free,  v_aligned_free_intrinsic,  &ctx.alloc);
 
     hnd = &voidc_overloading_context_get_llvm_build_call_helper();
 
-    ctx.new_intrinsic          := {op_prefix_new_intrinsic,          hnd};
-    ctx.delete_intrinsic       := {op_prefix_delete_intrinsic,       hnd};
-    ctx.delete_array_intrinsic := {op_prefix_delete_array_intrinsic, hnd};
+    v_add_intrinsic_q(q_op_prefix_new,          op_prefix_new_intrinsic,          hnd);
+    v_add_intrinsic_q(q_op_prefix_delete,       op_prefix_delete_intrinsic,       hnd);
+    v_add_intrinsic_q(q_op_prefix_delete_array, op_prefix_delete_array_intrinsic, hnd);
 
-    v_add_intrinsic_q(q_op_prefix_new,          ctx.new_intrinsic);
-    v_add_intrinsic_q(q_op_prefix_delete,       ctx.delete_intrinsic);
-    v_add_intrinsic_q(q_op_prefix_delete_array, ctx.delete_array_intrinsic);
+    q = v_quark_from_string("voidc.compute_key_quark_type");
 
-    hnd = voidc_mangling_context_get_compute_key_quark_type();
+    vis = v_get_compiler();
 
-    ctx.quark := hnd;
+    ctx.quark.fun := (v_get_intrinsic_q(q, &ctx.quark.aux) : *compute_key_quark_type_ft);
 
-    hnd := {compute_key_quark_type, &ctx.quark};
+    v_add_intrinsic_q(q, compute_key_quark_type, &ctx.quark);
 
     free: (*void) ~> void;
 

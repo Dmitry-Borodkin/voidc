@@ -360,13 +360,6 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 private
 ast_list_table: &ast_list_item_t[3] := v_undef();
 
-private
-intrinsics_table: &(*void)[][2] :=
-{
-    {mk_ast_list_intrinsic, ast_list_table+0},
-    {mk_ast_list_intrinsic, ast_list_table+1},
-    {mk_ast_list_intrinsic, ast_list_table+2},
-};
 
 enable_local_obj_ast_test: () ~> void
 {
@@ -379,9 +372,9 @@ enable_local_obj_ast_test: () ~> void
         {obtain_spec, v_find_type("v_ast_generic_list_t")},
     };
 
-    v_add_intrinsic("mk_expr_list",    intrinsics_table[0]);
-    v_add_intrinsic("mk_stmt_list",    intrinsics_table[1]);
-    v_add_intrinsic("mk_generic_list", intrinsics_table[2]);
+    v_add_intrinsic("mk_expr_list",    mk_ast_list_intrinsic, ast_list_table+0);
+    v_add_intrinsic("mk_stmt_list",    mk_ast_list_intrinsic, ast_list_table+1);
+    v_add_intrinsic("mk_generic_list", mk_ast_list_intrinsic, ast_list_table+2);
 }
 
 

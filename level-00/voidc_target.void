@@ -553,33 +553,37 @@
     v_export_type("voidc_visitor_method_t", intrinsic_t);       //- Sic!?!
 
     //-------------------------------------------------------------
-    void_ptr_ptr = v_pointer_type(void_ptr, 0);
+    v_store(char_ptr, typ0);                //- Intrinsic name
+    v_store(void_ptr, typ1);                //- Intrinsic function
+    v_store(void_ptr, typ2);                //- aux
 
-    v_store(char_ptr,     typ0);            //- Intrinsic name
-    v_store(void_ptr_ptr, typ1);            //- ...
-
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 3, false);
 
     v_export_symbol_type("v_export_intrinsic", ft);
     v_export_symbol_type("v_add_intrinsic",    ft);
 
-    v_store(v_quark_t,    typ0);            //- Intrinsic name quark
-//  v_store(void_ptr_ptr, typ1);            //- ...
+    v_store(v_quark_t, typ0);               //- Intrinsic name quark
+//  v_store(void_ptr,  typ1);               //- Intrinsic function
+//  v_store(void_ptr,  typ2);               //- aux
 
-    ft = v_function_type(void, typ0, 2, false);
+    ft = v_function_type(void, typ0, 3, false);
 
     v_export_symbol_type("v_export_intrinsic_q", ft);
     v_export_symbol_type("v_add_intrinsic_q",    ft);
 
     //-------------------------------------------------------------
-    v_store(char_ptr,     typ0);            //- Intrinsic name
+    void_ptr_ptr = v_pointer_type(void_ptr, 0);
 
-    ft = v_function_type(void_ptr_ptr, typ0, 1, false);
+    v_store(char_ptr,     typ0);            //- Intrinsic name
+    v_store(void_ptr_ptr, typ1);            //- aux
+
+    ft = v_function_type(void_ptr, typ0, 2, false);
     v_export_symbol_type("v_get_intrinsic", ft);
 
     v_store(v_quark_t,    typ0);            //- Intrinsic name quark
+//  v_store(void_ptr_ptr, typ1);            //- aux
 
-    ft = v_function_type(void_ptr_ptr, typ0, 1, false);
+    ft = v_function_type(void_ptr, typ0, 2, false);
     v_export_symbol_type("v_get_intrinsic_q", ft);
 }
 

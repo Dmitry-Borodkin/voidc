@@ -26,8 +26,6 @@
 
     q = v_quark_ptr_from_string;
 
-    v_add_symbol("q_continue", q_ref, q("v_continue"));
-
     v_add_symbol("voidc_internal_branch_target_leave_q",             q_ref, q("voidc.internal_branch_target_leave"));
     v_add_symbol("voidc_internal_branch_target_continue_variable_q", q_ref, q("voidc.internal_branch_target_continue_variable"));
     v_add_symbol("voidc_internal_branch_target_continue_q",          q_ref, q("voidc.internal_branch_target_continue"));
@@ -144,7 +142,8 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 {   v_add_symbol("voidc_ast_stmt_loop_vtable", v_ast_generic_vtable, 0);
@@ -367,40 +366,18 @@
 
 
 //---------------------------------------------------------------------
-//- Intrinsics table ...
-//---------------------------------------------------------------------
-{   v_add_symbol("voidc_loop_intrinsics_table", v_array_type(void_ptr, 2), 0);
-}
-
-{   module = v_get_module();
-
-    intrinsics_table = v_obtain_global("voidc_loop_intrinsics_table", 0);
-
-    LLVMSetLinkage(intrinsics_table, LLVMPrivateLinkage);
-
-    void_ptr_ = v_type_get_llvm_type(void_ptr);
-
-    vp_0 = LLVMConstNull(void_ptr_);
-
-    continue_f = v_obtain_function("voidc_intrinsic_continue", 0);
-
-    val0 = v_alloca(LLVMValueRef, 2);
-    val1 = v_getelementptr(val0, 1);
-
-    v_store(continue_f, val0);
-    v_store(vp_0,       val1);
-
-    LLVMSetInitializer(intrinsics_table, LLVMConstArray2(void_ptr_, val0, 2));
-
-    //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
-}
-
-
-//---------------------------------------------------------------------
 //- Enable statement loop compilation
 //---------------------------------------------------------------------
 {
+    break_pq = v_quark_ptr_from_string("v_break");
+
+    v_add_symbol("break_q", v_reference_type(v_quark_t, 0), break_pq);
+
+    break_intrinsic = v_get_intrinsic_q(v_load(break_pq), 0);
+
+    v_add_symbol("v_break_intrinsic", voidc_intrinsic_t, break_intrinsic);
+
+
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
@@ -416,7 +393,10 @@
 
     voidc_visitor_set_void_method(vis, vis, quark, compile_ast_stmt_loop_t, 0);
 
-    v_add_intrinsic_q(q_continue, v_getelementptr(voidc_loop_intrinsics_table, 0, 0));
+    continue_q = v_quark_from_string("v_continue");
+
+    v_add_intrinsic_q(continue_q, voidc_intrinsic_continue, 0);
+    v_add_intrinsic_q(break_q, v_break_intrinsic, 0);
 }
 
 

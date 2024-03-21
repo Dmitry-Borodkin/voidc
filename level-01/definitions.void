@@ -140,7 +140,8 @@
     v_add_constant("ctx_fun_params",   int, LLVMConstInt(int_, 6, 0));
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -162,7 +163,8 @@
     v_add_symbol("abort", ft, 0);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -1854,7 +1856,9 @@
         }
 
         //---------------------------------------------------------
-        ctx_ptr = v_get_intrinsic_q(voidc_compile_type_q)[1];
+        ctx_ptr = *v_alloca(*void);
+
+        v_get_intrinsic_q(voidc_compile_type_q, &ctx_ptr);
 
         ctx = *v_cast(ctx_ptr, *voidc_compile_type_ctx_t);
 
@@ -2131,45 +2135,6 @@
 
 
 //---------------------------------------------------------------------
-//- Intrinsics table ...
-//---------------------------------------------------------------------
-{   v_add_symbol("voidc_definitions_intrinsics_table", v_reference_type(v_array_type(void_ptr, 12), 0), 0);
-}
-
-{   module = v_get_module();
-
-    intrinsics_table = v_obtain_global("voidc_definitions_intrinsics_table", 0);
-
-    void_ptr_ = v_type_get_llvm_type(void_ptr);
-
-    vp_0 = LLVMConstNull(void_ptr_);
-
-    val = v_alloca(LLVMValueRef, 12);
-
-    val[ 0] := v_obtain_function("compile_op_infix_tildeto",  0);       val[ 1] := vp_0;
-    val[ 2] := v_obtain_function("compile_op_prefix_cv",      0);       val[ 3] := vp_0;
-    val[ 4] := v_obtain_function("v_internal_var_decl_intrinsic", 0);   val[ 5] := vp_0;
-    val[ 6] := v_obtain_function("v_internal_var_defn_intrinsic", 0);   val[ 7] := vp_0;
-    val[ 8] := v_obtain_function("v_internal_val_defn_intrinsic", 0);   val[ 9] := vp_0;
-    val[10] := v_obtain_function("v_undef_intrinsic", 0);               val[11] := vp_0;
-
-    LLVMSetInitializer(intrinsics_table, LLVMConstArray2(void_ptr_, val, 12));
-
-    //-----------------------------------------------------------------
-    typ = v_alloca(v_type_ptr, 3);
-
-    typ[0] := voidc_compile_type_ctx_t;
-    typ[1] := void_ptr;
-    typ[2] := void_ptr;
-
-    v_add_type("voidc_compile_type_intrinsic_ctx_t", v_struct_type(typ, 3, false));
-
-    //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
-}
-
-
-//---------------------------------------------------------------------
 //- Enable definitions compiler
 //---------------------------------------------------------------------
 {
@@ -2211,15 +2176,17 @@
     voidc_visitor_set_void_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  &def_ctx);
     voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, &def_ctx);
 
-    v_add_intrinsic("v.op_infix_tildeto",   &voidc_definitions_intrinsics_table[0]);
-    v_add_intrinsic("v.op_prefix_const",    &voidc_definitions_intrinsics_table[2]);   //- Sic!
-    v_add_intrinsic("v.op_prefix_volatile", &voidc_definitions_intrinsics_table[2]);   //- Sic!
+    q = v_quark_from_string;
 
-    v_add_intrinsic("v.internal.var_decl",  &voidc_definitions_intrinsics_table[4]);
-    v_add_intrinsic("v.internal.var_defn",  &voidc_definitions_intrinsics_table[6]);
-    v_add_intrinsic("v.internal.val_defn",  &voidc_definitions_intrinsics_table[8]);
+    v_add_intrinsic_q(q("v.op_infix_tildeto"),   compile_op_infix_tildeto,  0);
+    v_add_intrinsic_q(q("v.op_prefix_const"),    compile_op_prefix_cv,      0);
+    v_add_intrinsic_q(q("v.op_prefix_volatile"), compile_op_prefix_cv,      0);
 
-    v_add_intrinsic("v_undef",              &voidc_definitions_intrinsics_table[10]);
+    v_add_intrinsic_q(q("v.internal.var_decl"), v_internal_var_decl_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.var_defn"), v_internal_var_defn_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.val_defn"), v_internal_val_defn_intrinsic, 0);
+
+    v_add_intrinsic_q(q("v_undef"), v_undef_intrinsic, 0);
 
     //-----------------------------------------------------------------
     add_definitions_context(&def_ctx);
@@ -2229,16 +2196,13 @@
     saved_gctx = v_target_get_global_ctx();
     v_target_set_global_ctx(v_target_get_voidc_global_ctx());
 
-    if (!v_get_intrinsic_q(voidc_compile_type_q))
+    if (!v_get_intrinsic_q(voidc_compile_type_q, 0))
     {
-        comp_type = *v_malloc(voidc_compile_type_intrinsic_ctx_t);
+        comp_type = v_malloc(voidc_compile_type_ctx_t);
 
-        comp_type[1] := voidc_compile_type_intrinsic;
-        comp_type[2] := &comp_type[0];
+        v_add_intrinsic_q(voidc_compile_type_q, voidc_compile_type_intrinsic, comp_type);
 
-        v_add_intrinsic_q(voidc_compile_type_q, &comp_type[1]);
-
-        v_add_local_cleaner(free, &comp_type);
+        v_add_local_cleaner(free, comp_type);
 
         //----------------------------------------------
         typ = *v_alloca(v_type_ptr) := bool;

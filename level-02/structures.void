@@ -55,9 +55,6 @@
     v_add_symbol("q_cast",                   q_ref, q("v_cast"));
 
     v_add_symbol("voidc_internal_index_intrinsic_q", q_ref, q("voidc_internal_index_intrinsic"));
-
-    v_add_symbol("make_intrinsic_data_q",       q_ref, q("voidc_internal_make_intrinsic_data"));
-    v_add_symbol("make_local_intrinsic_data_q", q_ref, q("voidc_internal_make_local_intrinsic_data"));
 }
 
 
@@ -187,37 +184,6 @@ mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_p
 //- Compilation ...
 //---------------------------------------------------------------------
 export
-voidc_internal_make_intrinsic_data: (fun: *void, aux: *void) ~> *const *void
-{
-    data = *v_malloc((*void)[2]);
-
-    data := {fun, aux};
-
-    free: (*void) ~> void;
-
-    v_add_cleaner(free, &data);
-
-    v_return(data);
-}
-
-//---------------------------------------------------------------------
-export
-voidc_internal_make_local_intrinsic_data: (fun: *void, aux: *void) ~> *const *void
-{
-    data = *v_malloc((*void)[2]);
-
-    data := {fun, aux};
-
-    free: (*void) ~> void;
-
-    v_add_local_cleaner(free, &data);
-
-    v_return(data);
-}
-
-
-//---------------------------------------------------------------------
-export
 voidc_internal_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                  self: v_ast_base_ptr,
                                  t0: v_type_ptr, v0: LLVMValueRef
@@ -344,18 +310,8 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
             v_util_function_dict_set(quark, type, intrinsic_q);
             v_util_function_dict_set(quark, tref, intrinsic_q);
 
-            if (export)
-            {
-                data = voidc_internal_make_intrinsic_data(voidc_internal_index_intrinsic, (i: *void));
-
-                v_export_intrinsic_q(intrinsic_q, data);
-            }
-            else
-            {
-                data = voidc_internal_make_local_intrinsic_data(voidc_internal_index_intrinsic, (i: *void));
-
-                v_add_intrinsic_q(intrinsic_q, data);
-            }
+            if (export)  v_export_intrinsic_q(intrinsic_q, voidc_internal_index_intrinsic, (i: *void));
+            else         v_add_intrinsic_q   (intrinsic_q, voidc_internal_index_intrinsic, (i: *void));
         }
     }
 
@@ -492,24 +448,8 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
 
         v_ast_make_expr_identifier_q(expr+1, voidc_internal_index_intrinsic_q);
 
-        v_make_list(elst, expr+1, 2);
-
-        if (export)
-        {
-            v_ast_make_expr_identifier_q(expr+1, make_intrinsic_data_q);
-
-            v_ast_make_expr_call(expr+1, expr+1, elst);
-
-            v_ast_make_stmt_call(stmt, 0, q_export_intrinsic_q, expr+0, 2);
-        }
-        else
-        {
-            v_ast_make_expr_identifier_q(expr+1, make_local_intrinsic_data_q);
-
-            v_ast_make_expr_call(expr+1, expr+1, elst);
-
-            v_ast_make_stmt_call(stmt, 0, q_add_intrinsic_q, expr+0, 2);
-        }
+        if (export)  v_ast_make_stmt_call(stmt, 0, q_export_intrinsic_q, expr+0, 3);
+        else         v_ast_make_stmt_call(stmt, 0, q_add_intrinsic_q,    expr+0, 3);
 
         v_list_append(stmt_list, stmt_list, stmt);
     }

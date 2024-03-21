@@ -177,7 +177,8 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 {   v_add_symbol("voidc_ast_stmt_switch_vtable", v_ast_generic_vtable, 0);
@@ -303,7 +304,8 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 {   v_add_symbol("voidc_ast_case_block_vtable", v_ast_generic_vtable, 0);      //- Sic!
@@ -769,6 +771,15 @@
 //- Enable statement switch compilation
 //---------------------------------------------------------------------
 {
+    break_pq = v_quark_ptr_from_string("v_break");
+
+    v_add_symbol("break_q", v_reference_type(v_quark_t, 0), break_pq);
+
+    break_intrinsic = v_get_intrinsic_q(v_load(break_pq), 0);
+
+    v_add_symbol("v_break_intrinsic", voidc_intrinsic_t, break_intrinsic);
+
+
     ft = v_function_type(void, 0, 0, false);
 
     //-----------------------------------------------------------------
@@ -784,6 +795,8 @@
     v_store(case_block_q, v_getelementptr(voidc_ast_case_block_vtable,  0, 2));
 
     voidc_visitor_set_void_method(vis, vis, quark, compile_ast_stmt_switch_t, 0);
+
+    v_add_intrinsic_q(break_q, v_break_intrinsic, 0);
 }
 
 

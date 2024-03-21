@@ -125,8 +125,8 @@ void compile_expr_call(void *, const visitor_t *vis, const ast_base_t *self)
     {
         if (auto p = lctx.decls.intrinsics.find(fname->name))
         {
-            void_fun = (*p)[0];
-            void_aux = (*p)[1];
+            void_fun = p->first;
+            void_aux = p->second;
         }
     }
 
@@ -923,6 +923,12 @@ make_level_0_target_compiler(void)
 //=====================================================================
 //- Intrinsics (level 0) ...
 //=====================================================================
+void
+make_level_0_intrinsics(base_global_ctx_t &gctx)
+{
+
+#define DEF_INTRINSIC(name) \
+    gctx.decls.intrinsics_insert({v_quark_from_string(#name), {(void *)name, nullptr}});
 
 #define DEFINE_INTRINSICS(DEF) \
     DEF(v_alloca)          \
@@ -934,39 +940,10 @@ make_level_0_target_compiler(void)
     DEF(v_reference)       \
     DEF(v_assign)          \
 
-//---------------------------------------------------------------------
-enum
-{
-#define DEF(name)   ik_##name,
+    DEFINE_INTRINSICS(DEF_INTRINSIC)
 
-    DEFINE_INTRINSICS(DEF)
-
-#undef DEF
-
-    ik_count
-};
-
-//---------------------------------------------------------------------
-static void * const intrinsics_table[ik_count][2] =
-{
-#define DEF(name)   {(void *)name, nullptr},
-
-    DEFINE_INTRINSICS(DEF)
-
-#undef DEF
-};
-
-//---------------------------------------------------------------------
-void
-make_level_0_intrinsics(base_global_ctx_t &gctx)
-{
-
-#define DEF(name) \
-    gctx.decls.intrinsics_insert({v_quark_from_string(#name), intrinsics_table[ik_##name]});
-
-    DEFINE_INTRINSICS(DEF)
-
-#undef DEF
+#undef DEFINE_INTRINSICS
+#undef DEF_INTRINSIC
 
 }
 

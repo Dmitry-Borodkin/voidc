@@ -52,8 +52,6 @@
     v_add_symbol("voidc_function_hack_visitor_method",   voidc_visitor_method_t, 0);
     v_add_symbol("voidc_function_hack_intrinsic",        voidc_intrinsic_t,      0);
     v_add_symbol("voidc_function_hack_return_intrinsic", voidc_intrinsic_t,      0);
-
-    v_add_symbol("voidc_function_hack_intrinsics_table", v_array_type(void_ptr, 4), 0);
 }
 
 //---------------------------------------------------------------------
@@ -98,8 +96,8 @@
     //-----------------------------------------------------------------
     //- Saved global variables
     //-----------------------------------------------------------------
-    //- saved_module_g:   LLVMModuleRef;            //- Kinda...
-    //- saved_compiler_g: voidc_visitor_t;          //- Kinda...
+    //- saved_module_g:   LLVMModuleRef;
+    //- saved_compiler_g: voidc_visitor_t;
     //-----------------------------------------------------------------
     LLVMModuleRef_ = v_type_get_llvm_type(LLVMModuleRef);
 
@@ -523,7 +521,6 @@
     //- }
     //-----------------------------------------------------------------
     intrinsic_f = v_obtain_function("voidc_function_hack_intrinsic", 0);
-    LLVMSetLinkage(intrinsic_f, LLVMPrivateLinkage);
 
     aux     = LLVMGetParam(intrinsic_f, 0);
     visitor = LLVMGetParam(intrinsic_f, 1);
@@ -819,7 +816,6 @@
     //- }
     //-----------------------------------------------------------------
     return_f = v_obtain_function("voidc_function_hack_return_intrinsic", 0);
-    LLVMSetLinkage(return_f, LLVMPrivateLinkage);
 
     aux     = LLVMGetParam(return_f, 0);
     visitor = LLVMGetParam(return_f, 1);
@@ -958,21 +954,6 @@
 
 
     //-----------------------------------------------------------------
-    //- Intrinsics table ...
-    //-----------------------------------------------------------------
-    intrinsics_table = v_obtain_global("voidc_function_hack_intrinsics_table", 0);
-
-    vp_0 = LLVMConstNull(void_ptr_);
-
-    v_store(intrinsic_f, val0);
-    v_store(vp_0,        val1);
-    v_store(return_f,    val2);
-    v_store(vp_0,        val3);
-
-    LLVMSetInitializer(intrinsics_table, LLVMConstArray2(void_ptr_, val0, 4));
-
-
-    //-----------------------------------------------------------------
 //  v_debug_print_module(1);
 
     voidc_unit_load_module_to_jit(module, true);
@@ -981,8 +962,8 @@
     v_set_module(0);
 }
 
-{   v_export_intrinsic("v_function_hack", v_getelementptr(voidc_function_hack_intrinsics_table, 0, 0));
-    v_export_intrinsic("v_return",        v_getelementptr(voidc_function_hack_intrinsics_table, 0, 2));
+{   v_export_intrinsic("v_function_hack", voidc_function_hack_intrinsic, 0);
+    v_export_intrinsic("v_return",        voidc_function_hack_return_intrinsic, 0);
 }
 
 
@@ -994,7 +975,8 @@
     v_set_module(module);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -1015,7 +997,8 @@
 
     v_set_module(module);
 
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 
     v_return(module);
 }
@@ -1040,8 +1023,6 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_intrinsic", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("aux",     void_ptr,          p0);
     p1 = LLVMGetParam(f, 1);    v_add_variable("visitor", voidc_visitor_ptr, p1);
@@ -1090,8 +1071,6 @@
 {
     //-----------------------------------------------------------------
     f = v_function_hack("v_return_if_not_intrinsic", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     p0 = LLVMGetParam(f, 0);    v_add_variable("aux",     void_ptr,          p0);
     p1 = LLVMGetParam(f, 1);    v_add_variable("visitor", voidc_visitor_ptr, p1);
@@ -1170,38 +1149,6 @@
 
 
 //---------------------------------------------------------------------
-//- Intrinsics table ...
-//---------------------------------------------------------------------
-{   v_add_symbol("voidc_return_if_intrinsics_table", v_array_type(void_ptr, 4), 0);
-}
-
-{   module = v_get_module();
-
-    intrinsics_table = v_obtain_global("voidc_return_if_intrinsics_table", 0);
-
-    vp_0 = LLVMConstNull(void_ptr_);
-
-    return_if_f     = v_obtain_function("v_return_if_intrinsic",     0);
-    return_if_not_f = v_obtain_function("v_return_if_not_intrinsic", 0);
-
-    val0 = v_alloca(LLVMValueRef, 4);
-    val1 = v_getelementptr(val0, 1);
-    val2 = v_getelementptr(val0, 2);
-    val3 = v_getelementptr(val0, 3);
-
-    v_store(return_if_f,     val0);
-    v_store(vp_0,            val1);
-    v_store(return_if_not_f, val2);
-    v_store(vp_0,            val3);
-
-    LLVMSetInitializer(intrinsics_table, LLVMConstArray2(void_ptr_, val0, 4));
-
-    //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
-}
-
-
-//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {
@@ -1222,8 +1169,8 @@
     v_make_export_symbol("voidc_unit_begin_module");
     v_make_export_symbol("voidc_unit_end_module");
 
-    v_export_intrinsic("v_return_if",      v_getelementptr(voidc_return_if_intrinsics_table, 0, 0));
-    v_export_intrinsic("v_return_if_not",  v_getelementptr(voidc_return_if_intrinsics_table, 0, 2));
+    v_export_intrinsic("v_return_if",      v_return_if_intrinsic, 0);
+    v_export_intrinsic("v_return_if_not",  v_return_if_not_intrinsic, 0);
 
     v_make_export_symbol("v_add_parameter_name");
 }

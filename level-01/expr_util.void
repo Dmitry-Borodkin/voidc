@@ -13,7 +13,6 @@
     v_import("arithmetic.void");
     v_import("block.void");
     v_import("loop.void");
-    v_import("grammar.void");
     v_import("switch.void");
     v_import("memory.void");
     v_import("handlers.void");
@@ -24,7 +23,6 @@
 {   voidc_enable_statement_if_then_else();
     voidc_enable_statement_block();
     voidc_enable_statement_loop();
-    voidc_enable_statement_grammar();
     voidc_enable_statement_switch();
 }
 
@@ -128,7 +126,8 @@
     v_add_symbol("free", ft, 0);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -206,7 +205,8 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 {   v_add_symbol("voidc_ast_operator_unary_vtable", v_ast_generic_vtable, 0);
@@ -330,7 +330,8 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 {   v_add_symbol("voidc_ast_operator_binary_vtable", v_ast_generic_vtable, 0);
@@ -404,7 +405,8 @@
 
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 {   v_export_symbol_type("voidc_ast_expression_operator_list", v_ast_expr_list_t);
@@ -4216,210 +4218,6 @@
 
 
 //---------------------------------------------------------------------
-//- Intrinsics table ...
-//---------------------------------------------------------------------
-{
-    //-------------------------------------------------------------
-    {   grm = v_malloc(v_peg_grammar_t);
-        v_initialize(grm);
-
-        v_add_symbol("saved_grammar", v_peg_grammar_t, grm);
-    }
-
-    //-------------------------------------------------------------
-    {   lst = v_malloc(v_ast_expr_list_t);
-        v_initialize(lst);
-
-        v_add_symbol("intrinsics_list", v_ast_expr_list_t, lst);
-    }
-
-    //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
-}
-
-
-//---------------------------------------------------------------------
-{
-    v_add_symbol("saved_module", v_type_refptr_get_element_type(LLVMModuleRef), v_get_module());
-
-    v_set_module(0);    //- Sic !!!
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("mk_intrinsics_list_grammar_action", v_peg_grammar_action_fun_t);
-
-    v_add_parameter_name(f, 0, "ret",       v_std_any_ptr);
-    v_add_parameter_name(f, 1, "aux",       void_ptr);
-    v_add_parameter_name(f, 2, "any0",      v_std_any_ptr);
-    v_add_parameter_name(f, 3, "any_count", size_t);
-
-    //-----------------------------------------------------------------
-    voidc_skip_unit_save(2);            //- Sic !!!
-}
-{
-    expr_list = v_std_any_get_pointer(v_ast_expr_list_t, any0);
-
-    v_copy(intrinsics_list, expr_list);
-
-    v_std_any_set_value(ret, true);
-}
-
-//---------------------------------------------------------------------
-{
-    grm = v_alloca(v_peg_grammar_t);
-    v_initialize(grm);
-
-    v_peg_get_grammar(grm);
-
-    v_copy(saved_grammar, grm);
-
-    grammar grm
-    {
-    actions:
-        mk_intrinsics_list = mk_intrinsics_list_grammar_action;
-
-    parsers:
-        prim += "intrinsics_list" _'{'_ l:expr_list (_',')? _'}'    { mk_intrinsics_list(l) };
-    }
-
-    v_peg_set_grammar(grm);
-
-    v_terminate(grm);
-
-    //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
-}
-
-//---------------------------------------------------------------------
-{
-    intrinsics_list
-    {
-        "v.op_infix_assign",        op_infix_assign_intrinsic,  0,
-        "v.op_infix_add_assign",    op_addsub_assign_intrinsic, compile_add,
-        "v.op_infix_sub_assign",    op_addsub_assign_intrinsic, compile_sub,
-        "v.op_infix_mul_assign",    op_infix_assign_intrinsic,  compile_mul,
-        "v.op_infix_div_assign",    op_infix_assign_intrinsic,  compile_div,
-        "v.op_infix_rem_assign",    op_infix_assign_intrinsic,  compile_rem,
-        "v.op_infix_shl_assign",    op_infix_assign_intrinsic,  compile_shl,
-        "v.op_infix_shr_assign",    op_infix_assign_intrinsic,  compile_shr,
-        "v.op_infix_and_assign",    op_infix_assign_intrinsic,  compile_and,
-        "v.op_infix_xor_assign",    op_infix_assign_intrinsic,  compile_xor,
-        "v.op_infix_or_assign",     op_infix_assign_intrinsic,  compile_or,
-
-        "v.op_infix_logical_or",    op_infix_logical_or,        0,
-        "v.op_infix_logical_and",   op_infix_logical_and,       0,
-
-        "v.op_infix_or",            op_binary_intrinsic,        compile_or,
-        "v.op_infix_xor",           op_binary_intrinsic,        compile_xor,
-        "v.op_infix_and",           op_binary_intrinsic,        compile_and,
-
-        "v.op_infix_lt",            relation_intrinsic,         compile_lt,
-        "v.op_infix_le",            relation_intrinsic,         compile_le,
-        "v.op_infix_gt",            relation_intrinsic,         compile_gt,
-        "v.op_infix_ge",            relation_intrinsic,         compile_ge,
-        "v.op_infix_eq",            relation_intrinsic,         compile_eq,
-        "v.op_infix_ne",            relation_intrinsic,         compile_ne,
-
-        "v.op_infix_shl",           op_binary_intrinsic,        compile_shl,
-        "v.op_infix_shr",           op_binary_intrinsic,        compile_shr,
-
-        "v.op_infix_add",           op_binary_addsub_intrinsic, compile_infix_add,
-        "v.op_infix_sub",           op_binary_addsub_intrinsic, compile_infix_sub,
-
-        "v.op_infix_mul",           op_binary_intrinsic,        compile_mul,
-        "v.op_infix_div",           op_binary_intrinsic,        compile_div,
-        "v.op_infix_rem",           op_binary_intrinsic,        compile_rem,
-
-        "v.op_prefix_inc",          op_unary_intrinsic,         compile_prefix_inc,
-        "v.op_prefix_dec",          op_unary_intrinsic,         compile_prefix_dec,
-        "v.op_prefix_plus",         op_unary_intrinsic,         compile_prefix_plus,
-        "v.op_prefix_minus",        op_unary_intrinsic,         compile_prefix_minus,
-        "v.op_prefix_star",         op_prefix_star,             0,
-        "v.op_prefix_amp",          op_prefix_amp,              0,
-        "v.op_prefix_bang",         op_unary_intrinsic,         compile_prefix_bang,
-        "v.op_prefix_tilde",        op_unary_intrinsic,         compile_prefix_tilde,
-        "v.op_postfix_inc",         op_unary_intrinsic,         compile_postfix_inc,
-        "v.op_postfix_dec",         op_unary_intrinsic,         compile_postfix_dec,
-
-        "v.op_postfix_index",       op_postfix_index,           0,
-
-        "v.op_parentheses",         op_parentheses,             0,
-
-        //-------------------------------------------------------------
-        "int",                      voidc_int_type_intrinsic,   0,
-        "uint",                     voidc_uint_type_intrinsic,  0,
-
-        "float",                    voidc_float_type_intrinsic, 0,
-
-        "v_ptr",                    voidc_ptr_type_intrinsic,   0,
-        "v_ref",                    voidc_ref_type_intrinsic,   0,
-
-        "vec",                      voidc_vec_type_intrinsic,   0,
-        "svec",                     voidc_svec_type_intrinsic,  0,
-    };
-
-    //-----------------------------------------------------------------
-    v_peg_set_grammar(saved_grammar);
-
-    v_terminate(saved_grammar);
-    v_free(saved_grammar);
-
-    v_set_module(saved_module);             //- Sic !!!
-
-    //-----------------------------------------------------------------
-    count = v_list_get_size(intrinsics_list);
-    count = v_cast(count, int);
-
-    vis = v_get_compiler();
-
-    val = v_malloc(LLVMValueRef, count);
-
-    i = v_reference(v_alloca(int));
-
-    v_assign(i, 0);
-
-    loop
-    {
-        if (v_icmp(LLVMIntEQ, i, count))  v_break();
-
-
-        expr = v_list_get_item(intrinsics_list, i);
-
-        v_set_result_type(void_ptr);
-        v_set_result_value(0);
-
-        v_ast_accept_visitor(v_cast(expr, v_ast_base_ptr), vis);
-
-        v_store(v_get_result_value(), v_getelementptr(val, i));
-
-
-        v_assign(i, v_binop(LLVMAdd, i, 1));
-    }
-
-    v_add_symbol("intrinsics_table", v_array_type(void_ptr, count), 0);
-
-    table = v_obtain_global("intrinsics_table", 0);
-
-    LLVMSetLinkage(table, LLVMPrivateLinkage);
-
-    void_ptr_ = v_type_get_llvm_type(void_ptr);
-
-    LLVMSetInitializer(table, LLVMConstArray2(void_ptr_, val, count));
-
-    v_free(val);
-
-    int_ = v_type_get_llvm_type(int);
-
-    v_add_constant("intrinsics_table_size", int, LLVMConstInt(int_, count, 0));
-
-    v_terminate(intrinsics_list);
-    v_free(intrinsics_list);
-
-    //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
-}
-
-
-//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 {   ft = v_function_type(void, 0, 0, false);
@@ -4465,25 +4263,57 @@
     }
 
     //-----------------------------------------------------------------
-    {   i = v_reference(v_alloca(int));
+    v_add_intrinsic("v.op_infix_assign",     op_infix_assign_intrinsic,  0);
+    v_add_intrinsic("v.op_infix_add_assign", op_addsub_assign_intrinsic, compile_add);
+    v_add_intrinsic("v.op_infix_sub_assign", op_addsub_assign_intrinsic, compile_sub);
+    v_add_intrinsic("v.op_infix_mul_assign", op_infix_assign_intrinsic,  compile_mul);
+    v_add_intrinsic("v.op_infix_div_assign", op_infix_assign_intrinsic,  compile_div);
+    v_add_intrinsic("v.op_infix_rem_assign", op_infix_assign_intrinsic,  compile_rem);
+    v_add_intrinsic("v.op_infix_shl_assign", op_infix_assign_intrinsic,  compile_shl);
+    v_add_intrinsic("v.op_infix_shr_assign", op_infix_assign_intrinsic,  compile_shr);
+    v_add_intrinsic("v.op_infix_and_assign", op_infix_assign_intrinsic,  compile_and);
+    v_add_intrinsic("v.op_infix_xor_assign", op_infix_assign_intrinsic,  compile_xor);
+    v_add_intrinsic("v.op_infix_or_assign",  op_infix_assign_intrinsic,  compile_or);
 
-        v_assign(i, 0);
+    v_add_intrinsic("v.op_infix_logical_or",  op_infix_logical_or,  0);
+    v_add_intrinsic("v.op_infix_logical_and", op_infix_logical_and, 0);
 
-        loop
-        {
-            if (v_icmp(LLVMIntUGE, i, intrinsics_table_size))   v_break();
+    v_add_intrinsic("v.op_infix_or",  op_binary_intrinsic, compile_or);
+    v_add_intrinsic("v.op_infix_xor", op_binary_intrinsic, compile_xor);
+    v_add_intrinsic("v.op_infix_and", op_binary_intrinsic, compile_and);
 
+    v_add_intrinsic("v.op_infix_lt",  relation_intrinsic, compile_lt);
+    v_add_intrinsic("v.op_infix_le",  relation_intrinsic, compile_le);
+    v_add_intrinsic("v.op_infix_gt",  relation_intrinsic, compile_gt);
+    v_add_intrinsic("v.op_infix_ge",  relation_intrinsic, compile_ge);
+    v_add_intrinsic("v.op_infix_eq",  relation_intrinsic, compile_eq);
+    v_add_intrinsic("v.op_infix_ne",  relation_intrinsic, compile_ne);
 
-            item = v_getelementptr(intrinsics_table, 0, i);
+    v_add_intrinsic("v.op_infix_shl", op_binary_intrinsic, compile_shl);
+    v_add_intrinsic("v.op_infix_shr", op_binary_intrinsic, compile_shr);
 
-            name = v_cast(v_load(item), char_ptr);
+    v_add_intrinsic("v.op_infix_add", op_binary_addsub_intrinsic, compile_infix_add);
+    v_add_intrinsic("v.op_infix_sub", op_binary_addsub_intrinsic, compile_infix_sub);
 
-            v_add_intrinsic(name, v_getelementptr(item, 1));
+    v_add_intrinsic("v.op_infix_mul", op_binary_intrinsic, compile_mul);
+    v_add_intrinsic("v.op_infix_div", op_binary_intrinsic, compile_div);
+    v_add_intrinsic("v.op_infix_rem", op_binary_intrinsic, compile_rem);
 
+    v_add_intrinsic("v.op_prefix_inc",    op_unary_intrinsic, compile_prefix_inc);
+    v_add_intrinsic("v.op_prefix_dec",    op_unary_intrinsic, compile_prefix_dec);
+    v_add_intrinsic("v.op_prefix_plus",   op_unary_intrinsic, compile_prefix_plus);
+    v_add_intrinsic("v.op_prefix_minus",  op_unary_intrinsic, compile_prefix_minus);
+    v_add_intrinsic("v.op_prefix_star",   op_prefix_star,     0);
+    v_add_intrinsic("v.op_prefix_amp",    op_prefix_amp,      0);
+    v_add_intrinsic("v.op_prefix_bang",   op_unary_intrinsic, compile_prefix_bang);
+    v_add_intrinsic("v.op_prefix_tilde",  op_unary_intrinsic, compile_prefix_tilde);
+    v_add_intrinsic("v.op_postfix_inc",   op_unary_intrinsic, compile_postfix_inc);
+    v_add_intrinsic("v.op_postfix_dec",   op_unary_intrinsic, compile_postfix_dec);
 
-            v_assign(i, v_binop(LLVMAdd, i, 3));        //- Sic!
-        }
-    }
+    v_add_intrinsic("v.op_postfix_index", op_postfix_index,   0);
+
+    v_add_intrinsic("v.op_parentheses",   op_parentheses,     0);
+
 
     //-------------------------------------------------------------
     saved_ctx = v_malloc(convert_to_type_ctx_t);
@@ -4496,6 +4326,21 @@
     v_set_convert_to_type(convert_to_type, saved_ctx);
 
     v_add_local_cleaner(free, saved_ctx);
+
+
+    //-------------------------------------------------------------
+    q = v_quark_from_string;
+
+    v_add_intrinsic_q(q("int"),   voidc_int_type_intrinsic, 0);
+    v_add_intrinsic_q(q("uint"),  voidc_uint_type_intrinsic, 0);
+
+    v_add_intrinsic_q(q("float"), voidc_float_type_intrinsic, 0);
+
+    v_add_intrinsic_q(q("v_ptr"), voidc_ptr_type_intrinsic, 0);
+    v_add_intrinsic_q(q("v_ref"), voidc_ref_type_intrinsic, 0);
+
+    v_add_intrinsic_q(q("vec"),   voidc_vec_type_intrinsic, 0);
+    v_add_intrinsic_q(q("svec"),  voidc_svec_type_intrinsic, 0);
 
     //-------------------------------------------------------------
     v_add_symbol("voidc_internal_vectorize_scalar", vectorize_scalar_ft, vectorize_scalar);

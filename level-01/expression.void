@@ -208,7 +208,8 @@
     v_add_symbol("free", ft, 0);
 
     //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
+    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
+    voidc_set_unit_buffer(0);
 }
 
 
@@ -698,7 +699,7 @@
 {
     q = v_quark_from_string;
 
-    v_return_if(v_get_intrinsic("v.op_infix_assign"));
+    v_return_if(v_get_intrinsic_q(q("v.op_infix_assign"), 0));
 
     voidc_ast_add_operator_methods();
 }

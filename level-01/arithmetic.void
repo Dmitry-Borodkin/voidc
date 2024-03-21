@@ -34,8 +34,6 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_binop_intrinsic", voidc_intrinsic_t);
 
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
     v_add_parameter_name(f, 0, "aux",     void_ptr);
     v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
@@ -140,8 +138,6 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_icmp_intrinsic", voidc_intrinsic_t);
 
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
     v_add_parameter_name(f, 0, "aux",     void_ptr);
     v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
@@ -218,8 +214,6 @@
     //-----------------------------------------------------------------
     f = v_function_hack("voidc_fcmp_intrinsic", voidc_intrinsic_t);
 
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
     v_add_parameter_name(f, 0, "aux",     void_ptr);
     v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
@@ -289,53 +283,14 @@
 }
 
 
-//---------------------------------------------------------------------
-//- Intrinsics table ...
-//---------------------------------------------------------------------
-{   v_add_symbol("voidc_arithmetic_intrinsics_table", v_array_type(void_ptr, 6), 0);
-}
-
-{   module = v_get_module();
-
-    intrinsics_table = v_obtain_global("voidc_arithmetic_intrinsics_table", 0);
-
-    void_ptr_ = v_type_get_llvm_type(void_ptr);
-
-    vp_0 = LLVMConstNull(void_ptr_);
-
-    binop_f = v_obtain_function("voidc_binop_intrinsic", 0);
-    icmp_f  = v_obtain_function("voidc_icmp_intrinsic",  0);
-    fcmp_f  = v_obtain_function("voidc_fcmp_intrinsic",  0);
-
-    val0 = v_alloca(LLVMValueRef, 6);
-    val1 = v_getelementptr(val0, 1);
-    val2 = v_getelementptr(val0, 2);
-    val3 = v_getelementptr(val0, 3);
-    val4 = v_getelementptr(val0, 4);
-    val5 = v_getelementptr(val0, 5);
-
-    v_store(binop_f, val0);
-    v_store(vp_0,    val1);
-    v_store(icmp_f,  val2);
-    v_store(vp_0,    val3);
-    v_store(fcmp_f,  val4);
-    v_store(vp_0,    val5);
-
-    LLVMSetInitializer(intrinsics_table, LLVMConstArray2(void_ptr_, val0, 6));
-
-    //-----------------------------------------------------------------
-    voidc_skip_unit_save(1);
-}
-
-
 //=====================================================================
 {   voidc_unit_end_module(); }
 
 
 //---------------------------------------------------------------------
-{   v_export_intrinsic("v_binop", v_getelementptr(voidc_arithmetic_intrinsics_table, 0, 0));
-    v_export_intrinsic("v_icmp",  v_getelementptr(voidc_arithmetic_intrinsics_table, 0, 2));
-    v_export_intrinsic("v_fcmp",  v_getelementptr(voidc_arithmetic_intrinsics_table, 0, 4));
+{   v_export_intrinsic("v_binop", voidc_binop_intrinsic, 0);
+    v_export_intrinsic("v_icmp",  voidc_icmp_intrinsic, 0);
+    v_export_intrinsic("v_fcmp",  voidc_fcmp_intrinsic, 0);
 }
 
 
