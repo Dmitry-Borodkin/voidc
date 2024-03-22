@@ -1664,7 +1664,10 @@
 
     cur_b = LLVMGetInsertBlock(builder);
 
-    cur_f = LLVMGetBasicBlockParent(cur_b);
+    cur_f = v_reference(v_alloca(LLVMValueRef));
+
+    if (cur_b)  v_assign(cur_f, LLVMGetBasicBlockParent(cur_b));
+    else        v_assign(cur_f, 0);
 
     llvm_ctx = v_target_get_llvm_ctx();
 
@@ -1885,7 +1888,10 @@
 
     cur_b = LLVMGetInsertBlock(builder);
 
-    cur_f = LLVMGetBasicBlockParent(cur_b);
+    cur_f = v_reference(v_alloca(LLVMValueRef));
+
+    if (cur_b)  v_assign(cur_f, LLVMGetBasicBlockParent(cur_b));
+    else        v_assign(cur_f, 0);
 
     llvm_ctx = v_target_get_llvm_ctx();
 
@@ -2453,7 +2459,10 @@
 
     cur_b = LLVMGetInsertBlock(builder);
 
-    cur_f = LLVMGetBasicBlockParent(cur_b);
+    cur_f = v_reference(v_alloca(LLVMValueRef));
+
+    if (cur_b)  v_assign(cur_f, LLVMGetBasicBlockParent(cur_b));
+    else        v_assign(cur_f, 0);
 
     cmp_result_v = v_reference(v_alloca(LLVMValueRef));
     v_assign(cmp_result_v, 0);

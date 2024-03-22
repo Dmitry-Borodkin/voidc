@@ -981,6 +981,9 @@ private
 op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                         self: v_ast_base_ptr) ~> void
 {
+//printf("op_relation_intrinsic start\n");
+//defer printf("op_relation_intrinsic stop\n");
+
     args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
 
     N: &int := 2;
@@ -1031,7 +1034,10 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
     cur_b = LLVMGetInsertBlock(builder);
 
-    cur_f = LLVMGetBasicBlockParent(cur_b);
+    cur_f: &LLVMValueRef := v_undef();
+
+    if (cur_b)  cur_f := LLVMGetBasicBlockParent(cur_b);
+    else        cur_f := 0;
 
     cmp_result_v: &LLVMValueRef := 0;
 
