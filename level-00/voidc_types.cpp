@@ -242,7 +242,7 @@ v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
     cached_llvm_type = nullptr;         //- Sic!!!
 
     void *aux;
-    auto *fun = context.get_initialize_fun(kind(), &aux);
+    auto *fun = context.get_initialize_hook(kind(), &aux);
 
     fun(aux, this);                     //- Second time!
 }
@@ -290,7 +290,7 @@ voidc_types_ctx_t::check_cached_llvm_type(T *t)
     {
         void *aux;
 
-        auto fun = get_initialize_fun(t->kind(), &aux);
+        auto fun = get_initialize_hook(t->kind(), &aux);
 
         if (fun)  fun(aux, t);
 
@@ -513,66 +513,60 @@ voidc_types_ctx_t::make_cons_arg(v_quark_t cons, v_type_generic_t::arg_t * const
 
 
 //---------------------------------------------------------------------
-hook_initialize_t
-voidc_types_ctx_t::get_initialize_fun(int k, void **paux)
+static void *
+get_hook(voidc_types_ctx_t *tctx, v_quark_t quark, void **paux)
 {
-    auto *gctx = static_cast<base_global_ctx_t *>(this);
+    auto *gctx = static_cast<base_global_ctx_t *>(tctx);
     auto *lctx = gctx->local_ctx;
 
-    if (!is_initialized)  return nullptr;
+    if (!gctx->is_initialized)  return nullptr;
 
     auto *intrinsics = &gctx->decls.intrinsics;
 
     if (lctx) intrinsics = &lctx->decls.intrinsics;
 
-    if (auto *p = intrinsics->find(initialize_quarks[k]))
+    if (auto *p = intrinsics->find(quark))
     {
         if (paux) *paux = p->second;
 
-        return  hook_initialize_t(p->first);
+        return  p->first;
     }
 
     return nullptr;
 }
 
-void
-voidc_types_ctx_t::set_initialize_fun(int k, hook_initialize_t fun, void *aux)
+static void
+set_hook(voidc_types_ctx_t *tctx, v_quark_t quark, void *fun, void *aux)
 {
-    auto &gctx = *static_cast<base_global_ctx_t *>(this);
+    auto &gctx = *static_cast<base_global_ctx_t *>(tctx);
     auto &lctx = *gctx.local_ctx;
 
-    lctx.decls.intrinsics_insert({initialize_quarks[k], {(void *)fun, aux}});
+    lctx.decls.intrinsics_insert({quark, {fun, aux}});
+}
+
+//---------------------------------------------------------------------
+hook_initialize_t
+voidc_types_ctx_t::get_initialize_hook(int k, void **paux)
+{
+    return  hook_initialize_t(get_hook(this, initialize_quarks[k], paux));
+}
+
+void
+voidc_types_ctx_t::set_initialize_hook(int k, hook_initialize_t fun, void *aux)
+{
+    set_hook(this, initialize_quarks[k], (void *)fun, aux);
 }
 
 hook_obtain_llvm_type_t
-voidc_types_ctx_t::get_obtain_llvm_type_fun(int k, void **paux)
+voidc_types_ctx_t::get_obtain_llvm_type_hook(int k, void **paux)
 {
-    auto *gctx = static_cast<base_global_ctx_t *>(this);
-    auto *lctx = gctx->local_ctx;
-
-    if (!is_initialized)  return nullptr;
-
-    auto *intrinsics = &gctx->decls.intrinsics;
-
-    if (lctx) intrinsics = &lctx->decls.intrinsics;
-
-    if (auto *p = intrinsics->find(obtain_llvm_type_quarks[k]))
-    {
-        if (paux)   *paux = p->second;
-
-        return hook_obtain_llvm_type_t(p->first);
-    }
-
-    return nullptr;
+    return  hook_obtain_llvm_type_t(get_hook(this, obtain_llvm_type_quarks[k], paux));
 }
 
 void
-voidc_types_ctx_t::set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux)
+voidc_types_ctx_t::set_obtain_llvm_type_hook(int k, hook_obtain_llvm_type_t fun, void *aux)
 {
-    auto &gctx = *static_cast<base_global_ctx_t *>(this);
-    auto &lctx = *gctx.local_ctx;
-
-    lctx.decls.intrinsics_insert({obtain_llvm_type_quarks[k], {(void *)fun, aux}});
+    set_hook(this, obtain_llvm_type_quarks[k], (void *)fun, aux);
 }
 
 
@@ -1251,35 +1245,35 @@ v_type_generic_arg_cons_get_args(v_type_generic_t::arg_t *arg)
 
 //---------------------------------------------------------------------
 hook_initialize_t
-v_type_get_initialize_fun(int k, void **paux)
+v_type_get_initialize_hook(int k, void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    return gctx.get_initialize_fun(k, paux);
+    return gctx.get_initialize_hook(k, paux);
 }
 
 void
-v_type_set_initialize_fun(int k, hook_initialize_t fun, void *aux)
+v_type_set_initialize_hook(int k, hook_initialize_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.set_initialize_fun(k, fun, aux);
+    gctx.set_initialize_hook(k, fun, aux);
 }
 
 hook_obtain_llvm_type_t
-v_type_get_obtain_llvm_type_fun(int k, void **paux)
+v_type_get_obtain_llvm_type_hook(int k, void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    return gctx.get_obtain_llvm_type_fun(k, paux);
+    return gctx.get_obtain_llvm_type_hook(k, paux);
 }
 
 void
-v_type_set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux)
+v_type_set_obtain_llvm_type_hook(int k, hook_obtain_llvm_type_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
 
-    gctx.set_obtain_llvm_type_fun(k, fun, aux);
+    gctx.set_obtain_llvm_type_hook(k, fun, aux);
 }
 
 

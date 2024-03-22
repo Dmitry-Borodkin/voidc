@@ -1412,17 +1412,17 @@ voidc_enable_global_objects_compiler: () ~> void
 
     if (gctx == vctx)
     {
-        ctx.fin_cdtors.fun := v_get_finish_module(&ctx.fin_cdtors.ctx);
+        ctx.fin_cdtors.fun := v_get_finish_module_hook(&ctx.fin_cdtors.ctx);
 
-        v_set_finish_module(voidc_finish_module_cdtors, &ctx.fin_cdtors);
+        v_set_finish_module_hook(voidc_finish_module_cdtors, &ctx.fin_cdtors);
     }
 
     //-----------------------------------------------------------------
     ctx.fin_globals.global_ctx := &obtain_spec.global_ctx;
 
-    ctx.fin_globals.fun := v_get_finish_module(&ctx.fin_globals.ctx);
+    ctx.fin_globals.fun := v_get_finish_module_hook(&ctx.fin_globals.ctx);
 
-    v_set_finish_module(my_finish_module_globals, &ctx.fin_globals);
+    v_set_finish_module_hook(my_finish_module_globals, &ctx.fin_globals);
 
     //-----------------------------------------------------------------
     v_add_local_cleaner(global_objects_ctx_cleaner, &ctx);

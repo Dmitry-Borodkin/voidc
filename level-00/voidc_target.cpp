@@ -72,7 +72,7 @@ base_global_ctx_t::base_global_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
     char_ptr_type(make_pointer_type(char_type, 0)),         //- address space 0 !?
     void_ptr_type(make_pointer_type(void_type, 0))          //- address space 0 !?
 {
-    is_initialized = true;
+    _is_initialized = true;
 
     voidc_types_make_level_0_intrinsics(*this);
 
@@ -210,17 +210,15 @@ static LLVMValueRef v_make_temporary_default(void *, v_type_t *t, LLVMValueRef v
 
 base_local_ctx_t::base_local_ctx_t(base_global_ctx_t &_global)
   : global_ctx(_global),
-    parent_ctx(_global.local_ctx),
-    adopt_result_fun(base_adopt_result_default),
-    adopt_result_ctx(this),
-    convert_to_type_fun(v_convert_to_type_default),
-    convert_to_type_ctx(this),
-    make_temporary_fun(v_make_temporary_default),
-    make_temporary_ctx(this)
+    parent_ctx(_global.local_ctx)
 {
     global_ctx.local_ctx = this;
 
     decls.insert(global_ctx.decls);
+
+    set_adopt_result_hook(base_adopt_result_default, this);
+    set_convert_to_type_hook(v_convert_to_type_default, this);
+    set_make_temporary_hook(v_make_temporary_default, this);
 }
 
 base_local_ctx_t::~base_local_ctx_t()
@@ -452,6 +450,99 @@ base_local_ctx_t::find_symbol(v_quark_t raw_name, v_type_t * &type, void * &valu
     value = v;
 
     return true;
+}
+
+
+//---------------------------------------------------------------------
+static void *
+get_hook(base_local_ctx_t *lctx, v_quark_t quark, void **paux)
+{
+    if (auto *p = lctx->decls.intrinsics.find(quark))
+    {
+        if (paux) *paux = p->second;
+
+        return  p->first;
+    }
+
+    return nullptr;
+}
+
+static void
+set_hook(base_local_ctx_t *lctx, v_quark_t quark, void *fun, void *aux)
+{
+    lctx->decls.intrinsics_insert({quark, {fun, aux}});
+}
+
+//---------------------------------------------------------------------
+static v_quark_t obtain_module_q;
+static v_quark_t finish_module_q;
+static v_quark_t adopt_result_q;
+static v_quark_t convert_to_type_q;
+static v_quark_t make_temporary_q;
+
+//---------------------------------------------------------------------
+obtain_module_t
+base_local_ctx_t::get_obtain_module_hook(void **paux)
+{
+    return  obtain_module_t(get_hook(this, obtain_module_q, paux));
+}
+
+void
+base_local_ctx_t::set_obtain_module_hook(obtain_module_t fun, void *aux)
+{
+    set_hook(this, obtain_module_q, (void *)fun, aux);
+}
+
+//---------------------------------------------------------------------
+finish_module_t
+base_local_ctx_t::get_finish_module_hook(void **paux)
+{
+    return  finish_module_t(get_hook(this, finish_module_q, paux));
+}
+
+void
+base_local_ctx_t::set_finish_module_hook(finish_module_t fun, void *aux)
+{
+    set_hook(this, finish_module_q, (void *)fun, aux);
+}
+
+//---------------------------------------------------------------------
+adopt_result_t
+base_local_ctx_t::get_adopt_result_hook(void **paux)
+{
+    return  adopt_result_t(get_hook(this, adopt_result_q, paux));
+}
+
+void
+base_local_ctx_t::set_adopt_result_hook(adopt_result_t fun, void *aux)
+{
+    set_hook(this, adopt_result_q, (void *)fun, aux);
+}
+
+//---------------------------------------------------------------------
+convert_to_type_t
+base_local_ctx_t::get_convert_to_type_hook(void **paux)
+{
+    return  convert_to_type_t(get_hook(this, convert_to_type_q, paux));
+}
+
+void
+base_local_ctx_t::set_convert_to_type_hook(convert_to_type_t fun, void *aux)
+{
+    set_hook(this, convert_to_type_q, (void *)fun, aux);
+}
+
+//---------------------------------------------------------------------
+make_temporary_t
+base_local_ctx_t::get_make_temporary_hook(void **paux)
+{
+    return  make_temporary_t(get_hook(this, make_temporary_q, paux));
+}
+
+void
+base_local_ctx_t::set_make_temporary_hook(make_temporary_t fun, void *aux)
+{
+    set_hook(this, make_temporary_q, (void *)fun, aux);
 }
 
 
@@ -1392,9 +1483,11 @@ voidc_global_ctx_t::static_initialize(void)
 {
     auto q = v_quark_from_string;
 
-    voidc_internal_function_type_q       = q("voidc.internal_function_type");
-    voidc_internal_return_value_q        = q("voidc.internal_return_value");
-    voidc_internal_branch_target_leave_q = q("voidc.internal_branch_target_leave");
+    obtain_module_q   = q("voidc.hook_obtain_module");
+    finish_module_q   = q("voidc.hook_finish_module");
+    adopt_result_q    = q("voidc.hook_adopt_result");
+    convert_to_type_q = q("voidc.hook_convert_to_type");
+    make_temporary_q  = q("voidc.hook_make_temporary");
 
 #if LLVM_VERSION_MAJOR < 18
     llvm_stacksave_q                     = q("llvm.stacksave");
@@ -1403,6 +1496,10 @@ voidc_global_ctx_t::static_initialize(void)
     llvm_stacksave_q                     = q("llvm.stacksave.p0");
     llvm_stackrestore_q                  = q("llvm.stackrestore.p0");
 #endif
+
+    voidc_internal_function_type_q       = q("voidc.internal_function_type");
+    voidc_internal_return_value_q        = q("voidc.internal_return_value");
+    voidc_internal_branch_target_leave_q = q("voidc.internal_branch_target_leave");
 
     //-------------------------------------------------------------
     LLVMInitializeAllTargetInfos();
@@ -1563,7 +1660,7 @@ voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
 {
     compiler = make_level_0_voidc_compiler();
 
-    adopt_result_fun = voidc_adopt_result_default;
+    set_adopt_result_hook(voidc_adopt_result_default, this);
 
     typenames = global.typenames;
 
@@ -2418,24 +2515,21 @@ voidc_unit_load_module_to_jit(LLVMModuleRef module, bool do_load)
 
 //---------------------------------------------------------------------
 obtain_module_t
-v_get_obtain_module(void **pctx)
+v_get_obtain_module_hook(void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    if (pctx) *pctx = lctx.obtain_module_ctx;
-
-    return lctx.obtain_module_fun;
+    return lctx.get_obtain_module_hook(paux);
 }
 
 void
-v_set_obtain_module(obtain_module_t fun, void *ctx)
+v_set_obtain_module_hook(obtain_module_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.obtain_module_fun = fun;
-    lctx.obtain_module_ctx = ctx;
+    lctx.set_obtain_module_hook(fun, aux);
 }
 
 LLVMModuleRef
@@ -2479,24 +2573,21 @@ v_obtain_identifier(const char *name, v_type_t * *type, LLVMValueRef *value)
 
 //---------------------------------------------------------------------
 finish_module_t
-v_get_finish_module(void **pctx)
+v_get_finish_module_hook(void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    if (pctx) *pctx = lctx.finish_module_ctx;
-
-    return lctx.finish_module_fun;
+    return lctx.get_finish_module_hook(paux);
 }
 
 void
-v_set_finish_module(finish_module_t fun, void *ctx)
+v_set_finish_module_hook(finish_module_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.finish_module_fun = fun;
-    lctx.finish_module_ctx = ctx;
+    lctx.set_finish_module_hook(fun, aux);
 }
 
 void
@@ -2710,24 +2801,21 @@ v_set_result_value(LLVMValueRef val)
 
 //---------------------------------------------------------------------
 adopt_result_t
-v_get_adopt_result(void **pctx)
+v_get_adopt_result_hook(void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    if (pctx) *pctx = lctx.adopt_result_ctx;
-
-    return lctx.adopt_result_fun;
+    return lctx.get_adopt_result_hook(paux);
 }
 
 void
-v_set_adopt_result(adopt_result_t fun, void *ctx)
+v_set_adopt_result_hook(adopt_result_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.adopt_result_fun = fun;
-    lctx.adopt_result_ctx = ctx;
+    lctx.set_adopt_result_hook(fun, aux);
 }
 
 void
@@ -2741,24 +2829,21 @@ v_adopt_result(v_type_t *type, LLVMValueRef value)
 
 //---------------------------------------------------------------------
 convert_to_type_t
-v_get_convert_to_type(void **pctx)
+v_get_convert_to_type_hook(void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    if (pctx) *pctx = lctx.convert_to_type_ctx;
-
-    return lctx.convert_to_type_fun;
+    return lctx.get_convert_to_type_hook(paux);
 }
 
 void
-v_set_convert_to_type(convert_to_type_t fun, void *ctx)
+v_set_convert_to_type_hook(convert_to_type_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.convert_to_type_fun = fun;
-    lctx.convert_to_type_ctx = ctx;
+    lctx.set_convert_to_type_hook(fun, aux);
 }
 
 LLVMValueRef
@@ -2772,24 +2857,21 @@ v_convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
 
 //---------------------------------------------------------------------
 make_temporary_t
-v_get_make_temporary(void **pctx)
+v_get_make_temporary_hook(void **paux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    if (pctx) *pctx = lctx.make_temporary_ctx;
-
-    return lctx.make_temporary_fun;
+    return lctx.get_make_temporary_hook(paux);
 }
 
 void
-v_set_make_temporary(make_temporary_t fun, void *ctx)
+v_set_make_temporary_hook(make_temporary_t fun, void *aux)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    lctx.make_temporary_fun = fun;
-    lctx.make_temporary_ctx = ctx;
+    lctx.set_make_temporary_hook(fun, aux);
 }
 
 LLVMValueRef

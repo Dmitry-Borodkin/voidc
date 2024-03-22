@@ -609,13 +609,15 @@ typedef LLVMTypeRef (*hook_obtain_llvm_type_t)(void *aux, const v_type_t *typ);
 //=====================================================================
 class voidc_types_ctx_t
 {
-    bool is_initialized = false;
+    bool _is_initialized = false;
 
     friend class base_global_ctx_t;
 
 public:
     voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t long_size, size_t ptr_size);
     ~voidc_types_ctx_t();
+
+    const bool &is_initialized = _is_initialized;
 
 public:
     const LLVMContextRef llvm_ctx;
@@ -702,26 +704,26 @@ protected:
     types_map_t<v_type_generic_t::arg_cons_t>    cons_args;
 
 public:
-    hook_initialize_t get_initialize_fun(int k, void **paux);
-    void set_initialize_fun(int k, hook_initialize_t fun, void *aux);
+    hook_initialize_t get_initialize_hook(int k, void **paux);
+    void set_initialize_hook(int k, hook_initialize_t fun, void *aux);
 
-    hook_obtain_llvm_type_t get_obtain_llvm_type_fun(int k, void **paux);
-    void set_obtain_llvm_type_fun(int k, hook_obtain_llvm_type_t fun, void *aux);
+    hook_obtain_llvm_type_t get_obtain_llvm_type_hook(int k, void **paux);
+    void set_obtain_llvm_type_hook(int k, hook_obtain_llvm_type_t fun, void *aux);
 
 public:
-    v_type_void_t * const void_type;
+    v_type_t * const void_type;
 
-    v_type_uint_t * const bool_type;
-    v_type_int_t  * const char_type;
-    v_type_int_t  * const short_type;
-    v_type_int_t  * const int_type;
-    v_type_uint_t * const unsigned_type;
-    v_type_int_t  * const long_type;
-    v_type_int_t  * const long_long_type;
-    v_type_int_t  * const intptr_t_type;
-    v_type_uint_t * const size_t_type;
-    v_type_uint_t * const char32_t_type;
-    v_type_uint_t * const uint64_t_type;
+    v_type_t * const bool_type;
+    v_type_t * const char_type;
+    v_type_t * const short_type;
+    v_type_t * const int_type;
+    v_type_t * const unsigned_type;
+    v_type_t * const long_type;
+    v_type_t * const long_long_type;
+    v_type_t * const intptr_t_type;
+    v_type_t * const size_t_type;
+    v_type_t * const char32_t_type;
+    v_type_t * const uint64_t_type;
 };
 
 
@@ -731,7 +733,7 @@ LLVMTypeRef
 v_type_t::obtain_llvm_type(void) const
 {
     void *aux;
-    auto *fun = context.get_obtain_llvm_type_fun(kind(), &aux);
+    auto *fun = context.get_obtain_llvm_type_hook(kind(), &aux);
 
     return fun(aux, this);
 }

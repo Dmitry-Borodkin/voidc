@@ -199,11 +199,11 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
     //- Do inlining! --------------------------------------------------
 
     saved_obtain_module_ctx: &*void := v_undef();
-    saved_obtain_module_fun = v_get_obtain_module(&saved_obtain_module_ctx);
+    saved_obtain_module_fun = v_get_obtain_module_hook(&saved_obtain_module_ctx);
 
     mod: &LLVMModuleRef := 0;
 
-    v_set_obtain_module(obtain_module_for_inlining, &mod);
+    v_set_obtain_module_hook(obtain_module_for_inlining, &mod);
 
 
     inner_stmt_list = v_alloca(v_ast_stmt_list_t);
@@ -225,7 +225,7 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
     v_handle(ctx, vis, self);           //- Sic!
     //------------------------------------------
 
-    v_set_obtain_module(saved_obtain_module_fun, saved_obtain_module_ctx);
+    v_set_obtain_module_hook(saved_obtain_module_fun, saved_obtain_module_ctx);
 
 
     fun_name: &*const char := v_undef();
@@ -451,9 +451,9 @@ voidc_enable_inlining_compiler: () ~> void
     voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[1]);
 
 
-    ctx.finish_module_ctx.fun := v_get_finish_module(&ctx.finish_module_ctx.ctx);
+    ctx.finish_module_ctx.fun := v_get_finish_module_hook(&ctx.finish_module_ctx.ctx);
 
-    v_set_finish_module(finish_module_inlining, &ctx.finish_module_ctx);
+    v_set_finish_module_hook(finish_module_inlining, &ctx.finish_module_ctx);
 
 
     v_add_local_cleaner(free, &ctx);

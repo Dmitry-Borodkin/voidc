@@ -1737,9 +1737,9 @@
     defn_module := saved_module;
 
     saved_obtain_module_ctx = *v_alloca(*void);
-    saved_obtain_module_fun = v_get_obtain_module(&saved_obtain_module_ctx);
+    saved_obtain_module_fun = v_get_obtain_module_hook(&saved_obtain_module_ctx);
 
-    v_set_obtain_module(check_defn_module, &defn_module);
+    v_set_obtain_module_hook(check_defn_module, &defn_module);
 
     //- Declarations (i.e. "types of things") ---------------------
 
@@ -1808,12 +1808,6 @@
         saved_voidc_module = v_get_module();
 
         //---------------------------------------------------------
-        v_import("level-00/voidc_target.void");
-        v_import("level-00/voidc_types.void");
-
-        v_import("llvm-c/Core.void");
-
-        //---------------------------------------------------------
         expr0 = v_cast(v_list_get_item(list, 1), v_ast_expr_ptr);
         expr1 = v_cast(v_list_get_item(list, 2), v_ast_expr_ptr);
 
@@ -1821,6 +1815,12 @@
         column = v_cast(v_ast_expr_integer_get_number(expr1), int);
 
         voidc_prepare_unit_action(line, column);
+
+        //---------------------------------------------------------
+        v_import("level-00/voidc_target.void");
+        v_import("level-00/voidc_types.void");
+
+        v_import("llvm-c/Core.void");
 
         //---------------------------------------------------------
         if (mod_const)
@@ -1935,7 +1935,7 @@
 
 
     //-------------------------------------------------------------
-    v_set_obtain_module(saved_obtain_module_fun, saved_obtain_module_ctx);
+    v_set_obtain_module_hook(saved_obtain_module_fun, saved_obtain_module_ctx);
 
     v_set_module(saved_module);
 }
@@ -2159,9 +2159,9 @@
     //-------------------------------------------------------------
     convert_ctx = def_ctx[ctx_convert_ctx];
 
-    convert_ctx[0] := v_get_convert_to_type(&convert_ctx[1]);
+    convert_ctx[0] := v_get_convert_to_type_hook(&convert_ctx[1]);
 
-    v_set_convert_to_type(convert_to_type, &convert_ctx);
+    v_set_convert_to_type_hook(convert_to_type, &convert_ctx);
 
     //-----------------------------------------------------------------
     fun_params = def_ctx[ctx_fun_params];

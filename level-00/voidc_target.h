@@ -217,23 +217,29 @@ public:
 public:
     LLVMModuleRef module = nullptr;
 
-    obtain_module_t obtain_module_fun = nullptr;
-    void           *obtain_module_ctx = nullptr;
+    obtain_module_t get_obtain_module_hook(void **paux);
+    void            set_obtain_module_hook(obtain_module_t fun, void *aux);
 
     LLVMModuleRef obtain_module(void)
     {
-        if (obtain_module_fun)  return  obtain_module_fun(obtain_module_ctx);
-        else                    return  nullptr;        //- Sic!
+        void *aux;
+        auto *fun = get_obtain_module_hook(&aux);
+
+        if (fun)  return fun(aux);
+        else      return nullptr;           //- Sic!
     }
 
     bool obtain_identifier(v_quark_t name, v_type_t * &type, LLVMValueRef &value);
 
-    finish_module_t finish_module_fun = nullptr;
-    void           *finish_module_ctx = nullptr;
+    finish_module_t get_finish_module_hook(void **paux);
+    void            set_finish_module_hook(finish_module_t fun, void *aux);
 
     void finish_module(LLVMModuleRef mod)
     {
-        if (finish_module_fun)  finish_module_fun(finish_module_ctx, mod);
+        void *aux;
+        auto *fun = get_finish_module_hook(&aux);
+
+        if (fun)  fun(aux, mod);
     }
 
 public:
@@ -265,30 +271,39 @@ public:
     v_type_t    *result_type  = nullptr;
     LLVMValueRef result_value = nullptr;
 
-    adopt_result_t adopt_result_fun;
-    void          *adopt_result_ctx;
+    adopt_result_t get_adopt_result_hook(void **paux);
+    void           set_adopt_result_hook(adopt_result_t fun, void *aux);
 
     void adopt_result(v_type_t *type, LLVMValueRef value)
     {
-        return adopt_result_fun(adopt_result_ctx, type, value);
+        void *aux;
+        auto *fun = get_adopt_result_hook(&aux);
+
+        fun(aux, type, value);
     }
 
 public:
-    convert_to_type_t convert_to_type_fun;
-    void             *convert_to_type_ctx;
+    convert_to_type_t get_convert_to_type_hook(void **paux);
+    void              set_convert_to_type_hook(convert_to_type_t fun, void *aux);
 
     LLVMValueRef convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
     {
-        return convert_to_type_fun(convert_to_type_ctx, t0, v0, t1);
+        void *aux;
+        auto *fun = get_convert_to_type_hook(&aux);
+
+        return fun(aux, t0, v0, t1);
     }
 
 public:
-    make_temporary_t make_temporary_fun;
-    void            *make_temporary_ctx;
+    make_temporary_t get_make_temporary_hook(void **paux);
+    void             set_make_temporary_hook(make_temporary_t fun, void *aux);
 
     LLVMValueRef make_temporary(v_type_t *t, LLVMValueRef v)
     {
-        return make_temporary_fun(make_temporary_ctx, t, v);
+        void *aux;
+        auto *fun = get_make_temporary_hook(&aux);
+
+        return fun(aux, t, v);
     }
 
     void add_temporary_cleaner(temporary_cleaner_t fun, void *data);

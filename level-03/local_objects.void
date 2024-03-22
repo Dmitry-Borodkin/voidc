@@ -362,7 +362,7 @@ v_type_is_special: (t: *v_type_t, q: v_quark_t) ~> bool
 
 //=====================================================================
 private
-v_type_function_obtain_llvm_type_hook: (*void, ft: *v_type_t) ~> LLVMTypeRef
+my_type_function_obtain_llvm_type_hook: (*void, ft: *v_type_t) ~> LLVMTypeRef
 {
     par_count = v_type_function_get_param_count(ft);
     par_types = v_type_function_get_param_types(ft);
@@ -1450,7 +1450,7 @@ voidc_enable_local_objects_compiler: () ~> void
     //-----------------------------------------------------------------
     vis = v_get_compiler();
 
-    v_type_set_obtain_llvm_type_fun(v_type_kind_function, v_type_function_obtain_llvm_type_hook, 0);
+    v_type_set_obtain_llvm_type_hook(v_type_kind_function, my_type_function_obtain_llvm_type_hook, 0);
 
     //-----------------------------------------------------------------
     ctx = *v_malloc(local_objects_ctx_t);
@@ -1481,9 +1481,9 @@ voidc_enable_local_objects_compiler: () ~> void
 
     hnd := {my_llvm_build_call_helper, &ctx};
 
-    ctx.adopt_result.fun := v_get_adopt_result(&ctx.adopt_result.ctx);
+    ctx.adopt_result.fun := v_get_adopt_result_hook(&ctx.adopt_result.ctx);
 
-    v_set_adopt_result(my_adopt_result, &ctx);
+    v_set_adopt_result_hook(my_adopt_result, &ctx);
 
     //-----------------------------------------------------------------
     q = v_quark_from_string("v_return");

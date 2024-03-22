@@ -4321,9 +4321,9 @@
     saved_ctx_fun = v_getelementptr(saved_ctx, 0, 0);
     saved_ctx_ctx = v_getelementptr(saved_ctx, 0, 1);
 
-    v_store(v_get_convert_to_type(saved_ctx_ctx), saved_ctx_fun);
+    v_store(v_get_convert_to_type_hook(saved_ctx_ctx), saved_ctx_fun);
 
-    v_set_convert_to_type(convert_to_type, saved_ctx);
+    v_set_convert_to_type_hook(convert_to_type, saved_ctx);
 
     v_add_local_cleaner(free, saved_ctx);
 
