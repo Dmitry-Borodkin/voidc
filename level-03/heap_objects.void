@@ -926,18 +926,19 @@ voidc_enable_heap_objects_compiler: () ~> void
 
     ctx = *v_malloc(voidc_internal_heap_objects_ctx_t);
 
-    if (v_find_constant("_WIN32", 0, 0))
-    {
-        ctx.alloc.alloc := v_quark_from_string("_aligned_malloc");
-        ctx.alloc.free  := v_quark_from_string("_aligned_free");
-        ctx.alloc.swap  := true;
-    }
-    else
-    {
-        ctx.alloc.alloc := v_quark_from_string("aligned_alloc");
-        ctx.alloc.free  := v_quark_from_string("free");
-        ctx.alloc.swap  := false;
-    }
+#if (v_defined(_WIN32))
+
+    ctx.alloc.alloc := v_quark_from_string("_aligned_malloc");
+    ctx.alloc.free  := v_quark_from_string("_aligned_free");
+    ctx.alloc.swap  := true;
+
+#else
+
+    ctx.alloc.alloc := v_quark_from_string("aligned_alloc");
+    ctx.alloc.free  := v_quark_from_string("free");
+    ctx.alloc.swap  := false;
+
+#endif
 
     {   _void = v_find_type("void");
 

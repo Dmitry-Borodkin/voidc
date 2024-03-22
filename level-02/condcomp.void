@@ -1,0 +1,287 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2024 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("condcomp.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("loops_etc.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_loops_etc();
+}
+
+
+//---------------------------------------------------------------------
+{
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("unit_ccif_list_q", q_ref, q("unit_ccif_list"));
+    v_add_symbol("stmt_ccif_list_q", q_ref, q("stmt_ccif_list"));
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("condcomp_module"); }
+
+
+//---------------------------------------------------------------------
+//- Grammar actions ...
+//---------------------------------------------------------------------
+private
+mk_unit_ccif_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+{
+    list = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+    cond = v_std_any_get_pointer(v_ast_expr_t,         any+1);
+    undl = v_std_any_get_pointer(v_ast_generic_list_t, any+2);
+
+    if (!undl)
+    {
+        v_std_any_set_pointer(ret, (list: *v_ast_base_t));
+
+        v_return();
+    }
+
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    if (cond)   v_copy(expr, cond);
+
+    ccif = v_alloca(v_ast_generic_list_t);
+    v_initialize(ccif);
+    defer v_terminate(ccif);
+
+    if (list)   v_list_append(ccif, list, (expr: *v_ast_base_t));
+    else        v_make_list(ccif, unit_ccif_list_q, (expr: *v_ast_base_t));
+
+    v_list_append(ccif, ccif, (undl: *v_ast_base_t));
+
+    v_std_any_set_pointer(ret, ccif);
+}
+
+//---------------------------------------------------------------------
+private
+mk_stmt_ccif_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+{
+    list = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+    cond = v_std_any_get_pointer(v_ast_expr_t,         any+1);
+    slst = v_std_any_get_pointer(v_ast_stmt_list_t,    any+2);
+
+    if (!slst)
+    {
+        v_std_any_set_pointer(ret, (list: *v_ast_stmt_t));
+
+        v_return();
+    }
+
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    if (cond)   v_copy(expr, cond);
+
+    ccif = v_alloca(v_ast_generic_list_t);
+    v_initialize(ccif);
+    defer v_terminate(ccif);
+
+    if (list)   v_list_append(ccif, list, (expr: *v_ast_base_t));
+    else        v_make_list(ccif, stmt_ccif_list_q, (expr: *v_ast_base_t));
+
+    v_list_append(ccif, ccif, (slst: *v_ast_base_t));
+
+    v_std_any_set_pointer(ret, ccif);
+}
+
+
+//---------------------------------------------------------------------
+//- Compiler methods...
+//---------------------------------------------------------------------
+private
+compile_unit_ccif_list: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    list = (self: *v_ast_generic_list_t);
+
+    size = v_list_get_size(list);
+
+    builder = v_target_get_builder();
+
+    for (i: &int := 0; i < size; i += 2)
+    {
+        cond = v_list_get_item(list, i);
+
+        if (!v_empty(cond))
+        {
+            v_set_result_type(UNREFERENCE_TAG);
+            v_set_result_value(0);
+
+            v_ast_accept_visitor(cond, vis);
+
+            v = v_get_result_value();
+
+            v = LLVMBuildIsNotNull(builder, v, "");
+
+            if (!LLVMConstIntGetZExtValue(v))  v_continue();
+        }
+
+        undl = (v_list_get_item(list, i+1) : *v_ast_generic_list_t);
+
+        n = v_list_get_size(undl);
+
+        for (j: &int := 0; j < n; ++j)
+        {
+            item = v_list_get_item(undl, j);
+
+            v_ast_accept_visitor(item, vis);
+        }
+
+        v_break();
+    }
+}
+
+//---------------------------------------------------------------------
+private
+compile_stmt_ccif_list: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    list = (self: *v_ast_generic_list_t);
+
+    size = v_list_get_size(list);
+
+    builder = v_target_get_builder();
+
+    for (i: &int := 0; i < size; i += 2)
+    {
+        cond = v_list_get_item(list, i);
+
+        if (!v_empty(cond))
+        {
+            v_set_result_type(UNREFERENCE_TAG);
+            v_set_result_value(0);
+
+            v_ast_accept_visitor(cond, vis);
+
+            v = v_get_result_value();
+
+            v = LLVMBuildIsNotNull(builder, v, "");
+
+            if (!LLVMConstIntGetZExtValue(v))  v_continue();
+        }
+
+        slst = v_list_get_item(list, i+1);
+
+        v_ast_accept_visitor(slst, vis);
+
+        v_break();
+    }
+}
+
+
+//---------------------------------------------------------------------
+//- v_defined intrinsic
+//---------------------------------------------------------------------
+private
+v_defined_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    name = v_ast_expr_identifier_get_name(v_list_get_item(args, 0));
+
+    ok = v_find_constant(name, 0, 0);
+
+    ok = LLVMConstInt(v_type_get_llvm_type(bool), ok, false);
+
+    v_adopt_result(bool, ok);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable conditional compilation
+//---------------------------------------------------------------------
+export
+voidc_enable_condcomp_compiler: () ~> void
+{
+    vis = v_get_compiler();
+
+    v_return_if(voidc_visitor_get_void_method(vis, unit_ccif_list_q, 0));
+
+    voidc_visitor_set_void_method(vis, vis, unit_ccif_list_q, compile_unit_ccif_list, 0);
+    voidc_visitor_set_void_method(vis, vis, stmt_ccif_list_q, compile_stmt_ccif_list, 0);
+
+    v_add_intrinsic("v_defined", v_defined_intrinsic, 0);
+}
+
+//---------------------------------------------------------------------
+//- Enable conditional compilation
+//---------------------------------------------------------------------
+export
+voidc_enable_condcomp: () ~> void
+{
+    voidc_enable_condcomp_compiler();
+
+    v_return_if_not(voidc_has_grammar());
+    v_return_if(voidc_grammar_has_parser("unit_ccif"));
+
+    gr0 = v_alloca(v_peg_grammar_t);
+    v_initialize(gr0);
+    defer v_terminate(gr0);
+
+    v_peg_get_grammar(gr0);
+
+    grammar gr0
+    {
+    actions:
+        mk_unit_ccif = mk_unit_ccif_grammar_action;
+        mk_stmt_ccif = mk_stmt_ccif_grammar_action;
+
+    parsers:
+
+        unit_ccif_lr = l:unit_ccif_lr _ "#elif" _'('_ c:expr _')'_ u:unit_defn_list_lr  { mk_unit_ccif(l, c, u) }
+                     / "#if" _'('_ c:expr _')'_ u:unit_defn_list_lr                     { mk_unit_ccif(0, c, u) }
+                     ;
+
+        unit_ccif_lr is left-recursive;
+
+
+        unit_ccif_list = l:unit_ccif_lr _ "#else" !ident_cont _ u:unit_defn_list_lr     { mk_unit_ccif(l, 0, u) }
+                       / unit_ccif_lr
+                       ;
+
+        unit_ccif = l:unit_ccif_list _ "#endif" !ident_cont     { mk_unit_ccif(l, 0, 0) };
+
+        unit_defn += unit_ccif;
+
+
+        stmt_ccif_lr = l:stmt_ccif_lr _ "#elif" _'('_ c:expr _')'_ s:stmt_list  { mk_stmt_ccif(l, c, s) }
+                     / "#if" _'('_ c:expr _')'_ s:stmt_list                     { mk_stmt_ccif(0, c, s) }
+                     ;
+
+        stmt_ccif_lr is left-recursive;
+
+
+        stmt_ccif_list = l:stmt_ccif_lr _ "#else" !ident_cont _ s:stmt_list     { mk_stmt_ccif(l, 0, s) }
+                       / stmt_ccif_lr
+                       ;
+
+        stmt_ccif = l:stmt_ccif_list _ "#endif" !ident_cont     { mk_stmt_ccif(l, 0, 0) };
+
+        stmt += stmt_ccif;
+    }
+
+    v_peg_set_grammar(gr0);
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+
