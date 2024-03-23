@@ -197,7 +197,7 @@ obtain_special_result_value_global_ctx_t = struct
 private
 obtain_special_result_value_global: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef
 {
-    //- assert(v_type_is_special(t, q_initialize));
+    v_assert(v_type_is_special(t, q_initialize));
 
     ctx = *(aux: *obtain_special_result_value_global_ctx_t);
 
@@ -205,7 +205,7 @@ obtain_special_result_value_global: (aux: *void, vis: *voidc_visitor_t, t: *v_ty
 
     module = v_get_module();
 
-    //- assert(module);
+    v_assert(module);
 
     v: &LLVMValueRef := LLVMGetNamedGlobal(module, raw_name);
 
@@ -246,7 +246,7 @@ my_obtain_special_result_value_ctx_t = struct
 private
 my_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef
 {
-    //- assert(v_type_is_special(t, q_initialize));
+    v_assert(v_type_is_special(t, q_initialize));
 
     ctx = *(aux: *my_obtain_special_result_value_ctx_t);
 
@@ -408,7 +408,7 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     }
     else        //- !v_empty(value)
     {
-        //- assert(v_get_module() == 0);
+        v_assert(v_get_module() == 0);
 
         v_set_module(v_obtain_module());
 
@@ -620,7 +620,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
         v_set_result_type((v_get_result_value() : v_type_ptr));
     }
 
-    //- assert(v_get_module() == 0);
+    v_assert(v_get_module() == 0);
 
     v_set_module(v_obtain_module());
 
@@ -937,7 +937,7 @@ my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
             {
                 module := v_obtain_module();
 
-                v_set_module(module);       //- assert(module);
+                v_set_module(module);       v_assert(module);
             }
 
             v := LLVMGetNamedGlobal(module, cname);
@@ -961,7 +961,7 @@ my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
             if (u)  v_break();
         }
 
-        //- assert(v_type_is_reference(t));         //- HACK!
+        v_assert(v_type_is_reference(t));           //- HACK!
 
         t := v_type_refptr_get_element_type(t);     //- Sic!!!
 
@@ -1013,7 +1013,7 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
     if (!saved_module)                  //- "direct declarations"
     {
-        //- assert(!LLVMGetInsertBlock(v_target_get_builder()));
+        v_assert(!LLVMGetInsertBlock(v_target_get_builder()));
 
         //- voidc_guard_target(...);
 

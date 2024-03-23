@@ -14,6 +14,7 @@
 
     v_import("literals.void");
     v_import("loops_etc.void");
+    v_import("condcomp.void");
     v_import("aggregates.void");
     v_import("overloading.void");
     v_import("projections.void");
@@ -27,6 +28,7 @@
 
     voidc_enable_literals();
     voidc_enable_loops_etc();
+    voidc_enable_condcomp();
     voidc_enable_aggregates();
     voidc_enable_overloading();
     voidc_enable_projections();
@@ -381,20 +383,20 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) ~> void
         {
             if (!hack->module)
             {
-                //- assert(hack->membuf);
+                v_assert(hack->membuf);
 
                 ok = LLVMParseBitcodeInContext2(llvm_ctx, hack->membuf, &hack->module);
 
-                //- assert(ok == 0);        //- ?
+                v_assert(ok == 0);          //- ?
             }
 
-            //- assert(hack->module);
+            v_assert(hack->module);
 
             m = LLVMCloneModule(hack->module);
 
             ok = LLVMLinkModules2(module, m);
 
-            //- assert(ok == 0);        //- ?
+            v_assert(ok == 0);          //- ?
 
             f = LLVMGetNamedFunction(module, v_quark_to_string(hack->quark));
 

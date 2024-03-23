@@ -11,7 +11,7 @@
 
     v_import("loops_etc.void");
 
-    v_import("printf.void");
+//  v_import("printf.void");
 }
 
 {   v_enable_level_01();
@@ -28,11 +28,16 @@
 
     v_add_symbol("unit_ccif_list_q", q_ref, q("unit_ccif_list"));
     v_add_symbol("stmt_ccif_list_q", q_ref, q("stmt_ccif_list"));
+
+    v_add_symbol("cc_message_q", q_ref, q("cc_message"));
+
+    v_add_symbol("pos_start_q", q_ref, q("pos_start"));
+    v_add_symbol("pos_end_q",   q_ref, q("pos_end"));
 }
 
 
 //=====================================================================
-{   voidc_unit_begin_module("condcomp_module"); }
+{   voidc_unit_begin_module("condcomp_module_N1"); }
 
 
 //---------------------------------------------------------------------
@@ -205,10 +210,9 @@ v_defined_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
 
 //---------------------------------------------------------------------
-//- Enable conditional compilation
+//- Enable conditional compilation #1
 //---------------------------------------------------------------------
-export
-voidc_enable_condcomp_compiler: () ~> void
+voidc_enable_condcomp_n1_compiler: () ~> void
 {
     vis = v_get_compiler();
 
@@ -221,12 +225,11 @@ voidc_enable_condcomp_compiler: () ~> void
 }
 
 //---------------------------------------------------------------------
-//- Enable conditional compilation
+//- Enable conditional compilation #1
 //---------------------------------------------------------------------
-export
-voidc_enable_condcomp: () ~> void
+voidc_enable_condcomp_n1: () ~> void
 {
-    voidc_enable_condcomp_compiler();
+    voidc_enable_condcomp_n1_compiler();
 
     v_return_if_not(voidc_has_grammar());
     v_return_if(voidc_grammar_has_parser("unit_ccif"));
@@ -275,6 +278,295 @@ voidc_enable_condcomp: () ~> void
         stmt_ccif = l:stmt_ccif_list _ "#endif" !ident_cont     { mk_stmt_ccif(l, 0, 0) };
 
         stmt += stmt_ccif;
+    }
+
+    v_peg_set_grammar(gr0);
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+//---------------------------------------------------------------------
+{   voidc_enable_condcomp_n1(); }
+
+
+//=====================================================================
+{   voidc_unit_begin_module("condcomp_module_N2"); }
+
+
+//---------------------------------------------------------------------
+//- Grammar actions ...
+//---------------------------------------------------------------------
+private
+mk_cc_message_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+{
+    tstr = v_std_any_get_pointer(v_std_string_t,    any+0);
+    elst = v_std_any_get_pointer(v_ast_expr_list_t, any+1);
+
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    v_ast_make_expr_string(expr, v_std_string_get(tstr));
+
+    list = v_alloca(v_ast_generic_list_t);
+    v_initialize(list);
+    defer v_terminate(list);
+
+    v_make_list(list, cc_message_q, (expr: *v_ast_base_t));
+
+    v_list_append(list, list, (elst: *v_ast_base_t));
+
+    kind = v_std_any_get_value(intptr_t, any+2);
+
+    if (kind) v_std_any_set_pointer(ret, (list : *v_ast_stmt_t));       //- stmt
+    else      v_std_any_set_pointer(ret, (list : *v_ast_base_t));       //- unit_defn
+}
+
+
+//---------------------------------------------------------------------
+//- Compiler methods...
+//---------------------------------------------------------------------
+private
+compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    list = (self: *v_ast_generic_list_t);
+
+    etag = (v_list_get_item(list, 0) : *v_ast_expr_t);
+
+    tag = v_ast_expr_string_get_string(etag);
+
+    tag = (tag[0] : char32_t);
+
+    stag: &*const char := "?";
+
+    switch(tag)
+    {
+    case 'e':   stag := "Error";    v_break();
+    case 'w':   stag := "Warning";  v_break();
+    case 'n':   stag := "Note";     v_break();
+    }
+
+    elst = (v_list_get_item(list, 1) : *v_ast_expr_list_t);
+
+    str = v_ast_expr_string_get_string(v_list_get_item(elst, 0));      //- Sic!
+
+    //-----------------------------------------------------------------
+    filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
+
+    function: &*const char := "?";
+
+    {   builder = v_target_get_builder();
+
+        if (cur_b = LLVMGetInsertBlock(builder))
+        {
+            fun = LLVMGetBasicBlockParent(cur_b);
+
+            len: &size_t := v_undef();
+
+            function := LLVMGetValueName2(fun, &len);
+        }
+    }
+
+    line:   &size_t := v_undef();
+    column: &size_t := v_undef();
+
+    ps = v_std_any_get_value(size_t, v_ast_get_property(self, pos_start_q));
+
+    v_peg_get_line_column(ps, line, column);
+
+    //-----------------------------------------------------------------
+    printf: (*const char, ...) ~> int;
+
+    printf("%s:%zd: %s: %s: %s\n", filename, line+1, function, stag, str);
+    //-----------------------------------------------------------------
+
+    if (tag == 'e')
+    {
+        abort: () ~> void;
+
+        abort();
+    }
+}
+
+//---------------------------------------------------------------------
+//- v_assert intrinsic
+//---------------------------------------------------------------------
+private
+v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    if (v_find_constant("NDEBUG", 0, 0))   v_return();
+
+    call = (self: *v_ast_expr_t);
+
+    args = v_ast_expr_call_get_arg_list(call);
+
+    arg0 = v_list_get_item(args, 0);
+
+    len: &size_t := 0;
+
+    module = v_get_module();
+
+    filename = LLVMGetSourceFileName(module, &len);
+
+#if (!v_defined(_WIN32))
+
+    function: &*const char := "";
+
+    {   builder = v_target_get_builder();
+
+        if (cur_b = LLVMGetInsertBlock(builder))
+        {
+            fun = LLVMGetBasicBlockParent(cur_b);
+
+            function := LLVMGetValueName2(fun, &len);
+        }
+    }
+
+#endif
+
+    line:   &size_t := v_undef();
+    column: &size_t := v_undef();
+
+    ps = v_std_any_get_value(size_t, v_ast_get_property((arg0: *v_ast_base_t), pos_start_q));
+    pe = v_std_any_get_value(size_t, v_ast_get_property((arg0: *v_ast_base_t), pos_end_q));
+
+    v_peg_get_line_column(ps, line, column);
+
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    v_peg_take_string(sstr, ps, pe);
+
+    list = v_alloca(v_ast_expr_list_t);
+    v_initialize(list);
+    defer v_terminate(list);
+
+    v_make_list_nil(list);
+
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    v_ast_make_expr_string(expr, v_std_string_get(sstr));
+
+    v_list_append(list, list, expr);
+
+    v_ast_make_expr_string(expr, filename);
+
+    v_list_append(list, list, expr);
+
+    v_ast_make_expr_integer(expr, (line+1 : intptr_t));
+
+    v_list_append(list, list, expr);
+
+#if (v_defined(_WIN32))
+
+    v_ast_make_expr_identifier(expr, "_assert");
+
+#else
+
+    v_ast_make_expr_string(expr, function);
+
+    v_list_append(list, list, expr);
+
+    v_ast_make_expr_identifier(expr, "__assert_fail");
+
+#endif
+
+    v_ast_make_expr_call(expr, expr, list);
+
+    stmt = v_alloca(v_ast_stmt_t, 2);
+    v_initialize(stmt, 2);
+    defer v_terminate(stmt, 2);
+
+    v_ast_make_stmt(stmt+1, "", expr);
+
+    v_ast_make_stmt_if_then_else(stmt+0, arg0, stmt+0, stmt+1);
+
+    v_ast_accept_visitor((stmt+0: *v_ast_base_t), vis);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable conditional compilation
+//---------------------------------------------------------------------
+export
+voidc_enable_condcomp_compiler: () ~> void
+{
+    voidc_enable_condcomp_n1_compiler();
+
+    vis = v_get_compiler();
+
+    v_return_if(voidc_visitor_get_void_method(vis, cc_message_q, 0));
+
+    voidc_visitor_set_void_method(vis, vis, cc_message_q, compile_cc_message, 0);
+
+    _char_ptr = v_pointer_type(v_find_type("char"), 0);
+    _unsigned = v_find_type("unsigned");
+
+#if (v_defined(_WIN32))
+
+    typ: &(*v_type_t)[3] := v_undef();
+
+    typ[0] := _char_ptr;            //- message
+    typ[1] := _char_ptr;            //- filename
+    typ[2] := _unsigned;            //- line
+
+    ft = v_function_type(v_void_type(), typ, 3, false);
+
+    fn = "_assert";
+
+#else
+
+    typ: &(*v_type_t)[4] := v_undef();
+
+    typ[0] := _char_ptr;            //- assertion
+    typ[1] := _char_ptr;            //- filename
+    typ[2] := _unsigned;            //- line
+    typ[3] := _char_ptr;            //- function
+
+    ft = v_function_type(v_void_type(), typ, 4, false);
+
+    fn = "__assert_fail";
+
+#endif
+
+    v_add_symbol(fn, ft, 0);
+
+    v_add_intrinsic("v_assert", v_assert_intrinsic, 0);
+}
+
+//---------------------------------------------------------------------
+//- Enable conditional compilation
+//---------------------------------------------------------------------
+export
+voidc_enable_condcomp: () ~> void
+{
+    voidc_enable_condcomp_compiler();
+
+    v_return_if_not(voidc_has_grammar());
+
+    voidc_enable_condcomp_n1();
+
+    gr0 = v_alloca(v_peg_grammar_t);
+    v_initialize(gr0);
+    defer v_terminate(gr0);
+
+    v_peg_get_grammar(gr0);
+
+    v_return_if(v_peg_grammar_get_action(gr0, "mk_cc_message", 0));
+
+    grammar gr0
+    {
+    actions:
+        mk_cc_message = mk_cc_message_grammar_action;
+
+    parsers:
+        unit_defn += '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message(t, l, 0) };
+        stmt      += '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message(t, l, 1) };
     }
 
     v_peg_set_grammar(gr0);

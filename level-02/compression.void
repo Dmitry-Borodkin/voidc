@@ -11,6 +11,7 @@
 
     v_import("literals.void");
     v_import("loops_etc.void");
+    v_import("condcomp.void");
     v_import("aggregates.void");
     v_import("overloading.void");
     v_import("projections.void");
@@ -23,6 +24,7 @@
 
     voidc_enable_literals();
     voidc_enable_loops_etc();
+    voidc_enable_condcomp();
     voidc_enable_aggregates();
     voidc_enable_overloading();
     voidc_enable_projections();
@@ -86,7 +88,7 @@ myz_get_byte: (ctx: &v_myz_ctx_t) ~> byte
         exit(-1);
     }
 
-    //- assert(ctx.avail_in != 0);
+    v_assert(ctx.avail_in != 0);
 
     ctx.avail_in--;
 
@@ -144,7 +146,7 @@ myz_check_eod: (ctx: &v_myz_ctx_t) ~> bool
 
     if (ctx.check_in  &&  ctx.check_in(ctx))  v_return(false);
 
-    //- assert(ctx.avail_in == 0);
+    v_assert(ctx.avail_in == 0);
 
     v_return(ctx.buffer_in == 1);
 }
@@ -163,7 +165,7 @@ myz_put_byte: (ctx: &v_myz_ctx_t, b: byte) ~> void
         exit(-1);
     }
 
-    //- assert(ctx.avail_out != 0);
+    v_assert(ctx.avail_out != 0);
 
     ctx.avail_out--;
 
