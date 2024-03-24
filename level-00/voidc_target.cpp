@@ -1463,12 +1463,15 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
 
 //---------------------------------------------------------------------
+static v_quark_t voidc_typenames_q;
+
+//---------------------------------------------------------------------
 void
 voidc_global_ctx_t::initialize_type(v_quark_t raw_name, v_type_t *type)
 {
     base_global_ctx_t::initialize_type(raw_name, type);
 
-    typenames = typenames.insert({type, raw_name});
+    decls.overloads_insert(voidc_typenames_q, type, raw_name);      //- Sic!
 };
 
 
@@ -1482,6 +1485,8 @@ void
 voidc_global_ctx_t::static_initialize(void)
 {
     auto q = v_quark_from_string;
+
+    voidc_typenames_q = q("voidc.typenames_dict");
 
     obtain_module_q   = q("voidc.hook_obtain_module");
     finish_module_q   = q("voidc.hook_finish_module");
@@ -1662,8 +1667,6 @@ voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
 
     set_adopt_result_hook(voidc_adopt_result_default, this);
 
-    typenames = global.typenames;
-
     auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
 
     std::string jd_name("voidc_jd_" + std::to_string(global.jd_hash));
@@ -1692,9 +1695,7 @@ voidc_local_ctx_t::export_type(v_quark_t raw_name, v_type_t *type)
 {
     base_local_ctx_t::export_type(raw_name, type);
 
-    if (auto *etns = export_typenames)  *etns = etns->insert({type, raw_name});
-
-    typenames = typenames.insert({type, raw_name});
+    export_overload(voidc_typenames_q, type, raw_name);          //- Sic!
 }
 
 //---------------------------------------------------------------------
@@ -1703,7 +1704,7 @@ voidc_local_ctx_t::add_type(v_quark_t raw_name, v_type_t *type)
 {
     base_local_ctx_t::add_type(raw_name, type);
 
-    typenames = typenames.insert({type, raw_name});
+    add_overload(voidc_typenames_q, type, raw_name);            //- Sic!
 }
 
 
@@ -1743,7 +1744,14 @@ voidc_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 
     if (lctx.result_type == UNREFERENCE_TAG  &&  type == vctx.static_type_type)
     {
-        if (auto pq = lctx.typenames.find(reinterpret_cast<v_type_t *>(value)))
+        const v_quark_t *pq = nullptr;
+
+        if (auto *i = lctx.decls.overloads.find(voidc_typenames_q))         //- WTF ?!?!?!?!?!?!?
+        {
+            pq = i->find(reinterpret_cast<v_type_t *>(value));
+        }
+
+        if (pq)
         {
             auto q = *pq;
 

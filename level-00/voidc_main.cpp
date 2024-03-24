@@ -445,7 +445,6 @@ v_import_helper(const char *name, bool _export)
     }
 
     base_compile_ctx_t::declarations_t *export_decls     = nullptr;
-    base_compile_ctx_t::typenames_t    *export_typenames = nullptr;
 
     auto &tctx = *voidc_global_ctx_t::target;
 
@@ -463,31 +462,13 @@ v_import_helper(const char *name, bool _export)
             {
                 auto res_e = target_lctx->exported.insert(src_filename_str);
 
-                if (res_e.second)
-                {
-                    target_lctx->export_decls->insert(it->second);
-
-                    if (&tctx == &vctx)
-                    {
-                        auto &tns = static_cast<voidc_local_ctx_t *>(target_lctx)->typenames;
-
-                        for (auto tni : vctx.imported_typenames[src_filename_str])
-                        {
-                            tns = tns.insert(tni);
-                        }
-                    }
-                }
+                if (res_e.second) target_lctx->export_decls->insert(it->second);
             }
 
             return;     //- Sic!
         }
 
         export_decls = &it->second;
-
-        if (&tctx == &vctx)
-        {
-            export_typenames = &vctx.imported_typenames[src_filename_str];
-        }
     }
 
     fs::path bin_filename = src_filename;
@@ -504,8 +485,7 @@ v_import_helper(const char *name, bool _export)
 
     if (&tctx == &vctx)
     {
-        lctx.export_decls     = export_decls;
-        lctx.export_typenames = export_typenames;
+        lctx.export_decls = export_decls;
     }
 
     if (use_binary)

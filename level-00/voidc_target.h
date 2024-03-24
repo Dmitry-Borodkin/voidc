@@ -83,8 +83,6 @@ public:
 
     declarations_t decls;
 
-    using typenames_t = immer::map<v_type_t *, v_quark_t>;
-
 public:
     std::map<v_quark_t, LLVMValueRef> constant_values;
 
@@ -384,10 +382,6 @@ public:
 public:
     void initialize_type(v_quark_t raw_name, v_type_t *type) override;
 
-    typenames_t typenames;
-
-    std::map<std::string, typenames_t> imported_typenames;
-
 public:
     static void static_initialize(void);
     static void static_terminate(void);
@@ -428,9 +422,6 @@ public:
     std::set<std::string> imports;
 
 public:
-    typenames_t *export_typenames = nullptr;
-    typenames_t  typenames;
-
     void export_type(v_quark_t raw_name, v_type_t *type) override;
     void add_type(v_quark_t raw_name, v_type_t *type) override;
 
