@@ -1231,8 +1231,8 @@ my_internal_var_defn_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast
     arg0 = v_list_get_item(arg_list, 0);
     arg1 = v_list_get_item(arg_list, 1);
 
-//  ttag = v_get_result_type();         v_assert(ttag == INVIOLABLE_TAG);
-    vtag = v_get_result_value();        v_assert(vtag == VARIABLE_VTAG);
+    v_assert(v_get_result_type()  == INVIOLABLE_TAG);
+    v_assert(v_get_result_value() == VARIABLE_VTAG);
 
     v_set_result_type(INVIOLABLE_TAG);
     v_set_result_value(0);
@@ -1247,7 +1247,7 @@ my_internal_var_defn_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast
     a = v_type_refptr_get_address_space(var_type);      //- Sic!
 
     v_set_result_type(t);
-    v_set_result_value(vtag);
+    v_set_result_value(VARIABLE_VTAG);
 
     ctx.obtain_spec_flag := false;
 

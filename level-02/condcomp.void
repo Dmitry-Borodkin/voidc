@@ -339,7 +339,7 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     tag = (tag[0] : char32_t);
 
-    stag: &*const char := "?";
+    stag: &*const char := "?!?";
 
     switch(tag)
     {
@@ -350,12 +350,12 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     elst = (v_list_get_item(list, 1) : *v_ast_expr_list_t);
 
-    str = v_ast_expr_string_get_string(v_list_get_item(elst, 0));      //- Sic!
+    msg = v_ast_expr_string_get_string(v_list_get_item(elst, 0));      //- Sic!
 
     //-----------------------------------------------------------------
     filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
 
-    function: &*const char := "?";
+    function: &*const char := 0;
 
     {   builder = v_target_get_builder();
 
@@ -377,11 +377,12 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     v_peg_get_line_column(ps, line, column);
 
     //-----------------------------------------------------------------
-    printf: (*const char, ...) ~> int;
+    printf: (*const char, ...) ~> int;                  //- ?!?!?!?!?!?
 
-    printf("%s:%zd: %s: %s: %s\n", filename, line+1, function, stag, str);
+    if (function) printf("%s:%zd: %s: %s: %s\n", filename, line+1, function, stag, msg);
+    else          printf("%s:%zd: %s: %s\n", filename, line+1, stag, msg);
+
     //-----------------------------------------------------------------
-
     if (tag == 'e')
     {
         abort: () ~> void;
@@ -404,21 +405,20 @@ v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     arg0 = v_list_get_item(args, 0);
 
-    len: &size_t := 0;
-
-    module = v_get_module();
-
-    filename = LLVMGetSourceFileName(module, &len);
+    //-----------------------------------------------------------------
+    filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
 
 #if (!v_defined(_WIN32))
 
-    function: &*const char := "";
+    function: &*const char := 0;
 
     {   builder = v_target_get_builder();
 
         if (cur_b = LLVMGetInsertBlock(builder))
         {
             fun = LLVMGetBasicBlockParent(cur_b);
+
+            len: &size_t := v_undef();
 
             function := LLVMGetValueName2(fun, &len);
         }
@@ -434,6 +434,7 @@ v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     v_peg_get_line_column(ps, line, column);
 
+    //-----------------------------------------------------------------
     sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
     defer v_terminate(sstr);
