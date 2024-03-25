@@ -444,7 +444,7 @@ v_import_helper(const char *name, bool _export)
         throw std::runtime_error(std::string("Import file not found: ") + name);
     }
 
-    base_compile_ctx_t::declarations_t *export_decls     = nullptr;
+    base_compile_ctx_t::declarations_t *export_decls = nullptr;
 
     auto &tctx = *voidc_global_ctx_t::target;
 

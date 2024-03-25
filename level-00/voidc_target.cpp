@@ -841,17 +841,22 @@ base_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 void
 base_local_ctx_t::push_variables(void)
 {
-    vars_stack.push_front({decls, vars});
+    vars_stack.push_front({decls, std::move(cleaners), vars});
+
+    cleaners.clear();
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::pop_variables(void)
 {
+    run_cleaners();
+
     auto &top = vars_stack.front();
 
-    decls = top.first;
-    vars  = top.second;
+    decls    = std::get<0>(top);
+    cleaners = std::get<1>(top);
+    vars     = std::get<2>(top);
 
     vars_stack.pop_front();
 }

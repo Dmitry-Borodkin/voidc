@@ -17,6 +17,7 @@
 #include <forward_list>
 #include <deque>
 #include <utility>
+#include <tuple>
 
 #include <immer/map.hpp>
 
@@ -114,7 +115,7 @@ protected:
         cleaners.clear();       //- Sic!
     }
 
-private:
+protected:
     cleaners_t cleaners;
 };
 
@@ -263,7 +264,7 @@ public:
     void pop_variables(void);
 
 private:
-    std::forward_list<std::pair<declarations_t, variables_t>> vars_stack;       //- Sic!
+    std::forward_list<std::tuple<declarations_t, cleaners_t, variables_t>> vars_stack;      //- Sic!
 
 public:
     v_type_t    *result_type  = nullptr;
