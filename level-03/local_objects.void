@@ -12,6 +12,8 @@
 
     v_import("intrinsics_derive.void");
 
+    v_import("level-01/handlers.void");      //- WTF?
+
 //  v_import("printf.void");
 }
 
@@ -1458,11 +1460,9 @@ voidc_enable_local_objects_compiler: () ~> void
     add_local_objects_context(&ctx);
 
     //-----------------------------------------------------------------
-    fun_params = voidc_definitions_context_get_fun_params();
+    ctx.fun_params[0] := v_get_prepare_function_parameters_hook(&ctx.fun_params[1]);
 
-    ctx.fun_params := fun_params;
-
-    fun_params := { my_prepare_function_parameters, &ctx };
+    v_set_prepare_function_parameters_hook(my_prepare_function_parameters, &ctx);
 
     //-----------------------------------------------------------------
     ctx.obtain_spec := {voidc_obtain_special_result_value_helper, &ctx.obtain_spec_flag};

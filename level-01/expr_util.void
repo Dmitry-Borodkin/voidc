@@ -15,7 +15,6 @@
     v_import("loop.void");
     v_import("switch.void");
     v_import("memory.void");
-    v_import("handlers.void");
 }
 
 //{ v_import("printf.void"); }
@@ -688,7 +687,10 @@
     //-----------------------------------------------------------------
     //- convert_to_type_ctx_t ...
     //-----------------------------------------------------------------
-    ctx_t = v_handler_type(ft);
+    v_store(v_pointer_type(ft, 0), typ0);
+    v_store(void_ptr,              typ1);
+
+    ctx_t = v_struct_type(typ0, 2, false);
 
     v_add_type("convert_to_type_ft",      ft);
     v_add_type("convert_to_type_ctx_t",   ctx_t);
@@ -749,7 +751,10 @@
     {
         ctx = v_cast(void_ctx, convert_to_type_ctx_ptr);
 
-        v_return( v_handle(ctx, type, value, to_type) );            //- Sic!!!
+        fun = v_load(v_getelementptr(ctx, 0, 0));
+        aux = v_load(v_getelementptr(ctx, 0, 1));
+
+        v_return( fun(aux, type, value, to_type) );
     }
 
     is_vec0 = v_type_is_vector(type);
@@ -1393,19 +1398,17 @@
 //- compile_op_assign_helper_ft - utility
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 5);
+    typ0 = v_alloca(v_type_ptr, 4);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
-    typ4 = v_getelementptr(typ0, 4);
 
     v_store(voidc_visitor_ptr, typ0);
     v_store(v_ast_expr_ptr,    typ1);
     v_store(v_ast_expr_ptr,    typ2);
-    v_store(compile_op_ft_ptr, typ3);
-    v_store(bool,              typ4);
+    v_store(void_ptr,          typ3);
 
-    ft = v_function_type(void, typ0, 5, false);
+    ft = v_function_type(void, typ0, 4, false);
 
     v_add_type("compile_op_assign_helper_ft", ft);
 }
@@ -1422,10 +1425,14 @@
     v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 1, "ast0",    v_ast_expr_ptr);
     v_add_parameter_name(f, 2, "ast1",    v_ast_expr_ptr);
-    v_add_parameter_name(f, 3, "compile", compile_op_ft_ptr);
-    v_add_parameter_name(f, 4, "flag",    bool);
+    v_add_parameter_name(f, 3, "compile", void_ptr);
 }
 {
+    flag = v_cast(v_binop(LLVMAnd, v_cast(compile, intptr_t), v_cast(1, intptr_t)), bool);
+
+    compile = v_cast(v_binop(LLVMAnd, v_cast(compile, intptr_t), v_cast(-2, intptr_t)), compile_op_ft_ptr);
+
+
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
@@ -1463,63 +1470,6 @@
 }
 
 //---------------------------------------------------------------------
-//- op_assign_helper - utility
-//---------------------------------------------------------------------
-{
-    typ0 = v_alloca(v_type_ptr, 4);
-    typ1 = v_getelementptr(typ0, 1);
-    typ2 = v_getelementptr(typ0, 2);
-    typ3 = v_getelementptr(typ0, 3);
-
-    v_store(voidc_visitor_ptr, typ0);
-    v_store(v_ast_base_ptr,    typ1);
-    v_store(compile_op_ft_ptr, typ2);
-    v_store(bool,              typ3);
-
-    ft = v_function_type(void, typ0, 4, false);
-
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_assign_helper", ft);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 1, "self",    v_ast_base_ptr);
-    v_add_parameter_name(f, 2, "compile", compile_op_ft_ptr);
-    v_add_parameter_name(f, 3, "flag",    bool);
-}
-{
-    call = v_cast(self, v_ast_expr_ptr);
-
-    args = v_ast_expr_call_get_arg_list(call);
-
-    ast0 = v_list_get_item(args, 1);        //- Sic!
-    ast1 = v_list_get_item(args, 2);        //- Sic!
-
-
-    compile_op_assign_helper(visitor, ast0, ast1, compile, flag);
-}
-
-//---------------------------------------------------------------------
-//- op_addsub_assign_intrinsic - compiler intrinsic
-//---------------------------------------------------------------------
-{
-    //-----------------------------------------------------------------
-    f = v_function_hack("op_addsub_assign_intrinsic", voidc_intrinsic_t);
-
-    LLVMSetLinkage(f, LLVMPrivateLinkage);
-
-    v_add_parameter_name(f, 0, "aux",     void_ptr);
-    v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
-    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
-}
-{
-    compile = v_cast(aux, compile_op_ft_ptr);
-
-    op_assign_helper(visitor, self, compile, true);
-}
-
-//---------------------------------------------------------------------
 //- op_infix_assign_intrinsic - compiler intrinsic
 //---------------------------------------------------------------------
 {
@@ -1533,9 +1483,14 @@
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
 }
 {
-    compile = v_cast(aux, compile_op_ft_ptr);
+    call = v_cast(self, v_ast_expr_ptr);
 
-    op_assign_helper(visitor, self, compile, false);
+    args = v_ast_expr_call_get_arg_list(call);
+
+    ast0 = v_list_get_item(args, 1);        //- Sic!
+    ast1 = v_list_get_item(args, 2);        //- Sic!
+
+    compile_op_assign_helper(visitor, ast0, ast1, aux);
 }
 
 
@@ -4272,17 +4227,20 @@
     }
 
     //-----------------------------------------------------------------
-    v_add_intrinsic("v.op_infix_assign",     op_infix_assign_intrinsic,  0);
-    v_add_intrinsic("v.op_infix_add_assign", op_addsub_assign_intrinsic, compile_add);
-    v_add_intrinsic("v.op_infix_sub_assign", op_addsub_assign_intrinsic, compile_sub);
-    v_add_intrinsic("v.op_infix_mul_assign", op_infix_assign_intrinsic,  compile_mul);
-    v_add_intrinsic("v.op_infix_div_assign", op_infix_assign_intrinsic,  compile_div);
-    v_add_intrinsic("v.op_infix_rem_assign", op_infix_assign_intrinsic,  compile_rem);
-    v_add_intrinsic("v.op_infix_shl_assign", op_infix_assign_intrinsic,  compile_shl);
-    v_add_intrinsic("v.op_infix_shr_assign", op_infix_assign_intrinsic,  compile_shr);
-    v_add_intrinsic("v.op_infix_and_assign", op_infix_assign_intrinsic,  compile_and);
-    v_add_intrinsic("v.op_infix_xor_assign", op_infix_assign_intrinsic,  compile_xor);
-    v_add_intrinsic("v.op_infix_or_assign",  op_infix_assign_intrinsic,  compile_or);
+    compile_add_1 = v_cast(v_binop(LLVMOr, v_cast(compile_add, intptr_t), v_cast(1, intptr_t)), void_ptr);
+    compile_sub_1 = v_cast(v_binop(LLVMOr, v_cast(compile_sub, intptr_t), v_cast(1, intptr_t)), void_ptr);
+
+    v_add_intrinsic("v.op_infix_assign",     op_infix_assign_intrinsic, 0);
+    v_add_intrinsic("v.op_infix_add_assign", op_infix_assign_intrinsic, compile_add_1);
+    v_add_intrinsic("v.op_infix_sub_assign", op_infix_assign_intrinsic, compile_sub_1);
+    v_add_intrinsic("v.op_infix_mul_assign", op_infix_assign_intrinsic, compile_mul);
+    v_add_intrinsic("v.op_infix_div_assign", op_infix_assign_intrinsic, compile_div);
+    v_add_intrinsic("v.op_infix_rem_assign", op_infix_assign_intrinsic, compile_rem);
+    v_add_intrinsic("v.op_infix_shl_assign", op_infix_assign_intrinsic, compile_shl);
+    v_add_intrinsic("v.op_infix_shr_assign", op_infix_assign_intrinsic, compile_shr);
+    v_add_intrinsic("v.op_infix_and_assign", op_infix_assign_intrinsic, compile_and);
+    v_add_intrinsic("v.op_infix_xor_assign", op_infix_assign_intrinsic, compile_xor);
+    v_add_intrinsic("v.op_infix_or_assign",  op_infix_assign_intrinsic, compile_or);
 
     v_add_intrinsic("v.op_infix_logical_or",  op_infix_logical_or,  0);
     v_add_intrinsic("v.op_infix_logical_and", op_infix_logical_and, 0);
@@ -4352,65 +4310,111 @@
     v_add_intrinsic_q(q("svec"),  voidc_svec_type_intrinsic, 0);
 
     //-------------------------------------------------------------
-    v_add_symbol("voidc_internal_vectorize_scalar", vectorize_scalar_ft, vectorize_scalar);
-
-    v_add_symbol("voidc_internal_compile_add_helper", compile_op_ft, compile_add);
-    v_add_symbol("voidc_internal_compile_sub_helper", compile_op_ft, compile_sub);
-    v_add_symbol("voidc_internal_compile_mul_helper", compile_op_ft, compile_mul);
-    v_add_symbol("voidc_internal_compile_div_helper", compile_op_ft, compile_div);
-    v_add_symbol("voidc_internal_compile_rem_helper", compile_op_ft, compile_rem);
-    v_add_symbol("voidc_internal_compile_shl_helper", compile_op_ft, compile_shl);
-    v_add_symbol("voidc_internal_compile_shr_helper", compile_op_ft, compile_shr);
-    v_add_symbol("voidc_internal_compile_and_helper", compile_op_ft, compile_and);
-    v_add_symbol("voidc_internal_compile_xor_helper", compile_op_ft, compile_xor);
-    v_add_symbol("voidc_internal_compile_or_helper",  compile_op_ft, compile_or);
-
-    v_add_symbol("voidc_internal_compile_infix_add_helper", compile_infix_ft, compile_infix_add);
-    v_add_symbol("voidc_internal_compile_infix_sub_helper", compile_infix_ft, compile_infix_sub);
-
-    v_add_symbol("voidc_internal_convert_to_common_type_helper", convert_to_common_type_ft, convert_to_common_type);
-
-    v_add_symbol("voidc_internal_compile_op_assign_helper",
-                 compile_op_assign_helper_ft,
-                 compile_op_assign_helper);
-
-    v_add_symbol("voidc_internal_compile_op_binary_addsub_helper",
-                 compile_op_binary_helper_ft,
-                 compile_op_binary_addsub_helper);
-
-    v_add_symbol("voidc_internal_compile_op_binary_helper",
-                 compile_op_binary_helper_ft,
-                 compile_op_binary_helper);
-
-    v_add_symbol("voidc_internal_compile_eq_helper", compile_op_ft, compile_eq);
-    v_add_symbol("voidc_internal_compile_ne_helper", compile_op_ft, compile_ne);
-    v_add_symbol("voidc_internal_compile_lt_helper", compile_op_ft, compile_lt);
-    v_add_symbol("voidc_internal_compile_le_helper", compile_op_ft, compile_le);
-    v_add_symbol("voidc_internal_compile_gt_helper", compile_op_ft, compile_gt);
-    v_add_symbol("voidc_internal_compile_ge_helper", compile_op_ft, compile_ge);
-
-    v_add_symbol("voidc_internal_compile_op_relation_helper",
-                 compile_op_relation_helper_ft,
-                 compile_op_relation_helper);
-
-    v_add_symbol("voidc_internal_compile_prefix_inc",   compile_op_unary_ft, compile_prefix_inc);
-    v_add_symbol("voidc_internal_compile_prefix_dec",   compile_op_unary_ft, compile_prefix_dec);
-    v_add_symbol("voidc_internal_compile_prefix_plus",  compile_op_unary_ft, compile_prefix_plus);
-    v_add_symbol("voidc_internal_compile_prefix_minus", compile_op_unary_ft, compile_prefix_minus);
-    v_add_symbol("voidc_internal_compile_prefix_star",  compile_op_unary_ft, compile_prefix_star);
-    v_add_symbol("voidc_internal_compile_prefix_amp",   compile_op_unary_ft, compile_prefix_amp);
-    v_add_symbol("voidc_internal_compile_prefix_bang",  compile_op_unary_ft, compile_prefix_bang);
-    v_add_symbol("voidc_internal_compile_prefix_tilde", compile_op_unary_ft, compile_prefix_tilde);
-    v_add_symbol("voidc_internal_compile_postfix_inc",  compile_op_unary_ft, compile_postfix_inc);
-    v_add_symbol("voidc_internal_compile_postfix_dec",  compile_op_unary_ft, compile_postfix_dec);
-
-    v_add_symbol("voidc_internal_compile_op_unary_helper",
-                 compile_op_unary_helper_ft,
-                 compile_op_unary_helper);
+//    v_add_symbol("voidc_internal_vectorize_scalar", vectorize_scalar_ft, vectorize_scalar);
+//
+//    v_add_symbol("voidc_internal_compile_add_helper", compile_op_ft, compile_add);
+//    v_add_symbol("voidc_internal_compile_sub_helper", compile_op_ft, compile_sub);
+//    v_add_symbol("voidc_internal_compile_mul_helper", compile_op_ft, compile_mul);
+//    v_add_symbol("voidc_internal_compile_div_helper", compile_op_ft, compile_div);
+//    v_add_symbol("voidc_internal_compile_rem_helper", compile_op_ft, compile_rem);
+//    v_add_symbol("voidc_internal_compile_shl_helper", compile_op_ft, compile_shl);
+//    v_add_symbol("voidc_internal_compile_shr_helper", compile_op_ft, compile_shr);
+//    v_add_symbol("voidc_internal_compile_and_helper", compile_op_ft, compile_and);
+//    v_add_symbol("voidc_internal_compile_xor_helper", compile_op_ft, compile_xor);
+//    v_add_symbol("voidc_internal_compile_or_helper",  compile_op_ft, compile_or);
+//
+//    v_add_symbol("voidc_internal_compile_infix_add_helper", compile_infix_ft, compile_infix_add);
+//    v_add_symbol("voidc_internal_compile_infix_sub_helper", compile_infix_ft, compile_infix_sub);
+//
+//    v_add_symbol("voidc_internal_convert_to_common_type_helper", convert_to_common_type_ft, convert_to_common_type);
+//
+//    v_add_symbol("voidc_internal_compile_op_assign_helper",
+//                 compile_op_assign_helper_ft,
+//                 compile_op_assign_helper);
+//
+//    v_add_symbol("voidc_internal_compile_op_binary_addsub_helper",
+//                 compile_op_binary_helper_ft,
+//                 compile_op_binary_addsub_helper);
+//
+//    v_add_symbol("voidc_internal_compile_op_binary_helper",
+//                 compile_op_binary_helper_ft,
+//                 compile_op_binary_helper);
+//
+//    v_add_symbol("voidc_internal_compile_eq_helper", compile_op_ft, compile_eq);
+//    v_add_symbol("voidc_internal_compile_ne_helper", compile_op_ft, compile_ne);
+//    v_add_symbol("voidc_internal_compile_lt_helper", compile_op_ft, compile_lt);
+//    v_add_symbol("voidc_internal_compile_le_helper", compile_op_ft, compile_le);
+//    v_add_symbol("voidc_internal_compile_gt_helper", compile_op_ft, compile_gt);
+//    v_add_symbol("voidc_internal_compile_ge_helper", compile_op_ft, compile_ge);
+//
+//    v_add_symbol("voidc_internal_compile_op_relation_helper",
+//                 compile_op_relation_helper_ft,
+//                 compile_op_relation_helper);
+//
+//    v_add_symbol("voidc_internal_compile_prefix_inc",   compile_op_unary_ft, compile_prefix_inc);
+//    v_add_symbol("voidc_internal_compile_prefix_dec",   compile_op_unary_ft, compile_prefix_dec);
+//    v_add_symbol("voidc_internal_compile_prefix_plus",  compile_op_unary_ft, compile_prefix_plus);
+//    v_add_symbol("voidc_internal_compile_prefix_minus", compile_op_unary_ft, compile_prefix_minus);
+//    v_add_symbol("voidc_internal_compile_prefix_star",  compile_op_unary_ft, compile_prefix_star);
+//    v_add_symbol("voidc_internal_compile_prefix_amp",   compile_op_unary_ft, compile_prefix_amp);
+//    v_add_symbol("voidc_internal_compile_prefix_bang",  compile_op_unary_ft, compile_prefix_bang);
+//    v_add_symbol("voidc_internal_compile_prefix_tilde", compile_op_unary_ft, compile_prefix_tilde);
+//    v_add_symbol("voidc_internal_compile_postfix_inc",  compile_op_unary_ft, compile_postfix_inc);
+//    v_add_symbol("voidc_internal_compile_postfix_dec",  compile_op_unary_ft, compile_postfix_dec);
+//
+//    v_add_symbol("voidc_internal_compile_op_unary_helper",
+//                 compile_op_unary_helper_ft,
+//                 compile_op_unary_helper);
 
     v_add_symbol("voidc_internal_op_postfix_index_helper",
                  op_postfix_index_helper_ft,
                  op_postfix_index_helper);
+
+    //-------------------------------------------------------------
+    v_add_intrinsic("voidc.expression_helper_infix_assign",     compile_op_assign_helper, 0);
+    v_add_intrinsic("voidc.expression_helper_infix_add_assign", compile_op_assign_helper, compile_add_1);
+    v_add_intrinsic("voidc.expression_helper_infix_sub_assign", compile_op_assign_helper, compile_sub_1);
+    v_add_intrinsic("voidc.expression_helper_infix_mul_assign", compile_op_assign_helper, compile_mul);
+    v_add_intrinsic("voidc.expression_helper_infix_div_assign", compile_op_assign_helper, compile_div);
+    v_add_intrinsic("voidc.expression_helper_infix_rem_assign", compile_op_assign_helper, compile_rem);
+    v_add_intrinsic("voidc.expression_helper_infix_shl_assign", compile_op_assign_helper, compile_shl);
+    v_add_intrinsic("voidc.expression_helper_infix_shr_assign", compile_op_assign_helper, compile_shr);
+    v_add_intrinsic("voidc.expression_helper_infix_and_assign", compile_op_assign_helper, compile_and);
+    v_add_intrinsic("voidc.expression_helper_infix_xor_assign", compile_op_assign_helper, compile_xor);
+    v_add_intrinsic("voidc.expression_helper_infix_or_assign",  compile_op_assign_helper, compile_or);
+
+    v_add_intrinsic("voidc.expression_helper_infix_lt", compile_op_relation_helper, compile_lt);
+    v_add_intrinsic("voidc.expression_helper_infix_le", compile_op_relation_helper, compile_le);
+    v_add_intrinsic("voidc.expression_helper_infix_gt", compile_op_relation_helper, compile_gt);
+    v_add_intrinsic("voidc.expression_helper_infix_ge", compile_op_relation_helper, compile_ge);
+    v_add_intrinsic("voidc.expression_helper_infix_eq", compile_op_relation_helper, compile_eq);
+    v_add_intrinsic("voidc.expression_helper_infix_ne", compile_op_relation_helper, compile_ne);
+
+    v_add_intrinsic("voidc.expression_helper_infix_or",  compile_op_binary_helper, compile_or);
+    v_add_intrinsic("voidc.expression_helper_infix_xor", compile_op_binary_helper, compile_xor);
+    v_add_intrinsic("voidc.expression_helper_infix_and", compile_op_binary_helper, compile_and);
+
+    v_add_intrinsic("voidc.expression_helper_infix_shl", compile_op_binary_helper,        compile_shl);
+    v_add_intrinsic("voidc.expression_helper_infix_shr", compile_op_binary_helper,        compile_shr);
+    v_add_intrinsic("voidc.expression_helper_infix_add", compile_op_binary_addsub_helper, compile_infix_add);
+    v_add_intrinsic("voidc.expression_helper_infix_sub", compile_op_binary_addsub_helper, compile_infix_sub);
+    v_add_intrinsic("voidc.expression_helper_infix_mul", compile_op_binary_helper,        compile_mul);
+    v_add_intrinsic("voidc.expression_helper_infix_div", compile_op_binary_helper,        compile_div);
+    v_add_intrinsic("voidc.expression_helper_infix_rem", compile_op_binary_helper,        compile_rem);
+
+    v_add_intrinsic("voidc.expression_helper_prefix_inc",   compile_op_unary_helper, compile_prefix_inc);
+    v_add_intrinsic("voidc.expression_helper_prefix_dec",   compile_op_unary_helper, compile_prefix_dec);
+    v_add_intrinsic("voidc.expression_helper_prefix_plus",  compile_op_unary_helper, compile_prefix_plus);
+    v_add_intrinsic("voidc.expression_helper_prefix_minus", compile_op_unary_helper, compile_prefix_minus);
+    v_add_intrinsic("voidc.expression_helper_prefix_star",  compile_op_unary_helper, compile_prefix_star);
+    v_add_intrinsic("voidc.expression_helper_prefix_amp",   compile_op_unary_helper, compile_prefix_amp);
+    v_add_intrinsic("voidc.expression_helper_prefix_bang",  compile_op_unary_helper, compile_prefix_bang);
+    v_add_intrinsic("voidc.expression_helper_prefix_tilde", compile_op_unary_helper, compile_prefix_tilde);
+
+    v_add_intrinsic("voidc.expression_helper_postfix_inc",  compile_op_unary_helper, compile_postfix_inc);
+    v_add_intrinsic("voidc.expression_helper_postfix_dec",  compile_op_unary_helper, compile_postfix_dec);
+
+    v_add_intrinsic("voidc.expression_helper_postfix_index", op_postfix_index_helper, 0);
 }
 
 

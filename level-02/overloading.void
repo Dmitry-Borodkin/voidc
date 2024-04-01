@@ -13,6 +13,8 @@
     v_import("condcomp.void");
     v_import("aggregates.void");
 
+    v_import("level-01/handlers.void");      //- WTF?
+
 //  v_import("printf.void");
 }
 
@@ -66,63 +68,64 @@ op_table_item_t = v_struct("struct.v_op_table_item",
 {
     *const char,    //- 0 - Name
     int,            //- 1 - Kind
+
     v_quark_t,      //- 2 - Quark (left)
     v_quark_t,      //- 3 - Quark (right)
-
-    *void,          //- 4 - helper function (if any)
-    *void           //- 5 - aux for helper  (if any)
+    v_quark_t       //- 4 - Helper quark ...
 });
 
 op_table: &op_table_item_t[] :=
 {
-    {"v.op_infix_assign",      opk_assign,   0,0, 0,                                 (false: *void) },
-    {"v.op_infix_add_assign",  opk_assign,   0,0, voidc_internal_compile_add_helper, (true:  *void) },
-    {"v.op_infix_sub_assign",  opk_assign,   0,0, voidc_internal_compile_sub_helper, (true:  *void) },
-    {"v.op_infix_mul_assign",  opk_assign,   0,0, voidc_internal_compile_mul_helper, (false: *void) },
-    {"v.op_infix_div_assign",  opk_assign,   0,0, voidc_internal_compile_div_helper, (false: *void) },
-    {"v.op_infix_rem_assign",  opk_assign,   0,0, voidc_internal_compile_rem_helper, (false: *void) },
-    {"v.op_infix_shl_assign",  opk_assign,   0,0, voidc_internal_compile_shl_helper, (false: *void) },
-    {"v.op_infix_shr_assign",  opk_assign,   0,0, voidc_internal_compile_shr_helper, (false: *void) },
-    {"v.op_infix_and_assign",  opk_assign,   0,0, voidc_internal_compile_and_helper, (false: *void) },
-    {"v.op_infix_xor_assign",  opk_assign,   0,0, voidc_internal_compile_xor_helper, (false: *void) },
-    {"v.op_infix_or_assign",   opk_assign,   0,0, voidc_internal_compile_or_helper,  (false: *void) },
+    {"v.op_infix_assign",      opk_assign   },
+    {"v.op_infix_add_assign",  opk_assign   },
+    {"v.op_infix_sub_assign",  opk_assign   },
+    {"v.op_infix_mul_assign",  opk_assign   },
+    {"v.op_infix_div_assign",  opk_assign   },
+    {"v.op_infix_rem_assign",  opk_assign   },
+    {"v.op_infix_shl_assign",  opk_assign   },
+    {"v.op_infix_shr_assign",  opk_assign   },
+    {"v.op_infix_and_assign",  opk_assign   },
+    {"v.op_infix_xor_assign",  opk_assign   },
+    {"v.op_infix_or_assign",   opk_assign   },
 
-    {"v.op_infix_logical_or",  opk_logical   },
-    {"v.op_infix_logical_and", opk_logical   },
+//  {"v.op_infix_logical_or",  opk_logical  },
+//  {"v.op_infix_logical_and", opk_logical  },
 
-    {"v.op_infix_lt",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_lt_helper },
-    {"v.op_infix_le",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_le_helper },
-    {"v.op_infix_gt",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_gt_helper },
-    {"v.op_infix_ge",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_ge_helper },
-    {"v.op_infix_eq",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_eq_helper },
-    {"v.op_infix_ne",          opk_relation, 0,0, voidc_internal_compile_op_relation_helper, voidc_internal_compile_ne_helper },
+    {"v.op_infix_lt",          opk_relation },
+    {"v.op_infix_le",          opk_relation },
+    {"v.op_infix_gt",          opk_relation },
+    {"v.op_infix_ge",          opk_relation },
+    {"v.op_infix_eq",          opk_relation },
+    {"v.op_infix_ne",          opk_relation },
 
-    {"v.op_infix_or",          opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_or_helper },
-    {"v.op_infix_xor",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_xor_helper },
-    {"v.op_infix_and",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_and_helper },
+    {"v.op_infix_or",          opk_binary   },
+    {"v.op_infix_xor",         opk_binary   },
+    {"v.op_infix_and",         opk_binary   },
 
-    {"v.op_infix_shl",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_shl_helper },
-    {"v.op_infix_shr",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_shr_helper },
-    {"v.op_infix_add",         opk_binary,   0,0, voidc_internal_compile_op_binary_addsub_helper, voidc_internal_compile_infix_add_helper },
-    {"v.op_infix_sub",         opk_binary,   0,0, voidc_internal_compile_op_binary_addsub_helper, voidc_internal_compile_infix_sub_helper },
-    {"v.op_infix_mul",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_mul_helper },
-    {"v.op_infix_div",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_div_helper },
-    {"v.op_infix_rem",         opk_binary,   0,0, voidc_internal_compile_op_binary_helper,        voidc_internal_compile_rem_helper },
+    {"v.op_infix_shl",         opk_binary   },
+    {"v.op_infix_shr",         opk_binary   },
+    {"v.op_infix_add",         opk_binary   },
+    {"v.op_infix_sub",         opk_binary   },
+    {"v.op_infix_mul",         opk_binary   },
+    {"v.op_infix_div",         opk_binary   },
+    {"v.op_infix_rem",         opk_binary   },
 
-    {"v.op_prefix_inc",        opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_inc },
-    {"v.op_prefix_dec",        opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_dec },
-    {"v.op_prefix_plus",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_plus },
-    {"v.op_prefix_minus",      opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_minus },
-    {"v.op_prefix_star",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_star },
-    {"v.op_prefix_amp",        opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_amp },
-    {"v.op_prefix_bang",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_bang },
-    {"v.op_prefix_tilde",      opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_prefix_tilde},
+    {"v.op_prefix_inc",        opk_unary    },
+    {"v.op_prefix_dec",        opk_unary    },
+    {"v.op_prefix_plus",       opk_unary    },
+    {"v.op_prefix_minus",      opk_unary    },
+    {"v.op_prefix_star",       opk_unary    },
+    {"v.op_prefix_amp",        opk_unary    },
+    {"v.op_prefix_bang",       opk_unary    },
+    {"v.op_prefix_tilde",      opk_unary    },
 
-    {"v.op_prefix_const",      opk_unary,    0,0, 0 },          //- ...
-    {"v.op_prefix_volatile",   opk_unary,    0,0, 0 },          //- ...
+    {"v.op_prefix_const",      opk_unary    },
+    {"v.op_prefix_volatile",   opk_unary    },
 
-    {"v.op_postfix_inc",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_postfix_inc },
-    {"v.op_postfix_dec",       opk_unary,    0,0, voidc_internal_compile_op_unary_helper, voidc_internal_compile_postfix_dec },
+    {"v.op_postfix_inc",       opk_unary    },
+    {"v.op_postfix_dec",       opk_unary    },
+
+//  {"v.op_postfix_index",     opk_unary    },
 };
 
 //---------------------------------------------------------------------
@@ -146,17 +149,19 @@ op_table_ctor: () ~> void
 
     for (i: &int := 0; i < op_table_length; ++i)
     {
-        name = op_table[i][0];
+        op_item = op_table[i];
 
-        op_table[i][2] := v_quark_from_string(name);
+        name = op_item[0];
 
-        if (k = op_table[i][1],  k == opk_binary  ||  k == opk_relation)
+        op_item[2] := v_quark_from_string(name);
+
+        if (k = op_item[1],  k == opk_binary  ||  k == opk_relation)
         {
             v_std_string_set(sstr, name);
 
             v_std_string_append(sstr, ".right");
 
-            op_table[i][3] := v_quark_from_string(v_std_string_get(sstr));
+            op_item[3] := v_quark_from_string(v_std_string_get(sstr));
         }
 
         v_std_string_set(sstr, "id");
@@ -164,6 +169,12 @@ op_table_ctor: () ~> void
         v_std_string_append(sstr, name+4);          //- Skip "v.op"
 
         v_add_constant(v_std_string_get(sstr), int, LLVMConstInt(int_, i, 0));
+
+        v_std_string_set(sstr, "voidc.expression_helper");
+
+        v_std_string_append(sstr, name+4);          //- Skip "v.op"
+
+        op_item[4] := v_quark_from_string(v_std_string_get(sstr));
     }
 }
 
@@ -324,21 +335,21 @@ voidc_compile_expr_call_helper_t = v_struct(
 export
 voidc_compile_op_assign_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t, *v_ast_expr_t) ~> void),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, v_quark_t, v_quark_t, *v_ast_expr_t) ~> void),
     *void
 });
 
 export
 voidc_compile_op_binary_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t, v_quark_t, *v_ast_expr_t) ~> void),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, v_quark_t, v_quark_t, v_quark_t, *v_ast_expr_t) ~> void),
     *void
 });
 
 export
 voidc_compile_op_relation_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, **v_ast_expr_t, int, v_quark_t, v_quark_t,
+    *((*void, *voidc_visitor_t, **v_ast_expr_t, v_quark_t, v_quark_t, v_quark_t,
        *v_type_t, LLVMValueRef, &*v_type_t, &LLVMValueRef) ~> LLVMValueRef),
 
     *void
@@ -347,7 +358,7 @@ voidc_compile_op_relation_helper_t = v_struct(
 export
 voidc_compile_op_unary_helper_t = v_struct(
 {
-    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, int, v_quark_t) ~> void),
+    *((*void, *voidc_visitor_t, *v_ast_base_t, *v_type_t, LLVMValueRef, v_quark_t, v_quark_t) ~> void),
     *void
 });
 
@@ -372,7 +383,6 @@ overloading_ctx_t = v_struct("struct.v_overloading_ctx",
     voidc_compile_op_relation_helper_t,                 //- 5
     voidc_compile_op_unary_helper_t,                    //- 6
     voidc_compile_op_postfix_index_helper_t,            //- 7
-
 });
 
 
@@ -465,7 +475,6 @@ voidc_overloading_context_get_compile_op_postfix_index_helper: () ~> &voidc_comp
 }
 
 
-
 //---------------------------------------------------------------------
 //- llvm_build_call_helper ...
 //---------------------------------------------------------------------
@@ -527,15 +536,13 @@ intrinsic_p2_t = (aux: *void, vis: voidc_visitor_ptr,
 //---------------------------------------------------------------------
 private
 op_assign_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                   t0: *v_type_t, v0: LLVMValueRef, id: int, q: v_quark_t,
+                   t0: *v_type_t, v0: LLVMValueRef, qh: v_quark_t, q: v_quark_t,
                    rhs: *v_ast_expr_t) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
     ctx = *(aux: *overloading_ctx_t);
-
-    op_data = op_table[id];
 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
@@ -590,11 +597,12 @@ op_assign_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    compile = (op_data[4] : *((v_type_ptr, LLVMValueRef, LLVMValueRef) ~> LLVMValueRef));
+    compile: &*void := v_undef();
 
-    flag = (op_data[5] : bool);
+    helper = v_get_intrinsic_q(qh, &compile);
+    helper = (helper: *((*voidc_visitor_t, *v_ast_expr_t, *v_ast_expr_t, *void) ~> void));
 
-    voidc_internal_compile_op_assign_helper(vis, ast0, ast1, compile, flag);
+    helper(vis, ast0, ast1, compile);
 }
 
 //---------------------------------------------------------------------
@@ -625,29 +633,28 @@ op_assign_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
     op_data = op_table[id];
 
-    q = op_data[2];     //- Quark
+    q  = op_data[2];    //- Quark
+    qh = op_data[4];    //- Helper quark
 
     rhs = v_list_get_item(args, 2);             //- "Value"
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    v_handle(&ctx[3], vis, self, t0, v0, id, q, rhs);               //- compile_op_assign...
+    v_handle(&ctx[3], vis, self, t0, v0, qh, q, rhs);           //- compile_op_assign...
 }
 
 
 //---------------------------------------------------------------------
 private
 op_binary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                   t0: *v_type_t, v0: LLVMValueRef, id: int, q0: v_quark_t, q1: v_quark_t,
+                   t0: *v_type_t, v0: LLVMValueRef, qh: v_quark_t, q0: v_quark_t, q1: v_quark_t,
                    rhs: *v_ast_expr_t) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
     ctx = *(aux: *overloading_ctx_t);
-
-    op_data = op_table[id];
 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
@@ -744,10 +751,10 @@ op_binary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
+    compile: &*void := v_undef();
 
-    helper = (op_data[4] : *((*voidc_visitor_t, *v_ast_expr_t, *v_ast_expr_t, *void) ~> void));
-
-    compile = op_data[5];
+    helper = v_get_intrinsic_q(qh, &compile);
+    helper = (helper: *((*voidc_visitor_t, *v_ast_expr_t, *v_ast_expr_t, *void) ~> void));
 
     helper(vis, expr+0, expr+1, compile);
 }
@@ -784,13 +791,14 @@ op_binary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
     q0 = op_data[2];        //- Quark (left)
     q1 = op_data[3];        //- Quark (right)
+    qh = op_data[4];        //- Helper quark ...
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
     rhs = v_list_get_item(args, 2);
 
-    v_handle(&ctx[4], vis, self, t0, v0, id, q0, q1, rhs);          //- compile_op_binary...
+    v_handle(&ctx[4], vis, self, t0, v0, qh, q0, q1, rhs);          //- compile_op_binary...
 }
 
 
@@ -798,7 +806,7 @@ op_binary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 private
 op_relation_helper: (aux: *void, vis: *voidc_visitor_t,
                      ast: **v_ast_expr_t,
-                     id: int, q0: v_quark_t, q1: v_quark_t,
+                     qh: v_quark_t, q0: v_quark_t, q1: v_quark_t,
                      t0:  *v_type_t, v0:  LLVMValueRef,
                      t1: &*v_type_t, v1: &LLVMValueRef
                     ) ~> LLVMValueRef
@@ -807,8 +815,6 @@ op_relation_helper: (aux: *void, vis: *voidc_visitor_t,
     vtag = v_get_result_value();
 
     ctx = *(aux: *overloading_ctx_t);
-
-    op_data = op_table[id];
 
     r: &LLVMValueRef := 0;
 
@@ -921,10 +927,11 @@ op_relation_helper: (aux: *void, vis: *voidc_visitor_t,
 
         v_ast_make_expr_compiled(expr, t1, v1);
 
-        helper = (op_data[4] : *((*voidc_visitor_t, *void, *v_type_t, LLVMValueRef,
-                                  *v_ast_expr_t, &*v_type_t, &LLVMValueRef) ~> LLVMValueRef));
+        compile: &*void := v_undef();
 
-        compile = op_data[5];
+        helper = v_get_intrinsic_q(qh, &compile);
+        helper = (helper: *((*voidc_visitor_t, *void, *v_type_t, LLVMValueRef,
+                             *v_ast_expr_t, &*v_type_t, &LLVMValueRef) ~> LLVMValueRef));
 
         typ: &v_type_ptr   := t1;
         val: &LLVMValueRef := v1;
@@ -1079,11 +1086,12 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
         q0 = op_data[2];                    //- Quark (left)
         q1 = op_data[3];                    //- Quark (right)
+        qh = op_data[4];                    //- Helper quark
 
         v_set_result_type(ttag);
         v_set_result_value(vtag);
 
-        r := v_handle(&ctx[5], vis, ast+i, rel_i, q0, q1, t0, v0, t1, v1);          //- compile_op_relation...
+        r := v_handle(&ctx[5], vis, ast+i, qh, q0, q1, t0, v0, t1, v1);         //- compile_op_relation...
 
         typ := t1;
         val := v1;
@@ -1165,15 +1173,13 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 //---------------------------------------------------------------------
 private
 op_unary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                  t0: *v_type_t, v0: LLVMValueRef, id: int, q: v_quark_t
+                  t0: *v_type_t, v0: LLVMValueRef, qh: v_quark_t, q: v_quark_t
                  ) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
     ctx = *(aux: *overloading_ctx_t);
-
-    op_data = op_table[id];
 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
@@ -1216,9 +1222,10 @@ op_unary_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     v_ast_make_expr_compiled(expr, t0, v0);
 
-    helper = (op_data[4] : *((*voidc_visitor_t, *v_ast_expr_t, *void) ~> void));
+    compile: &*void := v_undef();
 
-    compile = op_data[5];
+    helper = v_get_intrinsic_q(qh, &compile);
+    helper = (helper: *((*voidc_visitor_t, *v_ast_expr_t, *void) ~> void));
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
@@ -1254,12 +1261,13 @@ op_unary_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
     op_data = op_table[id];
 
-    q = op_data[2];             //- Quark
+    q  = op_data[2];            //- Quark
+    qh = op_data[4];            //- Helper quark
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    v_handle(&ctx[6], vis, self, t0, v0, id, q);            //- compile_op_unary...
+    v_handle(&ctx[6], vis, self, t0, v0, qh, q);            //- compile_op_unary...
 }
 
 
@@ -1768,7 +1776,7 @@ v_enable_handler: (t: *v_type_t) ~> void
 
     q_handler_type_ref    = q("v.handler_type_ref");
     q_handler_type_ptr    = q("v.handler_type_ptr");
-    q_handler_type_refptr = q("v.handler_type_refprt");
+    q_handler_type_refptr = q("v.handler_type_refptr");
 
     v_util_function_dict_set(q_op_postfix_call,  rt, q_handler_type_ref);
     v_util_function_dict_set(q_op_postfix_call,  pt, q_handler_type_ptr);

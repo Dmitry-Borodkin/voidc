@@ -126,7 +126,7 @@ base_global_ctx_t::verify_module(LLVMModuleRef module)
 
     LLVMDisposeMessage(msg);
 
-    if (err)  exit(1);          //- Sic !!!
+    if (err)  abort();          //- Sic !!!
 }
 
 
@@ -852,11 +852,7 @@ base_local_ctx_t::pop_variables(void)
 {
     run_cleaners();
 
-    auto &top = vars_stack.front();
-
-    decls    = std::get<0>(top);
-    cleaners = std::get<1>(top);
-    vars     = std::get<2>(top);
+    std::tie(decls, cleaners, vars) = std::move(vars_stack.front());
 
     vars_stack.pop_front();
 }
@@ -1362,7 +1358,7 @@ voidc_template_ctx_t<T, TArgs...>::add_module_to_jit(LLVMModuleRef mod)
 
         LLVMDisposeMessage(msg);
 
-        exit(1);                //- Sic !!!
+        abort();                //- Sic !!!
     }
 
     assert(mod_buffer);
@@ -1515,6 +1511,7 @@ voidc_global_ctx_t::static_initialize(void)
     LLVMInitializeAllTargetInfos();
     LLVMInitializeAllTargets();
     LLVMInitializeAllTargetMCs();
+    LLVMInitializeAllAsmParsers();
     LLVMInitializeAllAsmPrinters();
 
     //-------------------------------------------------------------
@@ -1828,7 +1825,7 @@ voidc_local_ctx_t::finish_unit_action(void)
 
         LLVMDisposeMessage(msg);
 
-        exit(1);                //- Sic !!!
+        abort();                //- Sic !!!
     }
 
     assert(unit_buffer);
@@ -2419,7 +2416,7 @@ voidc_compile_load_module_to_jit(LLVMModuleRef module, bool is_local, bool do_lo
 
         LLVMDisposeMessage(msg);
 
-        exit(1);                //- Sic !!!
+        abort();                //- Sic !!!
     }
 
     assert(membuf);

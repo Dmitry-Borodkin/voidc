@@ -18,6 +18,8 @@
 
     v_import("compression.void");
 
+    v_import("level-01/handlers.void");      //- WTF?
+
 //  v_import("printf.void");
 }
 
@@ -40,13 +42,13 @@
     v_add_symbol("q_quark", q_ref, q("v.quark"));
     v_add_symbol("qname_q", q_ref, q("qname"));
 
-    v_add_symbol("q_quark_from_string",      q_ref, q("v_quark_from_string"));
     v_add_symbol("q_util_function_dict_set", q_ref, q("v_util_function_dict_set"));
 
     v_add_symbol("q_internal_spec_fun_decl", q_ref, q("v.internal.spec_fun_decl"));
     v_add_symbol("q_internal_spec_fun_renm", q_ref, q("v.internal.spec_fun_renm"));
 
-    v_add_symbol("voidc_compile_type_q", q_ref, q("voidc.compile_type"));
+    v_add_symbol("voidc_compile_type_q",  q_ref, q("voidc.compile_type"));
+    v_add_symbol("voidc_compile_quark_q", q_ref, q("voidc.compile_quark"));
 
     //-----------------------------------------------------------------
     v_add_symbol("voidc_mangling_context_q", q_ref, q("voidc.mangling_context"));
@@ -937,9 +939,9 @@ register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const c
         v_initialize(elst);
         v_initialize(stmt);
 
-        v_ast_make_expr_string(expr+0, v_quark_to_string(q));
+        v_ast_make_expr_integer(expr+0, q);
 
-        v_ast_make_stmt_call(stmt, q_quark, q_quark_from_string, expr, 1);
+        v_ast_make_stmt_call(stmt, q_quark, voidc_compile_quark_q, expr, 1);
 
         v_list_append(stmt_list, stmt_list, stmt);
 
@@ -953,9 +955,9 @@ register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const c
 
         v_ast_make_expr_call(expr+1, expr+1, elst);
 
-        v_ast_make_expr_string(expr+2, fn);
+        v_ast_make_expr_integer(expr+2, qname);
 
-        v_ast_make_stmt_call(stmt, qname_q, q_quark_from_string, expr+2, 1);
+        v_ast_make_stmt_call(stmt, qname_q, voidc_compile_quark_q, expr+2, 1);
 
         v_list_append(stmt_list, stmt_list, stmt);
 
