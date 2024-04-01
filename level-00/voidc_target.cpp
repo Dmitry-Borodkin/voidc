@@ -39,7 +39,7 @@ base_compile_ctx_t::declarations_t::overloads_insert(v_quark_t q, v_type_t *t, v
     }
     else
     {
-        overloads = overloads.set(q, immer::map<v_type_t *, v_quark_t>({{t, r}}));
+        overloads = overloads.set(q, immer::map<v_type_t *, v_quark_t>().set(t, r));
     }
 }
 

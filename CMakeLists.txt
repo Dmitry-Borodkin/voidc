@@ -1,3 +1,6 @@
+include(GNUInstallDirs)         # WTF?
+#----------------------------------------------------------------------
+
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 
@@ -10,11 +13,9 @@ endif()
 
 string(TOUPPER "${CMAKE_BUILD_TYPE}" uppercase_CMAKE_BUILD_TYPE)
 
-
 #----------------------------------------------------------------------
 project(Voidc)
 #----------------------------------------------------------------------
-
 
 find_package(LLVM REQUIRED CONFIG)
 

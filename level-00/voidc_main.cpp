@@ -801,6 +801,9 @@ main(int argc, char *argv[])
 {
     std::ios::sync_with_stdio(true);
 
+//    (void)setvbuf(stdout, NULL, _IONBF, 0);
+//    (void)setvbuf(stderr, NULL, _IONBF, 0);
+
     std::setbuf(stdout, nullptr);
     std::setbuf(stderr, nullptr);
 
