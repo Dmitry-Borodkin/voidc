@@ -49,6 +49,11 @@
 
     v_add_symbol("q_aligned_alloc", q_ref, q("v_aligned_alloc"));
     v_add_symbol("q_aligned_free",  q_ref, q("v_aligned_free"));
+
+    v_add_symbol("size_t_q", q_ref, q("size_t"));
+    v_add_symbol("void_q",   q_ref, q("void"));
+    v_add_symbol("char_q",   q_ref, q("char"));
+    v_add_symbol("int_q",    q_ref, q("int"));
 }
 
 
@@ -195,7 +200,7 @@ make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
         root_t := v_type_array_get_element_type(root_t);
     }
 
-    _size_t = v_find_type("size_t");
+    _size_t = v_find_type_q(size_t_q);
 
     size_t_ = v_type_get_llvm_type(_size_t);
 
@@ -348,7 +353,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
     builder = v_target_get_builder();
 
-    _size_t = v_find_type("size_t");
+    _size_t = v_find_type_q(size_t_q);
 
     size_t_ = v_type_get_llvm_type(_size_t);
 
@@ -455,9 +460,9 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
         alloc_t: &*v_type_t := v_undef();
 
 
-        _void_ptr = v_pointer_type(v_find_type("void"), 0);
+        _void_ptr = v_pointer_type(v_find_type_q(void_q), 0);
 
-        int_ = v_type_get_llvm_type(v_find_type("int"));
+        int_ = v_type_get_llvm_type(v_find_type_q(int_q));
 
         n0 = LLVMConstInt(int_, 0, 0);
         n1 = LLVMConstInt(int_, 1, 0);
@@ -777,7 +782,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
     alloc_t: &*v_type_t := v_undef();
 
-    _size_t = v_find_type("size_t");
+    _size_t = v_find_type_q(size_t_q);
 
     {   typ: &(*v_type_t)[2] :=
         {
@@ -793,13 +798,13 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
     size_t_ = v_type_get_llvm_type(_size_t);
 
-    _void = v_find_type("void");
+    _void = v_find_type_q(void_q);
 
     _void_ptr = v_pointer_type(_void, 0);
 
     builder = v_target_get_builder();
 
-    {   int_ = v_type_get_llvm_type(v_find_type("int"));
+    {   int_ = v_type_get_llvm_type(v_find_type_q(int_q));
 
         n0 = LLVMConstInt(int_, 0, 0);
         n1 = LLVMConstInt(int_, 1, 0);
@@ -821,7 +826,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
     alloc_v: &LLVMValueRef := v;
 
-    {   char_ = v_type_get_llvm_type(v_find_type("char"));
+    {   char_ = v_type_get_llvm_type(v_find_type_q(char_q));
 
         alloc_v := LLVMBuildGEP2(builder, char_, alloc_v, &shift_v, 1, "");
     }
@@ -942,13 +947,13 @@ voidc_enable_heap_objects_compiler: () ~> void
 
 #endif
 
-    {   _void = v_find_type("void");
+    {   _void = v_find_type_q(void_q);
 
         _void_ptr = v_pointer_type(_void, 0);
 
         if (!v_find_symbol_type_q(ctx.alloc.alloc))
         {
-            _size_t = v_find_type("size_t");
+            _size_t = v_find_type_q(size_t_q);
 
             typ: &(*v_type_t)[2] := { _size_t, _size_t };
 

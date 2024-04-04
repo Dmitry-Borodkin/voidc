@@ -725,10 +725,49 @@ v_cast(void *, const visitor_t *vis, const ast_base_t *self)
             }
             else
             {
-                throw std::runtime_error("Bad cast");
+                auto &vctx = *voidc_global_ctx_t::voidc;
+
+                if (&gctx == &vctx  &&
+                    src_stype == vctx.static_type_type  &&
+                    dynamic_cast<v_type_pointer_t *>(dst_stype))
+                {
+                    const v_quark_t *pq = nullptr;
+
+                    static const v_quark_t typenames_q = v_quark_from_string("voidc.typenames_dict");
+
+                    if (auto *i = lctx.decls.overloads.find(typenames_q))           //- WTF ?!?!?!?!?!?!?
+                    {
+                        pq = i->find(reinterpret_cast<v_type_t *>(src_value));
+                    }
+
+                    if (pq)
+                    {
+                        auto q = *pq;
+
+                        auto t = lctx.get_symbol_type(q);
+
+                        assert(t == vctx.type_type);
+
+                        auto cname = v_quark_to_string(q);
+
+                        v = LLVMGetNamedGlobal(lctx.module, cname);
+
+                        if (!v) v = LLVMAddGlobal(lctx.module, t->llvm_type(), cname);
+
+                        assert(!opcode);
+                    }
+                    else
+                    {
+                        throw std::runtime_error("Bad cast from static type");
+                    }
+                }
+                else
+                {
+                    throw std::runtime_error("Bad cast");
+                }
             }
 
-            v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), "");
+            if (opcode) v = LLVMBuildCast(gctx.builder, opcode, src_value, dst_type->llvm_type(), "");
         }
     }
 

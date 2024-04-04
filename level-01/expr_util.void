@@ -61,6 +61,10 @@
     v_add_symbol("q_op_postfix_index",     q_ref, q("v.op_postfix_index"));
 
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
+
+    v_add_symbol("intptr_t_q", q_ref, q("intptr_t"));
+    v_add_symbol("bool_q",     q_ref, q("bool"));
+    v_add_symbol("int_q",      q_ref, q("int"));
 }
 
 
@@ -1075,7 +1079,7 @@
 
     if (flag)
     {
-        if (v_type_is_pointer(e0))  v_set_result_type(v_find_type("intptr_t"));
+        if (v_type_is_pointer(e0))  v_set_result_type(v_find_type_q(intptr_t_q));
         else                        v_set_result_type(e0);
     }
     else
@@ -1613,7 +1617,7 @@
 
     builder = v_target_get_builder();
 
-    _bool = v_find_type("bool");
+    _bool = v_find_type_q(bool_q);
 
     bool_ = v_type_get_llvm_type(_bool);
 
@@ -1837,7 +1841,7 @@
 
     builder = v_target_get_builder();
 
-    _bool = v_find_type("bool");
+    _bool = v_find_type_q(bool_q);
 
     bool_ = v_type_get_llvm_type(_bool);
 
@@ -2424,7 +2428,7 @@
 
     branch_if_false_b = v_reference(v_alloca(LLVMBasicBlockRef));
 
-    _bool = v_find_type("bool");
+    _bool = v_find_type_q(bool_q);
 
     bool_ = v_type_get_llvm_type(_bool);
 
@@ -2903,7 +2907,7 @@
 
     pf = v_type_is_pointer(st);
 
-    if (pf) v_set_result_type(v_find_type("int"));      //- ...
+    if (pf) v_set_result_type(v_find_type_q(int_q));        //- ...
     else    v_set_result_type(st);
 
     v_set_result_value(0);
@@ -3177,7 +3181,7 @@
 
     vr = LLVMBuildIsNull(builder, v, "");
 
-    bool_ = v_find_type("bool");
+    _bool = v_find_type_q(bool_q);
 
     if (v_type_is_vector(t))
     {
@@ -3185,12 +3189,12 @@
 
         s = v_type_vector_is_scalable(t);
 
-        if (s)  v_assign(t, v_svector_type(bool_, sz));
-        else    v_assign(t, v_vector_type(bool_, sz));
+        if (s)  v_assign(t, v_svector_type(_bool, sz));
+        else    v_assign(t, v_vector_type(_bool, sz));
     }
     else
     {
-        v_assign(t, bool_);
+        v_assign(t, _bool);
     }
 
     v_return(vr);

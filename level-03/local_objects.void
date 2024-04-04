@@ -52,6 +52,8 @@
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 
     v_add_symbol("voidc_local_objects_context_q", q_ref, q("voidc.local_objects_context"));
+
+    v_add_symbol("int_q", q_ref, q("int"));
 }
 
 
@@ -1403,7 +1405,7 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
         if (v_type_is_struct(tr)) ets := v_type_struct_get_element_types(tr);
         if (v_type_is_array(tr))  et  := v_type_array_get_element_type(tr);
 
-        int_ = v_type_get_llvm_type(v_find_type("int"));
+        int_ = v_type_get_llvm_type(v_find_type_q(int_q));
 
         val: &LLVMValueRef[2] := { LLVMConstInt(int_, 0, 0) };
 

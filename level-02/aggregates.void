@@ -30,6 +30,8 @@
     v_add_symbol("packed_q", q_ref, q("packed"));
 
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
+
+    v_add_symbol("int_q", q_ref, q("int"));
 }
 
 
@@ -90,7 +92,7 @@ v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
     {
         et = v_type_vector_get_element_type(t);
 
-        int_ = v_type_get_llvm_type(v_find_type("int"));
+        int_ = v_type_get_llvm_type(v_find_type_q(int_q));
 
         for (i: &int := 0; i < N; ++i)
         {

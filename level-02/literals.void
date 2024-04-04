@@ -22,6 +22,9 @@
 
     v_add_symbol("q_literal_integer", q_ref, q("v.literal.integer"));
     v_add_symbol("q_literal_real",    q_ref, q("v.literal.real"));
+
+    v_add_symbol("int_q",      q_ref, q("int"));
+    v_add_symbol("unsigned_q", q_ref, q("unsigned"));
 }
 
 
@@ -56,7 +59,7 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
     {
         if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
         {
-            t := v_find_type("int");
+            t := v_find_type_q(int_q);
         }
     }
     else    //- Suffix determine type (kinda)
@@ -74,8 +77,8 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
         }
         else
         {
-            if (signed) t := v_find_type("int");
-            else        t := v_find_type("unsigned");
+            if (signed) t := v_find_type_q(int_q);
+            else        t := v_find_type_q(unsigned_q);
         }
     }
 

@@ -50,6 +50,8 @@
     v_add_symbol("q_op_infix_ne", q_ref, q("v.op_infix_ne"));
 
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
+
+    v_add_symbol("bool_q", q_ref, q("bool"));
 }
 
 
@@ -133,7 +135,7 @@ op_table: &op_table_item_t[] :=
 
     n = v_type_array_get_length(v_type_refptr_get_element_type(t));
 
-    int_ = v_type_get_llvm_type(v_find_type("int"));
+    int_ = v_type_get_llvm_type(int);
 
     v_add_constant("op_table_length", int, LLVMConstInt(int_, n, 0));
 }
@@ -1052,7 +1054,7 @@ op_relation_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
 
     branch_if_false_b: &LLVMBasicBlockRef := v_undef();
 
-    _bool = v_find_type("bool");
+    _bool = v_find_type_q(bool_q);
 
     bool_ = v_type_get_llvm_type(_bool);
 

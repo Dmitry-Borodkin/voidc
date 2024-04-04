@@ -528,8 +528,6 @@
 
     LLVMPositionBuilderAtEnd(builder, fin_b);
 
-    _LLVMBuilderRef = v_find_type("LLVMBuilderRef");
-
     v_add_variable("builder",  LLVMBuilderRef, builder_v);
     v_add_variable("bblock_v", bblock_ptr,     bblock_v);
 }
@@ -555,9 +553,7 @@
 {
     typ = v_alloca(v_type_ptr);
 
-    _LLVMBasicBlockRef = v_find_type("LLVMBasicBlockRef");
-
-    v_store(_LLVMBasicBlockRef, typ);
+    v_store(LLVMBasicBlockRef, typ);
 
     ft = v_function_type(void, typ, 1, false);
 
@@ -566,7 +562,7 @@
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-    bblock = v_add_parameter_name(f, 0, "bblock", _LLVMBasicBlockRef);
+    bblock = v_add_parameter_name(f, 0, "bblock", LLVMBasicBlockRef);
 
 
     builder = v_target_get_voidc_builder();

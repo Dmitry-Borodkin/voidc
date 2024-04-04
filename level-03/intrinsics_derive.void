@@ -25,6 +25,14 @@
 //=====================================================================
 {   voidc_unit_begin_module("intrinsics_derive_module"); }
 
+//---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("int_q", q_ref, q("int"));
+}
+
 
 //---------------------------------------------------------------------
 private
@@ -488,7 +496,7 @@ voidc_enable_intrinsics_derive_compiler: () ~> void
 
         if (!v_find_constant("LLVMIntSGE", 0, 0))
         {
-            _int = v_find_type("int");
+            _int = v_find_type_q(int_q);            //- ?
 
             int_ = v_type_get_llvm_type(_int);
 

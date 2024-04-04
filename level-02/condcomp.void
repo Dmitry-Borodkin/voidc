@@ -33,6 +33,9 @@
 
     v_add_symbol("pos_start_q", q_ref, q("pos_start"));
     v_add_symbol("pos_end_q",   q_ref, q("pos_end"));
+
+    v_add_symbol("char_q",     q_ref, q("char"));
+    v_add_symbol("unsigned_q", q_ref, q("unsigned"));
 }
 
 
@@ -505,8 +508,8 @@ voidc_enable_condcomp_compiler: () ~> void
 
     voidc_visitor_set_void_method(vis, vis, cc_message_q, compile_cc_message, 0);
 
-    _char_ptr = v_pointer_type(v_find_type("char"), 0);
-    _unsigned = v_find_type("unsigned");
+    _char_ptr = v_pointer_type(v_find_type_q(char_q), 0);
+    _unsigned = v_find_type_q(unsigned_q);
 
 #if (v_defined(_WIN32))
 
