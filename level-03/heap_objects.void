@@ -13,8 +13,6 @@
     v_import("intrinsics_derive.void");
     v_import("local_objects.void");
 
-    v_import("level-01/handlers.void");      //- WTF?
-
 //  v_import("printf.void");
 }
 
@@ -59,7 +57,7 @@
 
 //=====================================================================
 private
-struct voidc_internal_aligned_alloc_ctx_t   //- Linux            |  Windoze
+aligned_alloc_ctx_t = struct                //- Linux            |  Windoze
 {
     alloc: v_quark_t;                       //- "aligned_alloc"  |  "_aligned_malloc"
     free:  v_quark_t;                       //- "free"           |  "_aligned_free"
@@ -146,7 +144,7 @@ v_aligned_alloc_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
     expr: &v_ast_expr_t[2] := {};
 
-    ctx = *(aux: *voidc_internal_aligned_alloc_ctx_t);
+    ctx = *(aux: *aligned_alloc_ctx_t);
 
     v_copy(&expr[    (ctx.swap: int)], align);
     v_copy(&expr[1 - (ctx.swap: int)], size);
@@ -170,7 +168,7 @@ v_aligned_free_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     arg0 = v_list_get_item(args, 0);
 
-    ctx = *(aux: *voidc_internal_aligned_alloc_ctx_t);
+    ctx = *(aux: *aligned_alloc_ctx_t);
 
     stmt: &v_ast_stmt_t := {};
 
@@ -275,8 +273,7 @@ check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t)
 
 //---------------------------------------------------------------------
 private
-op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
-                          self: *v_ast_base_t) ~> void
+op_prefix_new_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -285,9 +282,6 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
     value: &*v_ast_expr_t := 0;
 
     if (v_list_get_size(args) > 1)  value := v_list_get_item(args, 1);
-
-    //-----------------------------------------------------------------
-    llvm_build_call = (aux: *voidc_llvm_build_call_helper_t);
 
     //-----------------------------------------------------------------
     N: &int := 0;
@@ -425,7 +419,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
                 arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
 
-                llvm_build_call(vis, self, ft, fv, arg_ptr, 2);
+                v_llvm_build_call(vis, self, ft, fv, arg_ptr, 2);
             }
         }
         else            //- single
@@ -444,7 +438,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
                 arg_ptr: &v_ast_expr_ptr := &expr;
 
-                llvm_build_call(vis, self, ft, fv, &arg_ptr, 1);
+                v_llvm_build_call(vis, self, ft, fv, &arg_ptr, 1);
             }
         }
 
@@ -615,8 +609,7 @@ op_prefix_new_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 //- ...
 //---------------------------------------------------------------------
 private
-op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
-                             self: *v_ast_base_t) ~> void
+op_prefix_delete_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -672,9 +665,7 @@ op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
             arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
 
-            hnd = (aux: *voidc_llvm_build_call_helper_t);
-
-            hnd(vis, self, ft, fv, arg_ptr, 2);
+            v_llvm_build_call(vis, self, ft, fv, arg_ptr, 2);
         }
 
         v_return();
@@ -711,8 +702,7 @@ op_prefix_delete_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 //- ...
 //---------------------------------------------------------------------
 private
-op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
-                                   self: *v_ast_base_t) ~> void
+op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -770,9 +760,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
             arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
 
-            hnd = (aux: *voidc_llvm_build_call_helper_t);
-
-            hnd(vis, self, ft, fv, arg_ptr, 2);
+            v_llvm_build_call(vis, self, ft, fv, arg_ptr, 2);
         }
 
         v_return();
@@ -845,7 +833,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
         v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
     }
 
-    ctx = *(aux: *voidc_internal_aligned_alloc_ctx_t);
+    ctx = *(aux: *aligned_alloc_ctx_t);
 
     expr: &v_ast_expr_t := {};
 
@@ -861,6 +849,14 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
 
 //=====================================================================
+private
+compute_key_quark_type_t = struct
+{
+    fun: *((*void, *voidc_visitor_t,*v_type_t,&intptr_t, &*v_type_t) ~> void);
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
 private
 compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
                          ft: *v_type_t,
@@ -908,20 +904,19 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
         }
     }
 
-    ctx = *(aux: *voidc_compute_key_quark_type_t);
+    ctx = *(aux: *compute_key_quark_type_t);
 
-    ctx[0](ctx[1], vis, ft, iq, t);             //- ... compute_key_quark_type ...
+    ctx.fun(ctx.aux, vis, ft, iq, t);
 }
 
 
 //=====================================================================
 private
-struct voidc_internal_heap_objects_ctx_t
+heap_objects_ctx_t = struct
 {
-    alloc: voidc_internal_aligned_alloc_ctx_t;
-    quark: voidc_compute_key_quark_type_t;
+    alloc: aligned_alloc_ctx_t;
+    quark: compute_key_quark_type_t;
 };
-
 
 //---------------------------------------------------------------------
 //- Enable heap objects
@@ -931,7 +926,7 @@ voidc_enable_heap_objects_compiler: () ~> void
 {
     v_return_if(v_get_intrinsic_q(q_op_prefix_new, 0));
 
-    ctx = *v_malloc(voidc_internal_heap_objects_ctx_t);
+    ctx = *v_malloc(heap_objects_ctx_t);
 
 #if (v_defined(_WIN32))
 
@@ -969,21 +964,14 @@ voidc_enable_heap_objects_compiler: () ~> void
     v_add_intrinsic_q(q_aligned_alloc, v_aligned_alloc_intrinsic, &ctx.alloc);
     v_add_intrinsic_q(q_aligned_free,  v_aligned_free_intrinsic,  &ctx.alloc);
 
-    hnd = &voidc_overloading_context_get_llvm_build_call_helper();
+    v_add_intrinsic_q(q_op_prefix_new,          op_prefix_new_intrinsic,          0);
+    v_add_intrinsic_q(q_op_prefix_delete,       op_prefix_delete_intrinsic,       0);
+    v_add_intrinsic_q(q_op_prefix_delete_array, op_prefix_delete_array_intrinsic, &ctx.alloc);
 
-    v_add_intrinsic_q(q_op_prefix_new,          op_prefix_new_intrinsic,          hnd);
-    v_add_intrinsic_q(q_op_prefix_delete,       op_prefix_delete_intrinsic,       hnd);
-    v_add_intrinsic_q(q_op_prefix_delete_array, op_prefix_delete_array_intrinsic, hnd);
+    //-----------------------------------------------------------------
+    ctx.quark.fun := v_get_handler(v_compute_key_quark_type, &ctx.quark.aux);
 
-    q = v_quark_from_string("voidc.compute_key_quark_type");
-
-    vis = v_get_compiler();
-
-    hnd = voidc_mangling_context_get_compute_key_quark_type();
-
-    ctx.quark := hnd;
-
-    hnd := {compute_key_quark_type, &ctx.quark};
+    v_set_handler(v_compute_key_quark_type, compute_key_quark_type, &ctx.quark);
 
     free: (*void) ~> void;
 

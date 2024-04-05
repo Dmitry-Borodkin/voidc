@@ -12,8 +12,6 @@
 
     v_import("intrinsics_derive.void");
 
-    v_import("level-01/handlers.void");      //- WTF?
-
 //  v_import("printf.void");
 }
 
@@ -133,17 +131,10 @@ mk_expr_stmt_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, siz
 //---------------------------------------------------------------------
 //- local_objects_ctx_t ...
 //---------------------------------------------------------------------
-export
-voidc_prepare_function_parameters_helper_t = struct
+private
+my_prepare_function_parameters_helper_t = struct
 {
-    *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) ~> void);
-    *void;
-};
-
-export
-voidc_obtain_special_result_value_helper_t = struct
-{
-    fun: *((*void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef);
+    fun: *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) ~> void);
     aux: *void;
 };
 
@@ -158,19 +149,8 @@ private
 my_adopt_result_ctx_t = struct
 {
     fun: *((*void, *v_type_t, LLVMValueRef) ~> void);
-    ctx: *void;
+    aux: *void;
 };
-
-//---------------------------------------------------------------------
-{   v_enable_handler(voidc_prepare_function_parameters_helper_t);
-    v_enable_handler(voidc_obtain_special_result_value_helper_t);
-    v_enable_handler(my_intrinsic_ctx_t);
-    v_enable_handler(my_adopt_result_ctx_t);
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
-}
 
 
 //---------------------------------------------------------------------
@@ -179,8 +159,7 @@ local_objects_ctx_t = struct
 {
     obtain_spec_flag: bool;
 
-    fun_params:  voidc_prepare_function_parameters_helper_t;    //- ...
-    obtain_spec: voidc_obtain_special_result_value_helper_t;
+    fun_params: my_prepare_function_parameters_helper_t;        //- ...
 
     stmt_hook:    my_intrinsic_ctx_t;
     adopt_result: my_adopt_result_ctx_t;
@@ -189,39 +168,39 @@ local_objects_ctx_t = struct
 };
 
 
-//---------------------------------------------------------------------
-private
-add_local_objects_context: (ctx: *local_objects_ctx_t) ~> void
-{
-    any = v_alloca(v_std_any_t);
-    v_initialize(any);
-    defer v_terminate(any);
+////---------------------------------------------------------------------
+//private
+//add_local_objects_context: (ctx: *local_objects_ctx_t) ~> void
+//{
+//    any = v_alloca(v_std_any_t);
+//    v_initialize(any);
+//    defer v_terminate(any);
+//
+//    v_std_any_set_value(any, v_cast(ctx, intptr_t));
+//
+//    v_add_property_q(voidc_local_objects_context_q, any);
+//}
+//
+////---------------------------------------------------------------------
+//private
+//get_local_objects_context: () ~> *local_objects_ctx_t
+//{
+//    any = v_get_property_q(voidc_local_objects_context_q);
+//
+//    ctx = (v_std_any_get_value(intptr_t, any) : *local_objects_ctx_t);
+//
+//    v_return(ctx);
+//}
 
-    v_std_any_set_value(any, v_cast(ctx, intptr_t));
 
-    v_add_property_q(voidc_local_objects_context_q, any);
-}
-
-//---------------------------------------------------------------------
-private
-get_local_objects_context: () ~> *local_objects_ctx_t
-{
-    any = v_get_property_q(voidc_local_objects_context_q);
-
-    ctx = (v_std_any_get_value(intptr_t, any) : *local_objects_ctx_t);
-
-    v_return(ctx);
-}
-
-
-//---------------------------------------------------------------------
-export
-voidc_local_objects_context_get_obtain_special_result_value_helper: () ~> &voidc_obtain_special_result_value_helper_t
-{
-    ctx = *get_local_objects_context();
-
-    v_return(ctx.obtain_spec);
-}
+////---------------------------------------------------------------------
+//export
+//voidc_local_objects_context_get_obtain_special_result_value_helper: () ~> &voidc_obtain_special_result_value_helper_t
+//{
+//    ctx = *get_local_objects_context();
+//
+//    v_return(ctx.obtain_spec);
+//}
 
 
 //=====================================================================
@@ -431,9 +410,9 @@ my_prepare_function_parameters: (aux: *void, fun: LLVMValueRef,
 
     if (!v_type_is_special(tr, q_initialize))
     {
-        ctx = *(aux: *local_objects_ctx_t);
+        ctx = (aux: *local_objects_ctx_t)->fun_params;
 
-        ctx.fun_params(fun, qualif, fun_name, fun_type, fun_args);
+        ctx.fun(ctx.aux, fun, qualif, fun_name, fun_type, fun_args);
 
         v_return();
     }
@@ -634,10 +613,10 @@ obtain_special_result_value_variable: (vis: *voidc_visitor_t, t: *v_type_t) ~> L
 
 
 //---------------------------------------------------------------------
-//- voidc_obtain_special_result_value ...
+//- v_obtain_special_result_value ...
 //---------------------------------------------------------------------
 private
-voidc_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef
+obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t: *v_type_t) ~> LLVMValueRef
 {
     v_assert(v_type_is_special(t, q_initialize));
 
@@ -673,6 +652,9 @@ voidc_obtain_special_result_value_helper: (aux: *void, vis: *voidc_visitor_t, t:
     }
 }
 
+//---------------------------------------------------------------------
+{   v_make_handler(v_obtain_special_result_value, obtain_special_result_value_helper); }
+
 
 //=====================================================================
 export TEMPORARY_VTAG = (( 0: intptr_t) : LLVMValueRef);
@@ -692,9 +674,9 @@ my_compile_stmt: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
     if (name  &&  name[0])  v_set_result_value(VARIABLE_VTAG);      //- Sic!!!
     else                    v_set_result_value(TEMPORARY_VTAG);     //- Sic!!!
 
-    ctx = *(aux: *local_objects_ctx_t);
+    ctx = (aux: *local_objects_ctx_t)->stmt_hook;
 
-    ctx.stmt_hook(vis, self);
+    ctx.fun(ctx.aux, vis, self);
 }
 
 
@@ -702,13 +684,11 @@ my_compile_stmt: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 //- llvm_build_call_helper ...
 //---------------------------------------------------------------------
 private
-my_llvm_build_call_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+my_llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                             ft: v_type_ptr, fv: LLVMValueRef,
                             arg_ptrs: **v_ast_expr_t, arg_count: unsigned
                            ) ~> void
 {
-    ctx = *(aux: *local_objects_ctx_t);
-
     par_count = v_type_function_get_param_count(ft);
     par_types = v_type_function_get_param_types(ft);
 
@@ -737,7 +717,7 @@ my_llvm_build_call_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
     if (tr_initializable)
     {
-        values[0] := vr := ctx.obtain_spec(vis, tr);
+        values[0] := vr := v_obtain_special_result_value(vis, tr);
 
         i := 1;
     }
@@ -784,9 +764,9 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) ~> void
 
     if (ttag == UNREFERENCE_TAG  &&  type == v_static_type_t)
     {
-        ctx = *(void_ctx: *local_objects_ctx_t);
+        ctx = (void_ctx: *local_objects_ctx_t)->adopt_result;
 
-        ctx.adopt_result(type, value);
+        ctx.fun(ctx.aux, type, value);
 
         v_return();
     }
@@ -1029,9 +1009,9 @@ my_return_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
 
         if (!v_type_is_special(ret_type, q_initialize))
         {
-            ctx = *(aux: *local_objects_ctx_t);
+            ctx = (aux: *local_objects_ctx_t)->return;
 
-            ctx.return(vis, self);
+            ctx.fun(ctx.aux, vis, self);
 
             v_return();
         }
@@ -1068,7 +1048,7 @@ my_return_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
 //- ...
 //---------------------------------------------------------------------
 private
-compile_expr_stmt: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+compile_expr_stmt: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -1081,9 +1061,7 @@ compile_expr_stmt: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
     if (is_special)
     {
-        hnd = *(aux: *voidc_obtain_special_result_value_helper_t);
-
-        vr := hnd(vis, tr);
+        vr := v_obtain_special_result_value(vis, tr);
     }
     else
     {
@@ -1389,12 +1367,14 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
         v_set_result_type(tr);
 
-        ctx.op_braces(vis, self);
+        ctx = ctx.op_braces;
+
+        ctx.fun(ctx.aux, vis, self);
 
         v_return();
     }
 
-    vr = ctx.obtain_spec(vis, tr);
+    vr = v_obtain_special_result_value(vis, tr);
 
     builder = v_target_get_builder();
 
@@ -1459,15 +1439,10 @@ voidc_enable_local_objects_compiler: () ~> void
     //-----------------------------------------------------------------
     ctx = *v_malloc(local_objects_ctx_t);
 
-    add_local_objects_context(&ctx);
-
     //-----------------------------------------------------------------
-    ctx.fun_params[0] := v_get_prepare_function_parameters_hook(&ctx.fun_params[1]);
+    ctx.fun_params.fun := v_get_prepare_function_parameters_hook(&ctx.fun_params.aux);
 
     v_set_prepare_function_parameters_hook(my_prepare_function_parameters, &ctx);
-
-    //-----------------------------------------------------------------
-    ctx.obtain_spec := {voidc_obtain_special_result_value_helper, &ctx.obtain_spec_flag};
 
     //-----------------------------------------------------------------
     q = v_quark_from_string("stmt");
@@ -1479,11 +1454,7 @@ voidc_enable_local_objects_compiler: () ~> void
     voidc_visitor_set_void_method(vis, vis, q, my_compile_stmt, &ctx);
 
     //-----------------------------------------------------------------
-    hnd = voidc_overloading_context_get_llvm_build_call_helper();
-
-    hnd := {my_llvm_build_call_helper, &ctx};
-
-    ctx.adopt_result.fun := v_get_adopt_result_hook(&ctx.adopt_result.ctx);
+    ctx.adopt_result.fun := v_get_adopt_result_hook(&ctx.adopt_result.aux);
 
     v_set_adopt_result_hook(my_adopt_result, &ctx);
 
@@ -1498,7 +1469,7 @@ voidc_enable_local_objects_compiler: () ~> void
     v_add_intrinsic("v_get_object_pointer", v_get_object_pointer_intrinsic, 0);
 
     //-----------------------------------------------------------------
-    voidc_visitor_set_void_method(vis, vis, expr_stmt_q, compile_expr_stmt, &ctx.obtain_spec);
+    voidc_visitor_set_void_method(vis, vis, expr_stmt_q, compile_expr_stmt, 0);
 
     v_add_intrinsic("v_break", my_break_intrinsic, 0);
 
@@ -1521,13 +1492,8 @@ voidc_enable_local_objects_compiler: () ~> void
     v_add_local_cleaner(free, &ctx);
 
     //-----------------------------------------------------------------
-    gctx = v_target_get_global_ctx();
-    vctx = v_target_get_voidc_global_ctx();
-
-    if (gctx == vctx)
-    {
-        v_enable_handler(voidc_obtain_special_result_value_helper_t);
-    }
+    v_set_handler(v_llvm_build_call,             my_llvm_build_call_helper,          &ctx);
+    v_set_handler(v_obtain_special_result_value, obtain_special_result_value_helper, &ctx.obtain_spec_flag);
 }
 
 

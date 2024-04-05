@@ -12,8 +12,6 @@
 
     v_import("llvm-c/Core.void");
 
-    v_import("level-01/handlers.void");      //- WTF?
-
 //  v_import("printf.void");
 }
 
@@ -144,6 +142,14 @@ voidc_intrinsic_quarks_ctor: () ~> void
 
 //---------------------------------------------------------------------
 private
+compute_key_quark_type_t = struct
+{
+    fun: *((*void, *voidc_visitor_t,*v_type_t,&intptr_t, &*v_type_t) ~> void);
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
+private
 compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
                          ft: *v_type_t,
                          iq: &intptr_t, t: &*v_type_t
@@ -165,9 +171,9 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
         }
     }
 
-    ctx = (aux: *voidc_compute_key_quark_type_t);
+    ctx = *(aux: *compute_key_quark_type_t);
 
-    ctx(vis, ft, iq, t);
+    ctx.fun(ctx.aux, vis, ft, iq, t);
 }
 
 //---------------------------------------------------------------------
@@ -505,18 +511,18 @@ voidc_enable_intrinsics_derive_compiler: () ~> void
         }
     }
 
-    ctx = *v_malloc(voidc_compute_key_quark_type_t);
+    //-----------------------------------------------------------------
+    ctx = *v_malloc(compute_key_quark_type_t);
 
-    hnd = voidc_mangling_context_get_compute_key_quark_type();
+    ctx.fun := v_get_handler(v_compute_key_quark_type, &ctx.aux);
 
-    ctx := hnd;
-
-    hnd := {compute_key_quark_type, &ctx};
+    v_set_handler(v_compute_key_quark_type, compute_key_quark_type, &ctx);
 
     free: (*void) ~> void;
 
     v_add_local_cleaner(free, &ctx);
 
+    //-----------------------------------------------------------------
     v_add_intrinsic_q(q_internal_spec_fun_derive, spec_fun_derive_intrinsic, 0);
 }
 

@@ -1382,14 +1382,6 @@ voidc_enable_global_objects_compiler: () ~> void
     v_make_list_nil(&obtain_spec.global_ctx.term_list);
 
     //-----------------------------------------------------------------
-    handler = voidc_local_objects_context_get_obtain_special_result_value_helper();
-
-    obtain_spec.fun := handler.fun;
-    obtain_spec.aux := handler.aux;
-
-    handler := {my_obtain_special_result_value_helper, &obtain_spec};
-
-    //-----------------------------------------------------------------
     vis = v_get_compiler();
 
     voidc_visitor_set_void_method(vis, vis, unit_var_defn_q, my_compile_unit_var_defn, &obtain_spec);
@@ -1416,6 +1408,11 @@ voidc_enable_global_objects_compiler: () ~> void
 
         v_set_finish_module_hook(voidc_finish_module_cdtors, &ctx.fin_cdtors);
     }
+
+    //-----------------------------------------------------------------
+    obtain_spec.fun := v_get_handler(v_obtain_special_result_value, &obtain_spec.aux);
+
+    v_set_handler(v_obtain_special_result_value, my_obtain_special_result_value_helper, &obtain_spec);
 
     //-----------------------------------------------------------------
     ctx.fin_globals.global_ctx := &obtain_spec.global_ctx;

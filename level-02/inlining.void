@@ -21,8 +21,6 @@
     v_import("structures.void");
     v_import("mangling.void");
 
-    v_import("level-01/handlers.void");      //- WTF?
-
 //  v_import("printf.void");
 }
 
@@ -181,7 +179,7 @@ obtain_module_for_inlining: (void_mod: *void) ~> LLVMModuleRef
 private
 compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    ctx = (aux: *v_inlining_aux_t);
+    ctx = *(aux: *v_inlining_aux_t);
 
     list = (self: v_ast_generic_list_ptr);
 
@@ -194,7 +192,7 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
         //- No inlining... --------------------------------------------
 
         //--------------------------
-        v_handle(ctx, vis, self);
+        ctx.fun(ctx.aux, vis, self);
         //--------------------------
 
         v_return();
@@ -226,7 +224,7 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
     }
 
     //------------------------------------------
-    v_handle(ctx, vis, self);           //- Sic!
+    ctx.fun(ctx.aux, vis, self);        //- Sic!
     //------------------------------------------
 
     v_set_obtain_module_hook(saved_obtain_module_fun, saved_obtain_module_ctx);
@@ -332,7 +330,7 @@ private
 struct v_finish_module_ctx_t
 {
     fun: *((*void, LLVMModuleRef) ~> void);
-    ctx: *void;
+    aux: *void;
 };
 
 //---------------------------------------------------------------------
@@ -408,7 +406,7 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) ~> void
 
     ctx = (void_ctx: *v_finish_module_ctx_t);
 
-    if (ctx  &&  ctx->fun)  v_handle(ctx, module);
+    if (ctx  &&  ctx->fun)  ctx->fun(ctx->aux, module);
 }
 
 
@@ -455,7 +453,7 @@ voidc_enable_inlining_compiler: () ~> void
     voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[1]);
 
 
-    ctx.finish_module_ctx.fun := v_get_finish_module_hook(&ctx.finish_module_ctx.ctx);
+    ctx.finish_module_ctx.fun := v_get_finish_module_hook(&ctx.finish_module_ctx.aux);
 
     v_set_finish_module_hook(finish_module_inlining, &ctx.finish_module_ctx);
 

@@ -1,0 +1,486 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2024 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("handlers_etc.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("loops_etc.void");
+    v_import("condcomp.void");
+    v_import("aggregates.void");
+
+//  v_import("printf.void");
+}
+
+{   v_enable_level_01();
+
+    voidc_enable_loops_etc();
+    voidc_enable_condcomp();
+    voidc_enable_aggregates();
+}
+
+
+//---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("expr_compiled_q",    q_ref, q("expr_compiled"));
+    v_add_symbol("expr_compile_spy_q", q_ref, q("expr_compile_spy"));
+
+    void_ptr     = v_pointer_type(void,     0);
+    void_ptr_ptr = v_pointer_type(void_ptr, 0);
+
+    v_add_type("void_ptr",     void_ptr);
+    v_add_type("void_ptr_ptr", void_ptr_ptr);
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("handlers_etc_module"); }
+
+
+//---------------------------------------------------------------------
+//- ast_expr_compiled_t ...
+//---------------------------------------------------------------------
+private
+ast_expr_compiled_t = v_struct("struct.v_ast_expr_compiled",
+{
+    *v_type_t,          //- 0 - compiled type
+    LLVMValueRef,       //- 1 - compiled value
+});
+
+{   sz_v = LLVMSizeOf(v_type_get_llvm_type(ast_expr_compiled_t));
+
+    v_add_constant("ast_expr_compiled_size", size_t, sz_v);
+}
+
+ast_expr_compiled_vtable: &v_ast_generic_vtable := {0, 0};
+
+//---------------------------------------------------------------------
+export
+v_ast_make_expr_compiled: (expr: *v_ast_expr_t, t: *v_type_t, v: LLVMValueRef) ~> void
+{
+    v_ast_make_generic(expr, &ast_expr_compiled_vtable, ast_expr_compiled_size);
+
+    void_obj = v_ast_generic_get_object(expr);
+
+    obj = *(void_obj: *ast_expr_compiled_t);
+
+    obj[0] := t;
+    obj[1] := v;
+}
+
+//---------------------------------------------------------------------
+private
+compile_expr_compiled: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
+
+    obj = *(void_obj: *ast_expr_compiled_t);
+
+    v_adopt_result(obj[0], obj[1]);
+}
+
+
+//---------------------------------------------------------------------
+//- ast_expr_compile_spy_t ...
+//---------------------------------------------------------------------
+private
+ast_expr_compile_spy_t = v_struct("struct.v_ast_expr_compile_spy",
+{
+    v_ast_expr_t,       //- 0 - expr  to compile
+
+    **v_type_t,         //- 1 - type  to "spy"
+    *LLVMValueRef,      //- 2 - value to "spy"
+});
+
+{   sz_v = LLVMSizeOf(v_type_get_llvm_type(ast_expr_compile_spy_t));
+
+    v_add_constant("ast_expr_compile_spy_size", size_t, sz_v);
+}
+
+private
+ast_expr_compile_spy_init: (void_obj: *void) ~> void
+{
+    obj = *(void_obj: *ast_expr_compile_spy_t);
+
+    v_initialize(&obj[0]);
+}
+
+private
+ast_expr_compile_spy_term: (void_obj: *void) ~> void
+{
+    obj = *(void_obj: *ast_expr_compile_spy_t);
+
+    v_terminate(&obj[0]);
+}
+
+ast_expr_compile_spy_vtable: &v_ast_generic_vtable :=
+{
+    ast_expr_compile_spy_init,
+    ast_expr_compile_spy_term,
+};
+
+//---------------------------------------------------------------------
+export
+v_ast_make_expr_compile_spy: (ret: *v_ast_expr_t, expr: *v_ast_expr_t, t: &*v_type_t, v: &LLVMValueRef) ~> void
+{
+    etmp = v_alloca(v_ast_expr_t);
+    v_initialize(etmp);
+    defer v_terminate(etmp);
+
+    v_ast_make_generic(etmp, &ast_expr_compile_spy_vtable, ast_expr_compile_spy_size);
+
+    void_obj = v_ast_generic_get_object(etmp);
+
+    obj = *(void_obj: *ast_expr_compile_spy_t);
+
+    v_copy(&obj[0], expr);
+
+    obj[1] := &t;
+    obj[2] := &v;
+
+    v_copy(ret, etmp);
+}
+
+//---------------------------------------------------------------------
+private
+compile_expr_compile_spy: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
+
+    obj = *(void_obj: *ast_expr_compile_spy_t);
+
+    expr  = &obj[0];
+    type  = *obj[1];
+    value = *obj[2];
+
+    v_ast_accept_visitor((expr : v_ast_base_ptr), vis);
+
+    type  := v_get_result_type();
+    value := v_get_result_value();
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+handle_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    tg_arg = (aux: *v_type_generic_arg_t);
+
+    hqname = v_type_generic_arg_cons_get_cons(tg_arg);
+
+    ftype = v_type_generic_arg_type_get_type(v_type_generic_arg_cons_get_args(tg_arg)[0]);
+
+    aux_var_v = v_make_temporary(void_ptr, 0);
+
+    expr = v_alloca(v_ast_expr_t, 2);
+    v_initialize(expr, 2);
+    defer v_terminate(expr, 2);
+
+    v_ast_make_expr_identifier(expr+0, v_quark_to_string(hqname));
+
+    list = v_alloca(v_ast_expr_list_t);
+    v_initialize(list);
+    defer v_terminate(list);
+
+    v_make_list(list, expr+0);
+
+    v_ast_make_expr_compiled(expr+1, void_ptr_ptr, aux_var_v);
+
+    v_list_append(list, list, expr+1);
+
+    v_ast_make_expr_identifier(expr+0, "v_get_intrinsic_q");
+
+    v_ast_make_expr_call(expr+0, expr+0, list);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor((expr+0: *v_ast_base_t), vis);
+
+    fvalue = v_get_result_value();
+
+    v_ast_make_expr_compiled(expr+0, void_ptr, fvalue);
+
+    v_make_list(list, expr+0);
+
+    v_ast_make_expr_compiled(expr+0, v_static_type_t, (ftype: LLVMValueRef));
+
+    v_list_append(list, list, expr+0);
+
+    v_ast_make_expr_identifier(expr+0, "v_cast");
+
+    v_ast_make_expr_call(expr+0, expr+0, list);
+
+    v_make_list(list, expr+1);
+
+    v_ast_make_expr_identifier(expr+1, "v_load");
+
+    v_ast_make_expr_call(expr+1, expr+1, list);
+
+    v_make_list(list, expr+1);
+
+    {   ft = v_type_refptr_get_element_type(ftype);
+        pt = v_type_function_get_param_types(ft)[0];
+
+        if (pt != void_ptr)
+        {
+            v_ast_make_expr_compiled(expr+1, v_static_type_t, (pt: LLVMValueRef));
+
+            v_list_append(list, list, expr+1);
+
+            v_ast_make_expr_identifier(expr+1, "v_cast");
+
+            v_ast_make_expr_call(expr+1, expr+1, list);
+
+            v_make_list(list, expr+1);
+        }
+    }
+
+    n = v_list_get_size(args);
+
+    for (i: &int := 0; i < n; ++i)
+    {
+        v_list_append(list, list, v_list_get_item(args, i));
+    }
+
+    v_ast_make_expr_call(expr+0, expr+0, list);
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_ast_accept_visitor((expr+0: *v_ast_base_t), vis);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+export
+voidc_internal_make_handler: (hname: *const char, fname: *const char) ~> void
+{
+//printf("voidc_internal_make_handler(%s, %s) start\n", hname, fname);
+//defer printf("voidc_internal_make_handler stop\n");
+
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    v_std_string_set(sstr, "voidc.handler.");
+
+    v_std_string_append(sstr, hname);
+
+    quark = *v_quark_ptr_from_string(v_std_string_get(sstr));
+
+    ftype = v_find_symbol_type(fname);
+
+    v_assert(ftype);
+
+    ftype = v_pointer_type(ftype, 0);
+
+    t_arg = v_type_generic_type_arg(ftype);
+
+    v_std_string_set(sstr, "voidc.handler_qname.");
+
+    v_std_string_append(sstr, hname);
+
+    hqname = v_quark_from_string(v_std_string_get(sstr));
+
+    c_arg = v_type_generic_cons_arg(hqname, &t_arg, 1);
+
+    v_export_intrinsic(hname, handle_intrinsic, c_arg);         //- Sic!
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    v_export_symbol_q(hqname, q_ref, &quark);                   //- Sic!
+}
+
+//---------------------------------------------------------------------
+private
+v_make_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    hname = v_ast_expr_identifier_get_name(v_list_get_item(args, 0));
+    fname = v_ast_expr_identifier_get_name(v_list_get_item(args, 1));
+
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    v_ast_make_expr_string(expr, hname);
+
+    list = v_alloca(v_ast_expr_list_t);
+    v_initialize(list);
+    defer v_terminate(list);
+
+    v_make_list(list, expr);
+
+    v_ast_make_expr_string(expr, fname);
+
+    v_list_append(list, list, expr);
+
+    v_ast_make_expr_identifier(expr, "voidc_internal_make_handler");
+
+    v_ast_make_expr_call(expr, expr, list);
+
+    v_ast_accept_visitor((expr: *v_ast_base_t), vis);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+v_get_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    hname = v_ast_expr_identifier_get_name(v_list_get_item(args, 0));
+
+    aux_ptr_expr = v_list_get_item(args, 1);
+
+    void_tg_arg: &*void := v_undef();
+
+    v_get_intrinsic(hname, &void_tg_arg);
+
+    tg_arg = (void_tg_arg: *v_type_generic_arg_t);
+
+    hqname = v_type_generic_arg_cons_get_cons(tg_arg);
+
+    expr = v_alloca(v_ast_expr_t, 2);
+    v_initialize(expr, 2);
+    defer v_terminate(expr, 2);
+
+    v_ast_make_expr_identifier(expr+0, v_quark_to_string(hqname));
+
+    list = v_alloca(v_ast_expr_list_t);
+    v_initialize(list);
+    defer v_terminate(list);
+
+    v_make_list(list, aux_ptr_expr);
+
+    v_ast_make_expr_compiled(expr+1, v_static_type_t, (void_ptr_ptr: LLVMValueRef));
+
+    v_list_append(list, list, expr+1);
+
+    v_ast_make_expr_identifier(expr+1, "v_cast");
+
+    v_ast_make_expr_call(expr+1, expr+1, list);
+
+    v_make_list(list, expr, 2);
+
+    v_ast_make_expr_identifier(expr+0, "v_get_intrinsic_q");
+
+    v_ast_make_expr_call(expr+0, expr+0, list);
+
+    ftype = v_type_generic_arg_type_get_type(v_type_generic_arg_cons_get_args(tg_arg)[0]);
+
+    v_ast_make_expr_compiled(expr+1, v_static_type_t, (ftype: LLVMValueRef));
+
+    v_make_list(list, expr, 2);
+
+    v_ast_make_expr_identifier(expr+0, "v_cast");
+
+    v_ast_make_expr_call(expr+0, expr+0, list);
+
+    v_ast_accept_visitor((expr+0: *v_ast_base_t), vis);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+v_set_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    hname = v_ast_expr_identifier_get_name(v_list_get_item(args, 0));
+
+    fun_expr = v_list_get_item(args, 1);
+    aux_expr = v_list_get_item(args, 2);
+
+    void_tg_arg: &*void := v_undef();
+
+    v_get_intrinsic(hname, &void_tg_arg);
+
+    tg_arg = (void_tg_arg: *v_type_generic_arg_t);
+
+    hqname = v_type_generic_arg_cons_get_cons(tg_arg);
+
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    v_ast_make_expr_identifier(expr, v_quark_to_string(hqname));
+
+    list = v_alloca(v_ast_expr_list_t, 2);
+    v_initialize(list, 2);
+    defer v_terminate(list, 2);
+
+    v_make_list(list+0, expr);
+
+    v_list_append(list+0, list+0, fun_expr);
+
+    v_make_list(list+1, aux_expr);
+
+    v_ast_make_expr_compiled(expr, v_static_type_t, (void_ptr: LLVMValueRef));
+
+    v_list_append(list+1, list+1, expr);
+
+    v_ast_make_expr_identifier(expr, "v_cast");
+
+    v_ast_make_expr_call(expr, expr, list+1);
+
+    v_list_append(list+0, list+0, expr);
+
+    v_ast_make_expr_identifier(expr, "v_add_intrinsic_q");
+
+    v_ast_make_expr_call(expr, expr, list+0);
+
+    v_ast_accept_visitor((expr: *v_ast_base_t), vis);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable handlers etc
+//---------------------------------------------------------------------
+export
+voidc_enable_handlers_etc: () ~> void
+{
+    vis = v_get_compiler();
+
+    voidc_visitor_set_void_method(vis, vis, expr_compiled_q,    compile_expr_compiled,    0);
+    voidc_visitor_set_void_method(vis, vis, expr_compile_spy_q, compile_expr_compile_spy, 0);
+
+    //-------------------------------------------------------------
+    v_add_intrinsic("v_make_handler", v_make_handler_intrinsic, 0);
+    v_add_intrinsic("v_get_handler",  v_get_handler_intrinsic,  0);
+    v_add_intrinsic("v_set_handler",  v_set_handler_intrinsic,  0);
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+{   ast_expr_compiled_vtable[2]    := expr_compiled_q;
+    ast_expr_compile_spy_vtable[2] := expr_compile_spy_q;
+}
+
+

@@ -12,13 +12,12 @@
     v_import("literals.void");
     v_import("loops_etc.void");
     v_import("aggregates.void");
+    v_import("handlers_etc.void");
     v_import("overloading.void");
     v_import("projections.void");
     v_import("structures.void");
 
     v_import("compression.void");
-
-    v_import("level-01/handlers.void");      //- WTF?
 
 //  v_import("printf.void");
 }
@@ -28,6 +27,7 @@
     voidc_enable_literals();
     voidc_enable_loops_etc();
     voidc_enable_aggregates();
+    voidc_enable_handlers_etc();
     voidc_enable_overloading();
     voidc_enable_projections();
     voidc_enable_structures();
@@ -51,8 +51,6 @@
     v_add_symbol("voidc_compile_quark_q", q_ref, q("voidc.compile_quark"));
 
     //-----------------------------------------------------------------
-    v_add_symbol("voidc_mangling_context_q", q_ref, q("voidc.mangling_context"));
-
     v_add_symbol("q_initialize", q_ref, q("v_initialize"));
 }
 
@@ -556,69 +554,6 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) ~> void
 }
 
 
-//---------------------------------------------------------------------
-//- mangling_ctx_t ...
-//---------------------------------------------------------------------
-export
-voidc_compute_key_quark_type_t = struct
-{
-    *((*void, *voidc_visitor_t, *v_type_t, &intptr_t, &*v_type_t) ~> void);
-    *void;
-};
-
-//---------------------------------------------------------------------
-{   v_enable_handler(voidc_compute_key_quark_type_t);
-
-    //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
-}
-
-
-//---------------------------------------------------------------------
-private
-struct v_mangling_ctx_t
-{
-    compute_key_quark_type: voidc_compute_key_quark_type_t;
-
-};
-
-
-//---------------------------------------------------------------------
-private
-add_mangling_context: (ctx: *v_mangling_ctx_t) ~> void
-{
-    any = v_alloca(v_std_any_t);
-    v_initialize(any);
-    defer v_terminate(any);
-
-    v_std_any_set_value(any, v_cast(ctx, intptr_t));
-
-    v_add_property_q(voidc_mangling_context_q, any);
-}
-
-//---------------------------------------------------------------------
-private
-get_mangling_context: () ~> *v_mangling_ctx_t
-{
-    any = v_get_property_q(voidc_mangling_context_q);
-
-    ctx = (v_std_any_get_value(intptr_t, any) : *v_mangling_ctx_t);
-
-    v_return(ctx);
-}
-
-
-//---------------------------------------------------------------------
-export
-voidc_mangling_context_get_compute_key_quark_type: () ~> &voidc_compute_key_quark_type_t
-{
-    ctx = *get_mangling_context();
-
-    v_return(ctx.compute_key_quark_type);
-}
-
-
 //=====================================================================
 {
     q_ref = v_reference_type(v_quark_t, 0);
@@ -1036,16 +971,19 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
     }
 }
 
+//---------------------------------------------------------------------
+{   v_make_handler(v_compute_key_quark_type, compute_key_quark_type); }
+
 
 //---------------------------------------------------------------------
 private
-register_mangled_function_name: (ctx: &v_mangling_ctx_t, vis: *voidc_visitor_t, unit: bool,
+register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool,
                                  sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) ~> void
 {
     iq: &intptr_t := iq;
     t: &*v_type_t := v_undef();
 
-    ctx.compute_key_quark_type(vis, ft, iq, t);
+    v_compute_key_quark_type(vis, ft, iq, t);
 
     q = (iq: v_quark_t);
 
@@ -1060,27 +998,25 @@ register_mangled_function_name: (ctx: &v_mangling_ctx_t, vis: *voidc_visitor_t, 
 
 //---------------------------------------------------------------------
 private
-compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+compile_unit_spec_fun_defn: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    ctx = *(aux: *v_mangling_ctx_t);
-
-    list = (self: v_ast_generic_list_ptr);
+    list = (self: *v_ast_generic_list_t);
 
     ast0 = v_list_get_item(list, 0);
     ast1 = v_list_get_item(list, 1);
 
     //-------------------------------------------------------------
-    qualif = v_ast_expr_integer_get_number((ast0: v_ast_expr_ptr));
-    quark  = v_ast_expr_integer_get_number((ast1: v_ast_expr_ptr));
+    qualif = v_ast_expr_integer_get_number((ast0: *v_ast_expr_t));
+    quark  = v_ast_expr_integer_get_number((ast1: *v_ast_expr_t));
 
     params   = v_list_get_item(list, 2);
     ret_type = v_list_get_item(list, 3);
     body     = v_list_get_item(list, 4);
 
     //-------------------------------------------------------------
-    args = v_ast_expr_call_get_arg_list((params: v_ast_expr_ptr));
+    args = v_ast_expr_call_get_arg_list((params: *v_ast_expr_t));
 
-    args = (v_list_get_item(args, 1) : v_ast_generic_list_ptr);
+    args = (v_list_get_item(args, 1) : *v_ast_generic_list_t);
 
     //-------------------------------------------------------------
     {   expr = v_alloca(v_ast_expr_t);
@@ -1089,21 +1025,21 @@ compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 
         op_infix_tildeto: *v_ast_expr_t;        //- Sic!!!
 
-        v_ast_make_expr_op_binary(expr, op_infix_tildeto, (params: v_ast_expr_ptr), (ret_type: v_ast_expr_ptr));
+        v_ast_make_expr_op_binary(expr, op_infix_tildeto, (params: *v_ast_expr_t), (ret_type: *v_ast_expr_t));
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
 
-        v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
+        v_ast_accept_visitor((expr: *v_ast_base_t), vis);
     }
 
-    fun_type = (v_get_result_value() : v_type_ptr);
+    fun_type = (v_get_result_value() : *v_type_t);
 
     sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(ctx, vis, true, sstr, quark, fun_type);
+    register_mangled_function_name(vis, true, sstr, quark, fun_type);
 
     fun_name = v_std_string_get(sstr);
 
@@ -1114,10 +1050,8 @@ compile_unit_spec_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 
 //---------------------------------------------------------------------
 private
-compile_unit_spec_fun_renm: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+compile_unit_spec_fun_renm: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    ctx = *(aux: *v_mangling_ctx_t);
-
     list = (self: v_ast_generic_list_ptr);
 
     ast0 = v_list_get_item(list, 0);
@@ -1136,7 +1070,7 @@ compile_unit_spec_fun_renm: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
     iq: &intptr_t := iq;
     t: &*v_type_t := v_undef();
 
-    ctx.compute_key_quark_type(vis, ft, iq, t);
+    v_compute_key_quark_type(vis, ft, iq, t);
 
     q = (iq: v_quark_t);
 
@@ -1146,11 +1080,9 @@ compile_unit_spec_fun_renm: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 
 //---------------------------------------------------------------------
 private
-v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+v_internal_spec_fun_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    ctx = *(aux: *v_mangling_ctx_t);
-
-    call = (self: v_ast_expr_ptr);
+    call = (self: *v_ast_expr_t);
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
@@ -1183,7 +1115,7 @@ v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(ctx, vis, false, sstr, quark, fun_type);
+    register_mangled_function_name(vis, false, sstr, quark, fun_type);
 
     fun_name = v_std_string_get(sstr);
 
@@ -1194,11 +1126,9 @@ v_internal_spec_fun_decl_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v
 
 //---------------------------------------------------------------------
 private
-v_internal_spec_fun_renm_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+v_internal_spec_fun_renm_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    ctx = *(aux: *v_mangling_ctx_t);
-
-    call = (self: v_ast_expr_ptr);
+    call = (self: *v_ast_expr_t);
 
     arg_list = v_ast_expr_call_get_arg_list(call);
 
@@ -1222,7 +1152,7 @@ v_internal_spec_fun_renm_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(ctx, vis, false, sstr, quark, v_type_refptr_get_element_type(fun_type));     //- Sic!
+    register_mangled_function_name(vis, false, sstr, quark, v_type_refptr_get_element_type(fun_type));     //- Sic!
 
     fun_name = v_std_string_get(sstr);
 
@@ -1243,34 +1173,16 @@ voidc_enable_mangling_compiler: () ~> void
     v_return_if(voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, 0));
 
     //-------------------------------------------------------------
-    ctx = *v_malloc(v_mangling_ctx_t) := 0;
-
-    free: (*void) ~> void;
-
-    v_add_local_cleaner(free, &ctx);
-
-    add_mangling_context(&ctx);
-
-    //-------------------------------------------------------------
-    ctx.compute_key_quark_type := {compute_key_quark_type, &ctx};
-
-    //-------------------------------------------------------------
-    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn, &ctx);
-    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm, &ctx);
+    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn, 0);
+    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm, 0);
 
     q = v_quark_from_string;
 
-    v_add_intrinsic_q(q("v.internal.spec_fun_decl"), v_internal_spec_fun_decl_intrinsic, &ctx);
-    v_add_intrinsic_q(q("v.internal.spec_fun_renm"), v_internal_spec_fun_renm_intrinsic, &ctx);
+    v_add_intrinsic_q(q("v.internal.spec_fun_decl"), v_internal_spec_fun_decl_intrinsic, 0);
+    v_add_intrinsic_q(q("v.internal.spec_fun_renm"), v_internal_spec_fun_renm_intrinsic, 0);
 
     //-------------------------------------------------------------
-    gctx = v_target_get_global_ctx();
-    vctx = v_target_get_voidc_global_ctx();
-
-    if (gctx == vctx)
-    {
-        v_enable_handler(voidc_compute_key_quark_type_t);
-    }
+    v_set_handler(v_compute_key_quark_type, compute_key_quark_type, 0);
 }
 
 //---------------------------------------------------------------------

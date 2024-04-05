@@ -7,8 +7,6 @@
 
     v_import("llvm-c/Core.void");
 
-    v_import("level-01/handlers.void");      //- WTF?
-
     v_import("printf.void");
 }
 
@@ -107,23 +105,14 @@ mk_stmt: (name: *const char, expr: v_ast_expr_t) ~> v_ast_stmt_t
 
 //---------------------------------------------------------------------
 private
-ast_list_item_t = struct
-{
-    hnd: *voidc_obtain_special_result_value_helper_t;
-    typ: *v_type_t;
-};
-
-private
 mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    ctx = *(aux: *ast_list_item_t);
+    tr = (aux: *v_type_t);
 
-    tr = ctx.typ;
-
-    vr = ctx.hnd(vis, tr);
+    vr = v_obtain_special_result_value(vis, tr);
 
     is_generic = tr == v_find_type("v_ast_generic_list_t");
 
@@ -359,24 +348,11 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
 
 //---------------------------------------------------------------------
-private
-ast_list_table: &ast_list_item_t[3] := v_undef();
-
-
 enable_local_obj_ast_test: () ~> void
 {
-    obtain_spec = &voidc_local_objects_context_get_obtain_special_result_value_helper();
-
-    ast_list_table :=
-    {
-        {obtain_spec, v_find_type("v_ast_expr_list_t")},
-        {obtain_spec, v_find_type("v_ast_stmt_list_t")},
-        {obtain_spec, v_find_type("v_ast_generic_list_t")},
-    };
-
-    v_add_intrinsic("mk_expr_list",    mk_ast_list_intrinsic, ast_list_table+0);
-    v_add_intrinsic("mk_stmt_list",    mk_ast_list_intrinsic, ast_list_table+1);
-    v_add_intrinsic("mk_generic_list", mk_ast_list_intrinsic, ast_list_table+2);
+    v_add_intrinsic("mk_expr_list",    mk_ast_list_intrinsic, v_find_type("v_ast_expr_list_t"));
+    v_add_intrinsic("mk_stmt_list",    mk_ast_list_intrinsic, v_find_type("v_ast_stmt_list_t"));
+    v_add_intrinsic("mk_generic_list", mk_ast_list_intrinsic, v_find_type("v_ast_generic_list_t"));
 }
 
 
