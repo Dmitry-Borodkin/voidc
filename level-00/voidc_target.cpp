@@ -847,12 +847,33 @@ base_local_ctx_t::push_variables(void)
 }
 
 //---------------------------------------------------------------------
+static
+int hold_state = 0;         //- Dirty hack!!!
+
 void
 base_local_ctx_t::pop_variables(void)
 {
-    run_cleaners();
+    if (hold_state <= 0)
+    {
+        run_cleaners();
 
-    std::tie(decls, cleaners, vars) = std::move(vars_stack.front());
+        std::tie(decls, cleaners, vars) = std::move(vars_stack.front());
+    }
+    else
+    {
+        auto saved_cleaners = std::move(cleaners);
+
+        std::tie(std::ignore, cleaners, vars) = std::move(vars_stack.front());
+
+        saved_cleaners.reverse();
+
+        for (auto it : saved_cleaners)
+        {
+            cleaners.push_front(it);
+        }
+
+        hold_state -= 1;
+    }
 
     vars_stack.pop_front();
 }
@@ -2770,6 +2791,12 @@ v_restore_variables(void)
     auto &lctx = *gctx.local_ctx;
 
     lctx.pop_variables();
+}
+
+void
+v_hold_compilation_state(int n)         //- ?!?
+{
+    hold_state = n;
 }
 
 //---------------------------------------------------------------------

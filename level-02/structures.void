@@ -189,6 +189,9 @@ voidc_internal_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
                                  t0: v_type_ptr, v0: LLVMValueRef
                                 ) ~> void
 {
+//printf("voidc_internal_index_intrinsic start %p, %p\n", aux, t0);
+//defer printf("voidc_internal_index_intrinsic stop\n");
+
     idx = (aux: int);
 
     expr = v_alloca(v_ast_expr_t);

@@ -168,41 +168,6 @@ local_objects_ctx_t = struct
 };
 
 
-////---------------------------------------------------------------------
-//private
-//add_local_objects_context: (ctx: *local_objects_ctx_t) ~> void
-//{
-//    any = v_alloca(v_std_any_t);
-//    v_initialize(any);
-//    defer v_terminate(any);
-//
-//    v_std_any_set_value(any, v_cast(ctx, intptr_t));
-//
-//    v_add_property_q(voidc_local_objects_context_q, any);
-//}
-//
-////---------------------------------------------------------------------
-//private
-//get_local_objects_context: () ~> *local_objects_ctx_t
-//{
-//    any = v_get_property_q(voidc_local_objects_context_q);
-//
-//    ctx = (v_std_any_get_value(intptr_t, any) : *local_objects_ctx_t);
-//
-//    v_return(ctx);
-//}
-
-
-////---------------------------------------------------------------------
-//export
-//voidc_local_objects_context_get_obtain_special_result_value_helper: () ~> &voidc_obtain_special_result_value_helper_t
-//{
-//    ctx = *get_local_objects_context();
-//
-//    v_return(ctx.obtain_spec);
-//}
-
-
 //=====================================================================
 private
 my_fake_utility_intrinsic: (aux: *void, *voidc_visitor_t, *v_ast_base_t,
@@ -214,9 +179,9 @@ my_fake_utility_intrinsic: (aux: *void, *voidc_visitor_t, *v_ast_base_t,
 
     printf("my_fake_utility_intrinsic: %s\n", q);
 
-    exit: (int) ~> void;
+    abort: () ~> void;
 
-    exit(-1);       //- Sic!
+    abort();        //- Sic!
 }
 
 //---------------------------------------------------------------------
@@ -689,6 +654,9 @@ my_llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                             arg_ptrs: **v_ast_expr_t, arg_count: unsigned
                            ) ~> void
 {
+//printf("my_llvm_build_call_helper start %p\n", ft);
+//defer printf("my_llvm_build_call_helper stop\n");
+
     par_count = v_type_function_get_param_count(ft);
     par_types = v_type_function_get_param_types(ft);
 
