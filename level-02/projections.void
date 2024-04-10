@@ -60,7 +60,7 @@ voidc_projections_internal_globals_cleaner: (*void) ~> void
 //- mk_projection - grammar action
 //---------------------------------------------------------------------
 private
-mk_projection_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_projection_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     op0  = v_std_any_get_pointer(v_ast_expr_t,      any+0);
     name = v_std_any_get_pointer(v_std_string_t,    any+1);
@@ -68,7 +68,7 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
 
     void_obj = v_ast_generic_get_object(op0);
 
-    obj = *(void_obj: v_ast_operator_unary_ptr);
+    obj = *(void_obj: *v_ast_operator_unary_t);
 
     quark = obj[0];
     prec  = obj[1];
@@ -84,16 +84,16 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
 
     v_ast_make_expr_identifier(id, v_std_string_get(name));
 
-    v_make_list(pay, proj_q, (id: v_ast_base_ptr), 1);
+    v_make_list(pay, proj_q, (id: *v_ast_base_t), 1);
 
-    if (args) v_list_append(pay, pay, (args: v_ast_base_ptr));
+    if (args) v_list_append(pay, pay, (args: *v_ast_base_t));
 
 
     op1 = v_alloca(v_ast_expr_t);
     v_initialize(op1);
     defer v_terminate(op1);
 
-    v_ast_make_operator_unary(op1, quark, prec, (pay: v_ast_base_ptr));
+    v_ast_make_operator_unary(op1, quark, prec, (pay: *v_ast_base_t));
 
     v_std_any_set_pointer(ret, op1);
 }
@@ -101,9 +101,9 @@ mk_projection_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, si
 
 //---------------------------------------------------------------------
 private
-intrinsic_p1_t = (aux: *void, vis: voidc_visitor_ptr,
-                  self: v_ast_base_ptr,
-                  t0: v_type_ptr, v0: LLVMValueRef
+intrinsic_p1_t = (aux: *void, vis: *voidc_visitor_t,
+                  self: *v_ast_base_t,
+                  t0: *v_type_t, v0: LLVMValueRef
                  ) ~> void;
 
 
@@ -112,7 +112,7 @@ intrinsic_p1_t = (aux: *void, vis: voidc_visitor_ptr,
 //---------------------------------------------------------------------
 private
 op_postfix_dot_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                        t0: v_type_ptr, v0: LLVMValueRef,
+                        t0: *v_type_t, v0: LLVMValueRef,
                         q0: v_quark_t, q1: v_quark_t,
                         alst: *v_ast_expr_list_t
                        ) ~> void
@@ -127,7 +127,7 @@ op_postfix_dot_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     void_fun: &*void := 0;
     void_aux: &*void := 0;
 
-    ft: &v_type_ptr   := 0;
+    ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
     if (!v_util_lookup_function_dict(quark, t0, void_fun, void_aux, ft, fv))
@@ -164,7 +164,7 @@ op_postfix_dot_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
         if (alst && !spc_flag)  arg_count += (v_list_get_size(alst) : int);
 
-        arg_ptrs = v_malloc(v_ast_expr_ptr, arg_count);
+        arg_ptrs = v_malloc(*v_ast_expr_t, arg_count);
         defer v_free(arg_ptrs);
 
         v_ast_make_expr_compiled(expr, t0, v0);
@@ -196,29 +196,29 @@ op_postfix_dot_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 //---------------------------------------------------------------------
 private
 op_postfix_dot_agent: (vis: *voidc_visitor_t, self: *v_ast_base_t,
-                       t0: v_type_ptr, v0: LLVMValueRef
+                       t0: *v_type_t, v0: LLVMValueRef
                       ) ~> void
 {
-    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     op = v_list_get_item(args, 0);
 
     void_obj = v_ast_generic_get_object(op);
 
-    obj = *(void_obj: v_ast_operator_unary_ptr);
+    obj = *(void_obj: *v_ast_operator_unary_t);
 
-    pay = (&obj[2] : v_ast_generic_list_ptr);
+    pay = (&obj[2] : *v_ast_generic_list_t);
 
 
-    etmp = (v_list_get_item(pay, 0) : v_ast_expr_ptr);
+    etmp = (v_list_get_item(pay, 0) : *v_ast_expr_t);
 
     name = v_ast_expr_identifier_get_name(etmp);
 
-    alst: &v_ast_expr_list_ptr := 0;
+    alst: &*v_ast_expr_list_t := 0;
 
     got_args = v_list_get_size(pay) > 1;
 
-    if (got_args)  alst := (v_list_get_item(pay, 1) : v_ast_expr_list_ptr);
+    if (got_args)  alst := (v_list_get_item(pay, 1) : *v_ast_expr_list_t);
 
     spc_flag: &bool := false;
 
@@ -277,13 +277,13 @@ op_postfix_dot_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
 //---------------------------------------------------------------------
 private
 op_postfix_to_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                       t0: v_type_ptr, v0: LLVMValueRef
+                       t0: *v_type_t, v0: LLVMValueRef
                       ) ~> void
 {
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    t0: &v_type_ptr   := t0;
+    t0: &*v_type_t    := t0;
     v0: &LLVMValueRef := v0;
 
     q = q_op_postfix_to;
@@ -291,7 +291,7 @@ op_postfix_to_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     void_fun: &*void := 0;
     void_aux: &*void := 0;
 
-    ft: &v_type_ptr   := 0;
+    ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
     if (v_util_lookup_function_dict(q, t0, void_fun, void_aux, ft, fv))
@@ -316,7 +316,7 @@ op_postfix_to_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
             v_ast_make_expr_compiled(expr, t0, v0);
 
-            arg_ptr: &v_ast_expr_ptr := expr;               //- Value, compiled
+            arg_ptr: &*v_ast_expr_t := expr;                //- Value, compiled
 
             t0 := v_type_function_get_return_type(ft);
 
@@ -404,7 +404,7 @@ op_postfix_to_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
             v_ast_make_expr_compiled(expr, t0, v0);
 
-            arg_ptr: &v_ast_expr_ptr := expr;               //- Value, compiled
+            arg_ptr: &*v_ast_expr_t := expr;                //- Value, compiled
 
             t0 := v_type_function_get_return_type(ft);
 
@@ -538,10 +538,10 @@ voidc_enable_projections: () ~> void
 
 //---------------------------------------------------------------------
 voidc_internal_static_type_projection_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                                                  t0: v_type_ptr, v0: LLVMValueRef
+                                                  t0: *v_type_t, v0: LLVMValueRef
                                                   ) ~> void
 {
-    type  = (v0: v_type_ptr);
+    type  = (v0: *v_type_t);
     type_ = v_type_get_llvm_type(type);
 
     f = (aux: *((LLVMTypeRef) ~> LLVMValueRef));

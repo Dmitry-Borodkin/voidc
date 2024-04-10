@@ -562,10 +562,11 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
 
             v_ast_make_expr_compile_spy(expr+1, ast[1], t1, v1);
 
-            arg_ptrs = v_alloca(*v_ast_expr_t, 2);
-
-            arg_ptrs[0] := expr+0;                          //- "LHS", compiled
-            arg_ptrs[1] := expr+1;                          //- "RHS", compile hook
+            arg_ptrs: &(*v_ast_expr_t)[2] :=
+            {
+                expr+0,             //- "LHS", compiled
+                expr+1,             //- "RHS", compile spy
+            };
 
             v_set_result_type(ttag);
             v_set_result_value(vtag);
@@ -613,10 +614,11 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
                 v_ast_make_expr_compiled(expr+0, t0, v0);
                 v_ast_make_expr_compiled(expr+1, t1, v1);
 
-                arg_ptrs = v_alloca(*v_ast_expr_t, 2);
-
-                arg_ptrs[0] := expr+0;                          //- "LHS", compiled
-                arg_ptrs[1] := expr+1;                          //- "RHS", compiled
+                arg_ptrs: &(*v_ast_expr_t)[2] :=
+                {
+                    expr+0,             //- "LHS", compiled
+                    expr+1,             //- "RHS", compiled
+                };
 
                 v_set_result_type(ttag);
                 v_set_result_value(vtag);
