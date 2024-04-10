@@ -1,0 +1,135 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_export_import("coercions.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+}
+
+
+//=====================================================================
+struct A0 { value: int; };
+
+struct A1 { base: A0; };
+struct A2 { base: A1; };
+struct A3 { base: A2; };
+
+alwaysinline
+A1_A0_v: (v: A1) ~> A0 { v_return(v.base); }
+
+alwaysinline
+A2_A1_v: (v: A2) ~> A1 { v_return(v.base); }
+
+alwaysinline
+A3_A2_v: (v: A3) ~> A2 { v_return(v.base); }
+
+{   q = v_quark_from_string;
+
+    v_add_coercion(v_coe_projective, q("A1_A0_v"), A1, A0);
+    v_add_coercion(v_coe_projective, q("A2_A1_v"), A2, A1);
+    v_add_coercion(v_coe_projective, q("A3_A2_v"), A3, A2);
+}
+
+//---------------------------------------------------------------------
+alwaysinline
+A1_A0_r: (v: &A1) ~> &A0 { v_return(v.base); }
+
+alwaysinline
+A2_A1_r: (v: &A2) ~> &A1 { v_return(v.base); }
+
+alwaysinline
+A3_A2_r: (v: &A3) ~> &A2 { v_return(v.base); }
+
+{   q = v_quark_from_string;
+
+    A0_r = v_reference_type(A0, 0);
+    A1_r = v_reference_type(A1, 0);
+    A2_r = v_reference_type(A2, 0);
+    A3_r = v_reference_type(A3, 0);
+
+    v_add_coercion(v_coe_projective, q("A1_A0_r"), A1_r, A0_r);
+    v_add_coercion(v_coe_projective, q("A2_A1_r"), A2_r, A1_r);
+    v_add_coercion(v_coe_projective, q("A3_A2_r"), A3_r, A2_r);
+}
+
+//---------------------------------------------------------------------
+alwaysinline
+A1_A0_p: (p: *A1) ~> *A0 { v_return(&p->base); }
+
+alwaysinline
+A2_A1_p: (p: *A2) ~> *A1 { v_return(&p->base); }
+
+alwaysinline
+A3_A2_p: (p: *A3) ~> *A2 { v_return(&p->base); }
+
+{   q = v_quark_from_string;
+
+    A0_p = v_pointer_type(A0, 0);
+    A1_p = v_pointer_type(A1, 0);
+    A2_p = v_pointer_type(A2, 0);
+    A3_p = v_pointer_type(A3, 0);
+
+    v_add_coercion(v_coe_projective, q("A1_A0_p"), A1_p, A0_p);
+    v_add_coercion(v_coe_projective, q("A2_A1_p"), A2_p, A1_p);
+    v_add_coercion(v_coe_projective, q("A3_A2_p"), A3_p, A2_p);
+}
+
+//---------------------------------------------------------------------
+{
+    printf("\n");
+
+    a0: A0 = { 777 };
+
+    printf("a0.value = %d\n", a0.value);
+
+    a1: A1 = { a0 };
+
+    printf("a1.value = %d\n", a1.value);
+
+    a2: A2 = { a1 };
+
+    printf("a2.value = %d\n", a2.value);
+
+    a3: A3 = { a2 };
+
+    printf("a3.value = %d\n", a3.value);
+}
+
+{ voidc_verify_jit_module_optimized(true); }
+{ v_debug_print_module(99); }
+
+{
+    printf("\n");
+
+    v3: &A3 := {{{{ 888 }}}};
+
+    printf("v3.value = %d\n", v3.value);
+
+    v3.value += 111;
+
+    p3 = &v3;
+
+    printf("p3->value = %d\n", p3->value);
+}
+
+
+
+
+
+
+
