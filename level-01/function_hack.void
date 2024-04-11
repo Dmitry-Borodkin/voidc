@@ -114,9 +114,9 @@
     saved_compiler_g = LLVMAddGlobal(module, voidc_visitor_t_, "saved_compiler_g");
     LLVMSetLinkage(saved_compiler_g, LLVMPrivateLinkage);
 
-    saved_compiler_u = LLVMGetUndef(voidc_visitor_t_);
+    saved_compiler_z = LLVMConstNull(voidc_visitor_t_);
 
-    LLVMSetInitializer(saved_compiler_g, saved_compiler_u);
+    LLVMSetInitializer(saved_compiler_g, saved_compiler_z);         //- Sic !!!
 
 
     //-----------------------------------------------------------------
@@ -295,8 +295,6 @@
     //-
     //-     fun_value = v_prepare_function(fun_name, fun_type);
     //-
-    //-     v_initialize(saved_compiler_g);
-    //-
     //-     compiler = v_get_compiler();
     //-
     //-     v_copy(saved_compiler_g, compiler);
@@ -397,19 +395,10 @@
     fun_value = LLVMBuildCall2(builder, prepare_function_ft_, prepare_function_f, val0, 2, "fun_value");
 
 
-    v_store(saved_compiler_g, val0);
-    v_store(sz1,              val1);
-
-    vis_init_f   = v_obtain_function("voidc_initialize_visitor_impl", lltyp);
-    vis_init_ft_ = v_load(lltyp);
-
-    LLVMBuildCall2(builder, vis_init_ft_, vis_init_f, val0, 2, "");
-
-
     compiler_v = LLVMBuildCall2(builder, get_comp_ft_, get_comp_f, val0, 0, "compiler_v");
 
 
-//  v_store(saved_compiler_g, val0);
+    v_store(saved_compiler_g, val0);
     v_store(compiler_v,       val1);
     v_store(sz1,              val2);
 

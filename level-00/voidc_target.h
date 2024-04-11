@@ -264,7 +264,9 @@ public:
     void pop_variables(void);
 
 private:
-    std::forward_list<std::tuple<declarations_t, cleaners_t, variables_t>> vars_stack;      //- Sic!
+    using state_t = std::tuple<visitor_t, declarations_t, cleaners_t, variables_t>;
+
+    std::forward_list<state_t> vars_stack;      //- Sic!
 
 public:
     v_type_t    *result_type  = nullptr;

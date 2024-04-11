@@ -999,6 +999,8 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 {
     if (visitor = v_get_compiler(), visitor != vis)
     {
+        v_assert(v_target_get_global_ctx() != v_target_get_voidc_global_ctx());
+
         v_ast_accept_visitor(self, visitor);            //- Sic!!!
 
         v_return();

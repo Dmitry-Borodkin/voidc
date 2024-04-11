@@ -422,8 +422,6 @@ dict_dec_at: (dict: &v_myz_dict_dec_t, i: int) ~> &v_myz_dec_t
 //---------------------------------------------------------------------
 {   dict_dec_ref = v_reference_type(v_myz_dict_dec_t, 0);
 
-    vis = v_get_compiler();
-
     q = v_quark_from_string;
 
     v_util_function_dict_set(q(".expand()"),          dict_dec_ref, q("dict_dec_expand"));

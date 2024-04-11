@@ -841,7 +841,7 @@ base_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 void
 base_local_ctx_t::push_variables(void)
 {
-    vars_stack.push_front({decls, std::move(cleaners), vars});
+    vars_stack.push_front({compiler, decls, std::move(cleaners), vars});
 
     cleaners.clear();
 }
@@ -857,13 +857,13 @@ base_local_ctx_t::pop_variables(void)
     {
         run_cleaners();
 
-        std::tie(decls, cleaners, vars) = std::move(vars_stack.front());
+        std::tie(compiler, decls, cleaners, vars) = std::move(vars_stack.front());
     }
     else
     {
         auto saved_cleaners = std::move(cleaners);
 
-        std::tie(std::ignore, cleaners, vars) = std::move(vars_stack.front());
+        std::tie(std::ignore, std::ignore, cleaners, vars) = std::move(vars_stack.front());
 
         saved_cleaners.reverse();
 
