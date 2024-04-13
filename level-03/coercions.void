@@ -48,9 +48,9 @@
 
 
 //====================================================================-
-export v_coe_injective:  int = 0;
-export v_coe_projective: int = 1;
-export v_coe_single:     int = 2;
+export v_coe_injective:  int = 0;           //- ... co-inheritance
+export v_coe_projective: int = 1;           //- ... inheritance
+export v_coe_single:     int = 2;           //- ... user conversion
 
 
 //---------------------------------------------------------------------
@@ -229,20 +229,22 @@ set_coe_map_full: (t0: *v_type_t, t1: *v_type_t, any: *v_std_any_t) ~> void
 
     list = get_coe_map_list(t0, qmap, 0);
 
+    list_size = v_list_get_size(list);
+
     la = v_std_any_get_pointer(v_util_list_t, any);
 
     la_sz = v_list_get_size(la);
 
     i0: &size_t := 0;
-    i1: &size_t := v_list_get_size(list);
+    i1: &size_t := list_size;
 
     while (i0 < i1)
     {
-        v_assert(0 <= i0 < i1 <= v_list_get_size(list));
+        v_assert(0 <= i0 < i1 <= list_size);
 
         i = i0 + (i1-i0)/2;         //- ?..
 
-        v_assert(0 <= i0 <= i < i1 <= v_list_get_size(list));
+        v_assert(0 <= i0 <= i < i1 <= list_size);
 
         ti = get_coe_list_item(list, i);
 
@@ -276,10 +278,10 @@ set_coe_map_full: (t0: *v_type_t, t1: *v_type_t, any: *v_std_any_t) ~> void
         if (f < 0)  i1 := i;
         else        i0 := i + 1;
 
-        v_assert(0 <= i0 <= i1 <= v_list_get_size(list));
+        v_assert(0 <= i0 <= i1 <= list_size);
     }
 
-    v_assert(0 <= i0 == i1 <= v_list_get_size(list));
+    v_assert(0 <= i0 == i1 <= list_size);
 
     a: &v_std_any_t := {};
 

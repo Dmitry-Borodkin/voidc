@@ -542,7 +542,7 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) ~> void
     ctx.next_in  := (v_std_string_get(stmp) : *const uint(8));
     ctx.avail_in := v_std_string_get_size(stmp);
 
-    buf = v_alloca(uint(8), OUTBUFSIZE);
+    buf: &uint(8)[OUTBUFSIZE] := v_undef();
 
     ctx.next_out  := buf;
     ctx.avail_out := OUTBUFSIZE;

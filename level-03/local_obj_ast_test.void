@@ -127,15 +127,13 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
         expr = v_get_object_pointer(er);
 
-        list = v_alloca(v_ast_expr_list_t);
-        v_initialize(list);
-        defer v_terminate(list);
+        list: &v_ast_expr_list_t := {};
 
-        v_make_list(list, expr, 1);
+        v_make_list(&list, expr, 1);
 
-        if (is_generic) v_list_append(list, list, v_list_get_item(arg_list, 0));
+        if (is_generic) v_list_append(&list, &list, v_list_get_item(arg_list, 0));
 
-        e = mk_expr_call(mk_expr_identifier("v_make_list_nil"), *list);
+        e = mk_expr_call(mk_expr_identifier("v_make_list_nil"), list);
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
@@ -176,13 +174,9 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
     blk = LLVMBuildCall2(builder, lltyp, llvm_stacksave_f, 0, 0, "blk");
 
 
-    expr = v_alloca(v_ast_expr_t, 2);
-    v_initialize(expr, 2);
-    defer v_terminate(expr, 2);
+    expr: &v_ast_expr_t[2] := {};
 
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+    stmt: &v_ast_stmt_t := {};
 
 
     size_t_ = v_type_get_llvm_type(size_t);
@@ -198,9 +192,9 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     v_ast_make_expr_integer(expr+1, args_count);
 
-    v_ast_make_stmt_call(stmt, 0, q_initialize, expr, 2);
+    v_ast_make_stmt_call(&stmt, 0, q_initialize, expr, 2);
 
-    v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
+    v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
 
 
     for (i: &int := 0; i < args_count; ++i)
@@ -222,27 +216,25 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
         expr = v_get_object_pointer(er);
 
-        list = v_alloca(v_ast_expr_list_t);
-        v_initialize(list);
-        defer v_terminate(list);
+        list: &v_ast_expr_list_t := {};
 
-        v_make_list(list, expr, 1);
+        v_make_list(&list, expr);
 
-        if (is_generic) v_list_append(list, list, v_list_get_item(arg_list, 0));
+        if (is_generic) v_list_append(&list, &list, v_list_get_item(arg_list, 0));
 
         eb = mk_expr_compiled(v_pointer_type(v_ast_expr_t, 0), buf_v);
 
         expr = v_get_object_pointer(eb);
 
-        v_list_append(list, list, expr);
+        v_list_append(&list, &list, expr);
 
         en = mk_expr_integer(args_count);
 
         expr = v_get_object_pointer(en);
 
-        v_list_append(list, list, expr);
+        v_list_append(&list, &list, expr);
 
-        e = mk_expr_call(mk_expr_identifier("v_make_list"), *list);
+        e = mk_expr_call(mk_expr_identifier("v_make_list"), list);
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
@@ -251,21 +243,17 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
     }
 
 
-    {   expr = v_alloca(v_ast_expr_t, 2);
-        v_initialize(expr, 2);
-        defer v_terminate(expr, 2);
+    {   expr: &v_ast_expr_t[2] := {};
 
-        stmt = v_alloca(v_ast_stmt_t);
-        v_initialize(stmt);
-        defer v_terminate(stmt);
+        stmt: &v_ast_stmt_t := {};
 
         v_ast_make_expr_compiled(expr+0, v_pointer_type(item_t, 0), buf_v);
 
         v_ast_make_expr_integer(expr+1, args_count);
 
-        v_ast_make_stmt_call(stmt, 0, q_terminate, expr, 2);
+        v_ast_make_stmt_call(&stmt, 0, q_terminate, expr, 2);
 
-        v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
+        v_ast_accept_visitor((&stmt: *v_ast_base_t), vis);
     }
 
 

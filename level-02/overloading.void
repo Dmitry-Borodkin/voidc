@@ -286,10 +286,11 @@ op_assign_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
             v_ast_make_expr_compiled(expr, t0, v0);
 
-            arg_ptrs = v_alloca(*v_ast_expr_t, 2);
-
-            arg_ptrs[0] := expr;            //- "Place", compiled
-            arg_ptrs[1] := rhs;             //- "Value"
+            arg_ptrs: &(*v_ast_expr_t)[2] :=
+            {
+                expr,           //- "Place", compiled
+                rhs,            //- "Value"
+            };
 
             v_set_result_type(ttag);
             v_set_result_value(vtag);
@@ -395,10 +396,11 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
             v_ast_make_expr_compiled(expr, t0, v0);
 
-            arg_ptrs = v_alloca(*v_ast_expr_t, 2);
-
-            arg_ptrs[0] := expr;                //- "LHS", compiled
-            arg_ptrs[1] := rhs;                 //- "RHS"
+            arg_ptrs: &(*v_ast_expr_t)[2] :=
+            {
+                expr,           //- "LHS", compiled
+                rhs,            //- "RHS"
+            };
 
             v_set_result_type(ttag);
             v_set_result_value(vtag);
@@ -439,10 +441,11 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
             v_ast_make_expr_compiled(expr+0, t0, v0);
             v_ast_make_expr_compiled(expr+1, t1, v1);
 
-            arg_ptrs = v_alloca(*v_ast_expr_t, 2);
-
-            arg_ptrs[0] := expr+0;                          //- "LHS", compiled
-            arg_ptrs[1] := expr+1;                          //- "RHS", compiled
+            arg_ptrs: &(*v_ast_expr_t)[2] :=
+            {
+                expr+0,         //- "LHS", compiled
+                expr+1,         //- "RHS", compiled
+            };
 
             v_set_result_type(ttag);
             v_set_result_value(vtag);
@@ -1389,12 +1392,9 @@ static_type_postfix_index_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast
         }
         else    //- No indices!
         {
-            typs = v_alloca(*v_type_t, 2);
-
             incomplete_array_type_tag = v_struct_type_named_q(voidc_incomplete_array_type_tag);     //- Sic!
 
-            typs[0] := incomplete_array_type_tag;
-            typs[1] := t;
+            typs: &(*v_type_t)[2] := { incomplete_array_type_tag, t };
 
             t := v_struct_type(typs, 2, false);
         }
