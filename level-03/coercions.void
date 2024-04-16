@@ -1088,6 +1088,75 @@ my_op_postfix_to_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
 }
 
 
+//=====================================================================
+export
+voidc_cast_coercion_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    type = (aux: *v_type_t);
+
+    expr: &v_ast_expr_t := {};
+
+    list: &v_ast_expr_list_t := {};
+
+    v_make_list(&list, arg0);
+
+    v_ast_make_expr_compiled(&expr, v_static_type_t, (type: LLVMValueRef));
+
+    v_list_append(&list, &list, &expr);
+
+    v_ast_make_expr_identifier(&expr, "v_cast");
+
+    v_ast_make_expr_call(&expr, &expr, &list);
+
+    v_ast_accept_visitor((&expr: *v_ast_base_t), vis);
+}
+
+//---------------------------------------------------------------------
+private
+enable_voidc_ast_coercions: () ~> void
+{
+    if (v_target_get_global_ctx() != v_target_get_voidc_global_ctx()) v_return();
+
+    v_ast_base_ref = v_reference_type(v_ast_base_t, 0);
+    v_ast_expr_ref = v_reference_type(v_ast_expr_t, 0);
+    v_ast_stmt_ref = v_reference_type(v_ast_stmt_t, 0);
+    v_ast_unit_ref = v_reference_type(v_ast_unit_t, 0);
+
+    v_ast_expr_list_ref = v_reference_type(v_ast_expr_list_t, 0);
+    v_ast_stmt_list_ref = v_reference_type(v_ast_stmt_list_t, 0);
+
+    v_ast_generic_list_ref = v_reference_type(v_ast_generic_list_t, 0);
+
+    q_cast_ptr = v_quark_from_string("voidc.cast_coercion_to_ast_base_ptr");
+    q_cast_ref = v_quark_from_string("voidc.cast_coercion_to_ast_base_ref");
+
+    v_add_intrinsic_q(q_cast_ptr, voidc_cast_coercion_intrinsic, (v_ast_base_ptr: *void));      //- WTF !?!
+    v_add_intrinsic_q(q_cast_ref, voidc_cast_coercion_intrinsic, (v_ast_base_ref: *void));      //- WTF !?!
+
+    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_expr_ptr, v_ast_base_ptr);
+    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_stmt_ptr, v_ast_base_ptr);
+    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_unit_ptr, v_ast_base_ptr);
+
+    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_expr_list_ptr, v_ast_base_ptr);
+    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_stmt_list_ptr, v_ast_base_ptr);
+
+    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_generic_list_ptr, v_ast_base_ptr);
+
+    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_expr_ref, v_ast_base_ref);
+    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_stmt_ref, v_ast_base_ref);
+    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_unit_ref, v_ast_base_ref);
+
+    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_expr_list_ref, v_ast_base_ref);
+    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_stmt_list_ref, v_ast_base_ref);
+
+    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_generic_list_ref, v_ast_base_ref);
+}
+
+
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
@@ -1145,6 +1214,9 @@ voidc_enable_coercions_compiler: () ~> void
     free: (*void) ~> void;
 
     v_add_local_cleaner(free, &ctx);
+
+    //-----------------------------------------------------------------
+    enable_voidc_ast_coercions();
 }
 
 
