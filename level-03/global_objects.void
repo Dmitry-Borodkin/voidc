@@ -426,6 +426,8 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         prepare_initializer_function();
 
+        v_push_temporaries();
+
         v_ast_accept_visitor(value, vis);
 
         t = v_get_result_type();
@@ -486,6 +488,8 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
             }
         }
 
+        v_pop_temporaries();
+
         finish_initializer_function(ctx.global_ctx);
 
         if (export) v_export_symbol_type(name, sym_type);           //- WTF ???
@@ -495,7 +499,7 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
         {
             stmt: &v_ast_stmt_t := {};
 
-            voidc_make_special_intrinsic_call(&stmt, q_terminate, t, v, 0);
+            voidc_make_special_intrinsic_call(&stmt, q_terminate, t, value_g, 0);
 
             generate_terminator_function(stmt, ctx.global_ctx, vis);
         }
@@ -634,6 +638,8 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     prepare_initializer_function();
 
+    v_push_temporaries();
+
     v_ast_accept_visitor(value, vis);
 
     t = v_get_result_type();
@@ -645,6 +651,8 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     if (t == v_static_type_t)
     {
+        v_pop_temporaries();
+
         finish_initializer_function(ctx.global_ctx);
 
         if (export) v_export_type(name, (v: v_type_ptr));
@@ -652,6 +660,8 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     }
     else if (is_strict_constant)
     {
+        v_pop_temporaries();
+
         finish_initializer_function(ctx.global_ctx);
 
         if (export) v_export_constant(name, t, v);
@@ -712,6 +722,8 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
             }
         }
 
+        v_pop_temporaries();
+
         finish_initializer_function(ctx.global_ctx);
 
         if (export) v_export_constant(name, t, 0);          //- Sic!        //- WTF ???
@@ -727,7 +739,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
         {
             stmt: &v_ast_stmt_t := {};
 
-            voidc_make_special_intrinsic_call(&stmt, q_terminate, t, v, 0);
+            voidc_make_special_intrinsic_call(&stmt, q_terminate, t, value_g, 0);
 
             generate_terminator_function(stmt, ctx.global_ctx, vis);
         }
