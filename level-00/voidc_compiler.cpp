@@ -250,9 +250,18 @@ void compile_expr_integer(void *, const visitor_t *vis, const ast_base_t *self)
 
     auto num = dnum.number;
 
+    static const unsigned tot_bits = 8*sizeof(long long);
+
+    unsigned w = tot_bits - __builtin_clrsbll(num);
+
     if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
     {
         t = gctx.int_type;
+
+        if (w > static_cast<v_type_integer_t *>(t)->width())
+        {
+            t = gctx.intptr_t_type;
+        }
 
         v = LLVMConstInt(t->llvm_type(), (long long)num, true);
 
@@ -271,10 +280,6 @@ void compile_expr_integer(void *, const visitor_t *vis, const ast_base_t *self)
         }
         else
         {
-            static const unsigned tot_bits = 8*sizeof(long long);
-
-            unsigned w = tot_bits - __builtin_clrsbll(num);
-
             assert(w);      //- Sic!
 
             t = gctx.make_int_type(w);

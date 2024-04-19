@@ -509,10 +509,10 @@
 
     v_ast_accept_visitor(arg_base, visitor);
 
-    v_pop_temporaries();
-
     typ0 = v_get_result_type();         //- switch argument...
     arg0 = v_get_result_value();        //- switch argument...
+
+    v_pop_temporaries();
 
 
     //- Count switch cases

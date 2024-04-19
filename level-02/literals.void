@@ -9,7 +9,7 @@
 
     v_import("llvm-c/Core.void");
 
-//  v_import("printf.void");
+    v_import("printf.void");
 }
 
 {   v_enable_level_01(); }
@@ -25,6 +25,8 @@
 
     v_add_symbol("int_q",      q_ref, q("int"));
     v_add_symbol("unsigned_q", q_ref, q("unsigned"));
+    v_add_symbol("intptr_t_q", q_ref, q("intptr_t"));
+    v_add_symbol("size_t_q",   q_ref, q("size_t"));
 }
 
 
@@ -48,23 +50,24 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
 
     t: &v_type_ptr := ttag;
 
-    is_reference: &bool := false;
-
-    if (t != INVIOLABLE_TAG  &&  t != UNREFERENCE_TAG  &&  (is_reference := v_type_is_reference(t)))
+    if (t != INVIOLABLE_TAG  &&  t != UNREFERENCE_TAG  &&  v_type_is_reference(t))
     {
         t := v_type_refptr_get_element_type(t);         //- Sic!
     }
+
+    signed: &bool := true;
 
     if (t_str[0] == 0)      //- Empty suffix
     {
         if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
         {
-            t := v_find_type_q(int_q);
+//          t := v_find_type_q(int_q);
+            t := 0;                         //- Sic!
         }
     }
     else    //- Suffix determine type (kinda)
     {
-        signed = (t_str[0] == 'i'  ||  t_str[0] == 'I');
+        signed := (t_str[0] == 'i'  ||  t_str[0] == 'I');
 
         if (t_str[1])       //- Got bit width
         {
@@ -77,8 +80,10 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
         }
         else
         {
-            if (signed) t := v_find_type_q(int_q);
-            else        t := v_find_type_q(unsigned_q);
+//            if (signed) t := v_find_type_q(int_q);
+//            else        t := v_find_type_q(unsigned_q);
+
+            t := 0;                         //- Sic!
         }
     }
 
@@ -123,6 +128,39 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
         if (*src != '\'')   v_std_string_append_char(dst, *src);
 
         ++src;
+    }
+
+    if (t == 0)
+    {
+        len: &size_t := v_std_string_get_size(dst);
+
+        if (v_std_string_get(dst)[0] == '-')  --len;
+
+        log:  (float(64)) ~> float(64);
+        ceil: (float(64)) ~> float(64);
+
+        w = (ceil(len * (log(radix) / log(2))) : unsigned);
+
+        _int      = v_find_type_q(int_q);
+        _unsigned = v_find_type_q(unsigned_q);
+        _intptr_t = v_find_type_q(intptr_t_q);
+        _size_t   = v_find_type_q(size_t_q);
+
+        if (w <= v_type_integer_get_width(_int))
+        {
+            if (signed) t := _int;
+            else        t := _unsigned;
+        }
+        else if (w <= v_type_integer_get_width(_intptr_t))
+        {
+            if (signed) t := _intptr_t;
+            else        t := _size_t;
+        }
+        else
+        {
+            if (signed) t := v_int_type(w);
+            else        t := v_uint_type(w);
+        }
     }
 
     v = LLVMConstIntOfString(v_type_get_llvm_type(t), v_std_string_get(dst), radix);

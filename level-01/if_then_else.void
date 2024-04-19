@@ -624,11 +624,11 @@
 
     v_ast_accept_visitor(base_cond, visitor);
 
-    v_pop_temporaries();
-
     cond_a = v_get_result_value();
 
     cond = LLVMBuildIsNotNull(builder, cond_a, "cond");
+
+    v_pop_temporaries();
 
     cur_b = LLVMGetInsertBlock(builder);
     fun_v = LLVMGetBasicBlockParent(cur_b);
