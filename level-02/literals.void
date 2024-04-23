@@ -9,7 +9,7 @@
 
     v_import("llvm-c/Core.void");
 
-    v_import("printf.void");
+//  v_import("printf.void");
 }
 
 {   v_enable_level_01(); }
@@ -61,8 +61,7 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
     {
         if (t == INVIOLABLE_TAG  ||  t == UNREFERENCE_TAG)
         {
-//          t := v_find_type_q(int_q);
-            t := 0;                         //- Sic!
+            t := 0;                 //- Sic!
         }
     }
     else    //- Suffix determine type (kinda)
@@ -80,10 +79,7 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
         }
         else
         {
-//            if (signed) t := v_find_type_q(int_q);
-//            else        t := v_find_type_q(unsigned_q);
-
-            t := 0;                         //- Sic!
+            t := 0;                 //- Sic!
         }
     }
 
