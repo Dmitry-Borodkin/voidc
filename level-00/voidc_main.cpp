@@ -732,53 +732,6 @@ v_find_file_for_import(std::string *ret, const char *parent, const char *filenam
 }
 
 
-//--------------------------------------------------------------------
-std::FILE *
-v_fopen(const char *filename, const char *prop)
-{
-
-#ifdef _WIN32
-
-    fs::path fpath = fs::u8path(filename);
-
-    int len = std::strlen(prop);
-
-    auto wprop = std::make_unique<wchar_t[]>(len+1);
-
-    for (int i=0; i<=len; ++i)  wprop[i] = (wchar_t)prop[i];        //- ASCII only!
-
-    return _wfopen(fpath.c_str(), wprop.get());
-
-#else
-
-    return std::fopen(filename, prop);
-
-#endif
-
-}
-
-//--------------------------------------------------------------------
-int
-v_fclose(std::FILE *f)
-{
-    return std::fclose(f);
-}
-
-//--------------------------------------------------------------------
-std::FILE *
-v_popen(const char *command, const char *prop)
-{
-    return ::popen(command, prop);
-}
-
-//--------------------------------------------------------------------
-int
-v_pclose(std::FILE *p)
-{
-    return ::pclose(p);
-}
-
-
 VOIDC_DLLEXPORT_END
 
 }   //- extern "C"

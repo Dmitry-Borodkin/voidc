@@ -44,6 +44,7 @@ add_executable(voidc
     level-00/vpeg_grammar.cpp
     level-00/vpeg_context.cpp
     level-00/vpeg_voidc.cpp
+    level-00/voidc_stdio.cpp
 )
 
 
