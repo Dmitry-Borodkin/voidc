@@ -1585,9 +1585,8 @@ voidc_global_ctx_t::static_initialize(void)
                 triple,
                 cpu_name,
                 cpu_features,
-                LLVMCodeGenLevelAggressive,
-//              LLVMRelocDefault,
-                LLVMRelocPIC,
+                LLVMCodeGenLevelDefault,
+                LLVMRelocDefault,
                 LLVMCodeModelJITDefault
             );
 
@@ -1668,7 +1667,7 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
     //-------------------------------------------------------------
     auto opts = LLVMCreatePassBuilderOptions();
 
-    auto err = LLVMRunPasses(module, "default<O3>", target_machine, opts);
+    auto err = LLVMRunPasses(module, "default<O2>", target_machine, opts);
 
     if (err)
     {
