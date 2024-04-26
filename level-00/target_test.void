@@ -15,9 +15,9 @@
     printf("target: %p\n", t);
 }
 
-{   t = v_find_symbol_type("printf");
+{   t = v_find_symbol_type("v_printf");
 
-    printf("printf type: %p (%p)\n", t, v_type_get_llvm_type(t));
+    printf("v_printf type: %p (%p)\n", t, v_type_get_llvm_type(t));
 }
 
 {
@@ -64,7 +64,7 @@
 }
 
 
-{   t = v_find_symbol_type("printf");
+{   t = v_find_symbol_type("v_printf");
 
     printf("printf type: %p\n", t);     //- Must be NULL...
 }
@@ -77,10 +77,10 @@
 
     printf_ft = v_function_type(v_find_type("int"), arg, 1, true);
 
-    v_export_symbol_type("printf", printf_ft);
+    v_export_symbol_type("v_printf", printf_ft);
 }
 
-{   t = v_find_symbol_type("printf");
+{   t = v_find_symbol_type("v_printf");
 
     printf("printf type: %p (%p)\n", t, v_type_get_llvm_type(t));
 }
