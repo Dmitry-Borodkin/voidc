@@ -8,6 +8,7 @@
 #include "voidc_compiler.h"
 #include "vpeg_context.h"
 #include "vpeg_voidc.h"
+#include "voidc_stdio.h"
 
 #include <list>
 #include <memory>
@@ -857,6 +858,8 @@ main(int argc, char *argv[])
     vpeg::grammar_data_t::static_initialize();
     vpeg::context_data_t::static_initialize();
 
+    voidc_stdio_static_initialize();
+
     voidc_global_ctx_t::voidc->flush_unit_symbols();
 
     voidc_grammar = make_voidc_grammar();
@@ -941,6 +944,8 @@ main(int argc, char *argv[])
         }
     }
 #endif
+
+    voidc_stdio_static_terminate();
 
     vpeg::context_data_t::static_terminate();
     vpeg::grammar_data_t::static_terminate();

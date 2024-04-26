@@ -181,11 +181,11 @@ public:
     void export_alias(v_quark_t name, v_quark_t raw_name);
     void add_alias(v_quark_t name, v_quark_t raw_name);
 
-    void export_constant(v_quark_t raw_name, v_type_t *type, LLVMValueRef value);
-    void add_constant(v_quark_t raw_name, v_type_t *type, LLVMValueRef value);
+    void export_constant(v_quark_t name, v_type_t *type, LLVMValueRef value);
+    void add_constant(v_quark_t name, v_type_t *type, LLVMValueRef value);
 
-    void export_symbol(v_quark_t raw_name, v_type_t *type, void *value);
-    void add_symbol(v_quark_t raw_name, v_type_t *type, void *value);
+    void export_symbol(v_quark_t name, v_type_t *type, void *value);
+    void add_symbol(v_quark_t name, v_type_t *type, void *value);
 
     void export_intrinsic(v_quark_t fun_name, void *fun, void *aux=nullptr);
     void add_intrinsic(v_quark_t fun_name, void *fun, void *aux=nullptr);
@@ -196,8 +196,8 @@ public:
     void export_overload(v_quark_t name, v_type_t *type, v_quark_t over);
     void add_overload(v_quark_t name, v_type_t *type, v_quark_t over);
 
-    virtual void export_type(v_quark_t raw_name, v_type_t *type);
-    virtual void add_type(v_quark_t raw_name, v_type_t *type);
+    virtual void export_type(v_quark_t name, v_type_t *type);
+    virtual void add_type(v_quark_t name, v_type_t *type);
 
 public:
     v_quark_t check_alias(v_quark_t name);

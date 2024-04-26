@@ -246,8 +246,10 @@ base_local_ctx_t::add_alias(v_quark_t name, v_quark_t raw_name)
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::export_constant(v_quark_t raw_name, v_type_t *type, LLVMValueRef value)
+base_local_ctx_t::export_constant(v_quark_t name, v_type_t *type, LLVMValueRef value)
 {
+    auto raw_name = check_alias(name);
+
     if (export_decls)   export_decls->constants_insert({raw_name, type});
 
     decls.constants_insert({raw_name, type});
@@ -257,8 +259,10 @@ base_local_ctx_t::export_constant(v_quark_t raw_name, v_type_t *type, LLVMValueR
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::add_constant(v_quark_t raw_name, v_type_t *type, LLVMValueRef value)
+base_local_ctx_t::add_constant(v_quark_t name, v_type_t *type, LLVMValueRef value)
 {
+    auto raw_name = check_alias(name);
+
     decls.constants_insert({raw_name, type});
 
     if (value)  constant_values.insert({raw_name, value});
@@ -267,8 +271,10 @@ base_local_ctx_t::add_constant(v_quark_t raw_name, v_type_t *type, LLVMValueRef 
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::export_symbol(v_quark_t raw_name, v_type_t *type, void *value)
+base_local_ctx_t::export_symbol(v_quark_t name, v_type_t *type, void *value)
 {
+    auto raw_name = check_alias(name);
+
     if (type)
     {
         if (export_decls)   export_decls->symbols_insert({raw_name, type});
@@ -281,8 +287,10 @@ base_local_ctx_t::export_symbol(v_quark_t raw_name, v_type_t *type, void *value)
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::add_symbol(v_quark_t raw_name, v_type_t *type, void *value)
+base_local_ctx_t::add_symbol(v_quark_t name, v_type_t *type, void *value)
 {
+    auto raw_name = check_alias(name);
+
     if (type)   decls.symbols_insert({raw_name, type});
 
     if (value)  add_symbol_value(raw_name, value);
@@ -342,24 +350,24 @@ base_local_ctx_t::add_overload(v_quark_t name, v_type_t *type, v_quark_t over)
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::export_type(v_quark_t raw_name, v_type_t *type)
+base_local_ctx_t::export_type(v_quark_t name, v_type_t *type)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
-    export_constant(raw_name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
+    export_constant(name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
 
-    export_symbol(raw_name, vctx.type_type, type);
+    export_symbol(name, vctx.type_type, type);
 }
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::add_type(v_quark_t raw_name, v_type_t *type)
+base_local_ctx_t::add_type(v_quark_t name, v_type_t *type)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
-    add_constant(raw_name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
+    add_constant(name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
 
-    add_symbol(raw_name, vctx.type_type, type);
+    add_symbol(name, vctx.type_type, type);
 }
 
 

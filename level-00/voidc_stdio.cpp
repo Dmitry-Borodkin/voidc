@@ -2,6 +2,10 @@
 //- Copyright (C) 2020-2024 Dmitry Borodkin <borodkin.dn@gmail.com>
 //- SDPX-License-Identifier: LGPL-3.0-or-later
 //---------------------------------------------------------------------
+#include "voidc_stdio.h"
+
+#include "voidc_target.h"
+#include "voidc_quark.h"
 #include "voidc_dllexport.h"
 
 #include <cstdio>
@@ -192,5 +196,55 @@ void v_perror(const char *s) { std::perror(s); }
 VOIDC_DLLEXPORT_END
 
 }   //- extern "C"
+
+
+//--------------------------------------------------------------------
+//- ...
+//--------------------------------------------------------------------
+void voidc_stdio_static_initialize(void)
+{
+    auto &vctx = *voidc_global_ctx_t::voidc;
+
+    auto q = v_quark_from_string;
+
+#define DEF(name) \
+    vctx.decls.aliases_insert({ q(#name), q("v_" #name) });
+
+    DEF(fopen)
+    DEF(fclose)
+    DEF(fflush)
+    DEF(popen)
+    DEF(pclose)
+    DEF(printf)
+    DEF(scanf)
+    DEF(fprintf)
+    DEF(fscanf)
+    DEF(snprintf)
+    DEF(sprintf)
+    DEF(sscanf)
+    DEF(fgetc)
+    DEF(fgets)
+    DEF(fputc)
+    DEF(fputs)
+    DEF(getc)
+    DEF(getchar)
+    DEF(putc)
+    DEF(putchar)
+    DEF(puts)
+    DEF(ungetc)
+    DEF(fread)
+    DEF(fwrite)
+    DEF(feof)
+    DEF(ferror)
+    DEF(perror)
+
+#undef DEF
+
+    //- ...
+
+}
+
+//--------------------------------------------------------------------
+void voidc_stdio_static_terminate(void) {}
 
 
