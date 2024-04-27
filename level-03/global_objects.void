@@ -1257,9 +1257,10 @@ struct voidc_finish_module_cdtors_ctx_t
 private
 item_t = struct
 {
-    pri: int;
+    pri: int;               //- priority
+    num: int;               //- number
 
-    fun: LLVMValueRef;
+    fun: LLVMValueRef;      //- function
 };
 
 private
@@ -1271,7 +1272,8 @@ compare: (void_lhs: *const void, void_rhs: *const void) ~> int
     lhs = *(void_lhs: *const item_t);
     rhs = *(void_rhs: *const item_t);
 
-    v_return(lhs.pri - rhs.pri);
+    if (lhs.pri == rhs.pri) v_return(lhs.num - rhs.num);
+    else                    v_return(lhs.pri - rhs.pri);
 }
 
 //---------------------------------------------------------------------
@@ -1309,11 +1311,20 @@ voidc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) ~> void
 
             pri: &int := (LLVMConstIntGetZExtValue(LLVMGetOperand(it, 0)) : int);
 
-            if (i) pri := -pri;
+            tab_j = tab[j];
 
-            tab[j].pri := pri;
+            if (i == 0)
+            {
+                tab_j.pri := pri;
+                tab_j.num := j;
+            }
+            else
+            {
+                tab_j.pri := -pri;
+                tab_j.num := -j;
+            }
 
-            tab[j].fun := LLVMGetOperand(it, 1);
+            tab_j.fun := LLVMGetOperand(it, 1);
         }
 
         qsort(tab, n, item_t.size, compare);
