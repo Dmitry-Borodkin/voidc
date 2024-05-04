@@ -114,7 +114,7 @@ v_ast_make_expr_stmt: (ret: *v_ast_expr_t, stmt: *v_ast_stmt_t) ~> void
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_expr_stmt_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_expr_stmt_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     stmt = v_std_any_get_pointer(v_ast_stmt_t, any+0);
 

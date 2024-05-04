@@ -29,6 +29,8 @@
     q = v_quark_ptr_from_string;
 
     v_add_symbol("int_q", q_ref, q("int"));
+
+    v_add_symbol("derive_q", q_ref, q("derive"));
 }
 
 
@@ -189,8 +191,35 @@ mk_spec_ident_identifier_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_derive_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+spec_fun_derive_ctx_t = struct
 {
+    fun: *v_peg_grammar_action_fun_t;
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
+private
+mk_unit_spec_fun_derive_grammar_action: (ret: *v_std_any_t, aux: *void, any: *v_std_any_t, sz: size_t) ~> void
+{
+    block
+    {
+        expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
+
+        quark = v_ast_base_get_visitor_method_tag((expr: *v_ast_base_t));
+
+        if (quark == v_ast_expr_identifier_visitor_method_tag  &&
+            v_ast_expr_identifier_get_name_q(expr) == derive_q)
+        {
+            v_break();
+        }
+
+        ctx = (aux: *spec_fun_derive_ctx_t);
+
+        ctx->fun(ret, ctx->aux, any, sz);
+
+        v_return();
+    }
+
     head = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
     expr_quark = (v_list_get_item(head, 1) : *v_ast_expr_t);
@@ -545,17 +574,25 @@ voidc_enable_intrinsics_derive: () ~> void
 
     v_return_if(v_peg_grammar_get_action(gr0, "mk_unit_spec_fun_derive", 0));
 
+    //-----------------------------------------------------------------
+    ctx = v_malloc(spec_fun_derive_ctx_t);
+
+    ctx->fun := v_peg_grammar_get_action(gr0, "mk_unit_fun_expr", &ctx->aux);
+
+    free: (*void) ~> void;
+
+    v_add_local_cleaner(free, ctx);
+
+    //-----------------------------------------------------------------
 
     grammar gr0
     {
     actions:
         mk_spec_ident_identifier = mk_spec_ident_identifier_grammar_action;
-        mk_unit_spec_fun_derive  = mk_unit_spec_fun_derive_grammar_action;
+        mk_unit_fun_expr         = mk_unit_spec_fun_derive_grammar_action, ctx;
 
     parsers:
         spec_ident =+ '(' _ id:identifier _ '(' _ '_' _ ')' _ ')'       { mk_spec_ident_identifier(id) };
-
-        unit_spec_fun_defn =+ h:unit_spec_fun_defn_hdr _'='_ "derive" _';'   { mk_unit_spec_fun_derive(h) };
     }
 
     v_peg_set_grammar(gr0);

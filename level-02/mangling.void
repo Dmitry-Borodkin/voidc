@@ -714,28 +714,6 @@ mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std
 
 //---------------------------------------------------------------------
 private
-mk_unit_spec_fun_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
-{
-    head = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
-    body = v_std_any_get_pointer(v_ast_stmt_list_t,    any+1);
-
-    ast = v_alloca(v_ast_base_t);
-    v_initialize(ast);
-    defer v_terminate(ast);
-
-    if (body)   v_copy(ast, (body: v_ast_base_ptr));
-
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
-
-    v_list_append(lst, head, ast, 1);
-
-    v_std_any_set_pointer(ret, (lst: *v_ast_base_t));
-}
-
-//---------------------------------------------------------------------
-private
 mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     quark = v_std_any_get_value(intptr_t, any+0);
@@ -1211,7 +1189,6 @@ voidc_enable_mangling: () ~> void
         mk_spec_ident_prefix      = mk_spec_ident_prefix_grammar_action;
         mk_qlf_spec_ident         = mk_qlf_spec_ident_grammar_action;
         mk_unit_spec_fun_defn_hdr = mk_unit_spec_fun_defn_hdr_grammar_action;
-        mk_unit_spec_fun_defn     = mk_unit_spec_fun_defn_grammar_action;
         mk_unit_spec_fun_renm     = mk_unit_spec_fun_renm_grammar_action;
         mk_stmt_spec_fun_decl     = mk_stmt_spec_fun_decl_grammar_action;
         mk_stmt_spec_fun_renm     = mk_stmt_spec_fun_renm_grammar_action;
@@ -1231,8 +1208,9 @@ voidc_enable_mangling: () ~> void
 
         unit_spec_fun_defn_hdr = qf:qlf_spec_ident _':'_ a:bracketed _"~>"_ r:expr    { mk_unit_spec_fun_defn_hdr(qf, a, r) };
 
-        unit_spec_fun_defn = h:unit_spec_fun_defn_hdr _';'                      { mk_unit_spec_fun_defn(h, 0) }
-                           / h:unit_spec_fun_defn_hdr _'{'_ l:stmt_list _'}'    { mk_unit_spec_fun_defn(h, l) }
+        unit_spec_fun_defn = h:unit_spec_fun_defn_hdr _';'                      { mk_unit_fun_defn(h, 0) }
+                           / h:unit_spec_fun_defn_hdr _'{'_ l:stmt_list _'}'    { mk_unit_fun_defn(h, l) }
+                           / h:unit_spec_fun_defn_hdr _'='_ e:expr _';'         { mk_unit_fun_expr(h, e) }
                            ;
 
         unit_defn += unit_spec_fun_defn
