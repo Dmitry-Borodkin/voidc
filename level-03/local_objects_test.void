@@ -151,9 +151,8 @@ test_t = struct { v_std_any_t; };
 }
 
 (_[]): (l: &v_ast_expr_list_t, i: size_t) ~> &v_ast_expr_t
-{
-    v_return(*v_list_get_item(&l, i));
-}
+=
+    *v_list_get_item(&l, i);
 
 
 //---------------------------------------------------------------------

@@ -47,10 +47,7 @@ alwaysinline
 
 
 alwaysinline
-(*_): (sp: &unique_ptr_int) ~> &int
-{
-    v_return(*sp.ptr);
-}
+(*_): (sp: &unique_ptr_int) ~> &int  =  *sp.ptr;
 
 alwaysinline
 (_:=_): (dst: &unique_ptr_int, src: &unique_ptr_int) ~> &unique_ptr_int

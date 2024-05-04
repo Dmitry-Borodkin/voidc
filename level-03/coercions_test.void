@@ -29,14 +29,9 @@ struct A1 { base: A0; };
 struct A2 { base: A1; };
 struct A3 { base: A2; };
 
-alwaysinline
-A1_A0_v: (v: A1) ~> A0 { v_return(v.base); }
-
-alwaysinline
-A2_A1_v: (v: A2) ~> A1 { v_return(v.base); }
-
-alwaysinline
-A3_A2_v: (v: A3) ~> A2 { v_return(v.base); }
+alwaysinline A1_A0_v: (v: A1) ~> A0  =  v.base;
+alwaysinline A2_A1_v: (v: A2) ~> A1  =  v.base;
+alwaysinline A3_A2_v: (v: A3) ~> A2  =  v.base;
 
 {   q = v_quark_from_string;
 
@@ -46,14 +41,9 @@ A3_A2_v: (v: A3) ~> A2 { v_return(v.base); }
 }
 
 //---------------------------------------------------------------------
-alwaysinline
-A1_A0_r: (v: &A1) ~> &A0 { v_return(v.base); }
-
-alwaysinline
-A2_A1_r: (v: &A2) ~> &A1 { v_return(v.base); }
-
-alwaysinline
-A3_A2_r: (v: &A3) ~> &A2 { v_return(v.base); }
+alwaysinline A1_A0_r: (v: &A1) ~> &A0  =  v.base;
+alwaysinline A2_A1_r: (v: &A2) ~> &A1  =  v.base;
+alwaysinline A3_A2_r: (v: &A3) ~> &A2  =  v.base;
 
 {   q = v_quark_from_string;
 
@@ -68,14 +58,9 @@ A3_A2_r: (v: &A3) ~> &A2 { v_return(v.base); }
 }
 
 //---------------------------------------------------------------------
-alwaysinline
-A1_A0_p: (p: *A1) ~> *A0 { v_return(&p->base); }
-
-alwaysinline
-A2_A1_p: (p: *A2) ~> *A1 { v_return(&p->base); }
-
-alwaysinline
-A3_A2_p: (p: *A3) ~> *A2 { v_return(&p->base); }
+alwaysinline A1_A0_p: (p: *A1) ~> *A0  = &p->base;
+alwaysinline A2_A1_p: (p: *A2) ~> *A1  = &p->base;
+alwaysinline A3_A2_p: (p: *A3) ~> *A2  = &p->base;
 
 {   q = v_quark_from_string;
 

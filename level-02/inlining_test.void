@@ -28,16 +28,10 @@
 
 //---------------------------------------------------------------------
 private alwaysinline
-(_.add()): (a: int, b: int) ~> int
-{
-    v_return(a + b);
-}
+(_.add()): (a: int, b: int) ~> int  =  a + b;
 
 alwaysinline
-(_.ddd()): (a: int, b: int) ~> int
-{
-    v_return(a.add(b));
-}
+(_.ddd()): (a: int, b: int) ~> int  =  a.add(b);
 
 
 //---------------------------------------------------------------------
