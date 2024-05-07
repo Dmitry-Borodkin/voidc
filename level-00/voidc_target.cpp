@@ -1586,7 +1586,7 @@ voidc_global_ctx_t::static_initialize(void)
                 cpu_name,
                 cpu_features,
                 LLVMCodeGenLevelDefault,
-                LLVMRelocDefault,
+                LLVMRelocPIC,                       //- WTF !?!
                 LLVMCodeModelJITDefault
             );
 
