@@ -231,7 +231,7 @@ base_local_ctx_t::~base_local_ctx_t()
 void
 base_local_ctx_t::export_alias(v_quark_t name, v_quark_t raw_name)
 {
-    if (export_decls)   export_decls->aliases_insert({name, raw_name});
+    if (export_data)  export_data->first.aliases_insert({name, raw_name});
 
     decls.aliases_insert({name, raw_name});
 }
@@ -250,7 +250,7 @@ base_local_ctx_t::export_constant(v_quark_t name, v_type_t *type, LLVMValueRef v
 {
     auto raw_name = check_alias(name);
 
-    if (export_decls)   export_decls->constants_insert({raw_name, type});
+    if (export_data)  export_data->first.constants_insert({raw_name, type});
 
     decls.constants_insert({raw_name, type});
 
@@ -277,7 +277,7 @@ base_local_ctx_t::export_symbol(v_quark_t name, v_type_t *type, void *value)
 
     if (type)
     {
-        if (export_decls)   export_decls->symbols_insert({raw_name, type});
+        if (export_data)  export_data->first.symbols_insert({raw_name, type});
 
         decls.symbols_insert({raw_name, type});
     }
@@ -301,7 +301,7 @@ base_local_ctx_t::add_symbol(v_quark_t name, v_type_t *type, void *value)
 void
 base_local_ctx_t::export_intrinsic(v_quark_t fun_name, void *fun, void *aux)
 {
-    if (export_decls)   export_decls->intrinsics_insert({fun_name, {fun, aux}});
+    if (export_data)  export_data->first.intrinsics_insert({fun_name, {fun, aux}});
 
     decls.intrinsics_insert({fun_name, {fun, aux}});
 }
@@ -318,7 +318,7 @@ base_local_ctx_t::add_intrinsic(v_quark_t fun_name, void *fun, void *aux)
 void
 base_local_ctx_t::export_property(v_quark_t name, const std::any &value)
 {
-    if (export_decls)   export_decls->properties_insert({name, value});
+    if (export_data)  export_data->first.properties_insert({name, value});
 
     decls.properties_insert({name, value});
 }
@@ -335,7 +335,7 @@ base_local_ctx_t::add_property(v_quark_t name, const std::any &value)
 void
 base_local_ctx_t::export_overload(v_quark_t name, v_type_t *type, v_quark_t over)
 {
-    if (export_decls)   export_decls->overloads_insert(name, type, over);
+    if (export_data)  export_data->first.overloads_insert(name, type, over);
 
     decls.overloads_insert(name, type, over);
 }
@@ -368,6 +368,23 @@ base_local_ctx_t::add_type(v_quark_t name, v_type_t *type)
     add_constant(name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
 
     add_symbol(name, vctx.type_type, type);
+}
+
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::export_effort(compile_ctx_action_t fun, void *aux)
+{
+    if (export_data)  export_data->second.push_back({fun, aux});
+
+    fun(aux);       //- Sic!
+}
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::add_effort(compile_ctx_action_t fun, void *aux)
+{
+    fun(aux);       //- Sic!
 }
 
 
@@ -2129,6 +2146,25 @@ v_add_type(const char *raw_name, v_type_t *type)
 {
     v_add_type_q(v_quark_from_string(raw_name), type);
 }
+
+void
+v_export_effort(compile_ctx_action_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.export_effort(fun, aux);
+}
+
+void
+v_add_effort(compile_ctx_action_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.add_effort(fun, aux);
+}
+
 
 //---------------------------------------------------------------------
 bool

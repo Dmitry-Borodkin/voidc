@@ -33,7 +33,9 @@ class base_local_ctx_t;
 
 extern "C"
 {
-    typedef void (*compile_ctx_cleaner_t)(void *data);
+    typedef void (*compile_ctx_action_t)(void *data);
+
+    typedef compile_ctx_action_t compile_ctx_cleaner_t;
 
     typedef void (*adopt_result_t)(void *ctx, v_type_t *type, LLVMValueRef value);
 
@@ -41,7 +43,7 @@ extern "C"
 
     typedef LLVMValueRef (*make_temporary_t)(void *ctx, v_type_t *t, LLVMValueRef v);
 
-    typedef compile_ctx_cleaner_t temporary_cleaner_t;
+    typedef compile_ctx_action_t temporary_cleaner_t;
 
     typedef LLVMModuleRef (*obtain_module_t)(void *ctx);
 
@@ -83,6 +85,11 @@ public:
     };
 
     declarations_t decls;
+
+public:
+    using effort_list_t = std::deque<std::pair<compile_ctx_action_t, void *>>;
+
+    using export_data_t = std::pair<declarations_t, effort_list_t>;
 
 public:
     std::map<v_quark_t, LLVMValueRef> constant_values;
@@ -130,7 +137,7 @@ public:
     ~base_global_ctx_t() override;
 
 public:
-    std::map<std::string, declarations_t> imported;
+    std::map<std::string, export_data_t> imported;
 
 public:
     LLVMBuilderRef builder;
@@ -176,7 +183,7 @@ public:
     std::set<std::string> exported;
 
 public:
-    declarations_t *export_decls = nullptr;
+    export_data_t *export_data = nullptr;
 
     void export_alias(v_quark_t name, v_quark_t raw_name);
     void add_alias(v_quark_t name, v_quark_t raw_name);
@@ -198,6 +205,9 @@ public:
 
     virtual void export_type(v_quark_t name, v_type_t *type);
     virtual void add_type(v_quark_t name, v_type_t *type);
+
+    void export_effort(compile_ctx_action_t fun, void *aux);
+    void add_effort(compile_ctx_action_t fun, void *aux);
 
 public:
     v_quark_t check_alias(v_quark_t name);

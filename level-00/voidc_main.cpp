@@ -445,7 +445,7 @@ v_import_helper(const char *name, bool _export)
         throw std::runtime_error(std::string("Import file not found: ") + name);
     }
 
-    base_compile_ctx_t::declarations_t *export_decls = nullptr;
+    base_compile_ctx_t::export_data_t *export_data = nullptr;
 
     auto &tctx = *voidc_global_ctx_t::target;
 
@@ -457,19 +457,33 @@ v_import_helper(const char *name, bool _export)
         {
             auto res_i = target_lctx->imported.insert(src_filename_str);
 
-            if (res_i.second) target_lctx->decls.insert(it->second);
+            auto &s = it->second;
 
-            if (_export  &&  target_lctx->export_decls)
+            if (res_i.second)
+            {
+                target_lctx->decls.insert(s.first);
+
+                for (auto &e : s.second)  e.first(e.second);
+            }
+
+            if (_export  &&  target_lctx->export_data)
             {
                 auto res_e = target_lctx->exported.insert(src_filename_str);
 
-                if (res_e.second) target_lctx->export_decls->insert(it->second);
+                if (res_e.second)
+                {
+                    auto &d = *target_lctx->export_data;
+
+                    d.first.insert(s.first);
+
+                    for (auto &e : s.second)  d.second.push_back(e);
+                }
             }
 
             return;     //- Sic!
         }
 
-        export_decls = &it->second;
+        export_data = &it->second;
     }
 
     fs::path bin_filename = src_filename;
@@ -486,7 +500,7 @@ v_import_helper(const char *name, bool _export)
 
     if (&tctx == &vctx)
     {
-        lctx.export_decls = export_decls;
+        lctx.export_data = export_data;
     }
 
     if (use_binary)
@@ -618,15 +632,19 @@ v_import_helper(const char *name, bool _export)
 
     std::fclose(infs);
 
-    target_lctx->decls.insert(*export_decls);
+    target_lctx->decls.insert(export_data->first);
 
     target_lctx->imported.insert(src_filename_str);
 
-    if (_export  &&  target_lctx->export_decls)
+    if (_export  &&  target_lctx->export_data)
     {
-        target_lctx->export_decls->insert(*export_decls);
-
         target_lctx->exported.insert(src_filename_str);
+
+        auto &d = *target_lctx->export_data;
+
+        d.first.insert(export_data->first);
+
+        for (auto &e : export_data->second) d.second.push_back(e);
     }
 }
 
