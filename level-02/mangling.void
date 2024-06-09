@@ -520,6 +520,26 @@ voidc_internal_std_string_append_type: (sstr: *v_std_string_t, t: *v_type_t) ~> 
     append_type(sstr, dict, t);
 }
 
+//---------------------------------------------------------------------
+export
+voidc_internal_std_string_append_mangle: (dst: *v_std_string_t, src: *const v_std_string_t) ~> void
+{
+    ctx: &v_myz_ctx_t := 0;
+
+    ctx.next_in  := (v_std_string_get(src) : *const uint(8));
+    ctx.avail_in := v_std_string_get_size(src);
+
+    buf: &uint(8)[OUTBUFSIZE] := v_undef();
+
+    ctx.next_out  := buf;
+    ctx.avail_out := OUTBUFSIZE;
+
+    ctx.check_out := encode_base62;
+    ctx.aux_out   := dst;
+
+    v_myz_encode(ctx);
+}
+
 
 //---------------------------------------------------------------------
 private
@@ -537,20 +557,7 @@ append_mangle: (sstr: *v_std_string_t, q: v_quark_t, t: *v_type_t) ~> void
 
 //printf("%s\n", v_std_string_get(stmp));
 
-    ctx: &v_myz_ctx_t := 0;
-
-    ctx.next_in  := (v_std_string_get(stmp) : *const uint(8));
-    ctx.avail_in := v_std_string_get_size(stmp);
-
-    buf: &uint(8)[OUTBUFSIZE] := v_undef();
-
-    ctx.next_out  := buf;
-    ctx.avail_out := OUTBUFSIZE;
-
-    ctx.check_out := encode_base62;
-    ctx.aux_out   := sstr;
-
-    v_myz_encode(ctx);
+    voidc_internal_std_string_append_mangle(sstr, stmp);
 }
 
 
