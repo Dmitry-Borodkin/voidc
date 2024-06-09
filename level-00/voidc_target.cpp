@@ -204,6 +204,7 @@ base_global_ctx_t::initialize(void)
 //---------------------------------------------------------------------
 //- Base Local Context
 //---------------------------------------------------------------------
+static v_quark_t    base_check_alias_default(void *, v_quark_t qname);
 static void         base_adopt_result_default(void *, v_type_t *type, LLVMValueRef value);
 static LLVMValueRef v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
 static LLVMValueRef v_make_temporary_default(void *, v_type_t *t, LLVMValueRef v);
@@ -216,6 +217,7 @@ base_local_ctx_t::base_local_ctx_t(base_global_ctx_t &_global)
 
     decls.insert(global_ctx.decls);
 
+    set_check_alias_hook(base_check_alias_default, this);
     set_adopt_result_hook(base_adopt_result_default, this);
     set_convert_to_type_hook(v_convert_to_type_default, this);
     set_make_temporary_hook(v_make_temporary_default, this);
@@ -389,15 +391,6 @@ base_local_ctx_t::add_effort(compile_ctx_action_t fun, void *aux)
 
 
 //---------------------------------------------------------------------
-v_quark_t
-base_local_ctx_t::check_alias(v_quark_t name)
-{
-    if (auto q = decls.aliases.find(name))  return *q;
-
-    return  name;
-}
-
-//---------------------------------------------------------------------
 v_type_t *
 base_local_ctx_t::find_type(v_quark_t type_name)
 {
@@ -499,11 +492,25 @@ set_hook(base_local_ctx_t *lctx, v_quark_t quark, void *fun, void *aux)
 }
 
 //---------------------------------------------------------------------
+static v_quark_t check_alias_q;
 static v_quark_t obtain_module_q;
 static v_quark_t finish_module_q;
 static v_quark_t adopt_result_q;
 static v_quark_t convert_to_type_q;
 static v_quark_t make_temporary_q;
+
+//---------------------------------------------------------------------
+check_alias_t
+base_local_ctx_t::get_check_alias_hook(void **paux)
+{
+    return  check_alias_t(get_hook(this, check_alias_q, paux));
+}
+
+void
+base_local_ctx_t::set_check_alias_hook(check_alias_t fun, void *aux)
+{
+    set_hook(this, check_alias_q, (void *)fun, aux);
+}
 
 //---------------------------------------------------------------------
 obtain_module_t
@@ -746,6 +753,16 @@ base_local_ctx_t::finish_function(void)
 //---------------------------------------------------------------------
 extern "C"
 {
+
+static v_quark_t
+base_check_alias_default(void *void_ctx, v_quark_t name)
+{
+    auto &lctx = *(reinterpret_cast<base_local_ctx_t *>(void_ctx));
+
+    if (auto q = lctx.decls.aliases.find(name))  return *q;
+
+    return  name;
+}
 
 static void
 base_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
@@ -1535,6 +1552,7 @@ voidc_global_ctx_t::static_initialize(void)
 
     voidc_typenames_q = q("voidc.typenames_dict");
 
+    check_alias_q     = q("voidc.hook_check_alias");
     obtain_module_q   = q("voidc.hook_obtain_module");
     finish_module_q   = q("voidc.hook_finish_module");
     adopt_result_q    = q("voidc.hook_adopt_result");
@@ -3129,6 +3147,25 @@ v_check_alias(const char *name)
     auto raw_qname = lctx.check_alias(qname);
 
     return  v_quark_to_string(raw_qname);
+}
+
+//---------------------------------------------------------------------
+check_alias_t
+v_get_check_alias_hook(void **paux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return lctx.get_check_alias_hook(paux);
+}
+
+void
+v_set_check_alias_hook(check_alias_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.set_check_alias_hook(fun, aux);
 }
 
 //---------------------------------------------------------------------

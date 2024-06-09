@@ -37,6 +37,8 @@ extern "C"
 
     typedef compile_ctx_action_t compile_ctx_cleaner_t;
 
+    typedef v_quark_t (*check_alias_t)(void *ctx, v_quark_t qname);
+
     typedef void (*adopt_result_t)(void *ctx, v_type_t *type, LLVMValueRef value);
 
     typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
@@ -210,7 +212,16 @@ public:
     void add_effort(compile_ctx_action_t fun, void *aux);
 
 public:
-    v_quark_t check_alias(v_quark_t name);
+    check_alias_t get_check_alias_hook(void **paux);
+    void          set_check_alias_hook(check_alias_t fun, void *aux);
+
+    v_quark_t check_alias(v_quark_t qname)
+    {
+        void *aux;
+        auto *fun = get_check_alias_hook(&aux);
+
+        return fun(aux, qname);         //- Sic!
+    }
 
 public:
     v_type_t *find_type(v_quark_t type_name);                       //- Alias checked
