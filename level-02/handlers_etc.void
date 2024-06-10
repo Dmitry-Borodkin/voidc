@@ -160,7 +160,7 @@ compile_expr_compile_spy: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
     type  = *obj[1];
     value = *obj[2];
 
-    v_ast_accept_visitor((expr : v_ast_base_ptr), vis);
+    v_ast_accept_visitor((expr : *v_ast_base_t), vis);
 
     type  := v_get_result_type();
     value := v_get_result_value();

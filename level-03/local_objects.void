@@ -433,7 +433,7 @@ voidc_make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 
     length: &uint64_t := 1;
 
-    et: &v_type_ptr := t;
+    et: &*v_type_t := t;
 
     if (v_type_is_array(t))
     {
@@ -650,7 +650,7 @@ my_compile_stmt: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 //---------------------------------------------------------------------
 private
 my_llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                            ft: v_type_ptr, fv: LLVMValueRef,
+                            ft: *v_type_t, fv: LLVMValueRef,
                             arg_ptrs: **v_ast_expr_t, arg_count: unsigned
                            ) ~> void
 {
@@ -701,7 +701,7 @@ my_llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
         v_set_result_value(TEMPORARY_VTAG);
 
-        v_ast_accept_visitor((arg_ptrs[j]: v_ast_base_ptr), vis);
+        v_ast_accept_visitor((arg_ptrs[j]: *v_ast_base_t), vis);
 
         values[i] := v_get_result_value();
     }
@@ -1299,12 +1299,12 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
     ctx = *(aux: *local_objects_ctx_t);
 
-    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     N = v_list_get_size(args);
 
 
-    tr: &v_type_ptr := v_get_result_type();
+    tr: &*v_type_t := v_get_result_type();
 
     is_reference = v_type_is_reference(tr);
 
@@ -1346,9 +1346,9 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
     builder = v_target_get_builder();
 
-    {   ets: &*v_type_ptr := 0;
+    {   ets: &**v_type_t := 0;
 
-        et: &v_type_ptr := v_undef();
+        et: &*v_type_t := v_undef();
 
         if (v_type_is_struct(tr)) ets := v_type_struct_get_element_types(tr);
         if (v_type_is_array(tr))  et  := v_type_array_get_element_type(tr);

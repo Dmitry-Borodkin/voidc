@@ -154,7 +154,7 @@ v_ast_make_unit_stmt_term: (ret: *v_ast_base_t, body: *v_ast_stmt_t) ~> void
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_unit_stmt_init_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_unit_stmt_init_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     body = v_std_any_get_pointer(v_ast_stmt_t, any+0);
 
@@ -167,7 +167,7 @@ mk_unit_stmt_init_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr
 
 //---------------------------------------------------------------------
 private
-mk_unit_stmt_term_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_unit_stmt_term_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     body = v_std_any_get_pointer(v_ast_stmt_t, any+0);
 
@@ -623,7 +623,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         v_ast_accept_visitor(type, vis);
 
-        v_set_result_type((v_get_result_value() : v_type_ptr));
+        v_set_result_type((v_get_result_value() : *v_type_t));
     }
 
     v_assert(v_get_module() == 0);
@@ -655,8 +655,8 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         finish_initializer_function(ctx.global_ctx);
 
-        if (export) v_export_type(name, (v: v_type_ptr));
-        else        v_add_type(name, (v: v_type_ptr));
+        if (export) v_export_type(name, (v: *v_type_t));
+        else        v_add_type(name, (v: *v_type_t));
     }
     else if (is_strict_constant)
     {

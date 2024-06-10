@@ -47,7 +47,7 @@
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_unit_ccif_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_unit_ccif_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     list = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
     cond = v_std_any_get_pointer(v_ast_expr_t,         any+1);
@@ -80,7 +80,7 @@ mk_unit_ccif_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, siz
 
 //---------------------------------------------------------------------
 private
-mk_stmt_ccif_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_stmt_ccif_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     list = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
     cond = v_std_any_get_pointer(v_ast_expr_t,         any+1);
@@ -302,7 +302,7 @@ voidc_enable_condcomp_n1: () ~> void
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_cc_message_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_cc_message_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     tstr = v_std_any_get_pointer(v_std_string_t,    any+0);
     elst = v_std_any_get_pointer(v_ast_expr_list_t, any+1);

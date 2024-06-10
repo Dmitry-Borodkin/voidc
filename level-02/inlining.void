@@ -181,11 +181,11 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
 {
     ctx = *(aux: *v_inlining_aux_t);
 
-    list = (self: v_ast_generic_list_ptr);
+    list = (self: *v_ast_generic_list_t);
 
     ast0 = v_list_get_item(list, 0);
 
-    qualif = v_ast_expr_integer_get_number((ast0: v_ast_expr_ptr));
+    qualif = v_ast_expr_integer_get_number((ast0: *v_ast_expr_t));
 
     if (!(qualif & (qf_inlinehint | qf_alwaysinline)))
     {

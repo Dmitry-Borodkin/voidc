@@ -49,15 +49,14 @@ voidc_aggregates_internal_gloabls_cleaner: (*void) ~> void
 
 
 //---------------------------------------------------------------------
-v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
-                        self: v_ast_base_ptr) ~> void
+v_op_braces_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     N = v_list_get_size(args);
 
 
-    t: &v_type_ptr := v_get_result_type();
+    t: &*v_type_t := v_get_result_type();
 
     is_reference = v_type_is_reference(t);
 
@@ -101,7 +100,7 @@ v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
             v_set_result_type(et);
             v_set_result_value(0);
 
-            v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
+            v_ast_accept_visitor((expr: *v_ast_base_t), vis);
 
             ev = v_get_result_value();
 
@@ -112,9 +111,9 @@ v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
     }
     else
     {
-        ets: &*v_type_ptr := 0;
+        ets: &**v_type_t := 0;
 
-        et: &v_type_ptr := v_undef();
+        et: &*v_type_t := v_undef();
 
         if (v_type_is_struct(t))  ets := v_type_struct_get_element_types(t);
         if (v_type_is_array(t))   et  := v_type_array_get_element_type(t);
@@ -128,7 +127,7 @@ v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
             v_set_result_type(et);
             v_set_result_value(0);
 
-            v_ast_accept_visitor((expr: v_ast_base_ptr), vis);
+            v_ast_accept_visitor((expr: *v_ast_base_t), vis);
 
             ev = v_get_result_value();
 
@@ -154,14 +153,13 @@ v_op_braces_intrinsic: (*void, vis: voidc_visitor_ptr,
 //---------------------------------------------------------------------
 //- v_struct ...
 //---------------------------------------------------------------------
-v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
-                     self: v_ast_base_ptr) ~> void
+v_struct_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     packed: &bool := false;
 
-    type: &v_type_ptr := 0;
+    type: &*v_type_t := 0;
 
     n = v_list_get_size(args);
 
@@ -171,9 +169,9 @@ v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
         i0: &int :=  0;
         i1: &int := i0;
 
-        expr: &v_ast_expr_ptr := v_list_get_item(args, i0);
+        expr: &*v_ast_expr_t := v_list_get_item(args, i0);
 
-        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_string_visitor_method_tag)
+        if (v_ast_base_get_visitor_method_tag((expr : *v_ast_base_t)) == v_ast_expr_string_visitor_method_tag)
         {
             name = v_ast_expr_string_get_string(expr);
 
@@ -189,7 +187,7 @@ v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
             expr := v_list_get_item(args, i0);
         }
 
-        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_identifier_visitor_method_tag)
+        if (v_ast_base_get_visitor_method_tag((expr : *v_ast_base_t)) == v_ast_expr_identifier_visitor_method_tag)
         {
             qident = v_ast_expr_identifier_get_name_q(expr);
 
@@ -205,13 +203,13 @@ v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
             expr := v_list_get_item(args, i0);
         }
 
-        if (v_ast_base_get_visitor_method_tag((expr : v_ast_base_ptr)) == v_ast_expr_call_visitor_method_tag)
+        if (v_ast_base_get_visitor_method_tag((expr : *v_ast_base_t)) == v_ast_expr_call_visitor_method_tag)
         {
             alst = v_ast_expr_call_get_arg_list(expr);
 
             N = (v_list_get_size(alst) : unsigned);
 
-            types = v_malloc(v_type_ptr, N);
+            types = v_malloc(*v_type_t, N);
             defer v_free(types);
 
             for (i: &int := 0; i < N; ++i)
@@ -221,9 +219,9 @@ v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
                 v_set_result_type(INVIOLABLE_TAG);
                 v_set_result_value(0);
 
-                v_ast_accept_visitor((etmp : v_ast_base_ptr), vis);
+                v_ast_accept_visitor((etmp : *v_ast_base_t), vis);
 
-                types[i] := (v_get_result_value() : v_type_ptr);
+                types[i] := (v_get_result_value() : *v_type_t);
             }
 
             if (type) v_type_struct_set_body(type, types, N, packed);
@@ -239,10 +237,9 @@ v_struct_intrinsic: (*void, vis: voidc_visitor_ptr,
 //---------------------------------------------------------------------
 //- v_typed ...
 //---------------------------------------------------------------------
-v_typed_intrinsic: (*void, vis: voidc_visitor_ptr,
-                    self: v_ast_base_ptr) ~> void
+v_typed_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     arg0 = v_list_get_item(args, 0);
     arg1 = v_list_get_item(args, 1);
@@ -253,14 +250,14 @@ v_typed_intrinsic: (*void, vis: voidc_visitor_ptr,
     v_set_result_type(INVIOLABLE_TAG);
     v_set_result_value(0);
 
-    v_ast_accept_visitor((arg0 : v_ast_base_ptr), vis);         //- Type
+    v_ast_accept_visitor((arg0 : *v_ast_base_t), vis);          //- Type
 
-    t = (v_get_result_value() : v_type_ptr);
+    t = (v_get_result_value() : *v_type_t);
 
     v_set_result_type(t);
     v_set_result_value(0);
 
-    v_ast_accept_visitor((arg1 : v_ast_base_ptr), vis);         //- Value
+    v_ast_accept_visitor((arg1 : *v_ast_base_t), vis);          //- Value
 
     v = v_get_result_value();
 

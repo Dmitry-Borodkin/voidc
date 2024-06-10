@@ -35,10 +35,9 @@
 
 
 //---------------------------------------------------------------------
-v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
-                              self: v_ast_base_ptr) ~> void
+v_literal_integer_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     arg0 = v_list_get_item(args, 0);
     arg1 = v_list_get_item(args, 1);
@@ -48,7 +47,7 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    t: &v_type_ptr := ttag;
+    t: &*v_type_t := ttag;
 
     if (t != INVIOLABLE_TAG  &&  t != UNREFERENCE_TAG  &&  v_type_is_reference(t))
     {
@@ -169,17 +168,16 @@ v_literal_integer_intrinsic: (*void, vis: voidc_visitor_ptr,
 
 
 //---------------------------------------------------------------------
-v_literal_real_intrinsic: (*void, vis: voidc_visitor_ptr,
-                           self: v_ast_base_ptr) ~> void
+v_literal_real_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
-    args = v_ast_expr_call_get_arg_list((self: v_ast_expr_ptr));
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     arg0 = v_list_get_item(args, 0);
     arg1 = v_list_get_item(args, 1);
 
     t_str = v_ast_expr_string_get_string(arg1);         //- Suffix string
 
-    t: &v_type_ptr := 0;    //- Sic!
+    t: &*v_type_t := 0;     //- Sic!
 
     if (t_str[0] == 0)      //- Empty suffix
     {
@@ -237,7 +235,7 @@ v_literal_real_intrinsic: (*void, vis: voidc_visitor_ptr,
 //- mk_numeric_literal - grammar action
 //---------------------------------------------------------------------
 //{ v_debug_print_module(1); }
-mk_numeric_literal_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_numeric_literal_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
 //    printf("mk_numeric_literal_grammar_action\n");
 //    defer printf("mk_numeric_literal_grammar_action leave\n");

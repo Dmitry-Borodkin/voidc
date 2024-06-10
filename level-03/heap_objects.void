@@ -308,7 +308,7 @@ op_prefix_new_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
     v_set_result_type(INVIOLABLE_TAG);
     v_set_result_value(0);
 
-    v_ast_accept_visitor((agg: v_ast_base_ptr), vis);
+    v_ast_accept_visitor((agg: *v_ast_base_t), vis);
 
     item_t: &*v_type_t := (v_get_result_value() : *v_type_t);
 
@@ -391,7 +391,7 @@ op_prefix_new_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
 
-    ft: &v_type_ptr   := 0;
+    ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
     if (v_util_lookup_function_dict(quark, root_t, void_fun, void_aux, ft, fv))
@@ -417,7 +417,7 @@ op_prefix_new_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
                 v_ast_make_expr_compiled(&expr[1], _size_t, idx_v);
 
-                arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
+                arg_ptr: &(*v_ast_expr_t)[2] := { &expr[0], &expr[1] };
 
                 v_llvm_build_call(vis, self, ft, fv, arg_ptr, 2);
             }
@@ -436,7 +436,7 @@ op_prefix_new_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
                 v_ast_make_expr_integer(&expr, length);
 
-                arg_ptr: &v_ast_expr_ptr := &expr;
+                arg_ptr: &*v_ast_expr_t := &expr;
 
                 v_llvm_build_call(vis, self, ft, fv, &arg_ptr, 1);
             }
@@ -639,7 +639,7 @@ op_prefix_delete_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
     void_fun: &*void := 0;
     void_aux: &*void := 0;
 
-    ft: &v_type_ptr   := 0;
+    ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
     if (v_util_lookup_function_dict(quark, root_t, void_fun, void_aux, ft, fv))
@@ -663,7 +663,7 @@ op_prefix_delete_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
             v_ast_make_expr_integer(&expr[1], length);
 
-            arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
+            arg_ptr: &(*v_ast_expr_t)[2] := { &expr[0], &expr[1] };
 
             v_llvm_build_call(vis, self, ft, fv, arg_ptr, 2);
         }
@@ -734,7 +734,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_a
     void_fun: &*void := 0;
     void_aux: &*void := 0;
 
-    ft: &v_type_ptr   := 0;
+    ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
     if (v_util_lookup_function_dict(quark, root_t, void_fun, void_aux, ft, fv))
@@ -758,7 +758,7 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_a
 
             v_ast_make_expr_integer(&expr[1], length);
 
-            arg_ptr: &v_ast_expr_ptr[2] := { &expr[0], &expr[1] };
+            arg_ptr: &(*v_ast_expr_t)[2] := { &expr[0], &expr[1] };
 
             v_llvm_build_call(vis, self, ft, fv, arg_ptr, 2);
         }

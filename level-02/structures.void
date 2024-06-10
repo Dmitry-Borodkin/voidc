@@ -134,7 +134,7 @@ v_ast_make_expr_struct: (ret: *v_ast_expr_t,
 //- Grammar actions ...
 //---------------------------------------------------------------------
 private
-mk_expr_struct_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_expr_struct_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     packed = v_std_any_get_value(intptr_t, any+0);
     name   = v_std_any_get_pointer(v_ast_expr_t, any+1);
@@ -151,7 +151,7 @@ mk_expr_struct_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, s
 
 //---------------------------------------------------------------------
 private
-mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_ptr, size_t) ~> void
+mk_unit_struct_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     qualif = v_std_any_get_value(intptr_t, any+0);
     expr   = v_std_any_get_pointer(v_ast_expr_t, any+1);
@@ -174,7 +174,7 @@ mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_p
     v_initialize(lst);
     defer v_terminate(lst);
 
-    v_make_list(lst, unit_struct_defn_q, (expr: v_ast_base_ptr), 1);
+    v_make_list(lst, unit_struct_defn_q, (expr: *v_ast_base_t), 1);
 
     v_std_any_set_pointer(ret, (lst: *v_ast_base_t));
 }
@@ -184,9 +184,9 @@ mk_unit_struct_defn_grammar_action: (ret: v_std_any_ptr, *void, any: v_std_any_p
 //- Compilation ...
 //---------------------------------------------------------------------
 export
-voidc_internal_index_intrinsic: (aux: *void, vis: voidc_visitor_ptr,
-                                 self: v_ast_base_ptr,
-                                 t0: v_type_ptr, v0: LLVMValueRef
+voidc_internal_index_intrinsic: (aux: *void, vis: *voidc_visitor_t,
+                                 self: *v_ast_base_t,
+                                 t0: *v_type_t, v0: LLVMValueRef
                                 ) ~> void
 {
 //printf("voidc_internal_index_intrinsic start %p, %p\n", aux, t0);
@@ -209,7 +209,7 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
                       self: *v_ast_base_t
                       ) ~> void
 {
-    void_obj = v_ast_generic_get_object((self: v_ast_expr_ptr));
+    void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
 
     obj = *(void_obj: *v_ast_expr_struct_t);
 
@@ -220,13 +220,13 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
 
     type_name: &*const char := 0;
 
-    type: &v_type_ptr := 0;
+    type: &*v_type_t := 0;
 
     if (!v_empty(name))
     {
         struct_name: &*const char := v_undef();
 
-        tag = v_ast_base_get_visitor_method_tag((name: v_ast_base_ptr));
+        tag = v_ast_base_get_visitor_method_tag((name: *v_ast_base_t));
 
         if (tag == v_ast_expr_identifier_visitor_method_tag)
         {
@@ -261,7 +261,7 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
     {
         N = (v_list_get_size(body) : unsigned);
 
-        {   types = v_malloc(v_type_ptr, N);
+        {   types = v_malloc(*v_type_t, N);
             defer v_free(types);
 
             for (i: &int := 0; i < N; ++i)
@@ -273,9 +273,9 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
                 v_set_result_type(INVIOLABLE_TAG);
                 v_set_result_value(0);
 
-                v_ast_accept_visitor((etmp : v_ast_base_ptr), vis);
+                v_ast_accept_visitor((etmp : *v_ast_base_t), vis);
 
-                types[i] := (v_get_result_value() : v_type_ptr);
+                types[i] := (v_get_result_value() : *v_type_t);
             }
 
             if (type) v_type_struct_set_body(type, types, N, packed);
