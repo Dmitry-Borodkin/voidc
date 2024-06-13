@@ -2448,17 +2448,19 @@
     //-------------------------------------------------------------
     //- v_util_register_list_erase_impl: (val_t_type: v_type_ptr, fun_name: char_ptr) ~> void
     //- {
-    //-     arg0 = v_alloca(v_type_ptr, 3);
+    //-     arg0 = v_alloca(v_type_ptr, 4);
     //-     arg1 = v_getelementptr(arg0, 1);
     //-     arg2 = v_getelementptr(arg0, 2);
+    //-     arg3 = v_getelementptr(arg0, 3);
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(val_t_ptr, arg0);
-    //-     v_store(size_t,    arg1);
+    //-     v_store(val_t_ptr, arg1);
     //-     v_store(size_t,    arg2);
+    //-     v_store(size_t,    arg3);
     //-
-    //-     fun_type = v_function_type(void, arg0, 3, false);
+    //-     fun_type = v_function_type(void, arg0, 4, false);
     //-
     //-     v_util_registering_helper(q_list_erase, val_t_type, fun_name, fun_type);
     //- }
@@ -2473,7 +2475,7 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n3, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n4, "arg0");
 
     v_store(n1, val0);
 
@@ -2482,6 +2484,10 @@
     v_store(n2, val0);
 
     arg2 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg2");
+
+    v_store(n3, val0);
+
+    arg3 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg3");
 
 
     v_store(val_t_type, val0);
@@ -2492,14 +2498,16 @@
 
     LLVMBuildStore(builder, val_t_ptr,   arg0);
 
-    LLVMBuildStore(builder, size_t_type, arg1);
+    LLVMBuildStore(builder, val_t_ptr,   arg1);
 
     LLVMBuildStore(builder, size_t_type, arg2);
+
+    LLVMBuildStore(builder, size_t_type, arg3);
 
 
     v_store(void_type, val0);
     v_store(arg0,      val1);
-    v_store(n3,        val2);
+    v_store(n4,        val2);
     v_store(false_v,   val3);
 
     fun_type = LLVMBuildCall2(builder, function_type_ft_, function_type_f, val0, 4, "fun_type");
@@ -2910,17 +2918,19 @@
     //-------------------------------------------------------------
     //- map_erase registering
     //-------------------------------------------------------------
-    //- v_util_register_list_erase_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, key_type: v_type_ptr) ~> void
+    //- v_util_register_map_erase_impl: (val_t_type: v_type_ptr, fun_name: char_ptr, key_type: v_type_ptr) ~> void
     //- {
-    //-     arg0 = v_alloca(v_type_ptr, 2);
+    //-     arg0 = v_alloca(v_type_ptr, 3);
     //-     arg1 = v_getelementptr(arg0, 1);
+    //-     arg2 = v_getelementptr(arg0, 2);
     //-
     //-     val_t_ptr = v_pointer_type(val_t_type, 0);
     //-
     //-     v_store(val_t_ptr, arg0);
-    //-     v_store(key_type,  arg1);
+    //-     v_store(val_t_ptr, arg1);
+    //-     v_store(key_type,  arg2);
     //-
-    //-     fun_type = v_function_type(void, arg0, 2, false);
+    //-     fun_type = v_function_type(void, arg0, 3, false);
     //-
     //-     v_util_registering_helper(q_map_erase, val_t_type, fun_name, fun_type);
     //- }
@@ -2936,11 +2946,15 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n2, "arg0");
+    arg0 = LLVMBuildArrayAlloca(builder, v_type_ptr_, n3, "arg0");
 
     v_store(n1, val0);
 
     arg1 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg1");
+
+    v_store(n2, val0);
+
+    arg2 = LLVMBuildGEP2(builder, v_type_ptr_, arg0, val0, 1, "arg2");
 
 
     v_store(val_t_type, val0);
@@ -2951,11 +2965,13 @@
 
     LLVMBuildStore(builder, val_t_ptr, arg0);
 
-    LLVMBuildStore(builder, key_type,  arg1);
+    LLVMBuildStore(builder, val_t_ptr, arg1);
+
+    LLVMBuildStore(builder, key_type,  arg2);
 
     v_store(void_type, val0);
     v_store(arg0,      val1);
-    v_store(n2,        val2);
+    v_store(n3,        val2);
     v_store(false_v,   val3);
 
     fun_type = LLVMBuildCall2(builder, function_type_ft_, function_type_f, val0, 4, "fun_type");
