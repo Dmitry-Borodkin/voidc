@@ -1136,8 +1136,7 @@ v_get_return_value_intrinsic: (*void, *voidc_visitor_t, *v_ast_base_t) ~> void
     ret_type  = v_get_variable_type_q(voidc_internal_return_value_q);
     ret_value = v_get_variable_value_q(voidc_internal_return_value_q);
 
-    v_set_result_type(v_reference_type(ret_type, 0));
-    v_set_result_value(ret_value);
+    v_adopt_result(v_reference_type(ret_type, 0), ret_value);
 }
 
 //---------------------------------------------------------------------
