@@ -65,6 +65,10 @@ qf_private: intptr_t = 1 << 1;                          //- Sic!?!
     v_add_symbol("mod_const_q", q_ref, q("voidc.constants_module"));
 
     v_add_symbol("voidc_obtain_special_result_value_q", q_ref, q("voidc.obtain_special_result_value"));
+
+    v_add_symbol("voidc_abstract_static_constant_q", q_ref, q("voidc.abstract_static_constant"));
+
+    v_add_symbol("voidc_abstract_static_type_intrinsic_q", q_ref, q("voidc.abstract_static_type_intrinsic"));
 }
 
 
@@ -351,6 +355,45 @@ generate_terminator_function: (body: &v_ast_stmt_t, ctx: &obtain_special_result_
     v_ast_accept_visitor((&body: *v_ast_base_t), vis);
 
     finish_initterm_function(ctx.term_list, false);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+my_abstract_static_type_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                                    t: *v_type_t, v: LLVMValueRef,
+                                    name: *const char, export: bool
+                                   ) ~> void
+{
+    v_assert(t == v_static_type_t);
+
+    if (export) v_export_type(name, (v: *v_type_t));
+    else        v_add_type(name, (v: *v_type_t));
+
+    //-------------------------------------------------------------
+    stmt_list = voidc_definitions_context_get_stmt_list();
+    if (!stmt_list)  v_return();
+
+    expr: &v_ast_expr_t[2] := {};
+
+    stmt: &v_ast_stmt_t := {};
+
+    v_ast_make_expr_integer(&expr[0], (v: intptr_t));               //- Sic!!!
+
+    v_ast_make_stmt_call(&stmt, typ_q, voidc_compile_type_q, &expr[0], 1);
+
+    v_list_append(stmt_list, stmt_list, &stmt);
+
+    v_ast_make_expr_identifier_q(&expr[1], typ_q);
+
+    v_ast_make_expr_string(&expr[0], name);
+
+    if (export) v_ast_make_stmt_call(&stmt, 0, q_export_type, expr, 2);
+    else        v_ast_make_stmt_call(&stmt, 0, q_add_type,    expr, 2);
+
+    v_list_append(stmt_list, stmt_list, &stmt);
 }
 
 
@@ -645,20 +688,41 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     t = v_get_result_type();
     v = v_get_result_value();
 
-    is_constant = (t != v_static_type_t  &&  LLVMIsConstant(v));
-
-    is_strict_constant = (is_constant  &&  !check_parent(v));       //- Must be parentless!
-
-    if (t == v_static_type_t)
+    block
     {
+        void_fun: &*void := 0;
+        void_aux: &*void := v_undef();
+
+        ft: &*v_type_t    := v_undef();
+        fv: &LLVMValueRef := v_undef();
+
+        q = voidc_abstract_static_constant_q;
+
+        if (!v_util_lookup_function_dict(q, t, void_fun, void_aux, ft, fv)) v_break();
+
+        v_assert(void_fun);
+
         v_pop_temporaries();
 
         finish_initializer_function(ctx.global_ctx);
 
-        if (export) v_export_type(name, (v: *v_type_t));
-        else        v_add_type(name, (v: *v_type_t));
+        v_set_module(0);
+
+        intrinsic_ft = (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                        t: *v_type_t, v: LLVMValueRef,
+                        name: *const char, export: bool
+                       ) ~> void;
+
+        (void_fun: *intrinsic_ft)(void_aux, vis, self, t, v, name, export);
+
+        v_return();
     }
-    else if (is_strict_constant)
+
+    is_constant = LLVMIsConstant(v);
+
+    is_strict_constant = (is_constant  &&  !check_parent(v));       //- Must be parentless!
+
+    if (is_strict_constant)
     {
         v_pop_temporaries();
 
@@ -759,12 +823,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     stmt: &v_ast_stmt_t := {};
 
 
-    typ: &*void := v_undef();
-
-    if (t == v_static_type_t)  typ := v;
-    else                       typ := t;
-
-    v_ast_make_expr_integer(&expr[0], (typ: intptr_t));             //- Sic!!!
+    v_ast_make_expr_integer(&expr[0], (t: intptr_t));               //- Sic!!!
 
     v_ast_make_stmt_call(&stmt, typ_q, voidc_compile_type_q, &expr[0], 1);
 
@@ -809,12 +868,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     }
 
 
-    if (t == v_static_type_t)
-    {
-        if (export) v_ast_make_stmt_call(&stmt, 0, q_export_type, expr, 2);
-        else        v_ast_make_stmt_call(&stmt, 0, q_add_type,    expr, 2);
-    }
-    else if (is_strict_constant)
+    if (is_strict_constant)
     {
         if (export) v_ast_make_stmt_call(&stmt, 0, q_export_constant, expr, 3);
         else        v_ast_make_stmt_call(&stmt, 0, q_add_constant,    expr, 3);
@@ -1400,6 +1454,11 @@ voidc_enable_global_objects_compiler: () ~> void
 
     v_make_list_nil(&obtain_spec.global_ctx.init_list);
     v_make_list_nil(&obtain_spec.global_ctx.term_list);
+
+    //-----------------------------------------------------------------
+    v_add_intrinsic_q(voidc_abstract_static_type_intrinsic_q, my_abstract_static_type_intrinsic, 0);
+
+    v_util_function_dict_set(voidc_abstract_static_constant_q, v_static_type_t, voidc_abstract_static_type_intrinsic_q);
 
     //-----------------------------------------------------------------
     vis = v_get_compiler();
