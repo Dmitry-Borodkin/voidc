@@ -162,13 +162,15 @@
     v_store(void_ptr_ptr, typ0);            //- ctx
 
     ft = v_function_type(ca_ft_ptr, typ0, 1, false);
-    v_export_symbol_type("v_get_check_alias_hook", ft);
+    v_export_symbol_type("v_get_obtain_alias_hook", ft);
+    v_export_symbol_type("v_get_lookup_alias_hook", ft);
 
     v_store(ca_ft_ptr, typ0);               //- fun
     v_store(void_ptr,  typ1);               //- ctx
 
     ft = v_function_type(void, typ0, 2, false);
-    v_export_symbol_type("v_set_check_alias_hook", ft);
+    v_export_symbol_type("v_set_obtain_alias_hook", ft);
+    v_export_symbol_type("v_set_lookup_alias_hook", ft);
 
     //-------------------------------------------------------------
     v_store(void_ptr, typ0);                //- ctx
@@ -365,7 +367,8 @@
 //  v_store(char_ptr, typ0);                //- Alias name
 
     ft = v_function_type(char_ptr, typ0, 1, false);
-    v_export_symbol_type("v_check_alias", ft);
+    v_export_symbol_type("v_obtain_alias", ft);
+    v_export_symbol_type("v_lookup_alias", ft);
 
     v_store(v_quark_t, typ0);               //- Alias name quark
     v_store(v_quark_t, typ1);               //- Aliasee quark
@@ -377,7 +380,8 @@
 //  v_store(v_quark_t, typ0);               //- Alias name quark
 
     ft = v_function_type(v_quark_t, typ0, 1, false);
-    v_export_symbol_type("v_check_alias_q", ft);
+    v_export_symbol_type("v_obtain_alias_q", ft);
+    v_export_symbol_type("v_lookup_alias_q", ft);
 
     //-------------------------------------------------------------
     v_store(v_type_ptr,   typ0);            //- type

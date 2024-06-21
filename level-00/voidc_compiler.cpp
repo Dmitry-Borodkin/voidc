@@ -214,7 +214,7 @@ void compile_expr_identifier(void *, const visitor_t *vis, const ast_base_t *sel
 
     if (t == vctx.static_type_type  &&  lctx.result_type == vctx.type_ptr_type)
     {
-        auto raw_name = lctx.check_alias(ident.name);
+        auto raw_name = lctx.lookup_alias(ident.name);
 
         t = lctx.get_symbol_type(raw_name);
 

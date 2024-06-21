@@ -212,13 +212,24 @@ public:
     void add_effort(compile_ctx_action_t fun, void *aux);
 
 public:
-    check_alias_t get_check_alias_hook(void **paux);
-    void          set_check_alias_hook(check_alias_t fun, void *aux);
+    check_alias_t get_obtain_alias_hook(void **paux);
+    void          set_obtain_alias_hook(check_alias_t fun, void *aux);
 
-    v_quark_t check_alias(v_quark_t qname)
+    v_quark_t obtain_alias(v_quark_t qname)
     {
         void *aux;
-        auto *fun = get_check_alias_hook(&aux);
+        auto *fun = get_obtain_alias_hook(&aux);
+
+        return fun(aux, qname);         //- Sic!
+    }
+
+    check_alias_t get_lookup_alias_hook(void **paux);
+    void          set_lookup_alias_hook(check_alias_t fun, void *aux);
+
+    v_quark_t lookup_alias(v_quark_t qname)
+    {
+        void *aux;
+        auto *fun = get_lookup_alias_hook(&aux);
 
         return fun(aux, qname);         //- Sic!
     }

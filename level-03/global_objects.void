@@ -205,7 +205,7 @@ obtain_special_result_value_global: (aux: *void, vis: *voidc_visitor_t, t: *v_ty
 
     ctx = *(aux: *obtain_special_result_value_global_ctx_t);
 
-    raw_name = v_check_alias(ctx.name);
+    raw_name = v_lookup_alias(ctx.name);
 
     module = v_get_module();
 
@@ -995,7 +995,7 @@ my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 
         if (t == v_static_type_t  &&  ttag == v_type_ptr)
         {
-            raw_qname = v_check_alias_q(qname);
+            raw_qname = v_lookup_alias_q(qname);
 
             cname = v_quark_to_string(raw_qname);
 
