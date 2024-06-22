@@ -90,7 +90,7 @@ void compile_stmt(void *, const visitor_t *vis, const ast_base_t *self)
 
     if (ret_name  &&  ret_name[0])
     {
-        if (tr != voidc_global_ctx_t::voidc->static_type_type)
+        if (tr->llvm_type())
         {
             size_t len = 0;
 

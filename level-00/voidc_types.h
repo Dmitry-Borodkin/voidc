@@ -83,7 +83,7 @@ public:
     {
 //      assert(cached_llvm_type != LLVMTypeRef(-1));
 
-        if (cached_llvm_type)   return cached_llvm_type;
+        if (cached_llvm_type != LLVMTypeRef(-2))  return cached_llvm_type;
 
         return  obtain_llvm_type();
     }

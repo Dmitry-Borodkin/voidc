@@ -198,9 +198,9 @@ static
 LLVMTypeRef
 obtain_llvm_type_generic(void *, const v_type_t *typ)
 {
-    assert(false && "Not implemented!");
+    typ->cached_llvm_type = nullptr;        //- Sic !!!
 
-    return 0;
+    return  typ->cached_llvm_type;
 }
 
 
@@ -239,7 +239,7 @@ v_type_struct_t::set_body(v_type_t * const *elts, unsigned count, bool packed)
 
     body_key = st->body_key;
 
-    cached_llvm_type = nullptr;         //- Sic!!!
+    assert(cached_llvm_type == LLVMTypeRef(-2));        //- Sic !!!
 
     void *aux;
     auto *fun = context.get_initialize_hook(kind(), &aux);
@@ -294,7 +294,7 @@ voidc_types_ctx_t::check_cached_llvm_type(T *t)
 
         if (fun)  fun(aux, t);
 
-        t->cached_llvm_type = nullptr;
+        t->cached_llvm_type = LLVMTypeRef(-2);          //- Sic !!!
     }
 
     return  t;
