@@ -375,9 +375,17 @@
 
     intptr_t_ = v_type_get_llvm_type(intptr_t);
 
-    v_add_constant("qf_none",    intptr_t, LLVMConstInt(intptr_t_, 0, 0));
-    v_add_constant("qf_export",  intptr_t, LLVMConstInt(intptr_t_, 1, 0));
-    v_add_constant("qf_private", intptr_t, LLVMConstInt(intptr_t_, 2, 0));
+    n0_ = LLVMConstInt(intptr_t_, 0, 0);
+    n1_ = LLVMConstInt(intptr_t_, 1, 0);
+    n2_ = LLVMConstInt(intptr_t_, 2, 0);
+
+    v_add_constant("qf_none",    intptr_t, n0_);
+    v_add_constant("qf_export",  intptr_t, n1_);
+    v_add_constant("qf_private", intptr_t, n2_);
+
+    v_export_constant("voidc_definitions_internal_qf_none",    intptr_t, n0_);
+    v_export_constant("voidc_definitions_internal_qf_export",  intptr_t, n1_);
+    v_export_constant("voidc_definitions_internal_qf_private", intptr_t, n2_);
 
 
     typ = v_alloca(v_type_ptr);
