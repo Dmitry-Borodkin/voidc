@@ -53,7 +53,6 @@
 
 
 //---------------------------------------------------------------------
-qf_none    = voidc_definitions_internal_qf_none;        //- 0
 qf_export  = voidc_definitions_internal_qf_export;      //- 1 << 0
 qf_private = voidc_definitions_internal_qf_private;     //- 1 << 1
 
@@ -270,7 +269,7 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
         LLVMSetLinkage(f, LLVMExternalLinkage);         //- Sic!
     }
 
-    private = (qualif & qf_private);
+    private = v_get_private_flag()  ||  qualif & qf_private;
     export  = (v_get_export_flag()  ||  qualif & qf_export)  &&  !private;
 
     flags: &intptr_t := qualif & (qf_inlinehint | qf_alwaysinline);

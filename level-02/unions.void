@@ -162,7 +162,8 @@ mk_unit_union_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t,
     qf_export  = voidc_definitions_internal_qf_export;      //- 1 << 0
     qf_private = voidc_definitions_internal_qf_private;     //- 1 << 1
 
-    export = (v_get_export_flag()  ||  qualif & qf_export)  &&  !(qualif & qf_private);
+    private = v_get_private_flag()  ||  qualif & qf_private;
+    export  = (v_get_export_flag()  ||  qualif & qf_export)  &&  !private;
 
     if (export)
     {

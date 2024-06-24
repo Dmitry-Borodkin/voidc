@@ -116,30 +116,32 @@
 //---------------------------------------------------------------------
 //- Context ...
 //---------------------------------------------------------------------
-{   typ = v_alloca(v_type_ptr, 6);
+{   typ = v_alloca(v_type_ptr, 7);
 
-    typ[0] := bool;                                 //- "export_flag"
-    typ[1] := LLVMModuleRef;                        //- "saved_module"
-    typ[2] := LLVMModuleRef;                        //- "defn_module"
-    typ[3] := convert_to_type_ctx_t;                //- "convert_ctx"
-    typ[4] := v_ast_stmt_list_ptr;                  //- "stmt_list"
-    typ[5] := LLVMModuleRef;                        //- "mod_const"
+    typ[0] := bool;                                 //- "private_flag"
+    typ[1] := bool;                                 //- "export_flag"
+    typ[2] := LLVMModuleRef;                        //- "saved_module"
+    typ[3] := LLVMModuleRef;                        //- "defn_module"
+    typ[4] := convert_to_type_ctx_t;                //- "convert_ctx"
+    typ[5] := v_ast_stmt_list_ptr;                  //- "stmt_list"
+    typ[6] := LLVMModuleRef;                        //- "mod_const"
 
     ctx_type = v_struct_type_named("struct.voidc_definitions_ctx");
 
-    v_type_struct_set_body(ctx_type, typ, 6, false);
+    v_type_struct_set_body(ctx_type, typ, 7, false);
 
     v_add_type("definitions_ctx_t", ctx_type);
 }
 
 {   int_ = v_type_get_llvm_type(int);
 
-    v_add_constant("ctx_export_flag",  int, LLVMConstInt(int_, 0, 0));
-    v_add_constant("ctx_saved_module", int, LLVMConstInt(int_, 1, 0));
-    v_add_constant("ctx_defn_module",  int, LLVMConstInt(int_, 2, 0));
-    v_add_constant("ctx_convert_ctx",  int, LLVMConstInt(int_, 3, 0));
-    v_add_constant("ctx_stmt_list",    int, LLVMConstInt(int_, 4, 0));
-    v_add_constant("ctx_mod_const",    int, LLVMConstInt(int_, 5, 0));
+    v_add_constant("ctx_private_flag", int, LLVMConstInt(int_, 0, 0));
+    v_add_constant("ctx_export_flag",  int, LLVMConstInt(int_, 1, 0));
+    v_add_constant("ctx_saved_module", int, LLVMConstInt(int_, 2, 0));
+    v_add_constant("ctx_defn_module",  int, LLVMConstInt(int_, 3, 0));
+    v_add_constant("ctx_convert_ctx",  int, LLVMConstInt(int_, 4, 0));
+    v_add_constant("ctx_stmt_list",    int, LLVMConstInt(int_, 5, 0));
+    v_add_constant("ctx_mod_const",    int, LLVMConstInt(int_, 6, 0));
 
     //-----------------------------------------------------------------
     LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
@@ -1328,12 +1330,13 @@
 {
     def_ctx = *get_definitions_context();
 
-    export_flag = def_ctx[ctx_export_flag];
+    private_flag = def_ctx[ctx_private_flag];
+    export_flag  = def_ctx[ctx_export_flag];
 
     stmt_list = def_ctx[ctx_stmt_list];
 
     //-------------------------------------------------------------
-    private = (qualif & qf_private);
+    private = private_flag  ||  qualif & qf_private;
     export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
     if (export) v_export_symbol_type(fun_name, fun_type);
@@ -1481,14 +1484,15 @@
     //-------------------------------------------------------------
     def_ctx = *v_cast(aux, *definitions_ctx_t);
 
-    export_flag = def_ctx[ctx_export_flag];
+    private_flag = def_ctx[ctx_private_flag];
+    export_flag  = def_ctx[ctx_export_flag];
 
     stmt_list = def_ctx[ctx_stmt_list];
 
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
 
-    private = (qualif & qf_private);
+    private = private_flag  ||  qualif & qf_private;
     export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast1, v_ast_expr_ptr));
@@ -1608,7 +1612,8 @@
     //-------------------------------------------------------------
     def_ctx = *v_cast(aux, *definitions_ctx_t);
 
-    export_flag = def_ctx[ctx_export_flag];
+    private_flag = def_ctx[ctx_private_flag];
+    export_flag  = def_ctx[ctx_export_flag];
 
     stmt_list = def_ctx[ctx_stmt_list];
     mod_const = def_ctx[ctx_mod_const];
@@ -1616,7 +1621,7 @@
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
 
-    private = (qualif & qf_private);
+    private = private_flag  ||  qualif & qf_private;
     export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast1, v_ast_expr_ptr));
@@ -2215,6 +2220,45 @@
 
 
 //---------------------------------------------------------------------
+//- Set "private_flag"
+//---------------------------------------------------------------------
+{
+    typ = *v_alloca(v_type_ptr) := bool;
+
+    ft = v_function_type(void, &typ, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_set_private_flag", ft);
+
+    v_add_parameter_name(f, 0, "flag", bool);
+}
+{
+    def_ctx = *get_definitions_context();
+
+    private_flag = def_ctx[ctx_private_flag];
+
+    private_flag := flag;
+}
+
+//---------------------------------------------------------------------
+//- Get "private_flag"
+//---------------------------------------------------------------------
+{
+    ft = v_function_type(bool, 0, 0, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_get_private_flag", ft);
+}
+{
+    def_ctx = *get_definitions_context();
+
+    private_flag = def_ctx[ctx_private_flag];
+
+    v_return(private_flag);
+}
+
+
+//---------------------------------------------------------------------
 //- Set "export_flag"
 //---------------------------------------------------------------------
 {
@@ -2366,11 +2410,13 @@
 
         ft = v_function_type(void, &typ, 1, false);
 
-        v_add_symbol("v_set_export_flag", ft, 0);
+        v_add_symbol("v_set_private_flag", ft, 0);
+        v_add_symbol("v_set_export_flag",  ft, 0);
 
         ft = v_function_type(bool, 0, 0, false);
 
-        v_add_symbol("v_get_export_flag", ft, 0);
+        v_add_symbol("v_get_private_flag", ft, 0);
+        v_add_symbol("v_get_export_flag",  ft, 0);
     }
 
     v_target_set_global_ctx(saved_gctx);

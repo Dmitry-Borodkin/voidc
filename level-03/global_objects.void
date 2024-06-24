@@ -414,14 +414,15 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     ast1 = v_list_get_item(list, 1);
 
     //-------------------------------------------------------------
-    export_flag = v_get_export_flag();
+    private_flag = v_get_private_flag();
+    export_flag  = v_get_export_flag();
 
     stmt_list = voidc_definitions_context_get_stmt_list();
 
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number((ast0: *v_ast_expr_t));
 
-    private = (qualif & qf_private);
+    private = private_flag  ||  qualif & qf_private;
     export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name((ast1: *v_ast_expr_t));
@@ -641,7 +642,8 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     ast1 = v_list_get_item(list, 1);
 
     //-------------------------------------------------------------
-    export_flag = v_get_export_flag();
+    private_flag = v_get_private_flag();
+    export_flag  = v_get_export_flag();
 
     stmt_list = voidc_definitions_context_get_stmt_list();
     mod_const = voidc_definitions_context_get_mod_const();
@@ -649,7 +651,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number((ast0: *v_ast_expr_t));
 
-    private = (qualif & qf_private);
+    private = private_flag  ||  qualif & qf_private;
     export  = (export_flag  ||  qualif & qf_export)  &&  !private;
 
     name = v_ast_expr_identifier_get_name((ast1: *v_ast_expr_t));
