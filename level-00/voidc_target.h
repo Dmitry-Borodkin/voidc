@@ -281,7 +281,7 @@ private:
     std::forward_list<llvm::IRBuilderBase::InsertPoint> builder_ip_stack;
 
 public:
-    LLVMValueRef prepare_function(const char *name, v_type_t *type);
+    LLVMValueRef prepare_function(const char *raw_name, v_type_t *type);
     void finish_function(void);
 
     LLVMBasicBlockRef function_leave_b = nullptr;

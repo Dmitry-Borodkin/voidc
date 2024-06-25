@@ -102,12 +102,10 @@
 
     typ[0] := void_ptr;
     typ[1] := LLVMValueRef;
-    typ[2] := intptr_t;
-    typ[3] := char_ptr;
-    typ[4] := v_type_ptr;
-    typ[5] := v_ast_generic_list_ptr;
+    typ[2] := v_type_ptr;
+    typ[3] := v_ast_generic_list_ptr;
 
-    ft = v_function_type(void, typ, 6, false);
+    ft = v_function_type(void, typ, 4, false);
 
     v_add_type("v_prepare_function_parameters_ft",    ft);
 }
@@ -339,31 +337,27 @@
 
 //---------------------------------------------------------------------
 {
-    typ = v_alloca(v_type_ptr, 5);
+    typ = v_alloca(v_type_ptr, 3);
 
     typ[0] := LLVMValueRef;
-    typ[1] := intptr_t;
-    typ[2] := char_ptr;
-    typ[3] := v_type_ptr;
-    typ[4] := v_ast_generic_list_ptr;
+    typ[1] := v_type_ptr;
+    typ[2] := v_ast_generic_list_ptr;
 
-    ft = v_function_type(void, typ, 5, false);
+    ft = v_function_type(void, typ, 3, false);
 
     //-----------------------------------------------------------------
     f = v_function_hack("v_prepare_function_parameters", ft);
 
     v_add_parameter_name(f, 0, "fun",      LLVMValueRef);
-    v_add_parameter_name(f, 1, "qualif",   intptr_t);
-    v_add_parameter_name(f, 2, "fun_name", char_ptr);
-    v_add_parameter_name(f, 3, "fun_type", v_type_ptr);
-    v_add_parameter_name(f, 4, "fun_args", v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 1, "fun_type", v_type_ptr);
+    v_add_parameter_name(f, 2, "fun_args", v_ast_generic_list_ptr);
 }
 {
     aux = *v_alloca(void_ptr);
 
     fun_ = v_get_prepare_function_parameters_hook(&aux);
 
-    fun_(aux, fun, qualif, fun_name, fun_type, fun_args);
+    fun_(aux, fun, fun_type, fun_args);
 }
 
 
@@ -1271,10 +1265,8 @@
 
     v_add_parameter_name(f, 0, "aux",      void_ptr);
     v_add_parameter_name(f, 1, "fun",      LLVMValueRef);
-    v_add_parameter_name(f, 2, "qualif",   intptr_t);
-    v_add_parameter_name(f, 3, "fun_name", char_ptr);
-    v_add_parameter_name(f, 4, "fun_type", v_type_ptr);
-    v_add_parameter_name(f, 5, "fun_args", v_ast_generic_list_ptr);
+    v_add_parameter_name(f, 2, "fun_type", v_type_ptr);
+    v_add_parameter_name(f, 3, "fun_args", v_ast_generic_list_ptr);
 }
 {
     count = v_type_function_get_param_count(fun_type);
@@ -1349,11 +1341,13 @@
 
         v_set_module(v_obtain_module());
 
-        f = v_prepare_function(fun_name, fun_type);
+        raw_name = v_lookup_alias(fun_name);
+
+        f = v_prepare_function(raw_name, fun_type);
 
         if (private)  LLVMSetLinkage(f, LLVMPrivateLinkage);
 
-        v_prepare_function_parameters(f, qualif, fun_name, fun_type, fun_args);
+        v_prepare_function_parameters(f, fun_type, fun_args);
 
         v_ast_accept_visitor(fun_body, vis);
 

@@ -134,7 +134,7 @@ mk_expr_stmt_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
 private
 my_prepare_function_parameters_helper_t = struct
 {
-    fun: *((*void, LLVMValueRef, intptr_t, *const char, *v_type_t, *v_ast_generic_list_t) ~> void);
+    fun: *((*void, LLVMValueRef, *v_type_t, *v_ast_generic_list_t) ~> void);
     aux: *void;
 };
 
@@ -365,8 +365,6 @@ my_type_function_obtain_llvm_type_hook: (*void, ft: *v_type_t) ~> LLVMTypeRef
 //=====================================================================
 private
 my_prepare_function_parameters: (aux: *void, fun: LLVMValueRef,
-                                 qualif: intptr_t,
-                                 fun_name: *const char,
                                  fun_type: *v_type_t,
                                  fun_args: *v_ast_generic_list_t
                                 ) ~> void
@@ -377,7 +375,7 @@ my_prepare_function_parameters: (aux: *void, fun: LLVMValueRef,
     {
         ctx = (aux: *local_objects_ctx_t)->fun_params;
 
-        ctx.fun(ctx.aux, fun, qualif, fun_name, fun_type, fun_args);
+        ctx.fun(ctx.aux, fun, fun_type, fun_args);
 
         v_return();
     }

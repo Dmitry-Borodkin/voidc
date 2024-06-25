@@ -681,11 +681,11 @@ static v_quark_t voidc_internal_branch_target_leave_q;
 
 //---------------------------------------------------------------------
 LLVMValueRef
-base_local_ctx_t::prepare_function(const char *name, v_type_t *type)
+base_local_ctx_t::prepare_function(const char *raw_name, v_type_t *type)
 {
-    LLVMValueRef f = LLVMGetNamedFunction(module, name);        //- Sic!
+    LLVMValueRef f = LLVMGetNamedFunction(module, raw_name);        //- Sic!
 
-    if (!f)  f = LLVMAddFunction(module, name, type->llvm_type());
+    if (!f)  f = LLVMAddFunction(module, raw_name, type->llvm_type());
 
     auto entry = LLVMAppendBasicBlockInContext(global_ctx.llvm_ctx, f, "entry");
 
