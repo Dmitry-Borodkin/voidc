@@ -10,7 +10,7 @@
 
     builder = v_target_get_voidc_builder();
 
-    hello_ft  = v_function_type(void, 0, 0, 0);
+    hello_ft  = v_function_type(void, 0, 0, false);
     hello_ft_ = v_type_get_llvm_type(hello_ft);
     hello_f   = LLVMAddFunction(module, "hello", hello_ft_);
 
@@ -19,9 +19,17 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    printf_ft  = v_find_symbol_type("v_printf");                    //- Sic !!!
-    printf_ft_ = v_type_get_llvm_type(printf_ft);
-    printf_f   = LLVMAddFunction(module, "v_printf", printf_ft_);   //- Sic !!!
+    typ_ = v_alloca(LLVMTypeRef);
+
+    char_     = LLVMInt8Type();
+    char_ptr_ = LLVMPointerType(char_, 0);
+
+    v_store(char_ptr_, typ_);
+
+    int_ = v_type_get_llvm_type(int);
+
+    printf_ft_ = LLVMFunctionType(int_, typ_, 1, true);
+    printf_f   = LLVMAddFunction(module, "printf", printf_ft_);
 
     str = LLVMBuildGlobalStringPtr(builder, "Hello world!\n", "str");
 
