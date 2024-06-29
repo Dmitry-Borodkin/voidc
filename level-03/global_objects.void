@@ -1117,6 +1117,8 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
         v_finish_module(module);
 
+        //- TODO: Check for empty module!
+
         voidc_prepare_module_for_jit(module);
 
         voidc_add_local_module_to_jit(module);              //- local?  (TODO)

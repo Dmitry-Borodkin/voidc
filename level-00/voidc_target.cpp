@@ -353,24 +353,24 @@ base_local_ctx_t::add_overload(v_quark_t name, v_type_t *type, v_quark_t over)
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::export_type(v_quark_t name, v_type_t *type)
+base_local_ctx_t::export_type(v_quark_t type_name, v_type_t *type)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
-    export_constant(name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
+    export_constant(type_name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
 
-    export_symbol(name, vctx.type_type, type);
+    export_symbol(type_name, vctx.type_type, type);
 }
 
 //---------------------------------------------------------------------
 void
-base_local_ctx_t::add_type(v_quark_t name, v_type_t *type)
+base_local_ctx_t::add_type(v_quark_t type_name, v_type_t *type)
 {
     auto &vctx = *voidc_global_ctx_t::voidc;
 
-    add_constant(name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
+    add_constant(type_name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
 
-    add_symbol(name, vctx.type_type, type);
+    add_symbol(type_name, vctx.type_type, type);
 }
 
 
@@ -1772,18 +1772,22 @@ voidc_local_ctx_t::~voidc_local_ctx_t()
 
 //---------------------------------------------------------------------
 void
-voidc_local_ctx_t::export_type(v_quark_t raw_name, v_type_t *type)
+voidc_local_ctx_t::export_type(v_quark_t type_name, v_type_t *type)
 {
-    base_local_ctx_t::export_type(raw_name, type);
+    base_local_ctx_t::export_type(type_name, type);
+
+    auto raw_name = lookup_alias(type_name);
 
     export_overload(voidc_typenames_q, type, raw_name);          //- Sic!
 }
 
 //---------------------------------------------------------------------
 void
-voidc_local_ctx_t::add_type(v_quark_t raw_name, v_type_t *type)
+voidc_local_ctx_t::add_type(v_quark_t type_name, v_type_t *type)
 {
-    base_local_ctx_t::add_type(raw_name, type);
+    base_local_ctx_t::add_type(type_name, type);
+
+    auto raw_name = lookup_alias(type_name);
 
     add_overload(voidc_typenames_q, type, raw_name);            //- Sic!
 }

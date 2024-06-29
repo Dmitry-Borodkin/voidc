@@ -205,8 +205,8 @@ public:
     void export_overload(v_quark_t name, v_type_t *type, v_quark_t over);
     void add_overload(v_quark_t name, v_type_t *type, v_quark_t over);
 
-    virtual void export_type(v_quark_t name, v_type_t *type);
-    virtual void add_type(v_quark_t name, v_type_t *type);
+    virtual void export_type(v_quark_t type_name, v_type_t *type);
+    virtual void add_type(v_quark_t type_name, v_type_t *type);
 
     void export_effort(compile_ctx_action_t fun, void *aux);
     void add_effort(compile_ctx_action_t fun, void *aux);
@@ -457,8 +457,8 @@ public:
     std::set<std::string> imports;
 
 public:
-    void export_type(v_quark_t raw_name, v_type_t *type) override;
-    void add_type(v_quark_t raw_name, v_type_t *type) override;
+    void export_type(v_quark_t type_name, v_type_t *type) override;
+    void add_type(v_quark_t type_name, v_type_t *type) override;
 
 public:
     void *find_symbol_value(v_quark_t raw_name) override;           //- No check alias!
