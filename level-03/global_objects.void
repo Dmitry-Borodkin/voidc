@@ -366,6 +366,9 @@ my_abstract_static_type_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_
                                     name: *const char, export: bool
                                    ) ~> void
 {
+//printf("my_abstract_static_type_intrinsic start %s\n", name);
+//defer printf("my_abstract_static_type_intrinsic stop\n");
+
     v_assert(t == v_static_type_t);
 
     if (export) v_export_type(name, (v: *v_type_t));
@@ -438,9 +441,11 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     var_type: &*v_type_t := (v_get_result_value() : *v_type_t);
     sym_type: &*v_type_t := var_type;
 
-    if (v_empty(value))
+    if (v_empty(value))                 //- Declaration
     block
     {
+        v_assert(v_type_get_llvm_type(var_type));
+
         if (v_type_is_reference(var_type))  v_break();
         if (v_type_is_function(var_type))   v_break();
 
@@ -451,8 +456,10 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         sym_type := v_reference_type(var_type, 0);              //- HACK!
     }
-    else        //- !v_empty(value)
+    else        //- !v_empty(value)     //- Definition
     {
+        v_assert(v_type_is_reference(var_type));
+
         v_assert(v_get_module() == 0);
 
         v_set_module(v_obtain_module());
@@ -481,7 +488,7 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     if (export) v_export_symbol_type(name, sym_type);
     else        v_add_symbol(name, sym_type, 0);
 
-    if (!v_empty(value))
+    if (!v_empty(value))                //- Definition
     {
         t = v_get_result_type();
         v = v_get_result_value();

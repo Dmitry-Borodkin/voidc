@@ -37,7 +37,8 @@ extern "C"
 
     typedef compile_ctx_action_t compile_ctx_cleaner_t;
 
-    typedef v_quark_t (*check_alias_t)(void *ctx, v_quark_t qname);
+    typedef v_quark_t (*obtain_alias_t)(void *ctx, v_quark_t qname, bool _export);
+    typedef v_quark_t (*lookup_alias_t)(void *ctx, v_quark_t qname);
 
     typedef void (*adopt_result_t)(void *ctx, v_type_t *type, LLVMValueRef value);
 
@@ -212,19 +213,19 @@ public:
     void add_effort(compile_ctx_action_t fun, void *aux);
 
 public:
-    check_alias_t get_obtain_alias_hook(void **paux);
-    void          set_obtain_alias_hook(check_alias_t fun, void *aux);
+    obtain_alias_t get_obtain_alias_hook(void **paux);
+    void           set_obtain_alias_hook(obtain_alias_t fun, void *aux);
 
-    v_quark_t obtain_alias(v_quark_t qname)
+    v_quark_t obtain_alias(v_quark_t qname, bool _export)
     {
         void *aux;
         auto *fun = get_obtain_alias_hook(&aux);
 
-        return fun(aux, qname);         //- Sic!
+        return fun(aux, qname, _export);        //- Sic!
     }
 
-    check_alias_t get_lookup_alias_hook(void **paux);
-    void          set_lookup_alias_hook(check_alias_t fun, void *aux);
+    lookup_alias_t get_lookup_alias_hook(void **paux);
+    void           set_lookup_alias_hook(lookup_alias_t fun, void *aux);
 
     v_quark_t lookup_alias(v_quark_t qname)
     {

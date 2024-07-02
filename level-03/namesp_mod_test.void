@@ -1,0 +1,70 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+}
+
+
+//{ v_debug_print_module(99); }
+
+
+//=====================================================================
+{   voidc_unit_begin_module("namesp_mod_test_module"); }
+
+//{ v_debug_print_module(99); }
+
+
+//---------------------------------------------------------------------
+export
+namespace my {
+
+foo: &int[5] := { 0, 1, 2, 3, 4 };
+
+bar: int = foo[3];
+
+baz = &foo[2];
+
+
+private
+namespace aa {
+
+a: &int := 7;
+
+}   //- namespace aa
+
+using namespace aa;
+
+print_a: () ~> void
+{
+    printf("[my.]a: %d\n", a);
+}
+
+
+}   //- namespace my
+
+
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

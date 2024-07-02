@@ -486,153 +486,156 @@ v_import_helper(const char *name, bool _export)
         export_data = &it->second;
     }
 
-    fs::path bin_filename = src_filename;
+    {   fs::path bin_filename = src_filename;
 
-    bin_filename += "c";
+        bin_filename += "c";
 
-    bool use_binary = check_import_state(src_filename);
+        bool use_binary = check_import_state(src_filename);
 
-    std::FILE *infs;
+        std::FILE *infs;
 
-    voidc_local_ctx_t lctx(vctx);
+        voidc_local_ctx_t lctx(vctx);
 
-    lctx.filename = src_filename_str;
+        lctx.filename = src_filename_str;
 
-    if (&tctx == &vctx)
-    {
-        lctx.export_data = export_data;
-    }
-
-    if (use_binary)
-    {
-        infs = my_fopen(bin_filename);
-
-        size_t buf_len = sizeof(magic);
-        auto buf = std::make_unique<char[]>(buf_len);
-
-        std::memset(buf.get(), 0, buf_len);
-
-        my_fread(buf.get(), buf_len, 1, infs);
-
-        assert(std::strcmp(magic, buf.get()) == 0);
-
-        std::fseek(infs, sizeof(size_t), SEEK_CUR);         //- Skip pointer to imports
-
-        auto parent_vpeg_ctx = vpeg::context_data_t::current_ctx;
-
-        vpeg::context_data_t::current_ctx = nullptr;
-
-        while(!std::feof(infs))
+        if (&tctx == &vctx)
         {
-            size_t len;
-
-            my_fread(&len, sizeof(len), 1, infs);
-
-            if (std::feof(infs))  break;        //- WTF ?!?!?
-
-            if (len == 0)  break;
-
-            if (buf_len < len)
-            {
-                buf = std::make_unique<char[]>(len);
-
-                buf_len = len;
-            }
-
-            my_fread(buf.get(), len, 1, infs);
-
-            lctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
-
-            lctx.run_unit_action();
-
-            LLVMDisposeMemoryBuffer(lctx.unit_buffer);
-
-            lctx.unit_buffer = nullptr;
+            lctx.export_data = export_data;
         }
 
-        vpeg::context_data_t::current_ctx = parent_vpeg_ctx;
-    }
-    else        //- !use_binary
-    {
-        if (trace_imports)  printf("start:  %s\n", src_filename_str.c_str());
+        if (use_binary)
+        {
+            infs = my_fopen(bin_filename);
 
-        infs = my_fopen(src_filename);
+            size_t buf_len = sizeof(magic);
+            auto buf = std::make_unique<char[]>(buf_len);
 
-        out_binary_t out_binary(bin_filename);
+            std::memset(buf.get(), 0, buf_len);
 
-        const auto &outfs = out_binary.f;
+            my_fread(buf.get(), buf_len, 1, infs);
 
-        {   char buf[sizeof(magic)];
+            assert(std::strcmp(magic, buf.get()) == 0);
 
-            std::memset(buf, 0, sizeof(magic));
+            std::fseek(infs, sizeof(size_t), SEEK_CUR);         //- Skip pointer to imports
 
-            std::fwrite(buf, sizeof(magic), 1, outfs);
+            auto parent_vpeg_ctx = vpeg::context_data_t::current_ctx;
 
-            std::fwrite(buf, sizeof(size_t), 1, outfs);         //- Pointer to imports...
-        }
+            vpeg::context_data_t::current_ctx = nullptr;
 
-        {   auto parent_vpeg_ctx = vpeg::context_data_t::current_ctx;
-
-            vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(infs, voidc_grammar);
-
-            while(auto unit = parse_unit())
+            while(!std::feof(infs))
             {
-                voidc_visitor_data_t::visit(lctx.compiler, unit);
+                size_t len;
 
-                unit.reset();
+                my_fread(&len, sizeof(len), 1, infs);
 
-                if (lctx.unit_buffer)   lctx.run_unit_action();
+                if (std::feof(infs))  break;        //- WTF ?!?!?
 
-                if (lctx.unit_buffer)   //- Sic!
+                if (len == 0)  break;
+
+                if (buf_len < len)
                 {
-                    size_t len = LLVMGetBufferSize(lctx.unit_buffer);
+                    buf = std::make_unique<char[]>(len);
 
-                    std::fwrite((char *)&len, sizeof(len), 1, outfs);
-
-                    std::fwrite(LLVMGetBufferStart(lctx.unit_buffer), len, 1, outfs);
-
-                    LLVMDisposeMemoryBuffer(lctx.unit_buffer);
-
-                    lctx.unit_buffer = nullptr;
+                    buf_len = len;
                 }
+
+                my_fread(buf.get(), len, 1, infs);
+
+                lctx.unit_buffer = LLVMCreateMemoryBufferWithMemoryRange(buf.get(), len, "unit_buffer", false);
+
+                lctx.run_unit_action();
+
+                LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+                lctx.unit_buffer = nullptr;
             }
 
             vpeg::context_data_t::current_ctx = parent_vpeg_ctx;
         }
-
-        size_t len = 0;
-
-        std::fwrite((char *)&len, sizeof(len), 1, outfs);       //- End of units
-
-        size_t imports_pos = std::ftell(outfs);
-
-        for (auto &it : lctx.imports)
+        else        //- !use_binary
         {
-            len = it.length();
+            if (trace_imports)  printf("start:  %s\n", src_filename_str.c_str());
 
-            std::fwrite((char *)&len, sizeof(len), 1, outfs);
+            infs = my_fopen(src_filename);
 
-            std::fwrite(it.data(), len, 1, outfs);
+            out_binary_t out_binary(bin_filename);
+
+            const auto &outfs = out_binary.f;
+
+            {   char buf[sizeof(magic)];
+
+                std::memset(buf, 0, sizeof(magic));
+
+                std::fwrite(buf, sizeof(magic), 1, outfs);
+
+                std::fwrite(buf, sizeof(size_t), 1, outfs);         //- Pointer to imports...
+            }
+
+            {   auto parent_vpeg_ctx = vpeg::context_data_t::current_ctx;
+
+                vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(infs, voidc_grammar);
+
+                while(auto unit = parse_unit())
+                {
+                    voidc_visitor_data_t::visit(lctx.compiler, unit);
+
+                    unit.reset();
+
+                    if (lctx.unit_buffer)   lctx.run_unit_action();
+
+                    if (lctx.unit_buffer)   //- Sic!
+                    {
+                        size_t len = LLVMGetBufferSize(lctx.unit_buffer);
+
+                        std::fwrite((char *)&len, sizeof(len), 1, outfs);
+
+                        std::fwrite(LLVMGetBufferStart(lctx.unit_buffer), len, 1, outfs);
+
+                        LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+                        lctx.unit_buffer = nullptr;
+                    }
+                }
+
+                vpeg::context_data_t::current_ctx = parent_vpeg_ctx;
+            }
+
+            size_t len = 0;
+
+            std::fwrite((char *)&len, sizeof(len), 1, outfs);       //- End of units
+
+            size_t imports_pos = std::ftell(outfs);
+
+            for (auto &it : lctx.imports)
+            {
+                len = it.length();
+
+                std::fwrite((char *)&len, sizeof(len), 1, outfs);
+
+                std::fwrite(it.data(), len, 1, outfs);
+            }
+
+            len = 0;
+
+            std::fwrite((char *)&len, sizeof(len), 1, outfs);       //- End of imports
+
+            //- Finish it...
+
+            std::fseek(outfs, 0, SEEK_SET);
+
+            std::fwrite(magic, sizeof(magic), 1, outfs);
+
+            std::fwrite((char *)&imports_pos, sizeof(imports_pos), 1, outfs);
+
+            if (trace_imports)  printf("finish: %s\n", src_filename_str.c_str());
         }
 
-        len = 0;
-
-        std::fwrite((char *)&len, sizeof(len), 1, outfs);       //- End of imports
-
-        //- Finish it...
-
-        std::fseek(outfs, 0, SEEK_SET);
-
-        std::fwrite(magic, sizeof(magic), 1, outfs);
-
-        std::fwrite((char *)&imports_pos, sizeof(imports_pos), 1, outfs);
-
-        if (trace_imports)  printf("finish: %s\n", src_filename_str.c_str());
+        std::fclose(infs);
     }
 
-    std::fclose(infs);
-
     target_lctx->decls.insert(export_data->first);
+
+    for (auto &e : export_data->second)  e.first(e.second);
 
     target_lctx->imported.insert(src_filename_str);
 

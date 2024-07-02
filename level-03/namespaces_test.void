@@ -1,0 +1,224 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+}
+
+
+//=====================================================================
+//{ v_debug_print_module(99); }
+
+
+//---------------------------------------------------------------------
+namespace qwe.asd.zxc {
+
+namespace a0 {
+namespace a1 {
+
+a = 10;
+
+}   //- namespace a1
+}   //- namespace a0
+
+namespace b0 {
+namespace b1 {
+
+b = 100;
+
+}   //- namespace b1
+}   //- namespace b0
+
+}   //- namespace qwe.asd.zxc
+
+
+//---------------------------------------------------------------------
+qaz = qwe.asd.zxc;
+
+namespace qaz {
+
+namespace b0 {
+namespace b1 {
+
+bb = 200;
+
+}   //- namespace b1
+}   //- namespace b0
+
+}   //- namespace qaz = qwe.asd.zxc
+
+
+{
+    a = qaz.a0.a1.a;
+    b = qaz.b0.b1.b;
+
+    printf("%d\n", a+b);
+
+    qaz_b0_b1 = qaz.b0.b1;
+
+    bb = qaz_b0_b1.bb;
+
+    printf("%d\n", a+b+bb);
+}
+
+
+//---------------------------------------------------------------------
+namespace c0 {
+
+using namespace qwe.asd.zxc;
+
+using a0.a1.a;
+
+c: &int := 1000 + a + b0.b1.b;
+
+f: () ~> void
+{
+    printf("f()\n");
+}
+
+struct wsx_t
+{
+    x: int;
+};
+
+g: (w: &wsx_t) ~> void
+{
+    w.x += 111;
+}
+
+}   //- namespace c0
+
+
+{
+    using namespace qwe.asd.zxc;
+
+    printf("%d\n", a0.a1.a);
+
+    using a0.a1.a;
+
+    printf("%d\n", a);
+
+    printf("%d %d\n", c0.c, c0.a);
+
+    c0.f();
+
+    wsx: &c0.wsx_t := { 777 };
+
+    printf("%d\n", wsx.x);
+
+    c0.g(wsx);
+
+    printf("%d\n", wsx.x);
+}
+
+//---------------------------------------------------------------------
+{
+    v_add_constant("root_ns", v_static_namespace_t, ((-1: intptr_t) : LLVMValueRef));
+}
+
+{
+    root_ns.printf("root_ns\n");
+}
+
+
+//---------------------------------------------------------------------
+namespace c0 {
+
+num_t = uint(2);
+
+}   //- namespace c0
+
+{
+    v: vec(c0.num_t, 4) = { 0, 1, 2, 3 };
+
+
+    printf("v[2]: %d\n", (v[2]: int));
+}
+
+
+namespace c0 {
+
+{
+    w: vec(c0.num_t, 4) = { 3, 2, 1, 0 };
+
+
+    printf("w[2]: %d\n", (w[2]: int));
+}
+
+}   //- namespace c0
+
+
+//---------------------------------------------------------------------
+
+wer: &int := 42;
+
+{
+    printf("wer: %d\n", wer);
+}
+
+
+//=====================================================================
+sdf: &int[2] := { 7, 8 };
+
+xcv = sdf[0];
+
+{
+    printf("xcv: %d\n", xcv);
+}
+
+
+
+//=====================================================================
+{   v_import("namesp_mod_test.void");
+}
+
+//---------------------------------------------------------------------
+{
+    printf("my.foo:");
+
+    for (i: &int := 0; i < 5; ++i)
+    {
+        printf(" %d", my.foo[i]);
+    }
+
+    printf("\n");
+
+    printf("my.bar: %d\n", my.bar);
+    printf("*my.baz: %d\n", *my.baz);
+}
+
+{
+    my.print_a();
+
+    using my.print_a;
+
+    print_a();
+}
+
+//{
+//    printf("my.a: %d\n", my.a);
+//}
+
+
+
+
+
+
