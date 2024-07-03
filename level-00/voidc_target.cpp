@@ -252,8 +252,6 @@ base_local_ctx_t::add_alias(v_quark_t name, v_quark_t raw_name)
 void
 base_local_ctx_t::export_constant(v_quark_t name, v_type_t *type, LLVMValueRef value)
 {
-//printf("export_constant 0 %s\n", v_quark_to_string(name));
-
     auto raw_name = obtain_alias(name, true);
 
     if (export_data)  export_data->first.constants_insert({raw_name, type});
@@ -261,23 +259,17 @@ base_local_ctx_t::export_constant(v_quark_t name, v_type_t *type, LLVMValueRef v
     decls.constants_insert({raw_name, type});
 
     if (value)  global_ctx.constant_values.insert({raw_name, value});
-
-//printf("export_constant 1 %s\n", v_quark_to_string(name));
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::add_constant(v_quark_t name, v_type_t *type, LLVMValueRef value)
 {
-//printf("add_constant 0 %s\n", v_quark_to_string(name));
-
     auto raw_name = obtain_alias(name, false);
 
     decls.constants_insert({raw_name, type});
 
     if (value)  constant_values.insert({raw_name, value});
-
-//printf("add_constant 1 %s\n", v_quark_to_string(name));
 }
 
 
@@ -285,8 +277,6 @@ base_local_ctx_t::add_constant(v_quark_t name, v_type_t *type, LLVMValueRef valu
 void
 base_local_ctx_t::export_symbol(v_quark_t name, v_type_t *type, void *value)
 {
-//printf("export_symbol 0 %s\n", v_quark_to_string(name));
-
     auto raw_name = obtain_alias(name, true);
 
     if (type)
@@ -297,23 +287,17 @@ base_local_ctx_t::export_symbol(v_quark_t name, v_type_t *type, void *value)
     }
 
     if (value)  global_ctx.add_symbol_value(raw_name, value);
-
-//printf("export_symbol 1 %s\n", v_quark_to_string(name));
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::add_symbol(v_quark_t name, v_type_t *type, void *value)
 {
-//printf("add_symbol 0 %s\n", v_quark_to_string(name));
-
     auto raw_name = obtain_alias(name, false);
 
     if (type)   decls.symbols_insert({raw_name, type});
 
     if (value)  add_symbol_value(raw_name, value);
-
-//printf("add_symbol 1 %s\n", v_quark_to_string(name));
 }
 
 
@@ -321,16 +305,20 @@ base_local_ctx_t::add_symbol(v_quark_t name, v_type_t *type, void *value)
 void
 base_local_ctx_t::export_intrinsic(v_quark_t fun_name, void *fun, void *aux)
 {
-    if (export_data)  export_data->first.intrinsics_insert({fun_name, {fun, aux}});
+    auto raw_name = obtain_alias(fun_name, true);
 
-    decls.intrinsics_insert({fun_name, {fun, aux}});
+    if (export_data)  export_data->first.intrinsics_insert({raw_name, {fun, aux}});
+
+    decls.intrinsics_insert({raw_name, {fun, aux}});
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::add_intrinsic(v_quark_t fun_name, void *fun, void *aux)
 {
-    decls.intrinsics_insert({fun_name, {fun, aux}});
+    auto raw_name = obtain_alias(fun_name, false);
+
+    decls.intrinsics_insert({raw_name, {fun, aux}});
 }
 
 
@@ -493,7 +481,7 @@ base_local_ctx_t::find_symbol(v_quark_t raw_name, v_type_t * &type, void * &valu
 static void *
 get_hook(base_local_ctx_t *lctx, v_quark_t quark, void **paux)
 {
-    if (auto *p = lctx->decls.intrinsics.find(quark))
+    if (auto *p = lctx->decls.intrinsics.find(quark))           //- ?
     {
         if (paux) *paux = p->second;
 
@@ -506,7 +494,7 @@ get_hook(base_local_ctx_t *lctx, v_quark_t quark, void **paux)
 static void
 set_hook(base_local_ctx_t *lctx, v_quark_t quark, void *fun, void *aux)
 {
-    lctx->decls.intrinsics_insert({quark, {fun, aux}});
+    lctx->decls.intrinsics_insert({quark, {fun, aux}});         //- ?
 }
 
 //---------------------------------------------------------------------
@@ -3294,9 +3282,11 @@ v_get_intrinsic_q(v_quark_t qname, void **aux)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
+    auto raw_name = lctx.lookup_alias(qname);
+
     auto &intrinsics = lctx.decls.intrinsics;
 
-    if (auto p = intrinsics.find(qname))
+    if (auto p = intrinsics.find(raw_name))
     {
         if (aux)  *aux = p->second;
 

@@ -43,7 +43,9 @@ bool lookup_function_dict(v_quark_t quark, v_type_t *type,
 
     if (!qname)  return false;
 
-    if (auto p = lctx.decls.intrinsics.find(*qname))
+    auto raw_name = lctx.lookup_alias(*qname);
+
+    if (auto p = lctx.decls.intrinsics.find(raw_name))
     {
         void_fun = p->first;
         aux      = p->second;
