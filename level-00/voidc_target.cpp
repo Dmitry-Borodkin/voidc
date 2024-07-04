@@ -1582,13 +1582,13 @@ voidc_global_ctx_t::static_initialize(void)
 
     voidc_typenames_q = q("voidc.typenames_dict");
 
-    obtain_alias_q    = q("voidc.hook_obtain_alias");
-    lookup_alias_q    = q("voidc.hook_lookup_alias");
-    obtain_module_q   = q("voidc.hook_obtain_module");
-    finish_module_q   = q("voidc.hook_finish_module");
-    adopt_result_q    = q("voidc.hook_adopt_result");
-    convert_to_type_q = q("voidc.hook_convert_to_type");
-    make_temporary_q  = q("voidc.hook_make_temporary");
+    obtain_alias_q    = q("v__.hook_obtain_alias");
+    lookup_alias_q    = q("v__.hook_lookup_alias");
+    obtain_module_q   = q("v__.hook_obtain_module");
+    finish_module_q   = q("v__.hook_finish_module");
+    adopt_result_q    = q("v__.hook_adopt_result");
+    convert_to_type_q = q("v__.hook_convert_to_type");
+    make_temporary_q  = q("v__.hook_make_temporary");
 
 #if LLVM_VERSION_MAJOR < 18
     llvm_stacksave_q                     = q("llvm.stacksave");

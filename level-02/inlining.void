@@ -137,7 +137,7 @@ voidc_internal_create_inline_function_data: (flags: intptr_t, fun_name: *const c
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    v_std_string_set(sstr, "v.inlining.");
+    v_std_string_set(sstr, "v__.inlining.");
 
     v_std_string_append(sstr, fun_name);
 
@@ -356,7 +356,7 @@ finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) ~> void
 
             fun_name = LLVMGetValueName2(f, &sz);
 
-            v_std_string_set(sstr, "v.inlining.");
+            v_std_string_set(sstr, "v__.inlining.");
 
             v_std_string_append(sstr, fun_name);
 
