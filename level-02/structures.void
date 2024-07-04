@@ -234,7 +234,7 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
             nm = v_ast_expr_identifier_get_name(name);
 
             type_name   := nm;
-            struct_name := nm;
+            struct_name := v_obtain_alias(nm, false);           //- Sic !?!
         }
         else        //- Sic!
         {
@@ -303,7 +303,7 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
 
             quark = v_quark_from_string(v_std_string_get(sstr+0));
 
-            v_std_string_set(sstr+1, "voidc.internal.index.");
+            v_std_string_set(sstr+1, "v__.internal.index.");
 
             v_std_string_append_number(sstr+1, i);
 
@@ -409,7 +409,7 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
         v_list_append(stmt_list, stmt_list, stmt);
 
 
-        v_std_string_set(sstr, "voidc.internal.index.");
+        v_std_string_set(sstr, "v__.internal.index.");
 
         v_std_string_append_number(sstr, i);
 
@@ -436,7 +436,7 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
         v_list_append(stmt_list, stmt_list, stmt);
 
 
-        v_copy(expr+0, expr+2);     //- kinda  "voidc.internal.index." + i
+        v_copy(expr+0, expr+2);     //- kinda  "v__.internal.index." + i
 
 
         v_ast_make_expr_integer(expr+1, i);
