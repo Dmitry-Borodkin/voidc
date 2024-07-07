@@ -305,20 +305,16 @@ base_local_ctx_t::add_symbol(v_quark_t name, v_type_t *type, void *value)
 void
 base_local_ctx_t::export_intrinsic(v_quark_t fun_name, void *fun, void *aux)
 {
-    auto raw_name = obtain_alias(fun_name, true);
+    if (export_data)  export_data->first.intrinsics_insert({fun_name, {fun, aux}});
 
-    if (export_data)  export_data->first.intrinsics_insert({raw_name, {fun, aux}});
-
-    decls.intrinsics_insert({raw_name, {fun, aux}});
+    decls.intrinsics_insert({fun_name, {fun, aux}});
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::add_intrinsic(v_quark_t fun_name, void *fun, void *aux)
 {
-    auto raw_name = obtain_alias(fun_name, false);
-
-    decls.intrinsics_insert({raw_name, {fun, aux}});
+    decls.intrinsics_insert({fun_name, {fun, aux}});
 }
 
 
@@ -481,7 +477,7 @@ base_local_ctx_t::find_symbol(v_quark_t raw_name, v_type_t * &type, void * &valu
 static void *
 get_hook(base_local_ctx_t *lctx, v_quark_t quark, void **paux)
 {
-    if (auto *p = lctx->decls.intrinsics.find(quark))           //- ?
+    if (auto *p = lctx->decls.intrinsics.find(quark))
     {
         if (paux) *paux = p->second;
 
@@ -494,7 +490,7 @@ get_hook(base_local_ctx_t *lctx, v_quark_t quark, void **paux)
 static void
 set_hook(base_local_ctx_t *lctx, v_quark_t quark, void *fun, void *aux)
 {
-    lctx->decls.intrinsics_insert({quark, {fun, aux}});         //- ?
+    lctx->decls.intrinsics_insert({quark, {fun, aux}});
 }
 
 //---------------------------------------------------------------------
@@ -1582,13 +1578,13 @@ voidc_global_ctx_t::static_initialize(void)
 
     voidc_typenames_q = q("voidc.typenames_dict");
 
-    obtain_alias_q    = q("v__.hook_obtain_alias");
-    lookup_alias_q    = q("v__.hook_lookup_alias");
-    obtain_module_q   = q("v__.hook_obtain_module");
-    finish_module_q   = q("v__.hook_finish_module");
-    adopt_result_q    = q("v__.hook_adopt_result");
-    convert_to_type_q = q("v__.hook_convert_to_type");
-    make_temporary_q  = q("v__.hook_make_temporary");
+    obtain_alias_q    = q("voidc.hook_obtain_alias");
+    lookup_alias_q    = q("voidc.hook_lookup_alias");
+    obtain_module_q   = q("voidc.hook_obtain_module");
+    finish_module_q   = q("voidc.hook_finish_module");
+    adopt_result_q    = q("voidc.hook_adopt_result");
+    convert_to_type_q = q("voidc.hook_convert_to_type");
+    make_temporary_q  = q("voidc.hook_make_temporary");
 
 #if LLVM_VERSION_MAJOR < 18
     llvm_stacksave_q                     = q("llvm.stacksave");
@@ -3282,11 +3278,9 @@ v_get_intrinsic_q(v_quark_t qname, void **aux)
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    auto raw_name = lctx.lookup_alias(qname);
-
     auto &intrinsics = lctx.decls.intrinsics;
 
-    if (auto p = intrinsics.find(raw_name))
+    if (auto p = intrinsics.find(qname))
     {
         if (aux)  *aux = p->second;
 

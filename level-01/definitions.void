@@ -80,7 +80,7 @@
 
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 
-    v_add_symbol("prepare_function_parameters_q", q_ref, q("v__.hook_prepare_function_parameters"));
+    v_add_symbol("q_prepare_function_parameters", q_ref, q("v.prepare_function_parameters"));
 }
 
 {   typ = v_alloca(v_type_ptr, 6);
@@ -310,7 +310,7 @@
     v_add_variable("fun_ptr", v_static_type_t, v_cast(fun_ptr, LLVMValueRef));
 }
 {
-    void_fun = v_get_intrinsic_q(prepare_function_parameters_q, paux);
+    void_fun = v_get_intrinsic_q(q_prepare_function_parameters, paux);
 
     v_return( v_cast(void_fun, fun_ptr) );
 }
@@ -332,7 +332,7 @@
     v_add_parameter_name(f, 1, "aux", void_ptr);
 }
 {
-    v_add_intrinsic_q(prepare_function_parameters_q, fun, aux);
+    v_add_intrinsic_q(q_prepare_function_parameters, fun, aux);
 }
 
 //---------------------------------------------------------------------

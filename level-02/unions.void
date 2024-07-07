@@ -223,7 +223,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
             nm = v_ast_expr_identifier_get_name(&obj.name);
 
             type_name  := nm;
-            union_name := v_obtain_alias(nm, false);            //- Sic !?!
+            union_name := nm;
         }
         else        //- Sic!
         {
@@ -323,7 +323,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
         if (type) v_type_struct_set_body(type, ts, 2, false);
         else      type := v_struct_type(ts, 2, false);
 
-        v_std_string_set(hstr, "v__.internal.union_cast.");
+        v_std_string_set(hstr, "voidc.internal.union_cast.");
 
         voidc_internal_std_string_append_type(hstr, type);
 
@@ -443,7 +443,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
         v_list_append(stmt_list, stmt_list, stmt);
 
 
-        v_std_string_set(sstr, shdr);       //- kinda "v__.internal.union_cast." ...
+        v_std_string_set(sstr, shdr);       //- kinda "voidc.internal.union_cast." ...
 
         v_std_string_append(sstr, field);
 
@@ -463,7 +463,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
         v_list_append(stmt_list, stmt_list, stmt);
 
 
-        v_copy(expr+0, expr+2);             //- kinda "v__.internal.union_cast." ...
+        v_copy(expr+0, expr+2);             //- kinda  "voidc.internal.union_cast." ...
 
 
         tri = v_reference_type(types[i], 0);

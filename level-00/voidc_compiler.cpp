@@ -123,9 +123,7 @@ void compile_expr_call(void *, const visitor_t *vis, const ast_base_t *self)
 
     if (auto fname = std::dynamic_pointer_cast<const ast_expr_identifier_data_t>(call.fun_expr))
     {
-        auto raw_name = lctx.lookup_alias(fname->name);
-
-        if (auto p = lctx.decls.intrinsics.find(raw_name))
+        if (auto p = lctx.decls.intrinsics.find(fname->name))
         {
             void_fun = p->first;
             void_aux = p->second;
