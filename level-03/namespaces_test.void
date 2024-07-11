@@ -136,6 +136,8 @@ g: (w: &wsx_t) ~> void
 
 {
     root_ns.printf("root_ns\n");
+
+    .printf("Just \".\" ns!\n");
 }
 
 
@@ -216,6 +218,24 @@ xcv = sdf[0];
 //{
 //    printf("my.a: %d\n", my.a);
 //}
+
+
+//---------------------------------------------------------------------
+namespace yans {}
+
+yans.print: () ~> void;
+
+{   yans.print();
+
+    .yans.print_b: () ~> void;
+
+    .yans.print_b();
+
+    yans.print_b();
+
+}
+
+
 
 
 

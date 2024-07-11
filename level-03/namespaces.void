@@ -46,6 +46,8 @@ NAMESPACE_SEPARATOR: char32_t = 0x1F;       //- "Unit Separator"...
     v_add_symbol("unit_defn_close_q",     q_ref, q("unit_defn_close"));
     v_add_symbol("unit_defn_using_q",     q_ref, q("unit_defn_using"));
     v_add_symbol("q_stmt_using",          q_ref, q("v.stmt_using"));
+    v_add_symbol("unit_fun_defn_q",       q_ref, q("unit_fun_defn"));
+    v_add_symbol("unit_var_defn_q",       q_ref, q("unit_var_defn"));
     v_add_symbol("unit_val_defn_q",       q_ref, q("unit_val_defn"));
     v_add_symbol("expr_struct_q",         q_ref, q("expr_struct"));
     v_add_symbol("expr_union_q",          q_ref, q("expr_union"));
@@ -226,6 +228,72 @@ mk_stmt_using_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     stmt: &v_ast_stmt_t := {};
 
     v_ast_make_stmt(&stmt, "", &expr);
+
+    v_std_any_set_pointer(ret, &stmt);
+}
+
+//---------------------------------------------------------------------
+private
+mk_dot_identifier_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    istr = v_std_any_get_pointer(v_std_string_t, any);
+
+    sstr: &v_std_string_t := {};
+
+    v_std_string_set(&sstr, "v..");
+
+    v_std_string_append(&sstr, v_std_string_get(istr));
+
+    expr: &v_ast_expr_t := {};
+
+    v_ast_make_expr_identifier(&expr, v_std_string_get(&sstr));
+
+    v_std_any_set_pointer(ret, &expr);
+}
+
+//---------------------------------------------------------------------
+private
+mk_qlf_ident_expr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    qualif = v_std_any_get_value(intptr_t, any+0);
+
+    expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
+
+    ast: &v_ast_base_t[2] := {};
+
+    v_ast_make_expr_integer((ast+0 : *v_ast_expr_t), qualif);
+
+    v_copy(ast+1, expr);
+
+    lst: &v_ast_generic_list_t := {};
+
+    v_make_list(&lst, 0, ast, 2);
+
+    v_std_any_set_pointer(ret, &lst);
+}
+
+//---------------------------------------------------------------------
+private
+mk_stmt_expr_var_decl_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    ename = v_std_any_get_pointer(v_ast_expr_t, any+0);
+    etype = v_std_any_get_pointer(v_ast_expr_t, any+1);
+
+    elst: &v_ast_expr_list_t := {};
+
+    v_make_list(&elst, ename);
+
+    v_list_append(&elst, &elst, etype);
+
+    etmp: &v_ast_expr_t := {};
+
+    v_ast_make_expr_identifier(&etmp, "v.internal.expr_var_decl");
+
+    v_ast_make_expr_call(&etmp, &etmp, &elst);
+
+    stmt: &v_ast_stmt_t := {};
+
+    v_ast_make_stmt_q(&stmt, 0, &etmp);
 
     v_std_any_set_pointer(ret, &stmt);
 }
@@ -791,10 +859,10 @@ my_obtain_alias_ctx_t = struct
 
 //---------------------------------------------------------------------
 export
-voidc_export_obtain_alias_effort: (aux: *void) ~> void
+voidc_obtain_alias_effort: (aux: *void) ~> void
 {
-//printf("voidc_export_obtain_alias_effort start %s\n", v_quark_to_string((aux: v_quark_t)));
-//defer printf("voidc_export_obtain_alias_effort stop\n");
+//printf("voidc_obtain_alias_effort start %s\n", v_quark_to_string((aux: v_quark_t)));
+//defer printf("voidc_obtain_alias_effort stop\n");
 
     lst = v_std_any_get_pointer(v_util_list_t, v_get_property_q(q_current_namespace_list));
 
@@ -845,14 +913,20 @@ my_obtain_alias: (aux: *void, q: v_quark_t, export: bool) ~> v_quark_t
 
     strncmp: (*const char, *const char, size_t) ~> int;
 
-    if (strncmp(v_quark_to_string(q), "v__", 3) == 0)   v_return(q);        //- Sic!
+    nm = v_quark_to_string(q);
+
+    if (strncmp(nm, "v__", 3) == 0) v_return(q);                            //- Sic!
+
+    ctx = *(aux: *my_obtain_alias_ctx_t);
+
+    if (strncmp(nm, "v..", 3) == 0) v_return(ctx.fun(ctx.aux, v_quark_from_string(nm+3), export));
 
     lst = v_std_any_get_pointer(v_util_list_t, v_get_property_q(q_current_namespace_list));
 
     if (s = v_list_get_size(lst))
     {
-        if (export) v_export_effort(voidc_export_obtain_alias_effort, (q: *void));
-        else        v_add_effort(voidc_export_obtain_alias_effort, (q: *void));
+        if (export) v_export_effort(voidc_obtain_alias_effort, (q: *void));
+        else        v_add_effort(voidc_obtain_alias_effort, (q: *void));
 
         r = v_list_get_item(lst, s-1);
 
@@ -865,8 +939,6 @@ my_obtain_alias: (aux: *void, q: v_quark_t, export: bool) ~> v_quark_t
 
         v_return(qr);
     }
-
-    ctx = *(aux: *my_obtain_alias_ctx_t);
 
     v_return(ctx.fun(ctx.aux, q, export));
 }
@@ -888,7 +960,13 @@ my_lookup_alias: (aux: *void, q: v_quark_t) ~> v_quark_t
 
     strncmp: (*const char, *const char, size_t) ~> int;
 
-    if (strncmp(v_quark_to_string(q), "v__", 3) == 0)   v_return(q);        //- Sic!
+    nm = v_quark_to_string(q);
+
+    if (strncmp(nm, "v__", 3) == 0) v_return(q);                            //- Sic!
+
+    ctx = *(aux: *my_lookup_alias_ctx_t);
+
+    if (strncmp(nm, "v..", 3) == 0) v_return(ctx.fun(ctx.aux, v_quark_from_string(nm+3)));
 
     cache: &v_util_map_t := {};
 
@@ -913,8 +991,6 @@ my_lookup_alias: (aux: *void, q: v_quark_t) ~> v_quark_t
             if (qr) v_return(qr);
         }
     }
-
-    ctx = *(aux: *my_lookup_alias_ctx_t);
 
     v_return(ctx.fun(ctx.aux, q));
 }
@@ -1164,6 +1240,293 @@ my_compile_expr_union: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
 
 //---------------------------------------------------------------------
+private
+voidc_compile_unit_defn_effort: (aux: *void) ~> void
+{
+    qq = (aux: *v_quark_t);
+
+    qnsid = qq[0];
+    qname = qq[1];
+
+    ns = (v_find_constant_value_q(qnsid) : *v_namespace_t);
+
+    if (v_map_find(&ns->map, (qname: intptr_t)))  v_return();       //- Sic !?!
+
+    sstr: &v_std_string_t := {};
+
+    v_copy(&sstr, &ns->prefix);
+
+    v_std_string_append_char(&sstr, NAMESPACE_SEPARATOR);
+
+    v_std_string_append(&sstr, v_quark_to_string(qname));
+
+    nstr: &v_std_string_t := {};
+
+    v_std_string_set(&nstr, "v__");
+
+    voidc_internal_std_string_append_mangle(&nstr, &sstr);
+
+    qr = v_quark_from_string(v_std_string_get(&nstr));
+
+    a: &v_std_any_t := {};
+
+    v_std_any_set_value(&a, qname);
+
+    v_list_append(&ns->list, &ns->list, &a);
+
+    v_std_any_set_value(&a, qr);
+
+    v_map_insert(&ns->map, &ns->map, (qname: intptr_t), &a);
+}
+
+//---------------------------------------------------------------------
+export
+voidc_compile_unit_defn_make_effort: (qnsid: v_quark_t, qname: v_quark_t, export: bool) ~> void
+{
+    if (export)
+    {
+        qq = v_malloc(v_quark_t, 2);
+
+        qq[0] := qnsid;
+        qq[1] := qname;
+
+        v_export_effort(voidc_compile_unit_defn_effort, qq);
+
+        free: (*void) ~> void;
+
+        v_add_cleaner(free, qq);
+    }
+    else
+    {
+        qq: &v_quark_t[2] := { qnsid, qname };
+
+        v_add_effort(voidc_compile_unit_defn_effort, qq);
+    }
+}
+
+//---------------------------------------------------------------------
+private
+my_visitor_method_ctx_t = struct
+{
+    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) ~> void);
+    aux: *void;
+};
+
+private
+my_compile_unit_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("my_compile_unit_defn start\n");
+//defer printf("my_compile_unit_defn stop\n");
+
+    ctx = *(aux: *my_visitor_method_ctx_t);
+
+    list = (self: *v_ast_generic_list_t);
+
+    ast1 = v_list_get_item(list, 1);            //- Name
+
+    {   tag = v_ast_base_get_visitor_method_tag(ast1);
+
+        if (tag != v_ast_expr_call_visitor_method_tag)
+        {
+            v_assert(tag == v_ast_expr_identifier_visitor_method_tag);
+
+            ctx.fun(ctx.aux, vis, self);
+
+            v_return();
+        }
+    }
+
+    //- <ns-id> . <id>
+
+    args = v_ast_expr_call_get_arg_list((ast1: *v_ast_expr_t));
+
+    op = v_list_get_item(args, 0);
+
+    void_obj = v_ast_generic_get_object(op);
+
+    obj = *(void_obj: *v_ast_operator_unary_t);
+
+    pay = (&obj[2] : *v_ast_generic_list_t);
+
+    eid = (v_list_get_item(pay, 0) : *v_ast_expr_t);
+
+    qname = v_ast_expr_identifier_get_name_q(eid);
+
+    nsid = v_list_get_item(args, 1);
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(nsid, vis);
+
+    ns = (v_get_result_value() : *v_namespace_t);       //- Sic!
+
+    qualif = v_ast_expr_integer_get_number((v_list_get_item(list, 0) : *v_ast_expr_t));
+
+    private_flag = v_get_private_flag();
+    export_flag  = v_get_export_flag();
+
+    private = private_flag  ||  qualif & qf_private;
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
+
+    voidc_compile_unit_defn_make_effort(ns->name, qname, export);
+
+    //-----------------------------------------------------------------
+    if (stmt_list = voidc_definitions_context_get_stmt_list())
+    {
+        expr: &v_ast_expr_t[3] := {};
+
+        elst: &v_ast_expr_list_t := {};
+
+        stmt: &v_ast_stmt_t := {};
+
+        v_ast_make_expr_integer(expr+0, ns->name);
+
+        v_make_list(&elst, expr+0);
+
+        v_ast_make_expr_identifier_q(expr+0, voidc_compile_quark_q);
+
+        v_ast_make_expr_call(expr+0, expr+0, &elst);
+
+        v_ast_make_expr_integer(expr+1, qname);
+
+        v_make_list(&elst, expr+1);
+
+        v_ast_make_expr_identifier_q(expr+1, voidc_compile_quark_q);
+
+        v_ast_make_expr_call(expr+1, expr+1, &elst);
+
+        v_ast_make_expr_integer(expr+2, export);
+
+        v_make_list(&elst, expr, 3);
+
+        v_ast_make_expr_identifier(expr+0, "voidc_compile_unit_defn_make_effort");
+
+        v_ast_make_expr_call(expr+0, expr+0, &elst);
+
+        v_ast_make_stmt(&stmt, 0, expr+0);
+
+        v_list_append(stmt_list, stmt_list, &stmt);
+    }
+
+    any = v_map_find(&ns->map, (qname: intptr_t));
+    v_assert(any);
+
+    quark = v_std_any_get_value(v_quark_t, any);
+
+    ast: &v_ast_base_t[5] := {};
+
+    n = v_list_get_size(list);
+
+    v_assert(n <= 5);
+
+    v_copy(ast+0, v_list_get_item(list, 0));
+
+    v_ast_make_expr_identifier_q((ast+1 : *v_ast_expr_t), quark);
+
+    for (i: &int := 2; i < n; ++i)
+    {
+        v_copy(ast+i, v_list_get_item(list, i));
+    }
+
+    tag = v_ast_base_get_visitor_method_tag(self);
+
+    lst: &v_ast_generic_list_t := {};
+
+    v_make_list(&lst, tag, ast, n);
+
+    ctx.fun(ctx.aux, vis, &lst);
+}
+
+//---------------------------------------------------------------------
+private
+my_var_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    ename = v_list_get_item(arg_list, 0);
+    etype = v_list_get_item(arg_list, 1);
+
+    //- <ns-id> . <id>
+
+    args = v_ast_expr_call_get_arg_list(ename);
+
+    op = v_list_get_item(args, 0);
+
+    void_obj = v_ast_generic_get_object(op);
+
+    obj = *(void_obj: *v_ast_operator_unary_t);
+
+    pay = (&obj[2] : *v_ast_generic_list_t);
+
+    eid = (v_list_get_item(pay, 0) : *v_ast_expr_t);
+
+    qname = v_ast_expr_identifier_get_name_q(eid);
+
+    nsid = v_list_get_item(args, 1);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(nsid, vis);
+
+    ns = (v_get_result_value() : *v_namespace_t);       //- Sic!
+
+    qr: &v_quark_t := v_undef();
+
+    if (a = v_map_find(&ns->map, (qname: intptr_t)))
+    {
+        qr := v_std_any_get_value(v_quark_t, a);
+    }
+    else
+    {
+        sstr: &v_std_string_t := {};
+
+        v_copy(&sstr, &ns->prefix);
+
+        v_std_string_append_char(&sstr, NAMESPACE_SEPARATOR);
+
+        v_std_string_append(&sstr, v_quark_to_string(qname));
+
+        nstr: &v_std_string_t := {};
+
+        v_std_string_set(&nstr, "v__");
+
+        voidc_internal_std_string_append_mangle(&nstr, &sstr);
+
+        qr := v_quark_from_string(v_std_string_get(&nstr));
+
+        a: &v_std_any_t := {};
+
+        v_std_any_set_value(&a, qname);
+
+        v_list_append(&ns->list, &ns->list, &a);
+
+        v_std_any_set_value(&a, qr);
+
+        v_map_insert(&ns->map, &ns->map, (qname: intptr_t), &a);
+    }
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(etype, vis);
+
+    type: &*v_type_t := (v_get_result_value() : *v_type_t);         //- Sic!
+
+    if (v_type_is_pointer(type))
+    {
+        type := v_type_refptr_get_element_type(type);       //- Sic!    WTF !?!?!?!
+    }
+
+    v_add_symbol_q(qr, type, 0);
+}
+
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 private
@@ -1175,6 +1538,8 @@ namespaces_ctx_t = struct
     dot: op_postfix_dot_helper_ctx_t;
 
     struct: my_expr_struct_ctx_t[2];            //- struct, union
+
+    unit_defn: my_visitor_method_ctx_t[3];      //- fun, var, val
 };
 
 
@@ -1248,6 +1613,22 @@ voidc_enable_namespaces_compiler: () ~> void
     ctx.struct[1].fun := (void_fun: *voidc_visitor_method_t);
 
     voidc_visitor_set_void_method(vis, vis, expr_union_q, my_compile_expr_union, &ctx.struct[1]);
+
+    //--------------------------------------------------------------
+    fun_void_fun = voidc_visitor_get_void_method(vis, unit_fun_defn_q, &ctx.unit_defn[0].aux);
+    var_void_fun = voidc_visitor_get_void_method(vis, unit_var_defn_q, &ctx.unit_defn[1].aux);
+    val_void_fun = voidc_visitor_get_void_method(vis, unit_val_defn_q, &ctx.unit_defn[2].aux);
+
+    ctx.unit_defn[0].fun := (fun_void_fun: *voidc_visitor_method_t);
+    ctx.unit_defn[1].fun := (var_void_fun: *voidc_visitor_method_t);
+    ctx.unit_defn[2].fun := (val_void_fun: *voidc_visitor_method_t);
+
+    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q, my_compile_unit_defn, &ctx.unit_defn[0]);
+    voidc_visitor_set_void_method(vis, vis, unit_var_defn_q, my_compile_unit_defn, &ctx.unit_defn[1]);
+    voidc_visitor_set_void_method(vis, vis, unit_val_defn_q, my_compile_unit_defn, &ctx.unit_defn[2]);
+
+    //--------------------------------------------------------------
+    v_add_intrinsic("v.internal.expr_var_decl", my_var_decl_intrinsic, 0);
 }
 
 
@@ -1274,9 +1655,11 @@ voidc_enable_namespaces: () ~> void
         mk_using_stmt          = mk_using_stmt_grammar_action;
         mk_unit_defn_using     = mk_unit_defn_using_grammar_action;
         mk_stmt_using          = mk_stmt_using_grammar_action;
+        mk_dot_identifier      = mk_dot_identifier_grammar_action;
+        mk_qlf_ident_expr      = mk_qlf_ident_expr_grammar_action;
+        mk_stmt_expr_var_decl  = mk_stmt_expr_var_decl_grammar_action;
 
     parsers:
-
         unit_namespace_open = q:qualif_flags _ "namespace" !ident_cont _ ns:expr _ '{'  { mk_unit_namespace_open(q, ns) };
 
         unit_defn_close = '}'   { mk_unit_defn_close() };
@@ -1291,6 +1674,13 @@ voidc_enable_namespaces: () ~> void
                    ;
 
         stmt += u:using_stmt    { mk_stmt_using(u) };
+
+
+        prim += '.' _ i:identifier      { mk_dot_identifier(i) };
+
+        qlf_ident = q:qualif_flags _ e:expr     { mk_qlf_ident_expr(q, e) };        //- Sic !?!
+
+        stmt_var_defn =+ e:expr _':'_ t:expr _';'       { mk_stmt_expr_var_decl(e, t) };        //- ?!?!?
     }
 
     v_peg_set_grammar(gr0);

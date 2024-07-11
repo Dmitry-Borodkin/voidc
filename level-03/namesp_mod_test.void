@@ -62,7 +62,20 @@ print_a: () ~> void
 }   //- namespace my
 
 
+//---------------------------------------------------------------------
+namespace yans {
 
+print: () ~> void
+{
+    printf("yans.print\n");
+}
+
+}   //- namespace yans
+
+yans.print_b: () ~> void
+{
+    printf("yans.print_b\n");
+}
 
 //=====================================================================
 {   voidc_unit_end_module(); }
