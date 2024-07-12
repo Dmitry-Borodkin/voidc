@@ -3822,15 +3822,11 @@
             }
             else    //- No indices!
             {
-                typ0 = v_alloca(v_type_ptr, 2);
-                typ1 = v_getelementptr(typ0, 1);
+                arg = v_alloca(v_type_generic_arg_ptr);
 
-                incomplete_array_type_tag = v_struct_type_named_q(voidc_incomplete_array_type_tag);     //- Sic!
+                v_store(v_type_generic_type_arg(v_cast(agg_v, v_type_ptr)), arg);
 
-                v_store(incomplete_array_type_tag, typ0);
-                v_store(v_cast(agg_v, v_type_ptr), typ1);
-
-                typ = v_struct_type(typ0, 2, false);
+                typ = v_generic_type(voidc_incomplete_array_type_tag, arg, 1);
 
                 v_assign(agg_v, v_cast(typ, LLVMValueRef));
             }

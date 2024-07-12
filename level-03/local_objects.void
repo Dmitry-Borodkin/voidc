@@ -1315,15 +1315,15 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
     block
     {
-        if (!v_type_is_struct(tr))  v_break();
+        if (!v_type_is_generic(tr))   v_break();
 
-        typs = v_type_struct_get_element_types(tr);
+        if (v_type_generic_get_cons(tr) != voidc_incomplete_array_type_tag)   v_break();
 
-        if (!v_type_is_struct(typs[0]))  v_break();
+        arg0 = v_type_generic_get_args(tr)[0];
 
-        if (v_type_struct_get_name_q(typs[0]) != voidc_incomplete_array_type_tag)  v_break();
+        type = v_type_generic_arg_type_get_type(arg0);
 
-        tr := v_array_type(typs[1], N);
+        tr := v_array_type(type, N);
     }
 
     if (!v_type_is_special(tr, q_initialize))
