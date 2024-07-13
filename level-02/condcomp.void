@@ -251,14 +251,14 @@ voidc_enable_condcomp_n1: () ~> void
 
     parsers:
 
-        unit_ccif_lr = l:unit_ccif_lr _ "#elif" _'('_ c:expr _')'_ u:unit_defn_list_lr  { mk_unit_ccif(l, c, u) }
-                     / "#if" _'('_ c:expr _')'_ u:unit_defn_list_lr                     { mk_unit_ccif(0, c, u) }
+        unit_ccif_lr = l:unit_ccif_lr _ "#elif" _'('_ c:expr _')'_ u:unit_defn_list     { mk_unit_ccif(l, c, u) }
+                     / "#if" _'('_ c:expr _')'_ u:unit_defn_list                        { mk_unit_ccif(0, c, u) }
                      ;
 
         unit_ccif_lr is left-recursive;
 
 
-        unit_ccif_list = l:unit_ccif_lr _ "#else" !ident_cont _ u:unit_defn_list_lr     { mk_unit_ccif(l, 0, u) }
+        unit_ccif_list = l:unit_ccif_lr _ "#else" !ident_cont _ u:unit_defn_list        { mk_unit_ccif(l, 0, u) }
                        / unit_ccif_lr
                        ;
 

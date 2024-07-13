@@ -805,7 +805,8 @@
     if (list)   v_list_append(lst, list, item);
     else
     {
-        v_make_list(lst, 0, item, 1);
+        if (item)   v_make_list(lst, 0, item, 1);
+        else        v_make_list_nil(lst, 0);
     }
 
     v_std_any_set_pointer(ret, lst);
@@ -2545,6 +2546,11 @@
                           ;
 
         unit_defn_list_lr is left-recursive;
+
+
+        unit_defn_list = unit_defn_list_lr
+                       /                            { mk_unit_defn_list(0, 0) }         //- Sic !!!
+                       ;
 
 
         unit_defn = unit_fun_defn
