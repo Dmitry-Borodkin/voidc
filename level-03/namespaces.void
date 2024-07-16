@@ -1445,69 +1445,87 @@ my_compile_unit_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~
 private
 my_var_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("my_var_decl_intrinsic start\n");
+//defer printf("my_var_decl_intrinsic stop\n");
+
     arg_list = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     ename = v_list_get_item(arg_list, 0);
     etype = v_list_get_item(arg_list, 1);
 
-    //- <ns-id> . <id>
-
-    args = v_ast_expr_call_get_arg_list(ename);
-
-    op = v_list_get_item(args, 0);
-
-    void_obj = v_ast_generic_get_object(op);
-
-    obj = *(void_obj: *v_ast_operator_unary_t);
-
-    pay = (&obj[2] : *v_ast_generic_list_t);
-
-    eid = (v_list_get_item(pay, 0) : *v_ast_expr_t);
-
-    qname = v_ast_expr_identifier_get_name_q(eid);
-
-    nsid = v_list_get_item(args, 1);
-
-    v_set_result_type(INVIOLABLE_TAG);
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(nsid, vis);
-
-    ns = (v_get_result_value() : *v_namespace_t);       //- Sic!
-
     qr: &v_quark_t := v_undef();
 
-    if (a = v_map_find(&ns->map, (qname: intptr_t)))
+    block
     {
-        qr := v_std_any_get_value(v_quark_t, a);
-    }
-    else
-    {
-        sstr: &v_std_string_t := {};
+        {   tag = v_ast_base_get_visitor_method_tag(ename);
 
-        v_copy(&sstr, &ns->prefix);
+            if (tag != v_ast_expr_call_visitor_method_tag)
+            {
+                v_assert(tag == v_ast_expr_identifier_visitor_method_tag);
 
-        v_std_string_append_char(&sstr, NAMESPACE_SEPARATOR);
+                qr := v_ast_expr_identifier_get_name_q(ename);
 
-        v_std_string_append(&sstr, v_quark_to_string(qname));
+                v_break();
+            }
+        }
 
-        nstr: &v_std_string_t := {};
+        //- <ns-id> . <id>
 
-        v_std_string_set(&nstr, "v__");
+        args = v_ast_expr_call_get_arg_list(ename);
 
-        voidc_internal_std_string_append_mangle(&nstr, &sstr);
+        op = v_list_get_item(args, 0);
 
-        qr := v_quark_from_string(v_std_string_get(&nstr));
+        void_obj = v_ast_generic_get_object(op);
 
-        a: &v_std_any_t := {};
+        obj = *(void_obj: *v_ast_operator_unary_t);
 
-        v_std_any_set_value(&a, qname);
+        pay = (&obj[2] : *v_ast_generic_list_t);
 
-        v_list_append(&ns->list, &ns->list, &a);
+        eid = (v_list_get_item(pay, 0) : *v_ast_expr_t);
 
-        v_std_any_set_value(&a, qr);
+        qname = v_ast_expr_identifier_get_name_q(eid);
 
-        v_map_insert(&ns->map, &ns->map, (qname: intptr_t), &a);
+        nsid = v_list_get_item(args, 1);
+
+        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_value(0);
+
+        v_ast_accept_visitor(nsid, vis);
+
+        ns = (v_get_result_value() : *v_namespace_t);       //- Sic!
+
+        if (a = v_map_find(&ns->map, (qname: intptr_t)))
+        {
+            qr := v_std_any_get_value(v_quark_t, a);
+        }
+        else
+        {
+            sstr: &v_std_string_t := {};
+
+            v_copy(&sstr, &ns->prefix);
+
+            v_std_string_append_char(&sstr, NAMESPACE_SEPARATOR);
+
+            v_std_string_append(&sstr, v_quark_to_string(qname));
+
+            nstr: &v_std_string_t := {};
+
+            v_std_string_set(&nstr, "v__");
+
+            voidc_internal_std_string_append_mangle(&nstr, &sstr);
+
+            qr := v_quark_from_string(v_std_string_get(&nstr));
+
+            a: &v_std_any_t := {};
+
+            v_std_any_set_value(&a, qname);
+
+            v_list_append(&ns->list, &ns->list, &a);
+
+            v_std_any_set_value(&a, qr);
+
+            v_map_insert(&ns->map, &ns->map, (qname: intptr_t), &a);
+        }
     }
 
     v_set_result_type(INVIOLABLE_TAG);

@@ -538,6 +538,8 @@ voidc_internal_std_string_append_mangle: (dst: *v_std_string_t, src: *const v_st
     ctx.aux_out   := dst;
 
     v_myz_encode(ctx);
+
+//printf("%s <= %s\n", v_std_string_get(dst), v_std_string_get(src));
 }
 
 
@@ -826,6 +828,7 @@ type_is_initializable: (t: *v_type_t) ~> bool
         v_return(type_is_initializable(v_type_array_get_element_type(t)));
 
     case v_type_kind_struct:
+    case v_type_kind_generic:
         v_break();
 
     default:
