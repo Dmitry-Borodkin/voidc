@@ -223,6 +223,7 @@ v_type_check_special: (t: *v_type_t, q: v_quark_t) ~> void
     {
     case v_type_kind_array:
     case v_type_kind_struct:
+    case v_type_kind_generic:
         v_break();
 
     default:
@@ -296,6 +297,7 @@ v_type_is_special: (t: *v_type_t, q: v_quark_t) ~> bool
         v_return(v_type_is_special(v_type_array_get_element_type(t), q));
 
     case v_type_kind_struct:
+    case v_type_kind_generic:
         v_break();
 
     default:

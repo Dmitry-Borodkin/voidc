@@ -472,7 +472,7 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         ctx.global_flag := false;
 
-        ctx.global_ctx.name := name;
+        ctx.global_ctx.name := v_obtain_alias(name, export);    //- ?
 
         prepare_initializer_function();
 
