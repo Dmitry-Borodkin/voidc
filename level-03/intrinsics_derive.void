@@ -503,7 +503,7 @@ voidc_enable_intrinsics_derive_compiler: () ~> void
 {
     vis = v_get_compiler();
 
-    v_return_if(voidc_visitor_get_void_method(vis, q_internal_spec_fun_derive, 0));
+    v_return_if(v_get_intrinsic_q(q_internal_spec_fun_derive, 0));
 
     {   gctx = v_target_get_global_ctx();
         vctx = v_target_get_voidc_global_ctx();

@@ -2337,7 +2337,7 @@
 {
     vis = v_get_compiler();
 
-    v_return_if(voidc_visitor_get_void_method(vis, unit_fun_defn_q, 0));
+    v_return_if(voidc_visitor_get_method(vis, unit_fun_defn_q, 0));
 
     voidc_enable_expression_compiler();         //- Sic!
 
@@ -2358,11 +2358,11 @@
     v_set_prepare_function_parameters_hook(v_prepare_function_parameters_default, 0);
 
     //-------------------------------------------------------------
-    voidc_visitor_set_void_method(vis, vis, br_item_list_q,   compile_br_item_list,   &def_ctx);
-    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q,  compile_unit_fun_defn,  &def_ctx);
-    voidc_visitor_set_void_method(vis, vis, unit_var_defn_q,  compile_unit_var_defn,  &def_ctx);
-    voidc_visitor_set_void_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  &def_ctx);
-    voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, &def_ctx);
+    voidc_visitor_set_method(vis, vis, br_item_list_q,   compile_br_item_list,   &def_ctx);
+    voidc_visitor_set_method(vis, vis, unit_fun_defn_q,  compile_unit_fun_defn,  &def_ctx);
+    voidc_visitor_set_method(vis, vis, unit_var_defn_q,  compile_unit_var_defn,  &def_ctx);
+    voidc_visitor_set_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  &def_ctx);
+    voidc_visitor_set_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, &def_ctx);
 
     q = v_quark_from_string;
 

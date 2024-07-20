@@ -439,17 +439,12 @@ voidc_enable_inlining_compiler: () ~> void
 
     vis = v_get_compiler();
 
-    void_fun = voidc_visitor_get_void_method(vis, unit_fun_defn_q, &ctx.inlining_aux[0].aux);
 
-    ctx.inlining_aux[0].fun := (void_fun: *voidc_visitor_method_t);
+    ctx.inlining_aux[0].fun := voidc_visitor_get_method(vis, unit_fun_defn_q,      &ctx.inlining_aux[0].aux);
+    ctx.inlining_aux[1].fun := voidc_visitor_get_method(vis, unit_spec_fun_defn_q, &ctx.inlining_aux[1].aux);
 
-    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[0]);
-
-    void_fun = voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, &ctx.inlining_aux[1].aux);
-
-    ctx.inlining_aux[1].fun := (void_fun: *voidc_visitor_method_t);
-
-    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[1]);
+    voidc_visitor_set_method(vis, vis, unit_fun_defn_q,      compile_unit_inline_fun_defn, &ctx.inlining_aux[0]);
+    voidc_visitor_set_method(vis, vis, unit_spec_fun_defn_q, compile_unit_inline_fun_defn, &ctx.inlining_aux[1]);
 
 
     ctx.finish_module_ctx.fun := v_get_finish_module_hook(&ctx.finish_module_ctx.aux);

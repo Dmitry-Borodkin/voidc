@@ -1574,9 +1574,9 @@ voidc_enable_namespaces_compiler: () ~> void
     //--------------------------------------------------------------
     vis = v_get_compiler();
 
-    voidc_visitor_set_void_method(vis, vis, unit_namespace_open_q, compile_unit_namespace_open, 0);
-    voidc_visitor_set_void_method(vis, vis, unit_defn_close_q,     compile_unit_defn_close,     0);
-    voidc_visitor_set_void_method(vis, vis, unit_defn_using_q,     compile_unit_defn_using,     0);
+    voidc_visitor_set_method(vis, vis, unit_namespace_open_q, compile_unit_namespace_open, 0);
+    voidc_visitor_set_method(vis, vis, unit_defn_close_q,     compile_unit_defn_close,     0);
+    voidc_visitor_set_method(vis, vis, unit_defn_using_q,     compile_unit_defn_using,     0);
 
     v_add_intrinsic_q(q_stmt_using, v_stmt_using_intrinsic, 0);
 
@@ -1620,30 +1620,20 @@ voidc_enable_namespaces_compiler: () ~> void
     ctx.dot.lookup_alias := &ctx.l_alias;
 
     //--------------------------------------------------------------
-    void_fun = voidc_visitor_get_void_method(vis, expr_struct_q, &ctx.struct[0].aux);
+    ctx.struct[0].fun := voidc_visitor_get_method(vis, expr_struct_q, &ctx.struct[0].aux);
+    ctx.struct[1].fun := voidc_visitor_get_method(vis, expr_union_q,  &ctx.struct[1].aux);
 
-    ctx.struct[0].fun := (void_fun: *voidc_visitor_method_t);
-
-    voidc_visitor_set_void_method(vis, vis, expr_struct_q, my_compile_expr_struct, &ctx.struct[0]);
-
-    void_fun = voidc_visitor_get_void_method(vis, expr_union_q, &ctx.struct[1].aux);
-
-    ctx.struct[1].fun := (void_fun: *voidc_visitor_method_t);
-
-    voidc_visitor_set_void_method(vis, vis, expr_union_q, my_compile_expr_union, &ctx.struct[1]);
+    voidc_visitor_set_method(vis, vis, expr_struct_q, my_compile_expr_struct, &ctx.struct[0]);
+    voidc_visitor_set_method(vis, vis, expr_union_q,  my_compile_expr_union,  &ctx.struct[1]);
 
     //--------------------------------------------------------------
-    fun_void_fun = voidc_visitor_get_void_method(vis, unit_fun_defn_q, &ctx.unit_defn[0].aux);
-    var_void_fun = voidc_visitor_get_void_method(vis, unit_var_defn_q, &ctx.unit_defn[1].aux);
-    val_void_fun = voidc_visitor_get_void_method(vis, unit_val_defn_q, &ctx.unit_defn[2].aux);
+    ctx.unit_defn[0].fun := voidc_visitor_get_method(vis, unit_fun_defn_q, &ctx.unit_defn[0].aux);
+    ctx.unit_defn[1].fun := voidc_visitor_get_method(vis, unit_var_defn_q, &ctx.unit_defn[1].aux);
+    ctx.unit_defn[2].fun := voidc_visitor_get_method(vis, unit_val_defn_q, &ctx.unit_defn[2].aux);
 
-    ctx.unit_defn[0].fun := (fun_void_fun: *voidc_visitor_method_t);
-    ctx.unit_defn[1].fun := (var_void_fun: *voidc_visitor_method_t);
-    ctx.unit_defn[2].fun := (val_void_fun: *voidc_visitor_method_t);
-
-    voidc_visitor_set_void_method(vis, vis, unit_fun_defn_q, my_compile_unit_defn, &ctx.unit_defn[0]);
-    voidc_visitor_set_void_method(vis, vis, unit_var_defn_q, my_compile_unit_defn, &ctx.unit_defn[1]);
-    voidc_visitor_set_void_method(vis, vis, unit_val_defn_q, my_compile_unit_defn, &ctx.unit_defn[2]);
+    voidc_visitor_set_method(vis, vis, unit_fun_defn_q, my_compile_unit_defn, &ctx.unit_defn[0]);
+    voidc_visitor_set_method(vis, vis, unit_var_defn_q, my_compile_unit_defn, &ctx.unit_defn[1]);
+    voidc_visitor_set_method(vis, vis, unit_val_defn_q, my_compile_unit_defn, &ctx.unit_defn[2]);
 
     //--------------------------------------------------------------
     v_add_intrinsic("v.internal.expr_var_decl", my_var_decl_intrinsic, 0);

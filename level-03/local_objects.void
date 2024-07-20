@@ -1414,11 +1414,9 @@ voidc_enable_local_objects_compiler: () ~> void
     //-----------------------------------------------------------------
     q = v_quark_from_string("stmt");
 
-    void_fun = voidc_visitor_get_void_method(vis, q, &ctx.stmt_hook.aux);
+    ctx.stmt_hook.fun := voidc_visitor_get_method(vis, q, &ctx.stmt_hook.aux);
 
-    ctx.stmt_hook.fun := (void_fun: *voidc_visitor_method_t);
-
-    voidc_visitor_set_void_method(vis, vis, q, my_compile_stmt, &ctx);
+    voidc_visitor_set_method(vis, vis, q, my_compile_stmt, &ctx);
 
     //-----------------------------------------------------------------
     ctx.adopt_result.fun := v_get_adopt_result_hook(&ctx.adopt_result.aux);
@@ -1436,7 +1434,7 @@ voidc_enable_local_objects_compiler: () ~> void
     v_add_intrinsic("v_get_object_pointer", v_get_object_pointer_intrinsic, 0);
 
     //-----------------------------------------------------------------
-    voidc_visitor_set_void_method(vis, vis, expr_stmt_q, compile_expr_stmt, 0);
+    voidc_visitor_set_method(vis, vis, expr_stmt_q, compile_expr_stmt, 0);
 
     v_add_intrinsic("v_break", my_break_intrinsic, 0);
 

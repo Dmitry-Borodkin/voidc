@@ -467,12 +467,12 @@
 {
     vis = v_get_compiler();
 
-    v_return_if(voidc_visitor_get_void_method(vis, quark, 0));
+    v_return_if(voidc_visitor_get_method(vis, quark, 0));
 
 
     v_store(quark, v_getelementptr(voidc_ast_stmt_block_vtable, 0, 2));
 
-    voidc_visitor_set_void_method(vis, vis, quark, compile_ast_stmt_block_t, 0);
+    voidc_visitor_set_method(vis, vis, quark, compile_ast_stmt_block_t, 0);
 
     break_q = v_quark_from_string("v_break");
 

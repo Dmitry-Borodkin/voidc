@@ -464,8 +464,8 @@ voidc_enable_handlers_etc: () ~> void
 {
     vis = v_get_compiler();
 
-    voidc_visitor_set_void_method(vis, vis, expr_compiled_q,    compile_expr_compiled,    0);
-    voidc_visitor_set_void_method(vis, vis, expr_compile_spy_q, compile_expr_compile_spy, 0);
+    voidc_visitor_set_method(vis, vis, expr_compiled_q,    compile_expr_compiled,    0);
+    voidc_visitor_set_method(vis, vis, expr_compile_spy_q, compile_expr_compile_spy, 0);
 
     //-------------------------------------------------------------
     v_add_intrinsic("v_make_handler", v_make_handler_intrinsic, 0);

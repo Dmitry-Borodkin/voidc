@@ -1473,19 +1473,19 @@ voidc_enable_global_objects_compiler: () ~> void
     //-----------------------------------------------------------------
     vis = v_get_compiler();
 
-    voidc_visitor_set_void_method(vis, vis, unit_var_defn_q, my_compile_unit_var_defn, &obtain_spec);
-    voidc_visitor_set_void_method(vis, vis, unit_val_defn_q, my_compile_unit_val_defn, &obtain_spec);
+    voidc_visitor_set_method(vis, vis, unit_var_defn_q, my_compile_unit_var_defn, &obtain_spec);
+    voidc_visitor_set_method(vis, vis, unit_val_defn_q, my_compile_unit_val_defn, &obtain_spec);
 
-    voidc_visitor_set_void_method(vis, vis, unit_stmt_init_q, compile_unit_stmt_init, &obtain_spec.global_ctx);
-    voidc_visitor_set_void_method(vis, vis, unit_stmt_term_q, compile_unit_stmt_term, &obtain_spec.global_ctx);
+    voidc_visitor_set_method(vis, vis, unit_stmt_init_q, compile_unit_stmt_init, &obtain_spec.global_ctx);
+    voidc_visitor_set_method(vis, vis, unit_stmt_term_q, compile_unit_stmt_term, &obtain_spec.global_ctx);
 
     q = v_ast_expr_identifier_visitor_method_tag;
 
-    voidc_visitor_set_void_method(vis, vis, q, my_compile_expr_identifier, 0);
+    voidc_visitor_set_method(vis, vis, q, my_compile_expr_identifier, 0);
 
-    ctx.unit.fun := (voidc_visitor_get_void_method(vis, defn_list_unit_q, &ctx.unit.aux) : *voidc_visitor_method_t);
+    ctx.unit.fun := voidc_visitor_get_method(vis, defn_list_unit_q, &ctx.unit.aux);
 
-    voidc_visitor_set_void_method(vis, vis, defn_list_unit_q, my_compile_defn_list_unit, &ctx.unit);
+    voidc_visitor_set_method(vis, vis, defn_list_unit_q, my_compile_defn_list_unit, &ctx.unit);
 
     //-----------------------------------------------------------------
     gctx = v_target_get_global_ctx();

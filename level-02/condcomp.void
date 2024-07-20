@@ -219,10 +219,10 @@ voidc_enable_condcomp_n1_compiler: () ~> void
 {
     vis = v_get_compiler();
 
-    v_return_if(voidc_visitor_get_void_method(vis, unit_ccif_list_q, 0));
+    v_return_if(voidc_visitor_get_method(vis, unit_ccif_list_q, 0));
 
-    voidc_visitor_set_void_method(vis, vis, unit_ccif_list_q, compile_unit_ccif_list, 0);
-    voidc_visitor_set_void_method(vis, vis, stmt_ccif_list_q, compile_stmt_ccif_list, 0);
+    voidc_visitor_set_method(vis, vis, unit_ccif_list_q, compile_unit_ccif_list, 0);
+    voidc_visitor_set_method(vis, vis, stmt_ccif_list_q, compile_stmt_ccif_list, 0);
 
     v_add_intrinsic("v_defined", v_defined_intrinsic, 0);
 }
@@ -504,9 +504,9 @@ voidc_enable_condcomp_compiler: () ~> void
 
     vis = v_get_compiler();
 
-    v_return_if(voidc_visitor_get_void_method(vis, cc_message_q, 0));
+    v_return_if(voidc_visitor_get_method(vis, cc_message_q, 0));
 
-    voidc_visitor_set_void_method(vis, vis, cc_message_q, compile_cc_message, 0);
+    voidc_visitor_set_method(vis, vis, cc_message_q, compile_cc_message, 0);
 
     _char_ptr = v_pointer_type(v_find_type_q(char_q), 0);
     _unsigned = v_find_type_q(unsigned_q);

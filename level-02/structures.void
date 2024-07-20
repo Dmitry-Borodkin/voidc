@@ -481,10 +481,10 @@ voidc_enable_structures_compiler: () ~> void
 {
     vis = v_get_compiler();
 
-    v_return_if(voidc_visitor_get_void_method(vis, expr_struct_q, 0));
+    v_return_if(voidc_visitor_get_method(vis, expr_struct_q, 0));
 
-    voidc_visitor_set_void_method(vis, vis, expr_struct_q,      compile_expr_struct,      0);
-    voidc_visitor_set_void_method(vis, vis, unit_struct_defn_q, compile_unit_struct_defn, 0);
+    voidc_visitor_set_method(vis, vis, expr_struct_q,      compile_expr_struct,      0);
+    voidc_visitor_set_method(vis, vis, unit_struct_defn_q, compile_unit_struct_defn, 0);
 }
 
 //---------------------------------------------------------------------

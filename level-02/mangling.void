@@ -1158,11 +1158,11 @@ voidc_enable_mangling_compiler: () ~> void
 {
     vis = v_get_compiler();
 
-    v_return_if(voidc_visitor_get_void_method(vis, unit_spec_fun_defn_q, 0));
+    v_return_if(voidc_visitor_get_method(vis, unit_spec_fun_defn_q, 0));
 
     //-------------------------------------------------------------
-    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn, 0);
-    voidc_visitor_set_void_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm, 0);
+    voidc_visitor_set_method(vis, vis, unit_spec_fun_defn_q, compile_unit_spec_fun_defn, 0);
+    voidc_visitor_set_method(vis, vis, unit_spec_fun_renm_q, compile_unit_spec_fun_renm, 0);
 
     q = v_quark_from_string;
 
