@@ -201,7 +201,29 @@ voidc_internal_index_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
     v_ast_make_expr_integer(expr, idx);
 
-    voidc_internal_op_postfix_index_helper(vis, expr, t0, v0);
+    lst = v_alloca(v_ast_expr_list_t);
+    v_initialize(lst);
+    defer v_terminate(lst);
+
+    v_make_list(lst, expr, 1);
+
+    agg_t: &*v_type_t    := t0;
+    agg_v: &LLVMValueRef := v0;
+
+    plst: &*v_ast_expr_list_t := lst;
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_compile_op_postfix_index(vis, self, agg_t, agg_v, &plst, 1);
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(agg_t, agg_v);
 }
 
 //---------------------------------------------------------------------

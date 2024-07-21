@@ -152,6 +152,17 @@ my_adopt_result_ctx_t = struct
     aux: *void;
 };
 
+private
+op_postfix_index_helper_ctx_t = struct
+{
+    fun: *((aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+            agg_t: &*v_type_t, agg_v: &LLVMValueRef,
+            idx: **v_ast_expr_list_t, count: int
+           ) ~> bool);
+
+    aux: *void;
+};
+
 
 //---------------------------------------------------------------------
 private
@@ -165,6 +176,7 @@ local_objects_ctx_t = struct
     adopt_result: my_adopt_result_ctx_t;
     return:       my_intrinsic_ctx_t;
     op_braces:    my_intrinsic_ctx_t;
+    op_index:     op_postfix_index_helper_ctx_t;
 };
 
 
@@ -1388,6 +1400,24 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 }
 
 
+//---------------------------------------------------------------------
+private
+my_op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                             agg_t: &*v_type_t, agg_v: &LLVMValueRef,
+                             idx: **v_ast_expr_list_t, count: int
+                            ) ~> bool
+{
+    if (v_type_is_special(agg_t, q_initialize))
+    {
+        agg_t := v_reference_type(agg_t, 0);            //- Sic !!!
+    }
+
+    ctx = *(aux: *op_postfix_index_helper_ctx_t);
+
+    v_return(ctx.fun(ctx.aux, vis, self, agg_t, agg_v, idx, count));
+}
+
+
 //=====================================================================
 //- Enable local objects
 //---------------------------------------------------------------------
@@ -1450,6 +1480,11 @@ voidc_enable_local_objects_compiler: () ~> void
     ctx.op_braces.fun := (v_get_intrinsic_q(q, &ctx.op_braces.aux) : *voidc_intrinsic_t);
 
     v_add_intrinsic_q(q, my_op_braces_intrinsic, &ctx);
+
+    //-----------------------------------------------------------------
+    ctx.op_index.fun := v_get_handler(v_compile_op_postfix_index, &ctx.op_index.aux);
+
+    v_set_handler(v_compile_op_postfix_index, my_op_postfix_index_helper, &ctx.op_index);
 
     //-----------------------------------------------------------------
     free: (*void) ~> void;
