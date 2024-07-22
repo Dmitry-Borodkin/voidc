@@ -38,6 +38,8 @@
     v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
     v_add_symbol("q_copy",       q_ref, q("v_copy"));
 
+    v_add_symbol("q_op_postfix_index", q_ref, q("v.op_postfix_index"));
+
     v_add_symbol("q_getelementptr", q_ref, q("v_getelementptr"));
 
     v_add_symbol("voidc_internal_return_value_q",        q_ref, q("voidc.internal_return_value"));
@@ -1408,7 +1410,18 @@ my_op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
                             ) ~> bool
 {
     if (v_type_is_special(agg_t, q_initialize))
+    block
     {
+        q = q_op_postfix_index;
+
+        void_fun: &*void := 0;
+        void_aux: &*void := 0;
+
+        ft: &*v_type_t    := 0;
+        fv: &LLVMValueRef := 0;
+
+        if (v_util_lookup_function_dict(q, agg_t, void_fun, void_aux, ft, fv))  v_break();
+
         agg_t := v_reference_type(agg_t, 0);            //- Sic !!!
     }
 
