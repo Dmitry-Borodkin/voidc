@@ -85,10 +85,7 @@ mk_expr_call: (fun: v_ast_expr_t, args: v_ast_expr_list_t) ~> v_ast_expr_t
 {
     ret = v_get_return_value();
 
-    _fun  = v_get_object_pointer(fun);
-    _args = v_get_object_pointer(args);
-
-    v_ast_make_expr_call(&ret, _fun, _args);
+    v_ast_make_expr_call(&ret, &fun, &args);
 }
 
 
@@ -97,9 +94,7 @@ mk_stmt: (name: *const char, expr: v_ast_expr_t) ~> v_ast_stmt_t
 {
     ret = v_get_return_value();
 
-    _expr = v_get_object_pointer(expr);
-
-    v_ast_make_stmt(&ret, name, _expr);
+    v_ast_make_stmt(&ret, name, &expr);
 }
 
 
@@ -123,13 +118,11 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     if (args_count == 0)
     {
-        er = mk_expr_compiled(v_pointer_type(tr, 0), vr);
-
-        expr = v_get_object_pointer(er);
+        expr = mk_expr_compiled(v_pointer_type(tr, 0), vr);
 
         list: &v_ast_expr_list_t := {};
 
-        v_make_list(&list, expr, 1);
+        v_make_list(&list, &expr, 1);
 
         if (is_generic) v_list_append(&list, &list, v_list_get_item(arg_list, 0));
 
@@ -138,7 +131,7 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
 
-        v_ast_accept_visitor((v_get_object_pointer(e): *v_ast_base_t), vis);
+        v_ast_accept_visitor((&e: *v_ast_base_t), vis);
 
         v_set_result_type(ttag);
         v_set_result_value(vtag);
@@ -212,34 +205,28 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
     }
 
 
-    {   er = mk_expr_compiled(v_pointer_type(tr, 0), vr);
-
-        expr = v_get_object_pointer(er);
+    {   expr = mk_expr_compiled(v_pointer_type(tr, 0), vr);
 
         list: &v_ast_expr_list_t := {};
 
-        v_make_list(&list, expr);
+        v_make_list(&list, &expr);
 
         if (is_generic) v_list_append(&list, &list, v_list_get_item(arg_list, 0));
 
-        eb = mk_expr_compiled(v_pointer_type(v_ast_expr_t, 0), buf_v);
+        expr = mk_expr_compiled(v_pointer_type(v_ast_expr_t, 0), buf_v);
 
-        expr = v_get_object_pointer(eb);
+        v_list_append(&list, &list, &expr);
 
-        v_list_append(&list, &list, expr);
+        expr = mk_expr_integer(args_count);
 
-        en = mk_expr_integer(args_count);
+        v_list_append(&list, &list, &expr);
 
-        expr = v_get_object_pointer(en);
-
-        v_list_append(&list, &list, expr);
-
-        e = mk_expr_call(mk_expr_identifier("v_make_list"), list);
+        expr = mk_expr_call(mk_expr_identifier("v_make_list"), list);
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
 
-        v_ast_accept_visitor((v_get_object_pointer(e): *v_ast_base_t), vis);
+        v_ast_accept_visitor((&expr: *v_ast_base_t), vis);
     }
 
 
@@ -272,42 +259,42 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 //---------------------------------------------------------------------
 (_:=_): (p: &v_ast_expr_t, v: v_ast_expr_t) ~> &v_ast_expr_t
 {
-    v_copy(&p, v_get_object_pointer(v));
+    v_copy(&p, &v);
 
     v_return(p);
 }
 
 (_:=_): (p: &v_ast_expr_list_t, v: v_ast_expr_list_t) ~> &v_ast_expr_list_t
 {
-    v_copy(&p, v_get_object_pointer(v));
+    v_copy(&p, &v);
 
     v_return(p);
 }
 
 (_:=_): (p: &v_ast_stmt_t, v: v_ast_stmt_t) ~> &v_ast_stmt_t
 {
-    v_copy(&p, v_get_object_pointer(v));
+    v_copy(&p, &v);
 
     v_return(p);
 }
 
 (_:=_): (p: &v_ast_stmt_list_t, v: v_ast_stmt_list_t) ~> &v_ast_stmt_list_t
 {
-    v_copy(&p, v_get_object_pointer(v));
+    v_copy(&p, &v);
 
     v_return(p);
 }
 
 (_:=_): (p: &v_ast_base_t, v: v_ast_base_t) ~> &v_ast_base_t
 {
-    v_copy(&p, v_get_object_pointer(v));
+    v_copy(&p, &v);
 
     v_return(p);
 }
 
 (_:=_): (p: &v_ast_generic_list_t, v: v_ast_generic_list_t) ~> &v_ast_generic_list_t
 {
-    v_copy(&p, v_get_object_pointer(v));
+    v_copy(&p, &v);
 
     v_return(p);
 }
@@ -315,21 +302,21 @@ mk_ast_list_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 //---------------------------------------------------------------------
 (_+=_): (l: &v_ast_expr_list_t, e: v_ast_expr_t) ~> &v_ast_expr_list_t
 {
-    v_list_append(&l, &l, v_get_object_pointer(e));
+    v_list_append(&l, &l, &e);
 
     v_return(l);
 }
 
 (_+=_): (l: &v_ast_stmt_list_t, s: v_ast_stmt_t) ~> &v_ast_stmt_list_t
 {
-    v_list_append(&l, &l, v_get_object_pointer(s));
+    v_list_append(&l, &l, &s);
 
     v_return(l);
 }
 
 (_+=_): (l: &v_ast_generic_list_t, s: v_ast_base_t) ~> &v_ast_generic_list_t
 {
-    v_list_append(&l, &l, v_get_object_pointer(s));
+    v_list_append(&l, &l, &s);
 
     v_return(l);
 }
@@ -344,6 +331,7 @@ enable_local_obj_ast_test: () ~> void
 }
 
 
+//{ v_debug_print_module(2); }
 //=====================================================================
 {   voidc_unit_end_module(); }
 
