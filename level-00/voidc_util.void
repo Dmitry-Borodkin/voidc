@@ -60,41 +60,29 @@
     typ4 = v_getelementptr(typ0, 4);
     typ5 = v_getelementptr(typ0, 5);
 
-    char_ptr = v_pointer_type(char, 0);
-
-    v_store(v_quark_t,  typ0);
-    v_store(v_type_ptr, typ1);
-    v_store(v_quark_t,  typ2);
-
-    ft = v_function_type(void, typ0, 3, false);
-    v_export_symbol_type("v_util_function_dict_set", ft);
-
-
-    visitor_ptr = v_pointer_type(voidc_visitor_t, 0);       //- Sic!
-
     void_ptr     = v_pointer_type(void, 0);
-    void_ptr_ref = v_reference_type(void_ptr, 0);
+    void_ptr_ptr = v_pointer_type(void_ptr, 0);
 
-    v_type_ptr_ref   = v_reference_type(v_type_ptr,   0);
-    LLVMValueRef_ref = v_reference_type(LLVMValueRef, 0);
+    v_type_ptr_ptr   = v_pointer_type(v_type_ptr,   0);
+    LLVMValueRef_ptr = v_pointer_type(LLVMValueRef, 0);
 
     v_store(v_quark_t,        typ0);
     v_store(v_type_ptr,       typ1);
-    v_store(void_ptr_ref,     typ2);
-    v_store(void_ptr_ref,     typ3);
-    v_store(v_type_ptr_ref,   typ4);
-    v_store(LLVMValueRef_ref, typ5);
+    v_store(void_ptr_ptr,     typ2);
+    v_store(void_ptr_ptr,     typ3);
+    v_store(v_type_ptr_ptr,   typ4);
+    v_store(LLVMValueRef_ptr, typ5);
 
     ft = v_function_type(bool, typ0, 6, false);
-    v_export_symbol_type("v_util_lookup_function_dict", ft);
+    v_export_symbol_type("v_util_lookup_overload", ft);
 }
 
 
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   v_util_function_dict_set(q_kind, v_type_t,             v_quark_from_string("v_type_get_kind"));
-    v_util_function_dict_set(q_kind, v_type_generic_arg_t, v_quark_from_string("v_type_generic_arg_get_kind"));
+{   v_export_overload_q(q_kind, v_type_t,             v_quark_from_string("v_type_get_kind"));
+    v_export_overload_q(q_kind, v_type_generic_arg_t, v_quark_from_string("v_type_generic_arg_get_kind"));
 }
 
 
@@ -770,7 +758,7 @@
     //-
     //-     v_export_symbol_type_q(qname, fun_type);
     //-
-    //-     v_util_function_dict_set(q_dict, val_t_type, qname);
+    //-     v_export_overload_q(q_dict, val_t_type, qname);
     //- }
     //-------------------------------------------------------------
     util_reg_helper_f   = v_obtain_function("v_util_registering_helper", lltyp);
@@ -806,10 +794,10 @@
     v_store(val_t_type, val1);
     v_store(qname,      val2);
 
-    dict_set_f   = v_obtain_function("v_util_function_dict_set", lltyp);
-    dict_set_ft_ = v_load(lltyp);
+    export_overload_q_f   = v_obtain_function("v_export_overload_q", lltyp);
+    export_overload_q_ft_ = v_load(lltyp);
 
-    LLVMBuildCall2(builder, dict_set_ft_, dict_set_f, val0, 3, "");
+    LLVMBuildCall2(builder, export_overload_q_ft_, export_overload_q_f, val0, 3, "");
 
     LLVMBuildRetVoid(builder);
 

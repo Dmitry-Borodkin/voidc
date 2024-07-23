@@ -27,9 +27,9 @@ namespace utility
 //- ...
 //---------------------------------------------------------------------
 static
-bool lookup_function_dict(v_quark_t quark, v_type_t *type,
-                          void *&void_fun, void *&aux,
-                          LLVMValueRef &f, v_type_t *&ft)
+bool lookup_overload(v_quark_t quark, v_type_t *type,
+                     void *&void_fun, void *&aux,
+                     LLVMValueRef &f, v_type_t *&ft)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -103,7 +103,7 @@ void v_universal_intrinsic(void *void_quark, const visitor_t *vis, const ast_bas
     LLVMValueRef f;
     v_type_t    *t;
 
-    auto ok = lookup_function_dict(quark, type, void_fun, aux, f, t);
+    auto ok = lookup_overload(quark, type, void_fun, aux, f, t);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -201,7 +201,7 @@ void v_std_any_get_value_intrinsic(void *void_quark, const visitor_t *vis, const
     LLVMValueRef f;
     v_type_t    *ft;
 
-    auto ok = lookup_function_dict(quark, type, void_fun, aux, f, ft);
+    auto ok = lookup_overload(quark, type, void_fun, aux, f, ft);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -262,7 +262,7 @@ void v_std_any_get_pointer_intrinsic(void *void_quark, const visitor_t *vis, con
     LLVMValueRef f;
     v_type_t    *ft;
 
-    auto ok = lookup_function_dict(quark, type, void_fun, aux, f, ft);
+    auto ok = lookup_overload(quark, type, void_fun, aux, f, ft);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -321,7 +321,7 @@ void v_std_any_set_value_intrinsic(void *void_quark, const visitor_t *vis, const
     LLVMValueRef f;
     v_type_t    *ft;
 
-    auto ok = lookup_function_dict(quark, type, void_fun, aux, f, ft);
+    auto ok = lookup_overload(quark, type, void_fun, aux, f, ft);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -371,7 +371,7 @@ void v_std_any_set_pointer_intrinsic(void *void_quark, const visitor_t *vis, con
     LLVMValueRef f;
     v_type_t    *ft;
 
-    auto ok = lookup_function_dict(quark, type, void_fun, aux, f, ft);
+    auto ok = lookup_overload(quark, type, void_fun, aux, f, ft);
     assert(ok);
 
     if (void_fun)       //- Compile-time intrinsic?
@@ -509,19 +509,28 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------
-void v_util_function_dict_set(v_quark_t quark, v_type_t *type, v_quark_t qname)
+bool v_util_lookup_overload(v_quark_t quark, v_type_t *type,
+                            void **void_fun, void **void_aux,
+                            v_type_t **ft, LLVMValueRef *fv)
 {
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
+    void *_fun = nullptr;
+    void *_aux = nullptr;
 
-    lctx.export_overload(quark, type, qname);               //- Sic !?!?!?!?!?!?!?!
-}
+    LLVMValueRef _fv = nullptr;
+    v_type_t    *_ft = nullptr;
 
-bool v_util_lookup_function_dict(v_quark_t quark, v_type_t *type,
-                                 void **void_fun, void **void_aux,
-                                 v_type_t **ft, LLVMValueRef *fv)
-{
-    return utility::lookup_function_dict(quark, type, *void_fun, *void_aux, *fv, *ft);
+    bool ret = utility::lookup_overload(quark, type, _fun, _aux, _fv, _ft);
+
+    if (ret)
+    {
+        if (_fun  &&  void_fun)   *void_fun = _fun;
+        if (_aux  &&  void_aux)   *void_aux = _aux;
+
+        if (_ft  &&  ft)  *ft = _ft;
+        if (_fv  &&  fv)  *fv = _fv;
+    }
+
+    return ret;
 }
 
 //---------------------------------------------------------------------

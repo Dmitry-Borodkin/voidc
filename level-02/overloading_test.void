@@ -52,14 +52,12 @@ complex_div_assign: (a: &complex, b: complex) ~> &complex
 
 //---------------------------------------------------------------------
 {
-    q = v_quark_from_string;
-
     complex_ref = v_reference_type(complex, 0);
 
-    v_util_function_dict_set(q("v.op_infix_add_assign"), complex_ref, q("complex_add_assign"));
-    v_util_function_dict_set(q("v.op_infix_sub_assign"), complex_ref, q("complex_sub_assign"));
-    v_util_function_dict_set(q("v.op_infix_mul_assign"), complex_ref, q("complex_mul_assign"));
-    v_util_function_dict_set(q("v.op_infix_div_assign"), complex_ref, q("complex_div_assign"));
+    v_add_overload("v.op_infix_add_assign", complex_ref, "complex_add_assign");
+    v_add_overload("v.op_infix_sub_assign", complex_ref, "complex_sub_assign");
+    v_add_overload("v.op_infix_mul_assign", complex_ref, "complex_mul_assign");
+    v_add_overload("v.op_infix_div_assign", complex_ref, "complex_div_assign");
 }
 
 
@@ -84,20 +82,17 @@ complex_div: (a: complex, b: complex) ~> complex
 }
 
 //---------------------------------------------------------------------
-{
-    q = v_quark_from_string;
-
-    v_util_function_dict_set(q("v.op_infix_add"), complex, q("complex_add"));
-    v_util_function_dict_set(q("v.op_infix_sub"), complex, q("complex_sub"));
-    v_util_function_dict_set(q("v.op_infix_mul"), complex, q("complex_mul"));
-    v_util_function_dict_set(q("v.op_infix_div"), complex, q("complex_div"));
+{   v_add_overload("v.op_infix_add", complex, "complex_add");
+    v_add_overload("v.op_infix_sub", complex, "complex_sub");
+    v_add_overload("v.op_infix_mul", complex, "complex_mul");
+    v_add_overload("v.op_infix_div", complex, "complex_div");
 
     complex_ref = v_reference_type(complex, 0);
 
-    v_util_function_dict_set(q("v.op_infix_add"), complex_ref, q("complex_add"));
-    v_util_function_dict_set(q("v.op_infix_sub"), complex_ref, q("complex_sub"));
-    v_util_function_dict_set(q("v.op_infix_mul"), complex_ref, q("complex_mul"));
-    v_util_function_dict_set(q("v.op_infix_div"), complex_ref, q("complex_div"));
+    v_add_overload("v.op_infix_add", complex_ref, "complex_add");
+    v_add_overload("v.op_infix_sub", complex_ref, "complex_sub");
+    v_add_overload("v.op_infix_mul", complex_ref, "complex_mul");
+    v_add_overload("v.op_infix_div", complex_ref, "complex_div");
 }
 
 
@@ -154,15 +149,12 @@ number_div_assign: (a: &number, b: number) ~> &number
     a := {a[0] / b[0]};
 
 //---------------------------------------------------------------------
-{
-    q = v_quark_from_string;
+{   number_ref = v_reference_type(number, 0);
 
-    number_ref = v_reference_type(number, 0);
-
-    v_util_function_dict_set(q("v.op_infix_add_assign"), number_ref, q("number_add_assign"));
-    v_util_function_dict_set(q("v.op_infix_sub_assign"), number_ref, q("number_sub_assign"));
-    v_util_function_dict_set(q("v.op_infix_mul_assign"), number_ref, q("number_mul_assign"));
-    v_util_function_dict_set(q("v.op_infix_div_assign"), number_ref, q("number_div_assign"));
+    v_add_overload("v.op_infix_add_assign", number_ref, "number_add_assign");
+    v_add_overload("v.op_infix_sub_assign", number_ref, "number_sub_assign");
+    v_add_overload("v.op_infix_mul_assign", number_ref, "number_mul_assign");
+    v_add_overload("v.op_infix_div_assign", number_ref, "number_div_assign");
 }
 
 
@@ -184,20 +176,17 @@ number_div: (a: number, b: number) ~> number
     {a[0] / b[0]};
 
 //---------------------------------------------------------------------
-{
-    q = v_quark_from_string;
-
-    v_util_function_dict_set(q("v.op_infix_add"), number, q("number_add"));
-    v_util_function_dict_set(q("v.op_infix_sub"), number, q("number_sub"));
-    v_util_function_dict_set(q("v.op_infix_mul"), number, q("number_mul"));
-    v_util_function_dict_set(q("v.op_infix_div"), number, q("number_div"));
+{   v_add_overload("v.op_infix_add", number, "number_add");
+    v_add_overload("v.op_infix_sub", number, "number_sub");
+    v_add_overload("v.op_infix_mul", number, "number_mul");
+    v_add_overload("v.op_infix_div", number, "number_div");
 
     number_ref = v_reference_type(number, 0);
 
-    v_util_function_dict_set(q("v.op_infix_add"), number_ref, q("number_add"));
-    v_util_function_dict_set(q("v.op_infix_sub"), number_ref, q("number_sub"));
-    v_util_function_dict_set(q("v.op_infix_mul"), number_ref, q("number_mul"));
-    v_util_function_dict_set(q("v.op_infix_div"), number_ref, q("number_div"));
+    v_add_overload("v.op_infix_add", number_ref, "number_add");
+    v_add_overload("v.op_infix_sub", number_ref, "number_sub");
+    v_add_overload("v.op_infix_mul", number_ref, "number_mul");
+    v_add_overload("v.op_infix_div", number_ref, "number_div");
 }
 
 
@@ -210,24 +199,21 @@ number_gt: (a: number, b: number) ~> bool  =  a[0] >  b[0];
 number_ge: (a: number, b: number) ~> bool  =  a[0] >= b[0];
 
 //---------------------------------------------------------------------
-{
-    q = v_quark_from_string;
-
-    v_util_function_dict_set(q("v.op_infix_eq"), number, q("number_eq"));
-    v_util_function_dict_set(q("v.op_infix_ne"), number, q("number_ne"));
-    v_util_function_dict_set(q("v.op_infix_lt"), number, q("number_lt"));
-    v_util_function_dict_set(q("v.op_infix_le"), number, q("number_le"));
-    v_util_function_dict_set(q("v.op_infix_gt"), number, q("number_gt"));
-    v_util_function_dict_set(q("v.op_infix_ge"), number, q("number_ge"));
+{   v_add_overload("v.op_infix_eq", number, "number_eq");
+    v_add_overload("v.op_infix_ne", number, "number_ne");
+    v_add_overload("v.op_infix_lt", number, "number_lt");
+    v_add_overload("v.op_infix_le", number, "number_le");
+    v_add_overload("v.op_infix_gt", number, "number_gt");
+    v_add_overload("v.op_infix_ge", number, "number_ge");
 
     number_ref = v_reference_type(number, 0);
 
-    v_util_function_dict_set(q("v.op_infix_eq"), number_ref, q("number_eq"));
-    v_util_function_dict_set(q("v.op_infix_ne"), number_ref, q("number_ne"));
-    v_util_function_dict_set(q("v.op_infix_lt"), number_ref, q("number_lt"));
-    v_util_function_dict_set(q("v.op_infix_le"), number_ref, q("number_le"));
-    v_util_function_dict_set(q("v.op_infix_gt"), number_ref, q("number_gt"));
-    v_util_function_dict_set(q("v.op_infix_ge"), number_ref, q("number_ge"));
+    v_add_overload("v.op_infix_eq", number_ref, "number_eq");
+    v_add_overload("v.op_infix_ne", number_ref, "number_ne");
+    v_add_overload("v.op_infix_lt", number_ref, "number_lt");
+    v_add_overload("v.op_infix_le", number_ref, "number_le");
+    v_add_overload("v.op_infix_gt", number_ref, "number_gt");
+    v_add_overload("v.op_infix_ge", number_ref, "number_ge");
 }
 
 

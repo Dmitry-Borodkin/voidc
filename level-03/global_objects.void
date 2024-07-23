@@ -701,12 +701,9 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
         void_fun: &*void := 0;
         void_aux: &*void := v_undef();
 
-        ft: &*v_type_t    := v_undef();
-        fv: &LLVMValueRef := v_undef();
-
         q = voidc_abstract_static_constant_q;
 
-        if (!v_util_lookup_function_dict(q, t, void_fun, void_aux, ft, fv)) v_break();
+        if (!v_util_lookup_overload(q, t, &void_fun, &void_aux, 0,0)) v_break();
 
         v_assert(void_fun);
 
@@ -1468,7 +1465,7 @@ voidc_enable_global_objects_compiler: () ~> void
     //-----------------------------------------------------------------
     v_add_intrinsic_q(voidc_abstract_static_type_intrinsic_q, my_abstract_static_type_intrinsic, 0);
 
-    v_util_function_dict_set(voidc_abstract_static_constant_q, v_static_type_t, voidc_abstract_static_type_intrinsic_q);
+    v_add_overload_q(voidc_abstract_static_constant_q, v_static_type_t, voidc_abstract_static_type_intrinsic_q);
 
     //-----------------------------------------------------------------
     vis = v_get_compiler();

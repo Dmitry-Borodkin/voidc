@@ -288,7 +288,7 @@ v_type_check_special: (t: *v_type_t, q: v_quark_t) ~> void
 
                 q_fake = v_quark_from_string(v_std_string_get(sstr));
 
-                v_util_function_dict_set(q, t, q_fake);
+                v_add_overload_q(q, t, q_fake);
             }
 
             v_break();
@@ -1420,13 +1420,7 @@ my_op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
     {
         q = q_op_postfix_index;
 
-        void_fun: &*void := 0;
-        void_aux: &*void := 0;
-
-        ft: &*v_type_t    := 0;
-        fv: &LLVMValueRef := 0;
-
-        if (v_util_lookup_function_dict(q, agg_t, void_fun, void_aux, ft, fv))  v_break();
+        if (v_util_lookup_overload(q, agg_t, 0,0, 0,0)) v_break();
 
         agg_t := v_reference_type(agg_t, 0);            //- Sic !!!
     }

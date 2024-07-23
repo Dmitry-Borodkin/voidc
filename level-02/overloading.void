@@ -267,7 +267,7 @@ op_assign_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(q, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_overload(q, t0, &void_fun, &void_aux, &ft, &fv))
     {
         //- Got overloading!
 
@@ -377,7 +377,7 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(q0, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_overload(q0, t0, &void_fun, &void_aux, &ft, &fv))
     {
         //- Got overloading!
 
@@ -421,7 +421,7 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     t1 = v_get_result_type();
     v1 = v_get_result_value();
 
-    if (v_util_lookup_function_dict(q1, t1, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_overload(q1, t1, &void_fun, &void_aux, &ft, &fv))
     {
         //- Got overloading!
 
@@ -538,7 +538,7 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
     ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(q0, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_overload(q0, t0, &void_fun, &void_aux, &ft, &fv))
     {
         //- Got overloading!
 
@@ -591,7 +591,7 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
         t1 := v_get_result_type();
         v1 := v_get_result_value();
 
-        if (v_util_lookup_function_dict(q1, t1, void_fun, void_aux, ft, fv))
+        if (v_util_lookup_overload(q1, t1, &void_fun, &void_aux, &ft, &fv))
         {
             //- Got overloading!
 
@@ -899,7 +899,7 @@ op_unary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(q, t0, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_overload(q, t0, &void_fun, &void_aux, &ft, &fv))
     {
         //- Got overloading!
 
@@ -1050,7 +1050,7 @@ compile_expr_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(q, t, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_overload(q, t, &void_fun, &void_aux, &ft, &fv))
     {
         //- Got overloading!
 
@@ -1187,7 +1187,7 @@ op_postfix_index_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     ft: &*v_type_t    := 0;
     fv: &LLVMValueRef := 0;
 
-    if (v_util_lookup_function_dict(q, agg_t, void_fun, void_aux, ft, fv))
+    if (v_util_lookup_overload(q, agg_t, &void_fun, &void_aux, &ft, &fv))
     {
         //- Got overloading!
 
@@ -1445,14 +1445,14 @@ voidc_enable_overloading_compiler: () ~> void
     q_static_type_prefix_volatile = q("v.static_type_prefix_volatile");
     q_static_type_postfix_index   = q("v.static_type_postfix_index");
 
-    v_util_function_dict_set(q("v.op_prefix_star"), v_static_type_t, q_static_type_prefix_star);
-    v_util_function_dict_set(q("v.op_prefix_amp"),  v_static_type_t, q_static_type_prefix_amp);
+    v_add_overload_q(q("v.op_prefix_star"), v_static_type_t, q_static_type_prefix_star);
+    v_add_overload_q(q("v.op_prefix_amp"),  v_static_type_t, q_static_type_prefix_amp);
 
     v_add_intrinsic_q(q_static_type_prefix_star, static_type_prefix_star_intrinsic, 0);
     v_add_intrinsic_q(q_static_type_prefix_amp,  static_type_prefix_amp_intrinsic,  0);
 
-    v_util_function_dict_set(q("v.op_prefix_const"),    v_static_type_t, q_static_type_prefix_const);
-    v_util_function_dict_set(q("v.op_prefix_volatile"), v_static_type_t, q_static_type_prefix_volatile);
+    v_add_overload_q(q("v.op_prefix_const"),    v_static_type_t, q_static_type_prefix_const);
+    v_add_overload_q(q("v.op_prefix_volatile"), v_static_type_t, q_static_type_prefix_volatile);
 
     v_add_intrinsic_q(q_static_type_prefix_const,    static_type_prefix_cv_intrinsic, 0);
     v_add_intrinsic_q(q_static_type_prefix_volatile, static_type_prefix_cv_intrinsic, 0);
@@ -1462,7 +1462,7 @@ voidc_enable_overloading_compiler: () ~> void
     //-------------------------------------------------------------
     v_add_intrinsic_q(q_op_postfix_index, op_postfix_index_intrinsic, 0);
 
-    v_util_function_dict_set(q_op_postfix_index, v_static_type_t, q_static_type_postfix_index);
+    v_add_overload_q(q_op_postfix_index, v_static_type_t, q_static_type_postfix_index);
 
     v_add_intrinsic_q(q_static_type_postfix_index, static_type_postfix_index_intrinsic, 0);
 

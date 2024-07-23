@@ -1024,15 +1024,9 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     ctx = *(aux: *op_postfix_dot_helper_ctx_t);
 
-    {   void_fun: &*void := v_undef();
-        void_aux: &*void := v_undef();
-
-        ft: &*v_type_t    := v_undef();
-        fv: &LLVMValueRef := v_undef();
-
-        if (t0 != v_static_namespace_t  ||
-            v_util_lookup_function_dict(q1, t0, void_fun, void_aux, ft, fv)  ||
-            v_util_lookup_function_dict(q0, t0, void_fun, void_aux, ft, fv)
+    {   if (t0 != v_static_namespace_t  ||
+            v_util_lookup_overload(q1, t0, 0,0, 0,0)  ||
+            v_util_lookup_overload(q0, t0, 0,0, 0,0)
            )
         {
             ctx.fun(ctx.aux, vis, self, t0, v0, q0, q1, alst);
@@ -1597,8 +1591,8 @@ voidc_enable_namespaces_compiler: () ~> void
     //-----------------------------------------------------------------
     v_add_intrinsic_q(voidc_abstract_static_namespace_intrinsic_q, my_abstract_static_namespace_intrinsic, 0);
 
-    v_util_function_dict_set(voidc_abstract_static_constant_q, v_static_namespace_t,
-                             voidc_abstract_static_namespace_intrinsic_q);
+    v_add_overload_q(voidc_abstract_static_constant_q, v_static_namespace_t,
+                     voidc_abstract_static_namespace_intrinsic_q);
 
     //--------------------------------------------------------------
     ctx = *v_malloc(namespaces_ctx_t);

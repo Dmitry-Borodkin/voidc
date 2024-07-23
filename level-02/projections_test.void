@@ -36,12 +36,10 @@ vector_y: (v: Vector) ~> double = v[0][1];
 
 {   vector_ref = v_reference_type(Vector, 0);
 
-    q = v_quark_from_string;
-
-    v_util_function_dict_set(q(".x"), vector_ref, q("vector_x_ref"));
-    v_util_function_dict_set(q(".y"), vector_ref, q("vector_y_ref"));
-    v_util_function_dict_set(q(".x"), Vector,     q("vector_x"));
-    v_util_function_dict_set(q(".y"), Vector,     q("vector_y"));
+    v_add_overload(".x", vector_ref, "vector_x_ref");
+    v_add_overload(".y", vector_ref, "vector_y_ref");
+    v_add_overload(".x", Vector,     "vector_x");
+    v_add_overload(".y", Vector,     "vector_y");
 }
 
 
@@ -74,10 +72,8 @@ vector_add: (v: Vector, x: double, y: double) ~> Vector
 
 {   vector_ref = v_reference_type(Vector, 0);
 
-    q = v_quark_from_string;
-
-    v_util_function_dict_set(q(".add()"), vector_ref, q("vector_add_ref"));
-    v_util_function_dict_set(q(".add()"), Vector,     q("vector_add"));
+    v_add_overload(".add()", vector_ref, "vector_add_ref");
+    v_add_overload(".add()", Vector,     "vector_add");
 }
 
 
@@ -125,10 +121,8 @@ vector_add: (v: Vector, x: double, y: double) ~> Vector
 {   char_ptr     = v_pointer_type(char, 0);
     char_ptr_ref = v_reference_type(char_ptr, 0);
 
-    q = v_quark_from_string;
-
-    v_util_function_dict_set(q(".my_printf()"), char_ptr,     q("printf"));
-    v_util_function_dict_set(q(".my_printf()"), char_ptr_ref, q("printf"));
+    v_add_overload(".my_printf()", char_ptr,     "printf");
+    v_add_overload(".my_printf()", char_ptr_ref, "printf");
 }
 
 //---------------------------------------------------------------------
@@ -151,10 +145,8 @@ foo_bar: (f: foo_t) ~> *((*const char, ...) ~> int) = f[0];
 foo: &foo_t := { printf };
 
 {
-    q = v_quark_from_string;
-
-    v_util_function_dict_set(q(".fun"), foo_t,   q("foo_bar"));
-    v_util_function_dict_set(q(".fun"), foo_ref, q("foo_bar"));
+    v_add_overload(".fun", foo_t,   "foo_bar");
+    v_add_overload(".fun", foo_ref, "foo_bar");
 }
 
 //---------------------------------------------------------------------
