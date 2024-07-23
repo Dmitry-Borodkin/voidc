@@ -109,6 +109,54 @@ A = 3;
 #warning ("just test...")
 
 
+//---------------------------------------------------------------------
+echo_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    call = (self: *v_ast_expr_t);
+
+    args = v_ast_expr_call_get_arg_list(call);
+
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    pos_start_q = v_quark_from_string("pos_start");
+    pos_end_q   = v_quark_from_string("pos_end");
+
+    n = v_list_get_size(args);
+
+    for (i: &int := 0; i < n; ++i)
+    {
+        arg = v_list_get_item(args, i);
+
+        line:   &size_t := v_undef();
+        column: &size_t := v_undef();
+
+        ps = v_std_any_get_value(size_t, v_ast_get_property((arg: *v_ast_base_t), pos_start_q));
+        pe = v_std_any_get_value(size_t, v_ast_get_property((arg: *v_ast_base_t), pos_end_q));
+
+        v_peg_get_line_column(ps, line, column);
+
+        v_peg_take_string(sstr, ps, pe);
+
+        if (i)  printf(" ");
+
+        printf(v_std_string_get(sstr));
+    }
+
+    if (n)  printf("...\n");
+}
+
+{   v_add_intrinsic("echo", echo_intrinsic, 0);
+}
+
+#do (echo(Hello, world), echo(Hello, again))
+
+{ #do (echo(Hello, one, more, time)) }
+
+
+//---------------------------------------------------------------------
+
 #error ("AAAAAAAAAAAAAAAAAAAAA!!!")
 
 

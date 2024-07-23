@@ -30,6 +30,7 @@
     v_add_symbol("stmt_ccif_list_q", q_ref, q("stmt_ccif_list"));
 
     v_add_symbol("cc_message_q", q_ref, q("cc_message"));
+    v_add_symbol("cc_do_q",      q_ref, q("cc_do"));
 
     v_add_symbol("pos_start_q", q_ref, q("pos_start"));
     v_add_symbol("pos_end_q",   q_ref, q("pos_end"));
@@ -327,6 +328,24 @@ mk_cc_message_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     else      v_std_any_set_pointer(ret, (list : *v_ast_base_t));       //- unit_defn
 }
 
+//---------------------------------------------------------------------
+private
+mk_cc_do_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    elst = v_std_any_get_pointer(v_ast_expr_list_t, any+0);
+
+    list = v_alloca(v_ast_generic_list_t);
+    v_initialize(list);
+    defer v_terminate(list);
+
+    v_make_list(list, cc_do_q, (elst: *v_ast_base_t));
+
+    kind = v_std_any_get_value(intptr_t, any+1);
+
+    if (kind) v_std_any_set_pointer(ret, (list : *v_ast_stmt_t));       //- stmt
+    else      v_std_any_set_pointer(ret, (list : *v_ast_base_t));       //- unit_defn
+}
+
 
 //---------------------------------------------------------------------
 //- Compiler methods...
@@ -391,6 +410,26 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
         abort: () ~> void;
 
         abort();
+    }
+}
+
+private
+compile_cc_do: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    list = (self: *v_ast_generic_list_t);
+
+    elst = (v_list_get_item(list, 0) : *v_ast_expr_list_t);
+
+    n = v_list_get_size(elst);
+
+    for (i: &int := 0; i < n; ++i)
+    {
+        expr = v_list_get_item(elst, i);
+
+        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_value(0);
+
+        v_ast_accept_visitor((expr: *v_ast_base_t), vis);
     }
 }
 
@@ -507,6 +546,7 @@ voidc_enable_condcomp_compiler: () ~> void
     v_return_if(voidc_visitor_get_method(vis, cc_message_q, 0));
 
     voidc_visitor_set_method(vis, vis, cc_message_q, compile_cc_message, 0);
+    voidc_visitor_set_method(vis, vis, cc_do_q,      compile_cc_do,      0);
 
     _char_ptr = v_pointer_type(v_find_type_q(char_q), 0);
     _unsigned = v_find_type_q(unsigned_q);
@@ -567,10 +607,14 @@ voidc_enable_condcomp: () ~> void
     {
     actions:
         mk_cc_message = mk_cc_message_grammar_action;
+        mk_cc_do      = mk_cc_do_grammar_action;
 
     parsers:
         unit_defn += '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message(t, l, 0) };
         stmt      += '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message(t, l, 1) };
+
+        unit_defn += "#do" _'('_ l:expr_list _ (','_)? ')'    { mk_cc_do(l, 0) };
+        stmt      += "#do" _'('_ l:expr_list _ (','_)? ')'    { mk_cc_do(l, 1) };
     }
 
     v_peg_set_grammar(gr0);
