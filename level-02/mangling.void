@@ -505,6 +505,9 @@ encode_base62: (ctx: &v_myz_ctx_t) ~> bool
         }
     }
 
+    ctx.next_out  := buf;
+    ctx.avail_out := OUTBUFSIZE;
+
     v_return(true);
 }
 
@@ -518,6 +521,28 @@ voidc_internal_std_string_append_type: (sstr: *v_std_string_t, t: *v_type_t) ~> 
     defer dict_term(dict);
 
     append_type(sstr, dict, t);
+}
+
+//---------------------------------------------------------------------
+export
+voidc_internal_std_string_append_quark: (sstr: *v_std_string_t, q: v_quark_t) ~> void
+{
+    dict: &v_trp_dict_t := v_undef();
+    dict_init(dict);
+    defer dict_term(dict);
+
+    append_quark(sstr, dict, q);
+}
+
+//---------------------------------------------------------------------
+export
+voidc_internal_std_string_append_type_generic_arg: (sstr: *v_std_string_t, a: *v_type_generic_arg_t) ~> void
+{
+    dict: &v_trp_dict_t := v_undef();
+    dict_init(dict);
+    defer dict_term(dict);
+
+    append_type_generic_arg(sstr, dict, a);
 }
 
 //---------------------------------------------------------------------
