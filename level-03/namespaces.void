@@ -420,7 +420,8 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     etmp: &*v_ast_expr_t := nsid;
 
-    qs = new v_quark_t[N+1];
+    qs = new struct { qname: v_quark_t; args: *v_ast_expr_list_t; }[N+1];
+
     defer delete[] qs;
 
     for (i: &int := 0; i < N; ++i)
@@ -437,14 +438,37 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
         expr = (v_list_get_item(pay, 0) : *v_ast_expr_t);
 
-        qs[N-i] := v_ast_expr_identifier_get_name_q(expr);
+        qsi = qs[N-i];
+
+        qsi.qname := v_ast_expr_identifier_get_name_q(expr);
+
+        if (v_list_get_size(pay) > 1)   qsi.args := (v_list_get_item(pay, 1) : *v_ast_expr_list_t);
+        else                            qsi.args := 0;
 
         etmp := v_list_get_item(args, 1);
     }
 
-    v_assert(v_ast_base_get_visitor_method_tag(etmp) == v_ast_expr_identifier_visitor_method_tag);      //- ?
+    if (v_ast_base_get_visitor_method_tag(etmp) == v_ast_expr_identifier_visitor_method_tag)
+    {
+        qs0 = qs[0];
 
-    qs[0] := v_ast_expr_identifier_get_name_q(etmp);
+        qs0.qname := v_ast_expr_identifier_get_name_q(etmp);
+        qs0.args  := 0;
+    }
+    else
+    {
+        v_assert(v_ast_base_get_visitor_method_tag(etmp) == v_ast_expr_call_visitor_method_tag);            //- ?
+
+        qs0 = qs[0];
+
+        qs0.args := v_ast_expr_call_get_arg_list(etmp);
+
+        etmp := v_ast_expr_call_get_fun_expr(etmp);
+
+        v_assert(v_ast_base_get_visitor_method_tag(etmp) == v_ast_expr_identifier_visitor_method_tag);      //- ?
+
+        qs0.qname := v_ast_expr_identifier_get_name_q(etmp);
+    }
 
     private_flag = v_get_private_flag();
     export_flag  = v_get_export_flag();
@@ -473,7 +497,33 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     for (i: &int := 0; i <= N; ++i)
     {
-        q = (qs[i] : *void);
+        qsi = qs[i];
+
+        quark: &v_quark_t := qsi.qname;
+
+        if (qsi.args)
+        {
+            expr: &v_ast_expr_t := {};
+
+            v_ast_make_expr_identifier_q(&expr, qsi.qname);
+
+            v_ast_make_expr_call(&expr, &expr, qsi.args);
+
+            v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_value(0);
+
+            v_ast_accept_visitor(&expr, vis);
+
+            t = v_get_result_type();
+            v = v_get_result_value();
+
+            if (t == v_static_namespace_t)  quark := (v: *v_namespace_t)->name;         //- Sic !!!
+            else                            quark := (v: v_quark_t);                    //- Sic !!!
+
+            qsi.qname := quark;             //- Sic !!!
+        }
+
+        q = (quark : *void);
 
         if (export) v_export_effort(voidc_unit_namespace_open_item_effort, q);
         else        v_add_effort(voidc_unit_namespace_open_item_effort, q);
@@ -505,7 +555,7 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     for (i: &int := 0; i <= N; ++i)
     {
-        v_ast_make_expr_integer(expr+1, qs[i]);
+        v_ast_make_expr_integer(expr+1, qs[i].qname);
 
         v_make_list(&elst, expr+1);
 
