@@ -1,0 +1,395 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+    v_import("generics_etc.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+    voidc_enable_generics_etc();
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("genetc_mod_test_module"); }
+
+
+//---------------------------------------------------------------------
+export
+namespace my {
+
+
+//---------------------------------------------------------------------
+export
+unique_ptr = v_object_intrinsic("my.unique_ptr");
+
+//---------------------------------------------------------------------
+private
+unique_ptr_q = v_quark_from_string("my.unique_ptr");        //- ???
+
+private
+unique_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    arg = v_type_generic_type_arg(elt);
+
+    typ = v_generic_type(unique_ptr_q, &arg, 1);
+
+    v_set_result_type(v_static_type_t);
+    v_set_result_value((typ: LLVMValueRef));
+}
+
+private
+unique_ptr_obtain_llvm_type: (*void, typ: *v_type_t) ~> LLVMTypeRef
+{
+    rt = v_pointer_type(v_void_type(), 0);          //- Sic !?!
+
+    rt_ = v_type_get_llvm_type(rt);
+
+    v_type_set_cached_llvm_type(typ, rt_);
+
+    v_return(rt_);
+}
+
+
+//---------------------------------------------------------------------
+private
+template_src: &const char[] :=          //- T - type parameter ...
+"""
+namespace my {
+
+inlinehint
+(v_initialize(_)): (sp: *unique_ptr(T), N: size_t) ~> void
+{
+    .memset: (s: *void, c: int, n: size_t) ~> *void;
+
+    .memset(sp, 0, N*my.unique_ptr(T).size);
+}
+
+alwaysinline
+(_.get()): (sp: &const unique_ptr(T)) ~> *T  =  *(&sp: **T);
+
+alwaysinline
+(_.get()): (sp: unique_ptr(T)) ~> *T  =  (&sp)->get();
+
+inlinehint
+(v_terminate(_)): (sp: *unique_ptr(T), N: size_t) ~> void
+{
+    for (i: &int := 0; i < N; ++i)
+    {
+        if (p = sp[i].get())  delete p;
+    }
+}
+
+
+alwaysinline
+(_.release()): (sp: &unique_ptr(T)) ~> *T
+{
+    r = sp.get();
+
+    *(&sp: **T) := 0;
+
+    v_return(r);
+}
+
+alwaysinline
+(_.reset()): (sp: &unique_ptr(T), p: *T) ~> void
+{
+    if (pp = sp.get())  delete pp;      //- Kinda   v_terminate(&sp);
+
+    *(&sp: **T) := p;
+}
+
+
+inlinehint
+(v_move(_)): (dst: *unique_ptr(T), src: *unique_ptr(T), N: size_t) ~> void
+{
+    for (i: &int := 0; i < N; ++i)  dst[i].reset(src[i].release());
+}
+
+
+alwaysinline
+(*_): (sp: &const unique_ptr(T)) ~> &T  =  *sp.get();
+
+alwaysinline
+(*_): (sp: unique_ptr(T)) ~> &T  =  *sp.get();
+
+alwaysinline
+(_->): (sp: &const unique_ptr(T)) ~> *T  =  sp.get();
+
+alwaysinline
+(_->): (sp: unique_ptr(T)) ~> *T  =  sp.get();
+
+
+alwaysinline
+(_:=_): (dst: &unique_ptr(T), src: &unique_ptr(T)) ~> &unique_ptr(T)
+{
+    dst.reset(src.release());       //- Kinda   v_move(&dst, &src);
+
+    v_return(dst);
+}
+
+}   //- namespace my
+""";
+
+
+//---------------------------------------------------------------------
+private
+template_ast: &v_ast_generic_list_t := {};
+
+private
+fgetc_fun: (void_data: *void) ~> int
+{
+    cur_pos = *(void_data : *int);
+
+    c = (template_src[cur_pos] : uint(8));
+
+    if (!c) v_return(-1);
+
+    ++cur_pos;
+
+    v_return(c);
+}
+
+//---------------------------------------------------------------------
+private
+parse_template: () ~> void
+{
+    if (!v_empty(&template_ast))  v_return();
+
+    ctx: &v_peg_context_t[2] := {};
+
+    my_ctx    = ctx + 0;
+    saved_ctx = ctx + 1;
+
+    grm: &v_peg_grammar_t := {};
+
+    v_peg_get_grammar(&grm);
+
+    v_assert(!v_empty(&grm));
+
+    cur_pos: &int := 0;
+
+    v_peg_make_context(my_ctx, fgetc_fun, &cur_pos, &grm);
+
+    v_peg_get_context(saved_ctx);
+    defer v_peg_set_context(saved_ctx);
+
+    v_peg_set_context(my_ctx);
+
+    res: &v_std_any_t := {};
+
+    v_peg_parse(&res, v_quark_from_string("unit_defn_list"));
+
+    ast = v_std_any_get_pointer(v_ast_generic_list_t, &res);
+
+    v_assert(ast);
+
+    v_copy(&template_ast, ast);
+}
+
+//---------------------------------------------------------------------
+private
+my_compile_expr_identifier_ctx_t = struct
+{
+    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) ~> void);
+    aux: *void;
+
+    par: *v_ast_expr_t;
+};
+
+private
+my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("my_compile_expr_identifier start\n");
+//defer printf("my_compile_expr_identifier stop\n");
+
+    ctx = *(aux: *my_compile_expr_identifier_ctx_t);
+
+    qname = v_ast_expr_identifier_get_name_q((self: *v_ast_expr_t));
+
+    if (qname == v_quark_from_string("T"))
+    {
+        v_ast_accept_visitor(ctx.par, vis);
+
+        v_return();
+    }
+
+    ctx.fun(ctx.aux, vis, self);
+}
+
+//---------------------------------------------------------------------
+export
+instantiate_unique_ptr = v_object_intrinsic("my.instantiate_unique_ptr");
+
+//---------------------------------------------------------------------
+private
+instantiate_unique_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("instantiate_unique_ptr_intrinsic start\n");
+//defer printf("instantiate_unique_ptr_intrinsic stop\n");
+
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    //-------------------------------------------------------------
+    //- T - type parameter ...
+    //-------------------------------------------------------------
+
+    par: &v_ast_expr_t := {};
+
+    v_ast_make_expr_compiled(&par, v_static_type_t, (elt: LLVMValueRef));
+
+    ctx: &my_compile_expr_identifier_ctx_t := v_undef();
+
+    q = v_quark_from_string("expr_identifier");
+
+    ctx.fun := voidc_visitor_get_method(vis, q, &ctx.aux);
+
+    ctx.par := &par;
+
+    //-------------------------------------------------------------
+    v_assert(vis == v_get_compiler());
+
+    saved_vis: &voidc_visitor_t := {};
+
+    v_copy(&saved_vis, vis);
+
+    voidc_visitor_set_method(vis, vis, q, my_compile_expr_identifier, &ctx);
+
+    n = v_list_get_size(&template_ast);
+
+    for (i: &int := 0; i < n; ++i)
+    {
+        item = v_list_get_item(&template_ast, i);
+
+        v_ast_accept_visitor(item, vis);
+    }
+
+    v_copy(vis, &saved_vis);
+}
+
+
+//---------------------------------------------------------------------
+export
+make_unique = v_object_intrinsic("my.make_unique");
+
+//---------------------------------------------------------------------
+private
+make_unique_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("make_unique_intrinsic start\n");
+//defer printf("make_unique_intrinsic stop\n");
+
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    arg = v_type_generic_type_arg(elt);
+
+    tr = v_generic_type(unique_ptr_q, &arg, 1);
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    vr = v_obtain_special_result_value(vis, tr);        //- Sic !?!
+
+    expr: &v_ast_expr_t := {};
+
+    v_ast_make_expr_compiled(&expr, v_static_type_t, (elt: LLVMValueRef));
+
+    list: &v_ast_expr_list_t := {};
+
+    v_make_list(&list, &expr, 1);
+
+    v_ast_make_expr_identifier(&expr, "v.op_prefix_new");           //- Sic!
+
+    v_ast_make_expr_call(&expr, &expr, &list);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(&expr, vis);
+
+    ptr_v = v_get_result_value();
+
+    builder = v_target_get_builder();
+
+    LLVMBuildStore(builder, ptr_v, vr);             //- Sic !!!
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(tr, vr);
+}
+
+
+//---------------------------------------------------------------------
+export
+enable_unique_ptr: () ~> void
+{
+    v_add_intrinsic("my.unique_ptr", unique_ptr_intrinsic, 0);
+
+    v_type_generic_set_obtain_llvm_type_hook(unique_ptr_q, unique_ptr_obtain_llvm_type, 0);
+
+    v_add_intrinsic("my.instantiate_unique_ptr", instantiate_unique_ptr_intrinsic, 0);
+
+    parse_template();       //- ?!?!?!?!?!?!?
+
+    v_add_intrinsic("my.make_unique", make_unique_intrinsic, 0);
+}
+
+//---------------------------------------------------------------------
+}   //- namespace my
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

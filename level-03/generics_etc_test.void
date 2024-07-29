@@ -1,0 +1,132 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+    v_import("generics_etc.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+    voidc_enable_generics_etc();
+}
+
+
+//=====================================================================
+{   v_import("genetc_mod_test.void"); }
+
+
+//---------------------------------------------------------------------
+{   my.enable_unique_ptr(); }       //- WTF !?!?!?!?!?!?!
+
+
+//---------------------------------------------------------------------
+#do
+(
+    my.instantiate_unique_ptr(int),
+    my.instantiate_unique_ptr(v_std_string_t),
+)
+
+
+//---------------------------------------------------------------------
+//{ voidc_verify_jit_module_optimized(true); }
+//{ v_debug_print_module(99); }
+{
+    p: &my.unique_ptr(int) := {};
+
+    p.reset(new int {77});
+
+    printf("p: %d\n", *p);
+
+    using namespace my;
+
+    q: &unique_ptr(v_std_string_t)[3] := {};
+
+    q[0].reset(new v_std_string_t);
+
+    v_std_string_set(q[0].get(), "ZZZZZZZZZZZZZZZZZZZ");
+
+    printf("q[0]: %s\n", v_std_string_get(q[0].get()));
+
+}
+
+
+//---------------------------------------------------------------------
+struct some_t
+{
+    x: int;
+    y: int;
+};
+
+inlinehint
+(v_initialize(_)): (sp: *some_t, n: size_t) ~> void
+{
+    printf("init some_t %d\n", (n: int));
+}
+
+inlinehint
+(v_terminate(_)): (sp: *some_t, n: size_t) ~> void
+{
+    printf("term some_t %d\n", (n: int));
+}
+
+alwaysinline
+(_:=_): (r: &some_t, v: some_t) ~> &some_t
+{
+    r.x := v.x;         //- ?
+    r.y := v.y;         //- ?
+
+    v_return(r);
+}
+
+inlinehint
+(v_copy(_)): (d: *some_t, s: *const some_t, n: size_t) ~> void
+{
+    .memcpy: (d: *void, s: *const void, n: size_t) ~> *void;
+
+    .memcpy(d, s, n*some_t.size);
+
+    printf("copy some_t %d\n", (n: int));
+}
+
+
+#do (my.instantiate_unique_ptr(some_t))
+
+
+//---------------------------------------------------------------------
+{
+    r = my.make_unique(some_t);
+
+    r->x := 777;
+    r->y := 888;
+
+    printf("r: (%d, %d)\n", r->x, r->y);
+
+}
+
+
+//{ voidc_verify_jit_module_optimized(true); }
+//{ v_debug_print_module(99); }
+
+some = my.make_unique(some_t);
+
+{ *some := { 7777, 8888 }; }
+
+{ printf("some: (%d, %d)\n", some->x, some->y); }
+
+
+
