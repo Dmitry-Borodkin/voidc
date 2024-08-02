@@ -412,6 +412,7 @@
     v_add_symbol("unit_var_defn_q",  q_ref, q("unit_var_defn"));
     v_add_symbol("unit_val_defn_q",  q_ref, q("unit_val_defn"));
     v_add_symbol("defn_list_unit_q", q_ref, q("defn_list_unit"));
+    v_add_symbol("unit_defn_list_q", q_ref, q("unit_defn_list"));
 
     v_add_symbol("mod_const_q", q_ref, q("voidc.constants_module"));
 }
@@ -805,8 +806,8 @@
     if (list)   v_list_append(lst, list, item);
     else
     {
-        if (item)   v_make_list(lst, 0, item, 1);
-        else        v_make_list_nil(lst, 0);
+        if (item)   v_make_list(lst, unit_defn_list_q, item, 1);
+        else        v_make_list_nil(lst, unit_defn_list_q);
     }
 
     v_std_any_set_pointer(ret, lst);
