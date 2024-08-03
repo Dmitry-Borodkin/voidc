@@ -616,7 +616,13 @@ mk_spec_ident_infix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t
 
     quark = obj[0];
 
-    v_std_any_set_value(ret, (quark: intptr_t));
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    v_ast_make_expr_identifier_q(expr, quark);
+
+    v_std_any_set_pointer(ret, expr);
 }
 
 //---------------------------------------------------------------------
@@ -641,9 +647,13 @@ mk_spec_ident_infix_right_grammar_action: (ret: *v_std_any_t, *void, any: *v_std
 
     v_std_string_append(sstr, ".right");
 
-    quark_right = v_quark_from_string(v_std_string_get(sstr));
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
 
-    v_std_any_set_value(ret, -(quark_right: intptr_t));             //- Sic!!!
+    v_ast_make_expr_identifier(expr, v_std_string_get(sstr));
+
+    v_std_any_set_pointer(ret, expr);
 }
 
 //---------------------------------------------------------------------
@@ -658,9 +668,17 @@ mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
     quark = obj[0];
 
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+//printf("mk_spec_ident_postfix_grammar_action: %s\n", v_quark_to_string(quark));
+
     if (quark != q_op_postfix_dot)
     {
-        v_std_any_set_value(ret, (quark: intptr_t));
+        v_ast_make_expr_identifier_q(expr, quark);
+
+        v_std_any_set_pointer(ret, expr);
 
         v_return();
     }
@@ -683,9 +701,9 @@ mk_spec_ident_postfix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 
     if (got_args)  v_std_string_append(sstr, "()");
 
-    quark_dot = v_quark_from_string(v_std_string_get(sstr));
+    v_ast_make_expr_identifier(expr, v_std_string_get(sstr));
 
-    v_std_any_set_value(ret, (quark_dot: intptr_t));
+    v_std_any_set_pointer(ret, expr);
 }
 
 //---------------------------------------------------------------------
@@ -700,7 +718,13 @@ mk_spec_ident_prefix_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_
 
     quark = obj[0];
 
-    v_std_any_set_value(ret, (quark: intptr_t));
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    v_ast_make_expr_identifier_q(expr, quark);
+
+    v_std_any_set_pointer(ret, expr);
 }
 
 
@@ -709,20 +733,22 @@ private
 mk_qlf_spec_ident_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     qualif = v_std_any_get_value(intptr_t, any+0);
-    quark  = v_std_any_get_value(intptr_t, any+1);
 
-    ast = v_alloca(v_ast_base_t, 2);
-    v_initialize(ast, 2);
-    defer v_terminate(ast, 2);
+    qexpr  = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
-    v_ast_make_expr_integer((ast+0 : *v_ast_expr_t), qualif);
-    v_ast_make_expr_integer((ast+1 : *v_ast_expr_t), quark);
+    ast = v_alloca(v_ast_base_t);
+    v_initialize(ast);
+    defer v_terminate(ast);
+
+    v_ast_make_expr_integer((ast : *v_ast_expr_t), qualif);
 
     lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
-    v_make_list(lst, unit_spec_fun_defn_q, ast, 2);         //- Sic!!!
+    v_make_list(lst, unit_spec_fun_defn_q, ast);
+
+    v_list_append(lst, lst, (qexpr: *v_ast_base_t));
 
     v_std_any_set_pointer(ret, lst);
 }
@@ -740,8 +766,8 @@ mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std
     v_initialize(lst);
     defer v_terminate(lst);
 
-    v_list_append(lst, q_si, (args: *v_ast_base_t), 1);
-    v_list_append(lst, lst,  (type: *v_ast_base_t), 1);
+    v_list_append(lst, q_si, (args: *v_ast_base_t));
+    v_list_append(lst, lst,  (type: *v_ast_base_t));
 
     v_std_any_set_pointer(ret, lst);
 }
@@ -750,22 +776,22 @@ mk_unit_spec_fun_defn_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std
 private
 mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
-    quark = v_std_any_get_value(intptr_t, any+0);
+    qexpr = v_std_any_get_pointer(v_ast_expr_t,   any+0);
     fname = v_std_any_get_pointer(v_std_string_t, any+1);
 
-    ast = v_alloca(v_ast_base_t, 2);
-    v_initialize(ast, 2);
-    defer v_terminate(ast, 2);
+    ast = v_alloca(v_ast_base_t);
+    v_initialize(ast);
+    defer v_terminate(ast);
 
-    v_ast_make_expr_integer((ast+0: *v_ast_expr_t), quark);
-
-    v_ast_make_expr_identifier((ast+1: *v_ast_expr_t), v_std_string_get(fname));
+    v_ast_make_expr_identifier((ast: *v_ast_expr_t), v_std_string_get(fname));
 
     lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
-    v_make_list(lst, unit_spec_fun_renm_q, ast, 2);         //- Sic!!!
+    v_make_list(lst, unit_spec_fun_renm_q, (qexpr: *v_ast_base_t));
+
+    v_list_append(lst, lst, ast);
 
     v_std_any_set_pointer(ret, (lst: *v_ast_base_t));
 }
@@ -774,25 +800,22 @@ mk_unit_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 private
 mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
-    quark = v_std_any_get_value(intptr_t, any+0);
-
-    args = v_std_any_get_pointer(v_ast_expr_t, any+1);
-    type = v_std_any_get_pointer(v_ast_expr_t, any+2);
-
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
-
-    v_ast_make_expr_integer(etmp, quark);
+    qexpr = v_std_any_get_pointer(v_ast_expr_t, any+0);
+    args  = v_std_any_get_pointer(v_ast_expr_t, any+1);
+    type  = v_std_any_get_pointer(v_ast_expr_t, any+2);
 
     lst = v_alloca(v_ast_expr_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
-    v_make_list(lst, etmp, 1);
+    v_make_list(lst, qexpr);
 
-    v_list_append(lst, lst, args, 1);
-    v_list_append(lst, lst, type, 1);
+    v_list_append(lst, lst, args);
+    v_list_append(lst, lst, type);
+
+    etmp = v_alloca(v_ast_expr_t);
+    v_initialize(etmp);
+    defer v_terminate(etmp);
 
     v_ast_make_expr_identifier_q(etmp, q_internal_spec_fun_decl);
 
@@ -811,23 +834,20 @@ mk_stmt_spec_fun_decl_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any
 private
 mk_stmt_spec_fun_renm_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
-    quark = v_std_any_get_value(intptr_t, any+0);
-
-    expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
-
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
-
-    v_ast_make_expr_integer(etmp, quark);
+    qexpr = v_std_any_get_pointer(v_ast_expr_t, any+0);
+    expr  = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
     lst = v_alloca(v_ast_expr_list_t);
     v_initialize(lst);
     defer v_terminate(lst);
 
-    v_make_list(lst, etmp, 1);
+    v_make_list(lst, qexpr);
 
-    v_list_append(lst, lst, expr, 1);
+    v_list_append(lst, lst, expr);
+
+    etmp = v_alloca(v_ast_expr_t);
+    v_initialize(etmp);
+    defer v_terminate(etmp);
 
     v_ast_make_expr_identifier_q(etmp, q_internal_spec_fun_renm);
 
@@ -967,21 +987,18 @@ register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const c
 //---------------------------------------------------------------------
 private
 compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
-                         ft: *v_type_t,
-                         iq: &intptr_t, t: &*v_type_t
-                        ) ~> void
+                         ft: *v_type_t, q: v_quark_t
+                        ) ~> *v_type_t
 {
     types = v_type_function_get_param_types(ft);
 
-    if (iq < 0)     //- "Right" infix?
-    {
-        iq := -iq;
-        t := types[1];
-    }
-    else            //- "Normal" operator
-    {
-        t := types[0];
-    }
+    str = v_quark_to_string(q);
+    ssz = v_quark_to_string_size(q);
+
+    strcmp: (*const char, *const char) ~> int;
+
+    if (strcmp(str+ssz-6, ".right") == 0)   v_return(types[1]);
+    else                                    v_return(types[0]);
 }
 
 //---------------------------------------------------------------------
@@ -991,14 +1008,9 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
 //---------------------------------------------------------------------
 private
 register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool,
-                                 sstr: *v_std_string_t, iq: intptr_t, ft: *v_type_t) ~> void
+                                 sstr: *v_std_string_t, q: v_quark_t, ft: *v_type_t) ~> void
 {
-    iq: &intptr_t := iq;
-    t: &*v_type_t := v_undef();
-
-    v_compute_key_quark_type(vis, ft, iq, t);
-
-    q = (iq: v_quark_t);
+    t = v_compute_key_quark_type(vis, ft, q);
 
     v_std_string_set(sstr, "v__");
 
@@ -1020,7 +1032,7 @@ compile_unit_spec_fun_defn: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number((ast0: *v_ast_expr_t));
-    quark  = v_ast_expr_integer_get_number((ast1: *v_ast_expr_t));
+    quark  = v_ast_expr_identifier_get_name_q((ast1: *v_ast_expr_t));
 
     params   = v_list_get_item(list, 2);
     ret_type = v_list_get_item(list, 3);
@@ -1071,7 +1083,7 @@ compile_unit_spec_fun_renm: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
     ast1 = v_list_get_item(list, 1);
 
     //-------------------------------------------------------------
-    iq = v_ast_expr_integer_get_number((ast0: *v_ast_expr_t));
+    q = v_ast_expr_identifier_get_name_q((ast0: *v_ast_expr_t));
 
     fun_name = v_ast_expr_identifier_get_name((ast1: *v_ast_expr_t));
 
@@ -1080,12 +1092,7 @@ compile_unit_spec_fun_renm: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     if (v_type_is_pointer(ft))  ft := v_type_refptr_get_element_type(ft);
 
-    iq: &intptr_t := iq;
-    t: &*v_type_t := v_undef();
-
-    v_compute_key_quark_type(vis, ft, iq, t);
-
-    q = (iq: v_quark_t);
+    t = v_compute_key_quark_type(vis, ft, q);
 
     register_special_function_name(vis, true, fun_name, q, t);
 }
@@ -1102,7 +1109,7 @@ v_internal_spec_fun_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_
     arg0 = v_list_get_item(arg_list, 0);
 
     //-------------------------------------------------------------
-    quark = v_ast_expr_integer_get_number(arg0);
+    quark = v_ast_expr_identifier_get_name_q(arg0);
 
     params   = v_list_get_item(arg_list, 1);
     ret_type = v_list_get_item(arg_list, 2);
@@ -1148,7 +1155,7 @@ v_internal_spec_fun_renm_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_
     arg0 = v_list_get_item(arg_list, 0);
 
     //-------------------------------------------------------------
-    quark = v_ast_expr_integer_get_number(arg0);
+    quark = v_ast_expr_identifier_get_name_q(arg0);
 
     expr = v_list_get_item(arg_list, 1);
 

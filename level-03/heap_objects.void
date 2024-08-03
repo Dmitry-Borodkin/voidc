@@ -852,25 +852,22 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_a
 private
 compute_key_quark_type_t = struct
 {
-    fun: *((*void, *voidc_visitor_t,*v_type_t,&intptr_t, &*v_type_t) ~> void);
+    fun: *((*void, *voidc_visitor_t, *v_type_t, v_quark_t) ~> *v_type_t);
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
 compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
-                         ft: *v_type_t,
-                         iq: &intptr_t, t: &*v_type_t
-                        ) ~> void
+                         ft: *v_type_t, q: v_quark_t
+                        ) ~> *v_type_t
 {
-    if (iq > 0)
-    {
-        found: &bool := true;       //- Sic!
+    {   found: &bool := true;       //- Sic!
 
         block
         {
-            if (iq == q_op_prefix_new)          v_break();
-            if (iq == q_op_prefix_new_array)    v_break();
+            if (q == q_op_prefix_new)       v_break();
+            if (q == q_op_prefix_new_array) v_break();
 
             found := false;
         }
@@ -879,17 +876,15 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
         {
             type = v_type_function_get_return_type(ft);
 
-            t := v_type_refptr_get_element_type(type);
-
-            v_return();
+            v_return(v_type_refptr_get_element_type(type));
         }
 
         found := true;      //- Sic!
 
         block
         {
-            if (iq == q_op_prefix_delete)       v_break();
-            if (iq == q_op_prefix_delete_array) v_break();
+            if (q == q_op_prefix_delete)        v_break();
+            if (q == q_op_prefix_delete_array)  v_break();
 
             found := false;
         }
@@ -898,15 +893,13 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
         {
             type = v_type_function_get_param_types(ft)[0];
 
-            t := v_type_refptr_get_element_type(type);
-
-            v_return();
+            v_return(v_type_refptr_get_element_type(type));
         }
     }
 
     ctx = *(aux: *compute_key_quark_type_t);
 
-    ctx.fun(ctx.aux, vis, ft, iq, t);
+    v_return(ctx.fun(ctx.aux, vis, ft, q));
 }
 
 
