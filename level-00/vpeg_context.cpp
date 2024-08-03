@@ -263,8 +263,14 @@ void v_peg_parse(std::any *ret, v_quark_t q)
     auto &pctx = *context_data_t::current_ctx;
 
     *ret = pctx.grammar.parse(q, pctx);
+}
 
-    pctx.memo.clear();          //- ?
+//-----------------------------------------------------------------
+void v_peg_memo_clear(void)
+{
+    auto &pctx = *context_data_t::current_ctx;
+
+    pctx.memo.clear();
 }
 
 

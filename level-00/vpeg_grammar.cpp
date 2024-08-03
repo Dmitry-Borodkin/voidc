@@ -35,8 +35,6 @@ void grammar_data_t::check_hash(void)
 //-----------------------------------------------------------------
 std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
 {
-//  printf("parse? %s\n", v_quark_to_string(q_name));
-
     context_data_t::variables_t saved_vars;     //- empty(!)
 
     std::swap(ctx.variables, saved_vars);       //- save (and clear)
@@ -55,6 +53,8 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
     assert(hash != size_t(-1));
 
     auto key = std::make_tuple(hash, st.position, q_name);
+
+//printf("parse? %zd %zd %s\n", std::get<0>(key), std::get<1>(key), v_quark_to_string(q_name));
 
     if (ctx.memo.count(key))
     {
@@ -121,12 +121,13 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
 
     ctx.variables = saved_vars;                 //- restore saved
 
-//  printf("parse! %s: %s\n", v_quark_to_string(q_name), (ret.has_value() ? "OK" : "Fail"));
-//  if (ret.has_value())
-//  {
-//      size_t line, column;    ctx.get_line_column(ctx.get_position(), line, column);
-//      printf("parse! %s (%zd, %zd)\n", v_quark_to_string(q_name), line, column);
-//  }
+//printf("parse! %zd %zd %s: ", std::get<0>(key), std::get<1>(key), v_quark_to_string(q_name));
+//if (ret.has_value())
+//{
+//    size_t line, column;    ctx.get_line_column(ctx.get_position(), line, column);
+//    printf("OK (%zd, %zd)\n", line+1, column+1);
+//}
+//else  printf("Fail\n");
 
     return ret;
 }
