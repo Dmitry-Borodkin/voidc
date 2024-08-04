@@ -1048,9 +1048,7 @@ compile_unit_spec_fun_defn: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
         v_initialize(expr);
         defer v_terminate(expr);
 
-        op_infix_tildeto: *v_ast_expr_t;        //- Sic!!!
-
-        v_ast_make_expr_op_binary(expr, op_infix_tildeto, (params: *v_ast_expr_t), (ret_type: *v_ast_expr_t));
+        v_ast_make_expr_op_binary(expr, v_op_infix_tildeto, (params: *v_ast_expr_t), (ret_type: *v_ast_expr_t));
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
@@ -1119,9 +1117,7 @@ v_internal_spec_fun_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_
         v_initialize(expr);
         defer v_terminate(expr);
 
-        op_infix_tildeto: *v_ast_expr_t;        //- Sic!!!
-
-        v_ast_make_expr_op_binary(expr, op_infix_tildeto, (params: *v_ast_expr_t), (ret_type: *v_ast_expr_t));
+        v_ast_make_expr_op_binary(expr, v_op_infix_tildeto, (params: *v_ast_expr_t), (ret_type: *v_ast_expr_t));
 
         v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
