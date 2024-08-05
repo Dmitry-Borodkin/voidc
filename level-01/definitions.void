@@ -845,8 +845,8 @@
 
     v_copy(&ast[0], v_cast(list, v_ast_base_ptr));
 
-    v_ast_make_expr_integer(v_cast(&ast[1], v_ast_expr_ptr), v_cast(line+1,   intptr_t));
-    v_ast_make_expr_integer(v_cast(&ast[2], v_ast_expr_ptr), v_cast(column+1, intptr_t));
+    v_ast_make_expr_integer(v_cast(&ast[1], v_ast_expr_ptr), v_cast(line,   intptr_t));
+    v_ast_make_expr_integer(v_cast(&ast[2], v_ast_expr_ptr), v_cast(column, intptr_t));
 
     lst = v_alloca(v_ast_generic_list_t);
     v_initialize(lst);

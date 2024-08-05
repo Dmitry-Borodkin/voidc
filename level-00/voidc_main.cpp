@@ -68,7 +68,7 @@ parse_unit(void)
     auto &lctx = *vctx.local_ctx;
 
     std::string msg = "Parse error in " + lctx.filename + ":"
-                      + std::to_string(line+1) + ":"
+                      + std::to_string(line) + ":"
                       + std::to_string(column);
 
     throw  std::runtime_error(msg);

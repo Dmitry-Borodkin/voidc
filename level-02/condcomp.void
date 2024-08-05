@@ -401,8 +401,8 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     //-----------------------------------------------------------------
     printf: (*const char, ...) ~> int;                  //- ?!?!?!?!?!?
 
-    if (function) printf("%s:%zd: %s: %s: %s\n", filename, line+1, function, stag, msg);
-    else          printf("%s:%zd: %s: %s\n", filename, line+1, stag, msg);
+    if (function) printf("%s:%zd: %s: %s: %s\n", filename, line, function, stag, msg);
+    else          printf("%s:%zd: %s: %s\n", filename, line, stag, msg);
 
     //-----------------------------------------------------------------
     if (tag == 'e')
@@ -501,7 +501,7 @@ v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     v_list_append(list, list, expr);
 
-    v_ast_make_expr_integer(expr, (line+1 : intptr_t));
+    v_ast_make_expr_integer(expr, (line: intptr_t));
 
     v_list_append(list, list, expr);
 

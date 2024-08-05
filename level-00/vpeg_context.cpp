@@ -145,9 +145,9 @@ void context_data_t::get_line_column(size_t pos, size_t &line, size_t &column) c
 
     auto &[lpos, lnum] = *it;
 
-    line = lnum;
+    line = lnum + 1;                //- Sic !!!
 
-    column = pos - lpos;
+    column = pos - lpos + 1;        //- Sic !!!
 }
 
 

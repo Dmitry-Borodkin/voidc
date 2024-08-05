@@ -125,7 +125,7 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
 //if (ret.has_value())
 //{
 //    size_t line, column;    ctx.get_line_column(ctx.get_position(), line, column);
-//    printf("OK (%zd, %zd)\n", line+1, column+1);
+//    printf("OK (%zd, %zd)\n", line, column);
 //}
 //else  printf("Fail\n");
 

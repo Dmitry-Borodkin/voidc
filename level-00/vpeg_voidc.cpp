@@ -33,7 +33,7 @@ mk_unit(std::any *ret, void *, const std::any *args, size_t)
 
     context_data_t::current_ctx->get_line_column(pos, line, column);
 
-    ast_unit_t ptr = std::make_shared<const ast_unit_data_t>(*p, line+1, column+1);
+    ast_unit_t ptr = std::make_shared<const ast_unit_data_t>(*p, line, column);
 
     *ret = ptr;
 }
