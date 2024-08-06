@@ -90,10 +90,10 @@ voidc_heap_objects_internal_globals_ctor: () ~> void
     v_initialize(&op_prefix_delete);
     v_initialize(&op_prefix_delete_array);
 
-    v_ast_make_operator_unary(&op_prefix_new,          q_op_prefix_new,          20000, 0);     //- "Prefix" priority
-    v_ast_make_operator_unary(&op_prefix_new_array,    q_op_prefix_new_array,    20000, 0);     //- "Prefix" priority
-    v_ast_make_operator_unary(&op_prefix_delete,       q_op_prefix_delete,       20000, 0);     //- "Prefix" priority
-    v_ast_make_operator_unary(&op_prefix_delete_array, q_op_prefix_delete_array, 20000, 0);     //- "Prefix" priority
+    v_ast_make_operator_unary(&op_prefix_new,          q_op_prefix_new,          20000, 0);   //- "Prefix" priority
+    v_ast_make_operator_unary(&op_prefix_new_array,    q_op_prefix_new_array,    20000, 0);   //- "Prefix" priority
+    v_ast_make_operator_unary(&op_prefix_delete,       q_op_prefix_delete,       20000, 0);   //- "Prefix" priority
+    v_ast_make_operator_unary(&op_prefix_delete_array, q_op_prefix_delete_array, 20000, 0);   //- "Prefix" priority
 
     v_add_cleaner(voidc_heap_objects_internal_globals_cleaner, 0);
 }
@@ -969,6 +969,12 @@ voidc_enable_heap_objects_compiler: () ~> void
     free: (*void) ~> void;
 
     v_add_local_cleaner(free, &ctx);
+
+    //-----------------------------------------------------------------
+    v_add_symbol("v_op_prefix_new",          v_ast_expr_t, &op_prefix_new);
+    v_add_symbol("v_op_prefix_new_array",    v_ast_expr_t, &op_prefix_new_array);
+    v_add_symbol("v_op_prefix_delete",       v_ast_expr_t, &op_prefix_delete);
+    v_add_symbol("v_op_prefix_delete_array", v_ast_expr_t, &op_prefix_delete_array);
 }
 
 //---------------------------------------------------------------------

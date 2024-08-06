@@ -239,7 +239,9 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
 
         exnm = v_list_get_item(args, 0);
 
-        fun_name := v_ast_expr_string_get_string(exnm);
+        name = v_ast_expr_string_get_string(exnm);
+
+        fun_name := v_lookup_alias(name);               //- WTF ?!?!?!?!?
     }
 
     if (mod)
