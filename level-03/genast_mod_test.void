@@ -1,0 +1,477 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+    v_import("generics_etc.void");
+    v_import("generating_ast.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+    voidc_enable_generics_etc();
+    voidc_enable_generating_ast();
+}
+
+
+//---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("T_q", q_ref, q("T"));
+
+    v_add_symbol("expr_identifier_q", q_ref, q("expr_identifier"));
+
+    v_add_symbol("refcnt_ptr_q", q_ref, q("my.refcnt_ptr"));
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("genast_mod_test_module"); }
+
+
+//---------------------------------------------------------------------
+export
+namespace my {
+
+
+//---------------------------------------------------------------------
+export
+refcnt_ptr = v_object_intrinsic("my.refcnt_ptr");
+
+//---------------------------------------------------------------------
+private
+refcnt_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    arg = v_type_generic_type_arg(elt);
+
+    typ = v_generic_type(refcnt_ptr_q, &arg, 1);
+
+    v_set_result_type(v_static_type_t);
+    v_set_result_value((typ: LLVMValueRef));
+}
+
+//---------------------------------------------------------------------
+private
+refcnt_ptr_obtain_llvm_type: (*void, typ: *v_type_t) ~> LLVMTypeRef
+{
+    rt = v_pointer_type(v_void_type(), 0);          //- Sic !?!
+
+    rt_ = v_type_get_llvm_type(rt);
+
+    v_type_set_cached_llvm_type(typ, rt_);
+
+    v_return(rt_);
+}
+
+
+//---------------------------------------------------------------------
+refcnt_ptr_ns = v_object_intrinsic("refcnt_ptr.namespace");
+
+//---------------------------------------------------------------------
+private
+refcnt_ptr_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    sstr: &v_std_string_t := {};
+
+    v_std_string_set(&sstr, "refcnt_ptr_ns-");
+
+    voidc_internal_std_string_append_type(&sstr, elt);
+
+    ns_name = v_quark_from_string(v_std_string_get(&sstr));
+
+    ns = (aux: *v_namespace_t);
+
+    if (a = v_map_find(&ns->map, (ns_name: intptr_t)))
+    {
+        q = v_std_any_get_value(v_quark_t, a);
+
+        t: &*v_type_t    := v_undef();
+        v: &LLVMValueRef := v_undef();
+
+        v_find_constant_q(q, &t, &v);
+
+        v_set_result_type(t);
+        v_set_result_value(v);
+    }
+    else
+    {
+        v_set_result_type(v_void_type());                   //- Sic !?!
+        v_set_result_value((ns_name: LLVMValueRef));        //- Sic !?!
+    }
+}
+
+
+//---------------------------------------------------------------------
+private
+instantiate_ast: &const v_ast_generic_list_t :=         //- T - type parameter ...
+{'unit_defn_list'
+
+  namespace my
+  {
+    inlinehint
+    (v_initialize(_)): (sp: *refcnt_ptr(T), N: size_t) ~> void
+    {
+        .memset: (s: *void, c: int, n: size_t) ~> *void;
+
+        .memset(sp, 0, N*my.refcnt_ptr(T).size);
+    }
+
+
+    namespace refcnt_ptr_ns(T)
+    {
+      private
+      struct data_t
+      {
+          count: size_t;
+
+          data: T;
+      };
+
+      inlinehint
+      (v_initialize(_)): (*data_t, size_t) ~> void  =  derive;
+
+      inlinehint
+      (v_terminate(_)): (*data_t, size_t) ~> void  =  derive;
+
+      private
+      alwaysinline
+      get_data: (p: *T) ~> &data_t
+      {
+          v_assert(p);
+
+          r = *((p: *char) - (&(0: *data_t)->data : intptr_t) : *data_t);
+
+          v_return(r);
+      }
+
+      inlinehint
+      create: () ~> refcnt_ptr(T)
+      {
+          ret = v_get_return_value();
+
+          dp = new data_t {{1}};
+
+          *(&ret : **T) := &dp->data;
+      }
+
+      private
+      inlinehint
+      inc: (p: *T) ~> void
+      {
+          d = get_data(p);
+
+          ++d.count;
+      }
+
+      private
+      inlinehint
+      dec: (p: *T) ~> void
+      {
+          d = get_data(p);
+
+          if (--d.count == 0) delete &d;
+      }
+
+    }   //- namespace refcnt_ptr_ns(T)
+
+
+    inlinehint
+    (v_terminate(_)): (sp: *refcnt_ptr(T), N: size_t) ~> void
+    {
+        for (i: &int := 0; i < N; ++i)
+        {
+            pi = *(sp+i : **T);
+
+            if (pi) refcnt_ptr_ns(T).dec(pi);
+        }
+    }
+
+    inlinehint
+    (v_copy(_)): (dst: *refcnt_ptr(T), src: *const refcnt_ptr(T), N: size_t) ~> void
+    {
+        for (i: &int := 0; i < N; ++i)
+        {
+            dpi = *(dst+i : **T);
+            spi = *(src+i : **T);
+
+            if (dpi)  refcnt_ptr_ns(T).dec(dpi);
+            if (spi)  refcnt_ptr_ns(T).inc(spi);
+
+            dpi := spi;
+        }
+    }
+
+    inlinehint
+    (v_move(_)): (dst: *refcnt_ptr(T), src: *refcnt_ptr(T), N: size_t) ~> void
+    {
+        for (i: &int := 0; i < N; ++i)
+        {
+            dpi = *(dst+i : **T);
+            spi = *(src+i : **T);
+
+            if (dpi)  refcnt_ptr_ns(T).dec(dpi);
+
+            dpi := spi;
+            spi := 0;
+        }
+    }
+
+
+    alwaysinline
+    (_.get()): (sp: &const refcnt_ptr(T)) ~> *T  =  *(&sp: **T);
+
+    alwaysinline
+    (_.get()): (sp: refcnt_ptr(T)) ~> *T  =  *(&sp: **T);
+
+
+    alwaysinline
+    (*_): (sp: &const refcnt_ptr(T)) ~> &T  =  *sp.get();
+
+    alwaysinline
+    (*_): (sp: refcnt_ptr(T)) ~> &T  =  *sp.get();
+
+    alwaysinline
+    (_->): (sp: &const refcnt_ptr(T)) ~> *T  =  sp.get();
+
+    alwaysinline
+    (_->): (sp: refcnt_ptr(T)) ~> *T  =  sp.get();
+
+
+    alwaysinline
+    (_:=_): (dst: &refcnt_ptr(T), src: refcnt_ptr(T)) ~> &refcnt_ptr(T)
+    {
+        v_copy(&dst, &src);
+
+        v_return(dst);
+    }
+
+
+    alwaysinline
+    (_.use_count): (sp: &const refcnt_ptr(T)) ~> size_t  =  refcnt_ptr_ns(T).get_data(sp.get()).count;
+
+    alwaysinline
+    (_.use_count): (sp: refcnt_ptr(T)) ~> size_t  =  refcnt_ptr_ns(T).get_data(sp.get()).count;
+
+
+  }   //- namespace my
+
+'unit_defn_list'};
+
+//---------------------------------------------------------------------
+private
+my_compile_expr_identifier_ctx_t = struct
+{
+    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) ~> void);
+    aux: *void;
+
+    par: *v_ast_expr_t;
+};
+
+private
+my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("my_compile_expr_identifier start\n");
+//defer printf("my_compile_expr_identifier stop\n");
+
+    ctx = *(aux: *my_compile_expr_identifier_ctx_t);
+
+    qname = v_ast_expr_identifier_get_name_q((self: *v_ast_expr_t));
+
+    if (qname == T_q)
+    {
+        v_ast_accept_visitor(ctx.par, vis);
+
+        v_return();
+    }
+
+    ctx.fun(ctx.aux, vis, self);
+}
+
+
+//---------------------------------------------------------------------
+export
+instantiate_refcnt_ptr = v_object_intrinsic("my.instantiate_refcnt_ptr");
+
+//---------------------------------------------------------------------
+private
+instantiate_refcnt_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("instantiate_refcnt_ptr_intrinsic start\n");
+//defer printf("instantiate_refcnt_ptr_intrinsic stop\n");
+
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    //-------------------------------------------------------------
+    //- T - type parameter ...
+    //-------------------------------------------------------------
+
+    par: &v_ast_expr_t := {};
+
+    v_ast_make_expr_compiled(&par, v_static_type_t, (elt: LLVMValueRef));
+
+    ctx: &my_compile_expr_identifier_ctx_t := v_undef();
+
+    q = expr_identifier_q;
+
+    ctx.fun := voidc_visitor_get_method(vis, q, &ctx.aux);
+
+    ctx.par := &par;
+
+    //-------------------------------------------------------------
+    v_assert(vis == v_get_compiler());
+
+    saved_vis: &voidc_visitor_t := {};
+
+    v_copy(&saved_vis, vis);
+
+    voidc_visitor_set_method(vis, vis, q, my_compile_expr_identifier, &ctx);
+
+    n = v_list_get_size(&instantiate_ast);
+
+    for (i: &int := 0; i < n; ++i)
+    {
+        item = v_list_get_item(&instantiate_ast, i);
+
+        v_ast_accept_visitor(item, vis);
+    }
+
+    v_copy(vis, &saved_vis);
+}
+
+
+//---------------------------------------------------------------------
+private
+make_refcnt_ast: &const v_ast_expr_t  :=  {'expr'  .my.refcnt_ptr_ns(T).create()  'expr'};
+
+//---------------------------------------------------------------------
+export
+make_refcnt = v_object_intrinsic("my.make_refcnt");
+
+//---------------------------------------------------------------------
+private
+make_refcnt_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("make_refcnt_intrinsic start\n");
+//defer printf("make_refcnt_intrinsic stop\n");
+
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    //-------------------------------------------------------------
+    //- T - type parameter ...
+    //-------------------------------------------------------------
+
+    par: &v_ast_expr_t := {};
+
+    v_ast_make_expr_compiled(&par, v_static_type_t, (elt: LLVMValueRef));
+
+    ctx: &my_compile_expr_identifier_ctx_t := v_undef();
+
+    q = expr_identifier_q;
+
+    ctx.fun := voidc_visitor_get_method(vis, q, &ctx.aux);
+
+    ctx.par := &par;
+
+    //-------------------------------------------------------------
+    v_assert(vis == v_get_compiler());
+
+    saved_vis: &voidc_visitor_t := {};
+
+    v_copy(&saved_vis, vis);
+
+    voidc_visitor_set_method(vis, vis, q, my_compile_expr_identifier, &ctx);
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_ast_accept_visitor(&make_refcnt_ast, vis);
+
+    v_copy(vis, &saved_vis);
+}
+
+
+//---------------------------------------------------------------------
+export
+enable_refcnt_ptr: () ~> void
+{
+    v_add_intrinsic("my.refcnt_ptr", refcnt_ptr_intrinsic, 0);
+
+    v_type_generic_set_obtain_llvm_type_hook(refcnt_ptr_q, refcnt_ptr_obtain_llvm_type, 0);
+
+    v_add_intrinsic("my.instantiate_refcnt_ptr", instantiate_refcnt_ptr_intrinsic, 0);
+
+    v_add_intrinsic("my.make_refcnt", make_refcnt_intrinsic, 0);
+
+    v_add_intrinsic("refcnt_ptr.namespace", refcnt_ptr_ns_intrinsic, v_find_constant_value("my"));
+}
+
+
+//---------------------------------------------------------------------
+}   //- namespace my
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

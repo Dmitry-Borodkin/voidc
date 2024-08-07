@@ -1,0 +1,76 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+    v_import("generics_etc.void");
+    v_import("generating_ast.void");
+
+    v_import("llvm-c/Core.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+    voidc_enable_generics_etc();
+    voidc_enable_generating_ast();
+}
+
+
+//=====================================================================
+{   v_import("genast_mod_test.void"); }
+
+
+//---------------------------------------------------------------------
+{   my.enable_refcnt_ptr(); }       //- WTF !?!?!?!?!?!?!
+
+
+//{ voidc_verify_jit_module_optimized(true); }
+//{ v_debug_print_module(9); }
+//---------------------------------------------------------------------
+#do
+(
+    my.instantiate_refcnt_ptr(int),
+)
+
+
+some = my.make_refcnt(int);
+
+{   *some := 777;
+}
+
+{   printf("some: %d\n", *some); }
+
+
+{   foo: &my.refcnt_ptr(int)[3] := { some, some, some };
+
+    printf("some.use_count: %zd\n", some.use_count);
+}
+
+{   printf("some.use_count: %zd\n", some.use_count);
+}
+
+{   foo: &my.refcnt_ptr(int) := some;
+
+    printf("foo.use_count: %zd\n", foo.use_count);
+
+    foo := {};          //- Sic !!!
+
+    printf("foo.use_count: %zd\n", foo.use_count);
+}
+
+
+
