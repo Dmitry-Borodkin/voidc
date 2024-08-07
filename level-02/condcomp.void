@@ -37,6 +37,8 @@
 
     v_add_symbol("char_q",     q_ref, q("char"));
     v_add_symbol("unsigned_q", q_ref, q("unsigned"));
+
+    v_add_symbol("q_assert", q_ref, q("v_assert"));
 }
 
 
@@ -305,24 +307,39 @@ voidc_enable_condcomp_n1: () ~> void
 private
 mk_cc_message_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
-    tstr = v_std_any_get_pointer(v_std_string_t,    any+0);
-    elst = v_std_any_get_pointer(v_ast_expr_list_t, any+1);
-
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
-
-    v_ast_make_expr_string(expr, v_std_string_get(tstr));
+    pos  = v_std_any_get_value(size_t, any+0);
+    tstr = v_std_any_get_pointer(v_std_string_t,    any+1);
+    elst = v_std_any_get_pointer(v_ast_expr_list_t, any+2);
 
     list = v_alloca(v_ast_generic_list_t);
     v_initialize(list);
     defer v_terminate(list);
 
-    v_make_list(list, cc_message_q, (expr: *v_ast_base_t));
+    v_make_list_nil(list, cc_message_q);
+
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
+
+    v_ast_make_expr_string(expr, filename);
+    v_list_append(list, list, (expr: *v_ast_base_t));
+
+    line:   &size_t := v_undef();
+    column: &size_t := v_undef();
+
+    v_peg_get_line_column(pos, line, column);
+
+    v_ast_make_expr_integer(expr, (line: intptr_t));
+    v_list_append(list, list, (expr: *v_ast_base_t));
+
+    v_ast_make_expr_string(expr, v_std_string_get(tstr));
+    v_list_append(list, list, (expr: *v_ast_base_t));
 
     v_list_append(list, list, (elst: *v_ast_base_t));
 
-    kind = v_std_any_get_value(intptr_t, any+2);
+    kind = v_std_any_get_value(intptr_t, any+3);
 
     if (kind) v_std_any_set_pointer(ret, (list : *v_ast_stmt_t));       //- stmt
     else      v_std_any_set_pointer(ret, (list : *v_ast_base_t));       //- unit_defn
@@ -346,6 +363,79 @@ mk_cc_do_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~
     else      v_std_any_set_pointer(ret, (list : *v_ast_base_t));       //- unit_defn
 }
 
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr, 2);
+
+    typ[0] := v_pointer_type(v_peg_grammar_action_fun_t, 0);
+    typ[1] := v_pointer_type(void, 0);
+
+    v_add_type("my_expr_make_postfix_ctx_t", v_struct_type(typ, 2, false));
+}
+
+private
+my_expr_make_postfix_grammar_action: (ret: *v_std_any_t, aux: *void, any: *v_std_any_t, sz: size_t) ~> void
+{
+    ctx = *(aux: *my_expr_make_postfix_ctx_t);
+
+    ctx[0](ret, ctx[1], any, sz);
+
+    if (v_empty(ret))   v_return();
+
+    ast = v_std_any_get_pointer(v_ast_expr_t, ret);
+
+    if (v_ast_base_get_visitor_method_tag((ast: *v_ast_base_t)) != v_ast_expr_call_visitor_method_tag)  v_return();
+
+    call = (ast: *v_ast_expr_t);
+
+    efun = v_ast_expr_call_get_fun_expr(call);
+    elst = v_ast_expr_call_get_arg_list(call);
+
+    if (v_ast_base_get_visitor_method_tag((efun: *v_ast_base_t)) != v_ast_expr_identifier_visitor_method_tag) v_return();
+
+    if (v_ast_expr_identifier_get_name_q(efun) != q_assert) v_return();
+
+    args = v_alloca(v_ast_expr_list_t);
+    v_initialize(args);
+    defer v_terminate(args);
+
+    arg0 = v_list_get_item(elst, 0);
+
+    v_make_list(args, arg0);        //- Sic!
+
+    expr = v_alloca(v_ast_expr_t);
+    v_initialize(expr);
+    defer v_terminate(expr);
+
+    filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
+
+    ps = v_std_any_get_value(size_t, v_ast_get_property((arg0: *v_ast_base_t), pos_start_q));
+    pe = v_std_any_get_value(size_t, v_ast_get_property((arg0: *v_ast_base_t), pos_end_q));
+
+    line:   &size_t := v_undef();
+    column: &size_t := v_undef();
+
+    v_peg_get_line_column(ps, line, column);
+
+    sstr = v_alloca(v_std_string_t);
+    v_initialize(sstr);
+    defer v_terminate(sstr);
+
+    v_peg_take_string(sstr, ps, pe);
+
+    v_ast_make_expr_string(expr, v_std_string_get(sstr));
+    v_list_append(args, args, expr);
+
+    v_ast_make_expr_string(expr, filename);
+    v_list_append(args, args, expr);
+
+    v_ast_make_expr_integer(expr, (line: intptr_t));
+    v_list_append(args, args, expr);
+
+    v_ast_make_expr_call(expr, efun, args);
+
+    v_std_any_set_pointer(ret, expr);
+}
+
 
 //---------------------------------------------------------------------
 //- Compiler methods...
@@ -355,8 +445,17 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     list = (self: *v_ast_generic_list_t);
 
-    etag = (v_list_get_item(list, 0) : *v_ast_expr_t);
+    efname = (v_list_get_item(list, 0) : *v_ast_expr_t);
+    eline  = (v_list_get_item(list, 1) : *v_ast_expr_t);
+    etag   = (v_list_get_item(list, 2) : *v_ast_expr_t);
+    elst   = (v_list_get_item(list, 3) : *v_ast_expr_list_t);
 
+    //-----------------------------------------------------------------
+    filename = v_ast_expr_string_get_string(efname);
+
+    line = v_ast_expr_integer_get_number(eline);
+
+    //-----------------------------------------------------------------
     tag = v_ast_expr_string_get_string(etag);
 
     tag = (tag[0] : char32_t);
@@ -370,12 +469,10 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     case 'n':   stag := "Note";     v_break();
     }
 
-    elst = (v_list_get_item(list, 1) : *v_ast_expr_list_t);
-
     msg = v_ast_expr_string_get_string(v_list_get_item(elst, 0));      //- Sic!
 
     //-----------------------------------------------------------------
-    filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
+//  filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
 
     function: &*const char := 0;
 
@@ -391,12 +488,12 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
         }
     }
 
-    line:   &size_t := v_undef();
-    column: &size_t := v_undef();
-
-    ps = v_std_any_get_value(size_t, v_ast_get_property(self, pos_start_q));
-
-    v_peg_get_line_column(ps, line, column);
+//    line:   &size_t := v_undef();
+//    column: &size_t := v_undef();
+//
+//    ps = v_std_any_get_value(size_t, v_ast_get_property(self, pos_start_q));
+//
+//    v_peg_get_line_column(ps, line, column);
 
     //-----------------------------------------------------------------
     printf: (*const char, ...) ~> int;                  //- ?!?!?!?!?!?
@@ -447,9 +544,11 @@ v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     arg0 = v_list_get_item(args, 0);
 
-    //-----------------------------------------------------------------
-    filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
+    emessage = v_list_get_item(args, 1);
+    filename = v_list_get_item(args, 2);
+    eline    = v_list_get_item(args, 3);
 
+    //-----------------------------------------------------------------
 #if (!v_defined(_WIN32))
 
     function: &*const char := 0;
@@ -468,42 +567,19 @@ v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
 #endif
 
-    line:   &size_t := v_undef();
-    column: &size_t := v_undef();
-
-    ps = v_std_any_get_value(size_t, v_ast_get_property((arg0: *v_ast_base_t), pos_start_q));
-    pe = v_std_any_get_value(size_t, v_ast_get_property((arg0: *v_ast_base_t), pos_end_q));
-
-    v_peg_get_line_column(ps, line, column);
-
-    //-----------------------------------------------------------------
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-    defer v_terminate(sstr);
-
-    v_peg_take_string(sstr, ps, pe);
-
     list = v_alloca(v_ast_expr_list_t);
     v_initialize(list);
     defer v_terminate(list);
 
     v_make_list_nil(list);
 
+    v_list_append(list, list, emessage);
+    v_list_append(list, list, filename);
+    v_list_append(list, list, eline);
+
     expr = v_alloca(v_ast_expr_t);
     v_initialize(expr);
     defer v_terminate(expr);
-
-    v_ast_make_expr_string(expr, v_std_string_get(sstr));
-
-    v_list_append(list, list, expr);
-
-    v_ast_make_expr_string(expr, filename);
-
-    v_list_append(list, list, expr);
-
-    v_ast_make_expr_integer(expr, (line: intptr_t));
-
-    v_list_append(list, list, expr);
 
 #if (v_defined(_WIN32))
 
@@ -603,15 +679,26 @@ voidc_enable_condcomp: () ~> void
 
     v_return_if(v_peg_grammar_get_action(gr0, "mk_cc_message", 0));
 
+    ctx = *v_malloc(my_expr_make_postfix_ctx_t);
+
+    free: (*void) ~> void;
+    v_add_local_cleaner(free, &ctx);
+
+    ctx[0] := v_peg_grammar_get_action(gr0, "expr_make_postfix", &ctx[1]);
+
+    pctx = &ctx;
+
     grammar gr0
     {
     actions:
         mk_cc_message = mk_cc_message_grammar_action;
         mk_cc_do      = mk_cc_do_grammar_action;
 
+        expr_make_postfix = my_expr_make_postfix_grammar_action, pctx;
+
     parsers:
-        unit_defn += '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message(t, l, 0) };
-        stmt      += '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message(t, l, 1) };
+        unit_defn += '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message($0s, t, l, 0) };
+        stmt      += '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message($0s, t, l, 1) };
 
         unit_defn += "#do" _'('_ l:expr_list _ (','_)? ')'    { mk_cc_do(l, 0) };
         stmt      += "#do" _'('_ l:expr_list _ (','_)? ')'    { mk_cc_do(l, 1) };
