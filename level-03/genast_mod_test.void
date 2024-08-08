@@ -452,8 +452,7 @@ make_refcnt_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
 
 //---------------------------------------------------------------------
-export
-enable_refcnt_ptr: () ~> void
+enable_refcnt_ptr_effort: (*void) ~> void
 {
     v_add_intrinsic("my.refcnt_ptr", refcnt_ptr_intrinsic, 0);
 
@@ -473,5 +472,9 @@ enable_refcnt_ptr: () ~> void
 
 //=====================================================================
 {   voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+{   v_export_effort(my.enable_refcnt_ptr_effort, 0); }
 
 
