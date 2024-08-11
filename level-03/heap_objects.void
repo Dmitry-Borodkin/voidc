@@ -852,14 +852,14 @@ op_prefix_delete_array_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_a
 private
 compute_key_quark_type_t = struct
 {
-    fun: *((*void, *voidc_visitor_t, *v_type_t, v_quark_t) ~> *v_type_t);
+    fun: *((*void, *v_type_t, &v_quark_t) ~> *v_type_t);
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
-compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
-                         ft: *v_type_t, q: v_quark_t
+compute_key_quark_type: (aux: *void,
+                         ft: *v_type_t, q: &v_quark_t
                         ) ~> *v_type_t
 {
     {   found: &bool := true;       //- Sic!
@@ -899,7 +899,7 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
 
     ctx = *(aux: *compute_key_quark_type_t);
 
-    v_return(ctx.fun(ctx.aux, vis, ft, q));
+    v_return(ctx.fun(ctx.aux, ft, q));
 }
 
 

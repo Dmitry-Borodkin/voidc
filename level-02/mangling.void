@@ -886,7 +886,7 @@ type_is_initializable: (t: *v_type_t) ~> bool
 
 //---------------------------------------------------------------------
 private
-register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const char, q: v_quark_t, t: *v_type_t) ~> void
+register_special_function_name: (unit: bool, fn: *const char, q: v_quark_t, t: *v_type_t) ~> void
 {
     qname = v_quark_from_string(fn);
 
@@ -986,8 +986,8 @@ register_special_function_name: (vis: *voidc_visitor_t, unit: bool, fn: *const c
 
 //---------------------------------------------------------------------
 private
-compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
-                         ft: *v_type_t, q: v_quark_t
+compute_key_quark_type: (aux: *void,
+                         ft: *v_type_t, q: &v_quark_t
                         ) ~> *v_type_t
 {
     types = v_type_function_get_param_types(ft);
@@ -1007,10 +1007,10 @@ compute_key_quark_type: (aux: *void, vis: *voidc_visitor_t,
 
 //---------------------------------------------------------------------
 private
-register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool,
-                                 sstr: *v_std_string_t, q: v_quark_t, ft: *v_type_t) ~> void
+register_mangled_function_name: (unit: bool,
+                                 sstr: *v_std_string_t, q: &v_quark_t, ft: *v_type_t) ~> void
 {
-    t = v_compute_key_quark_type(vis, ft, q);
+    t = v_compute_key_quark_type(ft, q);
 
     v_std_string_set(sstr, "v__");
 
@@ -1018,7 +1018,7 @@ register_mangled_function_name: (vis: *voidc_visitor_t, unit: bool,
 
     fun_name = v_std_string_get(sstr);
 
-    register_special_function_name(vis, unit, fun_name, q, t);
+    register_special_function_name(unit, fun_name, q, t);
 }
 
 //---------------------------------------------------------------------
@@ -1062,7 +1062,7 @@ compile_unit_spec_fun_defn: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(vis, true, sstr, quark, fun_type);
+    register_mangled_function_name(true, sstr, quark, fun_type);
 
     fun_name = v_std_string_get(sstr);
 
@@ -1090,9 +1090,11 @@ compile_unit_spec_fun_renm: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     if (v_type_is_pointer(ft))  ft := v_type_refptr_get_element_type(ft);
 
-    t = v_compute_key_quark_type(vis, ft, q);
+    q: &v_quark_t := q;
 
-    register_special_function_name(vis, true, fun_name, q, t);
+    t = v_compute_key_quark_type(ft, q);
+
+    register_special_function_name(true, fun_name, q, t);
 }
 
 
@@ -1131,7 +1133,7 @@ v_internal_spec_fun_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(vis, false, sstr, quark, fun_type);
+    register_mangled_function_name(false, sstr, quark, fun_type);
 
     fun_name = v_std_string_get(sstr);
 
@@ -1168,7 +1170,7 @@ v_internal_spec_fun_renm_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_
     v_initialize(sstr);
     defer v_terminate(sstr);
 
-    register_mangled_function_name(vis, false, sstr, quark, v_type_refptr_get_element_type(fun_type));     //- Sic!
+    register_mangled_function_name(false, sstr, quark, v_type_refptr_get_element_type(fun_type));     //- Sic!
 
     fun_name = v_std_string_get(sstr);
 

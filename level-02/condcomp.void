@@ -334,6 +334,7 @@ voidc_enable_condcomp_n1: () ~> void
         mk_expr_ccif = mk_expr_ccif_grammar_action;
 
     parsers:
+        //-------------------------------------------------------------
 
         unit_ccif_lr = l:unit_ccif_lr _ "#elif" _'('_ c:expr _')'_ u:unit_defn_list     { mk_unit_ccif(l, c, u) }
                      / "#if" _'('_ c:expr _')'_ u:unit_defn_list                        { mk_unit_ccif(0, c, u) }
@@ -350,6 +351,7 @@ voidc_enable_condcomp_n1: () ~> void
 
         unit_defn =+ unit_ccif;
 
+        //-------------------------------------------------------------
 
         stmt_ccif_lr = l:stmt_ccif_lr _ "#elif" _'('_ c:expr _')'_ s:stmt_list  { mk_stmt_ccif(l, c, s) }
                      / "#if" _'('_ c:expr _')'_ s:stmt_list                     { mk_stmt_ccif(0, c, s) }
@@ -366,6 +368,7 @@ voidc_enable_condcomp_n1: () ~> void
 
         stmt =+ stmt_ccif;
 
+        //-------------------------------------------------------------
 
         expr_ccif_lr = l:expr_ccif_lr _ "#elif" _'('_ c:expr _')'_ e:expr   { mk_expr_ccif(l, c, e) }
                      / "#if" _'('_ c:expr _')'_ e:expr                      { mk_expr_ccif(0, c, e) }
@@ -375,6 +378,7 @@ voidc_enable_condcomp_n1: () ~> void
 
 
         expr_ccif_list = l:expr_ccif_lr _ "#else" !ident_cont _ e:expr      { mk_expr_ccif(l, 0, e) }
+                       //- Sic !!!
                        ;
 
         expr_ccif = l:expr_ccif_list _ "#endif" !ident_cont     { mk_expr_ccif(l, 0, 0) };
@@ -437,8 +441,12 @@ mk_cc_message_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
 
     kind = v_std_any_get_value(intptr_t, any+3);
 
-    if (kind) v_std_any_set_pointer(ret, (list : *v_ast_stmt_t));       //- stmt
-    else      v_std_any_set_pointer(ret, (list : *v_ast_base_t));       //- unit_defn
+    switch(kind)
+    {
+    case 0:   v_std_any_set_pointer(ret, (list : *v_ast_base_t));   v_break();      //- unit_defn
+    case 1:   v_std_any_set_pointer(ret, (list : *v_ast_stmt_t));   v_break();      //- stmt
+    case 2:   v_std_any_set_pointer(ret, (list : *v_ast_expr_t));   v_break();      //- expr
+    }
 }
 
 //---------------------------------------------------------------------
@@ -610,6 +618,7 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     case 'e':   stag := "Error";    v_break();
     case 'w':   stag := "Warning";  v_break();
     case 'n':   stag := "Note";     v_break();
+    case 'f':   stag := "Fail";     v_break();
     }
 
     msg = v_ast_expr_string_get_string(v_list_get_item(elst, 0));      //- Sic!
@@ -636,7 +645,7 @@ compile_cc_message: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     else          printf("%s:%zd: %s: %s\n", filename, line, stag, msg);
 
     //-----------------------------------------------------------------
-    if (tag == 'e')
+    if ('n' != tag != 'w')      //- i.e.  'e' or 'f' ...
     {
         abort: () ~> void;
 
@@ -893,6 +902,7 @@ voidc_enable_condcomp: () ~> void
     parsers:
         unit_defn =+ '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message($0s, t, l, 0) };
         stmt      =+ '#' t:("error"/"warning"/"note") _'('_ l:expr_list _')'    { mk_cc_message($0s, t, l, 1) };
+        expr      =+ '#' t:"fail"                     _'('_ l:expr_list _')'    { mk_cc_message($0s, t, l, 2) };
 
         unit_defn =+ "#do" _'('_ l:expr_list _ (','_)? ')'    { mk_cc_do(l, 0) };
         stmt      =+ "#do" _'('_ l:expr_list _ (','_)? ')'    { mk_cc_do(l, 1) };
