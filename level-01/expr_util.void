@@ -1522,13 +1522,13 @@
     v_add_parameter_name(f, 2, "rhs", expr_ptr_ptr);
 }
 {
-    tag = v_ast_base_get_visitor_method_tag(v_cast(arg, v_ast_base_ptr));
+    tag = v_ast_base_get_tag(v_cast(arg, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(false);
 
     etmp = v_ast_expr_call_get_fun_expr(arg);
 
-    tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
+    tag = v_ast_base_get_tag(v_cast(etmp, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
     {
@@ -1746,13 +1746,13 @@
     v_add_parameter_name(f, 2, "rhs", expr_ptr_ptr);
 }
 {
-    tag = v_ast_base_get_visitor_method_tag(v_cast(arg, v_ast_base_ptr));
+    tag = v_ast_base_get_tag(v_cast(arg, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(false);
 
     etmp = v_ast_expr_call_get_fun_expr(arg);
 
-    tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
+    tag = v_ast_base_get_tag(v_cast(etmp, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
     {
@@ -2297,13 +2297,13 @@
     v_add_parameter_name(f, 2, "rhs", expr_ptr_ptr);
 }
 {
-    tag = v_ast_base_get_visitor_method_tag(v_cast(arg, v_ast_base_ptr));
+    tag = v_ast_base_get_tag(v_cast(arg, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(0);
 
     etmp = v_ast_expr_call_get_fun_expr(arg);
 
-    tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
+    tag = v_ast_base_get_tag(v_cast(etmp, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
     {
@@ -3650,13 +3650,13 @@
     v_add_parameter_name(f, 2, "idx", expr_ptr_ptr);
 }
 {
-    tag = v_ast_base_get_visitor_method_tag(v_cast(arg, v_ast_base_ptr));
+    tag = v_ast_base_get_tag(v_cast(arg, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_call_tag))  v_return(false);
 
     etmp = v_ast_expr_call_get_fun_expr(arg);
 
-    tag = v_ast_base_get_visitor_method_tag(v_cast(etmp, v_ast_base_ptr));
+    tag = v_ast_base_get_tag(v_cast(etmp, v_ast_base_ptr));
 
     if (v_icmp(LLVMIntNE, tag, expr_identifier_tag))
     {

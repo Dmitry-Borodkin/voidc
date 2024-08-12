@@ -317,7 +317,7 @@ gen_generic_list: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
 
-    quark = v_ast_base_get_visitor_method_tag(self);
+    quark = v_ast_base_get_tag(self);
 
     stmt: &v_ast_stmt_t := {};
 

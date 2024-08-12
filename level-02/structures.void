@@ -250,9 +250,9 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
     {
         struct_name: &*const char := v_undef();
 
-        tag = v_ast_base_get_visitor_method_tag((name: *v_ast_base_t));
+        tag = v_ast_base_get_tag((name: *v_ast_base_t));
 
-        if (tag == v_ast_expr_identifier_visitor_method_tag)
+        if (tag == v_ast_expr_identifier_tag)
         {
             nm = v_ast_expr_identifier_get_name(name);
 

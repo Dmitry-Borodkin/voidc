@@ -264,7 +264,6 @@ op_postfix_dot_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
     t0 = v_get_result_type();
     v0 = v_get_result_value();
 
-
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
@@ -371,73 +370,13 @@ op_postfix_to_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
     v_ast_accept_visitor((arg: *v_ast_base_t), vis);
 
-    t0: &*v_type_t    := v_get_result_type();
-    v0: &LLVMValueRef := v_get_result_value();
-
-    q = q_op_postfix_to;
-
-    void_fun: &*void := 0;
-    void_aux: &*void := 0;
-
-    ft: &*v_type_t    := 0;
-    fv: &LLVMValueRef := 0;
-
-    if (v_util_lookup_overload(q, t0, &void_fun, &void_aux, &ft, &fv))
-    {
-        //- Got overloading!
-
-        if (fun = (void_fun: *intrinsic_p1_t))
-        {
-            v_set_result_type(INVIOLABLE_TAG);
-            v_set_result_value(0);
-
-            fun(void_aux, vis, self, t0, v0);
-
-            t0 := v_get_result_type();
-            v0 := v_get_result_value();
-        }
-        else
-        {
-            expr = v_alloca(v_ast_expr_t);
-            v_initialize(expr);
-            defer v_terminate(expr);
-
-            v_ast_make_expr_compiled(expr, t0, v0);
-
-            arg_ptr: &*v_ast_expr_t := expr;                //- Value, compiled
-
-            t0 := v_type_function_get_return_type(ft);
-
-            v_set_result_type(t0);
-            v_set_result_value(0);
-
-            v_llvm_build_call(vis, self, ft, fv, &arg_ptr, 1);
-
-            v0 := v_get_result_value();
-        }
-    }
-
-    //- Default treatment...
-
-    if (v_type_is_reference(t0))
-    {
-        builder = v_target_get_builder();
-
-        t0 := v_type_refptr_get_element_type(t0);
-
-        v0 := LLVMBuildLoad2(builder, v_type_get_llvm_type(t0), v0, "");
-    }
-
-    {   e = v_type_refptr_get_element_type(t0);
-        a = v_type_refptr_get_address_space(t0);
-
-        t0 := v_reference_type(e, a);
-    }
+    t0 = v_get_result_type();
+    v0 = v_get_result_value();
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    op_postfix_dot_agent(vis, self, t0, v0);
+    v_compile_op_postfix_to(vis, self, t0, v0);
 }
 
 

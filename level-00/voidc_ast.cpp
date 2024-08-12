@@ -304,6 +304,30 @@ v_ast_expr_char_get_char(const ast_expr_t *ptr)
 
 
 //---------------------------------------------------------------------
+void
+v_ast_make_expr_compiled(ast_expr_t *ret, v_type_t *t, LLVMValueRef v)
+{
+    *ret = std::make_shared<const ast_expr_compiled_data_t>(t, v);
+}
+
+v_type_t *
+v_ast_expr_compiled_get_type(const ast_expr_t *ptr)
+{
+    auto &r = static_cast<const ast_expr_compiled_data_t &>(**ptr);
+
+    return (v_type_t *)r.void_type;
+}
+
+LLVMValueRef
+v_ast_expr_compiled_get_value(const ast_expr_t *ptr)
+{
+    auto &r = static_cast<const ast_expr_compiled_data_t &>(**ptr);
+
+    return (LLVMValueRef)r.void_value;
+}
+
+
+//---------------------------------------------------------------------
 //- Generics ...
 //---------------------------------------------------------------------
 #define AST_DEFINE_MAKE_GENERIC_IMPL(ast_sptr_t, name_, fun_name) \
@@ -346,17 +370,17 @@ AST_DEFINE_GENERIC_MKGVGO_IMPL(ast_expr_t, expr_)
 //- Visitors ...
 //---------------------------------------------------------------------
 v_quark_t
-v_ast_base_get_visitor_method_tag(const ast_base_t *ptr)
+v_ast_base_get_tag(const ast_base_t *ptr)
 {
-    return (*ptr)->method_tag();
+    return (*ptr)->tag();
 }
 
 
 //---------------------------------------------------------------------
 #define DEF(name) \
-v_quark_t v_ast_##name##_visitor_method_tag;
+v_quark_t v_ast_##name##_tag;
 
-    DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
+    DEFINE_AST_TAGS(DEF)
 
 #undef DEF
 
@@ -494,9 +518,9 @@ v_ast_static_initialize(void)
 #undef DEF
 
 #define DEF(name) \
-    v_ast_##name##_visitor_method_tag = v_quark_from_string(#name);
+    v_ast_##name##_tag = v_quark_from_string(#name);
 
-    DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
+    DEFINE_AST_TAGS(DEF)
 
 #undef DEF
 }

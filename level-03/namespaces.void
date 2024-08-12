@@ -402,13 +402,13 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     for (e: &*v_ast_expr_t := nsid; ; ++N)
     {
-        q = v_ast_base_get_visitor_method_tag(e);
-        if (q != v_ast_expr_call_visitor_method_tag)  v_break();
+        q = v_ast_base_get_tag(e);
+        if (q != v_ast_expr_call_tag)  v_break();
 
         f = v_ast_expr_call_get_fun_expr(e);
 
-        q = v_ast_base_get_visitor_method_tag(f);
-        if (q != v_ast_expr_identifier_visitor_method_tag)  v_break();
+        q = v_ast_base_get_tag(f);
+        if (q != v_ast_expr_identifier_tag)  v_break();
 
         q = v_ast_expr_identifier_get_name_q(f);
         if (q != q_op_postfix_dot)  v_break();
@@ -448,7 +448,7 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
         etmp := v_list_get_item(args, 1);
     }
 
-    if (v_ast_base_get_visitor_method_tag(etmp) == v_ast_expr_identifier_visitor_method_tag)
+    if (v_ast_base_get_tag(etmp) == v_ast_expr_identifier_tag)
     {
         qs0 = qs[0];
 
@@ -457,7 +457,7 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
     }
     else
     {
-        v_assert(v_ast_base_get_visitor_method_tag(etmp) == v_ast_expr_call_visitor_method_tag);            //- ?
+        v_assert(v_ast_base_get_tag(etmp) == v_ast_expr_call_tag);            //- ?
 
         qs0 = qs[0];
 
@@ -465,7 +465,7 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
         etmp := v_ast_expr_call_get_fun_expr(etmp);
 
-        v_assert(v_ast_base_get_visitor_method_tag(etmp) == v_ast_expr_identifier_visitor_method_tag);      //- ?
+        v_assert(v_ast_base_get_tag(etmp) == v_ast_expr_identifier_tag);      //- ?
 
         qs0.qname := v_ast_expr_identifier_get_name_q(etmp);
     }
@@ -1227,9 +1227,9 @@ my_compile_expr_struct: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
     if (!v_empty(name))
     {
-        tag = v_ast_base_get_visitor_method_tag(name);
+        tag = v_ast_base_get_tag(name);
 
-        if (tag == v_ast_expr_identifier_visitor_method_tag)
+        if (tag == v_ast_expr_identifier_tag)
         {
             q0 = v_ast_expr_identifier_get_name_q(name);
 
@@ -1262,9 +1262,9 @@ my_compile_expr_union: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     if (!v_empty(name))
     {
-        tag = v_ast_base_get_visitor_method_tag(name);
+        tag = v_ast_base_get_tag(name);
 
-        if (tag == v_ast_expr_identifier_visitor_method_tag)
+        if (tag == v_ast_expr_identifier_tag)
         {
             q0 = v_ast_expr_identifier_get_name_q(name);
 
@@ -1368,11 +1368,11 @@ my_compile_unit_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~
 
     ast1 = v_list_get_item(list, 1);            //- Name
 
-    {   tag = v_ast_base_get_visitor_method_tag(ast1);
+    {   tag = v_ast_base_get_tag(ast1);
 
-        if (tag != v_ast_expr_call_visitor_method_tag)
+        if (tag != v_ast_expr_call_tag)
         {
-            v_assert(tag == v_ast_expr_identifier_visitor_method_tag);
+            v_assert(tag == v_ast_expr_identifier_tag);
 
             ctx.fun(ctx.aux, vis, self);
 
@@ -1476,7 +1476,7 @@ my_compile_unit_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~
         v_copy(ast+i, v_list_get_item(list, i));
     }
 
-    tag = v_ast_base_get_visitor_method_tag(self);
+    tag = v_ast_base_get_tag(self);
 
     lst: &v_ast_generic_list_t := {};
 
@@ -1501,11 +1501,11 @@ my_var_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
     block
     {
-        {   tag = v_ast_base_get_visitor_method_tag(ename);
+        {   tag = v_ast_base_get_tag(ename);
 
-            if (tag != v_ast_expr_call_visitor_method_tag)
+            if (tag != v_ast_expr_call_tag)
             {
-                v_assert(tag == v_ast_expr_identifier_visitor_method_tag);
+                v_assert(tag == v_ast_expr_identifier_tag);
 
                 qr := v_ast_expr_identifier_get_name_q(ename);
 

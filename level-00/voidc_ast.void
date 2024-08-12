@@ -273,6 +273,23 @@
 
 
     //-------------------------------------------------------------
+//  v_store(v_ast_expr_ptr, typ0);                  //- (out)
+    v_store(v_type_ptr,     typ1);                  //-
+    v_store(LLVMValueRef,   typ2);                  //-
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_ast_make_expr_compiled", ft);
+
+//  v_store(v_ast_expr_ptr, typ0);                  //-
+
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
+    v_export_symbol_type("v_ast_expr_compiled_get_type", ft);
+
+    ft = v_function_type(LLVMValueRef, typ0, 1, false);
+    v_export_symbol_type("v_ast_expr_compiled_get_value", ft);
+
+
+    //-------------------------------------------------------------
     //- Generics ...
     //-------------------------------------------------------------
     generic_vtable = v_struct_type_named("struct.v_ast_generic_vtable");
@@ -303,22 +320,22 @@
     v_store(v_ast_base_ptr, typ0);                  //-
 
     ft = v_function_type(v_quark_t, typ0, 1, false);
-    v_export_symbol_type("v_ast_base_get_visitor_method_tag", ft);
+    v_export_symbol_type("v_ast_base_get_tag", ft);
 
 
     //-------------------------------------------------------------
     q_ref = v_reference_type(v_quark_t, 0);
 
-    v_export_symbol_type("v_ast_stmt_list_visitor_method_tag", q_ref);
-    v_export_symbol_type("v_ast_expr_list_visitor_method_tag", q_ref);
+    v_export_symbol_type("v_ast_stmt_list_tag", q_ref);
+    v_export_symbol_type("v_ast_expr_list_tag", q_ref);
 
-    v_export_symbol_type("v_ast_unit_visitor_method_tag",            q_ref);
-    v_export_symbol_type("v_ast_stmt_visitor_method_tag",            q_ref);
-    v_export_symbol_type("v_ast_expr_call_visitor_method_tag",       q_ref);
-    v_export_symbol_type("v_ast_expr_identifier_visitor_method_tag", q_ref);
-    v_export_symbol_type("v_ast_expr_integer_visitor_method_tag",    q_ref);
-    v_export_symbol_type("v_ast_expr_string_visitor_method_tag",     q_ref);
-    v_export_symbol_type("v_ast_expr_char_visitor_method_tag",       q_ref);
+    v_export_symbol_type("v_ast_unit_tag",            q_ref);
+    v_export_symbol_type("v_ast_stmt_tag",            q_ref);
+    v_export_symbol_type("v_ast_expr_call_tag",       q_ref);
+    v_export_symbol_type("v_ast_expr_identifier_tag", q_ref);
+    v_export_symbol_type("v_ast_expr_integer_tag",    q_ref);
+    v_export_symbol_type("v_ast_expr_string_tag",     q_ref);
+    v_export_symbol_type("v_ast_expr_char_tag",       q_ref);
 
 
     //-------------------------------------------------------------

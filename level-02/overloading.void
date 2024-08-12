@@ -665,7 +665,7 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
 private
 check_relation: (arg: *v_ast_expr_t, lhs: **v_ast_expr_t, rhs: **v_ast_expr_t) ~> int
 {
-    get_tag = v_ast_base_get_visitor_method_tag;
+    get_tag = v_ast_base_get_tag;
 
     if (get_tag((arg: *v_ast_base_t)) != expr_call_q)  v_return(0);
 
@@ -1135,7 +1135,7 @@ compile_expr_call: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     void_fun: &*void := 0;
     void_aux: &*void := v_undef();
 
-    if (v_ast_base_get_visitor_method_tag((fexpr: *v_ast_base_t)) == v_ast_expr_identifier_visitor_method_tag)
+    if (v_ast_base_get_tag((fexpr: *v_ast_base_t)) == v_ast_expr_identifier_tag)
     {
         fname_q = v_ast_expr_identifier_get_name_q(fexpr);
 
@@ -1263,13 +1263,13 @@ op_postfix_index_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 private
 check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t) ~> bool
 {
-    tag = v_ast_base_get_visitor_method_tag((arg: *v_ast_base_t));
+    tag = v_ast_base_get_tag((arg: *v_ast_base_t));
 
     if (tag != expr_call_q)  v_return(false);
 
     etmp = v_ast_expr_call_get_fun_expr(arg);
 
-    tag = v_ast_base_get_visitor_method_tag((etmp: *v_ast_base_t));
+    tag = v_ast_base_get_tag((etmp: *v_ast_base_t));
 
     if (tag != expr_identifier_q)  v_return(false);
 

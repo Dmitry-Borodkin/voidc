@@ -702,17 +702,17 @@
 
     block
     {
-        tag = v_ast_base_get_visitor_method_tag(ast+2);
+        tag = v_ast_base_get_tag(ast+2);
 
-        if (tag != v_ast_expr_call_visitor_method_tag) v_break();
+        if (tag != v_ast_expr_call_tag) v_break();
 
         ast2 = v_cast(ast+2, v_ast_expr_ptr);
 
         efun = v_ast_expr_call_get_fun_expr(ast2);
 
-        tag = v_ast_base_get_visitor_method_tag(v_cast(efun, v_ast_base_ptr));
+        tag = v_ast_base_get_tag(v_cast(efun, v_ast_base_ptr));
 
-        if (tag != v_ast_expr_identifier_visitor_method_tag) v_break();
+        if (tag != v_ast_expr_identifier_tag) v_break();
 
         qname = v_ast_expr_identifier_get_name_q(efun);
 
@@ -890,17 +890,17 @@
 
     block
     {
-        tag = v_ast_base_get_visitor_method_tag(ast+0);
+        tag = v_ast_base_get_tag(ast+0);
 
-        if (tag != v_ast_expr_call_visitor_method_tag) v_break();
+        if (tag != v_ast_expr_call_tag) v_break();
 
         ast0 = v_cast(ast+0, v_ast_expr_ptr);
 
         efun = v_ast_expr_call_get_fun_expr(ast0);
 
-        tag = v_ast_base_get_visitor_method_tag(v_cast(efun, v_ast_base_ptr));
+        tag = v_ast_base_get_tag(v_cast(efun, v_ast_base_ptr));
 
-        if (tag != v_ast_expr_identifier_visitor_method_tag) v_break();
+        if (tag != v_ast_expr_identifier_tag) v_break();
 
         qopnm = v_ast_expr_identifier_get_name_q(efun);
 

@@ -334,6 +334,24 @@ void compile_expr_char(void *, const visitor_t *vis, const ast_base_t *self)
 }
 
 
+//---------------------------------------------------------------------
+//- expr_compiled
+//---------------------------------------------------------------------
+static
+void compile_expr_compiled(void *, const visitor_t *vis, const ast_base_t *self)
+{
+    auto &dtv = static_cast<const ast_expr_compiled_data_t &>(**self);
+
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    auto t = (v_type_t *)  dtv.void_type;
+    auto v = (LLVMValueRef)dtv.void_value;
+
+    lctx.adopt_result(t, v);
+}
+
+
 //=====================================================================
 //- Intrinsics (true)
 //=====================================================================
@@ -920,9 +938,9 @@ make_level_0_voidc_compiler(void)
         voidc_visitor_data_t vis;
 
 #define DEF_METHOD(name) \
-        vis = vis.set_void_method(v_ast_##name##_visitor_method_tag, (void *)compile_##name);
+        vis = vis.set_void_method(v_ast_##name##_tag, (void *)compile_##name);
 
-        DEFINE_AST_VISITOR_METHOD_TAGS(DEF_METHOD)
+        DEFINE_AST_TAGS(DEF_METHOD)
 
         voidc_compiler_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
     }
@@ -951,6 +969,7 @@ make_level_0_target_compiler(void)
         DEF_METHOD(expr_integer)
         DEF_METHOD(expr_string)
         DEF_METHOD(expr_char)
+        DEF_METHOD(expr_compiled)
 
         target_compiler_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
     }

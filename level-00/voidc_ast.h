@@ -21,7 +21,7 @@
 //---------------------------------------------------------------------
 //- Visitor tags...
 //---------------------------------------------------------------------
-#define DEFINE_AST_VISITOR_METHOD_TAGS(DEF) \
+#define DEFINE_AST_TAGS(DEF) \
     DEF(stmt_list) \
     DEF(expr_list) \
     DEF(unit) \
@@ -30,16 +30,17 @@
     DEF(expr_identifier) \
     DEF(expr_integer) \
     DEF(expr_string) \
-    DEF(expr_char)
+    DEF(expr_char) \
+    DEF(expr_compiled)
 
 #define DEF(name) \
-extern v_quark_t v_ast_##name##_visitor_method_tag;
+extern v_quark_t v_ast_##name##_tag;
 
 extern "C"
 {
 VOIDC_DLLEXPORT_BEGIN_VARIABLE
 
-    DEFINE_AST_VISITOR_METHOD_TAGS(DEF)
+    DEFINE_AST_TAGS(DEF)
 
 VOIDC_DLLEXPORT_END
 }
@@ -58,14 +59,14 @@ public:
     mutable std::unordered_map<v_quark_t, std::any> properties;     //- ?!?!?!?!?!?!?
 
 public:
-    virtual v_quark_t method_tag(void) const = 0;
+    virtual v_quark_t tag(void) const = 0;
 };
 
 typedef std::shared_ptr<const ast_base_data_t> ast_base_t;
 
 //---------------------------------------------------------------------
-#define AST_VISITOR_TAG(name) \
-    v_quark_t method_tag(void) const override { return v_ast_##name##_visitor_method_tag; }
+#define OVERRIDE_AST_TAG(name) \
+    v_quark_t tag(void) const override { return v_ast_##name##_tag; }
 
 
 //---------------------------------------------------------------------
@@ -141,12 +142,12 @@ struct ast_list_data_t : ast_base_list_data_t<T>
     {}
 
 public:
-    v_quark_t method_tag(void) const override { return Tag; }
+    v_quark_t tag(void) const override { return Tag; }
 };
 
 //---------------------------------------------------------------------
-using ast_stmt_list_data_t = ast_list_data_t<ast_stmt_base_data_t, v_ast_stmt_list_visitor_method_tag>;
-using ast_expr_list_data_t = ast_list_data_t<ast_expr_base_data_t, v_ast_expr_list_visitor_method_tag>;
+using ast_stmt_list_data_t = ast_list_data_t<ast_stmt_base_data_t, v_ast_stmt_list_tag>;
+using ast_expr_list_data_t = ast_list_data_t<ast_expr_base_data_t, v_ast_expr_list_tag>;
 
 typedef std::shared_ptr<const ast_stmt_list_data_t> ast_stmt_list_t;
 typedef std::shared_ptr<const ast_expr_list_data_t> ast_expr_list_t;
@@ -168,7 +169,7 @@ struct ast_unit_data_t : ast_unit_base_data_t
     {}
 
 public:
-    AST_VISITOR_TAG(unit)
+    OVERRIDE_AST_TAG(unit)
 };
 
 
@@ -185,7 +186,7 @@ struct ast_stmt_data_t : ast_stmt_base_data_t
     {}
 
 public:
-    AST_VISITOR_TAG(stmt)
+    OVERRIDE_AST_TAG(stmt)
 };
 
 
@@ -202,7 +203,7 @@ struct ast_expr_call_data_t : ast_expr_base_data_t
     {}
 
 public:
-    AST_VISITOR_TAG(expr_call)
+    OVERRIDE_AST_TAG(expr_call)
 };
 
 
@@ -216,7 +217,7 @@ struct ast_expr_identifier_data_t : ast_expr_base_data_t
     {}
 
 public:
-    AST_VISITOR_TAG(expr_identifier)
+    OVERRIDE_AST_TAG(expr_identifier)
 };
 
 //---------------------------------------------------------------------
@@ -229,7 +230,7 @@ struct ast_expr_integer_data_t : ast_expr_base_data_t
     {}
 
 public:
-    AST_VISITOR_TAG(expr_integer)
+    OVERRIDE_AST_TAG(expr_integer)
 };
 
 //---------------------------------------------------------------------
@@ -242,7 +243,7 @@ struct ast_expr_string_data_t : ast_expr_base_data_t
     {}
 
 public:
-    AST_VISITOR_TAG(expr_string)
+    OVERRIDE_AST_TAG(expr_string)
 };
 
 //---------------------------------------------------------------------
@@ -255,7 +256,23 @@ struct ast_expr_char_data_t : ast_expr_base_data_t
     {}
 
 public:
-    AST_VISITOR_TAG(expr_char)
+    OVERRIDE_AST_TAG(expr_char)
+};
+
+
+//---------------------------------------------------------------------
+struct ast_expr_compiled_data_t : ast_expr_base_data_t
+{
+    void * const void_type;             //- v_type_t *
+    void * const void_value;            //- LLVMValueRef
+
+    ast_expr_compiled_data_t(void *t, void *v)
+      : void_type(t),
+        void_value(v)
+    {}
+
+public:
+    OVERRIDE_AST_TAG(expr_compiled)
 };
 
 
@@ -270,7 +287,7 @@ struct ast_generic_vtable_t
     void (*init)(void *object);
     void (*term)(void *object);
 
-    v_quark_t visitor_method_tag;
+    v_quark_t tag;
 };
 
 //---------------------------------------------------------------------
@@ -301,9 +318,9 @@ public:
     void * const object;
 
 public:
-    v_quark_t method_tag(void) const override
+    v_quark_t tag(void) const override
     {
-        return  (vtable ? vtable->visitor_method_tag : 0);
+        return  (vtable ? vtable->tag : 0);
     }
 };
 
@@ -342,7 +359,7 @@ struct ast_generic_list_data_t : ast_base_list_data_t<ast_base_data_t>
     {}
 
 public:
-    v_quark_t method_tag(void) const override
+    v_quark_t tag(void) const override
     {
         return  visitor_method_tag;
     }

@@ -299,7 +299,7 @@
     //-
     //-     v_copy(saved_compiler_g, compiler);
     //-
-    //-     voidc_visitor_set_method(compiler, compiler, v_ast_unit_visitor_method_tag,
+    //-     voidc_visitor_set_method(compiler, compiler, v_ast_unit_tag,
     //-                                   voidc_function_hack_visitor_method, 0);
     //-
     //-     v_return(fun_value);
@@ -408,7 +408,7 @@
     LLVMBuildCall2(builder, vis_copy_ft_, vis_copy_f, val0, 3, "");
 
 
-    quark_g  = v_obtain_global("v_ast_unit_visitor_method_tag", 0);
+    quark_g  = v_obtain_global("v_ast_unit_tag", 0);
     quark_t_ = v_type_get_llvm_type(v_quark_t);
 
     quark_v = LLVMBuildLoad2(builder, quark_t_, quark_g, "quark_v");

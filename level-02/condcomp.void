@@ -534,14 +534,14 @@ my_expr_make_postfix_grammar_action: (ret: *v_std_any_t, aux: *void, any: *v_std
 
     ast = v_std_any_get_pointer(v_ast_expr_t, ret);
 
-    if (v_ast_base_get_visitor_method_tag((ast: *v_ast_base_t)) != v_ast_expr_call_visitor_method_tag)  v_return();
+    if (v_ast_base_get_tag((ast: *v_ast_base_t)) != v_ast_expr_call_tag)  v_return();
 
     call = (ast: *v_ast_expr_t);
 
     efun = v_ast_expr_call_get_fun_expr(call);
     elst = v_ast_expr_call_get_arg_list(call);
 
-    if (v_ast_base_get_visitor_method_tag((efun: *v_ast_base_t)) != v_ast_expr_identifier_visitor_method_tag) v_return();
+    if (v_ast_base_get_tag((efun: *v_ast_base_t)) != v_ast_expr_identifier_tag) v_return();
 
     if (v_ast_expr_identifier_get_name_q(efun) != q_assert) v_return();
 

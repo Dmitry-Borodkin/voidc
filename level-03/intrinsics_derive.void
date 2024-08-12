@@ -201,9 +201,9 @@ mk_unit_spec_fun_derive_grammar_action: (ret: *v_std_any_t, aux: *void, any: *v_
     {
         expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
-        quark = v_ast_base_get_visitor_method_tag((expr: *v_ast_base_t));
+        quark = v_ast_base_get_tag((expr: *v_ast_base_t));
 
-        if (quark == v_ast_expr_identifier_visitor_method_tag  &&
+        if (quark == v_ast_expr_identifier_tag  &&
             v_ast_expr_identifier_get_name_q(expr) == derive_q)
         {
             v_break();

@@ -171,7 +171,7 @@ v_struct_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
         expr: &*v_ast_expr_t := v_list_get_item(args, i0);
 
-        if (v_ast_base_get_visitor_method_tag((expr : *v_ast_base_t)) == v_ast_expr_string_visitor_method_tag)
+        if (v_ast_base_get_tag((expr : *v_ast_base_t)) == v_ast_expr_string_tag)
         {
             name = v_ast_expr_string_get_string(expr);
 
@@ -187,7 +187,7 @@ v_struct_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
             expr := v_list_get_item(args, i0);
         }
 
-        if (v_ast_base_get_visitor_method_tag((expr : *v_ast_base_t)) == v_ast_expr_identifier_visitor_method_tag)
+        if (v_ast_base_get_tag((expr : *v_ast_base_t)) == v_ast_expr_identifier_tag)
         {
             qident = v_ast_expr_identifier_get_name_q(expr);
 
@@ -203,7 +203,7 @@ v_struct_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
             expr := v_list_get_item(args, i0);
         }
 
-        if (v_ast_base_get_visitor_method_tag((expr : *v_ast_base_t)) == v_ast_expr_call_visitor_method_tag)
+        if (v_ast_base_get_tag((expr : *v_ast_base_t)) == v_ast_expr_call_tag)
         {
             alst = v_ast_expr_call_get_arg_list(expr);
 

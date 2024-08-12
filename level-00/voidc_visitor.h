@@ -70,7 +70,7 @@ public:
     static
     void visit(const visitor_t &vis, const ast_base_t &obj)
     {
-        auto q = obj->method_tag();
+        auto q = obj->tag();
 
 //      printf("visit: %p, %s\n", &vis, v_quark_to_string(q));
 

@@ -236,13 +236,13 @@ make_special_intrinsic_call: (stmt: *v_ast_stmt_t, q: v_quark_t,
 private
 check_index: (arg: *v_ast_expr_t, agg: **v_ast_expr_t, idx: **v_ast_expr_list_t) ~> bool
 {
-    tag = v_ast_base_get_visitor_method_tag((arg: *v_ast_base_t));
+    tag = v_ast_base_get_tag((arg: *v_ast_base_t));
 
     if (tag != expr_call_q)  v_return(false);
 
     etmp = v_ast_expr_call_get_fun_expr(arg);
 
-    tag = v_ast_base_get_visitor_method_tag((etmp: *v_ast_base_t));
+    tag = v_ast_base_get_tag((etmp: *v_ast_base_t));
 
     if (tag != expr_identifier_q)  v_return(false);
 
