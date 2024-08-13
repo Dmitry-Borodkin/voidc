@@ -186,9 +186,8 @@ mk_unit_struct_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t
 //- Compilation ...
 //---------------------------------------------------------------------
 export
-voidc_internal_index_intrinsic: (aux: *void, vis: *voidc_visitor_t,
-                                 self: *v_ast_base_t,
-                                 t0: *v_type_t, v0: LLVMValueRef
+voidc_internal_index_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                                 args: **v_ast_expr_t, count: unsigned
                                 ) ~> void
 {
 //printf("voidc_internal_index_intrinsic start %p, %p\n", aux, t0);
@@ -208,8 +207,8 @@ voidc_internal_index_intrinsic: (aux: *void, vis: *voidc_visitor_t,
 
     v_make_list(lst, expr, 1);
 
-    agg_t: &*v_type_t    := t0;
-    agg_v: &LLVMValueRef := v0;
+    agg_t: &*v_type_t    := v_ast_expr_compiled_get_type(args[0]);
+    agg_v: &LLVMValueRef := v_ast_expr_compiled_get_value(args[0]);
 
     plst: &*v_ast_expr_list_t := lst;
 

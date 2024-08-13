@@ -698,14 +698,12 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     block
     {
-        void_fun: &*void := 0;
         void_aux: &*void := v_undef();
 
         q = voidc_abstract_static_constant_q;
 
-        if (!v_util_lookup_overload(q, t, &void_fun, &void_aux, 0,0)) v_break();
-
-        v_assert(void_fun);
+        fun = v_util_lookup_overload(q, t, &void_aux);
+        if (!fun) v_break();
 
         v_pop_temporaries();
 
@@ -718,7 +716,7 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
                         name: *const char, export: bool
                        ) ~> void;
 
-        (void_fun: *intrinsic_ft)(void_aux, vis, self, t, v, name, export);
+        (fun: *intrinsic_ft)(void_aux, vis, self, t, v, name, export);
 
         v_return();
     }

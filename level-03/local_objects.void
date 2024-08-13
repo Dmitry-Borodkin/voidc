@@ -159,7 +159,7 @@ op_postfix_index_helper_ctx_t = struct
 {
     fun: *((aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
             agg_t: &*v_type_t, agg_v: &LLVMValueRef,
-            idx: **v_ast_expr_list_t, count: int
+            idx: **v_ast_expr_list_t, count: unsigned
            ) ~> bool);
 
     aux: *void;
@@ -185,7 +185,7 @@ local_objects_ctx_t = struct
 //=====================================================================
 private
 my_fake_utility_intrinsic: (aux: *void, *voidc_visitor_t, *v_ast_base_t,
-                            *v_type_t, LLVMValueRef) ~> void
+                            **v_ast_expr_t, unsigned) ~> void
 {
     q = v_quark_to_string((aux: v_quark_t));
 
@@ -687,11 +687,19 @@ my_llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
         ++arg_count;
     }
 
-    values = v_malloc(LLVMValueRef, arg_count);
+    val_count: &unsigned := v_undef();
+
+    if (par_count < arg_count)  val_count := arg_count;
+    else                        val_count := par_count;
+
+    values = v_malloc(LLVMValueRef, val_count);
     defer v_free(values);
 
     ttag = v_get_result_type();
     vtag = v_get_result_value();
+
+    t_one: &*v_type_t    := 0;
+    v_one: &LLVMValueRef := v_undef();
 
     vr: &LLVMValueRef := v_undef();
 
@@ -704,18 +712,34 @@ my_llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
         i := 1;
     }
 
-    for (; i < arg_count; ++i)
+    for (; i < val_count; ++i)
     {
-        j: &unsigned := i;
+        j: &unsigned := v_undef();
 
-        if (tr_initializable)   --j;
+        if (tr_initializable)   j := i-1;
+        else                    j := i;
 
         if (i < par_count)  v_set_result_type(par_types[j]);
         else                v_set_result_type(UNREFERENCE_TAG);
 
         v_set_result_value(TEMPORARY_VTAG);
 
-        v_ast_accept_visitor((arg_ptrs[j]: *v_ast_base_t), vis);
+        if (i >= arg_count)         //- Sic !!!
+        {
+            if (!t_one)
+            {
+                t_one := v_find_type("size_t");
+                v_one := LLVMConstInt(v_type_get_llvm_type(t_one), 1, false);
+            }
+
+            v_adopt_result(t_one, v_one);
+        }
+        else
+        {
+            v_ast_accept_visitor((arg_ptrs[j]: *v_ast_base_t), vis);
+        }
+
+//      v_ast_accept_visitor((arg_ptrs[j]: *v_ast_base_t), vis);
 
         values[i] := v_get_result_value();
     }
@@ -724,7 +748,14 @@ my_llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     ft_ = v_type_get_llvm_type(ft);
 
-    _vr = LLVMBuildCall2(builder, ft_, fv, values, arg_count, "");
+    if (tr == v_void_type())
+    {
+        LLVMBuildCall2(builder, ft_, fv, values, val_count, "");
+
+        v_return();
+    }
+
+    _vr = LLVMBuildCall2(builder, ft_, fv, values, val_count, "");
 
     if (!tr_initializable)  vr := _vr;
 
@@ -1412,7 +1443,7 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 private
 my_op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                              agg_t: &*v_type_t, agg_v: &LLVMValueRef,
-                             idx: **v_ast_expr_list_t, count: int
+                             idx: **v_ast_expr_list_t, count: unsigned
                             ) ~> bool
 {
     if (v_type_is_special(agg_t, q_initialize))
@@ -1420,7 +1451,7 @@ my_op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
     {
         q = q_op_postfix_index;
 
-        if (v_util_lookup_overload(q, agg_t, 0,0, 0,0)) v_break();
+        if (v_util_lookup_overload(q, agg_t, 0))  v_break();
 
         agg_t := v_reference_type(agg_t, 0);            //- Sic !!!
     }

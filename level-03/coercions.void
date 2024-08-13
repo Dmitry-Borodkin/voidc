@@ -584,7 +584,7 @@ coerce_to_type: (vis: *voidc_visitor_t, t0: *v_type_t, v0: LLVMValueRef, t1: *v_
 private
 lookup_coe_over: (t: *v_type_t, q: v_quark_t) ~> *v_type_t
 {
-    if (v_util_lookup_overload(q, t, 0,0, 0,0))  v_return(t);
+    if (v_util_lookup_overload(q, t, 0))  v_return(t);
 
     if (l = get_coe_map_list(t, full_dir_q, 0))
     {
@@ -594,7 +594,7 @@ lookup_coe_over: (t: *v_type_t, q: v_quark_t) ~> *v_type_t
         {
             it = get_coe_list_item(l, i);
 
-            if (v_util_lookup_overload(q, it, 0,0, 0,0))  v_return(it);
+            if (v_util_lookup_overload(q, it, 0))   v_return(it);
         }
     }
 
@@ -902,7 +902,7 @@ op_postfix_index_helper_ctx_t = struct
 {
     fun: *((aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
             agg_t: &*v_type_t, agg_v: &LLVMValueRef,
-            idx: **v_ast_expr_list_t, count: int
+            idx: **v_ast_expr_list_t, count: unsigned
            ) ~> bool);
 
     aux: *void;
@@ -912,7 +912,7 @@ op_postfix_index_helper_ctx_t = struct
 private
 my_op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                              agg_t: &*v_type_t, agg_v: &LLVMValueRef,
-                             idx: **v_ast_expr_list_t, count: int
+                             idx: **v_ast_expr_list_t, count: unsigned
                             ) ~> bool
 {
     ttag = v_get_result_type();
@@ -972,7 +972,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     block
     {
-        if (v_util_lookup_overload(quark, t0, 0,0, 0,0))
+        if (v_util_lookup_overload(quark, t0, 0))
         {
             t := t0;
 
@@ -981,7 +981,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         if (!alst)  v_break();
 
-        if (v_util_lookup_overload(q0, t0, 0,0, 0,0))
+        if (v_util_lookup_overload(q0, t0, 0))
         {
             t := t0;
         }
@@ -997,7 +997,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
             {
                 it = get_coe_list_item(l, i);
 
-                if (v_util_lookup_overload(quark, it, 0,0, 0,0))
+                if (v_util_lookup_overload(quark, it, 0))
                 {
                     t := it;
 
@@ -1006,7 +1006,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
                 if (!alst)   v_continue();
 
-                if (v_util_lookup_overload(q0, it, 0,0, 0,0))
+                if (v_util_lookup_overload(q0, it, 0))
                 {
                     t := it;
 

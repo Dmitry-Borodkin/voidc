@@ -53,28 +53,53 @@
 //- "Function dict" utility
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 6);
+    typ0 = v_alloca(v_type_ptr, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
     typ4 = v_getelementptr(typ0, 4);
-    typ5 = v_getelementptr(typ0, 5);
 
     void_ptr     = v_pointer_type(void, 0);
     void_ptr_ptr = v_pointer_type(void_ptr, 0);
+    visitor_ptr  = v_pointer_type(voidc_visitor_t, 0);
+    ast_base_ptr = v_pointer_type(v_ast_base_t, 0);
+    ast_expr_ptr = v_pointer_type(v_ast_expr_t, 0);
+    expr_ptr_ptr = v_pointer_type(ast_expr_ptr, 0);
 
-    v_type_ptr_ptr   = v_pointer_type(v_type_ptr,   0);
-    LLVMValueRef_ptr = v_pointer_type(LLVMValueRef, 0);
+    v_store(void_ptr,     typ0);
+    v_store(visitor_ptr,  typ1);
+    v_store(ast_base_ptr, typ2);
+    v_store(expr_ptr_ptr, typ3);
+    v_store(unsigned,     typ4);
 
-    v_store(v_quark_t,        typ0);
-    v_store(v_type_ptr,       typ1);
-    v_store(void_ptr_ptr,     typ2);
-    v_store(void_ptr_ptr,     typ3);
-    v_store(v_type_ptr_ptr,   typ4);
-    v_store(LLVMValueRef_ptr, typ5);
+    ft = v_function_type(void, typ0, 5, false);
+    overloaded_intrinsic_t = v_pointer_type(ft, 0);
 
-    ft = v_function_type(bool, typ0, 6, false);
+    v_store(v_quark_t,    typ0);
+    v_store(v_type_ptr,   typ1);
+    v_store(void_ptr_ptr, typ2);
+
+    ft = v_function_type(overloaded_intrinsic_t, typ0, 3, false);
     v_export_symbol_type("v_util_lookup_overload", ft);
+
+    v_store(void_ptr,     typ0);
+    v_store(v_quark_t,    typ1);
+    v_store(v_type_ptr,   typ2);
+    v_store(void_ptr_ptr, typ3);
+
+    ft = v_function_type(overloaded_intrinsic_t, typ0, 4, false);
+    lookup_overload_t = v_pointer_type(ft, 0);
+
+    v_store(void_ptr_ptr, typ0);
+
+    ft = v_function_type(lookup_overload_t, typ0, 1, false);
+    v_export_symbol_type("v_util_get_lookup_overload_hook", ft);
+
+    v_store(lookup_overload_t, typ0);
+    v_store(void_ptr,          typ1);
+
+    ft = v_function_type(void, typ0, 2, false);
+    v_export_symbol_type("v_util_set_lookup_overload_hook", ft);
 }
 
 

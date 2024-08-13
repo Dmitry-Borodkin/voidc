@@ -317,9 +317,12 @@ my_object_intrinsic_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_
 //---------------------------------------------------------------------
 private
 my_postfix_call_object_intrinsic_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                                             args: *v_ast_expr_list_t, t0: *v_type_t, v0: LLVMValueRef
+                                             args: **v_ast_expr_t, count: unsigned
                                             ) ~> void
 {
+    t0 = v_ast_expr_compiled_get_type(args[0]);
+    v0 = v_ast_expr_compiled_get_value(args[0]);
+
     v_assert(t0 == v_object_intrinsic_t);
 
     quark = (v0: v_quark_t);

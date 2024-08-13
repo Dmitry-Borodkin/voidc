@@ -24,15 +24,96 @@ namespace utility
 {
 
 //---------------------------------------------------------------------
+extern "C"
+typedef void (*overloaded_intrinsic_t)(void *aux, const visitor_t *vis, const ast_base_t *self,
+                                       const ast_expr_t **args, unsigned count);
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 static
-bool lookup_overload(v_quark_t quark, v_type_t *type,
-                     void *&void_fun, void *&aux,
-                     LLVMValueRef &f, v_type_t *&ft)
+void overloaded_intrinsic_default(void *aux, const visitor_t *vis, const ast_base_t *self,
+                                  const ast_expr_t **args, unsigned arg_count)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+
+    auto qname = v_quark_t(uintptr_t(aux));
+
+    v_type_t    *t;
+    LLVMValueRef fv;
+
+    if (!lctx.obtain_identifier(qname, t, fv))
+    {
+        throw std::runtime_error(std::string("Intrinsic function not found: ") + v_quark_to_string(qname));
+    }
+
+    t = static_cast<v_type_pointer_t *>(t)->element_type();
+
+    auto ft = static_cast<v_type_function_t *>(t);
+
+    auto par_count = ft->param_count();
+    auto par_types = ft->param_types();
+
+    auto val_count = std::max(par_count, arg_count);
+
+    auto values = std::make_unique<LLVMValueRef[]>(val_count);
+
+    auto ttag = lctx.result_type;
+    auto vtag = lctx.result_value;
+
+    v_type_t    *t_one = nullptr;
+    LLVMValueRef v_one;
+
+    for (int i=0; i<val_count; ++i)
+    {
+        if (i < par_count)  lctx.result_type = par_types[i];
+        else                lctx.result_type = UNREFERENCE_TAG;
+
+        lctx.result_value = 0;
+
+        if (i >= arg_count)     //- Sic !!!
+        {
+            if (!t_one)
+            {
+                t_one = gctx.size_t_type;
+                v_one = LLVMConstInt(t_one->llvm_type(), 1, false);
+            }
+
+            lctx.adopt_result(t_one, v_one);
+        }
+        else
+        {
+            voidc_visitor_data_t::visit(*vis, *args[i]);
+        }
+
+        values[i] = lctx.result_value;
+    }
+
+    auto ret_type = ft->return_type();
+
+    if (ret_type == gctx.void_type)
+    {
+        LLVMBuildCall2(gctx.builder, ft->llvm_type(), fv, values.get(), val_count, "");
+
+        return;
+    }
+
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), fv, values.get(), val_count, "");
+
+    lctx.result_type  = ttag;
+    lctx.result_value = vtag;
+
+    lctx.adopt_result(ret_type, v);
+}
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+static overloaded_intrinsic_t
+lookup_overload_default(void *aux, v_quark_t quark, v_type_t *type, void **paux)
+{
+    auto &lctx = *(reinterpret_cast<base_local_ctx_t *>(aux));
 
     const v_quark_t *qname = nullptr;
 
@@ -41,34 +122,62 @@ bool lookup_overload(v_quark_t quark, v_type_t *type,
         qname = it->find(type);
     }
 
-    if (!qname)  return false;
+    if (!qname)  return nullptr;
 
     if (auto p = lctx.decls.intrinsics.find(*qname))
     {
-        void_fun = p->first;
-        aux      = p->second;
+        if (paux) *paux = p->second;
 
-        return true;
+        return  overloaded_intrinsic_t(p->first);
     }
 
-    void_fun = nullptr;
+    if (paux) *paux = (void *)uintptr_t(*qname);
 
-    v_type_t *t;
-
-    if (!lctx.obtain_identifier(*qname, t, f))
-    {
-        throw std::runtime_error(std::string("Intrinsic function not found: ") + v_quark_to_string(*qname));
-    }
-
-    ft = static_cast<v_type_pointer_t *>(t)->element_type();
-
-    return true;
+    return  overloaded_intrinsic_default;
 }
 
 //---------------------------------------------------------------------
+static v_quark_t lookup_overload_q;
+
+//---------------------------------------------------------------------
 extern "C"
-typedef void (*intrinsic_t)(void *aux, const visitor_t *vis, const ast_base_t *self,
-                            v_type_t *type, LLVMValueRef value);
+typedef overloaded_intrinsic_t (*lookup_overload_t)(void *, v_quark_t, v_type_t *, void **);
+
+static inline lookup_overload_t
+get_lookup_overload_hook(void **paux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    if (auto *p = lctx.decls.intrinsics.find(lookup_overload_q))
+    {
+        if (paux) *paux = p->second;
+
+        return  lookup_overload_t(p->first);
+    }
+
+    if (paux) *paux = &lctx;
+
+    return lookup_overload_default;
+}
+
+static inline void
+set_lookup_overload_hook(lookup_overload_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.decls.intrinsics_insert({lookup_overload_q, {(void *)fun, aux}});
+}
+
+static inline overloaded_intrinsic_t
+lookup_overload(v_quark_t quark, v_type_t *type, void **paux)
+{
+    void *aux;
+    auto *fun = get_lookup_overload_hook(&aux);
+
+    return fun(aux, quark, type, paux);         //- Sic!
+}
 
 
 //---------------------------------------------------------------------
@@ -97,77 +206,27 @@ void v_universal_intrinsic(void *void_quark, const visitor_t *vis, const ast_bas
 
     auto type = static_cast<v_type_pointer_t *>(res_type)->element_type();
 
-    void *void_fun;
     void *aux;
-
-    LLVMValueRef f;
-    v_type_t    *t;
-
-    auto ok = lookup_overload(quark, type, void_fun, aux, f, t);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        lctx.result_type  = ttag;
-        lctx.result_value = vtag;
-
-        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, res_type, res_value);
-
-        return;
-    }
-
-    //- Function call
-
-    auto ft = static_cast<v_type_function_t *>(t);
-
-    auto par_count = ft->param_count();
-    auto par_types = ft->param_types();
+    auto *fun = lookup_overload(quark, type, &aux);
+    assert(fun);
 
     auto arg_count = args->data.size();
 
-    auto val_count = std::max(size_t(par_count), arg_count);
+    auto argp = std::make_unique<const ast_expr_t *[]>(arg_count);
 
-    auto values = std::make_unique<LLVMValueRef[]>(val_count);
+    ast_expr_t arg0 = std::make_shared<const ast_expr_compiled_data_t>(res_type, res_value);
 
-    for (int i=0; i<val_count; ++i)
+    argp[0] = &arg0;
+
+    for (int i=1; i<arg_count; ++i)
     {
-        v_type_t    *ti = nullptr;
-        LLVMValueRef vi = nullptr;
-
-        if (i == 0)
-        {
-            ti = res_type;
-            vi = res_value;
-        }
-        else if (arg_count <= i)
-        {
-            ti = gctx.size_t_type;                                      //- Sic!!!
-            vi = LLVMConstInt(ti->llvm_type(), 1, false);               //- Sic!
-        }
-
-        if (i < par_count)  lctx.result_type = par_types[i];
-        else                lctx.result_type = UNREFERENCE_TAG;
-
-        lctx.result_value = 0;
-
-        if (vi)
-        {
-            lctx.adopt_result(ti, vi);
-        }
-        else
-        {
-            voidc_visitor_data_t::visit(*vis, args->data[i]);
-        }
-
-        values[i] = lctx.result_value;
+        argp[i] = &args->data[i];
     }
-
-    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values.get(), val_count, "");
 
     lctx.result_type  = ttag;
     lctx.result_value = vtag;
 
-    lctx.adopt_result(ft->return_type(), v);
+    fun(aux, vis, self, argp.get(), arg_count);
 }
 
 
@@ -186,7 +245,6 @@ void v_std_any_get_value_intrinsic(void *void_quark, const visitor_t *vis, const
     auto vtag = lctx.result_value;
 
     lctx.result_type = INVIOLABLE_TAG;
-//  lctx.result_type  = voidc_global_ctx_t::voidc->static_type_type;
     lctx.result_value = 0;
 
     voidc_visitor_data_t::visit(*vis, args->data[0]);       //- Type
@@ -195,41 +253,16 @@ void v_std_any_get_value_intrinsic(void *void_quark, const visitor_t *vis, const
 
     auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 
-    void *void_fun;
     void *aux;
+    auto *fun = lookup_overload(quark, type, &aux);
+    assert(fun);
 
-    LLVMValueRef f;
-    v_type_t    *ft;
-
-    auto ok = lookup_overload(quark, type, void_fun, aux, f, ft);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        auto tr = lctx.result_type;
-        auto vr = lctx.result_value;
-
-        lctx.result_type  = ttag;
-        lctx.result_value = vtag;
-
-        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, tr, vr);
-
-        return;
-    }
-
-    //- Function call
-
-    lctx.result_type  = UNREFERENCE_TAG;
-    lctx.result_value = 0;
-
-    voidc_visitor_data_t::visit(*vis, args->data[1]);
-
-    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
+    const ast_expr_t *argp = &args->data[1];
 
     lctx.result_type  = ttag;
     lctx.result_value = vtag;
 
-    lctx.adopt_result(type, v);
+    fun(aux, vis, self, &argp, 1);
 }
 
 //---------------------------------------------------------------------
@@ -247,7 +280,6 @@ void v_std_any_get_pointer_intrinsic(void *void_quark, const visitor_t *vis, con
     auto vtag = lctx.result_value;
 
     lctx.result_type = INVIOLABLE_TAG;
-//  lctx.result_type  = voidc_global_ctx_t::voidc->static_type_type;
     lctx.result_value = 0;
 
     voidc_visitor_data_t::visit(*vis, args->data[0]);       //- Type
@@ -256,45 +288,16 @@ void v_std_any_get_pointer_intrinsic(void *void_quark, const visitor_t *vis, con
 
     auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 
-    void *void_fun;
     void *aux;
+    auto *fun = lookup_overload(quark, type, &aux);
+    assert(fun);
 
-    LLVMValueRef f;
-    v_type_t    *ft;
-
-    auto ok = lookup_overload(quark, type, void_fun, aux, f, ft);
-    assert(ok);
-
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        auto tr = lctx.result_type;
-        auto vr = lctx.result_value;
-
-        lctx.result_type  = ttag;
-        lctx.result_value = vtag;
-
-        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, tr, vr);
-
-        return;
-    }
-
-    //- Function call
-
-    lctx.result_type  = UNREFERENCE_TAG;
-    lctx.result_value = 0;
-
-    voidc_visitor_data_t::visit(*vis, args->data[1]);
-
-    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, &lctx.result_value, 1, "");
-
-    auto adsp = LLVMGetPointerAddressSpace(LLVMTypeOf(v));
-
-    type = gctx.make_pointer_type(type, adsp);
+    const ast_expr_t *argp = &args->data[1];
 
     lctx.result_type  = ttag;
     lctx.result_value = vtag;
 
-    lctx.adopt_result(type, v);
+    fun(aux, vis, self, &argp, 1);
 }
 
 //---------------------------------------------------------------------
@@ -313,38 +316,18 @@ void v_std_any_set_value_intrinsic(void *void_quark, const visitor_t *vis, const
 
     voidc_visitor_data_t::visit(*vis, args->data[1]);       //- Second argument
 
-    auto type = lctx.result_type;
+    auto type  = lctx.result_type;
+    auto value = lctx.result_value;
 
-    void *void_fun;
     void *aux;
+    auto *fun = lookup_overload(quark, type, &aux);
+    assert(fun);
 
-    LLVMValueRef f;
-    v_type_t    *ft;
+    ast_expr_t arg1 = std::make_shared<const ast_expr_compiled_data_t>(type, value);
 
-    auto ok = lookup_overload(quark, type, void_fun, aux, f, ft);
-    assert(ok);
+    const ast_expr_t *argp[2] = { &args->data[0], &arg1 };
 
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
-
-    LLVMValueRef values[2];
-
-    values[1] = lctx.result_value;
-
-    lctx.result_type  = UNREFERENCE_TAG;
-    lctx.result_value = 0;
-
-    voidc_visitor_data_t::visit(*vis, args->data[0]);       //- First argument
-
-    values[0] = lctx.result_value;
-
-    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
+    fun(aux, vis, self, argp, 2);
 }
 
 //---------------------------------------------------------------------
@@ -363,38 +346,20 @@ void v_std_any_set_pointer_intrinsic(void *void_quark, const visitor_t *vis, con
 
     voidc_visitor_data_t::visit(*vis, args->data[1]);       //- Second argument
 
-    auto type = static_cast<v_type_pointer_t *>(lctx.result_type)->element_type();
+    auto t = lctx.result_type;
+    auto v = lctx.result_value;
 
-    void *void_fun;
+    auto type = static_cast<v_type_pointer_t *>(t)->element_type();
+
     void *aux;
+    auto *fun = lookup_overload(quark, type, &aux);
+    assert(fun);
 
-    LLVMValueRef f;
-    v_type_t    *ft;
+    ast_expr_t arg1 = std::make_shared<const ast_expr_compiled_data_t>(t, v);
 
-    auto ok = lookup_overload(quark, type, void_fun, aux, f, ft);
-    assert(ok);
+    const ast_expr_t *argp[2] = { &args->data[0], &arg1 };
 
-    if (void_fun)       //- Compile-time intrinsic?
-    {
-        reinterpret_cast<intrinsic_t>(void_fun)(aux, vis, self, lctx.result_type, lctx.result_value);
-
-        return;
-    }
-
-    //- Function call
-
-    LLVMValueRef values[2];
-
-    values[1] = lctx.result_value;
-
-    lctx.result_type  = UNREFERENCE_TAG;
-    lctx.result_value = 0;
-
-    voidc_visitor_data_t::visit(*vis, args->data[0]);       //- First argument
-
-    values[0] = lctx.result_value;
-
-    LLVMBuildCall2(gctx.builder, ft->llvm_type(), f, values, 2, "");
+    fun(aux, vis, self, argp, 2);
 }
 
 
@@ -422,6 +387,8 @@ void static_initialize(void)
     auto &vctx = *voidc_global_ctx_t::voidc;
 
     auto q = v_quark_from_string;
+
+    lookup_overload_q = q("voidc.hook_lookup_overload");
 
 #define DEF2(name, fname) \
     auto name##_q = q("v_" #name); \
@@ -509,29 +476,24 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //---------------------------------------------------------------------
-bool v_util_lookup_overload(v_quark_t quark, v_type_t *type,
-                            void **void_fun, void **void_aux,
-                            v_type_t **ft, LLVMValueRef *fv)
+utility::overloaded_intrinsic_t
+v_util_lookup_overload(v_quark_t quark, v_type_t *type, void **paux)
 {
-    void *_fun = nullptr;
-    void *_aux = nullptr;
-
-    LLVMValueRef _fv = nullptr;
-    v_type_t    *_ft = nullptr;
-
-    bool ret = utility::lookup_overload(quark, type, _fun, _aux, _fv, _ft);
-
-    if (ret)
-    {
-        if (_fun  &&  void_fun)   *void_fun = _fun;
-        if (_aux  &&  void_aux)   *void_aux = _aux;
-
-        if (_ft  &&  ft)  *ft = _ft;
-        if (_fv  &&  fv)  *fv = _fv;
-    }
-
-    return ret;
+    return  utility::lookup_overload(quark, type, paux);
 }
+
+utility::lookup_overload_t
+v_util_get_lookup_overload_hook(void **paux)
+{
+    return  utility::get_lookup_overload_hook(paux);
+}
+
+void
+v_util_set_lookup_overload_hook(utility::lookup_overload_t fun, void *aux)
+{
+    utility::set_lookup_overload_hook(fun, aux);
+}
+
 
 //---------------------------------------------------------------------
 VOIDC_DEFINE_INITIALIZE_IMPL(std::any, v_util_initialize_std_any_impl)

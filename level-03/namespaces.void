@@ -1075,8 +1075,8 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     ctx = *(aux: *op_postfix_dot_helper_ctx_t);
 
     {   if (t0 != v_static_namespace_t  ||
-            v_util_lookup_overload(q1, t0, 0,0, 0,0)  ||
-            v_util_lookup_overload(q0, t0, 0,0, 0,0)
+            v_util_lookup_overload(q1, t0, 0)  ||
+            v_util_lookup_overload(q0, t0, 0)
            )
         {
             ctx.fun(ctx.aux, vis, self, t0, v0, q0, q1, alst);
