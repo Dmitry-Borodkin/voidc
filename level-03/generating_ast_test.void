@@ -65,7 +65,11 @@ some = my.make_refcnt(int);
 
     foo := {};          //- Sic !!!
 
+    printf("\nAnd here there should be an assertion! It\'s OK!\n\n");
+
     printf("foo.use_count: %zd\n", foo.use_count);
+
+    printf("Damn! Does not work!\n");
 }
 
 

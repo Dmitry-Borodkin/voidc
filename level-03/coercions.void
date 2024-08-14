@@ -78,9 +78,10 @@ export v_coe_single:     int = 2;           //- ... user conversion
     v_add_symbol("full_dir_q", q_ref, q("v.coe_full_dir"));     //- Sic!
 
     //-----------------------------------------------------------------
-    v_add_symbol("q_op_postfix_call",  q_ref, q("v.op_postfix_call"));
-    v_add_symbol("q_op_postfix_index", q_ref, q("v.op_postfix_index"));
-    v_add_symbol("q_op_postfix_to",    q_ref, q("v.op_postfix_to"));
+    v_add_symbol("q_op_postfix_call",       q_ref, q("v.op_postfix_call"));
+    v_add_symbol("q_op_postfix_index",      q_ref, q("v.op_postfix_index"));
+    v_add_symbol("q_op_postfix_index_pack", q_ref, q("v.op_postfix_index.pack"));
+    v_add_symbol("q_op_postfix_to",         q_ref, q("v.op_postfix_to"));
 }
 
 
@@ -918,8 +919,10 @@ my_op_postfix_index_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    t: &*v_type_t    := lookup_coe_over(agg_t, q_op_postfix_index);
+    t: &*v_type_t    := lookup_coe_over(agg_t, q_op_postfix_index_pack);
     v: &LLVMValueRef := agg_v;
+
+    if (!t) t := lookup_coe_over(agg_t, q_op_postfix_index);
 
     if (t)  v := coerce_to_type(vis, agg_t, agg_v, t);
     else    t := agg_t;

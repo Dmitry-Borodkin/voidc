@@ -55,37 +55,19 @@ void overloaded_intrinsic_default(void *aux, const visitor_t *vis, const ast_bas
     auto par_count = ft->param_count();
     auto par_types = ft->param_types();
 
-    auto val_count = std::max(par_count, arg_count);
-
-    auto values = std::make_unique<LLVMValueRef[]>(val_count);
+    auto values = std::make_unique<LLVMValueRef[]>(arg_count);
 
     auto ttag = lctx.result_type;
     auto vtag = lctx.result_value;
 
-    v_type_t    *t_one = nullptr;
-    LLVMValueRef v_one;
-
-    for (int i=0; i<val_count; ++i)
+    for (int i=0; i<arg_count; ++i)
     {
         if (i < par_count)  lctx.result_type = par_types[i];
         else                lctx.result_type = UNREFERENCE_TAG;
 
         lctx.result_value = 0;
 
-        if (i >= arg_count)     //- Sic !!!
-        {
-            if (!t_one)
-            {
-                t_one = gctx.size_t_type;
-                v_one = LLVMConstInt(t_one->llvm_type(), 1, false);
-            }
-
-            lctx.adopt_result(t_one, v_one);
-        }
-        else
-        {
-            voidc_visitor_data_t::visit(*vis, *args[i]);
-        }
+        voidc_visitor_data_t::visit(*vis, *args[i]);
 
         values[i] = lctx.result_value;
     }
@@ -94,12 +76,12 @@ void overloaded_intrinsic_default(void *aux, const visitor_t *vis, const ast_bas
 
     if (ret_type == gctx.void_type)
     {
-        LLVMBuildCall2(gctx.builder, ft->llvm_type(), fv, values.get(), val_count, "");
+        LLVMBuildCall2(gctx.builder, ft->llvm_type(), fv, values.get(), arg_count, "");
 
         return;
     }
 
-    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), fv, values.get(), val_count, "");
+    auto v = LLVMBuildCall2(gctx.builder, ft->llvm_type(), fv, values.get(), arg_count, "");
 
     lctx.result_type  = ttag;
     lctx.result_value = vtag;
@@ -183,12 +165,18 @@ lookup_overload(v_quark_t quark, v_type_t *type, void **paux)
 //---------------------------------------------------------------------
 //- Intrinsics (true)
 //---------------------------------------------------------------------
+static v_type_t *generic_list_type;
+
+//---------------------------------------------------------------------
 static
-void v_universal_intrinsic(void *void_quark, const visitor_t *vis, const ast_base_t *self)
+void v_universal_intrinsic(void *void_aux, const visitor_t *vis, const ast_base_t *self)
 {
     auto &args = static_cast<const ast_expr_call_data_t &>(**self).arg_list;
 
-    auto quark = v_quark_t(uintptr_t(void_quark));
+    auto ctx = (unsigned *)void_aux;
+
+    auto quark = v_quark_t(ctx[0]);
+    auto par_count = ctx[1];
 
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
@@ -206,27 +194,48 @@ void v_universal_intrinsic(void *void_quark, const visitor_t *vis, const ast_bas
 
     auto type = static_cast<v_type_pointer_t *>(res_type)->element_type();
 
+    if (par_count == 0)
+    {
+        //- Special case for v_make_list ...
+
+        if (type == generic_list_type)  par_count = 4;
+        else                            par_count = 3;
+    }
+
     void *aux;
     auto *fun = lookup_overload(quark, type, &aux);
     assert(fun);
 
-    auto arg_count = args->data.size();
+    auto arg_count = unsigned(args->data.size());
 
-    auto argp = std::make_unique<const ast_expr_t *[]>(arg_count);
+    auto count = std::max(arg_count, par_count);
+
+    auto argp = std::make_unique<const ast_expr_t *[]>(count);
 
     ast_expr_t arg0 = std::make_shared<const ast_expr_compiled_data_t>(res_type, res_value);
 
     argp[0] = &arg0;
 
-    for (int i=1; i<arg_count; ++i)
+    ast_expr_t e_one;
+
+    for (int i=1; i<count; ++i)
     {
-        argp[i] = &args->data[i];
+        if (i >= arg_count)
+        {
+            static ast_expr_t expr = std::make_shared<const ast_expr_integer_data_t>(1);
+
+            argp[i] = &expr;
+        }
+        else
+        {
+            argp[i] = &args->data[i];
+        }
     }
 
     lctx.result_type  = ttag;
     lctx.result_value = vtag;
 
-    fun(aux, vis, self, argp.get(), arg_count);
+    fun(aux, vis, self, argp.get(), count);
 }
 
 
@@ -388,50 +397,53 @@ void static_initialize(void)
 
     auto q = v_quark_from_string;
 
+    generic_list_type = vctx.make_struct_type(q("v_ast_generic_list_t"));
+
     lookup_overload_q = q("voidc.hook_lookup_overload");
 
-#define DEF2(name, fname) \
+#define DEF_U(name, num) \
     auto name##_q = q("v_" #name); \
-    vctx.decls.intrinsics_insert({name##_q, {(void *)fname, (void *)uintptr_t(name##_q)}});
+    static unsigned name##_params[2] = { name##_q, num }; \
+    vctx.decls.intrinsics_insert({name##_q, {(void *)v_universal_intrinsic, (void *)name##_params}});
 
-#define DEF_U(name) DEF2(name, v_universal_intrinsic)
+#define DEF(name) \
+    auto name##_q = q("v_" #name); \
+    vctx.decls.intrinsics_insert({name##_q, {(void *)v_##name##_intrinsic, (void *)uintptr_t(name##_q)}});
 
-#define DEF(name) DEF2(name, v_##name##_intrinsic)
+    DEF_U(initialize, 2)
+    DEF_U(terminate, 2)
 
-    DEF_U(initialize)
-    DEF_U(terminate)
+    DEF_U(copy, 3)
+    DEF_U(move, 3)
 
-    DEF_U(copy)
-    DEF_U(move)
-
-    DEF_U(empty)
-    DEF_U(kind)
+    DEF_U(empty, 1)
+    DEF_U(kind, 1)
 
     DEF(std_any_get_value)
     DEF(std_any_get_pointer)
     DEF(std_any_set_value)
     DEF(std_any_set_pointer)
 
-    DEF_U(make_list_nil)
-    DEF_U(make_list)
+    DEF_U(make_list_nil, 1)         //- Sic !!!
+    DEF_U(make_list, 0)             //- Sic !!!
 
-    DEF_U(list_append)
-    DEF_U(list_get_size)
-    DEF_U(list_get_item)
+    DEF_U(list_append, 4)
+    DEF_U(list_get_size, 1)
+    DEF_U(list_get_item, 2)
 
-    DEF_U(list_concat)
-    DEF_U(list_insert)
-    DEF_U(list_erase)
+    DEF_U(list_concat, 3)
+    DEF_U(list_insert, 5)
+    DEF_U(list_erase, 4)
 
-    DEF_U(make_map)
-    DEF_U(map_get_size)
-    DEF_U(map_find)
-    DEF_U(map_insert)
-    DEF_U(map_erase)
+    DEF_U(make_map, 1)
+    DEF_U(map_get_size, 1)
+    DEF_U(map_find, 2)
+    DEF_U(map_insert, 4)
+    DEF_U(map_erase, 3)
 
-    DEF_U(ast_make_generic)
-    DEF_U(ast_generic_get_vtable)
-    DEF_U(ast_generic_get_object)
+    DEF_U(ast_make_generic, 3)
+    DEF_U(ast_generic_get_vtable, 1)
+    DEF_U(ast_generic_get_object, 1)
 
 #undef DEF
 #undef DEF_U

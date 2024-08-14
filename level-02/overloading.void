@@ -207,41 +207,20 @@ llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     par_count = v_type_function_get_param_count(ft);
     par_types = v_type_function_get_param_types(ft);
 
-    val_count: &unsigned := v_undef();
-
-    if (par_count < arg_count)  val_count := arg_count;
-    else                        val_count := par_count;
-
-    values = v_malloc(LLVMValueRef, val_count);
+    values = v_malloc(LLVMValueRef, arg_count);
     defer v_free(values);
 
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    t_one: &*v_type_t    := 0;
-    v_one: &LLVMValueRef := v_undef();
-
-    for (i: &unsigned := 0; i < val_count; ++i)
+    for (i: &unsigned := 0; i < arg_count; ++i)
     {
         if (i < par_count)  v_set_result_type(par_types[i]);
         else                v_set_result_type(UNREFERENCE_TAG);
 
         v_set_result_value(0);
 
-        if (i >= arg_count)         //- Sic !!!
-        {
-            if (!t_one)
-            {
-                t_one := v_find_type("size_t");
-                v_one := LLVMConstInt(v_type_get_llvm_type(t_one), 1, false);
-            }
-
-            v_adopt_result(t_one, v_one);
-        }
-        else
-        {
-            v_ast_accept_visitor((arg_ptrs[i]: *v_ast_base_t), vis);
-        }
+        v_ast_accept_visitor((arg_ptrs[i]: *v_ast_base_t), vis);
 
         values[i] := v_get_result_value();
     }
@@ -254,12 +233,12 @@ llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     if (tr == v_void_type())
     {
-        LLVMBuildCall2(builder, ft_, fv, values, val_count, "");
+        LLVMBuildCall2(builder, ft_, fv, values, arg_count, "");
 
         v_return();
     }
 
-    vr = LLVMBuildCall2(builder, ft_, fv, values, val_count, "");
+    vr = LLVMBuildCall2(builder, ft_, fv, values, arg_count, "");
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
