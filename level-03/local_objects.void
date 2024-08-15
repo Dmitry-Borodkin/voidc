@@ -38,6 +38,8 @@
     v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
     v_add_symbol("q_copy",       q_ref, q("v_copy"));
 
+    v_add_symbol("q_break", q_ref, q("v_break"));
+
     v_add_symbol("q_op_postfix_index", q_ref, q("v.op_postfix_index"));
 
     v_add_symbol("q_getelementptr", q_ref, q("v_getelementptr"));
@@ -127,6 +129,36 @@ mk_expr_stmt_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
     v_ast_make_expr_stmt(expr, stmt);
 
     v_std_any_set_pointer(ret, expr);
+}
+
+//---------------------------------------------------------------------
+private
+mk_expr_block_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    slst = v_std_any_get_pointer(v_ast_stmt_list_t, any+0);
+    expr = v_std_any_get_pointer(v_ast_expr_t,      any+1);
+
+    stmt = v_alloca(v_ast_stmt_t);
+    v_initialize(stmt);
+    defer v_terminate(stmt);
+
+    v_ast_make_stmt_call(stmt, 0, q_break, expr, 1);
+
+    list = v_alloca(v_ast_stmt_list_t);
+    v_initialize(list);
+    defer v_terminate(list);
+
+    v_list_append(list, slst, stmt);
+
+    v_ast_make_stmt_block(stmt, list, true);
+
+    etmp = v_alloca(v_ast_expr_t);
+    v_initialize(etmp);
+    defer v_terminate(etmp);
+
+    v_ast_make_expr_stmt(etmp, stmt);
+
+    v_std_any_set_pointer(ret, etmp);
 }
 
 
@@ -1040,6 +1072,9 @@ my_return_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
 private
 compile_expr_stmt: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("compile_expr_stmt start\n");
+//defer printf("compile_expr_stmt stop\n");
+
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
@@ -1546,7 +1581,8 @@ voidc_enable_local_objects: () ~> void
     grammar gr0
     {
     actions:
-        mk_expr_stmt = mk_expr_stmt_grammar_action;
+        mk_expr_stmt  = mk_expr_stmt_grammar_action;
+        mk_expr_block = mk_expr_block_grammar_action;
 
     parsers:
         stmt_big_block = "block" _'{'_ l:stmt_list _'}'     { mk_stmt_block(l, 1) };    //- Sic!
@@ -1558,7 +1594,11 @@ voidc_enable_local_objects: () ~> void
                   / stmt_for
                   ;
 
-        prim += s:expr_stmt         { mk_expr_stmt(s) };
+        expr_block = '{'_ s:stmt_list_lr _ e:expr _'}'      { mk_expr_block(s, e) };
+
+        prim += s:expr_stmt         { mk_expr_stmt(s) }
+              / expr_block
+              ;
     }
 
     v_peg_set_grammar(gr0);

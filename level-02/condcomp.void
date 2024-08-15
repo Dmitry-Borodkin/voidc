@@ -191,7 +191,7 @@ compile_unit_ccif_list: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
             v_ast_accept_visitor(item, vis);
         }
 
-        v_break();
+        v_return();
     }
 }
 
@@ -227,7 +227,7 @@ compile_stmt_ccif_list: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
         v_ast_accept_visitor(slst, vis);
 
-        v_break();
+        v_return();
     }
 }
 
@@ -269,10 +269,8 @@ compile_expr_ccif_list: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
         v_ast_accept_visitor(expr, vis);
 
-        v_break();
+        v_return();
     }
-
-    //- v_assert(false);        //- Sic!
 }
 
 
@@ -370,14 +368,14 @@ voidc_enable_condcomp_n1: () ~> void
 
         //-------------------------------------------------------------
 
-        expr_ccif_lr = l:expr_ccif_lr _ "#elif" _'('_ c:expr _')'_ e:expr   { mk_expr_ccif(l, c, e) }
-                     / "#if" _'('_ c:expr _')'_ e:expr                      { mk_expr_ccif(0, c, e) }
+        expr_ccif_lr = l:expr_ccif_lr _ "#elif" _'('_ c:expr _')'_ e:expr       { mk_expr_ccif(l, c, e) }
+                     / "#if" _'('_ c:expr _')'_ e:expr                          { mk_expr_ccif(0, c, e) }
                      ;
 
         expr_ccif_lr is left-recursive;
 
 
-        expr_ccif_list = l:expr_ccif_lr _ "#else" !ident_cont _ e:expr      { mk_expr_ccif(l, 0, e) }
+        expr_ccif_list = l:expr_ccif_lr _ "#else" !ident_cont _ e:expr          { mk_expr_ccif(l, 0, e) }
                        //- Sic !!!
                        ;
 
