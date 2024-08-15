@@ -32,7 +32,8 @@
 
     v_add_symbol("enabled_q", q_ref, q("voidc.internal.local_objects_enabled"));
 
-    v_add_symbol("expr_stmt_q", q_ref, q("expr_stmt"));
+    v_add_symbol("expr_stmt_q",  q_ref, q("expr_stmt"));
+    v_add_symbol("expr_block_q", q_ref, q("expr_block"));
 
     v_add_symbol("q_initialize", q_ref, q("v_initialize"));
     v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
@@ -110,7 +111,65 @@ v_ast_make_expr_stmt: (ret: *v_ast_expr_t, stmt: *v_ast_stmt_t) ~> void
 
     if (stmt)  v_copy(&obj.stmt, stmt);
 
-    v_copy(ret,  expr);
+    v_copy(ret, expr);
+}
+
+//---------------------------------------------------------------------
+//- v_ast_expr_block_t ...
+//---------------------------------------------------------------------
+export
+struct v_ast_expr_block_t
+{
+    slst: v_ast_stmt_list_t;            //- Statements...
+    expr: v_ast_expr_t;                 //- Expression...
+};
+
+//---------------------------------------------------------------------
+private
+ast_expr_block_init: (void_obj: *void) ~> void
+{
+    obj = *(void_obj: *v_ast_expr_block_t);
+
+    v_initialize(&obj.slst);
+    v_initialize(&obj.expr);
+}
+
+//---------------------------------------------------------------------
+private
+ast_expr_block_term: (void_obj: *void) ~> void
+{
+    obj = *(void_obj: *v_ast_expr_block_t);
+
+    v_terminate(&obj.expr);
+    v_terminate(&obj.slst);
+}
+
+
+//---------------------------------------------------------------------
+ast_expr_block_vtable: &v_ast_generic_vtable :=
+{
+    ast_expr_block_init,
+    ast_expr_block_term,
+};
+
+//---------------------------------------------------------------------
+export
+v_ast_make_expr_block: (ret: *v_ast_expr_t, slst: *v_ast_stmt_list_t, expr: *v_ast_expr_t) ~> void
+{
+    etmp = v_alloca(v_ast_expr_t);
+    v_initialize(etmp);
+    defer v_terminate(etmp);
+
+    v_ast_make_generic(etmp, &ast_expr_block_vtable, v_ast_expr_block_t.size);
+
+    void_obj = v_ast_generic_get_object(etmp);
+
+    obj = *(void_obj: *v_ast_expr_block_t);
+
+    v_copy(&obj.slst, slst);
+    v_copy(&obj.expr, expr);
+
+    v_copy(ret, etmp);
 }
 
 
@@ -138,25 +197,11 @@ mk_expr_block_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     slst = v_std_any_get_pointer(v_ast_stmt_list_t, any+0);
     expr = v_std_any_get_pointer(v_ast_expr_t,      any+1);
 
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
-
-    v_ast_make_stmt_call(stmt, 0, q_break, expr, 1);
-
-    list = v_alloca(v_ast_stmt_list_t);
-    v_initialize(list);
-    defer v_terminate(list);
-
-    v_list_append(list, slst, stmt);
-
-    v_ast_make_stmt_block(stmt, list, true);
-
     etmp = v_alloca(v_ast_expr_t);
     v_initialize(etmp);
     defer v_terminate(etmp);
 
-    v_ast_make_expr_stmt(etmp, stmt);
+    v_ast_make_expr_block(etmp, slst, expr);
 
     v_std_any_set_pointer(ret, etmp);
 }
@@ -1120,6 +1165,34 @@ compile_expr_stmt: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     v_adopt_result(tr, vr);         //- ?
 }
 
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+compile_expr_block: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("compile_expr_block start\n");
+//defer printf("compile_expr_block stop\n");
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
+
+    obj = *(void_obj: *v_ast_expr_block_t);
+
+    v_save_variables();
+
+    v_ast_accept_visitor((&obj.slst: *v_ast_base_t), vis);
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_ast_accept_visitor((&obj.expr: *v_ast_base_t), vis);
+
+    v_restore_variables();
+}
+
 
 //---------------------------------------------------------------------
 //- ...
@@ -1194,6 +1267,16 @@ v_get_return_value_intrinsic: (*void, *voidc_visitor_t, *v_ast_base_t) ~> void
     ret_value = v_get_variable_value_q(voidc_internal_return_value_q);
 
     v_adopt_result(v_reference_type(ret_type, 0), ret_value);
+}
+
+//---------------------------------------------------------------------
+private
+v_get_break_value_intrinsic: (*void, *voidc_visitor_t, *v_ast_base_t) ~> void
+{
+    brk_type  = v_get_variable_type_q(voidc_internal_break_value_q);
+    brk_value = v_get_variable_value_q(voidc_internal_break_value_q);
+
+    v_adopt_result(v_reference_type(brk_type, 0), brk_value);
 }
 
 //---------------------------------------------------------------------
@@ -1517,6 +1600,7 @@ voidc_enable_local_objects_compiler: () ~> void
     v_add_intrinsic_q(q, my_return_intrinsic, &ctx);
 
     v_add_intrinsic("v_get_return_value", v_get_return_value_intrinsic, 0);
+    v_add_intrinsic("v_get_break_value",  v_get_break_value_intrinsic,  0);
 
     {   aux: &*void := v_undef();
 
@@ -1528,9 +1612,10 @@ voidc_enable_local_objects_compiler: () ~> void
     }
 
     //-----------------------------------------------------------------
-    voidc_visitor_set_method(vis, vis, expr_stmt_q, compile_expr_stmt, 0);
+    voidc_visitor_set_method(vis, vis, expr_stmt_q,  compile_expr_stmt,  0);
+    voidc_visitor_set_method(vis, vis, expr_block_q, compile_expr_block, 0);
 
-    v_add_intrinsic("v_break", my_break_intrinsic, 0);
+    v_add_intrinsic_q(q_break, my_break_intrinsic, 0);
 
     //-----------------------------------------------------------------
     q = v_quark_from_string;
@@ -1612,7 +1697,8 @@ voidc_enable_local_objects: () ~> void
 //---------------------------------------------------------------------
 {   my_fake_utility_intrinsic_ctor();
 
-    ast_expr_stmt_vtable[2] := expr_stmt_q;
+    ast_expr_stmt_vtable[2]  := expr_stmt_q;
+    ast_expr_block_vtable[2] := expr_block_q;
 }
 
 
