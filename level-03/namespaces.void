@@ -1225,6 +1225,10 @@ my_compile_expr_struct: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
     name = &obj[0];
 
+    self_: &*v_ast_base_t := self;
+
+    expr: &v_ast_expr_t := {};
+
     if (!v_empty(name))
     {
         tag = v_ast_base_get_tag(name);
@@ -1237,14 +1241,22 @@ my_compile_expr_struct: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
             if (q0 != q1)
             {
-                v_ast_make_expr_identifier_q(name, q1);
+                v_ast_make_expr_identifier_q(&expr, q1);
+
+                body   = &obj[1];
+                packed =  obj[2];
+                export =  obj[3];
+
+                v_ast_make_expr_struct(&expr, &expr, body, packed, export);
+
+                self_ := &expr;
             }
         }
     }
 
     ctx = *(aux: *my_expr_struct_ctx_t);
 
-    ctx.fun(ctx.aux, vis, self);
+    ctx.fun(ctx.aux, vis, self_);
 }
 
 //---------------------------------------------------------------------
@@ -1258,7 +1270,11 @@ my_compile_expr_union: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     obj = *(void_obj: *v_ast_expr_union_t);
 
-    name = &obj[0];
+    name = &obj.name;
+
+    self_: &*v_ast_base_t := self;
+
+    expr: &v_ast_expr_t := {};
 
     if (!v_empty(name))
     {
@@ -1272,14 +1288,21 @@ my_compile_expr_union: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
             if (q0 != q1)
             {
-                v_ast_make_expr_identifier_q(name, q1);
+                v_ast_make_expr_identifier_q(&expr, q1);
+
+                body   = &obj.body;
+                export =  obj.export;
+
+                v_ast_make_expr_union(&expr, &expr, body, export);
+
+                self_ := &expr;
             }
         }
     }
 
     ctx = *(aux: *my_expr_struct_ctx_t);
 
-    ctx.fun(ctx.aux, vis, self);
+    ctx.fun(ctx.aux, vis, self_);
 }
 
 
