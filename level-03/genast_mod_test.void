@@ -143,7 +143,7 @@ refcnt_ptr_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
 
 //---------------------------------------------------------------------
 private
-instantiate_ast: &const v_ast_generic_list_t :=         //- T - type parameter ...
+instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
 {'unit_defn_list'
 
   namespace my
@@ -390,7 +390,7 @@ instantiate_refcnt_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_ba
 
 //---------------------------------------------------------------------
 private
-make_refcnt_ast: &const v_ast_expr_t  :=  {'expr'  .my.refcnt_ptr_ns(T).create()  'expr'};
+make_refcnt_ast: v_ast_expr_t  =  {'expr'  .my.refcnt_ptr_ns(T).create()  'expr'};
 
 //---------------------------------------------------------------------
 export

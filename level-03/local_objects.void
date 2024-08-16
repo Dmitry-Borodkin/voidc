@@ -1182,17 +1182,22 @@ compile_expr_block: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     obj = *(void_obj: *v_ast_expr_block_t);
 
     v_save_variables();
+    saved_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
 
     v_ast_accept_visitor((&obj.slst: *v_ast_base_t), vis);
-
-    //- ???????????????????????????????????????????????????????????????
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
     v_ast_accept_visitor((&obj.expr: *v_ast_base_t), vis);
 
+    current_bv = v_get_variable_value_q(voidc_internal_branch_target_leave_q);
     v_restore_variables();
+
+    if (saved_bv != current_bv)
+    {
+        v_add_variable_q(voidc_internal_branch_target_leave_q, 0, current_bv);      //- Sic !?!?!
+    }
 }
 
 

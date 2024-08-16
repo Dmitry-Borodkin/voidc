@@ -1369,18 +1369,7 @@ mk_quote_ast_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
 
     v_ast_make_expr_call(expr+0, expr+0, &elst);
 
-
-//  v_ast_make_expr_block(expr+0, slst+0, expr+0);          //- WTF !?!?!?!?!?!?!?!
-
-
-    v_ast_make_stmt_call(&stmt, 0, q_break, expr, 1);
-
-    v_list_append(slst+0, slst+0, &stmt);
-
-    v_ast_make_stmt_block(&stmt, slst+0, true);
-
-    v_ast_make_expr_stmt(expr+0, &stmt);
-
+    v_ast_make_expr_block(expr+0, slst+0, expr+0);
 
     v_std_any_set_pointer(ret, expr+0);
 }
