@@ -53,7 +53,6 @@ namespace my {
 
 
 //---------------------------------------------------------------------
-export
 refcnt_ptr = v_object_intrinsic("my.refcnt_ptr");
 
 //---------------------------------------------------------------------
@@ -160,7 +159,7 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
     namespace refcnt_ptr_ns(T)
     {
       private
-      struct data_t
+      data_t = struct
       {
           count: size_t;
 
@@ -329,7 +328,6 @@ my_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_bas
 
 
 //---------------------------------------------------------------------
-export
 instantiate_refcnt_ptr = v_object_intrinsic("my.instantiate_refcnt_ptr");
 
 //---------------------------------------------------------------------
@@ -393,7 +391,6 @@ private
 make_refcnt_ast: v_ast_expr_t  =  {'expr'  .my.refcnt_ptr_ns(T).create()  'expr'};
 
 //---------------------------------------------------------------------
-export
 make_refcnt = v_object_intrinsic("my.make_refcnt");
 
 //---------------------------------------------------------------------
