@@ -101,7 +101,8 @@ refcnt_ptr_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
-    arg0 = v_list_get_item(args, 0);
+    arg0 = v_list_get_item(args, 0);        //- Type
+    arg1 = v_list_get_item(args, 1);        //- Tag
 
     v_set_result_type(INVIOLABLE_TAG);
     v_set_result_value(0);
@@ -110,9 +111,14 @@ refcnt_ptr_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
 
     elt = (v_get_result_value() : *v_type_t);
 
+    tag = v_ast_expr_identifier_get_name(arg1);
+
     sstr: &v_std_string_t := {};
 
     v_std_string_set(&sstr, "refcnt_ptr_ns-");
+
+    v_std_string_append(&sstr, tag);
+    v_std_string_append(&sstr, "-");
 
     voidc_internal_std_string_append_type(&sstr, elt);
 
@@ -155,11 +161,11 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
         .memset(sp, 0, N*my.refcnt_ptr(T).size);
     }
 
-
-    namespace refcnt_ptr_ns(T)
+    //-------------------------------------------------------------
+    private
+    namespace refcnt_ptr_ns(T, detail)
     {
-      private
-      data_t = struct
+      struct data_t
       {
           count: size_t;
 
@@ -172,7 +178,6 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
       inlinehint
       (v_terminate(_)): (*data_t, size_t) ~> void  =  derive;
 
-      private
       alwaysinline
       get_data: (p: *T) ~> &data_t
       {
@@ -184,17 +189,6 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
       }
 
       inlinehint
-      create: () ~> refcnt_ptr(T)
-      {
-          ret = v_get_return_value();
-
-          dp = new data_t {{1}};
-
-          *(&ret : **T) := &dp->data;
-      }
-
-      private
-      inlinehint
       inc: (p: *T) ~> void
       {
           d = get_data(p);
@@ -202,7 +196,6 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
           ++d.count;
       }
 
-      private
       inlinehint
       dec: (p: *T) ~> void
       {
@@ -211,9 +204,24 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
           if (--d.count == 0) delete &d;
       }
 
-    }   //- namespace refcnt_ptr_ns(T)
+    }   //- namespace refcnt_ptr_ns(T, detail)
 
+    //-------------------------------------------------------------
+    namespace refcnt_ptr_ns(T, public)
+    {
+      inlinehint
+      create: () ~> refcnt_ptr(T)
+      {
+          ret = v_get_return_value();
 
+          dp = new refcnt_ptr_ns(T, detail).data_t {{1}};
+
+          *(&ret : **T) := &dp->data;
+      }
+
+    }   //- namespace refcnt_ptr_ns(T, public)
+
+    //-------------------------------------------------------------
     inlinehint
     (v_terminate(_)): (sp: *refcnt_ptr(T), N: size_t) ~> void
     {
@@ -221,7 +229,7 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
         {
             pi = *(sp+i : **T);
 
-            if (pi) refcnt_ptr_ns(T).dec(pi);
+            if (pi) refcnt_ptr_ns(T, detail).dec(pi);
         }
     }
 
@@ -233,8 +241,8 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
             dpi = *(dst+i : **T);
             spi = *(src+i : **T);
 
-            if (dpi)  refcnt_ptr_ns(T).dec(dpi);
-            if (spi)  refcnt_ptr_ns(T).inc(spi);
+            if (dpi)  refcnt_ptr_ns(T, detail).dec(dpi);
+            if (spi)  refcnt_ptr_ns(T, detail).inc(spi);
 
             dpi := spi;
         }
@@ -248,14 +256,14 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
             dpi = *(dst+i : **T);
             spi = *(src+i : **T);
 
-            if (dpi)  refcnt_ptr_ns(T).dec(dpi);
+            if (dpi)  refcnt_ptr_ns(T, detail).dec(dpi);
 
             dpi := spi;
             spi := 0;
         }
     }
 
-
+    //-------------------------------------------------------------
     alwaysinline
     (_.get()): (sp: &const refcnt_ptr(T)) ~> *T  =  *(&sp: **T);
 
@@ -275,7 +283,7 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
     alwaysinline
     (_->): (sp: refcnt_ptr(T)) ~> *T  =  sp.get();
 
-
+    //-------------------------------------------------------------
     alwaysinline
     (_:=_): (dst: &refcnt_ptr(T), src: refcnt_ptr(T)) ~> &refcnt_ptr(T)
     {
@@ -284,13 +292,12 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
         v_return(dst);
     }
 
+    //-------------------------------------------------------------
+    alwaysinline
+    (_.use_count): (sp: &const refcnt_ptr(T)) ~> size_t  =  refcnt_ptr_ns(T, detail).get_data(sp.get()).count;
 
     alwaysinline
-    (_.use_count): (sp: &const refcnt_ptr(T)) ~> size_t  =  refcnt_ptr_ns(T).get_data(sp.get()).count;
-
-    alwaysinline
-    (_.use_count): (sp: refcnt_ptr(T)) ~> size_t  =  refcnt_ptr_ns(T).get_data(sp.get()).count;
-
+    (_.use_count): (sp: refcnt_ptr(T)) ~> size_t  =  refcnt_ptr_ns(T, detail).get_data(sp.get()).count;
 
   }   //- namespace my
 
@@ -388,7 +395,7 @@ instantiate_refcnt_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_ba
 
 //---------------------------------------------------------------------
 private
-make_refcnt_ast: v_ast_expr_t  =  {'expr'  .my.refcnt_ptr_ns(T).create()  'expr'};
+make_refcnt_ast: v_ast_expr_t  =  {'expr'  .my.refcnt_ptr_ns(T, public).create()  'expr'};
 
 //---------------------------------------------------------------------
 make_refcnt = v_object_intrinsic("my.make_refcnt");

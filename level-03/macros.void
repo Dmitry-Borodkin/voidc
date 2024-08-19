@@ -1,0 +1,949 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2024 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("macros.void  must be imported into the voidc target only!");
+
+    v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+    v_import("generics_etc.void");
+    v_import("generating_ast.void");
+
+//  v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+    voidc_enable_generics_etc();
+    voidc_enable_generating_ast();
+}
+
+
+//---------------------------------------------------------------------
+qf_export  = voidc_definitions_internal_qf_export;      //- 1 << 0
+qf_private = voidc_definitions_internal_qf_private;     //- 1 << 1
+
+
+//---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("enabled_q", q_ref, q("voidc.internal.macros_enabled"));
+
+    v_add_symbol("unit_defn_list_q", q_ref, q("unit_defn_list"));
+    v_add_symbol("stmt_list_q",      q_ref, q("stmt_list"));
+
+    v_add_symbol("macro_defn_q",      q_ref, q("macro_defn"));
+    v_add_symbol("macro_spec_defn_q", q_ref, q("macro_spec_defn"));
+    v_add_symbol("macro_params_q",    q_ref, q("macro_params"));
+
+    v_add_symbol("expr_identifier_q", q_ref, q("expr_identifier"));
+
+    v_add_symbol("q_initialize", q_ref, q("v_initialize"));
+    v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
+
+    v_add_symbol("q_malloc",        q_ref, q("v_malloc"));
+    v_add_symbol("q_free",          q_ref, q("v_free"));
+    v_add_symbol("q_getelementptr", q_ref, q("v_getelementptr"));
+
+    v_add_symbol("q_base", q_ref, q("v_ast_base_ptr"));
+
+    v_add_symbol("voidc_compile_quark_q", q_ref, q("voidc.compile_quark"));
+    v_add_symbol("voidc_compile_type_q",  q_ref, q("voidc.compile_type"));
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("macros_module"); }
+
+
+//---------------------------------------------------------------------
+//- Grammar actions ...
+//---------------------------------------------------------------------
+private
+my_br_item_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, count: size_t) ~> void
+{
+    list: &v_ast_expr_list_t := {};
+
+    v_make_list_nil(&list);
+
+    etmp: &v_ast_expr_t := {};
+
+    for (i: &int := 0; i < count; ++i)
+    {
+        expr = v_std_any_get_pointer(v_ast_expr_t, any+i);
+
+        if (expr)   v_list_append(&list, &list,  expr);
+        else        v_list_append(&list, &list, &etmp);
+    }
+
+    v_std_any_set_pointer(ret, &list);
+}
+
+//---------------------------------------------------------------------
+private
+mk_macro_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    q_id = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+
+    args = v_std_any_get_pointer(v_ast_expr_t, any+1);
+    type = v_std_any_get_pointer(v_ast_expr_t, any+2);
+
+    ast: &v_ast_base_t[4] := {};
+
+    v_copy(ast+0, v_list_get_item(q_id, 0));
+    v_copy(ast+1, v_list_get_item(q_id, 1));
+
+    v_copy(ast+2, args);
+
+    if (type) v_copy(ast+3, type);
+
+    quark: &v_quark_t := v_undef();
+
+    if (v_ast_base_get_tag(q_id) == 0)  quark := macro_defn_q;
+    else                                quark := macro_spec_defn_q;
+
+    list: &v_ast_generic_list_t := {};
+
+    v_make_list(&list, quark, ast, 4);
+
+    v_std_any_set_pointer(ret, &list);
+}
+
+//---------------------------------------------------------------------
+private
+mk_macro_stmt_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    hdr  = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+
+    body = v_ast_std_any_get_base(any+1);
+
+    list: &v_ast_generic_list_t := {};
+
+    v_list_append(&list, hdr, body);
+
+    v_std_any_set_pointer(ret, &list);
+}
+
+//---------------------------------------------------------------------
+private
+mk_macro_define_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    glst = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+
+    kind = v_std_any_get_value(intptr_t, any+1);
+
+    expr: &v_ast_expr_t := {};
+
+    v_ast_make_expr_integer(&expr, kind);
+
+    list: &v_ast_generic_list_t := {};
+
+    v_list_append(&list, glst, &expr);
+
+    if (kind) v_std_any_set_pointer(ret, (&list : *v_ast_stmt_t));      //- stmt
+    else      v_std_any_set_pointer(ret, (&list : *v_ast_base_t));      //- unit_defn
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+macro_defn_ctx_t = struct
+{
+    pars: v_ast_generic_list_t;     //- Parameters ...
+    type: v_ast_expr_t;             //- Return type (if any) ...
+
+    body: v_ast_base_t;             //- As is ...
+};
+
+private
+(v_initialize(_)): (*macro_defn_ctx_t, size_t) ~> void  =  derive;
+
+private
+(v_terminate(_)):  (*macro_defn_ctx_t, size_t) ~> void  =  derive;
+
+private
+macro_defn_ctx_cleaner: (void_ctx: *void) ~> void
+{
+    delete  (void_ctx: *macro_defn_ctx_t);
+}
+
+//---------------------------------------------------------------------
+private
+macro_expr_identifier_ctx_t = struct
+{
+    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) ~> void);
+    aux: *void;
+
+    map: v_util_map_t;
+};
+
+private
+(v_initialize(_)): (*macro_expr_identifier_ctx_t, size_t) ~> void  =  derive;
+
+private
+(v_terminate(_)):  (*macro_expr_identifier_ctx_t, size_t) ~> void  =  derive;
+
+private
+macro_compile_expr_identifier: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("macro_compile_expr_identifier start\n");
+//defer printf("macro_compile_expr_identifier stop\n");
+
+    bind = *(aux: *macro_expr_identifier_ctx_t);
+
+    qname = v_ast_expr_identifier_get_name_q((self: *v_ast_expr_t));
+
+    if (a = v_map_find(&bind.map, (qname: intptr_t)))
+    {
+        expr = v_std_any_get_pointer(v_ast_expr_t, a);
+
+        v_ast_accept_visitor(expr, vis);
+
+        v_return();
+    }
+
+    bind.fun(bind.aux, vis, self);
+}
+
+//---------------------------------------------------------------------
+private
+macro_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:*v_ast_base_t) ~> void
+{
+//printf("macro_expand_intrinsic start\n");
+//defer printf("macro_expand_intrinsic stop\n");
+
+    ctx = *(aux: *macro_defn_ctx_t);
+
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    //-------------------------------------------------------------
+    v_assert(vis == v_get_compiler());
+
+    saved_vis: &voidc_visitor_t := {};
+
+    v_copy(&saved_vis, vis);
+    defer v_copy(vis, &saved_vis);
+
+    bind: &macro_expr_identifier_ctx_t := {};
+
+    q = expr_identifier_q;
+
+    bind.fun := voidc_visitor_get_method(vis, q, &bind.aux);
+
+    voidc_visitor_set_method(vis, vis, q, macro_compile_expr_identifier, &bind);
+
+    bmap = &bind.map;
+
+    v_make_map(bmap);
+
+    np = v_list_get_size(&ctx.pars);
+    na = v_list_get_size(args);
+
+    for(i: &int := 0; i < np; ++i)
+    {
+        par = (v_list_get_item(&ctx.pars, i) : *v_ast_expr_list_t);
+
+        qpar = v_ast_expr_identifier_get_name_q(v_list_get_item(par, 0));
+        tpar = v_list_get_item(par, 1);
+
+        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_value(0);
+
+        if (!v_empty(tpar))
+        {
+            v_ast_accept_visitor(tpar, vis);
+
+            t = (v_get_result_value() : *v_type_t);
+
+            v_set_result_type(t);
+            v_set_result_value(0);
+        }
+
+        if (i >= na)
+        {
+            vpar = v_list_get_item(par, 2);
+
+            v_ast_accept_visitor(vpar, vis);
+        }
+        else
+        {
+            arg = v_list_get_item(args, i);
+
+            v_ast_accept_visitor(arg, vis);
+        }
+
+        t = v_get_result_type();
+        v = v_get_result_value();
+
+        expr: &v_ast_expr_t := {};
+
+        v_ast_make_expr_compiled(&expr, t, v);
+
+        any: &v_std_any_t := {};
+
+        v_std_any_set_pointer(&any, &expr);
+
+        v_map_insert(bmap, bmap, (qpar: intptr_t), &any);
+    }
+
+    if (v_empty(&ctx.type))
+    {
+        tag = v_ast_base_get_tag(&ctx.body);
+
+        if (tag == unit_defn_list_q)
+        {
+            list = (&ctx.body : *v_ast_generic_list_t);
+
+            n = v_list_get_size(list);
+
+            for (i: &int := 0; i < n; ++i)
+            {
+                item = v_list_get_item(list, i);
+
+                v_ast_accept_visitor(item, vis);
+            }
+        }
+        else if (tag == stmt_list_q)
+        {
+            list = (&ctx.body : *v_ast_stmt_list_t);
+
+            n = v_list_get_size(list);
+
+            for (i: &int := 0; i < n; ++i)
+            {
+                item = v_list_get_item(list, i);
+
+                v_ast_accept_visitor(item, vis);
+            }
+        }
+        else        //- expr (?)
+        {
+            v_set_result_type(ttag);
+            v_set_result_value(vtag);
+
+            v_ast_accept_visitor(&ctx.body, vis);
+        }
+
+        v_return();         //- Sic !!!
+    }
+
+    v_assert(!v_empty(&ctx.type));
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(&ctx.type, vis);
+
+    t = (v_get_result_value() : *v_type_t);
+
+    if (v_type_is_special(t, q_initialize))
+    {
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
+
+        v = v_obtain_special_result_value(vis, t);
+
+        v_set_result_value(v);
+    }
+    else
+    {
+        v_set_result_value(0);
+    }
+
+    v_set_result_type(t);
+
+    v_ast_accept_visitor(&ctx.body, vis);
+
+    t = v_get_result_type();
+    v = v_get_result_value();
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(t, v);
+}
+
+//---------------------------------------------------------------------
+private
+macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                              arg_ptrs: **v_ast_expr_t, arg_count: unsigned
+                             ) ~> void
+{
+    ctx = *(aux: *macro_defn_ctx_t);
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    //-------------------------------------------------------------
+    v_assert(vis == v_get_compiler());
+
+    saved_vis: &voidc_visitor_t := {};
+
+    v_copy(&saved_vis, vis);
+    defer v_copy(vis, &saved_vis);
+
+    bind: &macro_expr_identifier_ctx_t := {};
+
+    q = expr_identifier_q;
+
+    bind.fun := voidc_visitor_get_method(vis, q, &bind.aux);
+
+    voidc_visitor_set_method(vis, vis, q, macro_compile_expr_identifier, &bind);
+
+    bmap = &bind.map;
+
+    v_make_map(bmap);
+
+    for(i: &int := 0; i < arg_count; ++i)
+    {
+        par = (v_list_get_item(&ctx.pars, i) : *v_ast_expr_list_t);
+
+        qpar = v_ast_expr_identifier_get_name_q(v_list_get_item(par, 0));
+        tpar = v_list_get_item(par, 1);
+
+        arg = arg_ptrs[i];
+
+        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_value(0);
+
+        if (!v_empty(tpar))
+        {
+            v_ast_accept_visitor(tpar, vis);
+
+            t = (v_get_result_value() : *v_type_t);
+
+            v_set_result_type(t);
+            v_set_result_value(0);
+        }
+
+        v_ast_accept_visitor(arg, vis);
+
+        t = v_get_result_type();
+        v = v_get_result_value();
+
+        expr: &v_ast_expr_t := {};
+
+        v_ast_make_expr_compiled(&expr, t, v);
+
+        any: &v_std_any_t := {};
+
+        v_std_any_set_pointer(&any, &expr);
+
+        v_map_insert(bmap, bmap, (qpar: intptr_t), &any);
+    }
+
+    if (v_empty(&ctx.type))
+    {
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
+
+        v_ast_accept_visitor(&ctx.body, vis);
+
+        v_return();         //- Sic !!!
+    }
+
+    v_assert(!v_empty(&ctx.type));
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(&ctx.type, vis);
+
+    t = (v_get_result_value() : *v_type_t);
+
+    if (v_type_is_special(t, q_initialize))
+    {
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
+
+        v = v_obtain_special_result_value(vis, t);
+
+        v_set_result_value(v);
+    }
+    else
+    {
+        v_set_result_value(0);
+    }
+
+    v_set_result_type(t);
+
+    v_ast_accept_visitor(&ctx.body, vis);
+
+    t = v_get_result_type();
+    v = v_get_result_value();
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(t, v);
+}
+
+
+//---------------------------------------------------------------------
+export
+voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_base_t) ~> void
+{
+    pars = (ast+1 : *v_ast_generic_list_t);
+    type = (ast+2 : *v_ast_expr_t);
+    body = ast+0;
+
+    ctx = new macro_defn_ctx_t;
+
+    v_add_local_cleaner(macro_defn_ctx_cleaner, ctx);
+
+    v_copy(&ctx->pars, pars);
+    v_copy(&ctx->type, type);
+    v_copy(&ctx->body, body);
+
+    sstr: &v_std_string_t := {};
+
+    v_std_string_set(&sstr, "v.macro.");
+
+    v_std_string_append(&sstr, v_quark_to_string(q));
+
+    if (t == 0)     //- Just "identifier"...
+    {
+        qintr = v_quark_from_string(v_std_string_get(&sstr));
+
+        v_add_constant_q(q, v_object_intrinsic_t, (qintr: LLVMValueRef));
+
+        v_add_intrinsic_q(qintr, macro_expand_intrinsic, ctx);
+    }
+    else            //- Special identifier
+    {
+        v_std_string_append(&sstr, ", ");
+
+        voidc_internal_std_string_append_type(&sstr, t);
+
+        qname = v_quark_from_string(v_std_string_get(&sstr));
+
+        v_add_overload_q(q, t, qname);
+
+        v_add_intrinsic_q(qname, macro_spec_expand_intrinsic, ctx);
+    }
+}
+
+//---------------------------------------------------------------------
+private
+gen_macro_definition: (ret: *v_ast_stmt_t, q: v_quark_t, t: *v_type_t, ctx: &const macro_defn_ctx_t) ~> void
+{
+    gen: &voidc_ast_generator_t := {};
+
+    gen.visit(&ctx.body);
+    v_assert(gen.cur_var == 0 <= gen.max_var);          //- 0 - body
+
+    gen.visit(&ctx.pars);
+    v_assert(gen.cur_var == 1 <= gen.max_var);          //- 1 - pars
+
+    gen.visit(&ctx.type);
+    v_assert(gen.cur_var == 2 <= gen.max_var);          //- 2 - type
+
+    slst: &v_ast_stmt_list_t[2] := {};
+
+    v_make_list_nil(slst+0);
+
+    expr: &v_ast_expr_t[2] := {};
+
+    v_ast_make_expr_identifier(expr+0, "v_ast_base_t");
+
+    n = gen.max_var + 1;
+
+    v_ast_make_expr_integer(expr+1, n);
+
+    stmt: &v_ast_stmt_t := {};
+
+    qv0 = gen.cast_var(0, q_base);
+
+    v_ast_make_stmt_call(&stmt, qv0, q_malloc, expr, 2);
+    v_list_append(slst+0, slst+0, &stmt);
+
+    v_ast_make_expr_identifier_q(expr+0, qv0);
+
+    v_ast_make_stmt_call(&stmt, 0, q_initialize, expr, 2);
+    v_list_append(slst+0, slst+0, &stmt);
+
+    v_ast_make_stmt_call(&stmt, 0, q_terminate, expr, 2);
+    v_make_list(slst+1, &stmt);
+
+    v_ast_make_stmt_call(&stmt, 0, q_free, expr, 1);
+    v_list_append(slst+1, slst+1, &stmt);
+
+    v_ast_make_stmt_block(&stmt, slst+1, false);
+    v_ast_make_stmt_defer(&stmt, &stmt);
+    v_list_append(slst+0, slst+0, &stmt);
+
+    for (i: &int := 1; i < n; ++i)
+    {
+        v_ast_make_expr_integer(expr+1, i);
+
+        v_ast_make_stmt_call(&stmt, gen.cast_var(i, q_base), q_getelementptr, expr, 2);
+        v_list_append(slst+0, slst+0, &stmt);
+    }
+
+    for (N = v_list_get_size(&gen.gen_list), i: &int := 0; i < N; ++i)
+    {
+        item = v_list_get_item(&gen.gen_list, i);
+
+        v_list_append(slst+0, slst+0, item);
+    }
+
+    v_ast_make_expr_integer(expr+0, q);
+
+    elst: &v_ast_expr_list_t := {};
+
+    v_make_list(&elst, expr+0);
+
+    v_ast_make_expr_identifier_q(expr+0, voidc_compile_quark_q);
+
+    v_ast_make_expr_call(expr+0, expr+0, &elst);
+
+    v_ast_make_expr_integer(expr+1, (t: intptr_t));
+
+    if (t)
+    {
+        v_make_list(&elst, expr+1);
+
+        v_ast_make_expr_identifier_q(expr+1, voidc_compile_type_q);
+
+        v_ast_make_expr_call(expr+1, expr+1, &elst);
+    }
+
+    v_make_list(&elst, expr+0, 2);
+
+    v_ast_make_expr_identifier_q(expr+0, gen.cast_var(0, q_base));
+
+    v_list_append(&elst, &elst, expr+0);
+
+    v_ast_make_expr_identifier(expr+0, "voidc_internal_define_macro_helper");
+
+    v_ast_make_expr_call(expr+0, expr+0, &elst);
+
+    v_ast_make_stmt(&stmt, "", expr+0);
+    v_list_append(slst+0, slst+0, &stmt);
+
+    v_ast_make_stmt_block(ret, slst+0, false);
+}
+
+//---------------------------------------------------------------------
+private
+compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("compile_macro_define start\n");
+//defer printf("compile_macro_define stop\n");
+
+    list = (self: *v_ast_generic_list_t);
+
+    qfl  = (v_list_get_item(list, 0) : *v_ast_expr_t);
+    name = (v_list_get_item(list, 1) : *v_ast_expr_t);
+    args = (v_list_get_item(list, 2) : *v_ast_expr_t);      //- ...
+    type = (v_list_get_item(list, 3) : *v_ast_expr_t);
+    body = (v_list_get_item(list, 4) : *v_ast_base_t);
+    kind = (v_list_get_item(list, 5) : *v_ast_expr_t);
+
+    qfl  = v_ast_expr_integer_get_number(qfl);
+
+    args = v_ast_expr_call_get_arg_list(args);
+    args = (v_list_get_item(args, 1) : *v_ast_generic_list_t);
+
+    spec = v_ast_base_get_tag(self) == macro_spec_defn_q;
+
+    kind = v_ast_expr_integer_get_number(kind);
+
+    ctx = new macro_defn_ctx_t;
+
+    v_add_local_cleaner(macro_defn_ctx_cleaner, ctx);
+
+    {   ctx_pars = &ctx->pars;
+
+        v_make_list_nil(ctx_pars, macro_params_q);
+
+        n = v_list_get_size(args);
+
+        elst: &v_ast_expr_list_t := {};
+
+        etmp: &v_ast_expr_t := {};      //- Empty!
+
+        for (i: &int := 0; i < n; ++i)
+        {
+            lst = (v_list_get_item(args, i) : *v_ast_expr_list_t);
+
+            v_make_list_nil(&elst);
+
+            e0 = v_list_get_item(lst, 0);
+            e1 = v_list_get_item(lst, 1);
+
+            //- Parameter's properties...
+
+            if (v_empty(e0))
+            {
+                v_list_append(&elst, &elst, e1);            //- Name
+                v_list_append(&elst, &elst, &etmp);         //- No type
+            }
+            else
+            {
+                v_list_append(&elst, &elst, e0);            //- Name
+                v_list_append(&elst, &elst, e1);            //- Type
+            }
+
+            //- Default value?
+
+            if (v_list_get_size(lst) == 3)  v_list_append(&elst, &elst, v_list_get_item(lst, 2));       //- Yes
+            else                            v_list_append(&elst, &elst, &etmp);                         //- No
+
+            v_list_append(ctx_pars, ctx_pars, &elst);
+        }
+    }
+
+    v_copy(&ctx->type, type);
+    v_copy(&ctx->body, body);
+
+    quark: &v_quark_t := 0;
+    ktype: &*v_type_t := 0;
+
+    //-------------------------------------------------------------
+    if (!spec)      //- Just "identifier"...
+    {
+        block
+        {
+            tag = v_ast_base_get_tag(name);
+
+            if (tag != v_ast_expr_call_tag)
+            {
+                v_assert(tag == v_ast_expr_identifier_tag);
+
+                quark := v_ast_expr_identifier_get_name_q(name);
+
+                v_break();
+            }
+
+            v_assert(!kind);        //- unit_defn ...
+
+            //- <ns-id> . <id>
+
+            args = v_ast_expr_call_get_arg_list((name: *v_ast_expr_t));
+
+            op = v_list_get_item(args, 0);
+
+            void_obj = v_ast_generic_get_object(op);
+
+            obj = *(void_obj: *v_ast_operator_unary_t);
+
+            pay = (&obj[2] : *v_ast_generic_list_t);
+
+            eid = (v_list_get_item(pay, 0) : *v_ast_expr_t);
+
+            qname = v_ast_expr_identifier_get_name_q(eid);
+
+            nsid = v_list_get_item(args, 1);
+
+            v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_value(0);
+
+            v_ast_accept_visitor(nsid, vis);
+
+            ns = (v_get_result_value() : *v_namespace_t);       //- Sic!
+
+            private_flag = v_get_private_flag();
+            export_flag  = v_get_export_flag();
+
+            private = private_flag  ||  qfl & qf_private;
+            export  = (export_flag  ||  qfl & qf_export)  &&  !private;
+
+            voidc_compile_unit_defn_make_effort(ns->name, qname, export);
+
+            //- ...
+
+            any = v_map_find(&ns->map, (qname: intptr_t));
+            v_assert(any);
+
+            quark := v_std_any_get_value(v_quark_t, any);
+        }
+
+        sstr: &v_std_string_t := {};
+
+        v_std_string_set(&sstr, "v.macro.");
+
+        v_std_string_append(&sstr, v_quark_to_string(quark));
+
+        qintr = v_quark_from_string(v_std_string_get(&sstr));
+
+        if (kind) v_add_variable_q(quark, v_object_intrinsic_t, (qintr: LLVMValueRef));
+        else      v_add_constant_q(quark, v_object_intrinsic_t, (qintr: LLVMValueRef));
+
+        v_add_intrinsic_q(qintr, macro_expand_intrinsic, ctx);
+    }
+    else            //- Special identifier
+    {
+        types: &**v_type_t := 0;
+        defer if (types)  delete[] types;
+
+        n = v_list_get_size(&ctx->pars);
+
+        if (n)
+        {
+            types := new (*v_type_t)[n];
+
+            for (i: &int := 0; i < n; ++i)
+            {
+                par = (v_list_get_item(&ctx->pars, i) : *v_ast_expr_list_t);
+                typ = v_list_get_item(par, 1);
+
+                if (v_empty(typ))
+                {
+                    types[i] := v_void_type();
+
+                    v_continue();
+                }
+
+                v_set_result_type(INVIOLABLE_TAG);
+                v_set_result_value(0);
+
+                v_ast_accept_visitor(typ, vis);
+
+                types[i] := (v_get_result_value() : *v_type_t);
+            }
+        }
+
+        rtype: &*v_type_t := v_undef();
+
+        if (v_empty(&ctx->type))
+        {
+            rtype := v_void_type();
+        }
+        else
+        {
+            v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_value(0);
+
+            v_ast_accept_visitor(&ctx->type, vis);
+
+            rtype := (v_get_result_value() : *v_type_t);
+        }
+
+        ft = v_function_type(rtype, types, (n: unsigned), false);       //- Proto-type ...
+
+        quark := v_ast_expr_identifier_get_name_q(name);
+
+        ktype := v_compute_key_quark_type(ft, quark);
+
+        sstr: &v_std_string_t := {};
+
+        v_std_string_set(&sstr, "v.macro.");
+
+        v_std_string_append(&sstr, v_quark_to_string(quark));
+
+        v_std_string_append(&sstr, ", ");
+
+        voidc_internal_std_string_append_type(&sstr, ktype);
+
+        qname = v_quark_from_string(v_std_string_get(&sstr));
+
+        v_add_overload_q(quark, ktype, qname);
+
+        v_add_intrinsic_q(qname, macro_spec_expand_intrinsic, ctx);
+    }
+
+    if (kind) v_return();       //- Sic !!!
+
+    //-------------------------------------------------------------
+    stmt_list = voidc_definitions_context_get_stmt_list();
+    if (!stmt_list)  v_return();
+
+    stmt: &v_ast_stmt_t := {};
+
+    gen_macro_definition(&stmt, quark, ktype, *ctx);
+
+    v_list_append(stmt_list, stmt_list, &stmt);
+}
+
+
+//---------------------------------------------------------------------
+//- Enable macros
+//---------------------------------------------------------------------
+export
+voidc_enable_macros_compiler: () ~> void
+{
+    v_return_if(v_find_constant_q(enabled_q, 0, 0));
+
+    v_add_constant_q(enabled_q, void, 0);
+
+    vis = v_get_compiler();
+
+    voidc_visitor_set_method(vis, vis, macro_defn_q,      compile_macro_define, 0);
+    voidc_visitor_set_method(vis, vis, macro_spec_defn_q, compile_macro_define, 0);
+
+    gen = v_get_ast_generator_visitor();
+
+    gen_aux: &*void := v_undef();
+
+    gen_generic = voidc_visitor_get_method(gen, unit_defn_list_q, &gen_aux);
+
+    voidc_visitor_set_method(gen, gen, macro_defn_q,      gen_generic, gen_aux);
+    voidc_visitor_set_method(gen, gen, macro_spec_defn_q, gen_generic, gen_aux);
+    voidc_visitor_set_method(gen, gen, macro_params_q,    gen_generic, gen_aux);
+}
+
+//---------------------------------------------------------------------
+export
+voidc_enable_macros: () ~> void
+{
+    voidc_enable_macros_compiler();
+
+    v_return_if_not(voidc_has_grammar());
+
+    gr0: &v_peg_grammar_t := {};        gr0 = &gr0;
+
+    v_peg_get_grammar(gr0);
+
+    grammar gr0
+    {
+    actions:
+        mk_br_item      = my_br_item_grammar_action;
+        mk_macro_hdr    = mk_macro_hdr_grammar_action;
+        mk_macro_stmt   = mk_macro_stmt_grammar_action;
+        mk_macro_define = mk_macro_define_grammar_action;
+
+    parsers:
+        br_item += k:expr _':'_ t:expr _'='_ v:expr     { mk_br_item(k, t, v) }
+                 / k:expr              _'='_ v:expr     { mk_br_item(k, 0, v) };
+
+        macro_hdr = qf:(qlf_spec_ident / qlf_ident) _':'_ b:bracketed r:(_"~>"_ expr)?  { mk_macro_hdr(qf, b, r) };
+
+        macro_stmt = "#define" !ident_cont _ h:macro_hdr _
+                         ('='_ e:expr _';'      { mk_macro_stmt(h, e) }
+                         / a:parse_any          { mk_macro_stmt(h, a) });
+
+        unit_defn =+ m:macro_stmt   { mk_macro_define(m, 0) };
+        stmt      =+ m:macro_stmt   { mk_macro_define(m, 1) };
+    }
+
+    v_peg_set_grammar(gr0);
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

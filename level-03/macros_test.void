@@ -1,0 +1,131 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+    v_import("generics_etc.void");
+    v_import("generating_ast.void");
+    v_import("macros.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+    voidc_enable_generics_etc();
+    voidc_enable_macros();
+}
+
+//---------------------------------------------------------------------
+#define foo: (x, y) = x*y;
+
+{   v = foo(6, 7);
+
+    printf("v: %d\n", v);
+}
+
+#define bar: (v) = printf("bar: %d\n", v);
+
+{   bar(777);
+}
+
+
+//---------------------------------------------------------------------
+#define fact: (n) =
+(
+    #if (n <= 0)    1
+    #else           n * fact(n-1)
+    #endif
+);
+
+{   n = 7;
+
+    printf("fact(%d): %d\n", n, fact(n));
+}
+
+
+//---------------------------------------------------------------------
+#define FOO: (x, y = 40+x)  =  x + y;
+
+{
+    printf("FOO(1, 1): %d\n", FOO(1, 1));
+
+    printf("FOO(1): %d\n", FOO(1));
+}
+
+
+//---------------------------------------------------------------------
+#define (_*_): (s: v_std_string_t, n) ~> v_std_string_t  =
+block
+{
+    ret = v_get_break_value();
+
+    str = v_std_string_get(&s);
+
+    for (i: &int := 0; i < n; ++i)
+    {
+        v_std_string_append(&ret, str);
+    }
+};
+
+#define (_.str): (s: *const char) ~> v_std_string_t  =
+block
+{
+    ret = v_get_break_value();
+
+    v_std_string_set(&ret, s);
+};
+
+
+{   ns = ("Qwe" : *const char).str * 20;
+
+    printf("ns: %s\n", v_std_string_get(&ns));
+}
+
+
+#define (_*_): (a: char[4], n) ~> v_std_string_t  =  (a: *const char).str * 20;
+
+{   ns = "Asd" * 20;
+
+    printf("ns: %s\n", v_std_string_get(&ns));
+}
+
+#define (_.c_str): (s: &v_std_string_t) ~>       *char  =  v_std_string_get(&s);
+#define (_.c_str): (s:  v_std_string_t) ~> *const char  =  v_std_string_get(&s);
+
+{   ns = "Zxc" * 20;
+
+    printf("ns: %s\n", ns.c_str);
+}
+
+
+#define (_[]): (s: &v_std_string_t, i) ~> &char  =  s.c_str[i];
+#define (_[]): (s:  v_std_string_t, i) ~>  char  =  s.c_str[i];
+
+{   ns = "Zxc" * 20;
+
+    for (i: &int := 0; i < 10; ++i)   printf("ns[%d]: %c\n", i, ns[i]);
+}
+
+
+#define str: (s)  =  (s: *const char);
+
+{
+    printf("[%s]\n", (str("Qwerty").str * 5).c_str);
+}
+
+
+
+
