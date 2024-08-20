@@ -505,13 +505,16 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 export
 voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_base_t) ~> void
 {
+//printf("voidc_internal_define_macro_helper: start %s\n", v_quark_to_string(q));
+//defer printf("voidc_internal_define_macro_helper: stop\n");
+
     pars = (ast+1 : *v_ast_generic_list_t);
     type = (ast+2 : *v_ast_expr_t);
     body = ast+0;
 
     ctx = new macro_defn_ctx_t;
 
-    v_add_local_cleaner(macro_defn_ctx_cleaner, ctx);
+    v_add_cleaner(macro_defn_ctx_cleaner, ctx);
 
     v_copy(&ctx->pars, pars);
     v_copy(&ctx->type, type);
@@ -527,9 +530,9 @@ voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_bas
     {
         qintr = v_quark_from_string(v_std_string_get(&sstr));
 
-        v_add_constant_q(q, v_object_intrinsic_t, (qintr: LLVMValueRef));
+        v_export_constant_q(q, v_object_intrinsic_t, (qintr: LLVMValueRef));
 
-        v_add_intrinsic_q(qintr, macro_expand_intrinsic, ctx);
+        v_export_intrinsic_q(qintr, macro_expand_intrinsic, ctx);
     }
     else            //- Special identifier
     {
@@ -539,9 +542,9 @@ voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_bas
 
         qname = v_quark_from_string(v_std_string_get(&sstr));
 
-        v_add_overload_q(q, t, qname);
+        v_export_overload_q(q, t, qname);
 
-        v_add_intrinsic_q(qname, macro_spec_expand_intrinsic, ctx);
+        v_export_intrinsic_q(qname, macro_spec_expand_intrinsic, ctx);
     }
 }
 
@@ -549,6 +552,9 @@ voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_bas
 private
 gen_macro_definition: (ret: *v_ast_stmt_t, q: v_quark_t, t: *v_type_t, ctx: &const macro_defn_ctx_t) ~> void
 {
+//printf("gen_macro_definition: start\n");
+//defer printf("gen_macro_definition: stop\n");
+
     gen: &voidc_ast_generator_t := {};
 
     gen.visit(&ctx.body);
@@ -722,11 +728,19 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
     quark: &v_quark_t := 0;
     ktype: &*v_type_t := 0;
 
+    export: &bool := false;
+
     //-------------------------------------------------------------
     if (!spec)      //- Just "identifier"...
     {
         block
         {
+            private_flag = v_get_private_flag();
+            export_flag  = v_get_export_flag();
+
+            private = private_flag  ||  qfl & qf_private;
+            export := (export_flag  ||  qfl & qf_export)  &&  !private;
+
             tag = v_ast_base_get_tag(name);
 
             if (tag != v_ast_expr_call_tag)
@@ -764,12 +778,6 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
             v_ast_accept_visitor(nsid, vis);
 
             ns = (v_get_result_value() : *v_namespace_t);       //- Sic!
-
-            private_flag = v_get_private_flag();
-            export_flag  = v_get_export_flag();
-
-            private = private_flag  ||  qfl & qf_private;
-            export  = (export_flag  ||  qfl & qf_export)  &&  !private;
 
             voidc_compile_unit_defn_make_effort(ns->name, qname, export);
 
@@ -866,6 +874,8 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
     }
 
     if (kind) v_return();       //- Sic !!!
+
+    if (!export)  v_return();
 
     //-------------------------------------------------------------
     stmt_list = voidc_definitions_context_get_stmt_list();

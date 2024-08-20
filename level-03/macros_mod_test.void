@@ -1,0 +1,291 @@
+{   v_import("level-00");
+    v_import("level-01");
+    v_import("level-02");
+
+    v_import("intrinsics_derive.void");
+    v_import("local_objects.void");
+    v_import("heap_objects.void");
+    v_import("global_objects.void");
+    v_import("coercions.void");
+    v_import("namespaces.void");
+    v_import("generics_etc.void");
+    v_import("generating_ast.void");
+    v_import("macros.void");
+
+    v_import("printf.void");
+}
+
+{   v_enable_level_01();
+    v_enable_level_02();
+
+    voidc_enable_intrinsics_derive();
+    voidc_enable_local_objects();
+    voidc_enable_heap_objects();
+    voidc_enable_global_objects();
+    voidc_enable_coercions();
+    voidc_enable_namespaces();
+    voidc_enable_generics_etc();
+    voidc_enable_generating_ast();
+    voidc_enable_macros();
+}
+
+//---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("list_q", q_ref, q("my.list"));
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("macros_mod_test_module"); }
+
+
+//---------------------------------------------------------------------
+export
+namespace my {
+
+
+//---------------------------------------------------------------------
+list = v_object_intrinsic("my.list");
+
+//---------------------------------------------------------------------
+private
+list_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    arg = v_type_generic_type_arg(elt);
+
+    typ = v_generic_type(list_q, &arg, 1);
+
+    v_set_result_type(v_static_type_t);
+    v_set_result_value((typ: LLVMValueRef));
+}
+
+
+//---------------------------------------------------------------------
+private
+set_implementation_type_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);
+    arg1 = v_list_get_item(args, 1);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    type = (v_get_result_value() : *v_type_t);
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg1, vis);
+
+    impl = (v_get_result_value() : *v_type_t);
+
+    v_type_generic_set_implementation_type(type, impl);
+}
+
+
+//---------------------------------------------------------------------
+list_ns = v_object_intrinsic("list.namespace");
+
+//---------------------------------------------------------------------
+private
+list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);        //- Type
+    arg1 = v_list_get_item(args, 1);        //- Tag
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    tag = v_ast_expr_identifier_get_name(arg1);
+
+    sstr: &v_std_string_t := {};
+
+    v_std_string_set(&sstr, "list_ns-");
+
+    v_std_string_append(&sstr, tag);
+    v_std_string_append(&sstr, "-");
+
+    voidc_internal_std_string_append_type(&sstr, elt);
+
+    ns_name = v_quark_from_string(v_std_string_get(&sstr));
+
+    ns = (aux: *v_namespace_t);
+
+    if (a = v_map_find(&ns->map, (ns_name: intptr_t)))
+    {
+        q = v_std_any_get_value(v_quark_t, a);
+
+        t: &*v_type_t    := v_undef();
+        v: &LLVMValueRef := v_undef();
+
+        v_find_constant_q(q, &t, &v);
+
+        v_set_result_type(t);
+        v_set_result_value(v);
+    }
+    else
+    {
+        v_set_result_type(v_void_type());                   //- Sic !?!
+        v_set_result_value((ns_name: LLVMValueRef));        //- Sic !?!
+    }
+}
+
+
+//---------------------------------------------------------------------
+#define instantiate_list: (T)
+{'unit_defn_list'
+
+  namespace my
+  {
+    private
+    namespace list_ns(T, detail)
+    {
+      struct impl_t { map: v_util_list_t; };
+    }
+
+    #do (v_set_implementation_type(list(T), list_ns(T, detail).impl_t))
+
+    //-------------------------------------------------------------
+    inlinehint
+    (v_initialize(_)): (sp: *list(T), N: size_t) ~> void
+    {
+        for (i: &int := 0; i < N; ++i)
+        {
+            li = *(sp+i : *list_ns(T, detail).impl_t);
+
+            v_initialize(&li.map);
+
+            v_make_list_nil(&li.map);
+        }
+    }
+
+    inlinehint
+    (v_terminate(_)): (sp: *list(T), N: size_t) ~> void
+    {
+        for (i: &int := 0; i < N; ++i)
+        {
+            li = *(sp+i : *list_ns(T, detail).impl_t);
+
+            v_terminate(&li.map);
+        }
+    }
+
+    inlinehint
+    (v_copy(_)): (dst: *list(T), src: *const list(T), N: size_t) ~> void
+    {
+        for (i: &int := 0; i < N; ++i)
+        {
+            sli = *(src+i : *list_ns(T, detail).impl_t);
+            dli = *(dst+i : *list_ns(T, detail).impl_t);
+
+            v_copy(&dli.map, &sli.map);
+        }
+    }
+
+    //-------------------------------------------------------------
+    inlinehint
+    (_[]): (sp: &list(T), i: size_t) ~> T
+    {
+        map = &(&sp : *list_ns(T, detail).impl_t)->map;
+
+        a = v_list_get_item(map, i);
+        v_assert(a);
+
+        v_return(v_std_any_get_value(T, a));
+    }
+
+    inlinehint
+    (_[]): (sp: list(T), i: size_t) ~> T  =  (*&sp)[i];
+
+    inlinehint
+    (_<<_): (sp: &list(T), v: T) ~> &list(T)
+    {
+        a: &v_std_any_t := {};
+
+        v_std_any_set_value(&a, v);
+
+        map = &(&sp : *list_ns(T, detail).impl_t)->map;
+
+        v_list_append(map, map, &a);
+
+        v_return(sp);
+    }
+
+    inlinehint
+    (_<<_): (sp: list(T), v: T) ~> list(T)
+    {
+        a: &v_std_any_t := {};
+
+        v_std_any_set_value(&a, v);
+
+        ret = v_get_return_value();
+
+        m = &(&sp  : *list_ns(T, detail).impl_t)->map;
+        r = &(&ret : *list_ns(T, detail).impl_t)->map;
+
+        v_list_append(r, m, &a);
+    }
+
+    inlinehint
+    (_.size): (sp: &list(T)) ~> size_t
+    {
+        map = &(&sp : *list_ns(T, detail).impl_t)->map;
+
+        v_return(v_list_get_size(map));
+    }
+
+    inlinehint
+    (_.size): (sp: list(T)) ~> size_t  =  (*&sp).size;
+
+  }   //- namespace my
+
+'unit_defn_list'}
+
+
+//---------------------------------------------------------------------
+enable_list_effort: (*void) ~> void
+{
+    v_add_intrinsic("my.list", list_intrinsic, 0);
+
+    v_add_intrinsic("v_set_implementation_type", set_implementation_type_intrinsic, 0);
+
+    v_add_intrinsic("list.namespace", list_ns_intrinsic, v_find_constant_value("my"));
+}
+
+
+//---------------------------------------------------------------------
+}   //- namespace my
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+{   v_export_effort(my.enable_list_effort, 0); }
+
+

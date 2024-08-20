@@ -43,6 +43,8 @@
     v_add_symbol("q_type_generic_initialize_hooks",       q_ref, q("v.type_generic_initialize_hooks"));
     v_add_symbol("q_type_generic_obtain_llvm_type_hooks", q_ref, q("v.type_generic_obtain_llvm_type_hooks"));
 
+    v_add_symbol("q_type_generic_implementation_map", q_ref, q("v.type_generic_implementation_map"));
+
     //-------------------------------------------------------------
     v_add_symbol("voidc_compile_quark_q", q_ref, q("voidc.compile_quark"));
     v_add_symbol("q_export_constant_q",   q_ref, q("v_export_constant_q"));
@@ -169,6 +171,56 @@ my_type_generic_initialize: (aux: *void, type: *v_type_t) ~> void
 
 
 //---------------------------------------------------------------------
+export
+v_type_generic_set_implementation_type: (type: *v_type_t, impl: *v_type_t) ~> void
+{
+    v_assert(v_type_is_generic(type));
+
+    a: &*v_std_any_t := v_get_property_q(q_type_generic_implementation_map);
+    if (!a)
+    {
+        map: &v_util_map_t := {};
+
+        v_make_map(&map);
+
+        any: &v_std_any_t := {};
+
+        v_std_any_set_pointer(&any, &map);
+
+        v_add_property_q(q_type_generic_implementation_map, &any);
+
+        a := v_get_property_q(q_type_generic_implementation_map);
+    }
+
+    map = v_std_any_get_pointer(v_util_map_t, a);
+
+    any: &v_std_any_t := {};
+
+    v_std_any_set_value(&any, (impl: intptr_t));
+
+    v_map_insert(map, map, (type: intptr_t), &any);
+}
+
+//---------------------------------------------------------------------
+export
+v_type_generic_get_implementation_type: (type: *v_type_t) ~> *v_type_t
+{
+    v_assert(v_type_is_generic(type));
+
+    a: &*v_std_any_t := v_get_property_q(q_type_generic_implementation_map);
+    if (!a) v_return(0);
+
+    map = v_std_any_get_pointer(v_util_map_t, a);
+
+    any = v_map_find(map, (type: intptr_t));
+    if (!any) v_return(0);
+
+    v = v_std_any_get_value(intptr_t, any);
+
+    v_return((v: *v_type_t));
+}
+
+//---------------------------------------------------------------------
 private
 hook_obtain_llvm_type_ft = (*void, *v_type_t) ~> LLVMTypeRef;
 
@@ -198,6 +250,19 @@ private
 my_type_generic_obtain_llvm_type: (aux: *void, type: *v_type_t) ~> LLVMTypeRef
 {
     v_assert(v_type_is_generic(type));
+
+    block
+    {
+        impl = v_type_generic_get_implementation_type(type);
+        if (!impl)  v_break();
+
+        rt = v_type_get_llvm_type(impl);            //- Sic !!!
+        v_assert(rt);
+
+        v_type_set_cached_llvm_type(type, rt);
+
+        v_return(rt);
+    }
 
     block
     {

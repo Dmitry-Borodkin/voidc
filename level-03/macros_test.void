@@ -25,6 +25,7 @@
     voidc_enable_coercions();
     voidc_enable_namespaces();
     voidc_enable_generics_etc();
+    voidc_enable_generating_ast();
     voidc_enable_macros();
 }
 
@@ -126,6 +127,31 @@ block
     printf("[%s]\n", (str("Qwerty").str * 5).c_str);
 }
 
+
+//=====================================================================
+{   v_import("macros_mod_test.void"); }
+
+
+//---------------------------------------------------------------------
+#do (my.instantiate_list(int),
+     my.instantiate_list(long))
+
+
+//---------------------------------------------------------------------
+{
+    l: &my.list(int) := {};
+
+    l << 5
+      << 6
+      << 7
+      << 8
+      << 9;
+
+    for (i: &int := 0, n = l.size; i < n; ++i)
+    {
+        printf("l[%d]: %d\n", i, l[i]);
+    }
+}
 
 
 
