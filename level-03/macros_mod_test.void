@@ -164,7 +164,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
     private
     namespace list_ns(T, detail)
     {
-      struct impl_t { map: v_util_list_t; };
+        struct impl_t { map: v_util_list_t; };
     }
 
     #do (v_set_implementation_type(list(T), list_ns(T, detail).impl_t))

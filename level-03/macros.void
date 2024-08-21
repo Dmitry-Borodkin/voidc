@@ -98,30 +98,52 @@ my_br_item_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, count: 
 
 //---------------------------------------------------------------------
 private
+mk_macro_id_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
+{
+    kind = v_std_any_get_value(intptr_t, any+0);
+    name = v_std_any_get_pointer(v_ast_expr_t, any+1);
+
+    quark: &v_quark_t := v_undef();
+
+    if (kind) quark := macro_defn_q;
+    else      quark := macro_spec_defn_q;
+
+    etmp: &v_ast_expr_t := {};
+
+    v_ast_make_expr_integer(&etmp, 0);      //- Dummy qualifier...
+
+    list: &v_ast_generic_list_t := {};
+
+    v_make_list(&list, quark, &etmp);
+
+    v_list_append(&list, &list, name);
+
+    v_std_any_set_pointer(ret, &list);
+}
+
+//---------------------------------------------------------------------
+private
 mk_macro_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     q_id = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
-    args = v_std_any_get_pointer(v_ast_expr_t, any+1);
+    pars = v_std_any_get_pointer(v_ast_expr_t, any+1);
     type = v_std_any_get_pointer(v_ast_expr_t, any+2);
-
-    ast: &v_ast_base_t[4] := {};
-
-    v_copy(ast+0, v_list_get_item(q_id, 0));
-    v_copy(ast+1, v_list_get_item(q_id, 1));
-
-    v_copy(ast+2, args);
-
-    if (type) v_copy(ast+3, type);
-
-    quark: &v_quark_t := v_undef();
-
-    if (v_ast_base_get_tag(q_id) == 0)  quark := macro_defn_q;
-    else                                quark := macro_spec_defn_q;
 
     list: &v_ast_generic_list_t := {};
 
-    v_make_list(&list, quark, ast, 4);
+    v_list_append(&list, q_id, pars);
+
+    if (type)
+    {
+        v_list_append(&list, &list, type);
+    }
+    else
+    {
+        etmp: &v_ast_expr_t := {};
+
+        v_list_append(&list, &list, &etmp);
+    }
 
     v_std_any_set_pointer(ret, &list);
 }
@@ -145,17 +167,36 @@ mk_macro_stmt_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
 private
 mk_macro_define_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
-    glst = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+    qual = v_std_any_get_value(intptr_t, any+0);
 
-    kind = v_std_any_get_value(intptr_t, any+1);
+    glst = v_std_any_get_pointer(v_ast_generic_list_t, any+1);
 
-    expr: &v_ast_expr_t := {};
-
-    v_ast_make_expr_integer(&expr, kind);
+    kind = v_std_any_get_value(intptr_t, any+2);
 
     list: &v_ast_generic_list_t := {};
 
-    v_list_append(&list, glst, &expr);
+    expr: &v_ast_expr_t := {};
+
+    if (qual)
+    {
+        v_ast_make_expr_integer(&expr, qual);
+
+        tag = v_ast_base_get_tag(glst);
+
+        v_make_list(&list, tag, &expr);
+
+        v_list_append(&list, &list, v_list_get_item(glst, 1));      //- name
+        v_list_append(&list, &list, v_list_get_item(glst, 2));      //- pars
+        v_list_append(&list, &list, v_list_get_item(glst, 3));      //- type
+    }
+    else
+    {
+        v_copy(&list, glst);
+    }
+
+    v_ast_make_expr_integer(&expr, kind);
+
+    v_list_append(&list, &list, &expr);
 
     if (kind) v_std_any_set_pointer(ret, (&list : *v_ast_stmt_t));      //- stmt
     else      v_std_any_set_pointer(ret, (&list : *v_ast_base_t));      //- unit_defn
@@ -931,6 +972,7 @@ voidc_enable_macros: () ~> void
     {
     actions:
         mk_br_item      = my_br_item_grammar_action;
+        mk_macro_id     = mk_macro_id_grammar_action;
         mk_macro_hdr    = mk_macro_hdr_grammar_action;
         mk_macro_stmt   = mk_macro_stmt_grammar_action;
         mk_macro_define = mk_macro_define_grammar_action;
@@ -939,14 +981,17 @@ voidc_enable_macros: () ~> void
         br_item += k:expr _':'_ t:expr _'='_ v:expr     { mk_br_item(k, t, v) }
                  / k:expr              _'='_ v:expr     { mk_br_item(k, 0, v) };
 
-        macro_hdr = qf:(qlf_spec_ident / qlf_ident) _':'_ b:bracketed r:(_"~>"_ expr)?  { mk_macro_hdr(qf, b, r) };
+        macro_id = si:spec_ident    { mk_macro_id(0, si) }
+                 / id:expr          { mk_macro_id(1, id) };
+
+        macro_hdr = id:macro_id _':'_ b:bracketed r:(_"~>"_ expr)?      { mk_macro_hdr(id, b, r) };
 
         macro_stmt = "#define" !ident_cont _ h:macro_hdr _
                          ('='_ e:expr _';'      { mk_macro_stmt(h, e) }
                          / a:parse_any          { mk_macro_stmt(h, a) });
 
-        unit_defn =+ m:macro_stmt   { mk_macro_define(m, 0) };
-        stmt      =+ m:macro_stmt   { mk_macro_define(m, 1) };
+        unit_defn =+ q:qualif_flags _ m:macro_stmt      { mk_macro_define(q, m, 0) };
+        stmt_defn =+                  m:macro_stmt      { mk_macro_define(0, m, 1) };
     }
 
     v_peg_set_grammar(gr0);
