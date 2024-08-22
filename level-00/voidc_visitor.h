@@ -18,6 +18,11 @@ class voidc_visitor_data_t;
 
 typedef std::shared_ptr<const voidc_visitor_data_t> visitor_t;
 
+extern "C"
+{
+    typedef void (*visitor_visit_t)(void *ctx, const visitor_t *vis, const ast_base_t *ast);
+}
+
 
 //---------------------------------------------------------------------
 //- ...
@@ -27,22 +32,22 @@ class voidc_visitor_data_t
 public:
     using void_methods_map_t = immer::map<v_quark_t, std::pair<void *, void *>>;
 
-    using properties_map_t   = immer::map<v_quark_t, std::any>;
-
 public:
-    voidc_visitor_data_t()  = default;
+    voidc_visitor_data_t();
     ~voidc_visitor_data_t() = default;
 
 public:
     voidc_visitor_data_t(const voidc_visitor_data_t &vis)
       : _void_methods(vis.void_methods),
-        _properties(vis.properties)
+        visit_fun(vis.visit_fun),
+        visit_aux(vis.visit_aux)
     {}
 
     voidc_visitor_data_t &operator=(const voidc_visitor_data_t &vis)
     {
         _void_methods = vis.void_methods;
-        _properties   = vis.properties;
+        visit_fun = vis.visit_fun;
+        visit_aux = vis.visit_aux;
 
         return *this;
     }
@@ -54,44 +59,34 @@ public:
 public:
     voidc_visitor_data_t set_void_method(v_quark_t q, void *void_fun, void *aux=nullptr) const
     {
-        return  voidc_visitor_data_t(void_methods.set(q, {void_fun, aux}), properties);
-    }
-
-    voidc_visitor_data_t set_property(v_quark_t name, const std::any &prop) const
-    {
-        return  voidc_visitor_data_t(void_methods, properties.set(name, prop));
+        return  voidc_visitor_data_t(void_methods.set(q, {void_fun, aux}), visit_fun, visit_aux);
     }
 
 public:
     const void_methods_map_t &void_methods = _void_methods;
-    const properties_map_t   &properties   = _properties;
 
 public:
+    visitor_visit_t      get_visit_hook(void **paux) const;
+    voidc_visitor_data_t set_visit_hook(visitor_visit_t fun, void *aux) const;
+
     static
-    void visit(const visitor_t &vis, const ast_base_t &obj)
+    void visit(const visitor_t &vis, const ast_base_t &ast)
     {
-        auto q = obj->tag();
-
-//      printf("visit: %p, %s\n", &vis, v_quark_to_string(q));
-
-        auto &[void_fun, aux] = vis->void_methods.at(q);
-
-//      printf("visit: %p, %s, %p, %p\n", &vis, v_quark_to_string(q), void_fun, aux);
-
-        typedef void (*FunT)(void *, const visitor_t *, const ast_base_t *);
-
-        reinterpret_cast<FunT>(void_fun)(aux, &vis, &obj);
+        vis->visit_fun(vis->visit_aux, &vis, &ast);
     }
 
 private:
     void_methods_map_t _void_methods;
-    properties_map_t   _properties;
 
 private:
-    explicit voidc_visitor_data_t(const void_methods_map_t &vm,
-                                  const properties_map_t   &pm)
+    visitor_visit_t visit_fun;
+    void           *visit_aux;
+
+private:
+    voidc_visitor_data_t(const void_methods_map_t &vm, visitor_visit_t fun, void *aux)
       : _void_methods(vm),
-        _properties(pm)
+        visit_fun(fun),
+        visit_aux(aux)
     {}
 };
 

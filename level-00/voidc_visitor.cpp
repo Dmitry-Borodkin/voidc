@@ -16,6 +16,31 @@
 //-----------------------------------------------------------------
 //- ...
 //-----------------------------------------------------------------
+static void
+visitor_visit_default(void *, const visitor_t *vis, const ast_base_t *ast)
+{
+    auto q = (*ast)->tag();
+
+//  printf("visit: %p, %s\n", &vis, v_quark_to_string(q));
+
+    auto &[void_fun, aux] = (*vis)->void_methods.at(q);
+
+//  printf("visit: %p, %s, %p, %p\n", &vis, v_quark_to_string(q), void_fun, aux);
+
+    typedef void (*FunT)(void *, const visitor_t *, const ast_base_t *);
+
+    reinterpret_cast<FunT>(void_fun)(aux, vis, ast);
+}
+
+//-----------------------------------------------------------------
+//- ...
+//-----------------------------------------------------------------
+voidc_visitor_data_t::voidc_visitor_data_t()
+  : visit_fun(visitor_visit_default),
+    visit_aux(0)
+{}
+
+//-----------------------------------------------------------------
 void
 voidc_visitor_data_t::static_initialize(void)
 {
@@ -38,6 +63,25 @@ voidc_visitor_data_t::static_initialize(void)
 void
 voidc_visitor_data_t::static_terminate(void)
 {
+}
+
+
+//-----------------------------------------------------------------
+//- ...
+//-----------------------------------------------------------------
+visitor_visit_t
+voidc_visitor_data_t::get_visit_hook(void **paux) const
+{
+    if (paux) *paux = visit_aux;
+
+    return visit_fun;
+}
+
+//---------------------------------------------------------------------
+voidc_visitor_data_t
+voidc_visitor_data_t::set_visit_hook(visitor_visit_t fun, void *aux) const
+{
+    return  voidc_visitor_data_t(void_methods, fun, aux);
 }
 
 
@@ -97,16 +141,16 @@ voidc_visitor_set_method(visitor_t *dst, const visitor_t *src, v_quark_t quark, 
 
 
 //---------------------------------------------------------------------
-const std::any *
-voidc_visitor_get_property(const visitor_t *ptr, v_quark_t quark)
+visitor_visit_t
+voidc_visitor_get_visit_hook(visitor_t *vis, void **paux)
 {
-    return  (*ptr)->properties.find(quark);
+    return (*vis)->get_visit_hook(paux);
 }
 
 void
-voidc_visitor_set_property(visitor_t *dst, const visitor_t *src, v_quark_t quark, const std::any *prop)
+voidc_visitor_set_visit_hook(visitor_t *dst, const visitor_t *src, visitor_visit_t fun, void *aux)
 {
-    auto visitor = (*src)->set_property(quark, *prop);
+    auto visitor = (*src)->set_visit_hook(fun, aux);
 
     *dst = std::make_shared<const voidc_visitor_data_t>(visitor);
 }

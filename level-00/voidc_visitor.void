@@ -50,13 +50,6 @@
 
 
 //  v_store(voidc_visitor_ptr, typ0);
-//  v_store(v_quark_t,         typ1);
-
-    ft = v_function_type(v_std_any_ptr, typ0, 2, false);
-    v_export_symbol_type("voidc_visitor_get_property", ft);
-
-
-//  v_store(voidc_visitor_ptr, typ0);
     v_store(voidc_visitor_ptr, typ1);
     v_store(v_quark_t,         typ2);
     v_store(method_ptr,        typ3);
@@ -66,13 +59,30 @@
     v_export_symbol_type("voidc_visitor_set_method", ft);
 
 
-//  v_store(voidc_visitor_ptr, typ0);
+    ast_base_ptr = v_pointer_type(v_ast_base_t, 0);
+
+    v_store(void_ptr,          typ0);
 //  v_store(voidc_visitor_ptr, typ1);
-//  v_store(v_quark_t,         typ2);
-    v_store(v_std_any_ptr,     typ3);
+    v_store(ast_base_ptr,      typ2);
+
+    ft = v_function_type(void, typ0, 3, false);
+
+    visitor_visit_t = v_pointer_type(ft, 0);
+
+
+    v_store(voidc_visitor_ptr, typ0);
+    v_store(void_ptr_ptr,      typ1);
+
+    ft = v_function_type(visitor_visit_t, typ0, 2, false);
+    v_export_symbol_type("voidc_visitor_get_visit_hook", ft);
+
+//  v_store(voidc_visitor_ptr, typ0);
+    v_store(voidc_visitor_ptr, typ1);
+    v_store(visitor_visit_t,   typ2);
+    v_store(void_ptr,          typ3);
 
     ft = v_function_type(void, typ0, 4, false);
-    v_export_symbol_type("voidc_visitor_set_property", ft);
+    v_export_symbol_type("voidc_visitor_set_visit_hook", ft);
 }
 
 
