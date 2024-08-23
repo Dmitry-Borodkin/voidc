@@ -21,6 +21,8 @@ namespace vpeg
 //---------------------------------------------------------------------
 class context_data_t;
 
+typedef std::shared_ptr<context_data_t> context_t;
+
 
 //---------------------------------------------------------------------
 //- "Data" base class...
@@ -77,7 +79,7 @@ struct parser_kind_t
 //---------------------------------------------------------------------
 struct parser_data_t : public data_t<parser_kind_t>
 {
-    virtual std::any parse(context_data_t &ctx) const = 0;
+    virtual std::any parse(context_t &ctx) const = 0;
 
 public:
     virtual size_t parsers_count(void) const { return 0; }
@@ -106,7 +108,7 @@ struct action_kind_t
 //---------------------------------------------------------------------
 struct action_data_t : public data_t<action_kind_t>
 {
-    virtual std::any act(context_data_t &ctx) const = 0;
+    virtual std::any act(context_t &ctx) const = 0;
 };
 
 typedef std::shared_ptr<const action_data_t> action_t;
@@ -133,7 +135,7 @@ struct argument_kind_t
 //---------------------------------------------------------------------
 struct argument_data_t : public data_t<argument_kind_t>
 {
-    virtual std::any value(context_data_t &ctx) const = 0;
+    virtual std::any value(context_t &ctx) const = 0;
 };
 
 typedef std::shared_ptr<const argument_data_t> argument_t;
@@ -194,7 +196,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -236,7 +238,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -289,7 +291,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -308,7 +310,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -327,7 +329,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -346,7 +348,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -365,7 +367,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -385,7 +387,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 
 public:
     const v_quark_t q_name;
@@ -407,7 +409,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -427,7 +429,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 
 public:
     const v_quark_t q_ident;
@@ -449,7 +451,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 
 public:
     const size_t number;
@@ -471,7 +473,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 
 public:
     const action_t action;
@@ -493,7 +495,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 
 public:
     const std::string utf8;
@@ -515,7 +517,7 @@ public:
     {}
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 
 public:
     const char32_t ucs4;
@@ -542,7 +544,7 @@ public:
     class_parser_data_t(const char32_t (*list)[2], size_t count);
 
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 
 public:
     const immer::array<range_t> ranges;
@@ -566,7 +568,7 @@ mk_class_parser(const char32_t (*list)[2], size_t count)
 class dot_parser_data_t : public parser_tag_t<parser_data_t::k_dot>
 {
 public:
-    std::any parse(context_data_t &ctx) const override;
+    std::any parse(context_t &ctx) const override;
 };
 
 inline
@@ -594,7 +596,7 @@ public:
     {}
 
 public:
-    std::any act(context_data_t &ctx) const override;
+    std::any act(context_t &ctx) const override;
 
 public:
     const v_quark_t q_fun;
@@ -625,7 +627,7 @@ public:
     {}
 
 public:
-    std::any act(context_data_t &ctx) const override
+    std::any act(context_t &ctx) const override
     {
         return arg->value(ctx);
     }
@@ -653,7 +655,7 @@ public:
     {}
 
 public:
-    std::any value(context_data_t &ctx) const override;
+    std::any value(context_t &ctx) const override;
 
 public:
     const v_quark_t q_ident;
@@ -684,7 +686,7 @@ public:
     {}
 
 public:
-    std::any value(context_data_t &ctx) const override;
+    std::any value(context_t &ctx) const override;
 
 public:
     const size_t   number;
@@ -707,7 +709,7 @@ public:
     {}
 
 public:
-    std::any value(context_data_t &ctx) const override
+    std::any value(context_t &ctx) const override
     {
         return number;
     }
@@ -732,7 +734,7 @@ public:
     {}
 
 public:
-    std::any value(context_data_t &ctx) const override
+    std::any value(context_t &ctx) const override
     {
         return utf8;
     }
@@ -757,7 +759,7 @@ public:
     {}
 
 public:
-    std::any value(context_data_t &ctx) const override
+    std::any value(context_t &ctx) const override
     {
         return (uint32_t)ucs4;
     }

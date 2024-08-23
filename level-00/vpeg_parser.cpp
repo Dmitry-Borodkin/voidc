@@ -58,9 +58,9 @@ namespace vpeg
 //---------------------------------------------------------------------
 //- Parsers...
 //---------------------------------------------------------------------
-std::any choice_parser_data_t::parse(context_data_t &ctx) const
+std::any choice_parser_data_t::parse(context_t &ctx) const
 {
-//  printf("(%d): choice?\n", (int)ctx.get_position());
+//  printf("(%d): choice?\n", (int)ctx->get_position());
 
     std::any r;
 
@@ -75,11 +75,11 @@ std::any choice_parser_data_t::parse(context_data_t &ctx) const
 }
 
 //---------------------------------------------------------------------
-std::any sequence_parser_data_t::parse(context_data_t &ctx) const
+std::any sequence_parser_data_t::parse(context_t &ctx) const
 {
-//  printf("(%d): sequence?\n", (int)ctx.get_position());
+//  printf("(%d): sequence?\n", (int)ctx->get_position());
 
-    auto st = ctx.get_state();
+    auto st = ctx->get_state();
 
     struct {} const dummy;
 
@@ -91,7 +91,7 @@ std::any sequence_parser_data_t::parse(context_data_t &ctx) const
 
         if (!r.has_value())
         {
-            ctx.set_state(st);
+            ctx->set_state(st);
 
             break;
         }
@@ -102,25 +102,25 @@ std::any sequence_parser_data_t::parse(context_data_t &ctx) const
 
 
 //-------------------------------------------------------------
-std::any and_parser_data_t::parse(context_data_t &ctx) const
+std::any and_parser_data_t::parse(context_t &ctx) const
 {
-    auto st = ctx.get_state();
+    auto st = ctx->get_state();
 
     auto r = parser->parse(ctx);
 
-    ctx.set_state(st);
+    ctx->set_state(st);
 
     return r;       //- ???
 }
 
 //-------------------------------------------------------------
-std::any not_parser_data_t::parse(context_data_t &ctx) const
+std::any not_parser_data_t::parse(context_t &ctx) const
 {
-    auto st = ctx.get_state();
+    auto st = ctx->get_state();
 
     auto r = parser->parse(ctx);
 
-    ctx.set_state(st);
+    ctx->set_state(st);
 
     struct {} const dummy;
 
@@ -131,7 +131,7 @@ std::any not_parser_data_t::parse(context_data_t &ctx) const
 }
 
 //-------------------------------------------------------------
-std::any question_parser_data_t::parse(context_data_t &ctx) const
+std::any question_parser_data_t::parse(context_t &ctx) const
 {
     auto r = parser->parse(ctx);
 
@@ -143,7 +143,7 @@ std::any question_parser_data_t::parse(context_data_t &ctx) const
 }
 
 //-------------------------------------------------------------
-std::any star_parser_data_t::parse(context_data_t &ctx) const
+std::any star_parser_data_t::parse(context_t &ctx) const
 {
     struct {} const dummy;
 
@@ -162,7 +162,7 @@ std::any star_parser_data_t::parse(context_data_t &ctx) const
 }
 
 //-------------------------------------------------------------
-std::any plus_parser_data_t::parse(context_data_t &ctx) const
+std::any plus_parser_data_t::parse(context_t &ctx) const
 {
     std::any ret;
 
@@ -180,13 +180,13 @@ std::any plus_parser_data_t::parse(context_data_t &ctx) const
 
 
 //-------------------------------------------------------------
-std::any catch_variable_parser_data_t::parse(context_data_t &ctx) const
+std::any catch_variable_parser_data_t::parse(context_t &ctx) const
 {
     auto ret = parser->parse(ctx);
 
     if (ret.has_value())
     {
-        auto &vmap = ctx.variables.values;
+        auto &vmap = ctx->variables.values;
 
         vmap = vmap.set(q_name, ret);
     }
@@ -195,17 +195,17 @@ std::any catch_variable_parser_data_t::parse(context_data_t &ctx) const
 }
 
 //-------------------------------------------------------------
-std::any catch_string_parser_data_t::parse(context_data_t &ctx) const
+std::any catch_string_parser_data_t::parse(context_t &ctx) const
 {
-    auto pos = ctx.get_position();
+    auto pos = ctx->get_position();
 
     auto ret = parser->parse(ctx);
 
     if (ret.has_value())
     {
-        auto epos = ctx.get_position();
+        auto epos = ctx->get_position();
 
-        auto &svec = ctx.variables.strings;
+        auto &svec = ctx->variables.strings;
 
         svec = svec.push_back({pos, epos});
     }
@@ -215,29 +215,29 @@ std::any catch_string_parser_data_t::parse(context_data_t &ctx) const
 
 
 //-------------------------------------------------------------
-std::any identifier_parser_data_t::parse(context_data_t &ctx) const
+std::any identifier_parser_data_t::parse(context_t &ctx) const
 {
-    return ctx.grammar.parse(q_ident, ctx);
+    return grammar_data_t::parse(ctx->grammar, q_ident, ctx);
 }
 
 //-------------------------------------------------------------
-std::any backref_parser_data_t::parse(context_data_t &ctx) const
+std::any backref_parser_data_t::parse(context_t &ctx) const
 {
-    auto st = ctx.get_state();
+    auto st = ctx->get_state();
 
     auto v = st.variables.strings[number];
 
     if (number == 0)  v[1] = st.position;
 
-    auto utf8 = ctx.take_string(v[0], v[1]);
+    auto utf8 = ctx->take_string(v[0], v[1]);
 
     const char *str = utf8.c_str();
 
     while (char32_t ucs4 = read_utf8_codepoint(str))
     {
-        if (!ctx.expect(ucs4))
+        if (!ctx->expect(ucs4))
         {
-            ctx.set_state(st);
+            ctx->set_state(st);
 
             return std::any();
         }
@@ -247,23 +247,23 @@ std::any backref_parser_data_t::parse(context_data_t &ctx) const
 }
 
 //-------------------------------------------------------------
-std::any action_parser_data_t::parse(context_data_t &ctx) const
+std::any action_parser_data_t::parse(context_t &ctx) const
 {
     return action->act(ctx);
 }
 
 //-------------------------------------------------------------
-std::any literal_parser_data_t::parse(context_data_t &ctx) const
+std::any literal_parser_data_t::parse(context_t &ctx) const
 {
-    auto st = ctx.get_state();
+    auto st = ctx->get_state();
 
     const char *str = utf8.c_str();
 
     while (char32_t ucs4 = read_utf8_codepoint(str))
     {
-        if (!ctx.expect(ucs4))
+        if (!ctx->expect(ucs4))
         {
-            ctx.set_state(st);
+            ctx->set_state(st);
 
             return std::any();
         }
@@ -273,9 +273,9 @@ std::any literal_parser_data_t::parse(context_data_t &ctx) const
 }
 
 //-------------------------------------------------------------
-std::any character_parser_data_t::parse(context_data_t &ctx) const
+std::any character_parser_data_t::parse(context_t &ctx) const
 {
-    if (!ctx.expect(ucs4))  return std::any();
+    if (!ctx->expect(ucs4))  return std::any();
 
     return (uint32_t)ucs4;
 }
@@ -301,15 +301,15 @@ class_parser_data_t::class_parser_data_t(const char32_t (*list)[2], size_t count
   : ranges(make_ranges_array(list, count))
 {}
 
-std::any class_parser_data_t::parse(context_data_t &ctx) const
+std::any class_parser_data_t::parse(context_t &ctx) const
 {
-    auto ucs4 = ctx.peek_character();
+    auto ucs4 = ctx->peek_character();
 
     for (auto &it : ranges)
     {
         if (it[0] <= ucs4  &&  ucs4 <= it[1])
         {
-            ctx.get_character();
+            ctx->get_character();
 
             return (uint32_t)ucs4;
         }
@@ -319,20 +319,20 @@ std::any class_parser_data_t::parse(context_data_t &ctx) const
 }
 
 //-------------------------------------------------------------
-std::any dot_parser_data_t::parse(context_data_t &ctx) const
+std::any dot_parser_data_t::parse(context_t &ctx) const
 {
-    auto ucs4 = ctx.peek_character();
+    auto ucs4 = ctx->peek_character();
 
     if (ucs4 == char32_t(-1)) return std::any();
 
-    ctx.get_character();
+    ctx->get_character();
 
     return (uint32_t)ucs4;
 }
 
 
 //-----------------------------------------------------------------
-std::any call_action_data_t::act(context_data_t &ctx) const
+std::any call_action_data_t::act(context_t &ctx) const
 {
     size_t N = args.size();
 
@@ -347,7 +347,7 @@ std::any call_action_data_t::act(context_data_t &ctx) const
 
     std::any ret;
 
-    auto [fun, aux] = ctx.grammar.actions[q_fun];
+    auto [fun, aux] = ctx->grammar->actions[q_fun];
 
 #ifndef NDEBUG
 
@@ -364,21 +364,21 @@ std::any call_action_data_t::act(context_data_t &ctx) const
 
 
 //-----------------------------------------------------------------
-std::any identifier_argument_data_t::value(context_data_t &ctx) const
+std::any identifier_argument_data_t::value(context_t &ctx) const
 {
-    return ctx.variables.values.at(q_ident);      //- ?...
+    return ctx->variables.values.at(q_ident);      //- ?...
 }
 
 //-----------------------------------------------------------------
-std::any backref_argument_data_t::value(context_data_t &ctx) const
+std::any backref_argument_data_t::value(context_t &ctx) const
 {
-    auto v = ctx.variables.strings[number];
+    auto v = ctx->variables.strings[number];
 
-    if (number == 0)  v[1] = ctx.get_position();
+    if (number == 0)  v[1] = ctx->get_position();
 
     switch(b_kind)
     {
-    case bk_string: return ctx.take_string(v[0], v[1]);
+    case bk_string: return ctx->take_string(v[0], v[1]);
     case bk_start:  return v[0];
     case bk_end:    return v[1];
     }
@@ -916,7 +916,7 @@ v_peg_character_argument_get_character(const argument_t *ptr)
 void
 v_peg_parser_parse(std::any *ret, const parser_t *parser)
 {
-    auto &ctx = *context_data_t::current_ctx;
+    auto &ctx = context_data_t::current_ctx;
 
     *ret = (*parser)->parse(ctx);
 }
@@ -924,7 +924,7 @@ v_peg_parser_parse(std::any *ret, const parser_t *parser)
 void
 v_peg_action_act(std::any *ret, const action_t *action)
 {
-    auto &ctx = *context_data_t::current_ctx;
+    auto &ctx = context_data_t::current_ctx;
 
     *ret = (*action)->act(ctx);
 }
@@ -932,7 +932,7 @@ v_peg_action_act(std::any *ret, const action_t *action)
 void
 v_peg_argument_value(std::any *ret, const argument_t *argument)
 {
-    auto &ctx = *context_data_t::current_ctx;
+    auto &ctx = context_data_t::current_ctx;
 
     *ret = (*argument)->value(ctx);
 }

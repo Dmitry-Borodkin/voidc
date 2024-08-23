@@ -50,19 +50,19 @@ static vpeg::grammar_data_t voidc_grammar;
 static ast_unit_t
 parse_unit(void)
 {
-    auto &pctx = *vpeg::context_data_t::current_ctx;
+    auto &ctx = vpeg::context_data_t::current_ctx;
 
     static const auto unit_q = v_quark_from_string("unit");
 
-    auto ret = pctx.grammar.parse(unit_q, pctx);
+    auto ret = ctx->grammar->parse(ctx->grammar, unit_q, ctx);
 
-    pctx.memo.clear();
+    ctx->memo.clear();
 
     if (auto unit = std::any_cast<ast_unit_t>(&ret))  return *unit;
 
     size_t line, column;
 
-    pctx.get_line_column(pctx.get_buffer_size(), line, column);
+    ctx->get_line_column(ctx->get_buffer_size(), line, column);
 
     auto &vctx = *voidc_global_ctx_t::voidc;        //- Sic!!!
     auto &lctx = *vctx.local_ctx;
@@ -573,7 +573,9 @@ v_import_helper(const char *name, bool _export)
 
             {   auto parent_vpeg_ctx = vpeg::context_data_t::current_ctx;
 
-                vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(infs, voidc_grammar);
+                auto grm = std::make_shared<vpeg::grammar_data_t>(voidc_grammar);
+
+                vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(infs, grm);
 
                 while(auto unit = parse_unit())
                 {
@@ -919,17 +921,19 @@ main(int argc, char *argv[])
 
             lctx.filename = src_name;
 
-            vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(istr, current_grammar);
+            auto grm = std::make_shared<vpeg::grammar_data_t>(current_grammar);
 
-            {   auto &pctx = *vpeg::context_data_t::current_ctx;
+            vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(istr, grm);
+
+            {   auto &ctx = vpeg::context_data_t::current_ctx;
 
                 static const auto shebang_q = v_quark_from_string("shebang");
 
-                if (pctx.grammar.parsers.find(shebang_q))
+                if (ctx->grammar->parsers.find(shebang_q))
                 {
-                    pctx.grammar.parse(shebang_q, pctx);
+                    ctx->grammar->parse(ctx->grammar, shebang_q, ctx);
 
-                    pctx.memo.clear();
+                    ctx->memo.clear();
                 }
             }
 
@@ -946,7 +950,7 @@ main(int argc, char *argv[])
                 lctx.unit_buffer = nullptr;
             }
 
-            current_grammar = vpeg::context_data_t::current_ctx->grammar;
+            current_grammar = *vpeg::context_data_t::current_ctx->grammar;
 
             vpeg::context_data_t::current_ctx = nullptr;     //- ?
 

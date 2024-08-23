@@ -117,6 +117,33 @@
 
     ft = v_function_type(void, typ0, 3, false);
     v_export_symbol_type("v_peg_grammar_erase_value", ft);
+
+    //-------------------------------------------------------------
+    context_ptr = v_pointer_type(v_peg_context_t, 0);
+
+    v_store(void_ptr,          typ0);
+    v_store(std_any_ptr,       typ1);
+    v_store(v_peg_grammar_ptr, typ2);
+    v_store(v_quark_t,         typ3);
+    v_store(context_ptr,       typ4);
+
+    ft = v_function_type(void, typ0, 5, false);
+
+    grammar_parse_t = v_pointer_type(ft, 0);
+
+    v_store(v_peg_grammar_ptr, typ0);
+    v_store(void_ptr_ptr,      typ1);
+
+    ft = v_function_type(grammar_parse_t, typ0, 2, false);
+    v_export_symbol_type("v_peg_grammar_get_parse_hook", ft);
+
+//  v_store(v_peg_grammar_ptr, typ0);
+    v_store(v_peg_grammar_ptr, typ1);
+    v_store(grammar_parse_t,   typ2);
+    v_store(void_ptr,          typ3);
+
+    ft = v_function_type(void, typ0, 4, false);
+    v_export_symbol_type("v_peg_grammar_set_parse_hook", ft);
 }
 
 

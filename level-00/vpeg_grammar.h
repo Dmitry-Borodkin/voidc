@@ -17,7 +17,18 @@
 namespace vpeg
 {
 
-extern "C" typedef void (*grammar_action_fun_t)(std::any *ret, void *aux, const std::any *args, size_t count);
+typedef std::shared_ptr<context_data_t> context_t;
+
+class grammar_data_t;
+
+typedef std::shared_ptr<grammar_data_t> grammar_t;
+
+extern "C"
+{
+    typedef void (*grammar_action_fun_t)(std::any *ret, void *aux, const std::any *args, size_t count);
+
+    typedef void (*grammar_parse_t)(void *aux, std::any *ret, grammar_t *grm, v_quark_t q, context_t *ctx);
+}
 
 
 //---------------------------------------------------------------------
@@ -31,7 +42,7 @@ public:
     using values_map_t  = immer::map<v_quark_t, std::any>;
 
 public:
-    grammar_data_t()  = default;
+    grammar_data_t();
     ~grammar_data_t() = default;
 
 public:
@@ -39,15 +50,19 @@ public:
       : _hash(gr.hash),
         _parsers(gr.parsers),
         _actions(gr.actions),
-        _values(gr.values)
+        _values(gr.values),
+        parse_fun(gr.parse_fun),
+        parse_aux(gr.parse_aux)
     {}
 
     grammar_data_t &operator=(const grammar_data_t &gr)
     {
-        _hash    = gr.hash;
-        _parsers = gr.parsers;
-        _actions = gr.actions;
-        _values  = gr.values;
+        _hash     = gr.hash;
+        _parsers  = gr.parsers;
+        _actions  = gr.actions;
+        _values   = gr.values;
+        parse_fun = gr.parse_fun;
+        parse_aux = gr.parse_aux;
 
         return *this;
     }
@@ -59,7 +74,7 @@ public:
 public:
     grammar_data_t set_parser(v_quark_t q_name, const parser_t &parser, bool leftrec=false) const
     {
-        return  grammar_data_t(_parsers.set(q_name, {parser, leftrec}), actions, values);
+        return  grammar_data_t(_parsers.set(q_name, {parser, leftrec}), actions, values, parse_fun, parse_aux);
     }
 
     grammar_data_t set_parser(const char *name, const parser_t &parser, bool leftrec=false) const
@@ -69,7 +84,7 @@ public:
 
     grammar_data_t set_action(v_quark_t q_name, grammar_action_fun_t fun, void *aux=nullptr) const
     {
-        return  grammar_data_t(parsers, _actions.set(q_name, {fun, aux}), values);
+        return  grammar_data_t(parsers, _actions.set(q_name, {fun, aux}), values, parse_fun, parse_aux);
     }
 
     grammar_data_t set_action(const char *name, grammar_action_fun_t fun, void *aux=nullptr) const
@@ -79,7 +94,7 @@ public:
 
     grammar_data_t set_value(v_quark_t q_name, const std::any &val) const
     {
-        return  grammar_data_t(parsers, actions, _values.set(q_name, val));
+        return  grammar_data_t(parsers, actions, _values.set(q_name, val), parse_fun, parse_aux);
     }
 
     grammar_data_t set_value(const char *name, const std::any &val) const
@@ -90,7 +105,7 @@ public:
 public:
     grammar_data_t erase_parser(v_quark_t q_name) const
     {
-        return  grammar_data_t(_parsers.erase(q_name), actions, values);
+        return  grammar_data_t(_parsers.erase(q_name), actions, values, parse_fun, parse_aux);
     }
 
     grammar_data_t erase_parser(const char *name) const
@@ -100,7 +115,7 @@ public:
 
     grammar_data_t erase_action(v_quark_t q_name) const
     {
-        return  grammar_data_t(parsers, _actions.erase(q_name), values);
+        return  grammar_data_t(parsers, _actions.erase(q_name), values, parse_fun, parse_aux);
     }
 
     grammar_data_t erase_action(const char *name) const
@@ -110,7 +125,7 @@ public:
 
     grammar_data_t erase_value(v_quark_t q_name) const
     {
-        return  grammar_data_t(parsers, actions, _values.erase(q_name));
+        return  grammar_data_t(parsers, actions, _values.erase(q_name), parse_fun, parse_aux);
     }
 
     grammar_data_t erase_value(const char *name) const
@@ -119,7 +134,18 @@ public:
     }
 
 public:
-    std::any parse(v_quark_t q_name, context_data_t &ctx) const;
+    grammar_parse_t get_parse_hook(void **paux) const;
+    grammar_data_t  set_parse_hook(grammar_parse_t fun, void *aux) const;
+
+    static
+    std::any parse(grammar_t &grm, v_quark_t q, context_t &ctx)
+    {
+        std::any ret;
+
+        grm->parse_fun(grm->parse_aux, &ret, &grm, q, &ctx);
+
+        return ret;
+    }
 
 public:
     const size_t &hash = _hash;
@@ -140,14 +166,19 @@ private:
     values_map_t  _values;
 
 private:
-    explicit grammar_data_t(const parsers_map_t &p, const actions_map_t &a, const values_map_t &v)
+    grammar_parse_t parse_fun;
+    void           *parse_aux;
+
+private:
+    explicit grammar_data_t(const parsers_map_t &p, const actions_map_t &a, const values_map_t &v,
+                            grammar_parse_t fun, void *aux)
       : _parsers(p),
         _actions(a),
-        _values(v)
+        _values(v),
+        parse_fun(fun),
+        parse_aux(aux)
     {}
 };
-
-typedef std::shared_ptr<const grammar_data_t> grammar_t;
 
 
 //---------------------------------------------------------------------

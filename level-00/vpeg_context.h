@@ -31,9 +31,9 @@ extern "C" typedef int (*context_fgetc_fun_t)(void *data);
 class context_data_t
 {
 public:
-    context_data_t(context_fgetc_fun_t fun, void *data, const grammar_data_t &_grammar);
+    context_data_t(context_fgetc_fun_t fun, void *data, const grammar_t &_grammar);
 
-    context_data_t(std::FILE *_input, const grammar_data_t &_grammar);
+    context_data_t(std::FILE *_input, const grammar_t &_grammar);
 
 public:
     static void static_initialize(void);
@@ -51,9 +51,9 @@ public:
 
     struct state_t
     {
-        size_t         position;
-        variables_t    variables;
-        grammar_data_t grammar;
+        size_t      position;
+        variables_t variables;
+        grammar_t   grammar;
     };
 
 public:
@@ -70,7 +70,7 @@ public:
         variables = st.variables;
         grammar   = st.grammar;
 
-        grammar.check_hash();
+        grammar->check_hash();
     }
 
 public:
@@ -110,8 +110,8 @@ public:
     }
 
 public:
-    variables_t    variables;
-    grammar_data_t grammar;         //- ?...
+    variables_t variables;
+    grammar_t   grammar;
 
 public:     //- ?...
     std::map<std::tuple<size_t, size_t, v_quark_t>, std::pair<std::any, state_t>> memo;

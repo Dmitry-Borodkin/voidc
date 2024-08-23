@@ -33,8 +33,14 @@ void grammar_data_t::check_hash(void)
 
 
 //-----------------------------------------------------------------
-std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
+//std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
+
+static void
+grammar_parse_default(void *, std::any *pret, grammar_t *pgrm, v_quark_t q_name, context_t *pctx)
 {
+    auto &grm = **pgrm;
+    auto &ctx = **pctx;
+
     context_data_t::variables_t saved_vars;     //- empty(!)
 
     std::swap(ctx.variables, saved_vars);       //- save (and clear)
@@ -42,19 +48,19 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
     {   auto &vvec = ctx.variables.values;
         auto &svec = ctx.variables.strings;
 
-        vvec = values;                                  //- "Global" values
+        vvec = grm.values;                              //- "Global" values
         svec = svec.push_back({ctx.get_position(), 0}); //- #0
     }
 
     auto st = ctx.get_state();
 
-    std::any ret;
+    assert(grm.hash != size_t(-1));
 
-    assert(hash != size_t(-1));
-
-    auto key = std::make_tuple(hash, st.position, q_name);
+    auto key = std::make_tuple(grm.hash, st.position, q_name);
 
 //printf("parse? %zd %zd %s\n", std::get<0>(key), std::get<1>(key), v_quark_to_string(q_name));
+
+    std::any ret;
 
     if (ctx.memo.count(key))
     {
@@ -66,7 +72,7 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
     }
     else
     {
-        auto &[parser, leftrec] = parsers.at(q_name);
+        auto &[parser, leftrec] = grm.parsers.at(q_name);
 
         if (leftrec)        //- Left-recursive ?
         {
@@ -79,7 +85,7 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
             {
                 ctx.set_state(st);
 
-                auto res = parser->parse(ctx);
+                auto res = parser->parse(*pctx);
                 auto est = ctx.get_state();
 
                 if (est.position <= last_st.position) break;
@@ -96,7 +102,7 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
         }
         else                //- NOT left-recursive
         {
-            auto res = parser->parse(ctx);
+            auto res = parser->parse(*pctx);
             auto est = ctx.get_state();
 
             ctx.memo[key] = {res, est};
@@ -129,8 +135,15 @@ std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
 //}
 //else  printf("Fail\n");
 
-    return ret;
+    *pret = ret;
 }
+
+
+//-----------------------------------------------------------------
+grammar_data_t::grammar_data_t()
+  : parse_fun(grammar_parse_default),
+    parse_aux(0)
+{}
 
 
 //-----------------------------------------------------------------
@@ -158,6 +171,25 @@ void grammar_data_t::static_initialize(void)
 void grammar_data_t::static_terminate(void)
 {
     parsers_static_terminate();
+}
+
+
+//-----------------------------------------------------------------
+//- ...
+//-----------------------------------------------------------------
+grammar_parse_t
+grammar_data_t::get_parse_hook(void **paux) const
+{
+    if (paux) *paux = parse_aux;
+
+    return parse_fun;
+}
+
+//---------------------------------------------------------------------
+grammar_data_t
+grammar_data_t::set_parse_hook(grammar_parse_t fun, void *aux) const
+{
+    return  grammar_data_t(parsers, actions, values, fun, aux);
 }
 
 
@@ -195,7 +227,7 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 void
 v_peg_make_grammar(grammar_t *ret)
 {
-    *ret = std::make_shared<const grammar_data_t>();
+    *ret = std::make_shared<grammar_data_t>();
 }
 
 
@@ -224,7 +256,7 @@ v_peg_grammar_set_parser(grammar_t *dst, const grammar_t *src, const char *name,
 {
     auto grammar = (*src)->set_parser(name, *parser, leftrec);
 
-    *dst = std::make_shared<const grammar_data_t>(grammar);
+    *dst = std::make_shared<grammar_data_t>(grammar);
 }
 
 void
@@ -232,7 +264,7 @@ v_peg_grammar_erase_parser(grammar_t *dst, const grammar_t *src, const char *nam
 {
     auto grammar = (*src)->erase_parser(name);
 
-    *dst = std::make_shared<const grammar_data_t>(grammar);
+    *dst = std::make_shared<grammar_data_t>(grammar);
 }
 
 
@@ -261,7 +293,7 @@ v_peg_grammar_set_action(grammar_t *dst, const grammar_t *src, const char *name,
 {
     auto grammar = (*src)->set_action(name, fun, aux);
 
-    *dst = std::make_shared<const grammar_data_t>(grammar);
+    *dst = std::make_shared<grammar_data_t>(grammar);
 }
 
 void
@@ -269,7 +301,7 @@ v_peg_grammar_erase_action(grammar_t *dst, const grammar_t *src, const char *nam
 {
     auto grammar = (*src)->erase_action(name);
 
-    *dst = std::make_shared<const grammar_data_t>(grammar);
+    *dst = std::make_shared<grammar_data_t>(grammar);
 }
 
 
@@ -289,7 +321,7 @@ v_peg_grammar_set_value(grammar_t *dst, const grammar_t *src, const char *name, 
 {
     auto grammar = (*src)->set_value(name, *value);
 
-    *dst = std::make_shared<const grammar_data_t>(grammar);
+    *dst = std::make_shared<grammar_data_t>(grammar);
 }
 
 void
@@ -297,7 +329,23 @@ v_peg_grammar_erase_value(grammar_t *dst, const grammar_t *src, const char *name
 {
     auto grammar = (*src)->erase_value(name);
 
-    *dst = std::make_shared<const grammar_data_t>(grammar);
+    *dst = std::make_shared<grammar_data_t>(grammar);
+}
+
+
+//---------------------------------------------------------------------
+grammar_parse_t
+v_peg_grammar_get_parse_hook(grammar_t *grm, void **paux)
+{
+    return (*grm)->get_parse_hook(paux);
+}
+
+void
+v_peg_grammar_set_parse_hook(grammar_t *dst, const grammar_t *src, grammar_parse_t fun, void *aux)
+{
+    auto grammar = (*src)->set_parse_hook(fun, aux);
+
+    *dst = std::make_shared<grammar_data_t>(grammar);
 }
 
 

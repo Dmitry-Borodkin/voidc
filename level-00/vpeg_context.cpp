@@ -21,17 +21,17 @@ context_t context_data_t::current_ctx;
 
 
 //-----------------------------------------------------------------
-context_data_t::context_data_t(context_fgetc_fun_t fun, void *data, const grammar_data_t &_grammar)
+context_data_t::context_data_t(context_fgetc_fun_t fun, void *data, const grammar_t &_grammar)
   : grammar(_grammar),
     fgetc_fun(fun),
     fgetc_fun_data(data)
 {
-    grammar.check_hash();
+    grammar->check_hash();
 }
 
 
 //-----------------------------------------------------------------
-context_data_t::context_data_t(FILE *input, const grammar_data_t &_grammar)
+context_data_t::context_data_t(FILE *input, const grammar_t &_grammar)
   : context_data_t(reinterpret_cast<context_fgetc_fun_t>(std::fgetc), input, _grammar)
 {}
 
@@ -253,24 +253,24 @@ void v_peg_set_context(context_t *ctx)
 //-----------------------------------------------------------------
 void v_peg_make_context(context_t *ret, context_fgetc_fun_t fun, void *data, const grammar_t *grm)
 {
-    *ret = std::make_shared<context_data_t>(fun, data, **grm);
+    *ret = std::make_shared<context_data_t>(fun, data, *grm);
 }
 
 
 //-----------------------------------------------------------------
 void v_peg_parse(std::any *ret, v_quark_t q)
 {
-    auto &pctx = *context_data_t::current_ctx;
+    auto &ctx = context_data_t::current_ctx;
 
-    *ret = pctx.grammar.parse(q, pctx);
+    *ret = ctx->grammar->parse(ctx->grammar, q, ctx);
 }
 
 //-----------------------------------------------------------------
 void v_peg_memo_clear(void)
 {
-    auto &pctx = *context_data_t::current_ctx;
+    auto &ctx = context_data_t::current_ctx;
 
-    pctx.memo.clear();
+    ctx->memo.clear();
 }
 
 
@@ -279,7 +279,7 @@ void v_peg_get_grammar(grammar_t *ptr)
 {
     if (context_data_t::current_ctx)
     {
-        *ptr = std::make_shared<const grammar_data_t>(context_data_t::current_ctx->grammar);
+        *ptr = context_data_t::current_ctx->grammar;
     }
     else
     {
@@ -293,9 +293,9 @@ void v_peg_set_grammar(const grammar_t *ptr)
     {
         auto &grammar = context_data_t::current_ctx->grammar;
 
-        grammar = **ptr;
+        grammar = *ptr;
 
-        grammar.check_hash();
+        grammar->check_hash();
     }
 }
 
