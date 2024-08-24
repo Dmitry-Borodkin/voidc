@@ -315,6 +315,16 @@ void v_peg_get_line_column(size_t pos, size_t *line, size_t *column)
     }
 }
 
+size_t v_peg_get_position(void)
+{
+    if (context_data_t::current_ctx)
+    {
+        return context_data_t::current_ctx->get_position();
+    }
+
+    return size_t(-1);
+}
+
 
 //---------------------------------------------------------------------
 VOIDC_DLLEXPORT_END

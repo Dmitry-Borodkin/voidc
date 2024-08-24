@@ -33,8 +33,6 @@ void grammar_data_t::check_hash(void)
 
 
 //-----------------------------------------------------------------
-//std::any grammar_data_t::parse(v_quark_t q_name, context_data_t &ctx) const
-
 static void
 grammar_parse_default(void *, std::any *pret, grammar_t *pgrm, v_quark_t q_name, context_t *pctx)
 {
@@ -57,8 +55,6 @@ grammar_parse_default(void *, std::any *pret, grammar_t *pgrm, v_quark_t q_name,
     assert(grm.hash != size_t(-1));
 
     auto key = std::make_tuple(grm.hash, st.position, q_name);
-
-//printf("parse? %zd %zd %s\n", std::get<0>(key), std::get<1>(key), v_quark_to_string(q_name));
 
     std::any ret;
 
@@ -126,14 +122,6 @@ grammar_parse_default(void *, std::any *pret, grammar_t *pgrm, v_quark_t q_name,
     }
 
     ctx.variables = saved_vars;                 //- restore saved
-
-//printf("parse! %zd %zd %s: ", std::get<0>(key), std::get<1>(key), v_quark_to_string(q_name));
-//if (ret.has_value())
-//{
-//    size_t line, column;    ctx.get_line_column(ctx.get_position(), line, column);
-//    printf("OK (%zd, %zd)\n", line, column);
-//}
-//else  printf("Fail\n");
 
     *pret = ret;
 }
