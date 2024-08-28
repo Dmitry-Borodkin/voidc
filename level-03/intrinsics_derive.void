@@ -36,14 +36,13 @@
 
 //---------------------------------------------------------------------
 private
-struct voidc_intrinsic_quarks_item_t
+voidc_intrinsic_quarks_item_t = struct
 {
     name:  *const char;
     quark: *v_quark_t;
 };
 
-private
-intrinsic_quarks: &voidc_intrinsic_quarks_item_t[] :=
+voidc_intrinsic_quarks: &voidc_intrinsic_quarks_item_t[] :=
 {
     { "v_initialize" },                 //- Derivable
     { "v_terminate" },                  //- Derivable
@@ -93,7 +92,7 @@ bsearch: (key: *const void, ptr: *const void, count: size_t, size: size_t, comp:
 //---------------------------------------------------------------------
 voidc_intrinsic_quarks_ctor: () ~> void
 {
-    t = v_find_symbol_type("intrinsic_quarks");
+    t = v_find_symbol_type("voidc_intrinsic_quarks");
 
     t = v_type_refptr_get_element_type(t);
 
@@ -101,15 +100,15 @@ voidc_intrinsic_quarks_ctor: () ~> void
 
     for (i: &int := 0; i < l; ++i)
     {
-        intrinsic_quarks[i].quark := v_quark_ptr_from_string(intrinsic_quarks[i].name);
+        voidc_intrinsic_quarks[i].quark := v_quark_ptr_from_string(voidc_intrinsic_quarks[i].name);
     }
 
-    qsort(intrinsic_quarks, l, voidc_intrinsic_quarks_item_t.size, quarks_compare);
+    qsort(voidc_intrinsic_quarks, l, voidc_intrinsic_quarks_item_t.size, quarks_compare);
 }
 
 //---------------------------------------------------------------------
 {
-    t = v_find_symbol_type("intrinsic_quarks");
+    t = v_find_symbol_type("voidc_intrinsic_quarks");
 
     t = v_type_refptr_get_element_type(t);
 
@@ -158,7 +157,7 @@ compute_key_quark_type: (aux: *void,
 {
     key: &voidc_intrinsic_quarks_item_t := { 0, &q };
 
-    if (bsearch(&key, intrinsic_quarks, quarks_count, voidc_intrinsic_quarks_item_t.size, quarks_compare))
+    if (bsearch(&key, voidc_intrinsic_quarks, quarks_count, voidc_intrinsic_quarks_item_t.size, quarks_compare))
     {
         type = v_type_function_get_param_types(ft)[0];
 

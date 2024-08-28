@@ -167,7 +167,10 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
         struct impl_t { map: v_util_list_t; };
     }
 
-    #do (v_set_implementation_type(list(T), list_ns(T, detail).impl_t))
+    private
+    detail_ns = list_ns(T, detail);
+
+    #do (v_set_implementation_type(list(T), detail_ns.impl_t))
 
     //-------------------------------------------------------------
     inlinehint
@@ -175,7 +178,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
     {
         for (i: &int := 0; i < N; ++i)
         {
-            li = *(sp+i : *list_ns(T, detail).impl_t);
+            li = *(sp+i : *detail_ns.impl_t);
 
             v_initialize(&li.map);
 
@@ -188,7 +191,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
     {
         for (i: &int := 0; i < N; ++i)
         {
-            li = *(sp+i : *list_ns(T, detail).impl_t);
+            li = *(sp+i : *detail_ns.impl_t);
 
             v_terminate(&li.map);
         }
@@ -199,8 +202,8 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
     {
         for (i: &int := 0; i < N; ++i)
         {
-            sli = *(src+i : *list_ns(T, detail).impl_t);
-            dli = *(dst+i : *list_ns(T, detail).impl_t);
+            sli = *(src+i : *detail_ns.impl_t);
+            dli = *(dst+i : *detail_ns.impl_t);
 
             v_copy(&dli.map, &sli.map);
         }
@@ -210,7 +213,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
     inlinehint
     (_[]): (sp: &list(T), i: size_t) ~> T
     {
-        map = &(&sp : *list_ns(T, detail).impl_t)->map;
+        map = &(&sp : *detail_ns.impl_t)->map;
 
         a = v_list_get_item(map, i);
         v_assert(a);
@@ -228,7 +231,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
         v_std_any_set_value(&a, v);
 
-        map = &(&sp : *list_ns(T, detail).impl_t)->map;
+        map = &(&sp : *detail_ns.impl_t)->map;
 
         v_list_append(map, map, &a);
 
@@ -244,8 +247,8 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
         ret = v_get_return_value();
 
-        m = &(&sp  : *list_ns(T, detail).impl_t)->map;
-        r = &(&ret : *list_ns(T, detail).impl_t)->map;
+        m = &(&sp  : *detail_ns.impl_t)->map;
+        r = &(&ret : *detail_ns.impl_t)->map;
 
         v_list_append(r, m, &a);
     }
@@ -253,7 +256,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
     inlinehint
     (_.size): (sp: &list(T)) ~> size_t
     {
-        map = &(&sp : *list_ns(T, detail).impl_t)->map;
+        map = &(&sp : *detail_ns.impl_t)->map;
 
         v_return(v_list_get_size(map));
     }

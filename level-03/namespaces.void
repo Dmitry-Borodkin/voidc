@@ -103,6 +103,8 @@ struct v_namespace_t
     map:    v_util_map_t;           //- Names -> "global" names...
 
     used:   v_util_list_t;          //- Used namespaces
+
+    privates: v_util_map_t;         //- ...
 };
 
 
@@ -118,10 +120,12 @@ export
         v_initialize(&p_i.list);
         v_initialize(&p_i.map);
         v_initialize(&p_i.used);
+        v_initialize(&p_i.privates);
 
         v_make_list_nil(&p_i.list);
         v_make_map(&p_i.map);
         v_make_list_nil(&p_i.used);
+        v_make_map(&p_i.privates);
     }
 }
 
@@ -136,6 +140,101 @@ private
 namespace_cleaner: (void_ctx: *void) ~> void
 {
     delete (void_ctx: *v_namespace_t);
+}
+
+
+//---------------------------------------------------------------------
+private
+check_private_thing: (thing: intptr_t) ~> void
+{
+    a = v_get_property_q(q_current_namespace_list);
+
+    l = v_std_any_get_pointer(v_util_list_t, a);
+
+    s = v_list_get_size(l);
+    if (!s) v_return();
+
+    c = v_list_get_item(l, s-1);
+
+    ns = (v_std_any_get_value(intptr_t, c): *v_namespace_t);
+
+    priv = &ns->privates;
+
+    any: &v_std_any_t := {};        //- Just empty...
+
+    v_map_insert(priv, priv, thing, &any);
+}
+
+//---------------------------------------------------------------------
+private
+clear_private_things: () ~> void
+{
+//printf("clear_private_things: start\n");
+//defer printf("clear_private_things: stop\n");
+
+    a = v_get_property_q(q_current_namespace_list);
+
+    l = v_std_any_get_pointer(v_util_list_t, a);
+
+    s = v_list_get_size(l);
+    if (!s) v_return();
+
+    c = v_list_get_item(l, s-1);
+
+    ns = (v_std_any_get_value(intptr_t, c): *v_namespace_t);
+
+    priv = &ns->privates;
+
+    if (v_map_get_size(priv) == 0)  v_return();
+
+    list = &ns->list;
+    map  = &ns->map;
+
+    n: &size_t := v_list_get_size(list);
+
+    for (i: &int := 0; i < n;)
+    {
+        a = v_list_get_item(list, i);
+
+        qname = v_std_any_get_value(v_quark_t, a);
+
+        if (!v_map_find(priv, (qname: intptr_t)))
+        {
+            ++i;
+
+            v_continue();
+        }
+
+        v_list_erase(list, list, i);
+
+        v_map_erase(map, map, qname);
+
+        --n;
+    }
+
+    used = &ns->used;
+
+    n := v_list_get_size(used);
+
+    for (i: &int := 0; i < n;)
+    {
+        a = v_list_get_item(used, i);
+
+        qname = (v_std_any_get_value(intptr_t, a) : *v_namespace_t)->name;
+
+        if (!v_map_find(priv, (qname: intptr_t)))
+        {
+            ++i;
+
+            v_continue();
+        }
+
+        v_list_erase(used, used, i);
+
+        --n;
+    }
+
+    v_make_map(priv);
 }
 
 
@@ -470,11 +569,13 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
         qs0.qname := v_ast_expr_identifier_get_name_q(etmp);
     }
 
-    private_flag = v_get_private_flag();
-    export_flag  = v_get_export_flag();
+    hidden_flag = v_get_hidden_flag();
+    export_flag = v_get_export_flag();
 
-    private = private_flag  ||  qualif & qf_private;
-    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
+    private = qualif & qf_private;
+
+    hidden = private  ||  hidden_flag;
+    export = (export_flag  ||  qualif & qf_export)  &&  !hidden;
 
     if (export) v_export_effort(voidc_unit_namespace_open_block_effort, 0);
     else        v_add_effort(voidc_unit_namespace_open_block_effort, 0);
@@ -483,10 +584,10 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
         qfqf: &intptr_t := 0;
 
-        qfqf |= private_flag << 0;      //- 0 - old private
-        qfqf |= export_flag  << 1;      //- 1 - old export
-        qfqf |= private      << 2;      //- 2 - new private
-        qfqf |= export       << 3;      //- 3 - new export
+        qfqf |= hidden_flag << 0;       //- 0 - old hidden_flag
+        qfqf |= export_flag << 1;       //- 1 - old export
+        qfqf |= hidden      << 2;       //- 2 - new hidden_flag     !
+        qfqf |= export      << 3;       //- 3 - new export
 
         a: &v_std_any_t := {};
 
@@ -525,16 +626,18 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
         q = (quark : *void);
 
+        if (i == N  &&  private)  check_private_thing((q: intptr_t));
+
         if (export) v_export_effort(voidc_unit_namespace_open_item_effort, q);
         else        v_add_effort(voidc_unit_namespace_open_item_effort, q);
     }
 
-    v_set_private_flag(private);
+    v_set_hidden_flag(hidden);
     v_set_export_flag(export);
 
     //-----------------------------------------------------------------
     stmt_list = voidc_definitions_context_get_stmt_list();
-    if (!stmt_list)  v_return();
+    if (hidden  ||  !stmt_list)  v_return();
 
     expr: &v_ast_expr_t[3] := {};
 
@@ -611,6 +714,8 @@ compile_unit_defn_close: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
 //printf("compile_unit_defn_close start\n");
 //defer printf("compile_unit_defn_close stop\n");
 
+    clear_private_things();
+
     anss = v_std_any_get_pointer(v_util_list_t, v_get_property_q(q_current_namespace_stack));
 
     i = v_list_get_size(anss) - 1;
@@ -619,20 +724,20 @@ compile_unit_defn_close: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
 
     v_list_erase(anss, anss, i, 1);
 
-    private_flag = (qfqf & (1 << 0)) != 0;
-    export_flag  = (qfqf & (1 << 1)) != 0;
-    private      = (qfqf & (1 << 2)) != 0;
-    export       = (qfqf & (1 << 3)) != 0;
+    hidden_flag = (qfqf & (1 << 0)) != 0;
+    export_flag = (qfqf & (1 << 1)) != 0;
+    hidden      = (qfqf & (1 << 2)) != 0;
+    export      = (qfqf & (1 << 3)) != 0;
 
     if (export) v_export_effort(voidc_unit_namespace_close_effort, 0);
     else        v_add_effort(voidc_unit_namespace_close_effort, 0);
 
-    v_set_private_flag(private_flag);
+    v_set_hidden_flag(hidden_flag);
     v_set_export_flag(export_flag);
 
     //-----------------------------------------------------------------
     stmt_list = voidc_definitions_context_get_stmt_list();
-    if (!stmt_list)  v_return();
+    if (hidden  ||  !stmt_list)  v_return();
 
     expr: &v_ast_expr_t[2] := {};
 
@@ -695,8 +800,8 @@ compile_unit_defn_using: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
     flag   = v_ast_expr_integer_get_number((v_list_get_item(list, 1) : *v_ast_expr_t));
     expr   = (v_list_get_item(list, 2) : *v_ast_expr_t);
 
-    private = v_get_private_flag()  ||  qualif & qf_private;
-    export  = (v_get_export_flag()  ||  qualif & qf_export)  &&  !private;
+    private = qualif & qf_private;
+    export  = (v_get_export_flag()  ||  qualif & qf_export)  &&  !private  &&  !v_get_hidden_flag();
 
     if (flag)       //- using namespace  <ns-id> ;
     {
@@ -715,9 +820,11 @@ compile_unit_defn_using: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
         if (export) v_export_effort(voidc_unit_defn_using_namespace_effort, (qvn: *void));
         else        v_add_effort(voidc_unit_defn_using_namespace_effort, (qvn: *void));
 
+        if (private)  check_private_thing(qvn);
+
         //-------------------------------------------------------------
         stmt_list = voidc_definitions_context_get_stmt_list();
-        if (!stmt_list)  v_return();
+        if (private  ||  !stmt_list)  v_return();
 
         expr: &v_ast_expr_t[3] := {};
 
@@ -1389,6 +1496,14 @@ my_compile_unit_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~
 
     list = (self: *v_ast_generic_list_t);
 
+    qualif = v_ast_expr_integer_get_number((v_list_get_item(list, 0) : *v_ast_expr_t));
+
+    hidden_flag = v_get_hidden_flag();
+    export_flag = v_get_export_flag();
+
+    private = qualif & qf_private;
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private  &&  !hidden_flag;
+
     ast1 = v_list_get_item(list, 1);            //- Name
 
     {   tag = v_ast_base_get_tag(ast1);
@@ -1398,6 +1513,13 @@ my_compile_unit_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~
             v_assert(tag == v_ast_expr_identifier_tag);
 
             ctx.fun(ctx.aux, vis, self);
+
+            if (private)
+            {
+                qname = v_ast_expr_identifier_get_name_q((ast1: *v_ast_expr_t));
+
+                check_private_thing((qname: intptr_t));         //- Sic!
+            }
 
             v_return();
         }
@@ -1431,19 +1553,16 @@ my_compile_unit_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~
 
     ns = (v_get_result_value() : *v_namespace_t);       //- Sic!
 
-    qualif = v_ast_expr_integer_get_number((v_list_get_item(list, 0) : *v_ast_expr_t));
-
-    private_flag = v_get_private_flag();
-    export_flag  = v_get_export_flag();
-
-    private = private_flag  ||  qualif & qf_private;
-    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
-
     voidc_compile_unit_defn_make_effort(ns->name, qname, export);
 
     //-----------------------------------------------------------------
-    if (stmt_list = voidc_definitions_context_get_stmt_list())
+    block
     {
+        if (private)  v_break();
+
+        stmt_list = voidc_definitions_context_get_stmt_list();
+        if (!stmt_list) v_break();
+
         expr: &v_ast_expr_t[3] := {};
 
         elst: &v_ast_expr_list_t := {};

@@ -93,7 +93,7 @@ base_global_ctx_t::initialize_type(v_quark_t raw_name, v_type_t *type)
 
     decls.constants_insert({raw_name, vctx.static_type_type});
 
-    constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});
+    constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});       //- Sic!
 
     decls.symbols_insert({raw_name, vctx.type_type});
 
@@ -171,7 +171,7 @@ base_global_ctx_t::initialize(void)
 
         decls.constants_insert({raw_name, bool_type});
 
-        constant_values.insert({raw_name, LLVMConstInt(bool_type->llvm_type(), value, false)});
+        constant_values.insert({raw_name, LLVMConstInt(bool_type->llvm_type(), value, false)});     //- Sic!
     };
 
     add_bool_const("false", false);
@@ -258,7 +258,7 @@ base_local_ctx_t::export_constant(v_quark_t name, v_type_t *type, LLVMValueRef v
 
     decls.constants_insert({raw_name, type});
 
-    if (value)  global_ctx.constant_values.insert({raw_name, value});
+    if (value)  global_ctx.constant_values.insert_or_assign(raw_name, value);
 }
 
 //---------------------------------------------------------------------
@@ -269,7 +269,7 @@ base_local_ctx_t::add_constant(v_quark_t name, v_type_t *type, LLVMValueRef valu
 
     decls.constants_insert({raw_name, type});
 
-    if (value)  constant_values.insert({raw_name, value});
+    if (value)  constant_values.insert_or_assign(raw_name, value);
 }
 
 

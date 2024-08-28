@@ -36,6 +36,10 @@
 
     v_add_type("void_ptr",     void_ptr);
     v_add_type("void_ptr_ptr", void_ptr_ptr);
+
+    v_add_symbol("voidc_compile_type_q", q_ref, q("voidc.compile_type"));
+
+    v_add_symbol("voidc_internal_make_handler_q", q_ref, q("voidc_internal_make_handler"));
 }
 
 
@@ -44,10 +48,9 @@
 
 
 //---------------------------------------------------------------------
-//- ast_expr_compile_spy_t ...
+//- v_ast_expr_compile_spy_t ...
 //---------------------------------------------------------------------
-private
-ast_expr_compile_spy_t = v_struct("struct.v_ast_expr_compile_spy",
+v_ast_expr_compile_spy_t = v_struct("struct.v_ast_expr_compile_spy",
 {
     v_ast_expr_t,       //- 0 - expr  to compile
 
@@ -55,7 +58,7 @@ ast_expr_compile_spy_t = v_struct("struct.v_ast_expr_compile_spy",
     *LLVMValueRef,      //- 2 - value to "spy"
 });
 
-{   sz_v = LLVMSizeOf(v_type_get_llvm_type(ast_expr_compile_spy_t));
+{   sz_v = LLVMSizeOf(v_type_get_llvm_type(v_ast_expr_compile_spy_t));
 
     v_add_constant("ast_expr_compile_spy_size", size_t, sz_v);
 }
@@ -63,7 +66,7 @@ ast_expr_compile_spy_t = v_struct("struct.v_ast_expr_compile_spy",
 private
 ast_expr_compile_spy_init: (void_obj: *void) ~> void
 {
-    obj = *(void_obj: *ast_expr_compile_spy_t);
+    obj = *(void_obj: *v_ast_expr_compile_spy_t);
 
     v_initialize(&obj[0]);
 }
@@ -71,7 +74,7 @@ ast_expr_compile_spy_init: (void_obj: *void) ~> void
 private
 ast_expr_compile_spy_term: (void_obj: *void) ~> void
 {
-    obj = *(void_obj: *ast_expr_compile_spy_t);
+    obj = *(void_obj: *v_ast_expr_compile_spy_t);
 
     v_terminate(&obj[0]);
 }
@@ -94,7 +97,7 @@ v_ast_make_expr_compile_spy: (ret: *v_ast_expr_t, expr: *v_ast_expr_t, t: &*v_ty
 
     void_obj = v_ast_generic_get_object(etmp);
 
-    obj = *(void_obj: *ast_expr_compile_spy_t);
+    obj = *(void_obj: *v_ast_expr_compile_spy_t);
 
     v_copy(&obj[0], expr);
 
@@ -110,7 +113,7 @@ compile_expr_compile_spy: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
 {
     void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
 
-    obj = *(void_obj: *ast_expr_compile_spy_t);
+    obj = *(void_obj: *v_ast_expr_compile_spy_t);
 
     expr  = &obj[0];
     type  = *obj[1];
@@ -226,9 +229,9 @@ handle_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 //- ...
 //---------------------------------------------------------------------
 export
-voidc_internal_make_handler: (hname: *const char, fname: *const char) ~> void
+voidc_internal_make_handler: (hname: *const char, ftype: *v_type_t) ~> void
 {
-//printf("voidc_internal_make_handler(%s, %s) start\n", hname, fname);
+//printf("voidc_internal_make_handler start %s\n", hname);
 //defer printf("voidc_internal_make_handler stop\n");
 
     sstr = v_alloca(v_std_string_t);
@@ -240,10 +243,6 @@ voidc_internal_make_handler: (hname: *const char, fname: *const char) ~> void
     v_std_string_append(sstr, hname);
 
     quark = *v_quark_ptr_from_string(v_std_string_get(sstr));
-
-    ftype = v_find_symbol_type(fname);
-
-    v_assert(ftype);
 
     ftype = v_pointer_type(ftype, 0);
 
@@ -273,27 +272,41 @@ v_make_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
     hname = v_ast_expr_identifier_get_name(v_list_get_item(args, 0));
     fname = v_ast_expr_identifier_get_name(v_list_get_item(args, 1));
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    ftype = v_find_symbol_type(fname);
 
-    v_ast_make_expr_string(expr, hname);
+    v_assert(ftype);
+
+    voidc_internal_make_handler(hname, ftype);
+
+    //-----------------------------------------------------------------
+    stmt_list = voidc_definitions_context_get_stmt_list();
+    if (!stmt_list)  v_return();
+
+    expr = v_alloca(v_ast_expr_t, 2);
+    v_initialize(expr, 2);
+    defer v_terminate(expr, 2);
+
+    v_ast_make_expr_string(expr+0, hname);
+
+    v_ast_make_expr_integer(expr+1, (ftype: intptr_t));           //- Sic!!!
 
     list = v_alloca(v_ast_expr_list_t);
     v_initialize(list);
     defer v_terminate(list);
 
-    v_make_list(list, expr);
+    v_make_list(list, expr+1);
 
-    v_ast_make_expr_string(expr, fname);
+    v_ast_make_expr_identifier_q(expr+1, voidc_compile_type_q);
 
-    v_list_append(list, list, expr);
+    v_ast_make_expr_call(expr+1, expr+1, list);
 
-    v_ast_make_expr_identifier(expr, "voidc_internal_make_handler");
+    stmt = v_alloca(v_ast_stmt_t);
+    v_initialize(stmt);
+    defer v_terminate(stmt);
 
-    v_ast_make_expr_call(expr, expr, list);
+    v_ast_make_stmt_call(stmt, 0, voidc_internal_make_handler_q, expr, 2);
 
-    v_ast_accept_visitor((expr: *v_ast_base_t), vis);
+    v_list_append(stmt_list, stmt_list, stmt);
 }
 
 

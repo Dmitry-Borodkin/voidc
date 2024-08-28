@@ -286,14 +286,13 @@ struct voidc_ast_generator_t
 //---------------------------------------------------------------------
 //- Generating methods ...
 //---------------------------------------------------------------------
-{   v_set_export_flag(false);
-    v_set_private_flag(true);
-}
+{ v_set_export_flag(false); }
 
 
 //---------------------------------------------------------------------
 //- unit
 //---------------------------------------------------------------------
+private
 gen_unit: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     unit = (self: *v_ast_unit_t);
@@ -329,6 +328,7 @@ gen_unit: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- generic list
 //---------------------------------------------------------------------
+private
 gen_generic_list: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -377,6 +377,7 @@ gen_generic_list: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- unit_stmt_init
 //---------------------------------------------------------------------
+private
 gen_unit_stmt_init: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -406,6 +407,7 @@ gen_unit_stmt_init: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- unit_stmt_term
 //---------------------------------------------------------------------
+private
 gen_unit_stmt_term: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -436,6 +438,7 @@ gen_unit_stmt_term: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- stmt list
 //---------------------------------------------------------------------
+private
 gen_stmt_list: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -480,6 +483,7 @@ gen_stmt_list: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- stmt
 //---------------------------------------------------------------------
+private
 gen_stmt: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -511,6 +515,7 @@ gen_stmt: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- stmt if_then_else
 //---------------------------------------------------------------------
+private
 gen_stmt_if_then_else: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -555,6 +560,7 @@ gen_stmt_if_then_else: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 //---------------------------------------------------------------------
 //- stmt block
 //---------------------------------------------------------------------
+private
 gen_stmt_block: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -589,6 +595,7 @@ gen_stmt_block: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- stmt loop
 //---------------------------------------------------------------------
+private
 gen_stmt_loop: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -619,6 +626,7 @@ gen_stmt_loop: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- stmt defer
 //---------------------------------------------------------------------
+private
 gen_stmt_defer: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -649,6 +657,7 @@ gen_stmt_defer: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- stmt switch
 //---------------------------------------------------------------------
+private
 gen_stmt_switch: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -687,6 +696,7 @@ gen_stmt_switch: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- case block
 //---------------------------------------------------------------------
+private
 gen_case_block: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -726,6 +736,7 @@ gen_case_block: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr list
 //---------------------------------------------------------------------
+private
 gen_expr_list: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -770,6 +781,7 @@ gen_expr_list: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr call
 //---------------------------------------------------------------------
+private
 gen_expr_call: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -806,6 +818,7 @@ gen_expr_call: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr identifier
 //---------------------------------------------------------------------
+private
 gen_expr_identifier: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -834,6 +847,7 @@ gen_expr_identifier: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr integer
 //---------------------------------------------------------------------
+private
 gen_expr_integer: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -861,6 +875,7 @@ gen_expr_integer: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr string
 //---------------------------------------------------------------------
+private
 gen_expr_string: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -894,6 +909,7 @@ gen_expr_string: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr char
 //---------------------------------------------------------------------
+private
 gen_expr_char: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -921,6 +937,7 @@ gen_expr_char: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr struct
 //---------------------------------------------------------------------
+private
 gen_expr_struct: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
 //printf("gen_expr_struct: start\n");
@@ -968,6 +985,7 @@ gen_expr_struct: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr union
 //---------------------------------------------------------------------
+private
 gen_expr_union: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -1005,6 +1023,7 @@ gen_expr_union: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr stmt
 //---------------------------------------------------------------------
+private
 gen_expr_stmt: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -1035,6 +1054,7 @@ gen_expr_stmt: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- expr block
 //---------------------------------------------------------------------
+private
 gen_expr_block: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -1071,6 +1091,7 @@ gen_expr_block: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- operator unary
 //---------------------------------------------------------------------
+private
 gen_operator_unary: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -1128,6 +1149,7 @@ gen_operator_unary: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 //---------------------------------------------------------------------
 //- operator binary
 //---------------------------------------------------------------------
+private
 gen_operator_binary: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     gen = *(vis: *voidc_ast_generator_t);
@@ -1186,6 +1208,7 @@ gen_operator_binary: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
 
 //---------------------------------------------------------------------
+private
 gen_visitor: &voidc_visitor_t := {};
 
 block
@@ -1246,6 +1269,7 @@ block
 //---------------------------------------------------------------------
 //- Grammar actions ...
 //---------------------------------------------------------------------
+private
 mk_parse_any_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     id = v_std_any_get_pointer(v_std_string_t, any);
@@ -1254,6 +1278,7 @@ mk_parse_any_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
 }
 
 //---------------------------------------------------------------------
+private
 mk_quote_ast_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
     ast = v_ast_std_any_get_base(any);
@@ -1327,12 +1352,6 @@ mk_quote_ast_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
     v_ast_make_expr_block(expr+0, slst+0, expr+0);
 
     v_std_any_set_pointer(ret, expr+0);
-}
-
-
-//---------------------------------------------------------------------
-{   v_set_export_flag(false);
-    v_set_private_flag(false);
 }
 
 

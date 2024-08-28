@@ -206,6 +206,9 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
 
     }   //- namespace refcnt_ptr_ns(T, detail)
 
+    private
+    detail_ns = refcnt_ptr_ns(T, detail);               //- Sic !!!
+
     //-------------------------------------------------------------
     namespace refcnt_ptr_ns(T, public)
     {
@@ -214,7 +217,7 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
       {
           ret = v_get_return_value();
 
-          dp = new refcnt_ptr_ns(T, detail).data_t {{1}};
+          dp = new detail_ns.data_t {{1}};
 
           *(&ret : **T) := &dp->data;
       }
@@ -229,7 +232,7 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
         {
             pi = *(sp+i : **T);
 
-            if (pi) refcnt_ptr_ns(T, detail).dec(pi);
+            if (pi) detail_ns.dec(pi);
         }
     }
 
@@ -241,8 +244,8 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
             dpi = *(dst+i : **T);
             spi = *(src+i : **T);
 
-            if (dpi)  refcnt_ptr_ns(T, detail).dec(dpi);
-            if (spi)  refcnt_ptr_ns(T, detail).inc(spi);
+            if (dpi)  detail_ns.dec(dpi);
+            if (spi)  detail_ns.inc(spi);
 
             dpi := spi;
         }
@@ -256,7 +259,7 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
             dpi = *(dst+i : **T);
             spi = *(src+i : **T);
 
-            if (dpi)  refcnt_ptr_ns(T, detail).dec(dpi);
+            if (dpi)  detail_ns.dec(dpi);
 
             dpi := spi;
             spi := 0;
@@ -294,10 +297,10 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
 
     //-------------------------------------------------------------
     alwaysinline
-    (_.use_count): (sp: &const refcnt_ptr(T)) ~> size_t  =  refcnt_ptr_ns(T, detail).get_data(sp.get()).count;
+    (_.use_count): (sp: &const refcnt_ptr(T)) ~> size_t  =  detail_ns.get_data(sp.get()).count;
 
     alwaysinline
-    (_.use_count): (sp: refcnt_ptr(T)) ~> size_t  =  refcnt_ptr_ns(T, detail).get_data(sp.get()).count;
+    (_.use_count): (sp: refcnt_ptr(T)) ~> size_t  =  detail_ns.get_data(sp.get()).count;
 
   }   //- namespace my
 

@@ -776,11 +776,11 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
     {
         block
         {
-            private_flag = v_get_private_flag();
-            export_flag  = v_get_export_flag();
+            hidden_flag = v_get_hidden_flag();
+            export_flag = v_get_export_flag();
 
-            private = private_flag  ||  qfl & qf_private;
-            export := (export_flag  ||  qfl & qf_export)  &&  !private;
+            private = qfl & qf_private;
+            export := (export_flag  ||  qfl & qf_export)  &&  !private  &&  !hidden_flag;
 
             tag = v_ast_base_get_tag(name);
 

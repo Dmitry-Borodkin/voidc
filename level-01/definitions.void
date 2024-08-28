@@ -116,7 +116,7 @@
 //---------------------------------------------------------------------
 {   typ = v_alloca(v_type_ptr, 7);
 
-    typ[0] := bool;                                 //- "private_flag"
+    typ[0] := bool;                                 //- "hidden_flag"
     typ[1] := bool;                                 //- "export_flag"
     typ[2] := LLVMModuleRef;                        //- "saved_module"
     typ[3] := LLVMModuleRef;                        //- "defn_module"
@@ -133,7 +133,7 @@
 
 {   int_ = v_type_get_llvm_type(int);
 
-    v_add_constant("ctx_private_flag", int, LLVMConstInt(int_, 0, 0));
+    v_add_constant("ctx_hidden_flag",  int, LLVMConstInt(int_, 0, 0));
     v_add_constant("ctx_export_flag",  int, LLVMConstInt(int_, 1, 0));
     v_add_constant("ctx_saved_module", int, LLVMConstInt(int_, 2, 0));
     v_add_constant("ctx_defn_module",  int, LLVMConstInt(int_, 3, 0));
@@ -1318,14 +1318,14 @@
 {
     def_ctx = *get_definitions_context();
 
-    private_flag = def_ctx[ctx_private_flag];
-    export_flag  = def_ctx[ctx_export_flag];
+    hidden_flag = def_ctx[ctx_hidden_flag];
+    export_flag = def_ctx[ctx_export_flag];
 
     stmt_list = def_ctx[ctx_stmt_list];
 
     //-------------------------------------------------------------
-    private = private_flag  ||  qualif & qf_private;
-    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
+    private = qualif & qf_private;
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private  &&  !hidden_flag;
 
     if (export) v_export_symbol_type(fun_name, fun_type);
     else        v_add_symbol(fun_name, fun_type, 0);
@@ -1353,7 +1353,7 @@
     }
 
     //-------------------------------------------------------------
-    if (!stmt_list)  v_return();
+    if (private  ||  !stmt_list)  v_return();
 
 
     expr = v_alloca(v_ast_expr_t, 3);
@@ -1474,16 +1474,16 @@
     //-------------------------------------------------------------
     def_ctx = *v_cast(aux, *definitions_ctx_t);
 
-    private_flag = def_ctx[ctx_private_flag];
-    export_flag  = def_ctx[ctx_export_flag];
+    hidden_flag = def_ctx[ctx_hidden_flag];
+    export_flag = def_ctx[ctx_export_flag];
 
     stmt_list = def_ctx[ctx_stmt_list];
 
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
 
-    private = private_flag  ||  qualif & qf_private;
-    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
+    private = qualif & qf_private;
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private  &&  !hidden_flag;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast1, v_ast_expr_ptr));
 
@@ -1535,7 +1535,7 @@
     }
 
     //-------------------------------------------------------------
-    if (!stmt_list)  v_return();
+    if (private  ||  !stmt_list)  v_return();
 
 
     expr = v_alloca(v_ast_expr_t, 3);
@@ -1602,8 +1602,8 @@
     //-------------------------------------------------------------
     def_ctx = *v_cast(aux, *definitions_ctx_t);
 
-    private_flag = def_ctx[ctx_private_flag];
-    export_flag  = def_ctx[ctx_export_flag];
+    hidden_flag = def_ctx[ctx_hidden_flag];
+    export_flag = def_ctx[ctx_export_flag];
 
     stmt_list = def_ctx[ctx_stmt_list];
     mod_const = def_ctx[ctx_mod_const];
@@ -1611,8 +1611,8 @@
     //-------------------------------------------------------------
     qualif = v_ast_expr_integer_get_number(v_cast(ast0, v_ast_expr_ptr));
 
-    private = private_flag  ||  qualif & qf_private;
-    export  = (export_flag  ||  qualif & qf_export)  &&  !private;
+    private = qualif & qf_private;
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private  &&  !hidden_flag;
 
     name = v_ast_expr_identifier_get_name(v_cast(ast1, v_ast_expr_ptr));
 
@@ -1648,7 +1648,7 @@
     }
 
     //-------------------------------------------------------------
-    if (!stmt_list)  v_return();
+    if (private  ||  !stmt_list)  v_return();
 
 
     expr = v_alloca(v_ast_expr_t, 3);
@@ -2210,7 +2210,7 @@
 
 
 //---------------------------------------------------------------------
-//- Set "private_flag"
+//- Set "hidden_flag"
 //---------------------------------------------------------------------
 {
     typ = *v_alloca(v_type_ptr) := bool;
@@ -2218,33 +2218,33 @@
     ft = v_function_type(void, &typ, 1, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("v_set_private_flag", ft);
+    f = v_function_hack("v_set_hidden_flag", ft);
 
     v_add_parameter_name(f, 0, "flag", bool);
 }
 {
     def_ctx = *get_definitions_context();
 
-    private_flag = def_ctx[ctx_private_flag];
+    hidden_flag = def_ctx[ctx_hidden_flag];
 
-    private_flag := flag;
+    hidden_flag := flag;
 }
 
 //---------------------------------------------------------------------
-//- Get "private_flag"
+//- Get "hidden_flag"
 //---------------------------------------------------------------------
 {
     ft = v_function_type(bool, 0, 0, false);
 
     //-----------------------------------------------------------------
-    f = v_function_hack("v_get_private_flag", ft);
+    f = v_function_hack("v_get_hidden_flag", ft);
 }
 {
     def_ctx = *get_definitions_context();
 
-    private_flag = def_ctx[ctx_private_flag];
+    hidden_flag = def_ctx[ctx_hidden_flag];
 
-    v_return(private_flag);
+    v_return(hidden_flag);
 }
 
 
@@ -2400,13 +2400,13 @@
 
         ft = v_function_type(void, &typ, 1, false);
 
-        v_add_symbol("v_set_private_flag", ft, 0);
-        v_add_symbol("v_set_export_flag",  ft, 0);
+        v_add_symbol("v_set_hidden_flag", ft, 0);
+        v_add_symbol("v_set_export_flag", ft, 0);
 
         ft = v_function_type(bool, 0, 0, false);
 
-        v_add_symbol("v_get_private_flag", ft, 0);
-        v_add_symbol("v_get_export_flag",  ft, 0);
+        v_add_symbol("v_get_hidden_flag", ft, 0);
+        v_add_symbol("v_get_export_flag", ft, 0);
     }
 
     v_target_set_global_ctx(saved_gctx);

@@ -178,6 +178,9 @@ obtain_module_for_inlining: (void_mod: *void) ~> LLVMModuleRef
 private
 compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("compile_unit_inline_fun_defn: start\n");
+//defer printf("compile_unit_inline_fun_defn: stop\n");
+
     ctx = *(aux: *v_inlining_aux_t);
 
     list = (self: *v_ast_generic_list_t);
@@ -222,9 +225,52 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
         v_make_list_nil(stmt_list);
     }
 
-    //------------------------------------------
-    ctx.fun(ctx.aux, vis, self);        //- Sic!
-    //------------------------------------------
+    hidden_flag = v_get_hidden_flag();
+    export_flag = v_get_export_flag();
+
+    private = qualif & qf_private;
+    export  = (export_flag  ||  qualif & qf_export)  &&  !private  &&  !hidden_flag;
+
+    inner_self = v_alloca(v_ast_generic_list_t);
+    v_initialize(inner_self);
+    defer v_terminate(inner_self);
+
+    if (private)
+    {
+        tag = v_ast_base_get_tag(self);
+
+        expr = v_alloca(v_ast_expr_t);
+        v_initialize(expr);
+        defer v_terminate(expr);
+
+        v_ast_make_expr_integer(expr, 0);
+
+        v_make_list(inner_self, tag, (expr: *v_ast_base_t));
+
+        n = v_list_get_size(list);
+
+        for (i: &int := 1; i < n; ++i)
+        {
+            v_list_append(inner_self, inner_self, v_list_get_item(list, i));
+        }
+
+        v_set_hidden_flag(false);
+        v_set_export_flag(false);
+    }
+    else
+    {
+        v_copy(inner_self, list);
+    }
+
+    //--------------------------------------------------------------
+    ctx.fun(ctx.aux, vis, (inner_self: *v_ast_base_t));     //- Sic!
+    //--------------------------------------------------------------
+
+    if (private)
+    {
+        v_set_hidden_flag(hidden_flag);
+        v_set_export_flag(export_flag);
+    }
 
     v_set_obtain_module_hook(saved_obtain_module_fun, saved_obtain_module_ctx);
 
@@ -270,9 +316,6 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
 
         LLVMSetLinkage(f, LLVMExternalLinkage);         //- Sic!
     }
-
-    private = v_get_private_flag()  ||  qualif & qf_private;
-    export  = (v_get_export_flag()  ||  qualif & qf_export)  &&  !private;
 
     flags: &intptr_t := qualif & (qf_inlinehint | qf_alwaysinline);
 

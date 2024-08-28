@@ -84,79 +84,78 @@ unique_ptr_obtain_llvm_type: (*void, typ: *v_type_t) ~> LLVMTypeRef
 private
 template_src: &const char[] :=          //- T - type parameter ...
 """
-namespace my {
-
-inlinehint
-(v_initialize(_)): (sp: *unique_ptr(T), N: size_t) ~> void
+namespace my
 {
-    .memset: (s: *void, c: int, n: size_t) ~> *void;
+  inlinehint
+  (v_initialize(_)): (sp: *unique_ptr(T), N: size_t) ~> void
+  {
+      .memset: (s: *void, c: int, n: size_t) ~> *void;
 
-    .memset(sp, 0, N*my.unique_ptr(T).size);
-}
+      .memset(sp, 0, N*my.unique_ptr(T).size);
+  }
 
-alwaysinline
-(_.get()): (sp: &const unique_ptr(T)) ~> *T  =  *(&sp: **T);
+  alwaysinline
+  (_.get()): (sp: &const unique_ptr(T)) ~> *T  =  *(&sp: **T);
 
-alwaysinline
-(_.get()): (sp: unique_ptr(T)) ~> *T  =  (&sp)->get();
+  alwaysinline
+  (_.get()): (sp: unique_ptr(T)) ~> *T  =  (&sp)->get();
 
-inlinehint
-(v_terminate(_)): (sp: *unique_ptr(T), N: size_t) ~> void
-{
-    for (i: &int := 0; i < N; ++i)
-    {
-        if (p = sp[i].get())  delete p;
-    }
-}
-
-
-alwaysinline
-(_.release()): (sp: &unique_ptr(T)) ~> *T
-{
-    r = sp.get();
-
-    *(&sp: **T) := 0;
-
-    v_return(r);
-}
-
-alwaysinline
-(_.reset()): (sp: &unique_ptr(T), p: *T) ~> void
-{
-    if (pp = sp.get())  delete pp;      //- Kinda   v_terminate(&sp);
-
-    *(&sp: **T) := p;
-}
+  inlinehint
+  (v_terminate(_)): (sp: *unique_ptr(T), N: size_t) ~> void
+  {
+      for (i: &int := 0; i < N; ++i)
+      {
+          if (p = sp[i].get())  delete p;
+      }
+  }
 
 
-inlinehint
-(v_move(_)): (dst: *unique_ptr(T), src: *unique_ptr(T), N: size_t) ~> void
-{
-    for (i: &int := 0; i < N; ++i)  dst[i].reset(src[i].release());
-}
+  alwaysinline
+  (_.release()): (sp: &unique_ptr(T)) ~> *T
+  {
+      r = sp.get();
+
+      *(&sp: **T) := 0;
+
+      v_return(r);
+  }
+
+  alwaysinline
+  (_.reset()): (sp: &unique_ptr(T), p: *T) ~> void
+  {
+      if (pp = sp.get())  delete pp;      //- Kinda   v_terminate(&sp);
+
+      *(&sp: **T) := p;
+  }
 
 
-alwaysinline
-(*_): (sp: &const unique_ptr(T)) ~> &T  =  *sp.get();
-
-alwaysinline
-(*_): (sp: unique_ptr(T)) ~> &T  =  *sp.get();
-
-alwaysinline
-(_->): (sp: &const unique_ptr(T)) ~> *T  =  sp.get();
-
-alwaysinline
-(_->): (sp: unique_ptr(T)) ~> *T  =  sp.get();
+  inlinehint
+  (v_move(_)): (dst: *unique_ptr(T), src: *unique_ptr(T), N: size_t) ~> void
+  {
+      for (i: &int := 0; i < N; ++i)  dst[i].reset(src[i].release());
+  }
 
 
-alwaysinline
-(_:=_): (dst: &unique_ptr(T), src: &unique_ptr(T)) ~> &unique_ptr(T)
-{
-    dst.reset(src.release());       //- Kinda   v_move(&dst, &src);
+  alwaysinline
+  (*_): (sp: &const unique_ptr(T)) ~> &T  =  *sp.get();
 
-    v_return(dst);
-}
+  alwaysinline
+  (*_): (sp: unique_ptr(T)) ~> &T  =  *sp.get();
 
+  alwaysinline
+  (_->): (sp: &const unique_ptr(T)) ~> *T  =  sp.get();
+
+  alwaysinline
+  (_->): (sp: unique_ptr(T)) ~> *T  =  sp.get();
+
+
+  alwaysinline
+  (_:=_): (dst: &unique_ptr(T), src: &unique_ptr(T)) ~> &unique_ptr(T)
+  {
+      dst.reset(src.release());       //- Kinda   v_move(&dst, &src);
+
+      v_return(dst);
+  }
 }   //- namespace my
 """;
 

@@ -184,7 +184,7 @@ op_postfix_dot_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_compile_op_postfix_dot, op_postfix_dot_helper); }
+#do (v_make_handler(v_compile_op_postfix_dot, op_postfix_dot_helper))
 
 //---------------------------------------------------------------------
 private
@@ -325,7 +325,7 @@ op_postfix_to_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_compile_op_postfix_to, op_postfix_to_helper); }
+#do (v_make_handler(v_compile_op_postfix_to, op_postfix_to_helper))
 
 //---------------------------------------------------------------------
 private

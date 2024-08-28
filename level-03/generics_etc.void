@@ -423,6 +423,8 @@ voidc_enable_generics_etc: () ~> void
     //--------------------------------------------------------------
     ctx = *v_malloc(generics_etc_ctx_t);
 
+    free: (*void) ~> void;
+
     v_add_cleaner(free, &ctx);
 
     ctx.ini.fun := v_type_get_initialize_hook(v_type_kind_generic, &ctx.ini.aux);

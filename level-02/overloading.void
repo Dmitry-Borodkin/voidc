@@ -247,7 +247,7 @@ llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_llvm_build_call, llvm_build_call_helper); }
+#do (v_make_handler(v_llvm_build_call, llvm_build_call_helper))
 
 //---------------------------------------------------------------------
 private
@@ -344,7 +344,7 @@ op_assign_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_compile_op_assign, op_assign_helper); }
+#do (v_make_handler(v_compile_op_assign, op_assign_helper))
 
 
 //---------------------------------------------------------------------
@@ -462,7 +462,7 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_compile_op_binary, op_binary_helper); }
+#do (v_make_handler(v_compile_op_binary, op_binary_helper))
 
 
 //---------------------------------------------------------------------
@@ -604,7 +604,7 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_compile_op_relation, op_relation_helper); }
+#do (v_make_handler(v_compile_op_relation, op_relation_helper))
 
 //---------------------------------------------------------------------
 private
@@ -865,7 +865,7 @@ op_unary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_compile_op_unary, op_unary_helper); }
+#do (v_make_handler(v_compile_op_unary, op_unary_helper))
 
 //---------------------------------------------------------------------
 private
@@ -1029,7 +1029,7 @@ compile_expr_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_compile_expr_call, compile_expr_call_helper); }
+#do (v_make_handler(v_compile_expr_call, compile_expr_call_helper))
 
 
 //---------------------------------------------------------------------
@@ -1160,7 +1160,7 @@ op_postfix_index_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 }
 
 //---------------------------------------------------------------------
-{   v_make_handler(v_compile_op_postfix_index, op_postfix_index_helper); }
+#do (v_make_handler(v_compile_op_postfix_index, op_postfix_index_helper))
 
 //---------------------------------------------------------------------
 private
