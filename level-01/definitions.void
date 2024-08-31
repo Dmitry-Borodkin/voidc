@@ -1933,22 +1933,7 @@
 
 
     //-------------------------------------------------------------
-    lst0 = v_cast(v_list_get_item(list, 0), v_ast_generic_list_ptr);
-
-    n = v_list_get_size(lst0);
-
-    i = *v_alloca(int) := 0;
-
-    loop
-    {
-        if (i == n) v_break();
-
-        lst1 = v_cast(v_list_get_item(lst0, i), v_ast_generic_list_ptr);
-
-        v_ast_accept_visitor(v_cast(lst1, v_ast_base_ptr), visitor);
-
-        ++i;
-    }
+    v_ast_accept_visitor(v_list_get_item(list, 0), visitor);
 
 
     //-------------------------------------------------------------
@@ -2091,6 +2076,39 @@
     v_set_obtain_module_hook(saved_obtain_module_fun, saved_obtain_module_ctx);
 
     v_set_module(saved_module);
+}
+
+
+//---------------------------------------------------------------------
+//- compile_unit_defn_list - visitor method
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("compile_unit_defn_list", voidc_visitor_method_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "aux",     void_ptr);
+    v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
+    v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
+}
+{
+    list = v_cast(self, v_ast_generic_list_ptr);
+
+    n = v_list_get_size(list);
+
+    i = *v_alloca(int) := 0;
+
+    loop
+    {
+        if (i == n) v_break();
+
+        item = v_list_get_item(list, i);
+
+        v_ast_accept_visitor(item, visitor);
+
+        ++i;
+    }
 }
 
 
@@ -2364,6 +2382,8 @@
     voidc_visitor_set_method(vis, vis, unit_var_defn_q,  compile_unit_var_defn,  &def_ctx);
     voidc_visitor_set_method(vis, vis, unit_val_defn_q,  compile_unit_val_defn,  &def_ctx);
     voidc_visitor_set_method(vis, vis, defn_list_unit_q, compile_defn_list_unit, &def_ctx);
+
+    voidc_visitor_set_method(vis, vis, unit_defn_list_q, compile_unit_defn_list, 0);
 
     q = v_quark_from_string;
 

@@ -351,41 +351,10 @@ macro_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:*v_ast_base_t) 
 
     if (v_empty(&ctx.type))
     {
-        tag = v_ast_base_get_tag(&ctx.body);
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
 
-        if (tag == unit_defn_list_q)
-        {
-            list = (&ctx.body : *v_ast_generic_list_t);
-
-            n = v_list_get_size(list);
-
-            for (i: &int := 0; i < n; ++i)
-            {
-                item = v_list_get_item(list, i);
-
-                v_ast_accept_visitor(item, vis);
-            }
-        }
-        else if (tag == stmt_list_q)
-        {
-            list = (&ctx.body : *v_ast_stmt_list_t);
-
-            n = v_list_get_size(list);
-
-            for (i: &int := 0; i < n; ++i)
-            {
-                item = v_list_get_item(list, i);
-
-                v_ast_accept_visitor(item, vis);
-            }
-        }
-        else        //- expr (?)
-        {
-            v_set_result_type(ttag);
-            v_set_result_value(vtag);
-
-            v_ast_accept_visitor(&ctx.body, vis);
-        }
+        v_ast_accept_visitor(&ctx.body, vis);
 
         v_return();         //- Sic !!!
     }
@@ -497,41 +466,10 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     if (v_empty(&ctx.type))
     {
-        tag = v_ast_base_get_tag(&ctx.body);
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
 
-        if (tag == unit_defn_list_q)
-        {
-            list = (&ctx.body : *v_ast_generic_list_t);
-
-            n = v_list_get_size(list);
-
-            for (i: &int := 0; i < n; ++i)
-            {
-                item = v_list_get_item(list, i);
-
-                v_ast_accept_visitor(item, vis);
-            }
-        }
-        else if (tag == stmt_list_q)
-        {
-            list = (&ctx.body : *v_ast_stmt_list_t);
-
-            n = v_list_get_size(list);
-
-            for (i: &int := 0; i < n; ++i)
-            {
-                item = v_list_get_item(list, i);
-
-                v_ast_accept_visitor(item, vis);
-            }
-        }
-        else        //- expr (?)
-        {
-            v_set_result_type(ttag);
-            v_set_result_value(vtag);
-
-            v_ast_accept_visitor(&ctx.body, vis);
-        }
+        v_ast_accept_visitor(&ctx.body, vis);
 
         v_return();         //- Sic !!!
     }
