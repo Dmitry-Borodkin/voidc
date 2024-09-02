@@ -1268,103 +1268,76 @@ voidc_trivial_coercion_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_a
 
 //---------------------------------------------------------------------
 private
+ast_item_t = struct
+{
+    tag:  *const char;
+    type: *v_type_t;
+};
+
+private
+ast_table: &ast_item_t[7] :=
+{
+    { "base",         v_ast_base_t },
+
+    { "expr",         v_ast_expr_t },
+    { "stmt",         v_ast_stmt_t },
+    { "unit",         v_ast_unit_t },
+
+    { "expr_list",    v_ast_expr_list_t },
+    { "stmt_list",    v_ast_stmt_list_t },
+    { "generic_list", v_ast_generic_list_t },
+};
+
+private
+suffixes: &(*const char)[3] := { "_obj", "_ptr", "_ref" };
+
+//---------------------------------------------------------------------
+private
 enable_voidc_ast_coercions: () ~> void
 {
     if (v_target_get_global_ctx() != v_target_get_voidc_global_ctx()) v_return();
 
-    v_ast_base_ref = v_reference_type(v_ast_base_t, 0);
-    v_ast_expr_ref = v_reference_type(v_ast_expr_t, 0);
-    v_ast_stmt_ref = v_reference_type(v_ast_stmt_t, 0);
-    v_ast_unit_ref = v_reference_type(v_ast_unit_t, 0);
+    types: &(*v_type_t)[3] :=
+    {
+        ast_table[0].type,
+        v_pointer_type(ast_table[0].type, 0),
+        v_reference_type(ast_table[0].type, 0),
+    };
 
-    v_ast_expr_list_ref = v_reference_type(v_ast_expr_list_t, 0);
-    v_ast_stmt_list_ref = v_reference_type(v_ast_stmt_list_t, 0);
+    quarks: &(v_quark_t)[3] := v_undef();
 
-    v_ast_generic_list_ref = v_reference_type(v_ast_generic_list_t, 0);
+    sstr: &v_std_string_t := {};
 
-    q = v_quark_from_string;
+    for (i: &int := 0; i < 7; ++i)
+    {
+        for (j: &int := 0; j < 3; ++j)
+        {
+            v_std_string_set(&sstr, "voidc.convert_to_ast_");
 
-    q_base_obj = q("voidc.dir_to_ast_base_obj");
-    q_base_ptr = q("voidc.dir_to_ast_base_ptr");
-    q_base_ref = q("voidc.dir_to_ast_base_ref");
+            v_std_string_append(&sstr, ast_table[i].tag);
 
-    q_expr_obj = q("voidc.rev_to_ast_expr_obj");
-    q_expr_ptr = q("voidc.rev_to_ast_expr_ptr");
-    q_expr_ref = q("voidc.rev_to_ast_expr_ref");
+            v_std_string_append(&sstr, suffixes[j]);
 
-    q_stmt_obj = q("voidc.rev_to_ast_stmt_obj");
-    q_stmt_ptr = q("voidc.rev_to_ast_stmt_ptr");
-    q_stmt_ref = q("voidc.rev_to_ast_stmt_ref");
+            quark = v_quark_from_string(v_std_string_get(&sstr));
 
-    q_unit_obj = q("voidc.rev_to_ast_unit_obj");
-    q_unit_ptr = q("voidc.rev_to_ast_unit_ptr");
-    q_unit_ref = q("voidc.rev_to_ast_unit_ref");
+            if (i == 0) quarks[j] := quark;
 
-    q_expr_list_obj = q("voidc.rev_to_ast_expr_list_obj");
-    q_expr_list_ptr = q("voidc.rev_to_ast_expr_list_ptr");
-    q_expr_list_ref = q("voidc.rev_to_ast_expr_list_ref");
+            type: &*v_type_t := v_undef();
 
-    q_stmt_list_obj = q("voidc.rev_to_ast_stmt_list_obj");
-    q_stmt_list_ptr = q("voidc.rev_to_ast_stmt_list_ptr");
-    q_stmt_list_ref = q("voidc.rev_to_ast_stmt_list_ref");
+            switch(j)
+            {
+            case 0: type := ast_table[i].type;                      v_break();
+            case 1: type := v_pointer_type(ast_table[i].type, 0);   v_break();
+            case 2: type := v_reference_type(ast_table[i].type, 0); v_break();
+            }
 
-    q_generic_list_obj = q("voidc.rev_to_ast_generic_list_obj");
-    q_generic_list_ptr = q("voidc.rev_to_ast_generic_list_ptr");
-    q_generic_list_ref = q("voidc.rev_to_ast_generic_list_ref");
+            v_add_intrinsic_q(quark, voidc_trivial_coercion_intrinsic, type);
 
-    f = voidc_trivial_coercion_intrinsic;
+            if (i == 0) v_continue();
 
-    v_add_intrinsic_q(q_base_obj, f, (v_ast_base_t:   *void));
-    v_add_intrinsic_q(q_base_ptr, f, (v_ast_base_ptr: *void));
-    v_add_intrinsic_q(q_base_ref, f, (v_ast_base_ref: *void));
-
-    v_add_intrinsic_q(q_expr_obj, f, (v_ast_expr_t:   *void));
-    v_add_intrinsic_q(q_expr_ptr, f, (v_ast_expr_ptr: *void));
-    v_add_intrinsic_q(q_expr_ref, f, (v_ast_expr_ref: *void));
-
-    v_add_intrinsic_q(q_stmt_obj, f, (v_ast_stmt_t:   *void));
-    v_add_intrinsic_q(q_stmt_ptr, f, (v_ast_stmt_ptr: *void));
-    v_add_intrinsic_q(q_stmt_ref, f, (v_ast_stmt_ref: *void));
-
-    v_add_intrinsic_q(q_unit_obj, f, (v_ast_unit_t:   *void));
-    v_add_intrinsic_q(q_unit_ptr, f, (v_ast_unit_ptr: *void));
-    v_add_intrinsic_q(q_unit_ref, f, (v_ast_unit_ref: *void));
-
-    v_add_intrinsic_q(q_expr_list_obj, f, (v_ast_expr_list_t:   *void));
-    v_add_intrinsic_q(q_expr_list_ptr, f, (v_ast_expr_list_ptr: *void));
-    v_add_intrinsic_q(q_expr_list_ref, f, (v_ast_expr_list_ref: *void));
-
-    v_add_intrinsic_q(q_stmt_list_obj, f, (v_ast_stmt_list_t:   *void));
-    v_add_intrinsic_q(q_stmt_list_ptr, f, (v_ast_stmt_list_ptr: *void));
-    v_add_intrinsic_q(q_stmt_list_ref, f, (v_ast_stmt_list_ref: *void));
-
-    v_add_intrinsic_q(q_generic_list_obj, f, (v_ast_generic_list_t:   *void));
-    v_add_intrinsic_q(q_generic_list_ptr, f, (v_ast_generic_list_ptr: *void));
-    v_add_intrinsic_q(q_generic_list_ref, f, (v_ast_generic_list_ref: *void));
-
-    v_add_coercion(v_coe_projective, q_base_obj, q_expr_obj, v_ast_expr_t, v_ast_base_t);
-    v_add_coercion(v_coe_projective, q_base_obj, q_stmt_obj, v_ast_stmt_t, v_ast_base_t);
-    v_add_coercion(v_coe_projective, q_base_obj, q_unit_obj, v_ast_unit_t, v_ast_base_t);
-
-    v_add_coercion(v_coe_projective, q_base_obj, q_expr_list_obj,    v_ast_expr_list_t,    v_ast_base_t);
-    v_add_coercion(v_coe_projective, q_base_obj, q_stmt_list_obj,    v_ast_stmt_list_t,    v_ast_base_t);
-    v_add_coercion(v_coe_projective, q_base_obj, q_generic_list_obj, v_ast_generic_list_t, v_ast_base_t);
-
-    v_add_coercion(v_coe_projective, q_base_ptr, q_expr_ptr, v_ast_expr_ptr, v_ast_base_ptr);
-    v_add_coercion(v_coe_projective, q_base_ptr, q_stmt_ptr, v_ast_stmt_ptr, v_ast_base_ptr);
-    v_add_coercion(v_coe_projective, q_base_ptr, q_unit_ptr, v_ast_unit_ptr, v_ast_base_ptr);
-
-    v_add_coercion(v_coe_projective, q_base_ptr, q_expr_list_ptr,    v_ast_expr_list_ptr,    v_ast_base_ptr);
-    v_add_coercion(v_coe_projective, q_base_ptr, q_stmt_list_ptr,    v_ast_stmt_list_ptr,    v_ast_base_ptr);
-    v_add_coercion(v_coe_projective, q_base_ptr, q_generic_list_ptr, v_ast_generic_list_ptr, v_ast_base_ptr);
-
-    v_add_coercion(v_coe_projective, q_base_ref, q_expr_ref, v_ast_expr_ref, v_ast_base_ref);
-    v_add_coercion(v_coe_projective, q_base_ref, q_stmt_ref, v_ast_stmt_ref, v_ast_base_ref);
-    v_add_coercion(v_coe_projective, q_base_ref, q_unit_ref, v_ast_unit_ref, v_ast_base_ref);
-
-    v_add_coercion(v_coe_projective, q_base_ref, q_expr_list_ref,    v_ast_expr_list_ref,    v_ast_base_ref);
-    v_add_coercion(v_coe_projective, q_base_ref, q_stmt_list_ref,    v_ast_stmt_list_ref,    v_ast_base_ref);
-    v_add_coercion(v_coe_projective, q_base_ref, q_generic_list_ref, v_ast_generic_list_ref, v_ast_base_ref);
+            v_add_coercion(v_coe_projective, quarks[j], quark, type, types[j]);
+        }
+    }
 }
 
 

@@ -66,7 +66,11 @@ some = my.make_refcnt(int);
 
     foo := {};          //- Sic !!!
 
-    printf("\nAnd here there should be an assertion! It\'s OK!\n\n");
+    #if (v_defined(NDEBUG))
+        printf("\nAnd here there should be a segmentation fault! It\'s OK!\n\n");
+    #else
+        printf("\nAnd here there should be an assertion! It\'s OK!\n\n");
+    #endif
 
     printf("foo.use_count: %zd\n", foo.use_count);
 
