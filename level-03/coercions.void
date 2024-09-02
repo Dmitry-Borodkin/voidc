@@ -75,7 +75,8 @@ export v_coe_single:     int = 2;           //- ... user conversion
     v_add_symbol("trsntr_dir_q", q_ref, q("v.coe_trsntr_dir"));
     v_add_symbol("trsntr_rev_q", q_ref, q("v.coe_trsntr_rev"));
 
-    v_add_symbol("full_dir_q", q_ref, q("v.coe_full_dir"));     //- Sic!
+    v_add_symbol("full_dir_q", q_ref, q("v.coe_full_dir"));
+    v_add_symbol("full_rev_q", q_ref, q("v.coe_full_rev"));
 
     //-----------------------------------------------------------------
     v_add_symbol("q_op_postfix_call",       q_ref, q("v.op_postfix_call"));
@@ -93,24 +94,30 @@ export v_coe_single:     int = 2;           //- ... user conversion
 private
 coe_chain_item_t = struct
 {
-    quark: v_quark_t;
-    type:  *v_type_t;
+    dir:   v_quark_t;           //- Direct conversion
+    rev:   v_quark_t;           //- Reverse cast
+    type:  *v_type_t;           //- ...
 };
 
+{   n = (coe_chain_item_t.size + intptr_t.size - 1) / intptr_t.size;
+
+    v_add_type("coe_chain_item_impl_t", v_array_type(intptr_t, n));
+}
+
 private
-mk_chain_item: (q: v_quark_t, t: *v_type_t) ~> v_std_any_t
+mk_chain_item: (d: v_quark_t, r: v_quark_t, t: *v_type_t) ~> v_std_any_t
 {
-    item: &coe_chain_item_t := { q, t };
+    item: &coe_chain_item_t := { d, r, t };
 
     ret = v_get_return_value();
 
-    v_std_any_set_pointer(&ret, (&item : *intptr_t[2]));
+    v_std_any_set_pointer(&ret, (&item : *coe_chain_item_impl_t));
 }
 
 private
 get_chain_item: (any: *const v_std_any_t) ~> &const coe_chain_item_t
 {
-    v_return(*(v_std_any_get_pointer(intptr_t[2], any) : *const coe_chain_item_t));
+    v_return(*(v_std_any_get_pointer(coe_chain_item_impl_t, any) : *const coe_chain_item_t));
 }
 
 
@@ -227,6 +234,8 @@ set_coe_map_full: (t0: *v_type_t, t1: *v_type_t, any: *v_std_any_t) ~> void
     if (get_coe_map(t0, qmap, t1))  v_return();     //- Sic!
 
     set_coe_map(t0, qmap, t1, any);
+
+    set_coe_map(t1, full_rev_q, t0, any);           //- Sic!
 
     list = get_coe_map_list(t0, qmap, 0);
 
@@ -368,9 +377,9 @@ add_coe_list_rev: (l0: *v_util_list_t, rq: v_quark_t,
 //- ...
 //---------------------------------------------------------------------
 export
-v_add_coercion: (kind: int, quark: v_quark_t, from: *v_type_t, to: *v_type_t) ~> void
+v_add_coercion: (kind: int, d: v_quark_t, r: v_quark_t, from: *v_type_t, to: *v_type_t) ~> void
 {
-    any: &v_std_any_t := mk_chain_item(quark, to);
+    any: &v_std_any_t := mk_chain_item(d, r, to);
 
     switch(kind)
     {
@@ -560,11 +569,57 @@ coerce_to_type: (vis: *voidc_visitor_t, t0: *v_type_t, v0: LLVMValueRef, t1: *v_
 
         v_make_list(&list, &expr);
 
-        v_ast_make_expr_identifier_q(&expr, item.quark);
+        v_ast_make_expr_identifier_q(&expr, item.dir);
 
         v_ast_make_expr_call(&expr, &expr, &list);
 
         v_set_result_type(item.type);
+        v_set_result_value(0);
+
+        v_ast_accept_visitor((&expr: *v_ast_base_t), vis);
+
+        t := v_get_result_type();
+        v := v_get_result_value();
+    }
+
+    v_assert(t == t1);
+
+    v_return(v);
+}
+
+//---------------------------------------------------------------------
+private
+cast_to_type: (vis: *voidc_visitor_t, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t) ~> LLVMValueRef
+{
+    if (t0 == t1)   v_return(v0);
+
+    l = get_coe_map_list(t0, full_rev_q, t1);
+
+    v_assert(l);
+
+    s = v_list_get_size(l);
+
+    v_assert(s);
+
+    expr: &v_ast_expr_t      := {};
+    list: &v_ast_expr_list_t := {};
+
+    t: &*v_type_t    := t0;
+    v: &LLVMValueRef := v0;
+
+    for (i: &int := (s-1: int); i >= 0; --i)
+    {
+        item = get_chain_item(v_list_get_item(l, i));
+
+        v_ast_make_expr_compiled(&expr, t, v);
+
+        v_make_list(&list, &expr);
+
+        v_ast_make_expr_identifier_q(&expr, item.rev);
+
+        v_ast_make_expr_call(&expr, &expr, &list);
+
+        v_set_result_type(INVIOLABLE_TAG);          //- ?!?!?!?!?!?!?!?
         v_set_result_value(0);
 
         v_ast_accept_visitor((&expr: *v_ast_base_t), vis);
@@ -636,6 +691,91 @@ my_convert_to_type: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t)
     ctx = *(aux: *convert_to_type_ctx_t);
 
     v_return(ctx.fun(ctx.aux, t0, v0, t1));
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+private
+my_cast_intrinsic_ctx_t = struct
+{
+    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) ~> void);
+
+    aux: *void;
+};
+
+//---------------------------------------------------------------------
+private
+my_cast_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);        //- Value
+    arg1 = v_list_get_item(args, 1);        //- Type
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor((arg0: *v_ast_base_t), vis);       //- Value
+
+    t0 = v_get_result_type();
+    v0 = v_get_result_value();
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor((arg1: *v_ast_base_t), vis);       //- Type
+
+    t1 = (v_get_result_value() : *v_type_t);
+
+    if (t0 == t1)
+    {
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
+
+        v_adopt_result(t0, v0);
+
+        v_return();
+    }
+
+    if (get_coe_map_list(t0, full_rev_q, t1))
+    {
+        v1 = cast_to_type(vis, t0, v0, t1);
+
+        v_set_result_type(ttag);
+        v_set_result_value(vtag);
+
+        v_adopt_result(t1, v1);
+
+        v_return();
+    }
+
+    expr: &v_ast_expr_t := {};
+
+    v_ast_make_expr_compiled(&expr, t0, v0);
+
+    list: &v_ast_expr_list_t := {};
+
+    v_make_list(&list, &expr);
+
+    v_ast_make_expr_compiled(&expr, v_static_type_t, (t1: LLVMValueRef));
+
+    v_list_append(&list, &list, &expr);
+
+    v_ast_make_expr_identifier(&expr, "v_cast");
+
+    v_ast_make_expr_call(&expr, &expr, &list);
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    ctx = *(aux: *my_cast_intrinsic_ctx_t);
+
+    ctx.fun(ctx.aux, vis, (&expr: *v_ast_base_t));
 }
 
 
@@ -1102,7 +1242,7 @@ voidc_cast_coercion_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_
 
 //---------------------------------------------------------------------
 export
-voidc_object_cast_coercion_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+voidc_trivial_coercion_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
@@ -1142,40 +1282,89 @@ enable_voidc_ast_coercions: () ~> void
 
     v_ast_generic_list_ref = v_reference_type(v_ast_generic_list_t, 0);
 
-    q_cast_obj = v_quark_from_string("voidc.cast_coercion_to_ast_base_obj");
-    q_cast_ptr = v_quark_from_string("voidc.cast_coercion_to_ast_base_ptr");
-    q_cast_ref = v_quark_from_string("voidc.cast_coercion_to_ast_base_ref");
+    q = v_quark_from_string;
 
-    v_add_intrinsic_q(q_cast_obj, voidc_object_cast_coercion_intrinsic, (v_ast_base_t:   *void));      //- WTF !?!
-    v_add_intrinsic_q(q_cast_ptr, voidc_cast_coercion_intrinsic,        (v_ast_base_ptr: *void));      //- WTF !?!
-    v_add_intrinsic_q(q_cast_ref, voidc_cast_coercion_intrinsic,        (v_ast_base_ref: *void));      //- WTF !?!
+    q_base_obj = q("voidc.dir_to_ast_base_obj");
+    q_base_ptr = q("voidc.dir_to_ast_base_ptr");
+    q_base_ref = q("voidc.dir_to_ast_base_ref");
 
-    v_add_coercion(v_coe_projective, q_cast_obj, v_ast_expr_t, v_ast_base_t);
-    v_add_coercion(v_coe_projective, q_cast_obj, v_ast_stmt_t, v_ast_base_t);
-    v_add_coercion(v_coe_projective, q_cast_obj, v_ast_unit_t, v_ast_base_t);
+    q_expr_obj = q("voidc.rev_to_ast_expr_obj");
+    q_expr_ptr = q("voidc.rev_to_ast_expr_ptr");
+    q_expr_ref = q("voidc.rev_to_ast_expr_ref");
 
-    v_add_coercion(v_coe_projective, q_cast_obj, v_ast_expr_list_t, v_ast_base_t);
-    v_add_coercion(v_coe_projective, q_cast_obj, v_ast_stmt_list_t, v_ast_base_t);
+    q_stmt_obj = q("voidc.rev_to_ast_stmt_obj");
+    q_stmt_ptr = q("voidc.rev_to_ast_stmt_ptr");
+    q_stmt_ref = q("voidc.rev_to_ast_stmt_ref");
 
-    v_add_coercion(v_coe_projective, q_cast_obj, v_ast_generic_list_t, v_ast_base_t);
+    q_unit_obj = q("voidc.rev_to_ast_unit_obj");
+    q_unit_ptr = q("voidc.rev_to_ast_unit_ptr");
+    q_unit_ref = q("voidc.rev_to_ast_unit_ref");
 
-    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_expr_ptr, v_ast_base_ptr);
-    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_stmt_ptr, v_ast_base_ptr);
-    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_unit_ptr, v_ast_base_ptr);
+    q_expr_list_obj = q("voidc.rev_to_ast_expr_list_obj");
+    q_expr_list_ptr = q("voidc.rev_to_ast_expr_list_ptr");
+    q_expr_list_ref = q("voidc.rev_to_ast_expr_list_ref");
 
-    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_expr_list_ptr, v_ast_base_ptr);
-    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_stmt_list_ptr, v_ast_base_ptr);
+    q_stmt_list_obj = q("voidc.rev_to_ast_stmt_list_obj");
+    q_stmt_list_ptr = q("voidc.rev_to_ast_stmt_list_ptr");
+    q_stmt_list_ref = q("voidc.rev_to_ast_stmt_list_ref");
 
-    v_add_coercion(v_coe_projective, q_cast_ptr, v_ast_generic_list_ptr, v_ast_base_ptr);
+    q_generic_list_obj = q("voidc.rev_to_ast_generic_list_obj");
+    q_generic_list_ptr = q("voidc.rev_to_ast_generic_list_ptr");
+    q_generic_list_ref = q("voidc.rev_to_ast_generic_list_ref");
 
-    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_expr_ref, v_ast_base_ref);
-    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_stmt_ref, v_ast_base_ref);
-    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_unit_ref, v_ast_base_ref);
+    f = voidc_trivial_coercion_intrinsic;
 
-    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_expr_list_ref, v_ast_base_ref);
-    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_stmt_list_ref, v_ast_base_ref);
+    v_add_intrinsic_q(q_base_obj, f, (v_ast_base_t:   *void));
+    v_add_intrinsic_q(q_base_ptr, f, (v_ast_base_ptr: *void));
+    v_add_intrinsic_q(q_base_ref, f, (v_ast_base_ref: *void));
 
-    v_add_coercion(v_coe_projective, q_cast_ref, v_ast_generic_list_ref, v_ast_base_ref);
+    v_add_intrinsic_q(q_expr_obj, f, (v_ast_expr_t:   *void));
+    v_add_intrinsic_q(q_expr_ptr, f, (v_ast_expr_ptr: *void));
+    v_add_intrinsic_q(q_expr_ref, f, (v_ast_expr_ref: *void));
+
+    v_add_intrinsic_q(q_stmt_obj, f, (v_ast_stmt_t:   *void));
+    v_add_intrinsic_q(q_stmt_ptr, f, (v_ast_stmt_ptr: *void));
+    v_add_intrinsic_q(q_stmt_ref, f, (v_ast_stmt_ref: *void));
+
+    v_add_intrinsic_q(q_unit_obj, f, (v_ast_unit_t:   *void));
+    v_add_intrinsic_q(q_unit_ptr, f, (v_ast_unit_ptr: *void));
+    v_add_intrinsic_q(q_unit_ref, f, (v_ast_unit_ref: *void));
+
+    v_add_intrinsic_q(q_expr_list_obj, f, (v_ast_expr_list_t:   *void));
+    v_add_intrinsic_q(q_expr_list_ptr, f, (v_ast_expr_list_ptr: *void));
+    v_add_intrinsic_q(q_expr_list_ref, f, (v_ast_expr_list_ref: *void));
+
+    v_add_intrinsic_q(q_stmt_list_obj, f, (v_ast_stmt_list_t:   *void));
+    v_add_intrinsic_q(q_stmt_list_ptr, f, (v_ast_stmt_list_ptr: *void));
+    v_add_intrinsic_q(q_stmt_list_ref, f, (v_ast_stmt_list_ref: *void));
+
+    v_add_intrinsic_q(q_generic_list_obj, f, (v_ast_generic_list_t:   *void));
+    v_add_intrinsic_q(q_generic_list_ptr, f, (v_ast_generic_list_ptr: *void));
+    v_add_intrinsic_q(q_generic_list_ref, f, (v_ast_generic_list_ref: *void));
+
+    v_add_coercion(v_coe_projective, q_base_obj, q_expr_obj, v_ast_expr_t, v_ast_base_t);
+    v_add_coercion(v_coe_projective, q_base_obj, q_stmt_obj, v_ast_stmt_t, v_ast_base_t);
+    v_add_coercion(v_coe_projective, q_base_obj, q_unit_obj, v_ast_unit_t, v_ast_base_t);
+
+    v_add_coercion(v_coe_projective, q_base_obj, q_expr_list_obj,    v_ast_expr_list_t,    v_ast_base_t);
+    v_add_coercion(v_coe_projective, q_base_obj, q_stmt_list_obj,    v_ast_stmt_list_t,    v_ast_base_t);
+    v_add_coercion(v_coe_projective, q_base_obj, q_generic_list_obj, v_ast_generic_list_t, v_ast_base_t);
+
+    v_add_coercion(v_coe_projective, q_base_ptr, q_expr_ptr, v_ast_expr_ptr, v_ast_base_ptr);
+    v_add_coercion(v_coe_projective, q_base_ptr, q_stmt_ptr, v_ast_stmt_ptr, v_ast_base_ptr);
+    v_add_coercion(v_coe_projective, q_base_ptr, q_unit_ptr, v_ast_unit_ptr, v_ast_base_ptr);
+
+    v_add_coercion(v_coe_projective, q_base_ptr, q_expr_list_ptr,    v_ast_expr_list_ptr,    v_ast_base_ptr);
+    v_add_coercion(v_coe_projective, q_base_ptr, q_stmt_list_ptr,    v_ast_stmt_list_ptr,    v_ast_base_ptr);
+    v_add_coercion(v_coe_projective, q_base_ptr, q_generic_list_ptr, v_ast_generic_list_ptr, v_ast_base_ptr);
+
+    v_add_coercion(v_coe_projective, q_base_ref, q_expr_ref, v_ast_expr_ref, v_ast_base_ref);
+    v_add_coercion(v_coe_projective, q_base_ref, q_stmt_ref, v_ast_stmt_ref, v_ast_base_ref);
+    v_add_coercion(v_coe_projective, q_base_ref, q_unit_ref, v_ast_unit_ref, v_ast_base_ref);
+
+    v_add_coercion(v_coe_projective, q_base_ref, q_expr_list_ref,    v_ast_expr_list_ref,    v_ast_base_ref);
+    v_add_coercion(v_coe_projective, q_base_ref, q_stmt_list_ref,    v_ast_stmt_list_ref,    v_ast_base_ref);
+    v_add_coercion(v_coe_projective, q_base_ref, q_generic_list_ref, v_ast_generic_list_ref, v_ast_base_ref);
 }
 
 
@@ -1186,6 +1375,7 @@ private
 coercions_ctx_t = struct
 {
     convert:  convert_to_type_ctx_t;
+    cast:     my_cast_intrinsic_ctx_t;
     assign:   op_assign_helper_ctx_t;
     binary:   op_binary_helper_ctx_t;
     relation: op_relation_helper_ctx_t;
@@ -1213,6 +1403,12 @@ voidc_enable_coercions_compiler: () ~> void
     ctx.convert.fun := v_get_convert_to_type_hook(&ctx.convert.aux);
 
     v_set_convert_to_type_hook(my_convert_to_type, &ctx.convert);
+
+    void_fun = v_get_intrinsic("v_cast", &ctx.cast.aux);
+
+    ctx.cast.fun := (void_fun: *((*void, *voidc_visitor_t, *v_ast_base_t) ~> void));
+
+    v_add_intrinsic("v_cast", my_cast_intrinsic, &ctx.cast);
 
     ctx.assign  .fun := v_get_handler(v_compile_op_assign,        &ctx.assign  .aux);
     ctx.binary  .fun := v_get_handler(v_compile_op_binary,        &ctx.binary  .aux);

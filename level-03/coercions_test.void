@@ -33,17 +33,25 @@ alwaysinline A1_A0_v: (v: A1) ~> A0  =  v.base;
 alwaysinline A2_A1_v: (v: A2) ~> A1  =  v.base;
 alwaysinline A3_A2_v: (v: A3) ~> A2  =  v.base;
 
+alwaysinline A0_A1_rv: (v: A0) ~> A1  =  {v};
+alwaysinline A1_A2_rv: (v: A1) ~> A2  =  {v};
+alwaysinline A2_A3_rv: (v: A2) ~> A3  =  {v};
+
 {   q = v_quark_from_string;
 
-    v_add_coercion(v_coe_projective, q("A1_A0_v"), A1, A0);
-    v_add_coercion(v_coe_projective, q("A2_A1_v"), A2, A1);
-    v_add_coercion(v_coe_projective, q("A3_A2_v"), A3, A2);
+    v_add_coercion(v_coe_projective, q("A1_A0_v"), q("A0_A1_rv"), A1, A0);
+    v_add_coercion(v_coe_projective, q("A2_A1_v"), q("A1_A2_rv"), A2, A1);
+    v_add_coercion(v_coe_projective, q("A3_A2_v"), q("A2_A3_rv"), A3, A2);
 }
 
 //---------------------------------------------------------------------
 alwaysinline A1_A0_r: (v: &A1) ~> &A0  =  v.base;
 alwaysinline A2_A1_r: (v: &A2) ~> &A1  =  v.base;
 alwaysinline A3_A2_r: (v: &A3) ~> &A2  =  v.base;
+
+alwaysinline A0_A1_rr: (v: &A0) ~> &A1  =  *(&v: *A1);
+alwaysinline A1_A2_rr: (v: &A1) ~> &A2  =  *(&v: *A2);
+alwaysinline A2_A3_rr: (v: &A2) ~> &A3  =  *(&v: *A3);
 
 {   q = v_quark_from_string;
 
@@ -52,15 +60,19 @@ alwaysinline A3_A2_r: (v: &A3) ~> &A2  =  v.base;
     A2_r = v_reference_type(A2, 0);
     A3_r = v_reference_type(A3, 0);
 
-    v_add_coercion(v_coe_projective, q("A1_A0_r"), A1_r, A0_r);
-    v_add_coercion(v_coe_projective, q("A2_A1_r"), A2_r, A1_r);
-    v_add_coercion(v_coe_projective, q("A3_A2_r"), A3_r, A2_r);
+    v_add_coercion(v_coe_projective, q("A1_A0_r"), q("A0_A1_rr"), A1_r, A0_r);
+    v_add_coercion(v_coe_projective, q("A2_A1_r"), q("A1_A2_rr"), A2_r, A1_r);
+    v_add_coercion(v_coe_projective, q("A3_A2_r"), q("A2_A3_rr"), A3_r, A2_r);
 }
 
 //---------------------------------------------------------------------
 alwaysinline A1_A0_p: (p: *A1) ~> *A0  = &p->base;
 alwaysinline A2_A1_p: (p: *A2) ~> *A1  = &p->base;
 alwaysinline A3_A2_p: (p: *A3) ~> *A2  = &p->base;
+
+alwaysinline A0_A1_rp: (v: *A0) ~> *A1  =  (&v: *A1);
+alwaysinline A1_A2_rp: (v: *A1) ~> *A2  =  (&v: *A2);
+alwaysinline A2_A3_rp: (v: *A2) ~> *A3  =  (&v: *A3);
 
 {   q = v_quark_from_string;
 
@@ -69,9 +81,9 @@ alwaysinline A3_A2_p: (p: *A3) ~> *A2  = &p->base;
     A2_p = v_pointer_type(A2, 0);
     A3_p = v_pointer_type(A3, 0);
 
-    v_add_coercion(v_coe_projective, q("A1_A0_p"), A1_p, A0_p);
-    v_add_coercion(v_coe_projective, q("A2_A1_p"), A2_p, A1_p);
-    v_add_coercion(v_coe_projective, q("A3_A2_p"), A3_p, A2_p);
+    v_add_coercion(v_coe_projective, q("A1_A0_p"), q("A0_A1_rp"), A1_p, A0_p);
+    v_add_coercion(v_coe_projective, q("A2_A1_p"), q("A1_A2_rp"), A2_p, A1_p);
+    v_add_coercion(v_coe_projective, q("A3_A2_p"), q("A2_A3_rp"), A3_p, A2_p);
 }
 
 //---------------------------------------------------------------------
@@ -112,9 +124,18 @@ alwaysinline A3_A2_p: (p: *A3) ~> *A2  = &p->base;
     printf("p3->value = %d\n", p3->value);
 }
 
+{
+    printf("\n");
+
+    a0: A0 = { 333 };
+
+    printf("(a0: A3).value = %d\n", (a0: A3).value);
+
+    v0: &A0 := { 333 };
+
+    printf("(v0: &A3).value = %d\n", (v0: &A3).value);
 
 
-
-
+}
 
 

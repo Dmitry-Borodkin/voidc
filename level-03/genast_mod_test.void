@@ -179,26 +179,33 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
       (v_terminate(_)): (*data_t, size_t) ~> void  =  derive;
 
       alwaysinline
-      get_data: (p: *T) ~> &data_t
-      {
-          v_assert(p);
+      (_.impl): (p: &refcnt_ptr(T)) ~> &*T  =  *(&p: **T);
 
-          r = *((p: *char) - (&(0: *data_t)->data : intptr_t) : *data_t);
+      alwaysinline
+      get_data: (p: &refcnt_ptr(T)) ~> &data_t
+      {
+          v_assert(p.impl);
+
+          r = *((p.impl: *char) - (&(0: *data_t)->data : intptr_t) : *data_t);
 
           v_return(r);
       }
 
       inlinehint
-      inc: (p: *T) ~> void
+      inc: (p: &refcnt_ptr(T)) ~> void
       {
+          if (!p.impl)  v_return();
+
           d = get_data(p);
 
           ++d.count;
       }
 
       inlinehint
-      dec: (p: *T) ~> void
+      dec: (p: &refcnt_ptr(T)) ~> void
       {
+          if (!p.impl)  v_return();
+
           d = get_data(p);
 
           if (--d.count == 0) delete &d;
@@ -219,7 +226,7 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
 
           dp = new detail_ns.data_t {{1}};
 
-          *(&ret : **T) := &dp->data;
+          ret.impl := &dp->data;
       }
 
     }   //- namespace refcnt_ptr_ns(T, public)
@@ -230,9 +237,7 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
     {
         for (i: &int := 0; i < N; ++i)
         {
-            pi = *(sp+i : **T);
-
-            if (pi) detail_ns.dec(pi);
+            detail_ns.dec(sp[i]);
         }
     }
 
@@ -241,13 +246,13 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
     {
         for (i: &int := 0; i < N; ++i)
         {
-            dpi = *(dst+i : **T);
-            spi = *(src+i : **T);
+            di = dst[i];
+            si = src[i];
 
-            if (dpi)  detail_ns.dec(dpi);
-            if (spi)  detail_ns.inc(spi);
+            detail_ns.dec(di);
+            detail_ns.inc(si);
 
-            dpi := spi;
+            di.impl := si.impl;
         }
     }
 
@@ -256,22 +261,22 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
     {
         for (i: &int := 0; i < N; ++i)
         {
-            dpi = *(dst+i : **T);
-            spi = *(src+i : **T);
+            di = dst[i];
+            si = src[i];
 
-            if (dpi)  detail_ns.dec(dpi);
+            detail_ns.dec(di);
 
-            dpi := spi;
-            spi := 0;
+            di.impl := si.impl;
+            si.impl := 0;
         }
     }
 
     //-------------------------------------------------------------
     alwaysinline
-    (_.get()): (sp: &const refcnt_ptr(T)) ~> *T  =  *(&sp: **T);
+    (_.get()): (sp: &const refcnt_ptr(T)) ~> *T  =  sp.impl;
 
     alwaysinline
-    (_.get()): (sp: refcnt_ptr(T)) ~> *T  =  *(&sp: **T);
+    (_.get()): (sp: refcnt_ptr(T)) ~> *T  =  (&sp)->impl;
 
 
     alwaysinline
@@ -297,10 +302,10 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
 
     //-------------------------------------------------------------
     alwaysinline
-    (_.use_count): (sp: &const refcnt_ptr(T)) ~> size_t  =  detail_ns.get_data(sp.get()).count;
+    (_.use_count): (sp: &const refcnt_ptr(T)) ~> size_t  =  detail_ns.get_data(sp).count;
 
     alwaysinline
-    (_.use_count): (sp: refcnt_ptr(T)) ~> size_t  =  detail_ns.get_data(sp.get()).count;
+    (_.use_count): (sp: refcnt_ptr(T)) ~> size_t  =  detail_ns.get_data(*&sp).count;
 
   }   //- namespace my
 
