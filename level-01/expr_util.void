@@ -4192,7 +4192,14 @@
     v_function_hack("voidc_ast_add_operator_methods", ft);
 }
 {
-    {   sstr = v_alloca(v_std_string_t);
+    gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    is_voidc = v_icmp(LLVMIntEQ, gctx, vctx);
+
+    if (is_voidc)
+    {
+        sstr = v_alloca(v_std_string_t);
         v_initialize(sstr);
 
         count = v_list_get_size(expr_oplist);
@@ -4312,9 +4319,12 @@
     v_add_intrinsic_q(q("svec"),  voidc_svec_type_intrinsic, 0);
 
     //-------------------------------------------------------------
-    v_add_symbol("voidc_internal_op_postfix_index_helper",
-                 op_postfix_index_helper_ft,
-                 op_postfix_index_helper);
+    if (is_voidc)           //- WTF !?!?!?!?!
+    {
+        v_add_symbol("voidc_internal_op_postfix_index_helper",
+                     op_postfix_index_helper_ft,
+                     op_postfix_index_helper);
+    }
 
     //-------------------------------------------------------------
     v_add_intrinsic("voidc.expression_helper_infix_assign",     compile_op_assign_helper, 0);

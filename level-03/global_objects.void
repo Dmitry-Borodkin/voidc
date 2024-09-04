@@ -1447,7 +1447,7 @@ voidc_enable_global_objects_compiler: () ~> void
 {
     v_return_if(v_find_constant_q(enabled_q, 0, 0));
 
-    v_add_constant_q(enabled_q, void, 0);
+    v_add_constant_q(enabled_q, v_void_type(), 0);
 
     //-----------------------------------------------------------------
     ctx = *v_malloc(v_global_objects_ctx_t) := 0;

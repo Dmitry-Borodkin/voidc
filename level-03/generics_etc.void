@@ -283,12 +283,6 @@ my_type_generic_obtain_llvm_type: (aux: *void, type: *v_type_t) ~> LLVMTypeRef
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-{   t = v_generic_type(q_object_intrinsic_t, 0, 0);
-
-    v_export_type_q(q_object_intrinsic_t, t);
-}
-
-//---------------------------------------------------------------------
 private
 my_abstract_object_intrinsic_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                                          t: *v_type_t, v: LLVMValueRef,
@@ -298,7 +292,7 @@ my_abstract_object_intrinsic_intrinsic: (aux: *void, vis: *voidc_visitor_t, self
 //printf("my_abstract_object_intrinsic_intrinsic start %s\n", name);
 //defer printf("my_abstract_object_intrinsic_intrinsic stop\n");
 
-    v_assert(t == v_object_intrinsic_t);
+    v_assert(t == v_find_type("v_object_intrinsic_t"));
 
     qname = v_quark_from_string(name);
 
@@ -375,7 +369,7 @@ my_object_intrinsic_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_
         quark := v_ast_expr_identifier_get_name_q(arg0);
     }
 
-    v_set_result_type(v_object_intrinsic_t);
+    v_set_result_type(v_find_type("v_object_intrinsic_t"));
     v_set_result_value((quark: LLVMValueRef));
 }
 
@@ -388,7 +382,7 @@ my_postfix_call_object_intrinsic_intrinsic: (*void, vis: *voidc_visitor_t, self:
     t0 = v_ast_expr_compiled_get_type(args[0]);
     v0 = v_ast_expr_compiled_get_value(args[0]);
 
-    v_assert(t0 == v_object_intrinsic_t);
+    v_assert(t0 == v_find_type("v_object_intrinsic_t"));
 
     quark = (v0: v_quark_t);
 
@@ -418,7 +412,12 @@ voidc_enable_generics_etc: () ~> void
 {
     v_return_if(v_find_constant_q(enabled_q, 0, 0));
 
-    v_add_constant_q(enabled_q, void, 0);
+    v_add_constant_q(enabled_q, v_void_type(), 0);
+
+    //---------------------------------------------------------------------
+    object_intrinsic_t = v_generic_type(q_object_intrinsic_t, 0, 0);
+
+    v_export_type_q(q_object_intrinsic_t, object_intrinsic_t);
 
     //--------------------------------------------------------------
     ctx = *v_malloc(generics_etc_ctx_t);
@@ -436,14 +435,14 @@ voidc_enable_generics_etc: () ~> void
     //--------------------------------------------------------------
     v_add_intrinsic_q(voidc_abstract_object_intrinsic_intrinsic_q, my_abstract_object_intrinsic_intrinsic, 0);
 
-    v_add_overload_q(voidc_abstract_static_constant_q, v_object_intrinsic_t,
+    v_add_overload_q(voidc_abstract_static_constant_q, object_intrinsic_t,
                      voidc_abstract_object_intrinsic_intrinsic_q);
 
     v_add_intrinsic("v_object_intrinsic", my_object_intrinsic_intrinsic, 0);
 
     v_add_intrinsic("v.postfix_call_object_intrinsic_intrinsic", my_postfix_call_object_intrinsic_intrinsic, 0);
 
-    v_add_overload("v.op_postfix_call", v_object_intrinsic_t, "v.postfix_call_object_intrinsic_intrinsic");
+    v_add_overload("v.op_postfix_call", object_intrinsic_t, "v.postfix_call_object_intrinsic_intrinsic");
 }
 
 

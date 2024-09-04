@@ -926,10 +926,16 @@ voidc_enable_heap_objects_compiler: () ~> void
     v_add_local_cleaner(free, &ctx);
 
     //-----------------------------------------------------------------
-    v_add_symbol("v_op_prefix_new",          v_ast_expr_t, &op_prefix_new);
-    v_add_symbol("v_op_prefix_new_array",    v_ast_expr_t, &op_prefix_new_array);
-    v_add_symbol("v_op_prefix_delete",       v_ast_expr_t, &op_prefix_delete);
-    v_add_symbol("v_op_prefix_delete_array", v_ast_expr_t, &op_prefix_delete_array);
+    gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    if (gctx == vctx)
+    {
+        v_add_symbol("v_op_prefix_new",          v_ast_expr_t, &op_prefix_new);
+        v_add_symbol("v_op_prefix_new_array",    v_ast_expr_t, &op_prefix_new_array);
+        v_add_symbol("v_op_prefix_delete",       v_ast_expr_t, &op_prefix_delete);
+        v_add_symbol("v_op_prefix_delete_array", v_ast_expr_t, &op_prefix_delete_array);
+    }
 }
 
 //---------------------------------------------------------------------

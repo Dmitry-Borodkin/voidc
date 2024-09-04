@@ -80,12 +80,6 @@ NAMESPACE_SEPARATOR: char32_t = 0x1F;       //- "Unit Separator"...
     v_add_type("void_ptr", v_pointer_type(void, 0));
 }
 
-//---------------------------------------------------------------------
-{   t = v_generic_type(q_static_namespace_t, 0, 0);
-
-    v_export_type_q(q_static_namespace_t, t);
-}
-
 
 //=====================================================================
 {   voidc_unit_begin_module("namespaces_module"); }
@@ -473,7 +467,7 @@ voidc_unit_namespace_open_item_effort: (aux: *void) ~> void
             ns->name := qns;
         }
 
-        v_add_constant_q(qns, v_static_namespace_t, (ns: LLVMValueRef));
+        v_add_constant_q(qns, v_find_type("v_static_namespace_t"), (ns: LLVMValueRef));
     }
 
     ansl = v_std_any_get_pointer(v_util_list_t, v_get_property_q(q_current_namespace_list));
@@ -596,6 +590,8 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
         v_list_append(anss, anss, &a);
     }
 
+    static_namespace_t = v_find_type("v_static_namespace_t");
+
     for (i: &int := 0; i <= N; ++i)
     {
         qsi = qs[i];
@@ -618,8 +614,8 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
             t = v_get_result_type();
             v = v_get_result_value();
 
-            if (t == v_static_namespace_t)  quark := (v: *v_namespace_t)->name;         //- Sic !!!
-            else                            quark := (v: v_quark_t);                    //- Sic !!!
+            if (t == static_namespace_t)  quark := (v: *v_namespace_t)->name;           //- Sic !!!
+            else                          quark := (v: v_quark_t);                      //- Sic !!!
 
             qsi.qname := quark;             //- Sic !!!
         }
@@ -813,7 +809,7 @@ compile_unit_defn_using: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
         t = v_get_result_type();
         v = v_get_result_value();
 
-        v_assert(t == v_static_namespace_t);
+        v_assert(t == v_find_type("v_static_namespace_t"));
 
         qvn = (v: *v_namespace_t)->name;
 
@@ -931,7 +927,7 @@ v_stmt_using_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
         v_pop_temporaries();        //- ?
 
-        v_assert(t == v_static_namespace_t);
+        v_assert(t == v_find_type("v_static_namespace_t"));
 
         ns = (v: *v_namespace_t);
 
@@ -1181,7 +1177,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     ctx = *(aux: *op_postfix_dot_helper_ctx_t);
 
-    {   if (t0 != v_static_namespace_t  ||
+    {   if (t0 != v_find_type("v_static_namespace_t")  ||
             v_util_lookup_overload(q1, t0, 0)  ||
             v_util_lookup_overload(q0, t0, 0)
            )
@@ -1265,7 +1261,7 @@ my_abstract_static_namespace_intrinsic: (aux: *void, vis: *voidc_visitor_t, self
 //printf("my_abstract_static_namespace_intrinsic start %s\n", name);
 //defer printf("my_abstract_static_namespace_intrinsic stop\n");
 
-    v_assert(t == v_static_namespace_t);
+    v_assert(t == v_find_type("v_static_namespace_t"));
 
     ns = (v: *v_namespace_t);
 
@@ -1755,7 +1751,12 @@ voidc_enable_namespaces_compiler: () ~> void
 {
     v_return_if(v_find_constant_q(enabled_q, 0, 0));
 
-    v_add_constant_q(enabled_q, void, 0);
+    v_add_constant_q(enabled_q, v_void_type(), 0);
+
+    //--------------------------------------------------------------
+    static_namespace_t = v_generic_type(q_static_namespace_t, 0, 0);
+
+    v_export_type_q(q_static_namespace_t, static_namespace_t);
 
     //--------------------------------------------------------------
     vis = v_get_compiler();
@@ -1783,7 +1784,7 @@ voidc_enable_namespaces_compiler: () ~> void
     //-----------------------------------------------------------------
     v_add_intrinsic_q(voidc_abstract_static_namespace_intrinsic_q, my_abstract_static_namespace_intrinsic, 0);
 
-    v_add_overload_q(voidc_abstract_static_constant_q, v_static_namespace_t,
+    v_add_overload_q(voidc_abstract_static_constant_q, static_namespace_t,
                      voidc_abstract_static_namespace_intrinsic_q);
 
     //--------------------------------------------------------------

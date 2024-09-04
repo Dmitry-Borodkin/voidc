@@ -262,6 +262,8 @@ base_local_ctx_t::add_alias(v_quark_t name, v_quark_t raw_name)
 void
 base_local_ctx_t::export_constant(v_quark_t name, v_type_t *type, LLVMValueRef value)
 {
+    assert(&type->context == static_cast<voidc_types_ctx_t *>(&global_ctx));
+
     auto raw_name = obtain_alias(name, true);
 
     if (export_data)  export_data->first.constants_insert({raw_name, type});
@@ -275,6 +277,8 @@ base_local_ctx_t::export_constant(v_quark_t name, v_type_t *type, LLVMValueRef v
 void
 base_local_ctx_t::add_constant(v_quark_t name, v_type_t *type, LLVMValueRef value)
 {
+    assert(&type->context == static_cast<voidc_types_ctx_t *>(&global_ctx));
+
     auto raw_name = obtain_alias(name, false);
 
     decls.constants_insert({raw_name, type});
@@ -287,6 +291,8 @@ base_local_ctx_t::add_constant(v_quark_t name, v_type_t *type, LLVMValueRef valu
 void
 base_local_ctx_t::export_symbol(v_quark_t name, v_type_t *type, void *value)
 {
+    assert(&type->context == static_cast<voidc_types_ctx_t *>(&global_ctx));
+
     auto raw_name = obtain_alias(name, true);
 
     if (type)
@@ -303,6 +309,8 @@ base_local_ctx_t::export_symbol(v_quark_t name, v_type_t *type, void *value)
 void
 base_local_ctx_t::add_symbol(v_quark_t name, v_type_t *type, void *value)
 {
+    assert(&type->context == static_cast<voidc_types_ctx_t *>(&global_ctx));
+
     auto raw_name = obtain_alias(name, false);
 
     if (type)   decls.symbols_insert({raw_name, type});
@@ -349,6 +357,8 @@ base_local_ctx_t::add_property(v_quark_t name, const std::any &value)
 void
 base_local_ctx_t::export_overload(v_quark_t name, v_type_t *type, v_quark_t over)
 {
+    assert(&type->context == static_cast<voidc_types_ctx_t *>(&global_ctx));
+
     if (export_data)  export_data->first.overloads_insert(name, type, over);
 
     decls.overloads_insert(name, type, over);
@@ -358,6 +368,8 @@ base_local_ctx_t::export_overload(v_quark_t name, v_type_t *type, v_quark_t over
 void
 base_local_ctx_t::add_overload(v_quark_t name, v_type_t *type, v_quark_t over)
 {
+    assert(&type->context == static_cast<voidc_types_ctx_t *>(&global_ctx));
+
     decls.overloads_insert(name, type, over);
 }
 
@@ -367,6 +379,8 @@ void
 base_local_ctx_t::export_type(v_quark_t type_name, v_type_t *type)
 {
     auto &gctx = global_ctx;
+
+    assert(&type->context == static_cast<voidc_types_ctx_t *>(&gctx));
 
     export_constant(type_name, gctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
 
@@ -380,6 +394,8 @@ void
 base_local_ctx_t::add_type(v_quark_t type_name, v_type_t *type)
 {
     auto &gctx = global_ctx;
+
+    assert(&type->context == static_cast<voidc_types_ctx_t *>(&gctx));
 
     add_constant(type_name, gctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
 
