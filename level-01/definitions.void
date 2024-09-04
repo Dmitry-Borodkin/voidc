@@ -307,7 +307,7 @@
 
     v_add_parameter_name(f, 0, "paux", aux_ptr);
 
-    v_add_variable("fun_ptr", v_static_type_t, v_cast(fun_ptr, LLVMValueRef));
+    v_add_variable("fun_ptr", v_find_type("v_static_type_t"), v_cast(fun_ptr, LLVMValueRef));
 }
 {
     void_fun = v_get_intrinsic_q(q_prepare_function_parameters, paux);
@@ -1636,15 +1636,17 @@
     t = v_get_result_type();
     v = v_get_result_value();
 
+    is_type =  t == v_find_type("v_static_type_t");
+
     if (export)
     {
-        if (t == v_static_type_t) v_export_type(name, v_cast(v, v_type_ptr));
-        else                      v_export_constant(name, t, v);
+        if (is_type)  v_export_type(name, v_cast(v, v_type_ptr));
+        else          v_export_constant(name, t, v);
     }
     else
     {
-        if (t == v_static_type_t) v_add_type(name, v_cast(v, v_type_ptr));
-        else                      v_add_constant(name, t, v);
+        if (is_type)  v_add_type(name, v_cast(v, v_type_ptr));
+        else          v_add_constant(name, t, v);
     }
 
     //-------------------------------------------------------------
@@ -1666,8 +1668,8 @@
 
     typ = *v_alloca(*void);
 
-    if (t == v_static_type_t)  typ := v;
-    else                       typ := t;
+    if (is_type)  typ := v;
+    else          typ := t;
 
     v_ast_make_expr_integer(expr+0, v_cast(typ, intptr_t));         //- Sic!!!
 
@@ -1680,7 +1682,7 @@
     v_ast_make_expr_string(expr+0, name);
 
 
-    if (t != v_static_type_t)
+    if (!is_type)
     {
         t_ = v_type_get_llvm_type(t);
 
@@ -1716,13 +1718,13 @@
 
     if (export)
     {
-        if (t == v_static_type_t) v_ast_make_stmt_call(stmt, 0, q_export_type,     expr, 2);
-        else                      v_ast_make_stmt_call(stmt, 0, q_export_constant, expr, 3);
+        if (is_type)  v_ast_make_stmt_call(stmt, 0, q_export_type,     expr, 2);
+        else          v_ast_make_stmt_call(stmt, 0, q_export_constant, expr, 3);
     }
     else
     {
-        if (t == v_static_type_t) v_ast_make_stmt_call(stmt, 0, q_add_type,     expr, 2);
-        else                      v_ast_make_stmt_call(stmt, 0, q_add_constant, expr, 3);
+        if (is_type)  v_ast_make_stmt_call(stmt, 0, q_add_type,     expr, 2);
+        else          v_ast_make_stmt_call(stmt, 0, q_add_constant, expr, 3);
     }
 
     v_list_append(stmt_list, stmt_list, stmt);
@@ -2222,7 +2224,7 @@
 
     ft = v_function_type(rtyp, argtypes, v_cast(count, unsigned), is_vararg);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value(v_cast(ft, LLVMValueRef));
 }
 

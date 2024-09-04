@@ -3373,7 +3373,7 @@
     t = v_get_result_type();
     v = v_get_result_value();
 
-    if (v_icmp(LLVMIntEQ, t, v_static_type_t))          //- Type
+    if (v_icmp(LLVMIntEQ, t, v_find_type("v_static_type_t")))       //- Type
     {
         typ = v_cast(v, v_type_ptr);
 
@@ -3381,7 +3381,7 @@
 
         v_set_result_value(v_cast(typ, LLVMValueRef));
     }
-    else                                                //- Value
+    else                                                            //- Value
     {
         t = v_assign(v_reference(v_alloca(v_type_ptr)), t);
 
@@ -3427,7 +3427,7 @@
     t = v_get_result_type();
     v = v_get_result_value();
 
-    if (v_icmp(LLVMIntEQ, t, v_static_type_t))          //- Type
+    if (v_icmp(LLVMIntEQ, t, v_find_type("v_static_type_t")))       //- Type
     {
         typ = v_cast(v, v_type_ptr);
 
@@ -3435,7 +3435,7 @@
 
         v_set_result_value(v_cast(typ, LLVMValueRef));
     }
-    else                                                //- Value
+    else                                                            //- Value
     {
         t = v_assign(v_reference(v_alloca(v_type_ptr)), t);
 
@@ -3791,7 +3791,9 @@
     v_assign(agg_v, v_get_result_value());
 
 
-    if (v_icmp(LLVMIntEQ, agg_t, v_static_type_t))          //- Type
+    static_type_t = v_find_type("v_static_type_t");
+
+    if (v_icmp(LLVMIntEQ, agg_t, static_type_t))        //- Type
     {
         i = v_reference(v_alloca(int));
 
@@ -3834,7 +3836,7 @@
             v_assign(i, v_binop(LLVMSub, i, 1));
         }
 
-        v_set_result_type(v_static_type_t);
+        v_set_result_type(static_type_t);
         v_set_result_value(agg_v);
 
         v_free(idx);
@@ -3930,7 +3932,7 @@
 
     typ = v_int_type(width);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value(v_cast(typ, LLVMValueRef));
 }
 
@@ -3963,7 +3965,7 @@
 
     typ = v_uint_type(width);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value(v_cast(typ, LLVMValueRef));
 }
 
@@ -4004,7 +4006,7 @@
     case 128:   v_assign(typ, v_f128_type());   v_break();
     }
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value(v_cast(typ, LLVMValueRef));
 }
 
@@ -4047,7 +4049,7 @@
 
     typ = v_pointer_type(et, as);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value(v_cast(typ, LLVMValueRef));
 }
 
@@ -4090,7 +4092,7 @@
 
     typ = v_reference_type(et, as);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value(v_cast(typ, LLVMValueRef));
 }
 
@@ -4133,7 +4135,7 @@
 
     typ = v_vector_type(elt, size);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value(v_cast(typ, LLVMValueRef));
 }
 
@@ -4176,7 +4178,7 @@
 
     typ = v_svector_type(elt, size);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value(v_cast(typ, LLVMValueRef));
 }
 

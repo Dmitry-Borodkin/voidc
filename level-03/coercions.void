@@ -762,7 +762,7 @@ my_cast_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
     v_make_list(&list, &expr);
 
-    v_ast_make_expr_compiled(&expr, v_static_type_t, (t1: LLVMValueRef));
+    v_ast_make_expr_compiled(&expr, v_find_type("v_static_type_t"), (t1: LLVMValueRef));
 
     v_list_append(&list, &list, &expr);
 
@@ -1229,7 +1229,7 @@ voidc_cast_coercion_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_
 
     v_make_list(&list, arg0);
 
-    v_ast_make_expr_compiled(&expr, v_static_type_t, (type: LLVMValueRef));
+    v_ast_make_expr_compiled(&expr, v_find_type("v_static_type_t"), (type: LLVMValueRef));
 
     v_list_append(&list, &list, &expr);
 

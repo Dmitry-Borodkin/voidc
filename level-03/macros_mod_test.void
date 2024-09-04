@@ -69,7 +69,7 @@ list_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     typ = v_generic_type(list_q, &arg, 1);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value((typ: LLVMValueRef));
 }
 

@@ -829,7 +829,7 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) ~> void
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    if (ttag == UNREFERENCE_TAG  &&  type == v_static_type_t)
+    if (ttag == UNREFERENCE_TAG  &&  type == v_find_type("v_static_type_t"))
     {
         ctx = (void_ctx: *local_objects_ctx_t)->adopt_result;
 

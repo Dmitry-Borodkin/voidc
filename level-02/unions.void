@@ -374,7 +374,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
         }
     }
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value((type: LLVMValueRef));
 
 

@@ -148,7 +148,7 @@ public:
     LLVMTargetDataRef data_layout = nullptr;
 
 public:
-    virtual void initialize_type(v_quark_t raw_name, v_type_t *type);
+    void initialize_type(v_quark_t raw_name, v_type_t *type);
 
     v_type_t * const char_ptr_type;
     v_type_t * const void_ptr_type;
@@ -416,9 +416,6 @@ public:
     ~voidc_global_ctx_t() = default;
 
 public:
-    void initialize_type(v_quark_t raw_name, v_type_t *type) override;
-
-public:
     static void static_initialize(void);
     static void static_terminate(void);
 
@@ -430,15 +427,12 @@ public:
     VOIDC_DLLEXPORT static LLVMOrcLLJITRef jit;
 
     VOIDC_DLLEXPORT static LLVMTargetMachineRef target_machine;
-    VOIDC_DLLEXPORT static LLVMPassManagerRef   pass_manager;
 
 public:
     static void prepare_module_for_jit(LLVMModuleRef module);
 
 public:
-    v_type_t * const static_type_type;
     v_type_t * const type_type;
-
     v_type_t * const type_ptr_type;
 
 public:

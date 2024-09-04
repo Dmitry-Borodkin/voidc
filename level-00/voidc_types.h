@@ -724,6 +724,8 @@ public:
     v_type_t * const size_t_type;
     v_type_t * const char32_t_type;
     v_type_t * const uint64_t_type;
+
+    v_type_t * const static_type_type;          //- v_static_type_t !
 };
 
 

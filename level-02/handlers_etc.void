@@ -176,7 +176,7 @@ handle_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
     v_make_list(list, expr+0);
 
-    v_ast_make_expr_compiled(expr+0, v_static_type_t, (ftype: LLVMValueRef));
+    v_ast_make_expr_compiled(expr+0, v_static_type_t, (ftype: LLVMValueRef));       //- Sic !!!
 
     v_list_append(list, list, expr+0);
 
@@ -197,7 +197,7 @@ handle_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
         if (pt != void_ptr)
         {
-            v_ast_make_expr_compiled(expr+1, v_static_type_t, (pt: LLVMValueRef));
+            v_ast_make_expr_compiled(expr+1, v_static_type_t, (pt: LLVMValueRef));      //- Sic !!!
 
             v_list_append(list, list, expr+1);
 
@@ -342,7 +342,7 @@ v_get_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
     v_make_list(list, aux_ptr_expr);
 
-    v_ast_make_expr_compiled(expr+1, v_static_type_t, (void_ptr_ptr: LLVMValueRef));
+    v_ast_make_expr_compiled(expr+1, v_static_type_t, (void_ptr_ptr: LLVMValueRef));        //- Sic !!!
 
     v_list_append(list, list, expr+1);
 
@@ -358,7 +358,7 @@ v_get_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
     ftype = v_type_generic_arg_type_get_type(v_type_generic_arg_cons_get_args(tg_arg)[0]);
 
-    v_ast_make_expr_compiled(expr+1, v_static_type_t, (ftype: LLVMValueRef));
+    v_ast_make_expr_compiled(expr+1, v_static_type_t, (ftype: LLVMValueRef));               //- Sic !!!
 
     v_make_list(list, expr, 2);
 
@@ -407,7 +407,7 @@ v_set_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
     v_make_list(list+1, aux_expr);
 
-    v_ast_make_expr_compiled(expr, v_static_type_t, (void_ptr: LLVMValueRef));
+    v_ast_make_expr_compiled(expr, v_static_type_t, (void_ptr: LLVMValueRef));              //- Sic !!!
 
     v_list_append(list+1, list+1, expr);
 

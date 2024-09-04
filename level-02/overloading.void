@@ -910,7 +910,7 @@ static_type_prefix_star_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_
 
     typ = v_pointer_type(typ, 0);           //- ...
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value((typ: LLVMValueRef));
 }
 
@@ -924,7 +924,7 @@ static_type_prefix_amp_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_a
 
     typ = v_reference_type(typ, 0);         //- ...
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value((typ: LLVMValueRef));
 }
 
@@ -940,7 +940,7 @@ static_type_prefix_cv_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_as
     //- Just "ignore" it...
     //-----------------------------------------------------------------
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value((typ: LLVMValueRef));
 }
 
@@ -1300,8 +1300,7 @@ static_type_postfix_index_pack_intrinsic: (*void, vis: *voidc_visitor_t, self: *
         }
     }
 
-    v_set_result_type(v_static_type_t);
-
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value((t: LLVMValueRef));
 }
 
@@ -1347,14 +1346,16 @@ voidc_enable_overloading_compiler: () ~> void
     q_static_type_prefix_volatile    = q("v.static_type_prefix_volatile");
     q_static_type_postfix_index_pack = q("v.static_type_postfix_index.pack");
 
-    v_add_overload_q(q("v.op_prefix_star"), v_static_type_t, q_static_type_prefix_star);
-    v_add_overload_q(q("v.op_prefix_amp"),  v_static_type_t, q_static_type_prefix_amp);
+    static_type_t = v_find_type("v_static_type_t");
+
+    v_add_overload_q(q("v.op_prefix_star"), static_type_t, q_static_type_prefix_star);
+    v_add_overload_q(q("v.op_prefix_amp"),  static_type_t, q_static_type_prefix_amp);
 
     v_add_intrinsic_q(q_static_type_prefix_star, static_type_prefix_star_intrinsic, 0);
     v_add_intrinsic_q(q_static_type_prefix_amp,  static_type_prefix_amp_intrinsic,  0);
 
-    v_add_overload_q(q("v.op_prefix_const"),    v_static_type_t, q_static_type_prefix_const);
-    v_add_overload_q(q("v.op_prefix_volatile"), v_static_type_t, q_static_type_prefix_volatile);
+    v_add_overload_q(q("v.op_prefix_const"),    static_type_t, q_static_type_prefix_const);
+    v_add_overload_q(q("v.op_prefix_volatile"), static_type_t, q_static_type_prefix_volatile);
 
     v_add_intrinsic_q(q_static_type_prefix_const,    static_type_prefix_cv_intrinsic, 0);
     v_add_intrinsic_q(q_static_type_prefix_volatile, static_type_prefix_cv_intrinsic, 0);
@@ -1364,7 +1365,7 @@ voidc_enable_overloading_compiler: () ~> void
     //-------------------------------------------------------------
     v_add_intrinsic_q(q_op_postfix_index, op_postfix_index_intrinsic, 0);
 
-    v_add_overload_q(q_op_postfix_index_pack, v_static_type_t, q_static_type_postfix_index_pack);
+    v_add_overload_q(q_op_postfix_index_pack, static_type_t, q_static_type_postfix_index_pack);
 
     v_add_intrinsic_q(q_static_type_postfix_index_pack, static_type_postfix_index_pack_intrinsic, 0);
 

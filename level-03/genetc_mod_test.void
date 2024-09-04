@@ -63,7 +63,7 @@ unique_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
     typ = v_generic_type(unique_ptr_q, &arg, 1);
 
-    v_set_result_type(v_static_type_t);
+    v_set_result_type(v_find_type("v_static_type_t"));
     v_set_result_value((typ: LLVMValueRef));
 }
 
@@ -273,7 +273,7 @@ instantiate_unique_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     par: &v_ast_expr_t := {};
 
-    v_ast_make_expr_compiled(&par, v_static_type_t, (elt: LLVMValueRef));
+    v_ast_make_expr_compiled(&par, v_find_type("v_static_type_t"), (elt: LLVMValueRef));
 
     ctx: &my_compile_expr_identifier_ctx_t := v_undef();
 
@@ -341,7 +341,7 @@ make_unique_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
     expr: &v_ast_expr_t := {};
 
-    v_ast_make_expr_compiled(&expr, v_static_type_t, (elt: LLVMValueRef));
+    v_ast_make_expr_compiled(&expr, v_find_type("v_static_type_t"), (elt: LLVMValueRef));
 
     list: &v_ast_expr_list_t := {};
 

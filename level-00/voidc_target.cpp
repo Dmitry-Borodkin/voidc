@@ -86,18 +86,26 @@ base_global_ctx_t::~base_global_ctx_t()
 
 
 //---------------------------------------------------------------------
+static v_quark_t voidc_typenames_q;
+
+//---------------------------------------------------------------------
 void
 base_global_ctx_t::initialize_type(v_quark_t raw_name, v_type_t *type)
 {
-    auto &vctx = *voidc_global_ctx_t::voidc;
-
-    decls.constants_insert({raw_name, vctx.static_type_type});
+    decls.constants_insert({raw_name, static_type_type});
 
     constant_values.insert({raw_name, reinterpret_cast<LLVMValueRef>(type)});       //- Sic!
 
-    decls.symbols_insert({raw_name, vctx.type_type});
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
-    add_symbol_value(raw_name, type);
+    if (this == &vctx)
+    {
+        decls.symbols_insert({raw_name, vctx.type_type});
+
+        add_symbol_value(raw_name, type);
+
+        decls.overloads_insert(voidc_typenames_q, type, raw_name);      //- Sic!
+    }
 };
 
 
@@ -163,6 +171,8 @@ base_global_ctx_t::initialize(void)
     DEF(uint64_t)
 
 #undef DEF
+
+    initialize_type(q("v_static_type_t"), static_type_type);
 
     //-----------------------------------------------------------------
     auto add_bool_const = [this, q](const char *_raw_name, bool value)
@@ -356,22 +366,26 @@ base_local_ctx_t::add_overload(v_quark_t name, v_type_t *type, v_quark_t over)
 void
 base_local_ctx_t::export_type(v_quark_t type_name, v_type_t *type)
 {
+    auto &gctx = global_ctx;
+
+    export_constant(type_name, gctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
+
     auto &vctx = *voidc_global_ctx_t::voidc;
 
-    export_constant(type_name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
-
-    export_symbol(type_name, vctx.type_type, type);
+    if (&gctx == &vctx) export_symbol(type_name, vctx.type_type, type);
 }
 
 //---------------------------------------------------------------------
 void
 base_local_ctx_t::add_type(v_quark_t type_name, v_type_t *type)
 {
+    auto &gctx = global_ctx;
+
+    add_constant(type_name, gctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
+
     auto &vctx = *voidc_global_ctx_t::voidc;
 
-    add_constant(type_name, vctx.static_type_type, reinterpret_cast<LLVMValueRef>(type));
-
-    add_symbol(type_name, vctx.type_type, type);
+    if (&gctx == &vctx) add_symbol(type_name, vctx.type_type, type);
 }
 
 
@@ -396,11 +410,11 @@ base_local_ctx_t::add_effort(compile_ctx_action_t fun, void *aux)
 v_type_t *
 base_local_ctx_t::find_type(v_quark_t type_name)
 {
-    auto &vctx = *voidc_global_ctx_t::voidc;
+    auto &gctx = global_ctx;
 
     if (auto *p = vars.find(type_name))
     {
-        if (p->first == vctx.static_type_type)
+        if (p->first == gctx.static_type_type)
         {
             return reinterpret_cast<v_type_t *>(p->second);
         }
@@ -411,7 +425,7 @@ base_local_ctx_t::find_type(v_quark_t type_name)
     {   v_type_t    *t = nullptr;
         LLVMValueRef v = nullptr;
 
-        if (find_constant(raw_name, t, v)  &&  t == vctx.static_type_type)
+        if (find_constant(raw_name, t, v)  &&  t == gctx.static_type_type)
         {
             return reinterpret_cast<v_type_t *>(v);
         }
@@ -1483,7 +1497,6 @@ VOIDC_DLLEXPORT_END
 //---------------------------------------------------------------------
 voidc_global_ctx_t::voidc_global_ctx_t()
   : voidc_template_ctx_t(LLVMGetGlobalContext(), sizeof(int), sizeof(long), sizeof(intptr_t)),
-    static_type_type(make_generic_type(v_quark_from_string("v_static_type_t"), nullptr, 0)),
     type_type(make_struct_type(v_quark_from_string("v_type_t"))),
     type_ptr_type(make_pointer_type(type_type, 0))
 {
@@ -1505,11 +1518,6 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
     //-------------------------------------------------------------
     auto q = v_quark_from_string;
-
-    v_quark_t v_static_type_t_q = q("v_static_type_t");
-
-    decls.symbols_insert({v_static_type_t_q, type_type});           //- Sic!
-    add_symbol_value(v_static_type_t_q, static_type_type);          //- Sic!
 
     initialize_type(q("v_type_t"),   type_type);
     initialize_type(q("v_type_ptr"), type_ptr_type);
@@ -1550,19 +1558,6 @@ voidc_global_ctx_t::voidc_global_ctx_t()
 
 #endif
 }
-
-
-//---------------------------------------------------------------------
-static v_quark_t voidc_typenames_q;
-
-//---------------------------------------------------------------------
-void
-voidc_global_ctx_t::initialize_type(v_quark_t raw_name, v_type_t *type)
-{
-    base_global_ctx_t::initialize_type(raw_name, type);
-
-    decls.overloads_insert(voidc_typenames_q, type, raw_name);      //- Sic!
-};
 
 
 //---------------------------------------------------------------------

@@ -258,7 +258,7 @@ void v_std_any_get_value_intrinsic(void *void_quark, const visitor_t *vis, const
 
     voidc_visitor_data_t::visit(*vis, args->data[0]);       //- Type
 
-    assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
+    assert(lctx.result_type == gctx.static_type_type);
 
     auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 
@@ -293,7 +293,7 @@ void v_std_any_get_pointer_intrinsic(void *void_quark, const visitor_t *vis, con
 
     voidc_visitor_data_t::visit(*vis, args->data[0]);       //- Type
 
-    assert(lctx.result_type == voidc_global_ctx_t::voidc->static_type_type);
+    assert(lctx.result_type == gctx.static_type_type);
 
     auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 

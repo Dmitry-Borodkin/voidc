@@ -354,18 +354,37 @@ op_postfix_to_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
 
 //---------------------------------------------------------------------
+private
+some_static_type_projection_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                                        args: **v_ast_expr_t, count: unsigned
+                                        ) ~> void
+{
+    type  = (v_ast_expr_compiled_get_value(args[0]) : *v_type_t);
+    type_ = v_type_get_llvm_type(type);
+
+    f = (aux: *((LLVMTypeRef) ~> LLVMValueRef));
+
+    v = f(type_);
+
+    v_adopt_result(size_t, v);
+}
+
+
+//---------------------------------------------------------------------
 //- Enable projections
 //---------------------------------------------------------------------
 export
 voidc_enable_projections_compiler: () ~> void
 {
+    q = v_quark_from_string;
+
     vis = v_get_compiler();
 
-    v_op_postfix_dot_q = v_quark_from_string("v.op_postfix_dot");
+    v_op_postfix_dot_q = q("v.op_postfix_dot");
 
     v_return_if(v_get_intrinsic_q(v_op_postfix_dot_q, 0));
 
-    v_op_postfix_to_q = v_quark_from_string("v.op_postfix_to");
+    v_op_postfix_to_q = q("v.op_postfix_to");
 
     //-------------------------------------------------------------
     v_add_intrinsic_q(v_op_postfix_dot_q, op_postfix_dot_intrinsic, 0);
@@ -374,6 +393,18 @@ voidc_enable_projections_compiler: () ~> void
     //-------------------------------------------------------------
     v_set_handler(v_compile_op_postfix_dot, op_postfix_dot_helper, 0);
     v_set_handler(v_compile_op_postfix_to,  op_postfix_to_helper,  0);
+
+    //-------------------------------------------------------------
+    q_static_type_sizeof  = q("v.static_type_sizeof");
+    q_static_type_alignof = q("v.static_type_alignof");
+
+    static_type_t = v_find_type("v_static_type_t");
+
+    v_export_overload_q(q(".size"),  static_type_t, q_static_type_sizeof);
+    v_export_overload_q(q(".align"), static_type_t, q_static_type_alignof);
+
+    v_export_intrinsic_q(q_static_type_sizeof,  some_static_type_projection_intrinsic, LLVMSizeOf);
+    v_export_intrinsic_q(q_static_type_alignof, some_static_type_projection_intrinsic, LLVMAlignOf);
 }
 
 
@@ -442,43 +473,6 @@ voidc_enable_projections: () ~> void
     v_ast_make_operator_unary(&op_postfix_to,  q("v.op_postfix_to"),  30000, 0);        //- "Postfix" priority
 
     v_add_cleaner(voidc_projections_internal_globals_cleaner, 0);
-}
-
-
-//=====================================================================
-{   voidc_unit_begin_module("static_type_projections_module"); }
-
-//---------------------------------------------------------------------
-voidc_internal_static_type_projection_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                                                  args: **v_ast_expr_t, count: unsigned
-                                                  ) ~> void
-{
-    type  = (v_ast_expr_compiled_get_value(args[0]) : *v_type_t);
-    type_ = v_type_get_llvm_type(type);
-
-    f = (aux: *((LLVMTypeRef) ~> LLVMValueRef));
-
-    v = f(type_);
-
-    v_adopt_result(size_t, v);
-}
-
-//=====================================================================
-{   voidc_unit_end_module(); }
-
-
-//---------------------------------------------------------------------
-{
-    q = v_quark_from_string;
-
-    q_static_type_sizeof  = q("v.static_type_sizeof");
-    q_static_type_alignof = q("v.static_type_alignof");
-
-    v_export_overload_q(q(".size"),  v_static_type_t, q_static_type_sizeof);
-    v_export_overload_q(q(".align"), v_static_type_t, q_static_type_alignof);
-
-    v_export_intrinsic_q(q_static_type_sizeof,  voidc_internal_static_type_projection_intrinsic, LLVMSizeOf);
-    v_export_intrinsic_q(q_static_type_alignof, voidc_internal_static_type_projection_intrinsic, LLVMAlignOf);
 }
 
 
