@@ -304,7 +304,7 @@ voidc_enable_aggregates: () ~> void
 
     v_peg_get_grammar(gr0);
 
-    any_ = v_peg_grammar_get_value(gr0, "v_op_braces");
+    any_ = v_peg_grammar_get_value(gr0, "op_braces");
 
     if (any_)  v_return();
 
@@ -324,10 +324,10 @@ voidc_enable_aggregates: () ~> void
     grammar gr0
     {
     values:
-        v_op_braces = any_braces;
+        op_braces = any_braces;
 
     parsers:
-        bracketed =+ '{'_ l:expr_list _ (','_)? '}'     { mk_expr_call(v_op_braces, l) };
+        bracketed =+ '{'_ l:expr_list _ (','_)? '}'     { mk_expr_call(op_braces, l) };
     }
 
     v_peg_set_grammar(gr0);

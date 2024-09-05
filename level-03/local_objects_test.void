@@ -228,4 +228,29 @@ test_t = struct { v_std_any_t; };
 }
 
 
+//---------------------------------------------------------------------
+({_}): (x: int, y: int) ~> v_std_string_t       //- ???
+{
+    ret = v_get_return_value();
+
+    v_std_string_set(&ret, "(");
+    v_std_string_append_number(&ret, x);
+    v_std_string_append(&ret, ", ");
+    v_std_string_append_number(&ret, y);
+    v_std_string_append(&ret, ")");
+}
+
+
+//{ v_debug_print_module(1); }
+{
+    printf("\n");
+                                                //- ...
+    xy: v_std_string_t = { 7, 8 };
+
+    printf("xy: %s\n", v_std_string_get(&xy));
+}
+
+{   ss: &v_std_string_t := {};                  //- BANG !!!
+}
+
 

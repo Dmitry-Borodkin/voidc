@@ -152,6 +152,25 @@ block
         printf("l[%d]: %d\n", i, l[i]);
     }
 
+    l0: my.list(int) = {};
+
+    l1 = l0 << 55;
+
+    l2 = l1 << 66 << 77;
+
+    l3 = l2 << 88 << 99;
+
+    ll: &my.list(int)[4] := { l0, l1, l2, l3 };
+
+    for (i: &int := 0; i < 4; ++i)
+    {
+        for (j: &int := 0, n = ll[i].size; j < n; ++j)
+        {
+            printf("ll[%d][%d]: %d\n", i, j, ll[i][j]);
+        }
+    }
+
+
     l.impl;     //- WTF !?!?!?!?!?!?!
 }
 

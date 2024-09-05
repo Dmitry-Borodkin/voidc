@@ -210,7 +210,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
     (_[]): (sp: list(T), i: size_t) ~> T  =  (*&sp)[i];
 
     inlinehint
-    (_<<_): (sp: &list(T), v: T) ~> &list(T)
+    (_<<_): (sp: &list(T), v: T) ~> &list(T)  =
     {
         a: &v_std_any_t := {};
 
@@ -220,8 +220,8 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
         v_list_append(lst, lst, &a);
 
-        v_return(sp);
-    }
+        sp
+    };
 
     inlinehint
     (_<<_): (sp: list(T), v: T) ~> list(T)
@@ -230,12 +230,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
         v_std_any_set_value(&a, v);
 
-        ret = v_get_return_value();
-
-        m = &sp.impl;
-        r = &ret.impl;
-
-        v_list_append(r, m, &a);
+        v_list_append(&v_get_return_value().impl, &sp.impl, &a);
     }
 
     alwaysinline

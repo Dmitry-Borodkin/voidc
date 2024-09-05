@@ -52,6 +52,8 @@
     v_add_symbol("voidc_internal_branch_target_break_variable_q", q_ref, q("voidc.internal_branch_target_break_variable"));
     v_add_symbol("voidc_internal_branch_target_break_q",          q_ref, q("voidc.internal_branch_target_break"));
 
+    v_add_symbol("q_op_braces", q_ref, q("v.op_braces"));
+
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 
     v_add_symbol("voidc_local_objects_context_q", q_ref, q("voidc.local_objects_context"));
@@ -232,6 +234,13 @@ my_adopt_result_ctx_t = struct
 };
 
 private
+my_compute_key_quark_type_t = struct
+{
+    fun: *((*void, *v_type_t, &v_quark_t) ~> *v_type_t);
+    aux: *void;
+};
+
+private
 op_postfix_index_helper_ctx_t = struct
 {
     fun: *((aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
@@ -255,6 +264,7 @@ local_objects_ctx_t = struct
     adopt_result: my_adopt_result_ctx_t;
     return:       my_intrinsic_ctx_t;
     op_braces:    my_intrinsic_ctx_t;
+    key_quark:    my_compute_key_quark_type_t;
     op_index:     op_postfix_index_helper_ctx_t;
 };
 
@@ -1449,14 +1459,36 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 //printf("my_op_braces_intrinsic\n");
 //defer printf("my_op_braces_intrinsic leave\n");
 
-    ctx = *(aux: *local_objects_ctx_t);
-
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     N = v_list_get_size(args);
 
 
     tr: &*v_type_t := v_get_result_type();
+
+
+    {   ctx: &*void := v_undef();
+
+        if (fun = v_util_lookup_overload(q_op_braces, tr, &ctx))
+        {
+            //- Got overloading!
+
+            arg_ptrs = v_malloc(*v_ast_expr_t, N);
+            defer v_free(arg_ptrs);
+
+            for (i: &int := 0; i < N; ++i)
+            {
+                arg_ptrs[i] := v_list_get_item(args, i);
+            }
+
+            fun(ctx, vis, self, arg_ptrs, (N: unsigned));
+
+            v_return();
+        }
+    }
+
+
+    //- Default treatment...
 
     is_reference = v_type_is_reference(tr);
 
@@ -1487,7 +1519,7 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
         v_set_result_type(tr);
 
-        ctx = ctx.op_braces;
+        ctx = (aux: *local_objects_ctx_t)->op_braces;
 
         ctx.fun(ctx.aux, vis, self);
 
@@ -1538,6 +1570,26 @@ my_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
     else              v_set_result_type(tr);
 
     v_set_result_value(vr);
+}
+
+
+//---------------------------------------------------------------------
+private
+my_compute_key_quark_type: (aux: *void,
+                            ft: *v_type_t, q: &v_quark_t
+                           ) ~> *v_type_t
+{
+//printf("my_compute_key_quark_type: start\n");
+//defer printf("my_compute_key_quark_type: stop\n");
+
+    if (q == q_op_braces)
+    {
+        v_return(v_type_function_get_return_type(ft));
+    }
+
+    ctx = *(aux: *my_compute_key_quark_type_t);
+
+    v_return(ctx.fun(ctx.aux, ft, q));
 }
 
 
@@ -1631,11 +1683,14 @@ voidc_enable_local_objects_compiler: () ~> void
     v_add_intrinsic_q(q("v.internal.val_defn"), my_internal_val_defn_intrinsic, 0);     //- ?
 
     //-----------------------------------------------------------------
-    q = v_quark_from_string("v.op_braces");
+    ctx.op_braces.fun := (v_get_intrinsic_q(q_op_braces, &ctx.op_braces.aux) : *voidc_intrinsic_t);
 
-    ctx.op_braces.fun := (v_get_intrinsic_q(q, &ctx.op_braces.aux) : *voidc_intrinsic_t);
+    v_add_intrinsic_q(q_op_braces, my_op_braces_intrinsic, &ctx);
 
-    v_add_intrinsic_q(q, my_op_braces_intrinsic, &ctx);
+    //-----------------------------------------------------------------
+    ctx.key_quark.fun := v_get_handler(v_compute_key_quark_type, &ctx.key_quark.aux);
+
+    v_set_handler(v_compute_key_quark_type, my_compute_key_quark_type, &ctx.key_quark);
 
     //-----------------------------------------------------------------
     ctx.op_index.fun := v_get_handler(v_compile_op_postfix_index, &ctx.op_index.aux);
@@ -1691,6 +1746,8 @@ voidc_enable_local_objects: () ~> void
         prim += s:expr_stmt         { mk_expr_stmt(s) }
               / expr_block
               ;
+
+        spec_ident =+ '('_ '{'_ '_' _'}' _')'       { op_braces };
     }
 
     v_peg_set_grammar(gr0);

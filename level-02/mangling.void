@@ -1027,6 +1027,9 @@ register_mangled_function_name: (unit: bool,
 private
 compile_unit_spec_fun_defn: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("compile_unit_spec_fun_defn: start\n");
+//defer printf("compile_unit_spec_fun_defn: stop\n");
+
     list = (self: *v_ast_generic_list_t);
 
     ast0 = v_list_get_item(list, 0);
