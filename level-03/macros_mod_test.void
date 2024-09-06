@@ -102,6 +102,123 @@ set_implementation_type_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_b
 
 
 //---------------------------------------------------------------------
+private
+list_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                           arg_ptrs: **v_ast_expr_t, arg_count: unsigned
+                          ) ~> void
+{
+//printf("list_op_braces_intrinsic: start\n");
+//defer printf("list_op_braces_intrinsic: stop\n");
+
+    tr: &*v_type_t := v_get_result_type();
+
+    is_reference = v_type_is_reference(tr);
+
+    addr_sp: &unsigned := v_undef();
+
+    if (is_reference)
+    {
+        addr_sp := v_type_refptr_get_address_space(tr);         //- Sic!
+        tr      := v_type_refptr_get_element_type(tr);          //- Sic!
+    }
+
+    vr = v_obtain_special_result_value(vis, tr);
+
+    list: &v_ast_stmt_list_t := {};
+
+    {   stmt: &v_ast_stmt_t := {'stmt'  my_any: &v_std_any_t := {};  'stmt'};
+
+        v_make_list(&list, &stmt);
+    }
+
+    {   stmt: &v_ast_generic_list_t :=          //- WTF !?!?!?!?!?!?!
+        {'stmt'
+
+            #define my_step: (lst, v)
+            {'stmt_list'
+
+                v_std_any_set_value(&my_any, v);
+
+                v_list_append(lst, lst, &my_any);
+
+            'stmt_list'}
+
+        'stmt'};
+
+        v_list_append(&list, &list, (&stmt: *v_ast_stmt_t));
+    }
+
+    expr: &v_ast_expr_t[4] := {};
+
+    v_ast_make_expr_compiled(expr+0, v_pointer_type(v_util_list_t, 0), vr);
+
+    stmt: &v_ast_stmt_t := {};
+
+    my_step_q = v_quark_from_string("my_step");
+
+    v_ast_make_expr_compiled(expr+2, v_find_type("v_static_type_t"), (aux: LLVMValueRef));      //- Sic !!!
+
+    v_ast_make_expr_identifier(expr+3, "v_typed");
+
+    elst: &v_ast_expr_list_t := {};
+
+    for (i: &int := 0; i < arg_count; ++i)
+    {
+        v_make_list(&elst, expr+2);
+
+        v_list_append(&elst, &elst, arg_ptrs[i]);
+
+        v_ast_make_expr_call(expr+1, expr+3, &elst);
+
+        v_ast_make_stmt_call(&stmt, 0, my_step_q, expr, 2);
+
+        v_list_append(&list, &list, &stmt);
+    }
+
+    v_ast_make_stmt_block(&stmt, &list, false);
+
+    v_ast_accept_visitor(&stmt, vis);
+
+    if (is_reference) v_set_result_type(v_reference_type(tr, addr_sp));
+    else              v_set_result_type(tr);
+
+    v_set_result_value(vr);
+}
+
+//---------------------------------------------------------------------
+private
+register_list_op_braces_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);        //- Type
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    elt = (v_get_result_value() : *v_type_t);
+
+    sstr: &v_std_string_t := {};
+
+    v_std_string_set(&sstr, "my.list_op_braces-");
+
+    voidc_internal_std_string_append_type(&sstr, elt);
+
+    iname = v_std_string_get(&sstr);
+
+    arg = v_type_generic_type_arg(elt);
+
+    typ = v_generic_type(list_q, &arg, 1);
+
+    v_add_overload("v.op_braces", typ, iname);
+
+    v_add_intrinsic(iname, list_op_braces_intrinsic, elt);      //- Sic!
+}
+
+
+//---------------------------------------------------------------------
 list_ns = v_object_intrinsic("list.namespace");
 
 //---------------------------------------------------------------------
@@ -196,6 +313,8 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
         v_copy(&dst->impl, &src->impl, N);
     }
 
+    #do (register_list_op_braces(T))
+
     //-------------------------------------------------------------
     inlinehint
     (_[]): (sp: &list(T), i: size_t) ~> T
@@ -250,6 +369,8 @@ enable_list_effort: (*void) ~> void
     v_add_intrinsic("my.list", list_intrinsic, 0);
 
     v_add_intrinsic("v_set_implementation_type", set_implementation_type_intrinsic, 0);
+
+    v_add_intrinsic("register_list_op_braces", register_list_op_braces_intrinsic, 0);
 
     v_add_intrinsic("list.namespace", list_ns_intrinsic, v_find_constant_value("my"));
 }
