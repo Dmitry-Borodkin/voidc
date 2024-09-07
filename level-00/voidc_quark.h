@@ -8,6 +8,7 @@
 #include "voidc_dllexport.h"
 
 #include <cstdint>
+#include <cstddef>
 
 
 //---------------------------------------------------------------------
@@ -26,7 +27,7 @@ v_quark_t v_quark_from_string(const char *str);
 const char *v_quark_to_string(v_quark_t vq);
 
 
-std::size_t v_quark_to_string_size(v_quark_t vq);
+size_t v_quark_to_string_size(v_quark_t vq);
 
 
 v_quark_t v_quark_try_string(const char *str);

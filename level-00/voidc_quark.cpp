@@ -60,7 +60,7 @@ v_quark_to_string(v_quark_t vq)
 
 
 //---------------------------------------------------------------------
-std::size_t
+size_t
 v_quark_to_string_size(v_quark_t vq)
 {
     if (vq == 0)  return 0;

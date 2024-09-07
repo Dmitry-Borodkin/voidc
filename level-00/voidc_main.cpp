@@ -203,7 +203,7 @@ my_fopen(const fs::path &fpath, bool write=false)
 
 static inline
 void
-my_fread(void* buf, std::size_t sz, std::size_t cn, std::FILE* f)
+my_fread(void* buf, size_t sz, size_t cn, std::FILE* f)
 {
     auto dummy = std::fread(buf, sz, cn, f);
 }
