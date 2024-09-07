@@ -126,12 +126,12 @@ list_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     list: &v_ast_stmt_list_t := {};
 
-    {   stmt: &v_ast_stmt_t := {'stmt'  my_any: &v_std_any_t := {};  'stmt'};
+    {   ast = {'stmt'  my_any: &v_std_any_t := {};  'stmt'};
 
-        v_make_list(&list, &stmt);
+        v_make_list(&list, (&ast: *v_ast_stmt_t));
     }
 
-    {   stmt: &v_ast_generic_list_t :=          //- WTF !?!?!?!?!?!?!
+    {   ast =
         {'stmt'
 
             #define my_step: (lst, v)
@@ -145,7 +145,7 @@ list_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         'stmt'};
 
-        v_list_append(&list, &list, (&stmt: *v_ast_stmt_t));
+        v_list_append(&list, &list, (&ast: *v_ast_stmt_t));
     }
 
     expr: &v_ast_expr_t[4] := {};
@@ -317,16 +317,23 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
     //-------------------------------------------------------------
     inlinehint
-    (_[]): (sp: &list(T), i: size_t) ~> T
+    (_[]): (sp: list(T), i: size_t) ~> T
     {
-        a = v_list_get_item(&sp.impl, i);
+        a = v_list_get_item(&(&sp)->impl, i);
         v_assert(a);
 
         v_return(v_std_any_get_value(T, a));
     }
 
-    alwaysinline
-    (_[]): (sp: list(T), i: size_t) ~> T  =  (*&sp)[i];
+    inlinehint
+    (_<<_): (sp: list(T), v: T) ~> list(T)
+    {
+        a: &v_std_any_t := {};
+
+        v_std_any_set_value(&a, v);
+
+        v_list_append(&v_get_return_value().impl, &sp.impl, &a);
+    }
 
     inlinehint
     (_<<_): (sp: &list(T), v: T) ~> &list(T)  =
@@ -342,21 +349,8 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
         sp
     };
 
-    inlinehint
-    (_<<_): (sp: list(T), v: T) ~> list(T)
-    {
-        a: &v_std_any_t := {};
-
-        v_std_any_set_value(&a, v);
-
-        v_list_append(&v_get_return_value().impl, &sp.impl, &a);
-    }
-
     alwaysinline
-    (_.size): (sp: &list(T)) ~> size_t  =  v_list_get_size(&sp.impl);
-
-    alwaysinline
-    (_.size): (sp: list(T)) ~> size_t  =  (&sp)->size;
+    (_.size): (sp: list(T)) ~> size_t  =  v_list_get_size(&(&sp)->impl);
 
   }   //- namespace my
 

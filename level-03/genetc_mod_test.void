@@ -95,10 +95,7 @@ namespace my
   }
 
   alwaysinline
-  (_.get()): (sp: &const unique_ptr(T)) ~> *T  =  *(&sp: **T);
-
-  alwaysinline
-  (_.get()): (sp: unique_ptr(T)) ~> *T  =  (&sp)->get();
+  (_.get()): (sp: unique_ptr(T)) ~> *T  =  *(&sp: **T);
 
   inlinehint
   (v_terminate(_)): (sp: *unique_ptr(T), N: size_t) ~> void
@@ -137,13 +134,7 @@ namespace my
 
 
   alwaysinline
-  (*_): (sp: &const unique_ptr(T)) ~> &T  =  *sp.get();
-
-  alwaysinline
   (*_): (sp: unique_ptr(T)) ~> &T  =  *sp.get();
-
-  alwaysinline
-  (_->): (sp: &const unique_ptr(T)) ~> *T  =  sp.get();
 
   alwaysinline
   (_->): (sp: unique_ptr(T)) ~> *T  =  sp.get();

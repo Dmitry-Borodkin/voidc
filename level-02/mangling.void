@@ -951,13 +951,15 @@ register_special_function_name: (unit: bool, fn: *const char, q: v_quark_t, t: *
 
             if (type_is_initializable(et))  v_break();
 
+            if (v_get_overload_q(q, et))  v_break();
+
             rt := et;
         }
         else
         {
-            if (type_is_initializable(t))   v_break();
+//          if (type_is_initializable(t))   v_break();          //- Sic !?!
 
-            rt := v_reference_type(t, 0);       //- ?!?!?!?
+            rt := v_reference_type(t, 0);           //- "const ..." ?!?!?!?
         }
 
         v_export_overload_q(q, rt, qname);

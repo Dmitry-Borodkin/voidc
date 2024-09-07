@@ -273,20 +273,10 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
 
     //-------------------------------------------------------------
     alwaysinline
-    (_.get()): (sp: &const refcnt_ptr(T)) ~> *T  =  sp.impl;
-
-    alwaysinline
     (_.get()): (sp: refcnt_ptr(T)) ~> *T  =  (&sp)->impl;
-
-
-    alwaysinline
-    (*_): (sp: &const refcnt_ptr(T)) ~> &T  =  *sp.get();
 
     alwaysinline
     (*_): (sp: refcnt_ptr(T)) ~> &T  =  *sp.get();
-
-    alwaysinline
-    (_->): (sp: &const refcnt_ptr(T)) ~> *T  =  sp.get();
 
     alwaysinline
     (_->): (sp: refcnt_ptr(T)) ~> *T  =  sp.get();
@@ -301,9 +291,6 @@ instantiate_ast: v_ast_generic_list_t =         //- T - type parameter ...
     }
 
     //-------------------------------------------------------------
-    alwaysinline
-    (_.use_count): (sp: &const refcnt_ptr(T)) ~> size_t  =  detail_ns.get_data(sp).count;
-
     alwaysinline
     (_.use_count): (sp: refcnt_ptr(T)) ~> size_t  =  detail_ns.get_data(*&sp).count;
 
