@@ -15,9 +15,9 @@ Here is the author's blog dedicated to this project: [Void Blog](https://github.
 #### Hello world:
 
 ```C
-{   v_import("printf.void"); }      // Import declaration of C's "printf"
+{ v_import("printf.void"); }        // Import declaration of C's "printf"
 
-{   printf("Hello, world\n"); }     // Just call it...
+{ printf("Hello, world\n"); }       // Just call it...
 ```
 
 See more details in [tutorial](doc/tutorial.md).
@@ -48,7 +48,9 @@ See more details in [tutorial](doc/tutorial.md).
   - Extending the language:
     - Comprehensive numeric literals;
     - Sophisticated control flow constuctions: "while", "for", extended "if then else" and "switch";
+    - Conditional compilation;
     - Aggregate "initializations";
+    - Simple compiler's handlers;
     - "Simple" overloading of operators;
     - "Projections" (functions with syntax `a.something`);
     - Simple structures with named fields;
@@ -56,13 +58,19 @@ See more details in [tutorial](doc/tutorial.md).
     - Function inlining;
     - Unions (like in C).
 
-  - Kinda, objects:
+  - Advanced language features:
+    - Objects ("simplified" OOP);
+    - Coercions ("single", "projective" and "injective");
+    - Namespaces (regular and parameterized);
+    - Some support for generic types;
+    - Something like "AST literals";
+    - Macros (which are also templates);
     - ...
 
   - ...
 
 
-For the moment (Oct 2023), language seems to be ready just for some early experiments...
+For the moment (Sep 2024), language seems to be ready just for some early experiments...
 
 #### Yet another example:
 
@@ -174,10 +182,7 @@ sieve = new bool[S];    defer delete[] sieve;
 
     - Standard library (strings, smart pointers, containers, etc.);
     - *Protocols*:
-      - "Named fields/methods",
       - "Variants and matching",
-      - "Coercions",
-      - "Namespaces",
       - ...
     - "Bootstrapping"...
 
@@ -207,7 +212,7 @@ $ ./mk_build
 
 ## Usage
 
-Currently (Oct 2023) `voidc` works mainly from it's source directory.
+Currently (Sep 2024) `voidc` works mainly from it's source directory.
 
 You can try some of:
 
@@ -224,7 +229,7 @@ BTW, first time it can take a while due to long (idk, 10-30 sec) compilation of 
 After that, try:
 
 ```bash
-$ build/voidc level-03/global_objects_test.void
+$ build/voidc level-03/macros_test.void
 ```
 
 This "script" (with imports) uses almost all language features developed so far.
@@ -233,7 +238,7 @@ And yes, first-time compilation of it can take even longer...
 
 ## Contributing
 Of course, contributions are **welcome**!
-But I must warn you that at this point I am a complete newbie
+But I must warn you that at this point I am a newbie
 to things like GitHub, project/community maintaining, etc.
 
 So, for any friendly help (on these topics especially) I'll be greatly appreciated!
