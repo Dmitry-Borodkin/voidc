@@ -862,8 +862,12 @@ main(int argc, char *argv[])
         gctx.decls.intrinsics_insert({q("v_local_import"), {(void *)v_local_import, nullptr}});
 
 #ifdef _WIN32
-        gctx.add_symbol_value(q("stdout"), stdout);
-        gctx.add_symbol_value(q("stderr"), stderr);
+
+        static FILE *my_stdout = stdout;                    //- WTF !?!
+        static FILE *my_stderr = stderr;                    //- WTF !?!
+
+        gctx.add_symbol_value(q("stdout"), &my_stdout);
+        gctx.add_symbol_value(q("stderr"), &my_stderr);
 
         gctx.add_symbol_value(q("getopt"), (void *)&getopt);
         gctx.add_symbol_value(q("optind"), &optind);
