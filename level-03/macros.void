@@ -554,6 +554,11 @@ voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_bas
 
         v_export_overload_q(q, t, qname);
 
+        if (!v_type_is_reference(t))
+        {
+            v_add_overload_q(q, v_reference_type(t, 0), qname);         //- ?
+        }
+
         v_export_intrinsic_q(qname, macro_spec_expand_intrinsic, ctx);
     }
 }
@@ -879,6 +884,11 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
         qname = v_quark_from_string(v_std_string_get(&sstr));
 
         v_add_overload_q(quark, ktype, qname);
+
+        if (!v_type_is_reference(ktype))
+        {
+            v_add_overload_q(quark, v_reference_type(ktype, 0), qname);         //- ?
+        }
 
         v_add_intrinsic_q(qname, macro_spec_expand_intrinsic, ctx);
     }

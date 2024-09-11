@@ -994,6 +994,9 @@ compute_key_quark_type: (aux: *void,
                          ft: *v_type_t, q: &v_quark_t
                         ) ~> *v_type_t
 {
+//printf("compute_key_quark_type: start\n");
+//defer printf("compute_key_quark_type: stop\n");
+
     types = v_type_function_get_param_types(ft);
 
     str = v_quark_to_string(q);
@@ -1082,6 +1085,9 @@ compile_unit_spec_fun_defn: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 private
 compile_unit_spec_fun_renm: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("compile_unit_spec_fun_renm: start\n");
+//defer printf("compile_unit_spec_fun_renm: stop\n");
+
     list = (self: *v_ast_generic_list_t);
 
     ast0 = v_list_get_item(list, 0);
@@ -1093,7 +1099,10 @@ compile_unit_spec_fun_renm: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
     fun_name = v_ast_expr_identifier_get_name((ast1: *v_ast_expr_t));
 
     //-------------------------------------------------------------
-    ft: &*v_type_t := v_find_symbol_type(fun_name);
+    raw_name = v_lookup_alias(fun_name);
+
+    //-------------------------------------------------------------
+    ft: &*v_type_t := v_find_symbol_type(raw_name);
 
     if (v_type_is_pointer(ft))  ft := v_type_refptr_get_element_type(ft);
 
@@ -1101,7 +1110,7 @@ compile_unit_spec_fun_renm: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
     t = v_compute_key_quark_type(ft, q);
 
-    register_special_function_name(true, fun_name, q, t);
+    register_special_function_name(true, raw_name, q, t);
 }
 
 
@@ -1153,6 +1162,9 @@ v_internal_spec_fun_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_
 private
 v_internal_spec_fun_renm_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("v_internal_spec_fun_renm_intrinsic: start\n");
+//defer printf("v_internal_spec_fun_renm_intrinsic: stop\n");
+
     call = (self: *v_ast_expr_t);
 
     arg_list = v_ast_expr_call_get_arg_list(call);
