@@ -957,7 +957,7 @@ register_special_function_name: (unit: bool, fn: *const char, q: v_quark_t, t: *
         }
         else
         {
-//          if (type_is_initializable(t))   v_break();          //- Sic !?!
+            if (!v_type_get_llvm_type(t))   v_break();      //- ???
 
             rt := v_reference_type(t, 0);           //- "const ..." ?!?!?!?
         }

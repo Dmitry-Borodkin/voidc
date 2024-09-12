@@ -286,9 +286,11 @@ v_defined_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     ok = v_find_constant(name, 0, 0);
 
-    ok = LLVMConstInt(v_type_get_llvm_type(bool), ok, false);
+    bool_ = v_uint_type(1);
 
-    v_adopt_result(bool, ok);
+    ok = LLVMConstInt(v_type_get_llvm_type(bool_), ok, false);
+
+    v_adopt_result(bool_, ok);
 }
 
 
