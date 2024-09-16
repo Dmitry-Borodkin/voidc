@@ -82,6 +82,7 @@ export v_coe_single:     int = 2;           //- ... user conversion
     v_add_symbol("q_op_postfix_call",       q_ref, q("v.op_postfix_call"));
     v_add_symbol("q_op_postfix_index",      q_ref, q("v.op_postfix_index"));
     v_add_symbol("q_op_postfix_index_pack", q_ref, q("v.op_postfix_index.pack"));
+    v_add_symbol("q_op_postfix_dot",        q_ref, q("v.op_postfix_dot"));
     v_add_symbol("q_op_postfix_to",         q_ref, q("v.op_postfix_to"));
 }
 
@@ -1098,6 +1099,20 @@ op_postfix_dot_helper_ctx_t = struct
 
 //---------------------------------------------------------------------
 private
+my_postfix_dot_lookup: (t: *v_type_t, quark: v_quark_t, q0: v_quark_t) ~> bool
+{
+    if (v_util_lookup_overload(quark, t, 0))    v_return(true);
+
+    if (quark != q0)
+    {
+        if (v_util_lookup_overload(q0, t, 0))   v_return(true);
+    }
+
+    v_return(v_util_lookup_overload(q_op_postfix_dot, t, 0) != 0);
+}
+
+//---------------------------------------------------------------------
+private
 my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                            t0: *v_type_t, v0: LLVMValueRef,
                            q0: v_quark_t, q1: v_quark_t,
@@ -1113,22 +1128,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     t: &*v_type_t := 0;
 
-    block
-    {
-        if (v_util_lookup_overload(quark, t0, 0))
-        {
-            t := t0;
-
-            v_break();
-        }
-
-        if (!alst)  v_break();
-
-        if (v_util_lookup_overload(q0, t0, 0))
-        {
-            t := t0;
-        }
-    }
+    if (my_postfix_dot_lookup(t0, quark, q0))  t := t0;
 
     if (!t)
     {
@@ -1140,16 +1140,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
             {
                 it = get_coe_list_item(l, i);
 
-                if (v_util_lookup_overload(quark, it, 0))
-                {
-                    t := it;
-
-                    v_break();
-                }
-
-                if (!alst)   v_continue();
-
-                if (v_util_lookup_overload(q0, it, 0))
+                if (my_postfix_dot_lookup(it, quark, q0))
                 {
                     t := it;
 
@@ -1165,7 +1156,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     v: &LLVMValueRef := v0;
 
     if (t)  v := coerce_to_type(vis, t0, v0, t);
-    else    t := t0;
+    else    t := t0;                                    //- ???
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);

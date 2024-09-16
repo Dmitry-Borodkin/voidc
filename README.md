@@ -15,9 +15,9 @@ Here is the author's blog dedicated to this project: [Void Blog](https://github.
 #### Hello world:
 
 ```C
-{ v_import("printf.void"); }        // Import declaration of C's "printf"
+{   v_import("printf.void"); }      // Import declaration of C's "printf"
 
-{ printf("Hello, world\n"); }       // Just call it...
+{   printf("Hello, world\n"); }     // Just call it...
 ```
 
 See more details in [tutorial](doc/tutorial.md).

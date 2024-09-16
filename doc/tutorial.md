@@ -2,8 +2,7 @@
 # The Void Programming Language Tutorial
 
 **Disclaimer:** this tutorial assumes the reader has a rather good knowledge of C/C++,
-understands very basic concepts about code generation using LLVM,
-and in general "has an idea of how compilers work"...
+understands basic notions of LLVM-C API, and in general "has an idea of how compilers work"...
 
 
 ### The "Hello, world" example:

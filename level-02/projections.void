@@ -37,7 +37,8 @@
 
     v_add_symbol("proj_q", q_ref, q("projection_payload"));
 
-    v_add_symbol("q_op_postfix_to", q_ref, q("v.op_postfix_to"));
+    v_add_symbol("q_op_postfix_dot", q_ref, q("v.op_postfix_dot"));
+    v_add_symbol("q_op_postfix_to",  q_ref, q("v.op_postfix_to"));
 }
 
 
@@ -126,14 +127,34 @@ op_postfix_dot_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     if (!fun)
     {
-        spc_flag := true;       v_assert(alst);
+        spc_flag := true;
 
         quark := q0;
 
         fun := v_util_lookup_overload(quark, t0, &ctx);             //- Sic !!!
+
+        v_assert(!fun  ||  alst);
     }
 
-    v_assert(fun);
+    if (!fun)               //- Last chance...
+    {
+        q = q_op_postfix_dot;
+
+        fun := v_util_lookup_overload(q, t0, &ctx);
+        v_assert(fun);
+
+        expr = v_alloca(v_ast_expr_t);
+        v_initialize(expr);
+        defer v_terminate(expr);
+
+        v_ast_make_expr_compiled(expr, t0, v0);
+
+        arg_ptr: &*v_ast_expr_t := expr;                //- Value, compiled
+
+        fun(ctx, vis, self, &arg_ptr, 1);               //- ?!?!?!?!?!?!?
+
+        v_return();
+    }
 
     //- Overloading only!
 
@@ -233,6 +254,7 @@ op_postfix_dot_agent: (vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     v_compile_op_postfix_dot(vis, self, t0, v0, q0, q1, alst);
 }
+
 
 //---------------------------------------------------------------------
 //- ...
@@ -380,15 +402,11 @@ voidc_enable_projections_compiler: () ~> void
 
     vis = v_get_compiler();
 
-    v_op_postfix_dot_q = q("v.op_postfix_dot");
-
-    v_return_if(v_get_intrinsic_q(v_op_postfix_dot_q, 0));
-
-    v_op_postfix_to_q = q("v.op_postfix_to");
+    v_return_if(v_get_intrinsic_q(q_op_postfix_dot, 0));
 
     //-------------------------------------------------------------
-    v_add_intrinsic_q(v_op_postfix_dot_q, op_postfix_dot_intrinsic, 0);
-    v_add_intrinsic_q(v_op_postfix_to_q,  op_postfix_to_intrinsic,  0);
+    v_add_intrinsic_q(q_op_postfix_dot, op_postfix_dot_intrinsic, 0);
+    v_add_intrinsic_q(q_op_postfix_to,  op_postfix_to_intrinsic,  0);
 
     //-------------------------------------------------------------
     v_set_handler(v_compile_op_postfix_dot, op_postfix_dot_helper, 0);
@@ -467,10 +485,8 @@ voidc_enable_projections: () ~> void
     v_initialize(&op_postfix_dot);
     v_initialize(&op_postfix_to);
 
-    q = v_quark_from_string;
-
-    v_ast_make_operator_unary(&op_postfix_dot, q("v.op_postfix_dot"), 30000, 0);        //- "Postfix" priority
-    v_ast_make_operator_unary(&op_postfix_to,  q("v.op_postfix_to"),  30000, 0);        //- "Postfix" priority
+    v_ast_make_operator_unary(&op_postfix_dot, q_op_postfix_dot, 30000, 0);         //- "Postfix" priority
+    v_ast_make_operator_unary(&op_postfix_to,  q_op_postfix_to,  30000, 0);         //- "Postfix" priority
 
     v_add_cleaner(voidc_projections_internal_globals_cleaner, 0);
 }

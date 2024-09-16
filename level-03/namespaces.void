@@ -1151,46 +1151,35 @@ my_lookup_alias: (aux: *void, q: v_quark_t) ~> v_quark_t
 
 //---------------------------------------------------------------------
 private
-op_postfix_dot_helper_ctx_t = struct
+my_postfix_dot_root_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
+                             arg_ptrs: **v_ast_expr_t, arg_count: unsigned
+                            ) ~> void
 {
-    fun: *((aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-            t0: *v_type_t, v0: LLVMValueRef,
-            q0: v_quark_t, q1: v_quark_t,
-            alst: *v_ast_expr_list_t
-           ) ~> void);
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
-    aux: *void;
+    op = v_list_get_item(args, 0);
 
-    lookup_alias: *my_lookup_alias_ctx_t;       //- WTF !?!
-};
+    void_obj = v_ast_generic_get_object(op);
 
-//---------------------------------------------------------------------
-private
-my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t,
-                           t0: *v_type_t, v0: LLVMValueRef,
-                           q0: v_quark_t, q1: v_quark_t,
-                           alst: *v_ast_expr_list_t
-                          ) ~> void
-{
-//printf("my_op_postfix_dot_helper start %s\n", v_quark_to_string(q0)+1);
-//defer printf("my_op_postfix_dot_helper stop\n");
+    obj = *(void_obj: *v_ast_operator_unary_t);
 
-    ctx = *(aux: *op_postfix_dot_helper_ctx_t);
+    pay = (&obj[2] : *v_ast_generic_list_t);
 
-    {   if (t0 != v_find_type("v_static_namespace_t")  ||
-            v_util_lookup_overload(q1, t0, 0)  ||
-            v_util_lookup_overload(q0, t0, 0)
-           )
-        {
-            ctx.fun(ctx.aux, vis, self, t0, v0, q0, q1, alst);
 
-            v_return();
-        }
-    }
+    etmp = (v_list_get_item(pay, 0) : *v_ast_expr_t);
 
-    q = v_quark_from_string(v_quark_to_string(q0) + 1);         //- Skip leading '.'
+    name_q = v_ast_expr_identifier_get_name_q(etmp);
 
-    qr: &v_quark_t := q;
+    alst: &*v_ast_expr_list_t := 0;
+
+    got_args = v_list_get_size(pay) > 1;
+
+    if (got_args)  alst := (v_list_get_item(pay, 1) : *v_ast_expr_list_t);
+
+    qr: &v_quark_t := name_q;
+
+
+    v0 = v_ast_expr_compiled_get_value(arg_ptrs[0]);
 
     root_ns = ((-1: intptr_t) : *v_namespace_t);        //- Sic!
 
@@ -1200,7 +1189,7 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
         v_make_map(&cache);
 
-        qr := lookup_in_namespace(&cache, ns, q);
+        qr := lookup_in_namespace(&cache, ns, name_q);
 
         v_assert(qr);
     }
@@ -1209,7 +1198,9 @@ my_op_postfix_dot_helper: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     cur.fun := v_get_lookup_alias_hook(&cur.aux);
 
-    v_set_lookup_alias_hook(ctx.lookup_alias->fun, ctx.lookup_alias->aux);
+    ctx = *(aux: *my_lookup_alias_ctx_t);
+
+    v_set_lookup_alias_hook(ctx.fun, ctx.aux);
 
     ttag = v_get_result_type();
     vtag = v_get_result_value();
@@ -1735,7 +1726,7 @@ namespaces_ctx_t = struct
     o_alias: my_obtain_alias_ctx_t;
     l_alias: my_lookup_alias_ctx_t;
 
-    dot: op_postfix_dot_helper_ctx_t;
+//  dot: op_postfix_dot_helper_ctx_t;
 
     struct: my_expr_struct_ctx_t[2];            //- struct, union
 
@@ -1800,11 +1791,10 @@ voidc_enable_namespaces_compiler: () ~> void
     v_set_obtain_alias_hook(my_obtain_alias, &ctx.o_alias);
     v_set_lookup_alias_hook(my_lookup_alias, &ctx.l_alias);
 
-    ctx.dot.fun := v_get_handler(v_compile_op_postfix_dot, &ctx.dot.aux);
+    //--------------------------------------------------------------
+    v_add_overload("v.op_postfix_dot", static_namespace_t, "v.internal.op_postfix_dot_namespace");
 
-    v_set_handler(v_compile_op_postfix_dot, my_op_postfix_dot_helper, &ctx.dot);
-
-    ctx.dot.lookup_alias := &ctx.l_alias;
+    v_add_intrinsic("v.internal.op_postfix_dot_namespace", my_postfix_dot_root_helper, &ctx.l_alias);
 
     //--------------------------------------------------------------
     ctx.struct[0].fun := voidc_visitor_get_method(vis, expr_struct_q, &ctx.struct[0].aux);
