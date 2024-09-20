@@ -59,6 +59,8 @@
     v_add_symbol("voidc_local_objects_context_q", q_ref, q("voidc.local_objects_context"));
 
     v_add_symbol("int_q", q_ref, q("int"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -842,7 +844,7 @@ my_adopt_result: (void_ctx: *void, type: *v_type_t, value: LLVMValueRef) ~> void
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    if (ttag == UNREFERENCE_TAG  &&  type == v_find_type("v_static_type_t"))
+    if (ttag == UNREFERENCE_TAG  &&  type == v_find_type_q(q_static_type_t))
     {
         ctx = (void_ctx: *local_objects_ctx_t)->adopt_result;
 
@@ -1349,7 +1351,7 @@ my_internal_var_defn_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast
     v_assert(v_get_result_type()  == INVIOLABLE_TAG);
     v_assert(v_get_result_value() == VARIABLE_VTAG);
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(v_find_type_q(q_static_type_t));
     v_set_result_value(0);
 
     v_ast_accept_visitor((arg0: *v_ast_base_t), vis);               //- Type
@@ -1422,7 +1424,7 @@ my_internal_val_defn_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base
 //  ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(v_find_type_q(q_static_type_t));
     v_set_result_value(0);
 
     v_ast_accept_visitor((arg1: *v_ast_base_t), vis);               //- Type

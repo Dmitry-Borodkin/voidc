@@ -52,6 +52,8 @@
     v_add_symbol("void_q",   q_ref, q("void"));
     v_add_symbol("char_q",   q_ref, q("char"));
     v_add_symbol("int_q",    q_ref, q("int"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -305,7 +307,7 @@ op_prefix_new_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
     vtag = v_get_result_value();
 
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(v_find_type_q(q_static_type_t));
     v_set_result_value(0);
 
     v_ast_accept_visitor((agg: *v_ast_base_t), vis);

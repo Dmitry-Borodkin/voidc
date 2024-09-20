@@ -60,6 +60,7 @@ NAMESPACE_SEPARATOR: char32_t = 0x1F;       //- "Unit Separator"...
 
     v_add_symbol("voidc_compile_quark_q", q_ref, q("voidc.compile_quark"));
 
+    v_add_symbol("q_static_type_t",      q_ref, q("v_static_type_t"));
     v_add_symbol("q_static_namespace_t", q_ref, q("v_static_namespace_t"));
 
     v_add_symbol("q_find_constant_value_q", q_ref, q("v_find_constant_value_q"));
@@ -134,6 +135,86 @@ private
 namespace_cleaner: (void_ctx: *void) ~> void
 {
     delete (void_ctx: *v_namespace_t);
+}
+
+
+//---------------------------------------------------------------------
+export
+v_obtain_namespace_q: (qname: v_quark_t) ~> *v_namespace_t
+{
+//printf("v_obtain_namespace_q: start %s\n", v_quark_to_string(qname));
+//defer printf("v_obtain_namespace_q: stop %s\n", v_quark_to_string(v_get_return_value()->name));
+
+    qns = v_lookup_alias_q(qname);
+
+    ns: &*v_namespace_t := (v_find_constant_value_q(qns) : *v_namespace_t);
+
+    static_namespace_t = v_find_type_q(q_static_namespace_t);
+
+    v_assert(!ns  ||  v_find_constant_type_q(qns) == static_namespace_t);
+
+    if (!ns)
+    {
+        ns := new v_namespace_t;
+
+        v_add_local_cleaner(namespace_cleaner, ns);
+
+        pref = &ns->prefix;
+
+        a = v_get_property_q(q_current_namespace_list);
+
+        l = v_std_any_get_pointer(v_util_list_t, a);
+
+        if (s = v_list_get_size(l))
+        {
+            c = v_list_get_item(l, s-1);
+
+            cur_ns = (v_std_any_get_value(intptr_t, c): *v_namespace_t);
+
+            v_copy(pref, &cur_ns->prefix);
+
+            v_std_string_append_char(pref, NAMESPACE_SEPARATOR);
+
+            v_std_string_append(pref, v_quark_to_string(qns));
+
+            sstr: &v_std_string_t := {};
+
+            v_std_string_set(&sstr, "v__");
+
+            voidc_internal_std_string_append_mangle(&sstr, pref);
+
+            qm = v_quark_from_string(v_std_string_get(&sstr));
+
+            a: &v_std_any_t := {};
+
+            v_std_any_set_value(&a, qns);
+
+            v_list_append(&cur_ns->list, &cur_ns->list, &a);
+
+            v_std_any_set_value(&a, qm);
+
+            v_map_insert(&cur_ns->map, &cur_ns->map, (qns: intptr_t), &a);
+
+            ns->name := qm;
+        }
+        else
+        {
+            v_std_string_set(pref, v_quark_to_string(qns));
+
+            ns->name := qns;
+        }
+
+        v_add_constant_q(qns, v_find_type_q(q_static_namespace_t), (ns: LLVMValueRef));
+    }
+
+    v_return(ns);
+}
+
+//---------------------------------------------------------------------
+export
+v_obtain_namespace: (name: *const char) ~> *v_namespace_t
+{
+    v_return(v_obtain_namespace_q(v_quark_from_string(name)));
 }
 
 
@@ -412,63 +493,7 @@ voidc_unit_namespace_open_item_effort: (aux: *void) ~> void
 //printf("voidc_unit_namespace_open_item_effort start %s\n", v_quark_to_string((aux: v_quark_t)));
 //defer printf("voidc_unit_namespace_open_item_effort stop\n");
 
-    qns = v_lookup_alias_q((aux: v_quark_t));
-
-    ns: &*v_namespace_t := (v_find_constant_value_q(qns) : *v_namespace_t);
-
-    if (!ns)
-    {
-        ns := new v_namespace_t;
-
-        v_add_local_cleaner(namespace_cleaner, ns);
-
-        pref = &ns->prefix;
-
-        a = v_get_property_q(q_current_namespace_list);
-
-        l = v_std_any_get_pointer(v_util_list_t, a);
-
-        if (s = v_list_get_size(l))
-        {
-            c = v_list_get_item(l, s-1);
-
-            cur_ns = (v_std_any_get_value(intptr_t, c): *v_namespace_t);
-
-            v_copy(pref, &cur_ns->prefix);
-
-            v_std_string_append_char(pref, NAMESPACE_SEPARATOR);
-
-            v_std_string_append(pref, v_quark_to_string(qns));
-
-            sstr: &v_std_string_t := {};
-
-            v_std_string_set(&sstr, "v__");
-
-            voidc_internal_std_string_append_mangle(&sstr, pref);
-
-            qm = v_quark_from_string(v_std_string_get(&sstr));
-
-            a: &v_std_any_t := {};
-
-            v_std_any_set_value(&a, qns);
-
-            v_list_append(&cur_ns->list, &cur_ns->list, &a);
-
-            v_std_any_set_value(&a, qm);
-
-            v_map_insert(&cur_ns->map, &cur_ns->map, (qns: intptr_t), &a);
-
-            ns->name := qm;
-        }
-        else
-        {
-            v_std_string_set(pref, v_quark_to_string(qns));
-
-            ns->name := qns;
-        }
-
-        v_add_constant_q(qns, v_find_type("v_static_namespace_t"), (ns: LLVMValueRef));
-    }
+    ns = v_obtain_namespace_q((aux: v_quark_t));
 
     ansl = v_std_any_get_pointer(v_util_list_t, v_get_property_q(q_current_namespace_list));
 
@@ -541,26 +566,32 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
         etmp := v_list_get_item(args, 1);
     }
 
-    if (v_ast_base_get_tag(etmp) == v_ast_expr_identifier_tag)
-    {
-        qs0 = qs[0];
+    {   qs0 = qs[0];
 
-        qs0.qname := v_ast_expr_identifier_get_name_q(etmp);
-        qs0.args  := 0;
-    }
-    else
-    {
-        v_assert(v_ast_base_get_tag(etmp) == v_ast_expr_call_tag);            //- ?
+        qs0.qname := 0;
 
-        qs0 = qs[0];
+        etmp_tag = v_ast_base_get_tag(etmp);
 
-        qs0.args := v_ast_expr_call_get_arg_list(etmp);
+        if (etmp_tag == v_ast_expr_identifier_tag)
+        {
+            qs0.qname := v_ast_expr_identifier_get_name_q(etmp);
+            qs0.args  := 0;
+        }
+        else if (etmp_tag == v_ast_expr_call_tag)
+        {
+            efun = v_ast_expr_call_get_fun_expr(etmp);
 
-        etmp := v_ast_expr_call_get_fun_expr(etmp);
+            if (v_ast_base_get_tag(efun) == v_ast_expr_identifier_tag)
+            {
+                qs0.qname := v_ast_expr_identifier_get_name_q(efun);
+                qs0.args  := v_ast_expr_call_get_arg_list(etmp);
+            }
+        }
 
-        v_assert(v_ast_base_get_tag(etmp) == v_ast_expr_identifier_tag);      //- ?
-
-        qs0.qname := v_ast_expr_identifier_get_name_q(etmp);
+        if (qs0.qname == 0)
+        {
+            qs0.args := (etmp : *v_ast_expr_list_t);        //- Kinda, hack...
+        }
     }
 
     hidden_flag = v_get_hidden_flag();
@@ -590,7 +621,7 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
         v_list_append(anss, anss, &a);
     }
 
-    static_namespace_t = v_find_type("v_static_namespace_t");
+    static_namespace_t = v_find_type_q(q_static_namespace_t);
 
     for (i: &int := 0; i <= N; ++i)
     {
@@ -600,22 +631,25 @@ compile_unit_namespace_open: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
         if (qsi.args)
         {
-            expr: &v_ast_expr_t := {};
-
-            v_ast_make_expr_identifier_q(&expr, qsi.qname);
-
-            v_ast_make_expr_call(&expr, &expr, qsi.args);
-
-            v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_type(static_namespace_t);
             v_set_result_value(0);
 
-            v_ast_accept_visitor(&expr, vis);
+            if (qsi.qname != 0)             //- ...
+            {
+                expr: &v_ast_expr_t := {};
 
-            t = v_get_result_type();
-            v = v_get_result_value();
+                v_ast_make_expr_identifier_q(&expr, qsi.qname);
 
-            if (t == static_namespace_t)  quark := (v: *v_namespace_t)->name;           //- Sic !!!
-            else                          quark := (v: v_quark_t);                      //- Sic !!!
+                v_ast_make_expr_call(&expr, &expr, qsi.args);
+
+                v_ast_accept_visitor(&expr, vis);
+            }
+            else                            //- Hack...
+            {
+                v_ast_accept_visitor(qsi.args, vis);
+            }
+
+            quark := (v_get_result_value() : *v_namespace_t)->name;
 
             qsi.qname := quark;             //- Sic !!!
         }
@@ -801,15 +835,15 @@ compile_unit_defn_using: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
 
     if (flag)       //- using namespace  <ns-id> ;
     {
-        v_set_result_type(INVIOLABLE_TAG);
+        static_namespace_t = v_find_type_q(q_static_namespace_t);
+
+        v_set_result_type(static_namespace_t);
         v_set_result_value(0);
 
         v_ast_accept_visitor(expr, vis);
 
         t = v_get_result_type();
         v = v_get_result_value();
-
-        v_assert(t == v_find_type("v_static_namespace_t"));
 
         qvn = (v: *v_namespace_t)->name;
 
@@ -917,7 +951,9 @@ v_stmt_using_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
     {
         v_push_temporaries();       //- ?
 
-        v_set_result_type(INVIOLABLE_TAG);
+        static_namespace_t = v_find_type_q(q_static_namespace_t);
+
+        v_set_result_type(static_namespace_t);
         v_set_result_value(0);
 
         v_ast_accept_visitor(expr, vis);
@@ -927,17 +963,21 @@ v_stmt_using_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
         v_pop_temporaries();        //- ?
 
-        v_assert(t == v_find_type("v_static_namespace_t"));
-
         ns = (v: *v_namespace_t);
 
         a: &v_std_any_t := {};
 
         v_std_any_set_value(&a, (ns: intptr_t));
 
-        lst = v_std_any_get_pointer(v_util_list_t, v_get_property_q(q_current_namespace_used));
+        lst0 = v_std_any_get_pointer(v_util_list_t, v_get_property_q(q_current_namespace_used));
 
-        v_list_append(lst, lst, &a);
+        lst1: &v_util_list_t := {};
+
+        v_list_append(&lst1, lst0, &a);
+
+        v_std_any_set_pointer(&a, &lst1);
+
+        v_add_property_q(q_current_namespace_used, &a);
 
         v_return();
     }
@@ -972,7 +1012,7 @@ v_stmt_using_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 private
 lookup_in_namespace: (cache: *v_util_map_t, ns: *v_namespace_t, q: v_quark_t) ~> v_quark_t
 {
-//printf("lookup_in_namespace start %s %s\n", v_quark_to_string(ns->name), v_quark_to_string(q));
+//printf("lookup_in_namespace start %s %s\n", v_std_string_get(&ns->prefix), v_quark_to_string(q));
 //defer printf("lookup_in_namespace stop %s\n", v_quark_to_string(v_get_return_value()));
 
     if (v_map_find(cache, (ns: intptr_t)))  v_return(0);
@@ -1404,6 +1444,9 @@ my_compile_expr_union: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 private
 voidc_compile_unit_defn_effort: (aux: *void) ~> void
 {
+//printf("voidc_compile_unit_defn_effort: start\n");
+//defer printf("voidc_compile_unit_defn_effort: stop\n");
+
     qq = (aux: *v_quark_t);
 
     qnsid = qq[0];
@@ -1530,15 +1573,16 @@ my_compile_unit_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~
 
     nsid = v_list_get_item(args, 1);
 
-    ttag = v_get_result_type();
-    vtag = v_get_result_value();
+    static_namespace_t = v_find_type_q(q_static_namespace_t);
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(static_namespace_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(nsid, vis);
 
-    ns = (v_get_result_value() : *v_namespace_t);       //- Sic!
+    v_assert(v_get_result_type() == static_namespace_t);    //- WTF !?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!?!
+
+    ns = (v_get_result_value() : *v_namespace_t);           //- Sic!
 
     voidc_compile_unit_defn_make_effort(ns->name, qname, export);
 
@@ -1660,7 +1704,7 @@ my_var_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
         nsid = v_list_get_item(args, 1);
 
-        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_type(v_find_type_q(q_static_namespace_t));
         v_set_result_value(0);
 
         v_ast_accept_visitor(nsid, vis);
@@ -1701,7 +1745,7 @@ my_var_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
         }
     }
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(v_find_type_q(q_static_type_t));
     v_set_result_value(0);
 
     v_ast_accept_visitor(etype, vis);
@@ -1718,6 +1762,47 @@ my_var_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
 
 //---------------------------------------------------------------------
+private
+type_as_namespace_coe_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+//printf("type_as_namespace_coe_intrinsic: start\n");
+//defer printf("type_as_namespace_coe_intrinsic: stop\n");
+
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    arg0 = v_list_get_item(args, 0);        //- Type
+
+    v_set_result_type(v_find_type_q(q_static_type_t));
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg0, vis);
+
+    type = (v_get_result_value() : *v_type_t);
+
+    sstr: &v_std_string_t := {};
+
+    v_std_string_set(&sstr, "v.type_as_namespace-");            //- raw...
+
+    voidc_internal_std_string_append_type(&sstr, type);
+
+    ns_name = v_quark_from_string(v_std_string_get(&sstr));
+
+    if (v = v_find_constant_value_q(ns_name))                   //- raw...
+    {
+        v_set_result_value(v);
+    }
+    else
+    {
+        ns = v_obtain_namespace_q(ns_name);                     //- WTF ?!?!?!?!?
+
+        v_set_result_value((ns: LLVMValueRef));
+    }
+
+    v_set_result_type(v_find_type_q(q_static_namespace_t));     //- Sic!
+}
+
+
+//---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
 private
@@ -1725,8 +1810,6 @@ namespaces_ctx_t = struct
 {
     o_alias: my_obtain_alias_ctx_t;
     l_alias: my_lookup_alias_ctx_t;
-
-//  dot: op_postfix_dot_helper_ctx_t;
 
     struct: my_expr_struct_ctx_t[2];            //- struct, union
 
@@ -1814,6 +1897,17 @@ voidc_enable_namespaces_compiler: () ~> void
 
     //--------------------------------------------------------------
     v_add_intrinsic("v.internal.expr_var_decl", my_var_decl_intrinsic, 0);
+
+    //--------------------------------------------------------------
+    q_type_as_namespace = v_quark_from_string("v.type_as_namespace");
+
+    v_add_intrinsic_q(q_type_as_namespace, type_as_namespace_coe_intrinsic, 0);
+
+    q_fake = v_quark_from_string("v.fake.namespace_as_type");
+
+    static_type_t = v_find_type_q(q_static_type_t);
+
+    v_add_coercion(v_coe_injective, q_type_as_namespace, q_fake, static_type_t, static_namespace_t);
 }
 
 

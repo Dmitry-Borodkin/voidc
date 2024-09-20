@@ -49,6 +49,8 @@
     v_add_symbol("voidc_incomplete_array_type_tag", q_ref, q("voidc.incomplete_array_type_tag"));
 
     v_add_symbol("bool_q", q_ref, q("bool"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -910,8 +912,7 @@ static_type_prefix_star_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_
 
     typ = v_pointer_type(typ, 0);           //- ...
 
-    v_set_result_type(v_find_type("v_static_type_t"));
-    v_set_result_value((typ: LLVMValueRef));
+    v_adopt_result(v_find_type_q(q_static_type_t), (typ: LLVMValueRef));
 }
 
 //---------------------------------------------------------------------
@@ -924,8 +925,7 @@ static_type_prefix_amp_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_a
 
     typ = v_reference_type(typ, 0);         //- ...
 
-    v_set_result_type(v_find_type("v_static_type_t"));
-    v_set_result_value((typ: LLVMValueRef));
+    v_adopt_result(v_find_type_q(q_static_type_t), (typ: LLVMValueRef));
 }
 
 //---------------------------------------------------------------------
@@ -940,8 +940,7 @@ static_type_prefix_cv_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_as
     //- Just "ignore" it...
     //-----------------------------------------------------------------
 
-    v_set_result_type(v_find_type("v_static_type_t"));
-    v_set_result_value((typ: LLVMValueRef));
+    v_adopt_result(v_find_type_q(q_static_type_t), (typ: LLVMValueRef));
 }
 
 
@@ -1269,6 +1268,12 @@ static_type_postfix_index_pack_intrinsic: (*void, vis: *voidc_visitor_t, self: *
                                            args: **v_ast_expr_t, count: unsigned
                                           ) ~> void
 {
+//printf("static_type_postfix_index_pack_intrinsic: start\n");
+//defer printf("static_type_postfix_index_pack_intrinsic: stop\n");
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
     t: &*v_type_t := (v_ast_expr_compiled_get_value(args[0]) : *v_type_t);
 
     for (i: &int := count-1; i > 0; --i)
@@ -1300,8 +1305,10 @@ static_type_postfix_index_pack_intrinsic: (*void, vis: *voidc_visitor_t, self: *
         }
     }
 
-    v_set_result_type(v_find_type("v_static_type_t"));
-    v_set_result_value((t: LLVMValueRef));
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(v_find_type_q(q_static_type_t), (t: LLVMValueRef));
 }
 
 
@@ -1346,7 +1353,7 @@ voidc_enable_overloading_compiler: () ~> void
     q_static_type_prefix_volatile    = q("v.static_type_prefix_volatile");
     q_static_type_postfix_index_pack = q("v.static_type_postfix_index.pack");
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     v_add_overload_q(q("v.op_prefix_star"), static_type_t, q_static_type_prefix_star);
     v_add_overload_q(q("v.op_prefix_amp"),  static_type_t, q_static_type_prefix_amp);

@@ -236,8 +236,32 @@ yans.print: () ~> void;
 }
 
 
+//---------------------------------------------------------------------
+int.qwerty = 777;
+
+{
+    printf("int.qwerty = %d\n", int.qwerty);
+}
+
+(*long).asdfg = 888;
+
+{
+    printf("(*long).asdfg = %d\n", (*long).asdfg);
+}
 
 
+namespace void[].zaq        //- ... qaz ?!?!?!?!?!?!?
+{
+    zxcvb: &int := v_undef();
+}
+
+{
+    using namespace void[];
+
+    zaq.zxcvb := 999;
+
+    printf("void[].zaq.zxcvb = %d\n", void[].zaq.zxcvb);
+}
 
 
 

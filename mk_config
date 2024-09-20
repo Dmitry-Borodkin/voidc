@@ -1,9 +1,9 @@
 
 if [[ "$OSTYPE" =~ ^linux ]]; then
-    cmake -S . -B build  $@
+    cmake -S . -B build -Wno-dev  $@
 fi
 
 if [[ "$OSTYPE" =~ ^msys ]]; then
-    cmake -S . -B build -G "MinGW Makefiles"  $@
+    cmake -S . -B build -G "MinGW Makefiles" -Wno-dev  $@
 fi
 

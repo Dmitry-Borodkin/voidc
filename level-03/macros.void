@@ -66,6 +66,9 @@ qf_private = voidc_definitions_internal_qf_private;     //- 1 << 1
 
     v_add_symbol("voidc_compile_quark_q", q_ref, q("voidc.compile_quark"));
     v_add_symbol("voidc_compile_type_q",  q_ref, q("voidc.compile_type"));
+
+    v_add_symbol("q_static_type_t",      q_ref, q("v_static_type_t"));
+    v_add_symbol("q_static_namespace_t", q_ref, q("v_static_namespace_t"));
 }
 
 
@@ -302,6 +305,8 @@ macro_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:*v_ast_base_t) 
     np = v_list_get_size(&ctx.pars);
     na = v_list_get_size(args);
 
+    static_type_t = v_find_type_q(q_static_type_t);
+
     for(i: &int := 0; i < np; ++i)
     {
         par = (v_list_get_item(&ctx.pars, i) : *v_ast_expr_list_t);
@@ -309,11 +314,16 @@ macro_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:*v_ast_base_t) 
         qpar = v_ast_expr_identifier_get_name_q(v_list_get_item(par, 0));
         tpar = v_list_get_item(par, 1);
 
-        v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
 
-        if (!v_empty(tpar))
+        if (v_empty(tpar))
         {
+            v_set_result_type(INVIOLABLE_TAG);
+        }
+        else
+        {
+            v_set_result_type(static_type_t);
+
             v_ast_accept_visitor(tpar, vis);
 
             t = (v_get_result_value() : *v_type_t);
@@ -361,7 +371,7 @@ macro_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:*v_ast_base_t) 
 
     v_assert(!v_empty(&ctx.type));
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(static_type_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(&ctx.type, vis);
@@ -426,6 +436,8 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     v_make_map(bmap);
 
+    static_type_t = v_find_type_q(q_static_type_t);
+
     for(i: &int := 0; i < arg_count; ++i)
     {
         par = (v_list_get_item(&ctx.pars, i) : *v_ast_expr_list_t);
@@ -435,11 +447,16 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
         arg = arg_ptrs[i];
 
-        v_set_result_type(INVIOLABLE_TAG);
         v_set_result_value(0);
 
-        if (!v_empty(tpar))
+        if (v_empty(tpar))
         {
+            v_set_result_type(INVIOLABLE_TAG);
+        }
+        else
+        {
+            v_set_result_type(static_type_t);
+
             v_ast_accept_visitor(tpar, vis);
 
             t = (v_get_result_value() : *v_type_t);
@@ -476,7 +493,7 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     v_assert(!v_empty(&ctx.type));
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(static_type_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(&ctx.type, vis);
@@ -790,7 +807,7 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
             nsid = v_list_get_item(args, 1);
 
-            v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_type(v_find_type_q(q_static_namespace_t));
             v_set_result_value(0);
 
             v_ast_accept_visitor(nsid, vis);
@@ -825,6 +842,8 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
         types: &**v_type_t := 0;
         defer if (types)  delete[] types;
 
+        static_type_t = v_find_type_q(q_static_type_t);
+
         n = v_list_get_size(&ctx->pars);
 
         if (n)
@@ -843,7 +862,7 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
                     v_continue();
                 }
 
-                v_set_result_type(INVIOLABLE_TAG);
+                v_set_result_type(static_type_t);
                 v_set_result_value(0);
 
                 v_ast_accept_visitor(typ, vis);
@@ -860,7 +879,7 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
         }
         else
         {
-            v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_type(static_type_t);
             v_set_result_value(0);
 
             v_ast_accept_visitor(&ctx->type, vis);

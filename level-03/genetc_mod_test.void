@@ -28,6 +28,15 @@
 }
 
 
+//---------------------------------------------------------------------
+{   q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
+}
+
+
 //=====================================================================
 {   voidc_unit_begin_module("genetc_mod_test_module"); }
 
@@ -52,7 +61,12 @@ unique_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
     arg0 = v_list_get_item(args, 0);
 
-    v_set_result_type(INVIOLABLE_TAG);
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    static_type_t = v_find_type_q(q_static_type_t);
+
+    v_set_result_type(static_type_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg0, vis);
@@ -63,8 +77,10 @@ unique_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
     typ = v_generic_type(unique_ptr_q, &arg, 1);
 
-    v_set_result_type(v_find_type("v_static_type_t"));
-    v_set_result_value((typ: LLVMValueRef));
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(static_type_t, v_cast(typ, LLVMValueRef));
 }
 
 private
@@ -251,7 +267,9 @@ instantiate_unique_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     arg0 = v_list_get_item(args, 0);
 
-    v_set_result_type(INVIOLABLE_TAG);
+    static_type_t = v_find_type_q(q_static_type_t);
+
+    v_set_result_type(static_type_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg0, vis);
@@ -264,7 +282,7 @@ instantiate_unique_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     par: &v_ast_expr_t := {};
 
-    v_ast_make_expr_compiled(&par, v_find_type("v_static_type_t"), (elt: LLVMValueRef));
+    v_ast_make_expr_compiled(&par, static_type_t, (elt: LLVMValueRef));
 
     ctx: &my_compile_expr_identifier_ctx_t := v_undef();
 
@@ -332,7 +350,7 @@ make_unique_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
     expr: &v_ast_expr_t := {};
 
-    v_ast_make_expr_compiled(&expr, v_find_type("v_static_type_t"), (elt: LLVMValueRef));
+    v_ast_make_expr_compiled(&expr, v_find_type_q(q_static_type_t), (elt: LLVMValueRef));
 
     list: &v_ast_expr_list_t := {};
 

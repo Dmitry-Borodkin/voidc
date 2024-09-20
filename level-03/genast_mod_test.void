@@ -40,6 +40,8 @@
     v_add_symbol("expr_identifier_q", q_ref, q("expr_identifier"));
 
     v_add_symbol("refcnt_ptr_q", q_ref, q("my.refcnt_ptr"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -63,7 +65,12 @@ refcnt_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
     arg0 = v_list_get_item(args, 0);
 
-    v_set_result_type(INVIOLABLE_TAG);
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    static_type_t = v_find_type_q(q_static_type_t);
+
+    v_set_result_type(static_type_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg0, vis);
@@ -74,8 +81,10 @@ refcnt_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
     typ = v_generic_type(refcnt_ptr_q, &arg, 1);
 
-    v_set_result_type(v_find_type("v_static_type_t"));
-    v_set_result_value((typ: LLVMValueRef));
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(static_type_t, v_cast(typ, LLVMValueRef));
 }
 
 //---------------------------------------------------------------------
@@ -104,7 +113,7 @@ refcnt_ptr_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
     arg0 = v_list_get_item(args, 0);        //- Type
     arg1 = v_list_get_item(args, 1);        //- Tag
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(v_find_type_q(q_static_type_t));
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg0, vis);
@@ -140,8 +149,10 @@ refcnt_ptr_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t
     }
     else
     {
-        v_set_result_type(v_void_type());                   //- Sic !?!
-        v_set_result_value((ns_name: LLVMValueRef));        //- Sic !?!
+        ns = v_obtain_namespace_q(ns_name);                 //- WTF ?!?!?!?!?
+
+        v_set_result_type(v_find_type("v_static_namespace_t"));
+        v_set_result_value((ns: LLVMValueRef));
     }
 }
 
@@ -343,7 +354,9 @@ instantiate_refcnt_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     arg0 = v_list_get_item(args, 0);
 
-    v_set_result_type(INVIOLABLE_TAG);
+    static_type_t = v_find_type_q(q_static_type_t);
+
+    v_set_result_type(static_type_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg0, vis);
@@ -356,7 +369,7 @@ instantiate_refcnt_ptr_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_ba
 
     par: &v_ast_expr_t := {};
 
-    v_ast_make_expr_compiled(&par, v_find_type("v_static_type_t"), (elt: LLVMValueRef));
+    v_ast_make_expr_compiled(&par, static_type_t, (elt: LLVMValueRef));
 
     ctx: &my_compile_expr_identifier_ctx_t := v_undef();
 
@@ -409,7 +422,9 @@ make_refcnt_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    v_set_result_type(INVIOLABLE_TAG);
+    static_type_t = v_find_type_q(q_static_type_t);
+
+    v_set_result_type(static_type_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg0, vis);
@@ -422,7 +437,7 @@ make_refcnt_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
     par: &v_ast_expr_t := {};
 
-    v_ast_make_expr_compiled(&par, v_find_type("v_static_type_t"), (elt: LLVMValueRef));
+    v_ast_make_expr_compiled(&par, static_type_t, (elt: LLVMValueRef));
 
     ctx: &my_compile_expr_identifier_ctx_t := v_undef();
 

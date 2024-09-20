@@ -34,6 +34,13 @@
 
     ft = v_function_type(void_ptr, typ, 1, false);
     v_export_symbol_type("malloc", ft);
+
+
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -64,10 +71,10 @@
 
     builder = v_target_get_builder();
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(v_find_type_q(q_static_type_t));
     v_set_result_value(0);
 
-    arg0 = v_list_get_item(args, 0);
+    arg0 = v_list_get_item(args, 0);                //- Type
 
     arg0_base = v_cast(arg0, v_ast_base_ptr);
 

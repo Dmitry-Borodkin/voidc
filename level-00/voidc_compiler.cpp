@@ -212,7 +212,7 @@ void compile_expr_identifier(void *, const visitor_t *vis, const ast_base_t *sel
 
     auto &vctx = *voidc_global_ctx_t::voidc;
 
-    if (t == vctx.static_type_type  &&  lctx.result_type == vctx.type_ptr_type)
+    if (&gctx == &vctx  &&  t == vctx.static_type_type  &&  lctx.result_type == vctx.type_ptr_type)
     {
         auto raw_name = lctx.lookup_alias(ident.name);
 
@@ -368,12 +368,10 @@ v_alloca(void *, const visitor_t *vis, const ast_base_t *self)
     auto ttag = lctx.result_type;
     auto vtag = lctx.result_value;
 
-    lctx.result_type  = INVIOLABLE_TAG;
+    lctx.result_type  = gctx.static_type_type;
     lctx.result_value = 0;
 
     voidc_visitor_data_t::visit(*vis, args->data[0]);               //- Element type
-
-    assert(lctx.result_type == gctx.static_type_type);
 
     auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 
@@ -594,12 +592,10 @@ v_cast(void *, const visitor_t *vis, const ast_base_t *self)
     auto src_type  = lctx.result_type;
     auto src_value = lctx.result_value;
 
-    lctx.result_type  = INVIOLABLE_TAG;
+    lctx.result_type  = gctx.static_type_type;
     lctx.result_value = 0;
 
     voidc_visitor_data_t::visit(*vis, args->data[1]);               //- Type
-
-    assert(lctx.result_type == gctx.static_type_type);
 
     auto dst_type = reinterpret_cast<v_type_t *>(lctx.result_value);
 

@@ -68,6 +68,8 @@ qf_private = voidc_definitions_internal_qf_private;     //- 1 << 1
     v_add_symbol("voidc_abstract_static_constant_q", q_ref, q("voidc.abstract_static_constant"));
 
     v_add_symbol("voidc_abstract_static_type_intrinsic_q", q_ref, q("voidc.abstract_static_type_intrinsic"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -369,7 +371,7 @@ my_abstract_static_type_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_
 //printf("my_abstract_static_type_intrinsic start %s\n", name);
 //defer printf("my_abstract_static_type_intrinsic stop\n");
 
-    v_assert(t == v_find_type("v_static_type_t"));
+    v_assert(t == v_find_type_q(q_static_type_t));
 
     if (export) v_export_type(name, (v: *v_type_t));
     else        v_add_type(name, (v: *v_type_t));
@@ -433,7 +435,7 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     type  = v_list_get_item(list, 2);
     value = v_list_get_item(list, 3);
 
-    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_type(v_find_type_q(q_static_type_t));
     v_set_result_value(0);
 
     v_ast_accept_visitor(type, vis);
@@ -666,10 +668,13 @@ my_compile_unit_val_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
     type  = v_list_get_item(list, 2);
     value = v_list_get_item(list, 3);
 
-    v_set_result_type(INVIOLABLE_TAG);
-
-    if (!v_empty(type))
+    if (v_empty(type))
     {
+        v_set_result_type(INVIOLABLE_TAG);
+    }
+    else
+    {
+        v_set_result_type(v_find_type_q(q_static_type_t));
         v_set_result_value(0);
 
         v_ast_accept_visitor(type, vis);

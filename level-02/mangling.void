@@ -54,6 +54,8 @@
 
     //-----------------------------------------------------------------
     v_add_symbol("q_initialize", q_ref, q("v_initialize"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -1060,7 +1062,7 @@ compile_unit_spec_fun_defn: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 
         v_ast_make_expr_op_binary(expr, v_op_infix_tildeto, (params: *v_ast_expr_t), (ret_type: *v_ast_expr_t));
 
-        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_type(v_find_type_q(q_static_type_t));
         v_set_result_value(0);
 
         v_ast_accept_visitor((expr: *v_ast_base_t), vis);
@@ -1137,7 +1139,7 @@ v_internal_spec_fun_decl_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_
 
         v_ast_make_expr_op_binary(expr, v_op_infix_tildeto, (params: *v_ast_expr_t), (ret_type: *v_ast_expr_t));
 
-        v_set_result_type(INVIOLABLE_TAG);
+        v_set_result_type(v_find_type_q(q_static_type_t));
         v_set_result_value(0);
 
         v_ast_accept_visitor((expr: *v_ast_base_t), vis);

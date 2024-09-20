@@ -90,15 +90,15 @@ block
 };
 
 
-{   ns = ("Qwe" : *const char).str * 20;
+{   ns = ("Qwe" : *const char).str * 7;
 
     printf("ns: %s\n", v_std_string_get(&ns));
 }
 
 
-#define (_*_): (a: char[4], n) ~> v_std_string_t  =  (a: *const char).str * 20;
+#define (_*_): (a: char[4], n) ~> v_std_string_t  =  (a: *const char).str * n;
 
-{   ns = "Asd" * 20;
+{   ns = "Asd" * 8;
 
     printf("ns: %s\n", v_std_string_get(&ns));
 }
@@ -106,7 +106,7 @@ block
 #define (_.c_str): (s: &v_std_string_t) ~>       *char  =  v_std_string_get(&s);
 #define (_.c_str): (s:  v_std_string_t) ~> *const char  =  v_std_string_get(&s);
 
-{   ns = "Zxc" * 20;
+{   ns = "Zxc" * 9;
 
     printf("ns: %s\n", ns.c_str);
 }
@@ -115,7 +115,7 @@ block
 #define (_[]): (s: &v_std_string_t, i) ~> &char  =  s.c_str[i];
 #define (_[]): (s:  v_std_string_t, i) ~>  char  =  s.c_str[i];
 
-{   ns = "Zxc" * 20;
+{   ns = "Zxc" * 10;
 
     for (i: &int := 0; i < 10; ++i)   printf("ns[%d]: %c\n", i, ns[i]);
 }

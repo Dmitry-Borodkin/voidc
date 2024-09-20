@@ -253,12 +253,10 @@ void v_std_any_get_value_intrinsic(void *void_quark, const visitor_t *vis, const
     auto ttag = lctx.result_type;
     auto vtag = lctx.result_value;
 
-    lctx.result_type = INVIOLABLE_TAG;
+    lctx.result_type  = gctx.static_type_type;
     lctx.result_value = 0;
 
     voidc_visitor_data_t::visit(*vis, args->data[0]);       //- Type
-
-    assert(lctx.result_type == gctx.static_type_type);
 
     auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 
@@ -288,12 +286,10 @@ void v_std_any_get_pointer_intrinsic(void *void_quark, const visitor_t *vis, con
     auto ttag = lctx.result_type;
     auto vtag = lctx.result_value;
 
-    lctx.result_type = INVIOLABLE_TAG;
+    lctx.result_type  = gctx.static_type_type;
     lctx.result_value = 0;
 
     voidc_visitor_data_t::visit(*vis, args->data[0]);       //- Type
-
-    assert(lctx.result_type == gctx.static_type_type);
 
     auto type = reinterpret_cast<v_type_t *>(lctx.result_value);
 

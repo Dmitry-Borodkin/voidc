@@ -61,6 +61,8 @@
     v_add_symbol("q_add_intrinsic_q",    q_ref, q("v_add_intrinsic_q"));
 
     v_add_symbol("voidc_internal_union_cast_intrinsic_q", q_ref, q("voidc_internal_union_cast_intrinsic"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -256,6 +258,11 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
     types: &**v_type_t := 0;
     defer if (types)  v_free(types);
 
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    static_type_t = v_find_type_q(q_static_type_t);
+
     if (!v_empty(&obj.body))
     block
     {
@@ -290,7 +297,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
 
             etmp = v_ast_stmt_get_expr(stmp);
 
-            v_set_result_type(INVIOLABLE_TAG);
+            v_set_result_type(static_type_t);
             v_set_result_value(0);
 
             v_ast_accept_visitor((etmp : v_ast_base_ptr), vis);
@@ -374,8 +381,10 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
         }
     }
 
-    v_set_result_type(v_find_type("v_static_type_t"));
-    v_set_result_value((type: LLVMValueRef));
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(static_type_t, v_cast(type, LLVMValueRef));
 
 
     //-----------------------------------------------------------------
@@ -504,6 +513,9 @@ compile_unit_union_defn: (aux: *void, vis: *voidc_visitor_t,
     list = (self: *v_ast_generic_list_t);
 
     ast = v_list_get_item(list, 0);
+
+    v_set_result_type(v_find_type_q(q_static_type_t));
+    v_set_result_value(0);
 
     v_ast_accept_visitor(ast, vis);
 }
