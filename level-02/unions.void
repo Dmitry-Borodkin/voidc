@@ -225,7 +225,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
             nm = v_ast_expr_identifier_get_name(&obj.name);
 
             type_name  := nm;
-            union_name := nm;
+            union_name := v_obtain_alias(nm, obj.export);           //- Sic !!!
         }
         else        //- Sic!
         {

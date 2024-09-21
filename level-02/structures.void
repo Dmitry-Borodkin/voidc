@@ -258,7 +258,7 @@ compile_expr_struct: (aux: *void, vis: *voidc_visitor_t,
             nm = v_ast_expr_identifier_get_name(name);
 
             type_name   := nm;
-            struct_name := nm;
+            struct_name := v_obtain_alias(nm, export);          //- Sic !!!
         }
         else        //- Sic!
         {

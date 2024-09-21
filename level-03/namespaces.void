@@ -145,7 +145,30 @@ v_obtain_namespace_q: (qname: v_quark_t) ~> *v_namespace_t
 //printf("v_obtain_namespace_q: start %s\n", v_quark_to_string(qname));
 //defer printf("v_obtain_namespace_q: stop %s\n", v_quark_to_string(v_get_return_value()->name));
 
-    qns = v_lookup_alias_q(qname);
+    is_root: &bool := false;
+
+    strncmp: (*const char, *const char, size_t) ~> int;
+
+    qns: &v_quark_t := v_undef();
+
+    nm: &*const char := v_quark_to_string(qname);
+
+    if (strncmp(nm, "v__", 3) == 0)
+    {
+        is_root := true;
+
+        qns := qname;
+    }
+    else if (strncmp(nm, "v..", 3) == 0)
+    {
+        is_root := true;
+
+        qns := v_quark_from_string(nm += 3);            //- Skip "v.."
+    }
+    else
+    {
+        qns := v_lookup_alias_q(qname);
+    }
 
     ns: &*v_namespace_t := (v_find_constant_value_q(qns) : *v_namespace_t);
 
@@ -161,50 +184,58 @@ v_obtain_namespace_q: (qname: v_quark_t) ~> *v_namespace_t
 
         pref = &ns->prefix;
 
-        a = v_get_property_q(q_current_namespace_list);
-
-        l = v_std_any_get_pointer(v_util_list_t, a);
-
-        if (s = v_list_get_size(l))
+        if (!is_root)
         {
-            c = v_list_get_item(l, s-1);
+            a = v_get_property_q(q_current_namespace_list);
 
-            cur_ns = (v_std_any_get_value(intptr_t, c): *v_namespace_t);
+            l = v_std_any_get_pointer(v_util_list_t, a);
 
-            v_copy(pref, &cur_ns->prefix);
+            if (s = v_list_get_size(l))
+            {
+                c = v_list_get_item(l, s-1);
 
-            v_std_string_append_char(pref, NAMESPACE_SEPARATOR);
+                cur_ns = (v_std_any_get_value(intptr_t, c): *v_namespace_t);
 
-            v_std_string_append(pref, v_quark_to_string(qns));
+                v_copy(pref, &cur_ns->prefix);
 
-            sstr: &v_std_string_t := {};
+                v_std_string_append_char(pref, NAMESPACE_SEPARATOR);
 
-            v_std_string_set(&sstr, "v__");
+                v_std_string_append(pref, v_quark_to_string(qns));
 
-            voidc_internal_std_string_append_mangle(&sstr, pref);
+                sstr: &v_std_string_t := {};
 
-            qm = v_quark_from_string(v_std_string_get(&sstr));
+                v_std_string_set(&sstr, "v__");
 
-            a: &v_std_any_t := {};
+                voidc_internal_std_string_append_mangle(&sstr, pref);
 
-            v_std_any_set_value(&a, qns);
+                qm = v_quark_from_string(v_std_string_get(&sstr));
 
-            v_list_append(&cur_ns->list, &cur_ns->list, &a);
+                a: &v_std_any_t := {};
 
-            v_std_any_set_value(&a, qm);
+                v_std_any_set_value(&a, qns);
 
-            v_map_insert(&cur_ns->map, &cur_ns->map, (qns: intptr_t), &a);
+                v_list_append(&cur_ns->list, &cur_ns->list, &a);
 
-            ns->name := qm;
+                v_std_any_set_value(&a, qm);
+
+                v_map_insert(&cur_ns->map, &cur_ns->map, (qns: intptr_t), &a);
+
+                ns->name := qm;
+            }
+            else
+            {
+                is_root := true;
+            }
         }
-        else
+
+        if (is_root)
         {
             v_std_string_set(pref, v_quark_to_string(qns));
 
             ns->name := qns;
         }
 
-        v_add_constant_q(qns, v_find_type_q(q_static_namespace_t), (ns: LLVMValueRef));
+        v_add_constant_q(qns, static_namespace_t, (ns: LLVMValueRef));
     }
 
     v_return(ns);
@@ -1101,7 +1132,7 @@ voidc_obtain_alias_effort: (aux: *void) ~> void
 private
 my_obtain_alias: (aux: *void, q: v_quark_t, export: bool) ~> v_quark_t
 {
-//printf("my_obtain_alias start %s\n", v_quark_to_string(q));
+//printf("my_obtain_alias start %s %d\n", v_quark_to_string(q), (export: int));
 //defer printf("my_obtain_alias stop  %s\n", v_quark_to_string(v_get_return_value()));
 
     strncmp: (*const char, *const char, size_t) ~> int;
@@ -1340,108 +1371,6 @@ my_abstract_static_namespace_intrinsic: (aux: *void, vis: *voidc_visitor_t, self
 
 //---------------------------------------------------------------------
 private
-my_expr_struct_ctx_t = struct
-{
-    fun: *((*void, *voidc_visitor_t, *v_ast_base_t) ~> void);
-    aux: *void;
-};
-
-//---------------------------------------------------------------------
-private
-my_compile_expr_struct: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
-{
-//printf("my_compile_expr_struct start\n");
-//defer printf("my_compile_expr_struct stop\n");
-
-    void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
-
-    obj = *(void_obj: *v_ast_expr_struct_t);
-
-    name = &obj[0];
-
-    self_: &*v_ast_base_t := self;
-
-    expr: &v_ast_expr_t := {};
-
-    if (!v_empty(name))
-    {
-        tag = v_ast_base_get_tag(name);
-
-        if (tag == v_ast_expr_identifier_tag)
-        {
-            q0 = v_ast_expr_identifier_get_name_q(name);
-
-            q1 = v_obtain_alias_q(q0, false);       //- ?
-
-            if (q0 != q1)
-            {
-                v_ast_make_expr_identifier_q(&expr, q1);
-
-                body   = &obj[1];
-                packed =  obj[2];
-                export =  obj[3];
-
-                v_ast_make_expr_struct(&expr, &expr, body, packed, export);
-
-                self_ := &expr;
-            }
-        }
-    }
-
-    ctx = *(aux: *my_expr_struct_ctx_t);
-
-    ctx.fun(ctx.aux, vis, self_);
-}
-
-//---------------------------------------------------------------------
-private
-my_compile_expr_union: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
-{
-//printf("my_compile_expr_union start\n");
-//defer printf("my_compile_expr_union stop\n");
-
-    void_obj = v_ast_generic_get_object((self: *v_ast_expr_t));
-
-    obj = *(void_obj: *v_ast_expr_union_t);
-
-    name = &obj.name;
-
-    self_: &*v_ast_base_t := self;
-
-    expr: &v_ast_expr_t := {};
-
-    if (!v_empty(name))
-    {
-        tag = v_ast_base_get_tag(name);
-
-        if (tag == v_ast_expr_identifier_tag)
-        {
-            q0 = v_ast_expr_identifier_get_name_q(name);
-
-            q1 = v_obtain_alias_q(q0, false);       //- ?
-
-            if (q0 != q1)
-            {
-                v_ast_make_expr_identifier_q(&expr, q1);
-
-                body   = &obj.body;
-                export =  obj.export;
-
-                v_ast_make_expr_union(&expr, &expr, body, export);
-
-                self_ := &expr;
-            }
-        }
-    }
-
-    ctx = *(aux: *my_expr_struct_ctx_t);
-
-    ctx.fun(ctx.aux, vis, self_);
-}
-
-
-//---------------------------------------------------------------------
-private
 voidc_compile_unit_defn_effort: (aux: *void) ~> void
 {
 //printf("voidc_compile_unit_defn_effort: start\n");
@@ -1452,7 +1381,7 @@ voidc_compile_unit_defn_effort: (aux: *void) ~> void
     qnsid = qq[0];
     qname = qq[1];
 
-    ns = (v_find_constant_value_q(qnsid) : *v_namespace_t);
+    ns = v_obtain_namespace_q(qnsid);
 
     if (v_map_find(&ns->map, (qname: intptr_t)))  v_return();       //- Sic !?!
 
@@ -1781,13 +1710,19 @@ type_as_namespace_coe_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_bas
 
     sstr: &v_std_string_t := {};
 
-    v_std_string_set(&sstr, "v.type_as_namespace-");            //- raw...
+    v_std_string_set(&sstr, "v.type_as_namespace-");
 
     voidc_internal_std_string_append_type(&sstr, type);
 
-    ns_name = v_quark_from_string(v_std_string_get(&sstr));
+    nstr: &v_std_string_t := {};
 
-    if (v = v_find_constant_value_q(ns_name))                   //- raw...
+    v_std_string_set(&nstr, "v__");
+
+    voidc_internal_std_string_append_mangle(&nstr, &sstr);
+
+    ns_name = v_quark_from_string(v_std_string_get(&nstr));
+
+    if (v = v_find_constant_value_q(ns_name))
     {
         v_set_result_value(v);
     }
@@ -1810,8 +1745,6 @@ namespaces_ctx_t = struct
 {
     o_alias: my_obtain_alias_ctx_t;
     l_alias: my_lookup_alias_ctx_t;
-
-    struct: my_expr_struct_ctx_t[2];            //- struct, union
 
     unit_defn: my_visitor_method_ctx_t[3];      //- fun, var, val
 };
@@ -1878,13 +1811,6 @@ voidc_enable_namespaces_compiler: () ~> void
     v_add_overload("v.op_postfix_dot", static_namespace_t, "v.internal.op_postfix_dot_namespace");
 
     v_add_intrinsic("v.internal.op_postfix_dot_namespace", my_postfix_dot_root_helper, &ctx.l_alias);
-
-    //--------------------------------------------------------------
-    ctx.struct[0].fun := voidc_visitor_get_method(vis, expr_struct_q, &ctx.struct[0].aux);
-    ctx.struct[1].fun := voidc_visitor_get_method(vis, expr_union_q,  &ctx.struct[1].aux);
-
-    voidc_visitor_set_method(vis, vis, expr_struct_q, my_compile_expr_struct, &ctx.struct[0]);
-    voidc_visitor_set_method(vis, vis, expr_union_q,  my_compile_expr_union,  &ctx.struct[1]);
 
     //--------------------------------------------------------------
     ctx.unit_defn[0].fun := voidc_visitor_get_method(vis, unit_fun_defn_q, &ctx.unit_defn[0].aux);
