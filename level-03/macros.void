@@ -411,6 +411,9 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
                               arg_ptrs: **v_ast_expr_t, arg_count: unsigned
                              ) ~> void
 {
+//printf("macro_spec_expand_intrinsic: start\n");
+//defer printf("macro_spec_expand_intrinsic: stop\n");
+
     ctx = *(aux: *macro_defn_ctx_t);
 
     ttag = v_get_result_type();
@@ -557,7 +560,9 @@ voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_bas
     {
         qintr = v_quark_from_string(v_std_string_get(&sstr));
 
-        v_export_constant_q(q, v_object_intrinsic_t, (qintr: LLVMValueRef));
+        object_intrinsic_t = v_find_type("v_object_intrinsic_t");
+
+        v_export_constant_q(q, object_intrinsic_t, (qintr: LLVMValueRef));
 
         v_export_intrinsic_q(qintr, macro_expand_intrinsic, ctx);
     }
@@ -763,19 +768,17 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
     quark: &v_quark_t := 0;
     ktype: &*v_type_t := 0;
 
-    export: &bool := false;
+    hidden_flag = v_get_hidden_flag();
+    export_flag = v_get_export_flag();
+
+    private = qfl & qf_private;
+    export  = (export_flag  ||  qfl & qf_export)  &&  !private  &&  !hidden_flag;
 
     //-------------------------------------------------------------
     if (!spec)      //- Just "identifier"...
     {
         block
         {
-            hidden_flag = v_get_hidden_flag();
-            export_flag = v_get_export_flag();
-
-            private = qfl & qf_private;
-            export := (export_flag  ||  qfl & qf_export)  &&  !private  &&  !hidden_flag;
-
             tag = v_ast_base_get_tag(name);
 
             if (tag != v_ast_expr_call_tag)
@@ -832,8 +835,10 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
         qintr = v_quark_from_string(v_std_string_get(&sstr));
 
-        if (kind) v_add_variable_q(quark, v_object_intrinsic_t, (qintr: LLVMValueRef));
-        else      v_add_constant_q(quark, v_object_intrinsic_t, (qintr: LLVMValueRef));
+        object_intrinsic_t = v_find_type("v_object_intrinsic_t");
+
+        if (kind) v_add_variable_q(quark, object_intrinsic_t, (qintr: LLVMValueRef));
+        else      v_add_constant_q(quark, object_intrinsic_t, (qintr: LLVMValueRef));
 
         v_add_intrinsic_q(qintr, macro_expand_intrinsic, ctx);
     }
