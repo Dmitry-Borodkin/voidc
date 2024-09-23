@@ -461,9 +461,9 @@ v_import_helper(const char *name, bool _export)
 
             if (res_i.second)
             {
-                target_lctx->decls.insert(s.first);
+                target_lctx->decls.insert(s.first);             //- Insert declarations
 
-                for (auto &e : s.second)  e.first(e.second);
+                for (auto &e : s.second)  e.first(e.second);    //- Run(!) efforts...
             }
 
             if (_export  &&  target_lctx->export_data)
@@ -474,9 +474,9 @@ v_import_helper(const char *name, bool _export)
                 {
                     auto &d = *target_lctx->export_data;
 
-                    d.first.insert(s.first);
+                    d.first.insert(s.first);                            //- Insert declarations
 
-                    for (auto &e : s.second)  d.second.push_back(e);
+                    for (auto &e : s.second)  d.second.push_back(e);    //- Insert efforts...
                 }
             }
 
@@ -635,9 +635,11 @@ v_import_helper(const char *name, bool _export)
         std::fclose(infs);
     }
 
-    target_lctx->decls.insert(export_data->first);
+    //- ...
 
-    for (auto &e : export_data->second)  e.first(e.second);
+    target_lctx->decls.insert(export_data->first);              //- Insert declarations
+
+    for (auto &e : export_data->second)  e.first(e.second);     //- Run(!) efforts...
 
     target_lctx->imported.insert(src_filename_str);
 
@@ -647,9 +649,9 @@ v_import_helper(const char *name, bool _export)
 
         auto &d = *target_lctx->export_data;
 
-        d.first.insert(export_data->first);
+        d.first.insert(export_data->first);                             //- Insert declarations
 
-        for (auto &e : export_data->second) d.second.push_back(e);
+        for (auto &e : export_data->second) d.second.push_back(e);      //- Insert efforts...
     }
 }
 

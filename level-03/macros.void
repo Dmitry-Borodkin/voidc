@@ -111,15 +111,9 @@ mk_macro_id_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t
     if (kind) quark := macro_defn_q;
     else      quark := macro_spec_defn_q;
 
-    etmp: &v_ast_expr_t := {};
-
-    v_ast_make_expr_integer(&etmp, 0);      //- Dummy qualifier...
-
     list: &v_ast_generic_list_t := {};
 
-    v_make_list(&list, quark, &etmp);
-
-    v_list_append(&list, &list, name);
+    v_make_list(&list, quark, name);
 
     v_std_any_set_pointer(ret, &list);
 }
@@ -128,14 +122,14 @@ mk_macro_id_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t
 private
 mk_macro_hdr_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~> void
 {
-    q_id = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
+    l_id = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
 
     pars = v_std_any_get_pointer(v_ast_expr_t, any+1);
     type = v_std_any_get_pointer(v_ast_expr_t, any+2);
 
     list: &v_ast_generic_list_t := {};
 
-    v_list_append(&list, q_id, pars);
+    v_list_append(&list, l_id, pars);
 
     if (type)
     {
@@ -180,26 +174,20 @@ mk_macro_define_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, si
 
     expr: &v_ast_expr_t := {};
 
-    if (qual)
-    {
-        v_ast_make_expr_integer(&expr, qual);
+    v_ast_make_expr_integer(&expr, qual);
 
-        tag = v_ast_base_get_tag(glst);
+    tag = v_ast_base_get_tag(glst);
 
-        v_make_list(&list, tag, &expr);
+    v_make_list(&list, tag, &expr);                             //- qual
 
-        v_list_append(&list, &list, v_list_get_item(glst, 1));      //- name
-        v_list_append(&list, &list, v_list_get_item(glst, 2));      //- pars
-        v_list_append(&list, &list, v_list_get_item(glst, 3));      //- type
-    }
-    else
-    {
-        v_copy(&list, glst);
-    }
+    v_list_append(&list, &list, v_list_get_item(glst, 0));      //- name
+    v_list_append(&list, &list, v_list_get_item(glst, 1));      //- pars
+    v_list_append(&list, &list, v_list_get_item(glst, 2));      //- type
+    v_list_append(&list, &list, v_list_get_item(glst, 3));      //- body
 
     v_ast_make_expr_integer(&expr, kind);
 
-    v_list_append(&list, &list, &expr);
+    v_list_append(&list, &list, &expr);                         //- kind
 
     if (kind) v_std_any_set_pointer(ret, (&list : *v_ast_stmt_t));      //- stmt
     else      v_std_any_set_pointer(ret, (&list : *v_ast_base_t));      //- unit_defn
@@ -580,7 +568,7 @@ voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_bas
         {
             if (v_type_get_llvm_type(t))        //- ???
             {
-                v_add_overload_q(q, v_reference_type(t, 0), qname);         //- ?
+                v_export_overload_q(q, v_reference_type(t, 0), qname);      //- ?
             }
         }
 
@@ -703,15 +691,15 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
     qfl  = (v_list_get_item(list, 0) : *v_ast_expr_t);
     name = (v_list_get_item(list, 1) : *v_ast_expr_t);
-    args = (v_list_get_item(list, 2) : *v_ast_expr_t);      //- ...
+    pars = (v_list_get_item(list, 2) : *v_ast_expr_t);      //- ...
     type = (v_list_get_item(list, 3) : *v_ast_expr_t);
     body = (v_list_get_item(list, 4) : *v_ast_base_t);
     kind = (v_list_get_item(list, 5) : *v_ast_expr_t);
 
     qfl  = v_ast_expr_integer_get_number(qfl);
 
-    args = v_ast_expr_call_get_arg_list(args);
-    args = (v_list_get_item(args, 1) : *v_ast_generic_list_t);
+    pars = v_ast_expr_call_get_arg_list(pars);
+    pars = (v_list_get_item(pars, 1) : *v_ast_generic_list_t);
 
     spec = v_ast_base_get_tag(self) == macro_spec_defn_q;
 
@@ -725,7 +713,7 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
         v_make_list_nil(ctx_pars, macro_params_q);
 
-        n = v_list_get_size(args);
+        n = v_list_get_size(pars);
 
         elst: &v_ast_expr_list_t := {};
 
@@ -733,7 +721,7 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
         for (i: &int := 0; i < n; ++i)
         {
-            lst = (v_list_get_item(args, i) : *v_ast_expr_list_t);
+            lst = (v_list_get_item(pars, i) : *v_ast_expr_list_t);
 
             v_make_list_nil(&elst);
 

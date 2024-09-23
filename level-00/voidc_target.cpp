@@ -3534,6 +3534,13 @@ v_target_create_local_ctx(const char *filename, base_global_ctx_t *gctx)
 
     ret->filename = filename;
 
+    auto &map = gctx->imported;
+
+    if (auto it = map.find(filename); it != map.end())
+    {
+        ret->export_data = &it->second;         //- Sic !!!
+    }
+
     return ret;
 }
 

@@ -1087,13 +1087,11 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
     module: &LLVMModuleRef := saved_module;
 
-    global_ctx = ctx.obtain_spec.global_ctx;
-
     if (!saved_module)                  //- "direct declarations"
     {
         v_assert(!LLVMGetInsertBlock(v_target_get_builder()));
 
-        //- voidc_guard_target(...);
+        //- voidc_guard_target(...);            //- WTF !?!
 
         sstr: &v_std_string_t := {};
 
@@ -1120,15 +1118,21 @@ my_compile_defn_list_unit: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base
 
     if (!saved_module)                  //- "direct declarations"
     {
-        //- voidc_guard_target(...);
+        //- voidc_guard_target(...);            //- WTF !?!
 
         v_finish_module(module);
 
         //- TODO: Check for empty module!
 
-        voidc_prepare_module_for_jit(module);
+        gctx = v_target_get_global_ctx();
+        vctx = v_target_get_voidc_global_ctx();
 
-        voidc_add_local_module_to_jit(module);              //- local?  (TODO)
+        if (gctx == vctx)                       //- WTF !?!?!?!?!
+        {
+            voidc_prepare_module_for_jit(module);
+
+            voidc_add_local_module_to_jit(module);              //- local?  (TODO)
+        }
 
         LLVMDisposeModule(module);
 

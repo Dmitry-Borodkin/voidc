@@ -390,6 +390,9 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                    t0: *v_type_t, v0: LLVMValueRef, qh: v_quark_t, q0: v_quark_t, q1: v_quark_t,
                    rhs: *v_ast_expr_t) ~> void
 {
+//printf("op_binary_helper: start\n");
+//defer printf("op_binary_helper: stop\n");
+
     elhs = v_alloca(v_ast_expr_t);
     v_initialize(elhs);
     defer v_terminate(elhs);
@@ -471,6 +474,9 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 private
 op_binary_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 {
+//printf("op_binary_intrinsic: start\n");
+//defer printf("op_binary_intrinsic: stop\n");
+
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
     ttag = v_get_result_type();
