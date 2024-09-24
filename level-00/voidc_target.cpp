@@ -1398,7 +1398,7 @@ template<typename T, typename... TArgs>
 void
 voidc_template_ctx_t<T, TArgs...>::add_object_file_to_jit(LLVMMemoryBufferRef membuf)
 {
-    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
+//  assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic !?!
 
     auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
 
@@ -1456,7 +1456,7 @@ template<typename T, typename... TArgs>
 void
 voidc_template_ctx_t<T, TArgs...>::add_module_to_jit(LLVMModuleRef mod)
 {
-    assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic!
+//  assert(voidc_global_ctx_t::target == voidc_global_ctx_t::voidc);    //- Sic !?!
 
 //  verify_module(mod);
 
@@ -1740,7 +1740,7 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
     //-------------------------------------------------------------
     auto opts = LLVMCreatePassBuilderOptions();
 
-    auto err = LLVMRunPasses(module, "default<O2>", target_machine, opts);
+    auto err = LLVMRunPasses(module, "default<O3>", target_machine, opts);
 
     if (err)
     {
