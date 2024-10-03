@@ -82,6 +82,11 @@ Subsystems in some logical order...
 
   - [voidc_dllexport.h](voidc_dllexport.h) - Declaration.
 
+- Some stdio wrappers...
+
+  - [voidc_stdio.h](voidc_stdio.h) - Declaration.
+  - [voidc_stdio.cpp](voidc_stdio.cpp) - Implementation.
+
 
 ### Main...
 
