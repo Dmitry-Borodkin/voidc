@@ -117,7 +117,7 @@ v_ast_make_expr_struct: (ret: *v_ast_expr_t,
     v_initialize(etmp);
     defer v_terminate(etmp);
 
-    v_ast_make_generic(etmp, &ast_expr_struct_vtable, v_ast_expr_struct_t.size);
+    v_ast_make_generic(etmp, &ast_expr_struct_vtable, v_ast_expr_struct_t.sizeof);
 
     void_obj = v_ast_generic_get_object(etmp);
 

@@ -418,8 +418,8 @@ voidc_enable_projections_compiler: () ~> void
 
     static_type_t = v_find_type("v_static_type_t");
 
-    v_export_overload_q(q(".size"),  static_type_t, q_static_type_sizeof);
-    v_export_overload_q(q(".align"), static_type_t, q_static_type_alignof);
+    v_export_overload_q(q(".sizeof"),  static_type_t, q_static_type_sizeof);
+    v_export_overload_q(q(".alignof"), static_type_t, q_static_type_alignof);
 
     v_export_intrinsic_q(q_static_type_sizeof,  some_static_type_projection_intrinsic, LLVMSizeOf);
     v_export_intrinsic_q(q_static_type_alignof, some_static_type_projection_intrinsic, LLVMAlignOf);

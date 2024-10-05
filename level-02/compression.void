@@ -259,7 +259,7 @@ dict_enc_expand: (dict: &v_myz_dict_enc_t) ~> &v_myz_enc_t
     v_initialize(item);
     defer v_terminate(item);
 
-    v_ast_make_generic(item, 0, v_myz_enc_t.size);
+    v_ast_make_generic(item, 0, v_myz_enc_t.sizeof);
 
     v_list_append(&dict.list, &dict.list, item);
 
@@ -393,7 +393,7 @@ dict_dec_expand: (dict: &v_myz_dict_dec_t) ~> &v_myz_dec_t
     v_initialize(item);
     defer v_terminate(item);
 
-    v_ast_make_generic(item, 0, v_myz_dec_t.size);
+    v_ast_make_generic(item, 0, v_myz_dec_t.sizeof);
 
     v_list_append(&dict.list, &dict.list, item);
 

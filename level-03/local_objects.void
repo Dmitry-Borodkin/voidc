@@ -107,7 +107,7 @@ v_ast_make_expr_stmt: (ret: *v_ast_expr_t, stmt: *v_ast_stmt_t) ~> void
     v_initialize(expr);
     defer v_terminate(expr);
 
-    v_ast_make_generic(expr, &ast_expr_stmt_vtable, v_ast_expr_stmt_t.size);
+    v_ast_make_generic(expr, &ast_expr_stmt_vtable, v_ast_expr_stmt_t.sizeof);
 
     void_obj = v_ast_generic_get_object(expr);
 
@@ -164,7 +164,7 @@ v_ast_make_expr_block: (ret: *v_ast_expr_t, slst: *v_ast_stmt_list_t, expr: *v_a
     v_initialize(etmp);
     defer v_terminate(etmp);
 
-    v_ast_make_generic(etmp, &ast_expr_block_vtable, v_ast_expr_block_t.size);
+    v_ast_make_generic(etmp, &ast_expr_block_vtable, v_ast_expr_block_t.sizeof);
 
     void_obj = v_ast_generic_get_object(etmp);
 

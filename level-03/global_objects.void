@@ -118,7 +118,7 @@ v_ast_make_unit_stmt_init: (ret: *v_ast_base_t, body: *v_ast_stmt_t) ~> void
 {
     atmp: &v_ast_base_t := {};      atmp = &atmp;
 
-    v_ast_make_generic(atmp, &ast_unit_stmt_init_vtable, v_ast_unit_stmt_t.size);
+    v_ast_make_generic(atmp, &ast_unit_stmt_init_vtable, v_ast_unit_stmt_t.sizeof);
 
     void_obj = v_ast_generic_get_object(atmp);
 
@@ -143,7 +143,7 @@ v_ast_make_unit_stmt_term: (ret: *v_ast_base_t, body: *v_ast_stmt_t) ~> void
 {
     atmp: &v_ast_base_t := {};      atmp = &atmp;
 
-    v_ast_make_generic(atmp, &ast_unit_stmt_term_vtable, v_ast_unit_stmt_t.size);
+    v_ast_make_generic(atmp, &ast_unit_stmt_term_vtable, v_ast_unit_stmt_t.sizeof);
 
     void_obj = v_ast_generic_get_object(atmp);
 
@@ -1388,7 +1388,7 @@ voidc_finish_module_cdtors: (void_ctx: *void, module: LLVMModuleRef) ~> void
             tab_j.fun := LLVMGetOperand(it, 1);
         }
 
-        qsort(tab, n, item_t.size, compare);
+        qsort(tab, n, item_t.sizeof, compare);
 
         sstr: &v_std_string_t := {};    sstr = &sstr;
 
