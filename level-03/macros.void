@@ -273,10 +273,11 @@ macro_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:*v_ast_base_t) 
     //-------------------------------------------------------------
     v_assert(vis == v_get_compiler());
 
-    saved_vis: &voidc_visitor_t := {};
+    vis_old: &voidc_visitor_t := {};
+    vis_new: &voidc_visitor_t := {};
 
-    v_copy(&saved_vis, vis);
-    defer v_copy(vis, &saved_vis);
+    v_copy(&vis_old, vis);
+    defer v_copy(vis, &vis_old);
 
     bind: &macro_expr_identifier_ctx_t := {};
 
@@ -285,6 +286,8 @@ macro_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:*v_ast_base_t) 
     bind.fun := voidc_visitor_get_method(vis, q, &bind.aux);
 
     voidc_visitor_set_method(vis, vis, q, macro_compile_expr_identifier, &bind);
+
+    v_copy(&vis_new, vis);
 
     bmap = &bind.map;
 
@@ -330,7 +333,11 @@ macro_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:*v_ast_base_t) 
         {
             arg = v_list_get_item(args, i);
 
+            v_copy(vis, &vis_old);
+
             v_ast_accept_visitor(arg, vis);
+
+            v_copy(vis, &vis_new);
         }
 
         t = v_get_result_type();
@@ -410,10 +417,11 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
     //-------------------------------------------------------------
     v_assert(vis == v_get_compiler());
 
-    saved_vis: &voidc_visitor_t := {};
+    vis_old: &voidc_visitor_t := {};
+    vis_new: &voidc_visitor_t := {};
 
-    v_copy(&saved_vis, vis);
-    defer v_copy(vis, &saved_vis);
+    v_copy(&vis_old, vis);
+    defer v_copy(vis, &vis_old);
 
     bind: &macro_expr_identifier_ctx_t := {};
 
@@ -422,6 +430,8 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
     bind.fun := voidc_visitor_get_method(vis, q, &bind.aux);
 
     voidc_visitor_set_method(vis, vis, q, macro_compile_expr_identifier, &bind);
+
+    v_copy(&vis_new, vis);
 
     bmap = &bind.map;
 
@@ -456,7 +466,11 @@ macro_spec_expand_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_ba
             v_set_result_value(0);
         }
 
+        v_copy(vis, &vis_old);
+
         v_ast_accept_visitor(arg, vis);
+
+        v_copy(vis, &vis_new);
 
         t = v_get_result_type();
         v = v_get_result_value();
