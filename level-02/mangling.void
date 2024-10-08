@@ -392,7 +392,14 @@ append_type_generic_arg: (str: *v_std_string_t, dict: &v_trp_dict_t, a: *v_type_
 
         v_std_string_append(str, "N(");
 
-        v_std_string_append_number(str, v_type_generic_arg_number_get_number(a));
+        {   s: &char[32] := 0;
+
+            sprintf: (*char, *const char, ...) ~> int;
+
+            sprintf(s, "%llu", v_type_generic_arg_number_get_number(a));        //- ?
+
+            v_std_string_append(str, s);
+        }
 
         v_std_string_append(str, ")");
 
