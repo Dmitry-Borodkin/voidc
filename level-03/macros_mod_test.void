@@ -50,66 +50,7 @@ namespace my {
 
 
 //---------------------------------------------------------------------
-list = v_object_intrinsic("my.list");
-
-//---------------------------------------------------------------------
-private
-list_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
-{
-    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
-
-    arg0 = v_list_get_item(args, 0);
-
-    ttag = v_get_result_type();
-    vtag = v_get_result_value();
-
-    static_type_t = v_find_type_q(q_static_type_t);
-
-    v_set_result_type(static_type_t);
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(arg0, vis);
-
-    elt = (v_get_result_value() : *v_type_t);
-
-    arg = v_type_generic_type_arg(elt);
-
-    typ = v_generic_type(list_q, &arg, 1);
-
-    v_set_result_type(ttag);
-    v_set_result_value(vtag);
-
-    v_adopt_result(static_type_t, v_cast(typ, LLVMValueRef));
-}
-
-
-//---------------------------------------------------------------------
-private
-set_implementation_type_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
-{
-    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
-
-    arg0 = v_list_get_item(args, 0);
-    arg1 = v_list_get_item(args, 1);
-
-    static_type_t = v_find_type_q(q_static_type_t);
-
-    v_set_result_type(static_type_t);
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(arg0, vis);
-
-    type = (v_get_result_value() : *v_type_t);
-
-    v_set_result_type(static_type_t);
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(arg1, vis);
-
-    impl = (v_get_result_value() : *v_type_t);
-
-    v_type_generic_set_implementation_type(type, impl);
-}
+#define list: (T: v_static_type_t) ~> v_static_type_t  =  v_generic("my.list", t(T));
 
 
 //---------------------------------------------------------------------
@@ -202,14 +143,24 @@ register_list_op_braces_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_b
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
-    arg0 = v_list_get_item(args, 0);        //- Type
+    arg0 = v_list_get_item(args, 0);        //- Element type
+    arg1 = v_list_get_item(args, 1);        //- List type
 
-    v_set_result_type(v_find_type_q(q_static_type_t));
+    static_type_t = v_find_type("v_static_type_t");
+
+    v_set_result_type(static_type_t);
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg0, vis);
 
     elt = (v_get_result_value() : *v_type_t);
+
+    v_set_result_type(static_type_t);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(arg1, vis);
+
+    lst = (v_get_result_value() : *v_type_t);
 
     sstr: &v_std_string_t := {};
 
@@ -219,69 +170,9 @@ register_list_op_braces_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_b
 
     iname = v_std_string_get(&sstr);
 
-    arg = v_type_generic_type_arg(elt);
-
-    typ = v_generic_type(list_q, &arg, 1);
-
-    v_add_overload("v.op_braces", typ, iname);
+    v_add_overload("v.op_braces", lst, iname);
 
     v_add_intrinsic(iname, list_op_braces_intrinsic, elt);      //- Sic!
-}
-
-
-//---------------------------------------------------------------------
-list_ns = v_object_intrinsic("list.namespace");
-
-//---------------------------------------------------------------------
-private
-list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
-{
-    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
-
-    arg0 = v_list_get_item(args, 0);        //- Type
-    arg1 = v_list_get_item(args, 1);        //- Tag
-
-    v_set_result_type(v_find_type_q(q_static_type_t));
-    v_set_result_value(0);
-
-    v_ast_accept_visitor(arg0, vis);
-
-    elt = (v_get_result_value() : *v_type_t);
-
-    tag = v_ast_expr_identifier_get_name(arg1);
-
-    sstr: &v_std_string_t := {};
-
-    v_std_string_set(&sstr, "list_ns-");
-
-    v_std_string_append(&sstr, tag);
-    v_std_string_append(&sstr, "-");
-
-    voidc_internal_std_string_append_type(&sstr, elt);
-
-    ns_name = v_quark_from_string(v_std_string_get(&sstr));
-
-    ns = (aux: *v_namespace_t);
-
-    if (a = v_map_find(&ns->map, (ns_name: intptr_t)))
-    {
-        q = v_std_any_get_value(v_quark_t, a);
-
-        t: &*v_type_t    := v_undef();
-        v: &LLVMValueRef := v_undef();
-
-        v_find_constant_q(q, &t, &v);
-
-        v_set_result_type(t);
-        v_set_result_value(v);
-    }
-    else
-    {
-        ns = v_obtain_namespace_q(ns_name);                 //- WTF ?!?!?!?!?
-
-        v_set_result_type(v_find_type("v_static_namespace_t"));
-        v_set_result_value((ns: LLVMValueRef));
-    }
 }
 
 
@@ -291,14 +182,16 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 
   namespace my
   {
-    private
-    namespace list_ns(T, detail)
-    {
-        alwaysinline
-        (_.impl): (s: &list(T)) ~> &v_util_list_t  =  *(&s : *v_util_list_t);
-    }
-
     #do (v_set_implementation_type(list(T), v_util_list_t))
+
+    private
+    namespace v_generic_ns(.my, c(list_detail, t(T)))       //- ???
+    {
+        impl_t = v_get_implementation_type(list(T));
+
+        alwaysinline
+        (_.impl): (s: &list(T)) ~> &impl_t  =  *(&s : *impl_t);
+    }
 
     //-------------------------------------------------------------
     inlinehint
@@ -326,7 +219,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
         v_copy(&dst->impl, &src->impl, N);
     }
 
-    #do (register_list_op_braces(T))
+    #do (register_list_op_braces(T, list(T)))
 
     //-------------------------------------------------------------
     inlinehint
@@ -373,13 +266,7 @@ list_ns_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> v
 //---------------------------------------------------------------------
 enable_list_effort: (*void) ~> void
 {
-    v_add_intrinsic("my.list", list_intrinsic, 0);
-
-    v_add_intrinsic("v_set_implementation_type", set_implementation_type_intrinsic, 0);
-
     v_add_intrinsic("register_list_op_braces", register_list_op_braces_intrinsic, 0);
-
-    v_add_intrinsic("list.namespace", list_ns_intrinsic, v_find_constant_value("my"));
 }
 
 
