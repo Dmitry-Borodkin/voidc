@@ -1,3 +1,4 @@
+![Black Square](./doc/img/black_square.png)
 
 # The Void Programming Language
 
