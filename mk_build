@@ -1,9 +1,4 @@
+#!/bin/sh
 
-if [[ "$OSTYPE" =~ ^linux ]]; then
-    cmake --build build $@ -- -j9
-fi
-
-if [[ "$OSTYPE" =~ ^msys ]]; then
-    cmake --build build $@ -- -j5
-fi
+cmake --build build $@
 
