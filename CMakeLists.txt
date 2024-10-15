@@ -53,7 +53,7 @@ if (UNIX)
 
     if (${uppercase_CMAKE_BUILD_TYPE} STREQUAL DEBUG)
 
-       set(MYFLAGS -g -fsanitize=address -fno-omit-frame-pointer)
+       set(MYFLAGS -fsanitize=address -fno-omit-frame-pointer)
 
     endif()
 
@@ -74,7 +74,7 @@ if (MINGW)
 
     if (${uppercase_CMAKE_BUILD_TYPE} STREQUAL DEBUG)
 
-       set(MYFLAGS -g)
+       set(MYFLAGS )
 
     endif()
 

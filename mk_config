@@ -1,6 +1,6 @@
 
 if [[ "$OSTYPE" =~ ^linux ]]; then
-    cmake -S . -B build -Wno-dev  $@
+    cmake -S . -B build -G Ninja -Wno-dev  $@
 fi
 
 if [[ "$OSTYPE" =~ ^msys ]]; then
