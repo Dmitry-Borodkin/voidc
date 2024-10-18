@@ -632,7 +632,7 @@ struct Coords
 union IntRep
 {
     i: int;
-    s: char[int.size];
+    s: char[int.sizeof];
 };
 ```
 
@@ -667,7 +667,7 @@ compare: (a: *const void, b: *const void) ~> int
 
 {   ints: &int[] := { 0, 4, 2, 3, 1 };
 
-    qsort(ints, 5, int.size, compare);
+    qsort(ints, 5, int.sizeof, compare);
 
     for (i: &int := 0; i < 5; ++i)  printf("%d ", ints[i]);
 

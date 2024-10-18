@@ -110,7 +110,8 @@ base_global_ctx_t::initialize_type(v_quark_t raw_name, v_type_t *type)
 
 
 //---------------------------------------------------------------------
-static int debug_print_module = 0;
+static int  debug_print_module = 0;
+static bool debug_print_assembly = false;
 
 void
 base_global_ctx_t::verify_module(LLVMModuleRef module)
@@ -135,6 +136,30 @@ base_global_ctx_t::verify_module(LLVMModuleRef module)
     LLVMDisposeMessage(msg);
 
     if (err)  abort();          //- Sic !!!
+
+    if (voidc_global_ctx_t::target == voidc_global_ctx_t::voidc  &&  debug_print_assembly)
+    {
+        LLVMMemoryBufferRef buf = nullptr;
+
+        err = LLVMTargetMachineEmitToMemoryBuffer(voidc_global_ctx_t::target_machine, module, LLVMAssemblyFile, &msg, &buf);
+
+        if (err)
+        {
+            printf("\n%s\n", msg);
+
+            LLVMDisposeMessage(msg);
+        }
+        else
+        {
+            auto asmbuf_ptr = LLVMGetBufferStart(buf);
+
+            printf("\n%s\n", asmbuf_ptr);
+
+            LLVMDisposeMemoryBuffer(buf);
+        }
+
+        if (err)  abort();          //- Sic ?!?
+    }
 }
 
 
@@ -2336,6 +2361,12 @@ void
 v_debug_print_module(int n)
 {
     debug_print_module = n;
+}
+
+void
+voidc_debug_print_assembly(bool f)
+{
+    debug_print_assembly = f;
 }
 
 void
