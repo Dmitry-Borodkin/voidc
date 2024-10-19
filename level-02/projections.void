@@ -39,6 +39,8 @@
 
     v_add_symbol("q_op_postfix_dot", q_ref, q("v.op_postfix_dot"));
     v_add_symbol("q_op_postfix_to",  q_ref, q("v.op_postfix_to"));
+
+    v_add_symbol("size_t_q", q_ref, q("size_t"));
 }
 
 
@@ -388,7 +390,7 @@ some_static_type_projection_intrinsic: (aux: *void, vis: *voidc_visitor_t, self:
 
     v = f(type_);
 
-    v_adopt_result(size_t, v);
+    v_adopt_result(v_find_type_q(size_t_q), v);
 }
 
 
