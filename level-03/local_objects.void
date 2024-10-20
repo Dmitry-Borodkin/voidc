@@ -1288,6 +1288,16 @@ v_get_return_value_intrinsic: (*void, *voidc_visitor_t, *v_ast_base_t) ~> void
     ret_type  = v_get_variable_type_q(voidc_internal_return_value_q);
     ret_value = v_get_variable_value_q(voidc_internal_return_value_q);
 
+    ret_type: &*v_type_t := ret_type;
+
+    if (v_type_is_reference(ret_type))
+    {
+        et = v_type_refptr_get_element_type(ret_type);
+        as = v_type_refptr_get_address_space(ret_type);
+
+        ret_type := v_pointer_type(et, as);
+    }
+
     v_adopt_result(v_reference_type(ret_type, 0), ret_value);
 }
 
@@ -1297,6 +1307,16 @@ v_get_break_value_intrinsic: (*void, *voidc_visitor_t, *v_ast_base_t) ~> void
 {
     brk_type  = v_get_variable_type_q(voidc_internal_break_value_q);
     brk_value = v_get_variable_value_q(voidc_internal_break_value_q);
+
+    brk_type: &*v_type_t := brk_type;
+
+    if (v_type_is_reference(brk_type))
+    {
+        et = v_type_refptr_get_element_type(brk_type);
+        as = v_type_refptr_get_address_space(brk_type);
+
+        brk_type := v_pointer_type(et, as);
+    }
 
     v_adopt_result(v_reference_type(brk_type, 0), brk_value);
 }
