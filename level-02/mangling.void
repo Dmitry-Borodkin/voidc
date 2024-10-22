@@ -54,6 +54,9 @@
 
     //-----------------------------------------------------------------
     v_add_symbol("q_initialize", q_ref, q("v_initialize"));
+    v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
+    v_add_symbol("q_copy",       q_ref, q("v_copy"));
+    v_add_symbol("q_move",       q_ref, q("v_move"));
 
     v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
@@ -950,6 +953,11 @@ register_special_function_name: (unit: bool, fn: *const char, q: v_quark_t, t: *
     //-------------------------------------------------------------
     block                               //- TODO !!!!!!!!!!!!!!!!!!
     {
+        if (q == q_initialize)  v_break();
+        if (q == q_terminate)   v_break();
+        if (q == q_copy)        v_break();
+        if (q == q_move)        v_break();
+
         rt: &*v_type_t := v_undef();
 
         if (v_type_is_reference(t))
