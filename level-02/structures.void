@@ -192,7 +192,7 @@ voidc_internal_index_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast
                                  args: **v_ast_expr_t, count: unsigned
                                 ) ~> void
 {
-//printf("voidc_internal_index_intrinsic start %p, %p\n", aux, t0);
+//printf("voidc_internal_index_intrinsic start %d\n", (aux: int));
 //defer printf("voidc_internal_index_intrinsic stop\n");
 
     idx = (aux: int);
@@ -203,24 +203,27 @@ voidc_internal_index_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast
 
     v_ast_make_expr_integer(expr, idx);
 
-    lst = v_alloca(v_ast_expr_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
-
-    v_make_list(lst, expr, 1);
-
-    agg_t: &*v_type_t    := v_ast_expr_compiled_get_type(args[0]);
-    agg_v: &LLVMValueRef := v_ast_expr_compiled_get_value(args[0]);
-
-    plst: &*v_ast_expr_list_t := lst;
-
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
     v_set_result_type(INVIOLABLE_TAG);
     v_set_result_value(0);
 
-    v_compile_op_postfix_index(vis, self, agg_t, agg_v, &plst, 1);
+
+    agg_t = v_ast_expr_compiled_get_type(args[0]);
+    agg_v = v_ast_expr_compiled_get_value(args[0]);
+
+    agg_t: &*v_type_t := agg_t;
+
+    if (v_get_overload("v_initialize", agg_t)  &&  v_kind(agg_t) != v_type_kind_reference)
+    {
+        agg_t := v_reference_type(agg_t, 0);
+    }
+
+    voidc_internal_op_postfix_index_helper(vis, expr, agg_t, agg_v);
+
+    agg_t = v_get_result_type();
+    agg_v = v_get_result_value();
 
     v_set_result_type(ttag);
     v_set_result_value(vtag);
