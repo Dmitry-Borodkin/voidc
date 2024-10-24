@@ -1654,7 +1654,7 @@ voidc_global_ctx_t::static_initialize(void)
     static_cast<voidc_global_ctx_t *>(target)->initialize();    //- Sic!
 
     //-------------------------------------------------------------
-    {   char *triple = LLVMGetDefaultTargetTriple();
+    {   const char *triple = LLVMOrcLLJITGetTripleString(jit);
 
         LLVMTargetRef tr;
 
@@ -1690,7 +1690,6 @@ voidc_global_ctx_t::static_initialize(void)
 
         LLVMDisposeMessage(cpu_features);
         LLVMDisposeMessage(cpu_name);
-        LLVMDisposeMessage(triple);
     }
 
     voidc->data_layout = LLVMCreateTargetDataLayout(target_machine);
