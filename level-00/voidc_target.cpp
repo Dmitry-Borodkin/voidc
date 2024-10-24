@@ -1684,7 +1684,13 @@ voidc_global_ctx_t::static_initialize(void)
                 cpu_name,
                 cpu_features,
                 LLVMCodeGenLevelDefault,
+
+#ifdef _WIN32                                       //- WTF !?!
+                LLVMRelocDefault,                   //- WTF !?!
+#else                                               //- WTF !?!
                 LLVMRelocPIC,                       //- WTF !?!
+#endif                                              //- WTF !?!
+
                 LLVMCodeModelJITDefault
             );
 
