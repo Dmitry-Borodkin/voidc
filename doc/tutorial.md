@@ -660,9 +660,7 @@ compare: (a: *const void, b: *const void) ~> int
     a = *(a: *const int);
     b = *(b: *const int);
 
-    if (a < b)  v_return(-1);
-    if (a > b)  v_return(+1);
-    v_return(0);
+    v_return(a - b);
 }
 
 {   ints: &int[] := { 0, 4, 2, 3, 1 };
