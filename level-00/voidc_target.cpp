@@ -3215,12 +3215,10 @@ v_obtain_alias_q(v_quark_t qname, bool _export)
 const char *
 v_obtain_alias(const char *name, bool _export)
 {
-    auto qname = v_quark_try_string(name);
-
-    if (!qname)  return name;
-
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
+
+    auto qname = v_quark_from_string(name);
 
     auto raw_qname = lctx.obtain_alias(qname, _export);
 
