@@ -449,7 +449,7 @@ public:
     ~voidc_local_ctx_t() override;
 
 public:
-    std::set<std::string> imports;
+    std::set<std::pair<std::string, std::string>> imports;
 
 public:
     void export_type(v_quark_t type_name, v_type_t *type) override;

@@ -1851,11 +1851,11 @@ voidc_local_ctx_t::find_symbol_value(v_quark_t raw_name_q)
 {
     auto raw_name = v_quark_to_string(raw_name_q);
 
-    auto &vcxt = *voidc_global_ctx_t::voidc;
+    auto &vctx = *voidc_global_ctx_t::voidc;
 
-    std::deque<LLVMOrcJITDylibRef> main_dq = {vcxt.base_jd};
+    std::deque<LLVMOrcJITDylibRef> main_dq = {vctx.base_jd};
 
-    for (auto dq : {deque_jd, vcxt.deque_jd, main_dq})
+    for (auto dq : {deque_jd, vctx.deque_jd, main_dq})
     {
         for (auto jd : dq)
         {
@@ -3559,6 +3559,26 @@ v_target_destroy_global_ctx(base_global_ctx_t *gctx)
 {
     delete gctx;
 }
+
+//---------------------------------------------------------------------
+void
+v_target_global_ctx_add_constant_value(base_global_ctx_t *gctx, v_quark_t raw_name, LLVMValueRef value)
+{
+    gctx->constant_values.insert_or_assign(raw_name, value);
+}
+
+LLVMValueRef
+v_target_global_ctx_get_constant_value(base_global_ctx_t *gctx, v_quark_t raw_name)
+{
+    auto &cv = gctx->constant_values;
+
+    auto itv = cv.find(raw_name);
+
+    if (itv != cv.end())  return  itv->second;
+
+    return  nullptr;
+}
+
 
 //---------------------------------------------------------------------
 base_local_ctx_t *

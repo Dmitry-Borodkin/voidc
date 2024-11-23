@@ -3,11 +3,12 @@
 cmake --build build --target clean
 
 rm -fv *.o
-rm -fv *.voidc*
-rm -fv llvm-c/*.voidc*
-rm -fv llvm-c/*/*.voidc*
-rm -fv level-??/*.voidc*
 rm -fv hello
 
 rm -fv *.exe
+
+rm -rfv __voidcache__
+rm -rfv llvm-c/__voidcache__
+rm -rfv llvm-c/*/__voidcache__
+rm -rfv level-??/__voidcache__
 

@@ -210,6 +210,26 @@ my_fread(void* buf, size_t sz, size_t cn, std::FILE* f)
 
 
 //--------------------------------------------------------------------
+extern "C"
+LLVMValueRef v_target_global_ctx_get_constant_value(base_global_ctx_t *, v_quark_t);
+
+static std::string
+obtain_import_bin_filename(base_global_ctx_t *gctx, const fs::path &src_filename)
+{
+    static const v_quark_t prefix_q = v_quark_from_string("voidc.import_bin_filename_prefix");
+    static const v_quark_t suffix_q = v_quark_from_string("voidc.import_bin_filename_suffix");
+
+    const char *prefix = "__voidcache__/";      //- ?
+    const char *suffix = "c";                   //- ?
+
+    if (auto p = v_target_global_ctx_get_constant_value(gctx, prefix_q))  prefix = (const char *)p;
+    if (auto s = v_target_global_ctx_get_constant_value(gctx, suffix_q))  suffix = (const char *)s;
+
+    return  prefix + src_filename.filename().generic_u8string() + suffix;
+}
+
+
+//--------------------------------------------------------------------
 static
 const char magic[8] = ".voidc\n";
 
@@ -221,14 +241,14 @@ enum import_state_t
 };
 
 static
-std::map<std::string, import_state_t> import_state;
+std::map<std::pair<std::string, std::string>, import_state_t> import_state;         //- ?
 
 static bool
-check_import_state(const fs::path &src_filename)
+check_import_state(const fs::path &src_filepath, const std::string &bin_filename)
 {
-    auto src_filename_str = src_filename.generic_u8string();
+    auto src_filepath_str = src_filepath.generic_u8string();
 
-    {   auto it = import_state.find(src_filename_str);
+    {   auto it = import_state.find({src_filepath_str, bin_filename});
 
         if (it != import_state.end())
         {
@@ -238,40 +258,40 @@ check_import_state(const fs::path &src_filename)
 
     //- Perform check
 
-    import_state[src_filename_str] = ist_unknown;
+    import_state[{src_filepath_str, bin_filename}] = ist_unknown;
 
-    fs::path bin_filename = src_filename;
+    fs::path parent_path = src_filepath.parent_path();
 
-    bin_filename += "c";
+    fs::path bin_filepath = parent_path / fs::u8path(bin_filename);
 
     bool use_binary = true;
 
     fs::file_time_type bin_time;
 
-    //- First, check bin_filename itself
+    //- First, check bin_filepath itself
 
-    if (!fs::exists(bin_filename))
+    if (!fs::exists(bin_filepath))
     {
         use_binary = false;
     }
     else
     {
-        auto st  = fs::last_write_time(src_filename);
-        bin_time = fs::last_write_time(bin_filename);
+        auto st  = fs::last_write_time(src_filepath);
+        bin_time = fs::last_write_time(bin_filepath);
 
         if (st > bin_time)  use_binary = false;
     }
 
     if (!use_binary)
     {
-        import_state[src_filename_str] = ist_bad;
+        import_state[{src_filepath_str, bin_filename}] = ist_bad;
 
         return false;
     }
 
     //- Second, check for header ...
 
-    std::FILE *infs = my_fopen(bin_filename);
+    std::FILE *infs = my_fopen(bin_filepath);
 
     size_t buf_len = sizeof(magic);
     auto buf = std::make_unique<char[]>(buf_len);
@@ -282,7 +302,7 @@ check_import_state(const fs::path &src_filename)
 
     if (std::strcmp(magic, buf.get()) != 0)
     {
-        import_state[src_filename_str] = ist_bad;
+        import_state[{src_filepath_str, bin_filename}] = ist_bad;
 
         std::fclose(infs);
 
@@ -294,8 +314,6 @@ check_import_state(const fs::path &src_filename)
     my_fread(buf.get(), sizeof(size_t), 1, infs);
 
     std::fseek(infs, *((size_t *)buf.get()), SEEK_SET);
-
-    fs::path parent_path = src_filename.parent_path();
 
     while(use_binary)
     {
@@ -327,13 +345,24 @@ check_import_state(const fs::path &src_filename)
             throw std::runtime_error("Import file not found: " + name);
         }
 
-        use_binary = check_import_state(imp_filename);
+        my_fread(&len, sizeof(len), 1, infs);
+
+        if (buf_len < len)
+        {
+            buf = std::make_unique<char[]>(len);
+
+            buf_len = len;
+        }
+
+        my_fread(buf.get(), len, 1, infs);
+
+        std::string bfil(buf.get(), len);
+
+        use_binary = check_import_state(imp_filename, bfil);
 
         if (use_binary)
         {
-            fs::path bin_impfile = imp_filename;
-
-            bin_impfile += "c";
+            fs::path bin_impfile = imp_filename.parent_path() / fs::u8path(bfil);
 
             auto bt = fs::last_write_time(bin_impfile);
 
@@ -343,7 +372,7 @@ check_import_state(const fs::path &src_filename)
 
     std::fclose(infs);
 
-    import_state[src_filename_str] = (use_binary ? ist_good : ist_bad);
+    import_state[{src_filepath_str, bin_filename}] = (use_binary ? ist_good : ist_bad);
 
     return use_binary;
 }
@@ -358,6 +387,8 @@ struct out_binary_t
       : out_path(filename),
         tmp_path(filename)
     {
+        fs::create_directories(filename.parent_path());         //- Sic !?!
+
         tmp_path += "_XXXXXX";
 
         fs::path::string_type tmp_name = tmp_path.native();
@@ -430,17 +461,15 @@ v_import_helper(const char *name, bool _export)
 
     auto *parent_lctx = static_cast<voidc_local_ctx_t *>(vctx.local_ctx);
 
-    parent_lctx->imports.insert(name);
-
-    fs::path src_filename = fs::u8path(name);
+    fs::path src_filepath = fs::u8path(name);
 
     fs::path parent_path = fs::path(parent_lctx->filename).parent_path();
 
-    src_filename = find_file_for_import(parent_path, src_filename);
+    src_filepath = find_file_for_import(parent_path, src_filepath);
 
-    auto src_filename_str = src_filename.generic_u8string();
+    auto src_filepath_str = src_filepath.generic_u8string();
 
-    if (!fs::exists(src_filename))
+    if (!fs::exists(src_filepath))
     {
         throw std::runtime_error(std::string("Import file not found: ") + name);
     }
@@ -449,13 +478,17 @@ v_import_helper(const char *name, bool _export)
 
     auto &tctx = *voidc_global_ctx_t::target;
 
+    std::string bin_filename = obtain_import_bin_filename(&tctx, src_filepath);
+
+    parent_lctx->imports.insert({name, bin_filename});
+
     auto *target_lctx = tctx.local_ctx;
 
-    {   auto [it, ok] = tctx.imported.try_emplace(src_filename_str);
+    {   auto [it, ok] = tctx.imported.try_emplace(src_filepath_str);
 
         if (!ok)    //- Already imported
         {
-            auto res_i = target_lctx->imported.insert(src_filename_str);
+            auto res_i = target_lctx->imported.insert(src_filepath_str);
 
             auto &s = it->second;
 
@@ -468,7 +501,7 @@ v_import_helper(const char *name, bool _export)
 
             if (_export  &&  target_lctx->export_data)
             {
-                auto res_e = target_lctx->exported.insert(src_filename_str);
+                auto res_e = target_lctx->exported.insert(src_filepath_str);
 
                 if (res_e.second)
                 {
@@ -486,26 +519,24 @@ v_import_helper(const char *name, bool _export)
         export_data = &it->second;
     }
 
-    {   fs::path bin_filename = src_filename;
+    {   fs::path bin_filepath = src_filepath.parent_path() / fs::u8path(bin_filename);
 
-        bin_filename += "c";
-
-        bool use_binary = check_import_state(src_filename);
+        bool use_binary = check_import_state(src_filepath, bin_filename);
 
         std::FILE *infs;
 
         voidc_local_ctx_t lctx(vctx);
 
-        lctx.filename = src_filename_str;
+        lctx.filename = src_filepath_str;
 
-        if (&tctx == &vctx)
+        if (&tctx == &vctx)         //- ?!?!?!?!?!?!?!?!?!?!?!?!?!?!
         {
             lctx.export_data = export_data;
         }
 
         if (use_binary)
         {
-            infs = my_fopen(bin_filename);
+            infs = my_fopen(bin_filepath);
 
             size_t buf_len = sizeof(magic);
             auto buf = std::make_unique<char[]>(buf_len);
@@ -554,11 +585,11 @@ v_import_helper(const char *name, bool _export)
         }
         else        //- !use_binary
         {
-            if (trace_imports)  printf("start:  %s\n", src_filename_str.c_str());
+            if (trace_imports)  printf("start:  %s\n", src_filepath_str.c_str());
 
-            infs = my_fopen(src_filename);
+            infs = my_fopen(src_filepath);
 
-            out_binary_t out_binary(bin_filename);
+            out_binary_t out_binary(bin_filepath);
 
             const auto &outfs = out_binary.f;
 
@@ -610,11 +641,21 @@ v_import_helper(const char *name, bool _export)
 
             for (auto &it : lctx.imports)
             {
-                len = it.length();
+                auto &src_name = it.first;
+
+                len = src_name.length();
 
                 std::fwrite((char *)&len, sizeof(len), 1, outfs);
 
-                std::fwrite(it.data(), len, 1, outfs);
+                std::fwrite(src_name.data(), len, 1, outfs);
+
+                auto &bin_name = it.second;
+
+                len = bin_name.length();
+
+                std::fwrite((char *)&len, sizeof(len), 1, outfs);
+
+                std::fwrite(bin_name.data(), len, 1, outfs);
             }
 
             len = 0;
@@ -629,7 +670,7 @@ v_import_helper(const char *name, bool _export)
 
             std::fwrite((char *)&imports_pos, sizeof(imports_pos), 1, outfs);
 
-            if (trace_imports)  printf("finish: %s\n", src_filename_str.c_str());
+            if (trace_imports)  printf("finish: %s\n", src_filepath_str.c_str());
         }
 
         std::fclose(infs);
@@ -641,11 +682,11 @@ v_import_helper(const char *name, bool _export)
 
     for (auto &e : export_data->second)  e.first(e.second);     //- Run(!) efforts...
 
-    target_lctx->imported.insert(src_filename_str);
+    target_lctx->imported.insert(src_filepath_str);
 
     if (_export  &&  target_lctx->export_data)
     {
-        target_lctx->exported.insert(src_filename_str);
+        target_lctx->exported.insert(src_filepath_str);
 
         auto &d = *target_lctx->export_data;
 

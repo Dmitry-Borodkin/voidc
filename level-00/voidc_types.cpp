@@ -271,15 +271,12 @@ voidc_types_ctx_t::voidc_types_ctx_t(LLVMContextRef ctx, size_t int_size, size_t
 
     static_type_type(make_generic_type(v_quark_from_string("v_static_type_t"), nullptr, 0))
 {
-    assert(int_size == sizeof(int));            //- Actually, not implemented yet...
-    assert(long_size == sizeof(long));          //- Actually, not implemented yet...
-    assert(ptr_size == sizeof(intptr_t));       //- Actually, not implemented yet...
+    //- ...
 }
 
 voidc_types_ctx_t::~voidc_types_ctx_t()
 {
-//  for (auto &it : int_types)   printf("s: %d, %d\n", it.second->is_signed(), it.second->width());
-//  for (auto &it : uint_types)  printf("u: %d, %d\n", it.second->is_signed(), it.second->width());
+    //- ...
 }
 
 
