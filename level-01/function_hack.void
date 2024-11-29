@@ -964,8 +964,7 @@
     v_set_module(module);
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 
@@ -986,8 +985,7 @@
 
     v_set_module(module);
 
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 
     v_return(module);
 }

@@ -904,6 +904,10 @@ main(int argc, char *argv[])
 
         gctx.decls.intrinsics_insert({q("v_local_import"), {(void *)v_local_import, nullptr}});
 
+        v_type_t *fun_type = gctx.make_function_type(gctx.void_type, nullptr, 0, false);
+
+        gctx.decls.symbols_insert({q("voidc_clear_unit_buffer"), fun_type});
+
 #ifdef _WIN32
 
         static FILE *my_stdout = stdout;                    //- WTF !?!
@@ -1004,18 +1008,6 @@ main(int argc, char *argv[])
             if (src != "-")   std::fclose(istr);
         }
     }
-
-#if 0
-    for (auto [f,d] : gctx.imported)
-    {
-        printf("\n%s\n", f.c_str());
-
-        for (auto [s,t] : d.symbols)
-        {
-            printf("%s\n", s.c_str());
-        }
-    }
-#endif
 
     voidc_stdio_static_terminate();
 

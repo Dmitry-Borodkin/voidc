@@ -2465,6 +2465,19 @@ voidc_get_unit_buffer(void)
     return  lctx.unit_buffer;
 }
 
+void
+voidc_clear_unit_buffer(void)
+{
+    auto &gctx = *voidc_global_ctx_t::voidc;
+    auto &lctx = static_cast<voidc_local_ctx_t &>(*gctx.local_ctx);
+
+    if (!lctx.unit_buffer)  return;
+
+    LLVMDisposeMemoryBuffer(lctx.unit_buffer);
+
+    lctx.unit_buffer = nullptr;
+}
+
 //---------------------------------------------------------------------
 void
 voidc_flush_unit_symbols(void)

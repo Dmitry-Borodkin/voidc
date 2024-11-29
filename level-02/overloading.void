@@ -139,8 +139,7 @@ op_table: &op_table_item_t[] :=
     v_add_constant("op_table_length", int, LLVMConstInt(int_, n, 0));
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 //---------------------------------------------------------------------

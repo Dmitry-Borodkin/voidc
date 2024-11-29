@@ -290,8 +290,7 @@ dict_enc_at: (dict: &v_myz_dict_enc_t, i: int) ~> &v_myz_enc_t
     v_add_overload("v.op_postfix_index", dict_enc_ref, "dict_enc_at");
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 
@@ -424,8 +423,7 @@ dict_dec_at: (dict: &v_myz_dict_dec_t, i: int) ~> &v_myz_dec_t
     v_add_overload("v.op_postfix_index", dict_dec_ref, "dict_dec_at");
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 

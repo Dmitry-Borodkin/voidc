@@ -132,8 +132,7 @@
     v_add_symbol("free", ft, 0);
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 
@@ -211,8 +210,7 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 {   v_add_symbol("voidc_ast_operator_unary_vtable", v_ast_generic_vtable, 0);
@@ -336,8 +334,7 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 {   v_add_symbol("voidc_ast_operator_binary_vtable", v_ast_generic_vtable, 0);
@@ -409,10 +406,8 @@
 
     v_add_alias("expr_oplist", "voidc_ast_expression_operator_list");
 
-
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 {   v_export_symbol_type("voidc_ast_expression_operator_list", v_ast_expr_list_t);

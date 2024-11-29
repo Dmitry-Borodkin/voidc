@@ -144,8 +144,7 @@
     LLVMSetInitializer(vtable_g, vtable_v);
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 {   v_add_symbol("voidc_ast_stmt_block_vtable", v_ast_generic_vtable, 0);

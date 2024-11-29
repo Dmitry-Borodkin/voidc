@@ -145,8 +145,7 @@
     v_add_constant("ctx_mod_const",    int, LLVMConstInt(int_, 6, 0));
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 
@@ -168,8 +167,7 @@
     v_add_symbol("abort", ft, 0);
 
     //-----------------------------------------------------------------
-    LLVMDisposeMemoryBuffer(voidc_get_unit_buffer());
-    voidc_set_unit_buffer(0);
+    voidc_clear_unit_buffer();
 }
 
 
