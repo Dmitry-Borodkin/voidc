@@ -509,14 +509,10 @@ voidc_enable_inlining: () ~> void
 {
     voidc_enable_inlining_compiler();
 
-    v_return_if_not(voidc_has_grammar());
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
+    gr0 = v_peg_get_grammar();
 
-    v_peg_get_grammar(gr0);
-
+    v_return_if_not(gr0);
     v_return_if(v_peg_grammar_get_value(gr0, "qf_alwaysinline"));
 
 
@@ -544,8 +540,6 @@ voidc_enable_inlining: () ~> void
                      / "alwaysinline" !ident_cont   {qf_alwaysinline}
                      ;
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

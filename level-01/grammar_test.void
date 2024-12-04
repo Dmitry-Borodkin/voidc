@@ -136,11 +136,7 @@
 
     v_std_any_set_pointer(any0, str0);
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-
-    v_peg_get_grammar(gr0);
-
+    gr0 = v_peg_get_grammar();
 
     grammar gr0
     {
@@ -154,10 +150,6 @@
         stmt += "test" _ ';'    { mk_test(str_test) };
     }
 
-    v_peg_set_grammar(gr0);
-
-
-    v_terminate(gr0);
 
     v_terminate(str0);
     v_terminate(any0);

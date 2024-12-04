@@ -543,14 +543,10 @@ voidc_enable_structures: () ~> void
 {
     voidc_enable_structures_compiler();
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("expr_struct"));
+    gr0 = v_peg_get_grammar();
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
-
-    v_peg_get_grammar(gr0);
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "expr_struct", 0));
 
     grammar gr0
     {
@@ -597,8 +593,6 @@ voidc_enable_structures: () ~> void
 
         unit_defn += unit_struct_defn;
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

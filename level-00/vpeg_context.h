@@ -53,7 +53,6 @@ public:
     {
         size_t      position;
         variables_t variables;
-        grammar_t   grammar;
     };
 
 public:
@@ -61,16 +60,13 @@ public:
 
     state_t get_state(void) const
     {
-        return {position, variables, grammar};
+        return {position, variables};
     }
 
     void set_state(const state_t &st)
     {
         position  = st.position;
         variables = st.variables;
-        grammar   = st.grammar;
-
-        grammar->check_hash();
     }
 
 public:
@@ -114,7 +110,7 @@ public:
     grammar_t   grammar;
 
 public:     //- ?...
-    std::map<std::tuple<size_t, size_t, v_quark_t>, std::pair<std::any, state_t>> memo;
+    std::map<std::tuple<size_t, v_quark_t>, std::pair<std::any, state_t>> memo;
 
 public:
     void get_line_column(size_t pos, size_t &line, size_t &column) const;
@@ -141,8 +137,6 @@ private:
 
     size_t current_line = 1;
 };
-
-typedef std::shared_ptr<context_data_t> context_t;
 
 
 //---------------------------------------------------------------------

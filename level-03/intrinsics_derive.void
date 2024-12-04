@@ -552,15 +552,9 @@ voidc_enable_intrinsics_derive: () ~> void
 {
     voidc_enable_intrinsics_derive_compiler();
 
-    v_return_if_not(voidc_has_grammar());
+    gr0 = v_peg_get_grammar();
 
-
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
-
-    v_peg_get_grammar(gr0);
-
+    v_return_if_not(gr0);
     v_return_if(v_peg_grammar_get_action(gr0, "mk_unit_spec_fun_derive", 0));
 
     //-----------------------------------------------------------------
@@ -583,8 +577,6 @@ voidc_enable_intrinsics_derive: () ~> void
     parsers:
         spec_ident =+ '(' _ id:identifier _ '(' _ '_' _ ')' _ ')'       { mk_spec_ident_identifier(id) };
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

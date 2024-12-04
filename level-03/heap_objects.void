@@ -948,12 +948,9 @@ voidc_enable_heap_objects: () ~> void
 {
     voidc_enable_heap_objects_compiler();
 
-    v_return_if_not(voidc_has_grammar());
+    gr0 = v_peg_get_grammar();
 
-    gr0: &v_peg_grammar_t := {};    gr0 = &gr0;
-
-    v_peg_get_grammar(gr0);
-
+    v_return_if_not(gr0);
     v_return_if(v_peg_grammar_get_action(gr0, "mk_expr_new", 0));
 
     any: &v_std_any_t[4] := {};
@@ -993,8 +990,6 @@ voidc_enable_heap_objects: () ~> void
                    /  '('_ "new" !ident_cont _ '_' _')'     { mk_spec_ident_prefix(op_prefix_new) }
                    ;
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

@@ -412,8 +412,10 @@
     voidc_enable_statement_loop_compiler();
 
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("stmt_loop"));
+    gr0 = v_peg_get_grammar();
+
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "stmt_loop", 0));
 
 
     pp0 = v_alloca(v_peg_parser_t, 5);
@@ -455,12 +457,6 @@
     v_peg_make_sequence_parser(pp0, pp0, 5);
 
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-
-    v_peg_get_grammar(gr0);
-
-
     v_peg_grammar_set_action(gr0, gr0, "mk_stmt_loop", mk_stmt_loop_grammar_action, 0);
 
 
@@ -477,10 +473,6 @@
     v_peg_grammar_set_parser(gr0, gr0, "stmt", pp0, 0);
 
 
-    v_peg_set_grammar(gr0);
-
-
-    v_terminate(gr0);
     v_terminate(act);
     v_terminate(ar0);
     v_terminate(pp0, 5);

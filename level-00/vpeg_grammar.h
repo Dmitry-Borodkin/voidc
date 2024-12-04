@@ -17,11 +17,9 @@
 namespace vpeg
 {
 
-typedef std::shared_ptr<context_data_t> context_t;
-
 class grammar_data_t;
 
-typedef std::shared_ptr<grammar_data_t> grammar_t;
+typedef std::shared_ptr<const grammar_data_t> grammar_t;
 
 extern "C"
 {
@@ -47,8 +45,7 @@ public:
 
 public:
     grammar_data_t(const grammar_data_t &gr)
-      : _hash(gr.hash),
-        _parsers(gr.parsers),
+      : _parsers(gr.parsers),
         _actions(gr.actions),
         _values(gr.values),
         parse_fun(gr.parse_fun),
@@ -57,7 +54,6 @@ public:
 
     grammar_data_t &operator=(const grammar_data_t &gr)
     {
-        _hash     = gr.hash;
         _parsers  = gr.parsers;
         _actions  = gr.actions;
         _values   = gr.values;
@@ -148,17 +144,9 @@ public:
     }
 
 public:
-    const size_t &hash = _hash;
-
-    void check_hash(void);
-
-public:
     const parsers_map_t &parsers = _parsers;
     const actions_map_t &actions = _actions;
     const values_map_t  &values  = _values;
-
-private:
-    size_t _hash = size_t(-1);
 
 private:
     parsers_map_t _parsers;

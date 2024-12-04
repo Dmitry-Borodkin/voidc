@@ -305,13 +305,9 @@ voidc_enable_aggregates: () ~> void
     voidc_enable_aggregates_compiler();
 
 
-    v_return_if_not(voidc_has_grammar());
+    gr0 = v_peg_get_grammar();
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
-
-    v_peg_get_grammar(gr0);
+    v_return_if_not(gr0);
 
     any_ = v_peg_grammar_get_value(gr0, "op_braces");
 
@@ -319,8 +315,6 @@ voidc_enable_aggregates: () ~> void
 
 
     voidc_enable_definitions();         //- Sic!
-
-    v_peg_get_grammar(gr0);
 
 
     any_braces = v_alloca(v_std_any_t);
@@ -338,8 +332,6 @@ voidc_enable_aggregates: () ~> void
     parsers:
         bracketed =+ '{'_ l:expr_list _ (','_)? '}'     { mk_expr_call(op_braces, l) };
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

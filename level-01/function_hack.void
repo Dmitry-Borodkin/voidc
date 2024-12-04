@@ -273,7 +273,7 @@
     //- {
     //-     v_add_symbol(fun_name, fun_type, 0);
     //-
-    //-     if (voidc_has_grammar()) ;
+    //-     if (v_peg_get_grammar()) ;
     //-     else
     //-     {
     //-         v_return(0);
@@ -325,10 +325,12 @@
 
     LLVMBuildCall2(builder, add_sym_ft_, add_sym_f, val0, 3, "");
 
-    has_grammar_f   = v_obtain_function("voidc_has_grammar", lltyp);
-    has_grammar_ft_ = v_load(lltyp);
+    get_grammar_f   = v_obtain_function("v_peg_get_grammar", lltyp);
+    get_grammar_ft_ = v_load(lltyp);
 
-    ok_v = LLVMBuildCall2(builder, has_grammar_ft_, has_grammar_f, 0, 0, "ok_v");
+    grm_v = LLVMBuildCall2(builder, get_grammar_ft_, get_grammar_f, 0, 0, "grm_v");
+
+    ok_v = LLVMBuildIsNotNull(builder, grm_v, "ok_v");
 
     else_b = LLVMAppendBasicBlock(helper_f, "else_b");      //- "else" first!
     then_b = LLVMAppendBasicBlock(helper_f, "then_b");

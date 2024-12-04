@@ -22,17 +22,6 @@ namespace vpeg
 
 
 //-----------------------------------------------------------------
-void grammar_data_t::check_hash(void)
-{
-    if (hash != size_t(-1)) return;
-
-    static size_t static_hash = 0;
-
-    _hash = static_hash++ ;
-}
-
-
-//-----------------------------------------------------------------
 static void
 grammar_parse_default(void *, std::any *pret, grammar_t *pgrm, v_quark_t q_name, context_t *pctx)
 {
@@ -52,9 +41,7 @@ grammar_parse_default(void *, std::any *pret, grammar_t *pgrm, v_quark_t q_name,
 
     auto st = ctx.get_state();
 
-    assert(grm.hash != size_t(-1));
-
-    auto key = std::make_tuple(grm.hash, st.position, q_name);
+    auto key = std::make_tuple(st.position, q_name);
 
     std::any ret;
 

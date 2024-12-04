@@ -973,12 +973,12 @@ voidc_enable_macros: () ~> void
 {
     voidc_enable_macros_compiler();
 
-    v_return_if_not(voidc_has_grammar());
+    gr0 = v_peg_get_grammar();
 
-    gr0: &v_peg_grammar_t := {};        gr0 = &gr0;
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "macro_stmt", 0));
 
-    v_peg_get_grammar(gr0);
-
+    //--------------------------------------------------------------
     grammar gr0
     {
     actions:
@@ -1004,8 +1004,6 @@ voidc_enable_macros: () ~> void
         unit_defn =+ q:qualif_flags _ m:macro_stmt      { mk_macro_define(q, m, 0) };
         stmt_defn =+                  m:macro_stmt      { mk_macro_define(0, m, 1) };
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

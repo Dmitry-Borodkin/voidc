@@ -196,15 +196,13 @@ parse_template: () ~> void
     my_ctx    = ctx + 0;
     saved_ctx = ctx + 1;
 
-    grm: &v_peg_grammar_t := {};
+    grm = v_peg_get_grammar();
 
-    v_peg_get_grammar(&grm);
-
-    v_assert(!v_empty(&grm));
+    v_assert(grm);
 
     cur_pos: &int := 0;
 
-    v_peg_make_context(my_ctx, fgetc_fun, &cur_pos, &grm);
+    v_peg_make_context(my_ctx, fgetc_fun, &cur_pos, grm);
 
     v_peg_get_context(saved_ctx);
     defer v_peg_set_context(saved_ctx);

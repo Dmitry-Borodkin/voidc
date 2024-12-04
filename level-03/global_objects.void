@@ -1529,12 +1529,9 @@ voidc_enable_global_objects: () ~> void
 {
     voidc_enable_global_objects_compiler();
 
-    v_return_if_not(voidc_has_grammar());
+    gr0 = v_peg_get_grammar();
 
-    gr0: &v_peg_grammar_t := {};    gr0 = &gr0;
-
-    v_peg_get_grammar(gr0);
-
+    v_return_if_not(gr0);
     v_return_if(v_peg_grammar_get_action(gr0, "mk_unit_stmt_init", 0));
 
     //-----------------------------------------------------------------
@@ -1561,10 +1558,6 @@ voidc_enable_global_objects: () ~> void
                    / s:unit_stmt_term   { mk_unit_stmt_term(s) }
                    ;
     }
-
-    v_peg_set_grammar(gr0);
-
-    //- ...
 }
 
 

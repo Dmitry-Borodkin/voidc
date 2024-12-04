@@ -288,8 +288,10 @@ voidc_enable_literals: () ~> void
     voidc_enable_literals_compiler();
 
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("real_literal"));
+    gr0 = v_peg_get_grammar();
+
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "real_literal", 0));
 
 
     any = v_alloca(v_std_any_t, 2);
@@ -302,12 +304,6 @@ voidc_enable_literals: () ~> void
     v_std_any_set_value(any_integer, q_literal_integer);
     v_std_any_set_value(any_real,    q_literal_real);
 
-
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
-
-    v_peg_get_grammar(gr0);
 
     grammar gr0
     {
@@ -372,8 +368,6 @@ voidc_enable_literals: () ~> void
 
         prim += real_literal;
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

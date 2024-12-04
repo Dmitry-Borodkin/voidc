@@ -718,14 +718,11 @@
     voidc_enable_expression_compiler();
 
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("expr_lr"));
+    gr0 = v_peg_get_grammar();
 
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "expr_lr", 0));
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-
-    v_peg_get_grammar(gr0);
 
     {   any = v_alloca(v_std_any_t);
         v_initialize(any);
@@ -854,11 +851,6 @@
         bracketed = '(' _ e:expr _ ')'      { mk_bracketed(op_parentheses, e) }     //- TODO...
                   ;
     }
-
-    v_peg_set_grammar(gr0);
-
-
-    v_terminate(gr0);
 
 
     v_add_local_cleaner(free, ppst);        //- Sic!

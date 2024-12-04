@@ -1845,11 +1845,10 @@ voidc_enable_namespaces: () ~> void
 {
     voidc_enable_namespaces_compiler();
 
-    v_return_if_not(voidc_has_grammar());
+    gr0 = v_peg_get_grammar();
 
-    gr0: &v_peg_grammar_t := {};    gr0 = &gr0;
-
-    v_peg_get_grammar(gr0);
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "unit_namespace_open", 0));
 
     //--------------------------------------------------------------
     grammar gr0
@@ -1887,8 +1886,6 @@ voidc_enable_namespaces: () ~> void
 
         stmt_var_defn =+ e:expr _':'_ t:expr _';'       { mk_stmt_expr_var_decl(e, t) };        //- ?!?!?
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

@@ -543,14 +543,10 @@ voidc_enable_unions: () ~> void
 {
     voidc_enable_unions_compiler();
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("expr_union"));
+    gr0 = v_peg_get_grammar();
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
-
-    v_peg_get_grammar(gr0);
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "expr_union", 0));
 
     grammar gr0
     {
@@ -572,8 +568,6 @@ voidc_enable_unions: () ~> void
 
         unit_defn += unit_union_defn;
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

@@ -48,7 +48,7 @@ fgetc_fun: (void_data: *void) ~> int
     v_initialize(grm);
     defer v_terminate(grm);
 
-    v_peg_get_grammar(grm);
+    v_copy(grm, v_peg_get_grammar());
 
     grammar grm
     {

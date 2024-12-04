@@ -2342,8 +2342,10 @@
     voidc_enable_statement_block_compiler();        //- Sic!
 
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("stmt_grammar"));
+    gr0 = v_peg_get_grammar();
+
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "stmt_grammar", 0));
 
 
     pp0 = v_alloca(v_peg_parser_t, 14);
@@ -2372,12 +2374,6 @@
     act = v_alloca(v_peg_action_t);
     v_initialize(act);
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-
-
-    //-----------------------------------------------------------------
-    v_peg_get_grammar(gr0);
 
     //-----------------------------------------------------------------
     v_peg_grammar_set_action(gr0, gr0, "mk_stmt_grammar_init",      mk_stmt_grammar_init_grammar_action, 0);
@@ -3289,12 +3285,8 @@
 
 
     //-----------------------------------------------------------------
-    v_peg_set_grammar(gr0);
-
-
     //- That's all, folks!
 
-    v_terminate(gr0);
     v_terminate(act);
     v_terminate(ar0, 3);
     v_terminate(pp0, 14);

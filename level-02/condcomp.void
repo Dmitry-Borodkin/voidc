@@ -317,14 +317,10 @@ voidc_enable_condcomp_n1: () ~> void
 {
     voidc_enable_condcomp_n1_compiler();
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("unit_ccif"));
+    gr0 = v_peg_get_grammar();
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
-
-    v_peg_get_grammar(gr0);
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "unit_ccif", 0));
 
     grammar gr0
     {
@@ -385,8 +381,6 @@ voidc_enable_condcomp_n1: () ~> void
 
         expr =+ expr_ccif;
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 
@@ -869,15 +863,11 @@ voidc_enable_condcomp: () ~> void
 {
     voidc_enable_condcomp_compiler();
 
-    v_return_if_not(voidc_has_grammar());
+    gr0 = v_peg_get_grammar();
+
+    v_return_if_not(gr0);
 
     voidc_enable_condcomp_n1();
-
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
-
-    v_peg_get_grammar(gr0);
 
     v_return_if(v_peg_grammar_get_action(gr0, "mk_cc_message", 0));
 
@@ -910,8 +900,6 @@ voidc_enable_condcomp: () ~> void
         unit_defn =+ "#assert" _'('_ e:expr _')'    { mk_cc_assert(e, 0) };
         stmt      =+ "#assert" _'('_ e:expr _')'    { mk_cc_assert(e, 1) };
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 

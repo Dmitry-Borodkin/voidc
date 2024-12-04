@@ -298,14 +298,11 @@
     voidc_enable_statement_defer_compiler();
 
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("stmt_defer"));
+    gr0 = v_peg_get_grammar();
 
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "stmt_defer", 0));
 
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-
-    v_peg_get_grammar(gr0);
 
     grammar gr0
     {
@@ -317,12 +314,6 @@
 
         stmt += stmt_defer;
     }
-
-
-    v_peg_set_grammar(gr0);
-
-
-    v_terminate(gr0);
 }
 
 

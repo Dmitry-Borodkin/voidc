@@ -1372,13 +1372,12 @@ voidc_enable_generating_ast: () ~> void
 
     v_add_constant_q(enabled_q, v_void_type(), 0);
 
-    v_return_if_not(voidc_has_grammar());
+    gr0 = v_peg_get_grammar();
+
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "parse_any", 0));
 
     //--------------------------------------------------------------
-    gr0: &v_peg_grammar_t := {};        gr0 = &gr0;
-
-    v_peg_get_grammar(gr0);
-
     grammar gr0
     {
     actions:
@@ -1390,12 +1389,9 @@ voidc_enable_generating_ast: () ~> void
 
         prim =+ a:parse_any     { mk_quote_ast(a) };
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 
-//{ v_debug_print_module(2); }
 //=====================================================================
 {   voidc_unit_end_module(); }
 

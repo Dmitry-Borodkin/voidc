@@ -25,9 +25,7 @@ context_data_t::context_data_t(context_fgetc_fun_t fun, void *data, const gramma
   : grammar(_grammar),
     fgetc_fun(fun),
     fgetc_fun_data(data)
-{
-    grammar->check_hash();
-}
+{}
 
 
 //-----------------------------------------------------------------
@@ -275,28 +273,14 @@ void v_peg_memo_clear(void)
 
 
 //---------------------------------------------------------------------
-void v_peg_get_grammar(grammar_t *ptr)
+grammar_t *v_peg_get_grammar(void)
 {
     if (context_data_t::current_ctx)
     {
-        *ptr = context_data_t::current_ctx->grammar;
+        return  &context_data_t::current_ctx->grammar;
     }
-    else
-    {
-        (*ptr).reset();
-    }
-}
 
-void v_peg_set_grammar(const grammar_t *ptr)
-{
-    if (context_data_t::current_ctx)
-    {
-        auto &grammar = context_data_t::current_ctx->grammar;
-
-        grammar = *ptr;
-
-        grammar->check_hash();
-    }
+    return nullptr;
 }
 
 void v_peg_take_string(std::string *ret, size_t from, size_t to)

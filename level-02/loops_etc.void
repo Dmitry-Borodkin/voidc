@@ -567,8 +567,10 @@ voidc_enable_loops_etc: () ~> void
     voidc_enable_loops_etc_compiler();
 
 
-    v_return_if_not(voidc_has_grammar());
-    v_return_if(voidc_grammar_has_parser("stmt_while"));
+    gr0 = v_peg_get_grammar();
+
+    v_return_if_not(gr0);
+    v_return_if(v_peg_grammar_get_parser(gr0, "stmt_while", 0));
 
 
     voidc_enable_statement_block();
@@ -577,12 +579,6 @@ voidc_enable_loops_etc: () ~> void
     voidc_enable_statement_if_then_else();
     voidc_enable_statement_switch();
 
-
-    gr0 = v_alloca(v_peg_grammar_t);
-    v_initialize(gr0);
-    defer v_terminate(gr0);
-
-    v_peg_get_grammar(gr0);
 
     grammar gr0
     {
@@ -630,8 +626,6 @@ voidc_enable_loops_etc: () ~> void
         stmt_switch =+ "switch" _'('_ e:simple_stmt_list_lr _')'_
                        '{'_ l:case_list _'}'    { mk_stmt_switch_2(e, l) };
     }
-
-    v_peg_set_grammar(gr0);
 }
 
 
