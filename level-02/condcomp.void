@@ -420,10 +420,7 @@ mk_cc_message_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     v_ast_make_expr_string(expr, filename);
     v_list_append(list, list, (expr: *v_ast_base_t));
 
-    line:   &size_t := v_undef();
-    column: &size_t := v_undef();
-
-    v_peg_get_line_column(pos, line, column);
+    line = v_peg_get_line_column(pos, 0);
 
     v_ast_make_expr_integer(expr, (line: intptr_t));
     v_list_append(list, list, (expr: *v_ast_base_t));
@@ -482,10 +479,7 @@ mk_cc_assert_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
     ps = v_std_any_get_value(size_t, v_ast_get_property((expr: *v_ast_base_t), pos_start_q));
     pe = v_std_any_get_value(size_t, v_ast_get_property((expr: *v_ast_base_t), pos_end_q));
 
-    line:   &size_t := v_undef();
-    column: &size_t := v_undef();
-
-    v_peg_get_line_column(ps, line, column);
+    line = v_peg_get_line_column(ps, 0);
 
     sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);
@@ -556,10 +550,7 @@ my_expr_make_postfix_grammar_action: (ret: *v_std_any_t, aux: *void, any: *v_std
     ps = v_std_any_get_value(size_t, v_ast_get_property((arg0: *v_ast_base_t), pos_start_q));
     pe = v_std_any_get_value(size_t, v_ast_get_property((arg0: *v_ast_base_t), pos_end_q));
 
-    line:   &size_t := v_undef();
-    column: &size_t := v_undef();
-
-    v_peg_get_line_column(ps, line, column);
+    line = v_peg_get_line_column(ps, 0);
 
     sstr = v_alloca(v_std_string_t);
     v_initialize(sstr);

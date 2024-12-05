@@ -36,12 +36,9 @@
     v_export_symbol_type("v_peg_get_grammar", ft);
 
     //-------------------------------------------------------------
-    v_store(v_peg_context_ptr, typ0);
-
-    ft = v_function_type(void, typ0, 1, false);
+    ft = v_function_type(v_peg_context_ptr, 0, 0, false);
 
     v_export_symbol_type("v_peg_get_context", ft);
-    v_export_symbol_type("v_peg_set_context", ft);
 
     //-------------------------------------------------------------
     void_ptr = v_pointer_type(void, 0);
@@ -79,13 +76,12 @@
     v_export_symbol_type("v_peg_take_string", ft);
 
     //-------------------------------------------------------------
-    size_t_ref = v_reference_type(size_t, 0);
+    size_t_ptr = v_pointer_type(size_t, 0);
 
     v_store(size_t,     typ0);
-    v_store(size_t_ref, typ1);
-    v_store(size_t_ref, typ2);
+    v_store(size_t_ptr, typ1);
 
-    ft = v_function_type(void, typ0, 3, false);
+    ft = v_function_type(size_t, typ0, 2, false);
     v_export_symbol_type("v_peg_get_line_column", ft);
 
     //-------------------------------------------------------------

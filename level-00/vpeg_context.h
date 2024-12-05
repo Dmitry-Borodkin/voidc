@@ -113,7 +113,7 @@ public:     //- ?...
     std::map<std::tuple<size_t, v_quark_t>, std::pair<std::any, state_t>> memo;
 
 public:
-    void get_line_column(size_t pos, size_t &line, size_t &column) const;
+    size_t get_line_column(size_t pos, size_t *column) const;
 
     size_t get_buffer_size(void) const { return buffer.size(); }
 

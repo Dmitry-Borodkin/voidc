@@ -28,10 +28,9 @@ mk_unit(std::any *ret, void *, const std::any *args, size_t)
 
     auto pos = std::any_cast<size_t>(args[1]);
 
-    size_t line;
     size_t column;
 
-    context_data_t::current_ctx->get_line_column(pos, line, column);
+    auto line = context_data_t::current_ctx->get_line_column(pos, &column);
 
     ast_unit_t ptr = std::make_shared<const ast_unit_data_t>(*p, line, column);
 

@@ -60,9 +60,9 @@ parse_unit(void)
 
     if (auto unit = std::any_cast<ast_unit_t>(&ret))  return *unit;
 
-    size_t line, column;
+    size_t column;
 
-    ctx->get_line_column(ctx->get_buffer_size(), line, column);
+    auto line = ctx->get_line_column(ctx->get_buffer_size(), &column);
 
     auto &vctx = *voidc_global_ctx_t::voidc;        //- Sic!!!
     auto &lctx = *vctx.local_ctx;

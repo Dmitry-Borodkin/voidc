@@ -835,10 +835,9 @@
 
     pos = v_std_any_get_value(size_t, any+1);
 
-    line   = *v_alloca(size_t) := 0;
     column = *v_alloca(size_t) := 0;
 
-    v_peg_get_line_column(pos, line, column);
+    line = v_peg_get_line_column(pos, &column);
 
     ast = v_alloca(v_ast_base_t, 3);
     v_initialize(ast, 3);

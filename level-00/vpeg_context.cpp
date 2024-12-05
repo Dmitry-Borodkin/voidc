@@ -133,7 +133,7 @@ std::string context_data_t::take_string(size_t from, size_t to) const
 
 
 //-----------------------------------------------------------------
-void context_data_t::get_line_column(size_t pos, size_t &line, size_t &column) const
+size_t context_data_t::get_line_column(size_t pos, size_t *column) const
 {
     auto it = newlines.upper_bound(pos);
 
@@ -143,9 +143,9 @@ void context_data_t::get_line_column(size_t pos, size_t &line, size_t &column) c
 
     auto &[lpos, lnum] = *it;
 
-    line = lnum + 1;                //- Sic !!!
+    if (column) *column = pos - lpos + 1;
 
-    column = pos - lpos + 1;        //- Sic !!!
+    return  lnum + 1;
 }
 
 
@@ -237,14 +237,9 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 
 //-----------------------------------------------------------------
-void v_peg_get_context(context_t *ret)
+context_t *v_peg_get_context(void)
 {
-    *ret = context_data_t::current_ctx;
-}
-
-void v_peg_set_context(context_t *ctx)
-{
-    context_data_t::current_ctx = *ctx;
+    return  &context_data_t::current_ctx;
 }
 
 
@@ -275,38 +270,24 @@ void v_peg_memo_clear(void)
 //---------------------------------------------------------------------
 grammar_t *v_peg_get_grammar(void)
 {
-    if (context_data_t::current_ctx)
-    {
-        return  &context_data_t::current_ctx->grammar;
-    }
+    if (!context_data_t::current_ctx)   return nullptr;         //- Sic !!!
 
-    return nullptr;
+    return  &context_data_t::current_ctx->grammar;
 }
 
 void v_peg_take_string(std::string *ret, size_t from, size_t to)
 {
-    if (context_data_t::current_ctx)
-    {
-        *ret = context_data_t::current_ctx->take_string(from, to);
-    }
+    *ret = context_data_t::current_ctx->take_string(from, to);
 }
 
-void v_peg_get_line_column(size_t pos, size_t *line, size_t *column)
+size_t v_peg_get_line_column(size_t pos, size_t *column)
 {
-    if (context_data_t::current_ctx)
-    {
-        context_data_t::current_ctx->get_line_column(pos, *line, *column);
-    }
+    return  context_data_t::current_ctx->get_line_column(pos, column);
 }
 
 size_t v_peg_get_position(void)
 {
-    if (context_data_t::current_ctx)
-    {
-        return context_data_t::current_ctx->get_position();
-    }
-
-    return size_t(-1);
+    return context_data_t::current_ctx->get_position();
 }
 
 

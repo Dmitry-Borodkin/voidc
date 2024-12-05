@@ -74,10 +74,12 @@ fgetc_fun: (void_data: *void) ~> int
     v_peg_make_context(my_ctx, fgetc_fun, &cur_pos, grm);
 
     //-----------------------------------------------------------------
-    v_peg_get_context(saved_ctx);
-    defer v_peg_set_context(saved_ctx);
+    cur_ctx = v_peg_get_context();
 
-    v_peg_set_context(my_ctx);
+    v_copy(saved_ctx, cur_ctx);
+    defer v_copy(cur_ctx, saved_ctx);
+
+    v_copy(cur_ctx, my_ctx);
 
     res = v_alloca(v_std_any_t);
     v_initialize(res);
@@ -99,4 +101,8 @@ fgetc_fun: (void_data: *void) ~> int
     }
 }
 
+//---------------------------------------------------------------------
+{
+    printf("\nHello again...\n");
+}
 
