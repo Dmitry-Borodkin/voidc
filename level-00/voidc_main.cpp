@@ -45,7 +45,7 @@ const char *__asan_default_options()
 
 
 //---------------------------------------------------------------------
-static vpeg::grammar_data_t voidc_grammar;
+static vpeg::grammar_t voidc_grammar_level_0;
 
 static ast_unit_t
 parse_unit(void)
@@ -604,7 +604,7 @@ v_import_helper(const char *name, bool _export)
 
             {   auto parent_vpeg_ctx = vpeg::context_data_t::current_ctx;
 
-                auto grm = std::make_shared<vpeg::grammar_data_t>(voidc_grammar);
+                auto &grm = voidc_grammar_level_0;
 
                 vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(infs, grm);
 
@@ -936,9 +936,9 @@ main(int argc, char *argv[])
 
     voidc_global_ctx_t::voidc->flush_unit_symbols();
 
-    voidc_grammar = make_voidc_grammar();
+    voidc_grammar_level_0 = make_level_0_voidc_grammar();
 
-    {   vpeg::grammar_data_t current_grammar = voidc_grammar;
+    {   vpeg::grammar_t current_grammar = voidc_grammar_level_0;
 
         voidc_local_ctx_t lctx(gctx);
 
@@ -972,7 +972,7 @@ main(int argc, char *argv[])
 
             lctx.filename = src_name;
 
-            auto grm = std::make_shared<vpeg::grammar_data_t>(current_grammar);
+            auto &grm = current_grammar;
 
             vpeg::context_data_t::current_ctx = std::make_shared<vpeg::context_data_t>(istr, grm);
 
@@ -1001,7 +1001,7 @@ main(int argc, char *argv[])
                 lctx.unit_buffer = nullptr;
             }
 
-            current_grammar = *vpeg::context_data_t::current_ctx->grammar;
+            current_grammar = vpeg::context_data_t::current_ctx->grammar;
 
             vpeg::context_data_t::current_ctx = nullptr;     //- ?
 

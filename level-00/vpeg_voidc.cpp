@@ -259,7 +259,8 @@ is_SOF(std::any *ret, void *, const std::any *args, size_t)
 
 
 //---------------------------------------------------------------------
-vpeg::grammar_data_t make_voidc_grammar(void)
+static
+vpeg::grammar_data_t create_level_0_voidc_grammar(void)
 {
     using namespace vpeg;
 
@@ -979,5 +980,21 @@ vpeg::grammar_data_t make_voidc_grammar(void)
     return gr;
 }
 
+//---------------------------------------------------------------------
+static
+vpeg::grammar_t voidc_grammar_level_zero;
+
+vpeg::grammar_t
+make_level_0_voidc_grammar(void)
+{
+    if (!voidc_grammar_level_zero)
+    {
+        voidc_grammar_level_zero = std::make_shared<const vpeg::grammar_data_t>(create_level_0_voidc_grammar());
+    }
+
+    assert(voidc_grammar_level_zero);
+
+    return  voidc_grammar_level_zero;
+}
 
 

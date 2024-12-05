@@ -9,7 +9,7 @@
 
 
 //---------------------------------------------------------------------
-vpeg::grammar_data_t make_voidc_grammar(void);
+vpeg::grammar_t make_level_0_voidc_grammar(void);
 
 
 
