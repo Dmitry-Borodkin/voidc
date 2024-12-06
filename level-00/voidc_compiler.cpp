@@ -921,10 +921,17 @@ v_assign(void *, const visitor_t *vis, const ast_base_t *self)
 //=====================================================================
 //- Compiler visitors (level 0)
 //=====================================================================
-extern "C" {
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
+    visitor_t voidc_internal_target_compiler_level_zero;
     visitor_t voidc_internal_voidc_compiler_level_zero;
+
+VOIDC_DLLEXPORT_END
 }
 
+//---------------------------------------------------------------------
 visitor_t
 make_level_0_voidc_compiler(void)
 {
@@ -947,12 +954,7 @@ make_level_0_voidc_compiler(void)
     return vis0;
 }
 
-
 //---------------------------------------------------------------------
-extern "C" {
-    visitor_t voidc_internal_target_compiler_level_zero;
-}
-
 visitor_t
 make_level_0_target_compiler(void)
 {

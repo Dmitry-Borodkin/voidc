@@ -981,10 +981,16 @@ vpeg::grammar_data_t create_level_0_voidc_grammar(void)
 }
 
 //---------------------------------------------------------------------
-extern "C" {
+extern "C"
+{
+VOIDC_DLLEXPORT_BEGIN_VARIABLE
+
     vpeg::grammar_t voidc_internal_grammar_level_zero;
+
+VOIDC_DLLEXPORT_END
 }
 
+//-----------------------------------------------------------------
 vpeg::grammar_t
 make_level_0_voidc_grammar(void)
 {
