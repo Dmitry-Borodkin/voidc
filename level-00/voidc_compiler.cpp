@@ -921,13 +921,16 @@ v_assign(void *, const visitor_t *vis, const ast_base_t *self)
 //=====================================================================
 //- Compiler visitors (level 0)
 //=====================================================================
-static
-visitor_t voidc_compiler_level_zero;
+extern "C" {
+    visitor_t voidc_internal_voidc_compiler_level_zero;
+}
 
 visitor_t
 make_level_0_voidc_compiler(void)
 {
-    if (!voidc_compiler_level_zero)
+    auto &vis0 = voidc_internal_voidc_compiler_level_zero;
+
+    if (!vis0)
     {
         voidc_visitor_data_t vis;
 
@@ -936,23 +939,26 @@ make_level_0_voidc_compiler(void)
 
         DEFINE_AST_TAGS(DEF_METHOD)
 
-        voidc_compiler_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
+        vis0 = std::make_shared<const voidc_visitor_data_t>(vis);
     }
 
-    assert(voidc_compiler_level_zero);
+    assert(voidc_internal_voidc_compiler_level_zero);
 
-    return  voidc_compiler_level_zero;
+    return vis0;
 }
 
 
 //---------------------------------------------------------------------
-static
-visitor_t target_compiler_level_zero;
+extern "C" {
+    visitor_t voidc_internal_target_compiler_level_zero;
+}
 
 visitor_t
 make_level_0_target_compiler(void)
 {
-    if (!target_compiler_level_zero)
+    auto &vis0 = voidc_internal_target_compiler_level_zero;
+
+    if (!vis0)
     {
         voidc_visitor_data_t vis;
 
@@ -965,12 +971,12 @@ make_level_0_target_compiler(void)
         DEF_METHOD(expr_char)
         DEF_METHOD(expr_compiled)
 
-        target_compiler_level_zero = std::make_shared<const voidc_visitor_data_t>(vis);
+        vis0 = std::make_shared<const voidc_visitor_data_t>(vis);
     }
 
-    assert(target_compiler_level_zero);
+    assert(voidc_internal_target_compiler_level_zero);
 
-    return  target_compiler_level_zero;
+    return vis0;
 }
 
 

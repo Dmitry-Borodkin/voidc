@@ -981,20 +981,23 @@ vpeg::grammar_data_t create_level_0_voidc_grammar(void)
 }
 
 //---------------------------------------------------------------------
-static
-vpeg::grammar_t voidc_grammar_level_zero;
+extern "C" {
+    vpeg::grammar_t voidc_internal_grammar_level_zero;
+}
 
 vpeg::grammar_t
 make_level_0_voidc_grammar(void)
 {
-    if (!voidc_grammar_level_zero)
+    auto &grm = voidc_internal_grammar_level_zero;
+
+    if (!grm)
     {
-        voidc_grammar_level_zero = std::make_shared<const vpeg::grammar_data_t>(create_level_0_voidc_grammar());
+        grm = std::make_shared<const vpeg::grammar_data_t>(create_level_0_voidc_grammar());
     }
 
-    assert(voidc_grammar_level_zero);
+    assert(voidc_internal_grammar_level_zero);
 
-    return  voidc_grammar_level_zero;
+    return grm;
 }
 
 
