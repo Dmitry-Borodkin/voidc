@@ -13,6 +13,9 @@
 
     ft = v_function_type(v_type_ptr, typ0, 2, false);
     v_add_symbol("v_pointer_type", ft, 0);
+
+    //-------------------------------------------------------------
+    voidc_clear_unit_buffer();
 }
 
 {   typ0 = v_alloca(v_type_ptr, 2);
@@ -25,6 +28,15 @@
 
     ft = v_function_type(void, typ0, 2, false);
     v_add_symbol("v_export_symbol_type", ft, 0);
+
+    //-------------------------------------------------------------
+//  v_store(char_ptr,   typ0);              //- Struct name
+
+    ft = v_function_type(v_type_ptr, typ0, 1, false);
+    v_add_symbol("v_struct_type_named", ft, 0);
+
+    //-------------------------------------------------------------
+    voidc_clear_unit_buffer();
 }
 
 {   typ0 = v_alloca(v_type_ptr, 3);
@@ -61,12 +73,6 @@
     ft = v_function_type(void, typ0, 2, false);
     v_export_symbol_type("v_export_type", ft);
     v_export_symbol_type("v_add_type", ft);
-
-    //-------------------------------------------------------------
-//  v_store(char_ptr, typ0);                //- Struct name
-
-    ft = v_function_type(v_type_ptr, typ0, 1, false);
-    v_add_symbol("v_struct_type_named", ft, 0);
 }
 
 
@@ -94,7 +100,6 @@
     v_store(void_ptr,   typ2);              //- Symbol value
 
     ft = v_function_type(void, typ0, 3, false);
-
     v_export_symbol_type("v_export_symbol_q", ft);
     v_export_symbol_type("v_add_symbol_q", ft);
 
@@ -464,7 +469,6 @@
 
     //-------------------------------------------------------------
     ft = v_function_type(void, 0, 0, false);
-
     v_export_symbol_type("voidc_finish_unit_action", ft);
     v_export_symbol_type("voidc_flush_unit_symbols", ft);
     v_export_symbol_type("v_clear_variables", ft);
@@ -489,7 +493,6 @@
     v_store(LLVMModuleRef, typ0);           //-
 
     ft = v_function_type(void, typ0, 1, false);
-
     v_export_symbol_type("v_set_module", ft);
     v_export_symbol_type("v_verify_module", ft);
     v_export_symbol_type("voidc_prepare_module_for_jit", ft);
@@ -500,7 +503,6 @@
     v_store(bool,          typ1);           //- do_load
 
     ft = v_function_type(void, typ0, 2, false);
-
     v_export_symbol_type("voidc_unit_load_module_to_jit", ft);
     v_export_symbol_type("voidc_unit_load_local_module_to_jit", ft);
 
@@ -515,7 +517,6 @@
     v_store(LLVMMemoryBufferRef, typ0);     //-
 
     ft = v_function_type(void, typ0, 1, false);
-
     v_export_symbol_type("voidc_add_object_file_to_jit", ft);
     v_export_symbol_type("voidc_add_local_object_file_to_jit", ft);
     v_export_symbol_type("voidc_set_unit_buffer", ft);
@@ -524,7 +525,6 @@
 //  v_store(bool,                typ1);     //- do_load
 
     ft = v_function_type(void, typ0, 2, false);
-
     v_export_symbol_type("voidc_unit_load_object_file_to_jit", ft);
     v_export_symbol_type("voidc_unit_load_local_object_file_to_jit", ft);
 
@@ -600,7 +600,7 @@
 
     intrinsic_t = v_function_type(void, typ0, 3, false);
 
-    v_export_type("voidc_intrinsic_t", intrinsic_t);
+    v_export_type("voidc_intrinsic_t",      intrinsic_t);
     v_export_type("voidc_visitor_method_t", intrinsic_t);       //- Sic!?!
 
     //-------------------------------------------------------------
@@ -609,7 +609,6 @@
     v_store(void_ptr, typ2);                //- aux
 
     ft = v_function_type(void, typ0, 3, false);
-
     v_export_symbol_type("v_export_intrinsic", ft);
     v_export_symbol_type("v_add_intrinsic",    ft);
 
@@ -618,7 +617,6 @@
 //  v_store(void_ptr,  typ2);               //- aux
 
     ft = v_function_type(void, typ0, 3, false);
-
     v_export_symbol_type("v_export_intrinsic_q", ft);
     v_export_symbol_type("v_add_intrinsic_q",    ft);
 
@@ -649,7 +647,6 @@
     v_store(v_std_any_ptr, typ1);           //- Property value
 
     ft = v_function_type(void, typ0, 2, false);
-
     v_export_symbol_type("v_export_property", ft);
     v_export_symbol_type("v_add_property",    ft);
 
@@ -657,7 +654,6 @@
     v_store(v_std_any_ptr, typ1);           //- Property value
 
     ft = v_function_type(void, typ0, 2, false);
-
     v_export_symbol_type("v_export_property_q", ft);
     v_export_symbol_type("v_add_property_q",    ft);
 
@@ -683,7 +679,6 @@
     v_store(char_ptr,   typ2);              //- ...
 
     ft = v_function_type(void, typ0, 3, false);
-
     v_export_symbol_type("v_export_overload", ft);
     v_export_symbol_type("v_add_overload",    ft);
 
@@ -692,7 +687,6 @@
     v_store(v_quark_t,  typ2);              //-
 
     ft = v_function_type(void, typ0, 3, false);
-
     v_export_symbol_type("v_export_overload_q", ft);
     v_export_symbol_type("v_add_overload_q",    ft);
 
@@ -724,7 +718,6 @@
     v_store(void_ptr, typ1);
 
     ft = v_function_type(void, typ0, 2, false);
-
     v_export_symbol_type("v_add_cleaner", ft);
     v_export_symbol_type("v_add_local_cleaner", ft);
     v_export_symbol_type("v_add_temporary_cleaner", ft);
@@ -758,14 +751,12 @@
 
     //-------------------------------------------------------------
     ft = v_function_type(v_target_global_ctx_ptr, 0, 0, false);
-
     v_export_symbol_type("v_target_get_voidc_global_ctx", ft);
     v_export_symbol_type("v_target_get_global_ctx", ft);
 
     v_store(v_target_global_ctx_ptr, typ0);         //-
 
     ft = v_function_type(void, typ0, 1, false);
-
     v_export_symbol_type("v_target_set_global_ctx", ft);
     v_export_symbol_type("v_target_destroy_global_ctx", ft);
 
@@ -795,7 +786,6 @@
     v_export_symbol_type("v_target_create_local_ctx", ft);
 
     ft = v_function_type(v_target_local_ctx_ptr, 0, 0, false);
-
     v_export_symbol_type("v_target_get_local_ctx", ft);
     v_export_symbol_type("v_target_get_voidc_local_ctx", ft);
 
@@ -809,12 +799,10 @@
 
     //-------------------------------------------------------------
     ft = v_function_type(LLVMBuilderRef, 0, 0, false);
-
     v_export_symbol_type("v_target_get_voidc_builder", ft);
     v_export_symbol_type("v_target_get_builder", ft);
 
     ft = v_function_type(LLVMTargetDataRef, 0, 0, false);
-
     v_export_symbol_type("v_target_get_voidc_data_layout", ft);
     v_export_symbol_type("v_target_get_data_layout", ft);
 
