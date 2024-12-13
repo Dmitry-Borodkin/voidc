@@ -293,7 +293,9 @@
     //-         v_set_module(fun_mod);
     //-     }
     //-
-    //-     fun_value = v_prepare_function(fun_name, fun_type);
+    //-     raw_name = v_lookup_alias(fun_name);
+    //-
+    //-     fun_value = v_prepare_function(raw_name, fun_type);
     //-
     //-     compiler = v_get_compiler();
     //-
@@ -389,6 +391,14 @@
 
 
     v_store(fun_name, val0);
+
+    lookup_alias_f   = v_obtain_function("v_lookup_alias", lltyp);
+    lookup_alias_ft_ = v_load(lltyp);
+
+    raw_name = LLVMBuildCall2(builder, lookup_alias_ft_, lookup_alias_f, val0, 1, "raw_name");
+
+
+    v_store(raw_name, val0);
     v_store(fun_type, val1);
 
     prepare_function_f   = v_obtain_function("v_prepare_function", lltyp);
@@ -975,6 +985,27 @@
 
     v_store(char_ptr, typ);
 
+    ft = v_function_type(void, typ, 1, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_make_export_symbol", ft);
+
+    p0 = LLVMGetParam(f, 0);    v_add_variable("sym_name", char_ptr, p0);
+}
+{
+    raw_name = v_lookup_alias(sym_name);
+
+    sym_type = v_find_symbol_type(raw_name);
+
+    v_export_symbol_type(sym_name, sym_type);
+}
+
+
+//---------------------------------------------------------------------
+{   typ = v_alloca(v_type_ptr);
+
+    v_store(char_ptr, typ);
+
     ft = v_function_type(LLVMModuleRef, typ, 1, false);
 
     //-----------------------------------------------------------------
@@ -1155,6 +1186,8 @@
 
 //---------------------------------------------------------------------
 {
+    v_make_export_symbol("v_make_export_symbol");
+
     v_make_export_symbol("voidc_unit_begin_module");
     v_make_export_symbol("voidc_unit_end_module");
 

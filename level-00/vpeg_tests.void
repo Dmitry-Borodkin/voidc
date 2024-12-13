@@ -68,7 +68,7 @@
     str = LLVMBuildCall2(builder, get_c_str_ft_, get_c_str_f, val0, 1, "str");
 
 
-    printf_f   = v_obtain_function("v_printf", lltyp);
+    printf_f   = v_obtain_function("printf", lltyp);
     printf_ft_ = v_load(lltyp);
 
     str0 = LLVMBuildGlobalStringPtr(builder, "my_echo: %s", "str0");

@@ -128,7 +128,7 @@
     entry = LLVMAppendBasicBlock(init_f, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    printf_f   = v_obtain_function("v_printf", lltyp);
+    printf_f   = v_obtain_function("printf", lltyp);
     printf_ft_ = v_load(lltyp);
 
     str = LLVMBuildGlobalStringPtr(builder, "init!\n", "str");

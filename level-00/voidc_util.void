@@ -186,14 +186,11 @@
     v_store(char_ptr,          typ0);
     v_store(llvm_type_ref_ptr, typ1);
 
-    mk_export_sym_ft = v_function_type(void, typ0, 1, false);
-
     obtain_ft = v_function_type(LLVMValueRef, typ0, 2, false);
 
     //-----------------------------------------------------------------
-    v_export_symbol_type("v_make_export_symbol", mk_export_sym_ft);
-    v_export_symbol_type("v_obtain_function",    obtain_ft);
-    v_export_symbol_type("v_obtain_global",      obtain_ft);
+    v_export_symbol_type("v_obtain_function", obtain_ft);
+    v_export_symbol_type("v_obtain_global",   obtain_ft);
 }
 
 
@@ -212,74 +209,37 @@
 
 
     //-----------------------------------------------------------------
-    //- void v_make_export_symbol(const char *sym_name);
-    //-----------------------------------------------------------------
-    //- v_make_export_symbol: (sym_name: char_ptr) ~> void
-    //- {
-    //-     sym_type = v_find_symbol_type(sym_name);
-    //-
-    //-     v_export_symbol_type(sym_name, sym_type);
-    //- }
-    //-----------------------------------------------------------------
-    mk_export_sym_ft  = v_find_symbol_type("v_make_export_symbol");
-    mk_export_sym_ft_ = v_type_get_llvm_type(mk_export_sym_ft);
-    mk_export_sym_f   = LLVMAddFunction(module, "v_make_export_symbol", mk_export_sym_ft_);
-
-    sym_name_v = LLVMGetParam(mk_export_sym_f, 0);
-
-    entry = LLVMAppendBasicBlock(mk_export_sym_f, "entry");
-    LLVMPositionBuilderAtEnd(builder, entry);
-
-
-    find_sym_type_ft  = v_find_symbol_type("v_find_symbol_type");
-    find_sym_type_ft_ = v_type_get_llvm_type(find_sym_type_ft);
-    find_sym_type_f   = LLVMAddFunction(module, "v_find_symbol_type", find_sym_type_ft_);
-
-    v_store(sym_name_v, val0);
-
-    sym_type_v = LLVMBuildCall2(builder, find_sym_type_ft_, find_sym_type_f, val0, 1, "sym_type_v");
-
-
-    export_sym_type_ft  = v_find_symbol_type("v_export_symbol_type");
-    export_sym_type_ft_ = v_type_get_llvm_type(export_sym_type_ft);
-    export_sym_type_f   = LLVMAddFunction(module, "v_export_symbol_type", export_sym_type_ft_);
-
-    v_store(sym_type_v, val1);
-
-    LLVMBuildCall2(builder, export_sym_type_ft_, export_sym_type_f, val0, 2, "");
-
-    LLVMBuildRetVoid(builder);
-
-
-    //-----------------------------------------------------------------
     //- LLVMValueRef v_obtain_function(const char *fun_name, LLVMTypeRef *ft_p);
     //-----------------------------------------------------------------
     //- v_obtain_function: (fun_name: char_ptr, ft_p: llvm_type_ref_ptr) ~> LLVMValueRef
     //- {
+    //-     raw_name = v_lookup_alias(fun_name);
+    //-
     //-     module = v_get_module();
     //-
-    //-     fun_value = LLVMGetNamedFunction(module, fun_name);
+    //-     fun_value = LLVMGetNamedFunction(module, raw_name);
     //-
     //-     if (fun_value)
     //-     {
     //-         if (!ft_p)  v_return(fun_value);
     //-     }
     //-
-    //-     fun_type  = v_find_symbol_type(fun_name);
+    //-     fun_type  = v_find_symbol_type(raw_name);
     //-     fun_type_ = v_type_get_llvm_type(fun_type);
     //-
     //-     if (ft_p)  v_store(fun_type_, ft_p);
     //-
     //-     if (fun_value)  v_return(fun_value);
     //-
-    //-     fun_value = LLVMAddFunction(module, fun_name, fun_type_);
+    //-     fun_value = LLVMAddFunction(module, raw_name, fun_type_);
     //-
     //-     v_return(fun_value);
     //- }
     //-----------------------------------------------------------------
-    obtain_fun_ft  = v_find_symbol_type("v_obtain_function");
+    obtain_fun_raw = v_lookup_alias("v_obtain_function");
+    obtain_fun_ft  = v_find_symbol_type(obtain_fun_raw);
     obtain_fun_ft_ = v_type_get_llvm_type(obtain_fun_ft);
-    obtain_fun_f   = LLVMAddFunction(module, "v_obtain_function", obtain_fun_ft_);
+    obtain_fun_f   = LLVMAddFunction(module, obtain_fun_raw, obtain_fun_ft_);
 
     fun_name = LLVMGetParam(obtain_fun_f, 0);
     ft_p     = LLVMGetParam(obtain_fun_f, 1);
@@ -288,18 +248,31 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
-    get_module_ft  = v_find_symbol_type("v_get_module");
+    lookup_alias_raw = v_lookup_alias("v_lookup_alias");
+    lookup_alias_ft  = v_find_symbol_type(lookup_alias_raw);
+    lookup_alias_ft_ = v_type_get_llvm_type(lookup_alias_ft);
+    lookup_alias_f   = LLVMAddFunction(module, lookup_alias_raw, lookup_alias_ft_);
+
+    v_store(fun_name, val0);
+
+    raw_name = LLVMBuildCall2(builder, lookup_alias_ft_, lookup_alias_f, val0, 1, "raw_name");
+
+
+    get_module_raw = v_lookup_alias("v_get_module");
+    get_module_ft  = v_find_symbol_type(get_module_raw);
     get_module_ft_ = v_type_get_llvm_type(get_module_ft);
-    get_module_f   = LLVMAddFunction(module, "v_get_module", get_module_ft_);
+    get_module_f   = LLVMAddFunction(module, get_module_raw, get_module_ft_);
 
     module_v = LLVMBuildCall2(builder, get_module_ft_, get_module_f, 0, 0, "module_v");
 
-    llvm_get_fun_ft  = v_find_symbol_type("LLVMGetNamedFunction");
+
+    llvm_get_fun_raw = v_lookup_alias("LLVMGetNamedFunction");
+    llvm_get_fun_ft  = v_find_symbol_type(llvm_get_fun_raw);
     llvm_get_fun_ft_ = v_type_get_llvm_type(llvm_get_fun_ft);
-    llvm_get_fun_f   = LLVMAddFunction(module, "LLVMGetNamedFunction", llvm_get_fun_ft_);
+    llvm_get_fun_f   = LLVMAddFunction(module, llvm_get_fun_raw, llvm_get_fun_ft_);
 
     v_store(module_v, val0);
-    v_store(fun_name, val1);
+    v_store(raw_name, val1);
 
     fun_value = LLVMBuildCall2(builder, llvm_get_fun_ft_, llvm_get_fun_f, val0, 2, "fun_value");
 
@@ -332,14 +305,20 @@
     LLVMPositionBuilderAtEnd(builder, else_b0);
 
 
-    v_store(fun_name, val0);
+    find_sym_type_raw = v_lookup_alias("v_find_symbol_type");
+    find_sym_type_ft  = v_find_symbol_type(find_sym_type_raw);
+    find_sym_type_ft_ = v_type_get_llvm_type(find_sym_type_ft);
+    find_sym_type_f   = LLVMAddFunction(module, find_sym_type_raw, find_sym_type_ft_);
+
+    v_store(raw_name, val0);
 
     fun_type = LLVMBuildCall2(builder, find_sym_type_ft_, find_sym_type_f, val0, 1, "fun_type");
 
 
-    get_llvm_type_ft  = v_find_symbol_type("v_type_get_llvm_type");
+    get_llvm_type_raw = v_lookup_alias("v_type_get_llvm_type");
+    get_llvm_type_ft  = v_find_symbol_type(get_llvm_type_raw);
     get_llvm_type_ft_ = v_type_get_llvm_type(get_llvm_type_ft);
-    get_llvm_type_f   = LLVMAddFunction(module, "v_type_get_llvm_type", get_llvm_type_ft_);
+    get_llvm_type_f   = LLVMAddFunction(module, get_llvm_type_raw, get_llvm_type_ft_);
 
     v_store(fun_type, val0);
 
@@ -372,12 +351,13 @@
     LLVMPositionBuilderAtEnd(builder, else_b3);
 
 
-    llvm_add_fun_ft  = v_find_symbol_type("LLVMAddFunction");
+    llvm_add_fun_raw = v_lookup_alias("LLVMAddFunction");
+    llvm_add_fun_ft  = v_find_symbol_type(llvm_add_fun_raw);
     llvm_add_fun_ft_ = v_type_get_llvm_type(llvm_add_fun_ft);
-    llvm_add_fun_f   = LLVMAddFunction(module, "LLVMAddFunction", llvm_add_fun_ft_);
+    llvm_add_fun_f   = LLVMAddFunction(module, llvm_add_fun_raw, llvm_add_fun_ft_);
 
     v_store(module_v,  val0);
-    v_store(fun_name,  val1);
+    v_store(raw_name,  val1);
     v_store(fun_type_, val2);
 
     fun_value = LLVMBuildCall2(builder, llvm_add_fun_ft_, llvm_add_fun_f, val0, 3, "fun_value");
@@ -391,16 +371,18 @@
     //-----------------------------------------------------------------
     //- v_obtain_global: (var_name: char_ptr, vt_p: llvm_type_ref_ptr) ~> LLVMValueRef
     //- {
+    //-     raw_name = v_lookup_alias(var_name);
+    //-
     //-     module = v_get_module();
     //-
-    //-     var_value = LLVMGetNamedGlobal(module, var_name);
+    //-     var_value = LLVMGetNamedGlobal(module, raw_name);
     //-
     //-     if (var_value)
     //-     {
     //-         if (!vt_p)  v_return(var_value);
     //-     }
     //-
-    //-     var_type = v_find_symbol_type(var_name);
+    //-     var_type = v_find_symbol_type(raw_name);
     //-
     //-     var_type_p = v_alloca(v_type_ptr);
     //-
@@ -425,14 +407,15 @@
     //-
     //-     if (var_value)  v_return(var_value);
     //-
-    //-     var_value = LLVMAddGlobal(module, var_type_, var_name);
+    //-     var_value = LLVMAddGlobal(module, var_type_, raw_name);
     //-
     //-     v_return(var_value);
     //- }
     //-----------------------------------------------------------------
-    obtain_var_ft  = v_find_symbol_type("v_obtain_global");
+    obtain_var_raw = v_lookup_alias("v_obtain_global");
+    obtain_var_ft  = v_find_symbol_type(obtain_var_raw);
     obtain_var_ft_ = v_type_get_llvm_type(obtain_var_ft);
-    obtain_var_f   = LLVMAddFunction(module, "v_obtain_global", obtain_var_ft_);
+    obtain_var_f   = LLVMAddFunction(module, obtain_var_raw, obtain_var_ft_);
 
     var_name = LLVMGetParam(obtain_var_f, 0);
     vt_p     = LLVMGetParam(obtain_var_f, 1);
@@ -441,14 +424,20 @@
     LLVMPositionBuilderAtEnd(builder, entry);
 
 
+    v_store(var_name, val0);
+
+    raw_name = LLVMBuildCall2(builder, lookup_alias_ft_, lookup_alias_f, val0, 1, "raw_name");
+
+
     module_v = LLVMBuildCall2(builder, get_module_ft_, get_module_f, 0, 0, "module_v");
 
-    llvm_get_var_ft  = v_find_symbol_type("LLVMGetNamedGlobal");
+    llvm_get_var_raw = v_lookup_alias("LLVMGetNamedGlobal");
+    llvm_get_var_ft  = v_find_symbol_type(llvm_get_var_raw);
     llvm_get_var_ft_ = v_type_get_llvm_type(llvm_get_var_ft);
-    llvm_get_var_f   = LLVMAddFunction(module, "LLVMGetNamedGlobal", llvm_get_var_ft_);
+    llvm_get_var_f   = LLVMAddFunction(module, llvm_get_var_raw, llvm_get_var_ft_);
 
     v_store(module_v, val0);
-    v_store(var_name, val1);
+    v_store(raw_name, val1);
 
     var_value = LLVMBuildCall2(builder, llvm_get_var_ft_, llvm_get_var_f, val0, 2, "var_value");
 
@@ -481,7 +470,7 @@
     LLVMPositionBuilderAtEnd(builder, else_b0);
 
 
-    v_store(var_name, val0);
+    v_store(raw_name, val0);
 
     var_type = LLVMBuildCall2(builder, find_sym_type_ft_, find_sym_type_f, val0, 1, "var_type");
 
@@ -491,9 +480,10 @@
     var_type_p = LLVMBuildAlloca(builder, v_type_ptr_, "var_type_p");
 
 
-    type_is_ref_ft  = v_find_symbol_type("v_type_is_reference");
+    type_is_ref_raw = v_lookup_alias("v_type_is_reference");
+    type_is_ref_ft  = v_find_symbol_type(type_is_ref_raw);
     type_is_ref_ft_ = v_type_get_llvm_type(type_is_ref_ft);
-    type_is_ref_f   = LLVMAddFunction(module, "v_type_is_reference", type_is_ref_ft_);
+    type_is_ref_f   = LLVMAddFunction(module, type_is_ref_raw, type_is_ref_ft_);
 
     v_store(var_type, val0);
 
@@ -509,9 +499,10 @@
 
     LLVMPositionBuilderAtEnd(builder, then_b2);
 
-    get_elt_type_ft  = v_find_symbol_type("v_type_refptr_get_element_type");
+    get_elt_type_raw = v_lookup_alias("v_type_refptr_get_element_type");
+    get_elt_type_ft  = v_find_symbol_type(get_elt_type_raw);
     get_elt_type_ft_ = v_type_get_llvm_type(get_elt_type_ft);
-    get_elt_type_f   = LLVMAddFunction(module, "v_type_refptr_get_element_type", get_elt_type_ft_);
+    get_elt_type_f   = LLVMAddFunction(module, get_elt_type_raw, get_elt_type_ft_);
 
 //  v_store(var_type, val0);
 
@@ -566,13 +557,14 @@
     LLVMPositionBuilderAtEnd(builder, else_b4);
 
 
-    llvm_add_var_ft  = v_find_symbol_type("LLVMAddGlobal");
+    llvm_add_var_raw = v_lookup_alias("LLVMAddGlobal");
+    llvm_add_var_ft  = v_find_symbol_type(llvm_add_var_raw);
     llvm_add_var_ft_ = v_type_get_llvm_type(llvm_add_var_ft);
-    llvm_add_var_f   = LLVMAddFunction(module, "LLVMAddGlobal", llvm_add_var_ft_);
+    llvm_add_var_f   = LLVMAddFunction(module, llvm_add_var_raw, llvm_add_var_ft_);
 
     v_store(module_v,  val0);
     v_store(var_type_, val1);
-    v_store(var_name,  val2);
+    v_store(raw_name,  val2);
 
     var_value = LLVMBuildCall2(builder, llvm_add_var_ft_, llvm_add_var_f, val0, 3, "var_value");
 

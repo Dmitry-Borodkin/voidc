@@ -2805,12 +2805,12 @@ v_restore_builder_ip(void)
 
 //---------------------------------------------------------------------
 LLVMValueRef
-v_prepare_function(const char *name, v_type_t *type)
+v_prepare_function(const char *raw_name, v_type_t *type)
 {
     auto &gctx = *voidc_global_ctx_t::target;
     auto &lctx = *gctx.local_ctx;
 
-    return  lctx.prepare_function(name, type);
+    return  lctx.prepare_function(raw_name, type);
 }
 
 //---------------------------------------------------------------------
