@@ -769,7 +769,15 @@
 
     //-------------------------------------------------------------
     v_store(v_target_global_ctx_ptr, typ0);         //- Global context
-    v_store(v_quark_t,               typ1);         //- Raw name
+    v_store(v_quark_t,               typ1);         //- Name
+    v_store(v_quark_t,               typ2);         //- Raw name
+
+    ft = v_function_type(void, typ0, 3, false);
+    v_export_symbol_type("v_target_global_ctx_add_alias", ft);
+
+    //-------------------------------------------------------------
+//  v_store(v_target_global_ctx_ptr, typ0);         //- Global context
+//  v_store(v_quark_t,               typ1);         //- Raw name
     v_store(LLVMValueRef,            typ2);         //- Value
 
     ft = v_function_type(void, typ0, 3, false);

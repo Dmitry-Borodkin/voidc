@@ -3575,6 +3575,13 @@ v_target_destroy_global_ctx(base_global_ctx_t *gctx)
 
 //---------------------------------------------------------------------
 void
+v_target_global_ctx_add_alias(base_global_ctx_t *gctx, v_quark_t name, v_quark_t raw_name)
+{
+    gctx->decls.aliases_insert({name, raw_name});
+}
+
+//---------------------------------------------------------------------
+void
 v_target_global_ctx_add_constant_value(base_global_ctx_t *gctx, v_quark_t raw_name, LLVMValueRef value)
 {
     gctx->constant_values.insert_or_assign(raw_name, value);
