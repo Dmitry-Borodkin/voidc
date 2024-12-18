@@ -629,11 +629,25 @@ struct Coords
     y: double;
 };
 
+byte = uint(8);
+
 union IntRep
 {
     i: int;
-    s: char[int.sizeof];
+    r: byte[0];
 };
+
+{   ir: &IntRep := v_undef();
+
+    ir.i := 0xDEADBEEF;
+
+    for (i: &int := 0; i < int.sizeof; ++i)
+    {
+        printf("%02X ", ir.r[i]);
+    }
+
+    printf("\n");
+}
 ```
 
 #### *Declarations*.
