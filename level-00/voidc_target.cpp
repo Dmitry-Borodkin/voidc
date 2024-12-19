@@ -3582,6 +3582,13 @@ v_target_global_ctx_add_alias(base_global_ctx_t *gctx, v_quark_t name, v_quark_t
 
 //---------------------------------------------------------------------
 void
+v_target_global_ctx_add_intrinsic(base_global_ctx_t *gctx, v_quark_t fun_name, void *fun, void *aux)
+{
+    gctx->decls.intrinsics_insert({fun_name, {fun, aux}});
+}
+
+//---------------------------------------------------------------------
+void
 v_target_global_ctx_add_constant_value(base_global_ctx_t *gctx, v_quark_t raw_name, LLVMValueRef value)
 {
     gctx->constant_values.insert_or_assign(raw_name, value);

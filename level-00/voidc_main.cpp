@@ -211,11 +211,12 @@ my_fread(void* buf, size_t sz, size_t cn, std::FILE* f)
 extern "C"
 LLVMValueRef v_target_global_ctx_get_constant_value(base_global_ctx_t *, v_quark_t);
 
-static std::string
-obtain_import_bin_filename(base_global_ctx_t *gctx, const fs::path &src_filename)
+static fs::path
+obtain_import_bin_filepath(base_global_ctx_t *gctx, const fs::path &src_filename)
 {
-    static const v_quark_t prefix_q = v_quark_from_string("voidc.import_bin_filename_prefix");
-    static const v_quark_t suffix_q = v_quark_from_string("voidc.import_bin_filename_suffix");
+    static const v_quark_t prefix_q  = v_quark_from_string("voidc.import_bin_filename_prefix");
+    static const v_quark_t suffix_q  = v_quark_from_string("voidc.import_bin_filename_suffix");
+    static const v_quark_t rewrite_q = v_quark_from_string("voidc.import_bin_filename_rewrite");
 
     const char *prefix = "__voidcache__/";      //- ?
     const char *suffix = "c";                   //- ?
@@ -223,7 +224,21 @@ obtain_import_bin_filename(base_global_ctx_t *gctx, const fs::path &src_filename
     if (auto p = v_target_global_ctx_get_constant_value(gctx, prefix_q))  prefix = (const char *)p;
     if (auto s = v_target_global_ctx_get_constant_value(gctx, suffix_q))  suffix = (const char *)s;
 
-    return  prefix + src_filename.filename().generic_u8string() + suffix;
+    std::string bin_filename = prefix + src_filename.filename().generic_u8string() + suffix;
+
+    if (auto *p = gctx->decls.intrinsics.find(rewrite_q))
+    {
+        typedef void (*rewrite_t)(void *aux, const std::string *parent, std::string *fname);
+
+        auto *aux = p->second;
+        auto *fun = rewrite_t(p->first);
+
+        std::string parent = src_filename.parent_path().generic_u8string();
+
+        fun(aux, &parent, &bin_filename);
+    }
+
+    return  fs::u8path(bin_filename);
 }
 
 
@@ -242,11 +257,12 @@ static
 std::map<std::pair<std::string, std::string>, import_state_t> import_state;         //- ?
 
 static bool
-check_import_state(const fs::path &src_filepath, const std::string &bin_filename)
+check_import_state(const fs::path &src_filepath, const fs::path &bin_filepath)
 {
     auto src_filepath_str = src_filepath.generic_u8string();
+    auto bin_filepath_str = bin_filepath.generic_u8string();
 
-    {   auto it = import_state.find({src_filepath_str, bin_filename});
+    {   auto it = import_state.find({src_filepath_str, bin_filepath_str});
 
         if (it != import_state.end())
         {
@@ -256,40 +272,43 @@ check_import_state(const fs::path &src_filepath, const std::string &bin_filename
 
     //- Perform check
 
-    import_state[{src_filepath_str, bin_filename}] = ist_unknown;
+    import_state[{src_filepath_str, bin_filepath_str}] = ist_unknown;
 
     fs::path parent_path = src_filepath.parent_path();
 
-    fs::path bin_filepath = parent_path / fs::u8path(bin_filename);
+    fs::path bin_absolute;
+
+    if (bin_filepath.is_absolute()) bin_absolute = bin_filepath;
+    else                            bin_absolute = parent_path / bin_filepath;
 
     bool use_binary = true;
 
     fs::file_time_type bin_time;
 
-    //- First, check bin_filepath itself
+    //- First, check bin_absolute itself
 
-    if (!fs::exists(bin_filepath))
+    if (!fs::exists(bin_absolute))
     {
         use_binary = false;
     }
     else
     {
         auto st  = fs::last_write_time(src_filepath);
-        bin_time = fs::last_write_time(bin_filepath);
+        bin_time = fs::last_write_time(bin_absolute);
 
         if (st > bin_time)  use_binary = false;
     }
 
     if (!use_binary)
     {
-        import_state[{src_filepath_str, bin_filename}] = ist_bad;
+        import_state[{src_filepath_str, bin_filepath_str}] = ist_bad;
 
         return false;
     }
 
     //- Second, check for header ...
 
-    std::FILE *infs = my_fopen(bin_filepath);
+    std::FILE *infs = my_fopen(bin_absolute);
 
     size_t buf_len = sizeof(magic);
     auto buf = std::make_unique<char[]>(buf_len);
@@ -300,7 +319,7 @@ check_import_state(const fs::path &src_filepath, const std::string &bin_filename
 
     if (std::strcmp(magic, buf.get()) != 0)
     {
-        import_state[{src_filepath_str, bin_filename}] = ist_bad;
+        import_state[{src_filepath_str, bin_filepath_str}] = ist_bad;
 
         std::fclose(infs);
 
@@ -354,13 +373,18 @@ check_import_state(const fs::path &src_filepath, const std::string &bin_filename
 
         my_fread(buf.get(), len, 1, infs);
 
-        std::string bfil(buf.get(), len);
+        std::string bstr(buf.get(), len);
+
+        fs::path bfil = fs::u8path(bstr);
 
         use_binary = check_import_state(imp_filename, bfil);
 
         if (use_binary)
         {
-            fs::path bin_impfile = imp_filename.parent_path() / fs::u8path(bfil);
+            fs::path bin_impfile;
+
+            if (bfil.is_absolute()) bin_impfile = bfil;
+            else                    bin_impfile = imp_filename.parent_path() / bfil;
 
             auto bt = fs::last_write_time(bin_impfile);
 
@@ -370,7 +394,7 @@ check_import_state(const fs::path &src_filepath, const std::string &bin_filename
 
     std::fclose(infs);
 
-    import_state[{src_filepath_str, bin_filename}] = (use_binary ? ist_good : ist_bad);
+    import_state[{src_filepath_str, bin_filepath_str}] = (use_binary ? ist_good : ist_bad);
 
     return use_binary;
 }
@@ -476,9 +500,11 @@ v_import_helper(const char *name, bool _export)
 
     auto &tctx = *voidc_global_ctx_t::target;
 
-    std::string bin_filename = obtain_import_bin_filename(&tctx, src_filepath);
+    fs::path bin_filepath = obtain_import_bin_filepath(&tctx, src_filepath);
 
-    parent_lctx->imports.insert({name, bin_filename});
+    auto bin_filepath_str = bin_filepath.generic_u8string();
+
+    parent_lctx->imports.insert({name, bin_filepath_str});
 
     auto *target_lctx = tctx.local_ctx;
 
@@ -517,9 +543,12 @@ v_import_helper(const char *name, bool _export)
         export_data = &it->second;
     }
 
-    {   fs::path bin_filepath = src_filepath.parent_path() / fs::u8path(bin_filename);
+    {   bool use_binary = check_import_state(src_filepath, bin_filepath);
 
-        bool use_binary = check_import_state(src_filepath, bin_filename);
+        fs::path bin_absolute;
+
+        if (bin_filepath.is_absolute()) bin_absolute = bin_filepath;
+        else                            bin_absolute = src_filepath.parent_path() / bin_filepath;
 
         std::FILE *infs;
 
@@ -534,7 +563,7 @@ v_import_helper(const char *name, bool _export)
 
         if (use_binary)
         {
-            infs = my_fopen(bin_filepath);
+            infs = my_fopen(bin_absolute);
 
             size_t buf_len = sizeof(magic);
             auto buf = std::make_unique<char[]>(buf_len);
@@ -587,7 +616,7 @@ v_import_helper(const char *name, bool _export)
 
             infs = my_fopen(src_filepath);
 
-            out_binary_t out_binary(bin_filepath);
+            out_binary_t out_binary(bin_absolute);
 
             const auto &outfs = out_binary.f;
 
