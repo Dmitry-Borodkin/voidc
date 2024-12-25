@@ -32,19 +32,19 @@ add_definitions(${LLVM_DEFINITIONS_LIST})
 
 #----------------------------------------------------------------------
 add_executable(voidc
-    level-00/voidc_ast.cpp
-    level-00/voidc_types.cpp
-    level-00/voidc_target.cpp
-    level-00/voidc_util.cpp
-    level-00/voidc_main.cpp
-    level-00/voidc_quark.cpp
-    level-00/voidc_visitor.cpp
-    level-00/voidc_compiler.cpp
-    level-00/vpeg_parser.cpp
-    level-00/vpeg_grammar.cpp
-    level-00/vpeg_context.cpp
-    level-00/vpeg_voidc.cpp
-    level-00/voidc_stdio.cpp
+    compiler/stage0/voidc_ast.cpp
+    compiler/stage0/voidc_types.cpp
+    compiler/stage0/voidc_target.cpp
+    compiler/stage0/voidc_util.cpp
+    compiler/stage0/voidc_main.cpp
+    compiler/stage0/voidc_quark.cpp
+    compiler/stage0/voidc_visitor.cpp
+    compiler/stage0/voidc_compiler.cpp
+    compiler/stage0/vpeg_parser.cpp
+    compiler/stage0/vpeg_grammar.cpp
+    compiler/stage0/vpeg_context.cpp
+    compiler/stage0/vpeg_voidc.cpp
+    compiler/stage0/voidc_stdio.cpp
 )
 
 

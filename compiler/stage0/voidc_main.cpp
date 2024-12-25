@@ -123,11 +123,11 @@ import_paths_initialize(fs::path &exe_path)
         p = fs::canonical(p);
         p = p.parent_path();
 
-        import_paths.push_back(p);
-
         //- Dirty hack...
 
-        import_paths.push_back(p / "..");               //- WTF ?!?!?
+        import_paths.push_back(p / "../compiler/import");
+        import_paths.push_back(p / "../library/import");
+        import_paths.push_back(p / "..");
     }
 }
 

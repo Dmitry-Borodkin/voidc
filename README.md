@@ -230,7 +230,7 @@ BTW, first time it can take a while due to long (idk, 10-30 sec) compilation of 
 After that, try:
 
 ```bash
-$ build/voidc level-03/macros_test.void
+$ build/voidc compiler/test/level-03/macros_test.void
 ```
 
 This "script" (with imports) uses almost all language features developed so far.
