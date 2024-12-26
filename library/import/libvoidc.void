@@ -1,0 +1,212 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2024 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{   voidc_guard_target("libvoidc.void  must be imported into the voidc target only!");
+
+    v_import("mainline.void");
+
+    v_import("llvm-c/Core.void");
+    v_import("llvm-c/TargetMachine.void");
+    v_import("llvm-c/Transform/PassBuilder.void");
+}
+
+{   v_enable_mainline();
+}
+
+
+//=====================================================================
+{   voidc_unit_begin_module("libvoidc_module"); }
+
+
+//---------------------------------------------------------------------
+private
+clean_header: (aux: *void) ~> void
+{
+    lctx = (aux: *v_target_local_ctx_t);
+
+    v_target_destroy_local_ctx(lctx);
+}
+
+//---------------------------------------------------------------------
+export
+voidc_make_header: (name: *const char) ~> void
+{
+    gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    if (gctx != vctx)
+    {
+        v_target_set_global_ctx(vctx);
+
+        v_import("mainline.void");
+//      v_import("llvm-c/Core.void");           //- WTF !?!?!?!?!?!?!
+
+        v_enable_mainline();
+
+        filename = v_target_local_ctx_get_filename(v_target_get_voidc_local_ctx());
+
+        lctx = v_target_create_local_ctx(filename, gctx);
+
+        v_add_local_cleaner(clean_header, lctx);
+
+        v_target_set_global_ctx(gctx);
+
+        //----------------------------------------------------------
+        #if (v_defined(_WIN32))
+
+            v_add_constant("_WIN32", v_void_type(), 0);
+
+        #endif
+    }
+    else
+    {
+        v_import("mainline.void");
+//      v_import("llvm-c/Core.void");           //- WTF !?!?!?!?!?!?!
+    }
+
+    v_enable_mainline();
+
+    v_set_export_flag(true);
+}
+
+
+//---------------------------------------------------------------------
+export
+voidc_make_module: (modname: *const char) ~> void
+{
+    voidc_guard_target("make_module  must be called from the voidc target only!");
+
+    v_import("mainline.void");
+//  v_import("llvm-c/Core.void");           //- WTF !?!?!?!?!?!?!
+
+    v_enable_mainline();
+
+    //----------------------------------------------------------
+    filename = v_target_local_ctx_get_filename(v_target_get_voidc_local_ctx());
+
+    gctx = v_target_create_global_ctx(int.sizeof, long.sizeof, intptr_t.sizeof);
+    lctx = v_target_create_local_ctx(filename, gctx);
+
+    suf_q = v_quark_from_string("voidc.import_bin_filename_suffix");
+
+    v_target_global_ctx_add_constant_value(gctx, suf_q, ("c-aot": LLVMValueRef));       //- ?
+
+    v_target_set_global_ctx(gctx);
+
+    //----------------------------------------------------------
+    dl = v_target_get_voidc_data_layout();
+
+    v_target_set_data_layout(dl);
+
+    //----------------------------------------------------------
+    #if (v_defined(_WIN32))
+
+        v_add_constant("_WIN32", v_void_type(), 0);
+
+    #endif
+
+    //----------------------------------------------------------
+    v_enable_mainline();
+
+    //----------------------------------------------------------
+    module = LLVMModuleCreateWithNameInContext(modname, v_target_get_llvm_ctx());
+
+    strlen: (*const char) ~> size_t;
+
+    LLVMSetSourceFileName(module, filename, strlen(filename));
+
+    v_set_module(module);
+}
+
+
+//---------------------------------------------------------------------
+export
+voidc_emit_module: (filename: *const char) ~> void
+{
+    module = v_get_module();
+
+    v_finish_module(module);
+
+    //----------------------------------------------------------
+    v_verify_module(module);
+
+    //----------------------------------------------------------
+    triple = LLVMGetDefaultTargetTriple();
+
+    tr: &LLVMTargetRef := v_undef();
+
+    LLVMGetTargetFromTriple(triple, &tr, 0);
+
+    cpu_name     = LLVMGetHostCPUName();
+    cpu_features = LLVMGetHostCPUFeatures();
+
+    target_machine =
+        LLVMCreateTargetMachine
+        (
+            tr,
+            triple,
+            cpu_name,
+            cpu_features,
+            LLVMCodeGenLevelDefault,
+            LLVMRelocPIC,                   //- WTF !?!
+            LLVMCodeModelDefault
+        );
+
+    //----------------------------------------------------------
+    dl = LLVMCreateTargetDataLayout(target_machine);
+
+    LLVMSetModuleDataLayout(module, dl);
+    LLVMSetTarget(module, triple);
+
+    LLVMDisposeTargetData(dl);
+    LLVMDisposeMessage(cpu_features);
+    LLVMDisposeMessage(cpu_name);
+    LLVMDisposeMessage(triple);
+
+    //----------------------------------------------------------
+    {   opts = LLVMCreatePassBuilderOptions();
+
+        err = LLVMRunPasses(module, "default<O3>", target_machine, opts);
+//      err = LLVMRunPasses(module, "disable-builtin<printf>,default<O3>", target_machine, opts);
+
+        if (err)
+        {
+            msg = LLVMGetErrorMessage(err);
+
+            printf: (*const char, ...) ~> int;
+
+            printf("LLVMRunPasses: %s\n", msg);
+
+            LLVMDisposeErrorMessage(msg);
+        }
+
+        LLVMDisposePassBuilderOptions(opts);
+    }
+
+    //----------------------------------------------------------
+    v_verify_module(module);
+
+    //----------------------------------------------------------
+    LLVMTargetMachineEmitToFile(target_machine, module, filename, LLVMObjectFile, 0);
+
+    //----------------------------------------------------------
+    LLVMDisposeModule(module);
+
+    LLVMDisposeTargetMachine(target_machine);
+
+    //----------------------------------------------------------
+    lctx = v_target_get_local_ctx();
+    gctx = v_target_get_global_ctx();
+
+    v_target_set_global_ctx(v_target_get_voidc_global_ctx());
+
+    v_target_destroy_local_ctx(lctx);
+    v_target_destroy_global_ctx(gctx);
+}
+
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+

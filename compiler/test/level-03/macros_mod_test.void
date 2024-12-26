@@ -225,7 +225,7 @@ register_list_op_braces_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_b
     inlinehint
     (_[]): (sp: list(T), i: size_t) ~> T
     {
-        a = v_list_get_item(&(&sp)->impl, i);
+        a = v_list_get_item(&sp.impl, i);
         v_assert(a);
 
         v_return(v_std_any_get_value(T, a));
@@ -256,7 +256,7 @@ register_list_op_braces_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_b
     };
 
     alwaysinline
-    (_.size): (sp: list(T)) ~> size_t  =  v_list_get_size(&(&sp)->impl);
+    (_.size): (sp: list(T)) ~> size_t  =  v_list_get_size(&sp.impl);
 
   }   //- namespace my
 
