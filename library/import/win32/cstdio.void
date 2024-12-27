@@ -29,11 +29,21 @@ win32_cstdio_coe_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) 
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
+    arg0 = v_list_get_item(args, 0);
+
+    num = (v_ast_expr_compiled_get_value(arg0) : int);
+
     expr: &v_ast_expr_t := {};
+
+    v_ast_make_expr_integer(&expr, num);
+
+    elst: &v_ast_expr_list_t := {};
+
+    v_make_list(&elst, &expr);
 
     v_ast_make_expr_identifier(&expr, "__acrt_iob_func");
 
-    v_ast_make_expr_call(&expr, &expr, args);
+    v_ast_make_expr_call(&expr, &expr, &elst);
 
     v_ast_accept_visitor(&expr, vis);
 }
@@ -45,11 +55,7 @@ v_internal_win32_cstdio_effort: (*void) ~> void
 
     stream_t = v_generic_type(q("v.win32.stdio.stream_t"), 0, 0);
 
-    _int = v_find_type("int");
-
-    v_type_generic_set_implementation_type(stream_t, _int);
-
-    FILE_ptr = v_pointer_type(v_find_type("FILE"), 0);
+    FILE_ptr = v_pointer_type(v_struct_type_named("struct.FILE"), 0);
 
     func_q = q("v.win32.cstdio.coercion");
     fake_q = q("v.fake.cstdio_stream_coercion");
@@ -58,12 +64,9 @@ v_internal_win32_cstdio_effort: (*void) ~> void
 
     v_add_intrinsic_q(func_q, win32_cstdio_coe_intrinsic, 0);
 
-    _int = v_find_type("int");
-    int_ = v_type_get_llvm_type(_int);
-
-    v_add_constant("stdin",  stream_t, LLVMConstInt(int_, 0, 0));
-    v_add_constant("stdout", stream_t, LLVMConstInt(int_, 1, 0));
-    v_add_constant("stderr", stream_t, LLVMConstInt(int_, 2, 0));
+    v_add_constant("stdin",  stream_t, (0: LLVMValueRef));
+    v_add_constant("stdout", stream_t, (1: LLVMValueRef));
+    v_add_constant("stderr", stream_t, (2: LLVMValueRef));
 }
 
 

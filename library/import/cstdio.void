@@ -75,6 +75,8 @@
         """
         #include <stdio.h>
 
+int __mingw_vswprintf(wchar_t *, size_t, const wchar_t *, va_list) { return 0; }
+
         unsigned my_fpos_t_size = sizeof(fpos_t)/sizeof(void *);
 
         int      my__IOFBF       = _IOFBF      ;
