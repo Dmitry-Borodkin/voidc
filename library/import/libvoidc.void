@@ -43,7 +43,6 @@ voidc_make_header: (name: *const char) ~> void
         v_target_set_global_ctx(vctx);
 
         v_import("mainline.void");
-        v_import("llvm-c/Core.void");           //- WTF !?!?!?!?!?!?!
 
         v_enable_mainline();
 
@@ -65,7 +64,6 @@ voidc_make_header: (name: *const char) ~> void
     else
     {
         v_import("mainline.void");
-        v_import("llvm-c/Core.void");           //- WTF !?!?!?!?!?!?!
     }
 
     v_enable_mainline();
@@ -81,7 +79,6 @@ voidc_make_module: (modname: *const char) ~> void
     voidc_guard_target("make_module  must be called from the voidc target only!");
 
     v_import("mainline.void");
-    v_import("llvm-c/Core.void");           //- WTF !?!?!?!?!?!?!
 
     v_enable_mainline();
 
