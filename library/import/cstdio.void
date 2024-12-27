@@ -75,8 +75,6 @@
         """
         #include <stdio.h>
 
-int __mingw_vswprintf(wchar_t *, size_t, const wchar_t *, va_list) { return 0; }
-
         unsigned my_fpos_t_size = sizeof(fpos_t)/sizeof(void *);
 
         int      my__IOFBF       = _IOFBF      ;
@@ -93,7 +91,17 @@ int __mingw_vswprintf(wchar_t *, size_t, const wchar_t *, va_list) { return 0; }
         unsigned my_TMP_MAX      = TMP_MAX     ;
         """;
 
+      #if (v_defined(_WIN32))
+
+        win32_str = "int __mingw_vswprintf(wchar_t *, size_t, const wchar_t *, va_list) { return 0; }";
+
+        fprintf(p, " - <<HEREDOC\n%s\n%s\nHEREDOC\n", source_str, win32_str);
+
+      #else
+
         fprintf(p, " - <<HEREDOC\n%s\nHEREDOC\n", source_str);
+
+      #endif
     }
 
     //-----------------------------------------------------------------
