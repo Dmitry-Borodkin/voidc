@@ -1,0 +1,87 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2024 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{ voidc_import("libvoidc.void"); }
+{ voidc_make_header("win32_cstdio"); }
+//---------------------------------------------------------------------
+#assert(v_defined(_WIN32))
+
+
+//---------------------------------------------------------------------
+{   gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    v_target_set_global_ctx(vctx);
+
+    v_import("llvm-c/Core.void");
+
+    v_add_symbol("cur_gctx", v_target_global_ctx_t, gctx);
+}
+
+//=====================================================================
+{   voidc_unit_begin_module("win32_cstdio_module");
+}
+
+//---------------------------------------------------------------------
+private
+win32_cstdio_coe_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
+
+    expr: &v_ast_expr_t := {};
+
+    v_ast_make_expr_identifier(&expr, "__acrt_iob_func");
+
+    v_ast_make_expr_call(&expr, &expr, args);
+
+    v_ast_accept_visitor(&expr, vis);
+}
+
+//---------------------------------------------------------------------
+v_internal_win32_cstdio_effort: (*void) ~> void
+{
+    q = v_quark_from_string;
+
+    stream_t = v_generic_type(q("v.win32.stdio.stream_t"), 0, 0);
+
+    _int = v_find_type("int");
+
+    v_type_generic_set_implementation_type(stream_t, _int);
+
+    FILE_ptr = v_pointer_type(v_find_type("FILE"), 0);
+
+    func_q = q("v.win32.cstdio.coercion");
+    fake_q = q("v.fake.cstdio_stream_coercion");
+
+    v_add_coercion(v_coe_projective, func_q, fake_q, stream_t, FILE_ptr);
+
+    v_add_intrinsic_q(func_q, win32_cstdio_coe_intrinsic, 0);
+
+    _int = v_find_type("int");
+    int_ = v_type_get_llvm_type(_int);
+
+    v_add_constant("stdin",  stream_t, LLVMConstInt(int_, 0, 0));
+    v_add_constant("stdout", stream_t, LLVMConstInt(int_, 1, 0));
+    v_add_constant("stderr", stream_t, LLVMConstInt(int_, 2, 0));
+}
+
+
+//---------------------------------------------------------------------
+{   if (v_find_symbol_value("v_internal_win32_cstdio_effort"))
+    {
+        voidc_skip_object_file_load(1);
+    }
+}
+
+//=====================================================================
+{   voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+{   v_target_set_global_ctx(cur_gctx);
+
+    v_export_effort(v_internal_win32_cstdio_effort, 0);
+}
+
+

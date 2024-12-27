@@ -1,0 +1,252 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2024 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{ voidc_import("libvoidc.void"); }
+{ voidc_make_header("cstdio"); }
+//---------------------------------------------------------------------
+
+{   gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    v_target_set_global_ctx(vctx);
+
+    v_add_symbol("cur_gctx", v_target_global_ctx_t, gctx);
+
+    v_target_set_global_ctx(gctx);
+}
+
+//---------------------------------------------------------------------
+{   v_target_set_global_ctx(v_target_get_voidc_global_ctx());
+
+    v_import("llvm-c/Core.void");
+
+    v_set_export_flag(false);
+
+    //-----------------------------------------------------------------
+    voidc_clear_unit_buffer();
+}
+
+//---------------------------------------------------------------------
+{   struct FILE;
+
+    popen: (command: *const char, prop: *const char) ~> *FILE;
+
+    pclose: (*FILE) ~> int;
+
+    fprintf: (stream: *FILE, format: *const char, ...) ~> int;
+
+    fscanf: (stream: *FILE, format: *const char, ...) ~> int;
+
+    sprintf: (str: *char, format: *const char, ...) ~> int;
+
+    //-----------------------------------------------------------------
+    buflen = 1024;
+
+    buffer = v_malloc(char, buflen);
+    defer v_free(buffer);
+
+    {   p = popen("mktemp", "r");
+        defer pclose(p);
+
+        fscanf(p, "%500s", buffer);
+    }
+
+    #if (v_defined(_WIN32))
+    {
+        cmd = buffer + 512;
+
+        sprintf(cmd, "cygpath -m %s", buffer);
+
+        p = popen(cmd, "r");
+        defer pclose(p);
+
+        fscanf(p, "%1000s", buffer);
+    }
+    #endif
+
+    //-----------------------------------------------------------------
+    {   p = popen("bash", "w");
+        defer pclose(p);
+
+        fprintf(p, "clang -x c -c -o %s", buffer);
+
+        source_str =
+        """
+        #include <stdio.h>
+
+        unsigned my_fpos_t_size = sizeof(fpos_t)/sizeof(void *);
+
+        int      my__IOFBF       = _IOFBF      ;
+        int      my__IOLBF       = _IOLBF      ;
+        int      my__IONBF       = _IONBF      ;
+        size_t   my_BUFSIZ       = BUFSIZ      ;
+        int      my_EOF          = EOF         ;
+        unsigned my_FOPEN_MAX    = FOPEN_MAX   ;
+        unsigned my_FILENAME_MAX = FILENAME_MAX;
+        unsigned my_L_tmpnam     = L_tmpnam    ;
+        int      my_SEEK_CUR     = SEEK_CUR    ;
+        int      my_SEEK_END     = SEEK_END    ;
+        int      my_SEEK_SET     = SEEK_SET    ;
+        unsigned my_TMP_MAX      = TMP_MAX     ;
+        """;
+
+        fprintf(p, " - <<HEREDOC\n%s\nHEREDOC\n", source_str);
+    }
+
+    //-----------------------------------------------------------------
+    {   mb: &LLVMMemoryBufferRef := 0;
+        defer LLVMDisposeMemoryBuffer(mb);
+
+        LLVMCreateMemoryBufferWithContentsOfFile(buffer, &mb, 0);
+
+        voidc_add_local_object_file_to_jit(mb);
+    }
+
+    //-----------------------------------------------------------------
+    {   p = popen("bash", "w");
+        defer pclose(p);
+
+        fprintf(p, "rm %s\n", buffer);
+    }
+
+    //-----------------------------------------------------------------
+    voidc_clear_unit_buffer();
+}
+
+//---------------------------------------------------------------------
+{   my_fpos_t_size : &unsigned;
+    my__IOFBF      : &int     ;
+    my__IOLBF      : &int     ;
+    my__IONBF      : &int     ;
+    my_BUFSIZ      : &size_t  ;
+    my_EOF         : &int     ;
+    my_FOPEN_MAX   : &unsigned;
+    my_FILENAME_MAX: &unsigned;
+    my_L_tmpnam    : &unsigned;
+    my_SEEK_CUR    : &int     ;
+    my_SEEK_END    : &int     ;
+    my_SEEK_SET    : &int     ;
+    my_TMP_MAX     : &unsigned;
+
+    v_target_set_global_ctx(cur_gctx);
+
+    _int      = v_find_type("int");
+    _size_t   = v_find_type("size_t");
+    _unsigned = v_find_type("unsigned");
+
+    int_      = v_type_get_llvm_type(_int);
+    size_t_   = v_type_get_llvm_type(_size_t);
+    unsigned_ = v_type_get_llvm_type(_unsigned);
+
+    v_add_constant("fpos_t_size", _int, LLVMConstInt(int_, my_fpos_t_size, 0));
+
+    v_add_constant("my__IOFBF"      , _int     , LLVMConstInt(int_     , my__IOFBF      , 0));
+    v_add_constant("my__IOLBF"      , _int     , LLVMConstInt(int_     , my__IOLBF      , 0));
+    v_add_constant("my__IONBF"      , _int     , LLVMConstInt(int_     , my__IONBF      , 0));
+    v_add_constant("my_BUFSIZ"      , _size_t  , LLVMConstInt(size_t_  , my_BUFSIZ      , 0));
+    v_add_constant("my_EOF"         , _int     , LLVMConstInt(int_     , my_EOF         , 1));
+    v_add_constant("my_FOPEN_MAX"   , _unsigned, LLVMConstInt(unsigned_, my_FOPEN_MAX   , 0));
+    v_add_constant("my_FILENAME_MAX", _unsigned, LLVMConstInt(unsigned_, my_FILENAME_MAX, 0));
+    v_add_constant("my_L_tmpnam"    , _unsigned, LLVMConstInt(unsigned_, my_L_tmpnam    , 0));
+    v_add_constant("my_SEEK_CUR"    , _int     , LLVMConstInt(int_     , my_SEEK_CUR    , 0));
+    v_add_constant("my_SEEK_END"    , _int     , LLVMConstInt(int_     , my_SEEK_END    , 0));
+    v_add_constant("my_SEEK_SET"    , _int     , LLVMConstInt(int_     , my_SEEK_SET    , 0));
+    v_add_constant("my_TMP_MAX"     , _unsigned, LLVMConstInt(unsigned_, my_TMP_MAX     , 0));
+
+    v_set_export_flag(true);
+
+    //-----------------------------------------------------------------
+    voidc_clear_unit_buffer();
+}
+
+
+//---------------------------------------------------------------------
+struct FILE;
+
+#if (v_defined(_WIN32))
+
+__acrt_iob_func: (int) ~> *FILE;
+
+#else
+
+stdin:  &*FILE;
+stdout: &*FILE;
+stderr: &*FILE;
+
+#endif
+
+//---------------------------------------------------------------------
+{   v_import("cstdarg.void");
+
+#if (v_defined(_WIN32))
+
+    v_export_import("win32/cstdio.void");
+
+#endif
+}
+
+//---------------------------------------------------------------------
+struct fpos_t { (*void)[fpos_t_size]; };
+
+_IOFBF       = my__IOFBF;
+_IOLBF       = my__IOLBF;
+_IONBF       = my__IONBF;
+BUFSIZ       = my_BUFSIZ;
+EOF          = my_EOF;
+FOPEN_MAX    = my_FOPEN_MAX;
+FILENAME_MAX = my_FILENAME_MAX;
+L_tmpnam     = my_L_tmpnam;
+SEEK_CUR     = my_SEEK_CUR;
+SEEK_END     = my_SEEK_END;
+SEEK_SET     = my_SEEK_SET;
+TMP_MAX      = my_TMP_MAX;
+
+//---------------------------------------------------------------------
+remove:    (filename: *const char) ~> int;
+rename:    (old_p: *const char, new_p: *const char) ~> int;
+tmpfile:   () ~> *FILE;
+tmpnam:    (s: *char) ~> *char;
+fclose:    (stream: *FILE) ~> int;
+fflush:    (stream: *FILE) ~> int;
+fopen:     (filename: *const char, mode: *const char) ~> *FILE;
+freopen:   (filename: *const char, mode: *const char, stream: *FILE) ~> *FILE;
+setbuf:    (stream: *FILE, buf: *char) ~> void;
+setvbuf:   (stream: *FILE, buf: *char, mode: int, size: size_t) ~> int;
+fprintf:   (stream: *FILE, format: *const char, ...) ~> int;
+fscanf:    (stream: *FILE, format: *const char, ...) ~> int;
+printf:    (format: *const char, ...) ~> int;
+scanf:     (format: *const char, ...) ~> int;
+snprintf:  (s: *char, n: size_t, format: *const char, ...) ~> int;
+sprintf:   (s: *char, format: *const char, ...) ~> int;
+sscanf:    (s: *const char, format: *const char, ...) ~> int;
+vfprintf:  (stream: *FILE, format: *const char, arg: va_list) ~> int;
+vfscanf:   (stream: *FILE, format: *const char, arg: va_list) ~> int;
+vprintf:   (format: *const char, arg: va_list) ~> int;
+vscanf:    (format: *const char, arg: va_list) ~> int;
+vsnprintf: (s: *char, n: size_t, format: *const char, arg: va_list) ~> int;
+vsprintf:  (s: *char, format: *const char, arg: va_list) ~> int;
+vsscanf:   (s: *const char, format: *const char, arg: va_list) ~> int;
+fgetc:     (stream: *FILE) ~> int;
+fgets:     (s: *char, n: int, stream: *FILE) ~> *char;
+fputc:     (c: int, stream: *FILE) ~> int;
+fputs:     (s: *const char, stream: *FILE) ~> int;
+getc:      (stream: *FILE) ~> int;
+getchar:   () ~> int;
+putc:      (c: int, stream: *FILE) ~> int;
+putchar:   (c: int) ~> int;
+puts:      (s: *const char) ~> int;
+ungetc:    (c: int, stream: *FILE) ~> int;
+fread:     (ptr: *void, size: size_t, nmemb: size_t, stream: *FILE) ~> size_t;
+fwrite:    (ptr: *const void, size: size_t, nmemb: size_t, stream: *FILE) ~> size_t;
+fgetpos:   (stream: *FILE, pos: *fpos_t) ~> int;
+fseek:     (stream: *FILE, offset: long, whence: int) ~> int;
+fsetpos:   (stream: *FILE, pos: *const fpos_t) ~> int;
+ftell:     (stream: *FILE) ~> long;
+rewind:    (stream: *FILE) ~> void;
+clearerr:  (stream: *FILE) ~> void;
+feof:      (stream: *FILE) ~> int;
+ferror:    (stream: *FILE) ~> int;
+perror:    (s: *const char) ~> void;
+
+

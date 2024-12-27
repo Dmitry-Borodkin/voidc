@@ -1,0 +1,233 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2024 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{ voidc_import("libvoidc.void"); }
+{ voidc_make_header("cstdarg"); }
+//---------------------------------------------------------------------
+
+{   gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    v_target_set_global_ctx(vctx);
+
+    v_add_symbol("cur_gctx", v_target_global_ctx_t, gctx);
+
+    v_target_set_global_ctx(gctx);
+}
+
+//---------------------------------------------------------------------
+{   v_target_set_global_ctx(v_target_get_voidc_global_ctx());
+
+    v_import("llvm-c/Core.void");
+
+    v_set_export_flag(false);
+
+    //-----------------------------------------------------------------
+    voidc_clear_unit_buffer();
+}
+
+//---------------------------------------------------------------------
+{   struct FILE;
+
+    popen: (command: *const char, prop: *const char) ~> *FILE;
+
+    pclose: (*FILE) ~> int;
+
+    fprintf: (stream: *FILE, format: *const char, ...) ~> int;
+
+    fscanf: (stream: *FILE, format: *const char, ...) ~> int;
+
+    sprintf: (str: *char, format: *const char, ...) ~> int;
+
+    //-----------------------------------------------------------------
+    buflen = 1024;
+
+    buffer = v_malloc(char, buflen);
+    defer v_free(buffer);
+
+    {   p = popen("mktemp", "r");
+        defer pclose(p);
+
+        fscanf(p, "%500s", buffer);
+    }
+
+    #if (v_defined(_WIN32))
+    {
+        cmd = buffer + 512;
+
+        sprintf(cmd, "cygpath -m %s", buffer);
+
+        p = popen(cmd, "r");
+        defer pclose(p);
+
+        fscanf(p, "%1000s", buffer);
+    }
+    #endif
+
+    //-----------------------------------------------------------------
+    {   p = popen("bash", "w");
+        defer pclose(p);
+
+        fprintf(p, "clang -x c -c -o %s", buffer);
+
+        source_str =
+        """
+        #include <stdarg.h>
+
+        int my_va_list_size = sizeof(va_list) / sizeof(void*);
+        """;
+
+        fprintf(p, " - <<HEREDOC\n%s\nHEREDOC\n", source_str);
+    }
+
+    //-----------------------------------------------------------------
+    {   mb: &LLVMMemoryBufferRef := 0;
+        defer LLVMDisposeMemoryBuffer(mb);
+
+        LLVMCreateMemoryBufferWithContentsOfFile(buffer, &mb, 0);
+
+        voidc_add_local_object_file_to_jit(mb);
+    }
+
+    //-----------------------------------------------------------------
+    {   p = popen("bash", "w");
+        defer pclose(p);
+
+        fprintf(p, "rm %s\n", buffer);
+    }
+
+    //-----------------------------------------------------------------
+    voidc_clear_unit_buffer();
+}
+
+//---------------------------------------------------------------------
+{   my_va_list_size: &int;
+
+    v_target_set_global_ctx(cur_gctx);
+
+    _int = v_find_type("int");
+    int_ = v_type_get_llvm_type(_int);
+
+    v_add_constant("va_list_size", _int, LLVMConstInt(int_, my_va_list_size, 0));
+
+    //-----------------------------------------------------------------
+    voidc_clear_unit_buffer();
+}
+
+
+//---------------------------------------------------------------------
+export
+struct va_list { (*void)[va_list_size]; };
+
+
+//---------------------------------------------------------------------
+{   va_list_ref = v_reference_type(v_find_type("va_list"), 0);
+
+    _void = v_void_type();
+
+    typ: &(*v_type_t)[2] := { va_list_ref, va_list_ref };
+
+    ft = v_function_type(_void, typ, 1, false);
+
+    llvm_va_start: &*const char := v_undef();
+    llvm_va_end:   &*const char := v_undef();
+    llvm_va_copy:  &*const char := v_undef();
+
+    {   ver: &unsigned[3] := v_undef();
+
+        LLVMGetVersion(ver+0, ver+1, ver+2);
+
+        if (ver[0] < 19)
+        {
+            llvm_va_start := "llvm.va_start";
+            llvm_va_end   := "llvm.va_end";
+            llvm_va_copy  := "llvm.va_copy";
+        }
+        else
+        {
+            llvm_va_start := "llvm.va_start.p0";
+            llvm_va_end   := "llvm.va_end.p0";
+            llvm_va_copy  := "llvm.va_copy.p0";
+        }
+    }
+
+    v_export_symbol(llvm_va_start, ft, 0);
+    v_export_symbol(llvm_va_end,   ft, 0);
+
+    ft = v_function_type(_void, typ, 2, false);
+
+    v_export_symbol(llvm_va_copy, ft, 0);
+
+    v_export_alias("va_start", llvm_va_start);
+    v_export_alias("va_end",   llvm_va_end);
+    v_export_alias("va_copy",  llvm_va_copy);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+{ v_target_set_global_ctx(v_target_get_voidc_global_ctx()); }
+
+//---------------------------------------------------------------------
+{ voidc_unit_begin_module("va_arg_module"); }
+
+
+//---------------------------------------------------------------------
+v_internal_va_arg_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
+{
+    call = (self: *v_ast_expr_t);
+
+    arg_list = v_ast_expr_call_get_arg_list(call);
+
+    arg0 = v_list_get_item(arg_list, 0);
+    arg1 = v_list_get_item(arg_list, 1);
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    va_list_ref = v_reference_type(v_find_type("va_list"), 0);
+
+    v_set_result_type(va_list_ref);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor((arg0: *v_ast_base_t), vis);
+
+    va_lst = v_get_result_value();
+
+    v_set_result_type(v_find_type("v_static_type_t"));
+    v_set_result_value(0);
+
+    v_ast_accept_visitor((arg1: *v_ast_base_t), vis);
+
+    typ = (v_get_result_value() : *v_type_t);
+
+    builder = v_target_get_builder();
+
+    v = LLVMBuildVAArg(builder, va_lst, v_type_get_llvm_type(typ), "");
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(typ, v);
+}
+
+//---------------------------------------------------------------------
+{   if (v_find_symbol_value("v_internal_va_arg_intrinsic"))
+    {
+        voidc_skip_object_file_load(1);
+    }
+}
+
+//---------------------------------------------------------------------
+{ voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+{   v_target_set_global_ctx(cur_gctx);
+
+    v_export_intrinsic("va_arg", v_internal_va_arg_intrinsic, 0);
+}
+
+
