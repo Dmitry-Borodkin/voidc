@@ -1922,6 +1922,14 @@
 
             is_importing = v_target_local_ctx_has_parent();
 
+            if (is_importing)
+            {
+                v_import("level-00/voidc_target.void");     //- WTF !?!?!?!
+                v_import("level-00/voidc_types.void");      //- WTF !?!?!?!
+
+                v_import("llvm-c/Core.void");               //- WTF !?!?!?!
+            }
+
             if (gctx != vctx)   v_target_set_global_ctx(gctx);
 
             if (!is_importing)  v_break();
@@ -1962,12 +1970,6 @@
         column = v_cast(v_ast_expr_integer_get_number(expr1), int);
 
         voidc_prepare_unit_action(line, column);
-
-        //---------------------------------------------------------
-        v_import("level-00/voidc_target.void");     //- WTF !?!?!?!
-        v_import("level-00/voidc_types.void");      //- WTF !?!?!?!
-
-        v_import("llvm-c/Core.void");               //- WTF !?!?!?!
 
         //---------------------------------------------------------
         if (mod_const)
