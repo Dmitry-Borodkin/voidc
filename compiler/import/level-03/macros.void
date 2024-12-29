@@ -69,6 +69,8 @@ qf_private = voidc_definitions_internal_qf_private;     //- 1 << 1
 
     v_add_symbol("q_static_type_t",      q_ref, q("v_static_type_t"));
     v_add_symbol("q_static_namespace_t", q_ref, q("v_static_namespace_t"));
+
+    v_add_symbol("q_object_intrinsic_t", q_ref, q("v_object_intrinsic_t"));
 }
 
 
@@ -562,7 +564,7 @@ voidc_internal_define_macro_helper: (q: v_quark_t, t: *v_type_t, ast: *v_ast_bas
     {
         qintr = v_quark_from_string(v_std_string_get(&sstr));
 
-        object_intrinsic_t = v_find_type("v_object_intrinsic_t");
+        object_intrinsic_t = v_find_type_q(q_object_intrinsic_t);
 
         v_export_constant_q(q, object_intrinsic_t, (qintr: LLVMValueRef));
 
@@ -837,7 +839,7 @@ compile_macro_define: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
 
         qintr = v_quark_from_string(v_std_string_get(&sstr));
 
-        object_intrinsic_t = v_find_type("v_object_intrinsic_t");
+        object_intrinsic_t = v_find_type_q(q_object_intrinsic_t);
 
         if (kind) v_add_variable_q(quark, object_intrinsic_t, (qintr: LLVMValueRef));
         else      v_add_constant_q(quark, object_intrinsic_t, (qintr: LLVMValueRef));

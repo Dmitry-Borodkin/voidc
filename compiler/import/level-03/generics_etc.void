@@ -583,7 +583,7 @@ my_abstract_object_intrinsic_intrinsic: (aux: *void, vis: *voidc_visitor_t, self
 //printf("my_abstract_object_intrinsic_intrinsic start %s\n", name);
 //defer printf("my_abstract_object_intrinsic_intrinsic stop\n");
 
-    v_assert(t == v_find_type("v_object_intrinsic_t"));
+    v_assert(t == v_find_type_q(q_object_intrinsic_t));
 
     qname = v_quark_from_string(name);
 
@@ -660,7 +660,7 @@ my_object_intrinsic_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_
         quark := v_ast_expr_identifier_get_name_q(arg0);
     }
 
-    v_set_result_type(v_find_type("v_object_intrinsic_t"));
+    v_set_result_type(v_find_type_q(q_object_intrinsic_t));
     v_set_result_value((quark: LLVMValueRef));
 }
 
@@ -673,7 +673,7 @@ my_postfix_call_object_intrinsic_intrinsic: (*void, vis: *voidc_visitor_t, self:
     t0 = v_ast_expr_compiled_get_type(args[0]);
     v0 = v_ast_expr_compiled_get_value(args[0]);
 
-    v_assert(t0 == v_find_type("v_object_intrinsic_t"));
+    v_assert(t0 == v_find_type_q(q_object_intrinsic_t));
 
     quark = (v0: v_quark_t);
 

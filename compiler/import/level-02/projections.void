@@ -41,6 +41,8 @@
     v_add_symbol("q_op_postfix_to",  q_ref, q("v.op_postfix_to"));
 
     v_add_symbol("size_t_q", q_ref, q("size_t"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
 
@@ -418,7 +420,7 @@ voidc_enable_projections_compiler: () ~> void
     q_static_type_sizeof  = q("v.static_type_sizeof");
     q_static_type_alignof = q("v.static_type_alignof");
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     v_export_overload_q(q(".sizeof"),  static_type_t, q_static_type_sizeof);
     v_export_overload_q(q(".alignof"), static_type_t, q_static_type_alignof);

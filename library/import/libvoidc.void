@@ -76,7 +76,7 @@ voidc_make_header: (name: *const char) ~> void
 export
 voidc_make_module: (modname: *const char) ~> void
 {
-    voidc_guard_target("make_module  must be called from the voidc target only!");
+    voidc_guard_target("voidc_make_module  must be called from the voidc target only!");
 
     v_import("mainline.void");
 
@@ -155,6 +155,20 @@ voidc_emit_module: (filename: *const char) ~> void
 
     //----------------------------------------------------------
     dl = LLVMCreateTargetDataLayout(target_machine);
+
+    #if (!v_defined(NDEBUG))
+    {
+        s0 = LLVMCopyStringRepOfTargetData(v_target_get_data_layout());
+        s1 = LLVMCopyStringRepOfTargetData(dl);
+
+        strcmp: (*const char, *const char) ~> int;
+
+        v_assert(strcmp(s0, s1) == 0);          //- WTF !?!?!?!?!?!?!?!
+
+        LLVMDisposeMessage(s1);
+        LLVMDisposeMessage(s0);
+    }
+    #endif
 
     LLVMSetModuleDataLayout(module, dl);
     LLVMSetTarget(module, triple);

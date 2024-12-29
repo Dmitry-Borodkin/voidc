@@ -260,3 +260,8 @@ ferror:    (stream: *FILE) ~> int;
 perror:    (s: *const char) ~> void;
 
 
+//---------------------------------------------------------------------
+popen:  (command: *const char, prop: *const char) ~> *FILE;
+pclose: (*FILE) ~> int;
+
+

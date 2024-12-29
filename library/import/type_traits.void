@@ -13,6 +13,47 @@
 
     v_add_symbol("cur_gctx", v_target_global_ctx_t, gctx);
 
+    q_ref = v_reference_type(v_quark_t, 0);
+
+    q = v_quark_ptr_from_string;
+
+    v_add_symbol("int_q",      q_ref, q("int"));
+    v_add_symbol("unsigned_q", q_ref, q("unsigned"));
+
+    v_add_symbol("q_static_type_t",                  q_ref, q("v_static_type_t"));
+    v_add_symbol("q_static_type_void_t",             q_ref, q("v_static_type_void_t"));
+    v_add_symbol("q_static_type_floating_point_t",   q_ref, q("v_static_type_floating_point_t"));
+    v_add_symbol("q_static_type_f16_t",              q_ref, q("v_static_type_f16_t"));
+    v_add_symbol("q_static_type_f32_t",              q_ref, q("v_static_type_f32_t"));
+    v_add_symbol("q_static_type_f64_t",              q_ref, q("v_static_type_f64_t"));
+    v_add_symbol("q_static_type_f128_t",             q_ref, q("v_static_type_f128_t"));
+    v_add_symbol("q_static_type_integer_t",          q_ref, q("v_static_type_integer_t"));
+    v_add_symbol("q_static_type_int_t",              q_ref, q("v_static_type_int_t"));
+    v_add_symbol("q_static_type_uint_t",             q_ref, q("v_static_type_uint_t"));
+    v_add_symbol("q_static_type_function_t",         q_ref, q("v_static_type_function_t"));
+    v_add_symbol("q_static_type_refptr_t",           q_ref, q("v_static_type_refptr_t"));
+    v_add_symbol("q_static_type_pointer_t",          q_ref, q("v_static_type_pointer_t"));
+    v_add_symbol("q_static_type_reference_t",        q_ref, q("v_static_type_reference_t"));
+    v_add_symbol("q_static_type_struct_t",           q_ref, q("v_static_type_struct_t"));
+    v_add_symbol("q_static_type_array_t",            q_ref, q("v_static_type_array_t"));
+    v_add_symbol("q_static_type_vector_base_t",      q_ref, q("v_static_type_vector_base_t"));
+    v_add_symbol("q_static_type_vector_t",           q_ref, q("v_static_type_vector_t"));
+    v_add_symbol("q_static_type_svector_t",          q_ref, q("v_static_type_svector_t"));
+    v_add_symbol("q_static_type_generic_t",          q_ref, q("v_static_type_generic_t"));
+    v_add_symbol("q_static_type_incomplete_array_t", q_ref, q("v_static_type_incomplete_array_t"));
+
+    v_add_symbol("q_static_generic_arg_t",        q_ref, q("v_static_generic_arg_t"));
+    v_add_symbol("q_static_generic_arg_number_t", q_ref, q("v_static_generic_arg_number_t"));
+    v_add_symbol("q_static_generic_arg_string_t", q_ref, q("v_static_generic_arg_string_t"));
+    v_add_symbol("q_static_generic_arg_quark_t",  q_ref, q("v_static_generic_arg_quark_t"));
+    v_add_symbol("q_static_generic_arg_type_t",   q_ref, q("v_static_generic_arg_type_t"));
+    v_add_symbol("q_static_generic_arg_cons_t",   q_ref, q("v_static_generic_arg_cons_t"));
+
+    v_add_symbol("q_static_quark_t",                  q_ref, q("v_static_quark_t"));
+    v_add_symbol("q_static_string_t",                 q_ref, q("v_static_string_t"));
+    v_add_symbol("q_static_array_of_types_t",         q_ref, q("v_static_array_of_types_t"));
+    v_add_symbol("q_static_array_of_generic_args_t",  q_ref, q("v_static_array_of_generic_args_t"));
+
     v_target_set_global_ctx(gctx);
 }
 
@@ -134,7 +175,7 @@ static_type_kind_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     k = v_kind(type);
 
-    t = v_find_type("int");
+    t = v_find_type_q(int_q);
     v = LLVMConstInt(v_type_get_llvm_type(t), k, 0);
 
     v_adopt_result(t, v);
@@ -173,7 +214,7 @@ static_type_get_unsigned_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v
 
     w = fun(type);
 
-    t = v_find_type("unsigned");
+    t = v_find_type_q(unsigned_q);
     v = LLVMConstInt(v_type_get_llvm_type(t), w, 0);
 
     v_adopt_result(t, v);
@@ -191,7 +232,7 @@ static_type_get_type_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast
 
     t = fun(type);
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     v_adopt_result(static_type_t, (t: LLVMValueRef));
 }
@@ -208,7 +249,7 @@ static_type_get_types_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_as
 
     ts = fun(type);
 
-    array_of_types_t = v_find_type("v_static_array_of_types_t");
+    array_of_types_t = v_find_type_q(q_static_array_of_types_t);
 
     v_adopt_result(array_of_types_t, (ts: LLVMValueRef));
 }
@@ -221,7 +262,7 @@ static_array_of_types_index_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_a
 {
     types = (v_ast_expr_compiled_get_value(arg_ptrs[0]) : **v_type_t);
 
-    v_set_result_type(v_find_type("unsigned"));
+    v_set_result_type(v_find_type_q(unsigned_q));
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg_ptrs[1], vis);
@@ -232,7 +273,7 @@ static_array_of_types_index_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_a
 
     t = types[i];
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     v_adopt_result(static_type_t, (t: LLVMValueRef));
 }
@@ -265,7 +306,7 @@ static_type_get_quark_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_as
 
     q = fun(type);
 
-    static_quark_t = v_find_type("v_static_quark_t");
+    static_quark_t = v_find_type_q(q_static_quark_t);
 
     v_adopt_result(static_quark_t, (q: LLVMValueRef));
 }
@@ -280,7 +321,7 @@ static_type_generic_args_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_
 
     args = v_type_generic_get_args(type);
 
-    array_of_args_t = v_find_type("v_static_array_of_generic_args_t");
+    array_of_args_t = v_find_type_q(q_static_array_of_generic_args_t);
 
     v_adopt_result(array_of_args_t, (args: LLVMValueRef));
 }
@@ -315,7 +356,7 @@ generic_arg_kind_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     k = v_kind(garg);
 
-    t = v_find_type("int");
+    t = v_find_type_q(int_q);
     v = LLVMConstInt(v_type_get_llvm_type(t), k, 0);
 
     v_adopt_result(t, v);
@@ -368,7 +409,7 @@ generic_arg_string_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t
 
     s = v_type_generic_arg_string_get_string(garg);
 
-    static_string_t = v_find_type("v_static_string_t");
+    static_string_t = v_find_type_q(q_static_string_t);
 
     v_adopt_result(static_string_t, (s: LLVMValueRef));
 }
@@ -383,7 +424,7 @@ generic_arg_quark_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     q = v_type_generic_arg_quark_get_quark(garg);
 
-    static_quark_t = v_find_type("v_static_quark_t");
+    static_quark_t = v_find_type_q(q_static_quark_t);
 
     v_adopt_result(static_quark_t, (q: LLVMValueRef));
 }
@@ -398,7 +439,7 @@ generic_arg_type_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     t = v_type_generic_arg_type_get_type(garg);
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     v_adopt_result(static_type_t, (t: LLVMValueRef));
 }
@@ -413,7 +454,7 @@ generic_arg_cons_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     q = v_type_generic_arg_cons_get_cons(garg);
 
-    static_quark_t = v_find_type("v_static_quark_t");
+    static_quark_t = v_find_type_q(q_static_quark_t);
 
     v_adopt_result(static_quark_t, (q: LLVMValueRef));
 }
@@ -428,7 +469,7 @@ generic_arg_count_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     n = v_type_generic_arg_cons_get_arg_count(garg);
 
-    t = v_find_type("unsigned");
+    t = v_find_type_q(unsigned_q);
     v = LLVMConstInt(v_type_get_llvm_type(t), n, 0);
 
     v_adopt_result(t, v);
@@ -444,7 +485,7 @@ generic_args_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     args = v_type_generic_arg_cons_get_args(garg);
 
-    array_of_args_t = v_find_type("v_static_array_of_generic_args_t");
+    array_of_args_t = v_find_type_q(q_static_array_of_generic_args_t);
 
     v_adopt_result(array_of_args_t, (args: LLVMValueRef));
 }
@@ -457,7 +498,7 @@ static_array_of_generic_args_index_intrinsic: (*void, vis: *voidc_visitor_t, sel
 {
     args = (v_ast_expr_compiled_get_value(arg_ptrs[0]) : **v_type_generic_arg_t);
 
-    v_set_result_type(v_find_type("unsigned"));
+    v_set_result_type(v_find_type_q(unsigned_q));
     v_set_result_value(0);
 
     v_ast_accept_visitor(arg_ptrs[1], vis);
@@ -468,7 +509,7 @@ static_array_of_generic_args_index_intrinsic: (*void, vis: *voidc_visitor_t, sel
 
     a = args[i];
 
-    generic_arg_t = v_find_type("v_static_generic_arg_t");
+    generic_arg_t = v_find_type_q(q_static_generic_arg_t);
 
     v_adopt_result(generic_arg_t, (a: LLVMValueRef));
 }
@@ -544,7 +585,7 @@ v_typeof_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     v_set_result_type(ttag);
     v_set_result_value(vtag);
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     v_adopt_result(static_type_t, (t: LLVMValueRef));
 }
@@ -561,7 +602,7 @@ v_eq_types_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> voi
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     v_set_result_type(static_type_t);
     v_set_result_value(0);
@@ -597,7 +638,7 @@ v_internal_type_traits_effort: (*void) ~> void
 
         if (gctx == vctx) v_break();
 
-        _int = v_find_type("int");
+        _int = v_find_type_q(int_q);
         int_ = v_type_get_llvm_type(_int);
 
         #define mk_kind: (name, kind)  =  v_add_constant(name, _int, LLVMConstInt(int_, kind, 0));
@@ -625,25 +666,25 @@ v_internal_type_traits_effort: (*void) ~> void
         mk_kind("v_type_generic_arg_kind_cons",   v_type_generic_arg_kind_cons);
     }
 
-    generic_arg_t = v_generic_type(v_quark_from_string("v_static_generic_arg_t"), 0, 0);
+    generic_arg_t = v_generic_type(q_static_generic_arg_t, 0, 0);
 
-    v_add_type("v_static_generic_arg_t", generic_arg_t);
+    v_add_type_q(q_static_generic_arg_t, generic_arg_t);
 
     build_hierarchy("type",        static_types_table);
     build_hierarchy("generic_arg", static_generic_args_table);
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     {   v_add_overload(".kind", static_type_t, "my.static_type_kind");
 
         v_add_intrinsic("my.static_type_kind", static_type_kind_intrinsic, 0);
     }
 
-    static_type_integer_t     = v_find_type("v_static_type_integer_t");
-    static_type_function_t    = v_find_type("v_static_type_function_t");
-    static_type_refptr_t      = v_find_type("v_static_type_refptr_t");
-    static_type_struct_t      = v_find_type("v_static_type_struct_t");
-    static_type_vector_base_t = v_find_type("v_static_type_vector_base_t");
+    static_type_integer_t     = v_find_type_q(q_static_type_integer_t);
+    static_type_function_t    = v_find_type_q(q_static_type_function_t);
+    static_type_refptr_t      = v_find_type_q(q_static_type_refptr_t);
+    static_type_struct_t      = v_find_type_q(q_static_type_struct_t);
+    static_type_vector_base_t = v_find_type_q(q_static_type_vector_base_t);
 
     {   v_add_overload(".is_void",             static_type_t,             "my.static_type_is_void");
         v_add_overload(".is_floating_point",   static_type_t,             "my.static_type_is_floating_point");
@@ -684,8 +725,8 @@ v_internal_type_traits_effort: (*void) ~> void
         v_add_intrinsic("my.static_type_is_incomplete_array", f, is_incomplete_array_predicate);
     }
 
-    static_type_floating_point_t = v_find_type("v_static_type_floating_point_t");
-    static_type_generic_t        = v_find_type("v_static_type_generic_t");
+    static_type_floating_point_t = v_find_type_q(q_static_type_floating_point_t);
+    static_type_generic_t        = v_find_type_q(q_static_type_generic_t);
 
     {   v_add_overload(".width",         static_type_floating_point_t, "my.static_type_floating_point_width");
         v_add_overload(".width",         static_type_integer_t,        "my.static_type_integer_width");
@@ -706,7 +747,7 @@ v_internal_type_traits_effort: (*void) ~> void
         v_add_intrinsic("my.static_type_generic_arg_count",    f, v_type_generic_get_arg_count);
     }
 
-    static_type_array_t = v_find_type("v_static_type_array_t");
+    static_type_array_t = v_find_type_q(q_static_type_array_t);
 
     {   v_add_overload(".return_type",   static_type_function_t,       "my.static_type_function_return_type");
         v_add_overload(".element_type",  static_type_refptr_t,         "my.static_type_refptr_element_type");
@@ -723,9 +764,9 @@ v_internal_type_traits_effort: (*void) ~> void
         v_add_intrinsic("my.static_type_scalar_type",          f, v_type_get_scalar_type);
     }
 
-    static_array_of_types_t = v_generic_type(v_quark_from_string("v_static_array_of_types_t"), 0, 0);
+    static_array_of_types_t = v_generic_type(q_static_array_of_types_t, 0, 0);
 
-    v_add_type("v_static_array_of_types_t", static_array_of_types_t);
+    v_add_type_q(q_static_array_of_types_t, static_array_of_types_t);
 
     {   v_add_overload(".param_types",   static_type_function_t, "my.static_type_function_param_types");
         v_add_overload(".element_types", static_type_struct_t,   "my.static_type_struct_element_types");
@@ -746,11 +787,11 @@ v_internal_type_traits_effort: (*void) ~> void
         v_add_intrinsic("my.static_type_array_length", static_type_array_length_intrinsic, 0);
     }
 
-    static_quark_t  = v_generic_type(v_quark_from_string("v_static_quark_t"),  0, 0);
-    static_string_t = v_generic_type(v_quark_from_string("v_static_string_t"), 0, 0);
+    static_quark_t  = v_generic_type(q_static_quark_t,  0, 0);
+    static_string_t = v_generic_type(q_static_string_t, 0, 0);
 
-    v_add_type("v_static_quark_t",  static_quark_t);
-    v_add_type("v_static_string_t", static_string_t);
+    v_add_type_q(q_static_quark_t,  static_quark_t);
+    v_add_type_q(q_static_string_t, static_string_t);
 
     {   v_add_overload(".name", static_type_struct_t,  "my.static_type_struct_name");
         v_add_overload(".cons", static_type_generic_t, "my.static_type_generic_cons");
@@ -766,9 +807,9 @@ v_internal_type_traits_effort: (*void) ~> void
         v_add_intrinsic("my.static_type_generic_args", static_type_generic_args_intrinsic, 0);
     }
 
-    static_array_of_generic_args_t = v_generic_type(v_quark_from_string("v_static_array_of_generic_args_t"), 0, 0);
+    static_array_of_generic_args_t = v_generic_type(q_static_array_of_generic_args_t, 0, 0);
 
-    v_add_type("v_static_array_of_generic_args_t", static_array_of_generic_args_t);
+    v_add_type_q(q_static_array_of_generic_args_t, static_array_of_generic_args_t);
 
     {   v_add_overload("v.op_postfix_index", static_array_of_generic_args_t, "my.static_array_of_genereic_args_index");
 
@@ -795,11 +836,11 @@ v_internal_type_traits_effort: (*void) ~> void
         v_add_intrinsic("my.static_arg_is_cons",   f, v_type_generic_arg_is_cons);
     }
 
-    generic_arg_number_t = v_find_type("v_static_generic_arg_number_t");
-    generic_arg_string_t = v_find_type("v_static_generic_arg_string_t");
-    generic_arg_quark_t  = v_find_type("v_static_generic_arg_quark_t");
-    generic_arg_type_t   = v_find_type("v_static_generic_arg_type_t");
-    generic_arg_cons_t   = v_find_type("v_static_generic_arg_cons_t");
+    generic_arg_number_t = v_find_type_q(q_static_generic_arg_number_t);
+    generic_arg_string_t = v_find_type_q(q_static_generic_arg_string_t);
+    generic_arg_quark_t  = v_find_type_q(q_static_generic_arg_quark_t);
+    generic_arg_type_t   = v_find_type_q(q_static_generic_arg_type_t);
+    generic_arg_cons_t   = v_find_type_q(q_static_generic_arg_cons_t);
 
     {   v_add_overload(".number",    generic_arg_number_t, "my.static_generic_arg_number");
         v_add_overload(".string",    generic_arg_string_t, "my.static_generic_arg_string");

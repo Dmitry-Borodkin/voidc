@@ -1323,7 +1323,7 @@ my_abstract_static_namespace_intrinsic: (aux: *void, vis: *voidc_visitor_t, self
 //printf("my_abstract_static_namespace_intrinsic start %s\n", name);
 //defer printf("my_abstract_static_namespace_intrinsic stop\n");
 
-    v_assert(t == v_find_type("v_static_namespace_t"));
+    v_assert(t == v_find_type_q(q_static_namespace_t));
 
     ns = (v: *v_namespace_t);
 
