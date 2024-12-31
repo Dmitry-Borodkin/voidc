@@ -747,27 +747,6 @@ voidc_import_helper(const char *name, bool _export)
 }
 
 
-//---------------------------------------------------------------------
-static void
-v_local_import(void *, const visitor_t *vis, const ast_base_t *self)
-{
-    auto &gctx = *voidc_global_ctx_t::target;
-    auto &lctx = *gctx.local_ctx;
-
-    lctx.push_builder_ip();
-
-    auto &call = static_cast<const ast_expr_call_data_t &>(**self);
-
-    auto &args = call.arg_list;
-
-    auto &r = static_cast<const ast_expr_string_data_t &>(*args->data[0]);
-
-    v_import_helper(r.string.c_str(), false);
-
-    lctx.pop_builder_ip();
-}
-
-
 //--------------------------------------------------------------------
 extern "C"
 {
@@ -928,8 +907,6 @@ main(int argc, char *argv[])
         gctx.decls.symbols_insert({q("v_import"),            import_f_type});
         gctx.decls.symbols_insert({q("voidc_import"),        import_f_type});
         gctx.decls.symbols_insert({q("voidc_guard_target"),  import_f_type});       //- Kind of...
-
-        gctx.decls.intrinsics_insert({q("v_local_import"), {(void *)v_local_import, nullptr}});
 
         v_type_t *fun_type = gctx.make_function_type(gctx.void_type, nullptr, 0, false);
 
