@@ -2581,8 +2581,8 @@
                       ;
 
 
-        unit_defn_list_lr = l:unit_defn_list_lr _ d:unit_defn   { mk_unit_defn_list(l, d) }
-                          / d:unit_defn                         { mk_unit_defn_list(0, d) }
+        unit_defn_list_lr = l:unit_defn_list_lr _ !'{' d:unit_defn      { mk_unit_defn_list(l, d) }
+                          / !'{' d:unit_defn                            { mk_unit_defn_list(0, d) }
                           ;
 
         unit_defn_list_lr is left-recursive;

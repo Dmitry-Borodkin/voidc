@@ -37,6 +37,12 @@
     v_add_type("void_ptr",     void_ptr);
     v_add_type("void_ptr_ptr", void_ptr_ptr);
 
+    v_add_symbol("q_get_intrinsic_q", q_ref, q("v_get_intrinsic_q"));
+    v_add_symbol("q_add_intrinsic_q", q_ref, q("v_add_intrinsic_q"));
+
+    v_add_symbol("q_cast", q_ref, q("v_cast"));
+    v_add_symbol("q_load", q_ref, q("v_load"));
+
     v_add_symbol("voidc_compile_type_q", q_ref, q("voidc.compile_type"));
 
     v_add_symbol("voidc_internal_make_handler_q", q_ref, q("voidc_internal_make_handler"));
@@ -149,19 +155,17 @@ handle_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
     v_initialize(expr, 2);
     defer v_terminate(expr, 2);
 
-    v_ast_make_expr_identifier(expr+0, v_quark_to_string(hqname));
+    v_ast_make_expr_identifier_q(expr+0, hqname);
+
+    v_ast_make_expr_compiled(expr+1, void_ptr_ptr, aux_var_v);
 
     list = v_alloca(v_ast_expr_list_t);
     v_initialize(list);
     defer v_terminate(list);
 
-    v_make_list(list, expr+0);
+    v_make_list(list, expr, 2);
 
-    v_ast_make_expr_compiled(expr+1, void_ptr_ptr, aux_var_v);
-
-    v_list_append(list, list, expr+1);
-
-    v_ast_make_expr_identifier(expr+0, "v_get_intrinsic_q");
+    v_ast_make_expr_identifier_q(expr+0, q_get_intrinsic_q);
 
     v_ast_make_expr_call(expr+0, expr+0, list);
 
@@ -180,13 +184,13 @@ handle_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
     v_list_append(list, list, expr+0);
 
-    v_ast_make_expr_identifier(expr+0, "v_cast");
+    v_ast_make_expr_identifier_q(expr+0, q_cast);
 
     v_ast_make_expr_call(expr+0, expr+0, list);
 
     v_make_list(list, expr+1);
 
-    v_ast_make_expr_identifier(expr+1, "v_load");
+    v_ast_make_expr_identifier_q(expr+1, q_load);
 
     v_ast_make_expr_call(expr+1, expr+1, list);
 
@@ -201,7 +205,7 @@ handle_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> vo
 
             v_list_append(list, list, expr+1);
 
-            v_ast_make_expr_identifier(expr+1, "v_cast");
+            v_ast_make_expr_identifier_q(expr+1, q_cast);
 
             v_ast_make_expr_call(expr+1, expr+1, list);
 
@@ -318,13 +322,13 @@ v_get_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
-    hname = v_ast_expr_identifier_get_name(v_list_get_item(args, 0));
+    qhname = v_ast_expr_identifier_get_name_q(v_list_get_item(args, 0));
 
     aux_ptr_expr = v_list_get_item(args, 1);
 
     void_tg_arg: &*void := v_undef();
 
-    v_get_intrinsic(hname, &void_tg_arg);
+    v_get_intrinsic_q(qhname, &void_tg_arg);
 
     tg_arg = (void_tg_arg: *v_type_generic_arg_t);
 
@@ -334,7 +338,7 @@ v_get_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
     v_initialize(expr, 2);
     defer v_terminate(expr, 2);
 
-    v_ast_make_expr_identifier(expr+0, v_quark_to_string(hqname));
+    v_ast_make_expr_identifier_q(expr+0, hqname);
 
     list = v_alloca(v_ast_expr_list_t);
     v_initialize(list);
@@ -346,13 +350,13 @@ v_get_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
     v_list_append(list, list, expr+1);
 
-    v_ast_make_expr_identifier(expr+1, "v_cast");
+    v_ast_make_expr_identifier_q(expr+1, q_cast);
 
     v_ast_make_expr_call(expr+1, expr+1, list);
 
     v_make_list(list, expr, 2);
 
-    v_ast_make_expr_identifier(expr+0, "v_get_intrinsic_q");
+    v_ast_make_expr_identifier_q(expr+0, q_get_intrinsic_q);
 
     v_ast_make_expr_call(expr+0, expr+0, list);
 
@@ -362,7 +366,7 @@ v_get_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
     v_make_list(list, expr, 2);
 
-    v_ast_make_expr_identifier(expr+0, "v_cast");
+    v_ast_make_expr_identifier_q(expr+0, q_cast);
 
     v_ast_make_expr_call(expr+0, expr+0, list);
 
@@ -378,14 +382,14 @@ v_set_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 {
     args = v_ast_expr_call_get_arg_list((self: *v_ast_expr_t));
 
-    hname = v_ast_expr_identifier_get_name(v_list_get_item(args, 0));
+    qhname = v_ast_expr_identifier_get_name_q(v_list_get_item(args, 0));
 
     fun_expr = v_list_get_item(args, 1);
     aux_expr = v_list_get_item(args, 2);
 
     void_tg_arg: &*void := v_undef();
 
-    v_get_intrinsic(hname, &void_tg_arg);
+    v_get_intrinsic_q(qhname, &void_tg_arg);
 
     tg_arg = (void_tg_arg: *v_type_generic_arg_t);
 
@@ -395,7 +399,7 @@ v_set_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
     v_initialize(expr);
     defer v_terminate(expr);
 
-    v_ast_make_expr_identifier(expr, v_quark_to_string(hqname));
+    v_ast_make_expr_identifier_q(expr, hqname);
 
     list = v_alloca(v_ast_expr_list_t, 2);
     v_initialize(list, 2);
@@ -411,13 +415,13 @@ v_set_handler_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> 
 
     v_list_append(list+1, list+1, expr);
 
-    v_ast_make_expr_identifier(expr, "v_cast");
+    v_ast_make_expr_identifier_q(expr, q_cast);
 
     v_ast_make_expr_call(expr, expr, list+1);
 
     v_list_append(list+0, list+0, expr);
 
-    v_ast_make_expr_identifier(expr, "v_add_intrinsic_q");
+    v_ast_make_expr_identifier_q(expr, q_add_intrinsic_q);
 
     v_ast_make_expr_call(expr, expr, list+0);
 
