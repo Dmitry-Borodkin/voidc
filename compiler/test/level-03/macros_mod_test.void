@@ -76,53 +76,37 @@ list_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     vr = v_obtain_special_result_value(vis, tr);
 
-    list: &v_ast_stmt_list_t := {};
+    list: &v_ast_stmt_list_t :=
+    {'stmt_list'
 
-    {   ast = {'stmt'  my_any: &v_std_any_t := {};  'stmt'};
+         my_any: &v_std_any_t := {};
 
-        v_make_list(&list, (&ast: *v_ast_stmt_t));
-    }
+         #define my_step: (lst, typ, v:typ)
+         {'stmt_list'
 
-    {   ast =
-        {'stmt'
+             v_std_any_set_value(&my_any, v);
 
-            #define my_step: (lst, v)
-            {'stmt_list'
+             v_list_append(lst, lst, &my_any);
 
-                v_std_any_set_value(&my_any, v);
+         'stmt_list'}
 
-                v_list_append(lst, lst, &my_any);
+    'stmt_list'};
 
-            'stmt_list'}
-
-        'stmt'};
-
-        v_list_append(&list, &list, (&ast: *v_ast_stmt_t));
-    }
-
-    expr: &v_ast_expr_t[4] := {};
+    expr: &v_ast_expr_t[3] := {};
 
     v_ast_make_expr_compiled(expr+0, v_pointer_type(v_util_list_t, 0), vr);
 
-    stmt: &v_ast_stmt_t := {};
+    v_ast_make_expr_compiled(expr+1, v_find_type_q(q_static_type_t), (aux: LLVMValueRef));      //- Sic !!!
 
     my_step_q = v_quark_from_string("my_step");
 
-    v_ast_make_expr_compiled(expr+2, v_find_type_q(q_static_type_t), (aux: LLVMValueRef));      //- Sic !!!
-
-    v_ast_make_expr_identifier(expr+3, "v_typed");
-
-    elst: &v_ast_expr_list_t := {};
+    stmt: &v_ast_stmt_t := {};
 
     for (i: &int := 0; i < arg_count; ++i)
     {
-        v_make_list(&elst, expr+2);
+        v_copy(expr+2, arg_ptrs[i]);
 
-        v_list_append(&elst, &elst, arg_ptrs[i]);
-
-        v_ast_make_expr_call(expr+1, expr+3, &elst);
-
-        v_ast_make_stmt_call(&stmt, 0, my_step_q, expr, 2);
+        v_ast_make_stmt_call(&stmt, 0, my_step_q, expr, 3);
 
         v_list_append(&list, &list, &stmt);
     }
@@ -146,7 +130,7 @@ register_list_op_braces_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_b
     arg0 = v_list_get_item(args, 0);        //- Element type
     arg1 = v_list_get_item(args, 1);        //- List type
 
-    static_type_t = v_find_type("v_static_type_t");
+    static_type_t = v_find_type_q(q_static_type_t);
 
     v_set_result_type(static_type_t);
     v_set_result_value(0);
