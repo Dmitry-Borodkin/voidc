@@ -81,7 +81,7 @@ list_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
          my_any: &v_std_any_t := {};
 
-         #define my_step: (lst, typ, v:typ)
+         #define my_step: (lst, v)
          {'stmt_list'
 
              v_std_any_set_value(&my_any, v);
@@ -92,11 +92,11 @@ list_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     'stmt_list'};
 
-    expr: &v_ast_expr_t[3] := {};
+    expr: &v_ast_expr_t[2] := {};
 
     v_ast_make_expr_compiled(expr+0, v_pointer_type(v_util_list_t, 0), vr);
 
-    v_ast_make_expr_compiled(expr+1, v_find_type_q(q_static_type_t), (aux: LLVMValueRef));      //- Sic !!!
+    typ = (aux: *v_type_t);
 
     my_step_q = v_quark_from_string("my_step");
 
@@ -104,9 +104,16 @@ list_op_braces_intrinsic: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
 
     for (i: &int := 0; i < arg_count; ++i)
     {
-        v_copy(expr+2, arg_ptrs[i]);
+        v_set_result_type(typ);
+        v_set_result_value(0);
 
-        v_ast_make_stmt_call(&stmt, 0, my_step_q, expr, 3);
+        v_ast_accept_visitor(arg_ptrs[i], vis);
+
+        val = v_get_result_value();
+
+        v_ast_make_expr_compiled(expr+1, typ, val);
+
+        v_ast_make_stmt_call(&stmt, 0, my_step_q, expr, 2);
 
         v_list_append(&list, &list, &stmt);
     }
