@@ -239,10 +239,21 @@ base_global_ctx_t::initialize(void)
 //---------------------------------------------------------------------
 //- Base Local Context
 //---------------------------------------------------------------------
-static v_quark_t    base_obtain_alias_default(void *, v_quark_t qname, bool _export);
-static v_quark_t    base_lookup_alias_default(void *, v_quark_t qname);
+static v_quark_t base_obtain_alias_default(void *, v_quark_t qname, bool _export);
+static v_quark_t base_lookup_alias_default(void *, v_quark_t qname);
+
+#ifdef NEW_ADOPT
+
+static bool base_try_to_adopt_default(void *, v_type_t *t0, LLVMValueRef v0);
+static bool base_try_to_convert_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef *pv1);
+
+#else
+
 static void         base_adopt_result_default(void *, v_type_t *type, LLVMValueRef value);
 static LLVMValueRef v_convert_to_type_default(void *, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
+
+#endif
+
 static LLVMValueRef v_make_temporary_default(void *, v_type_t *t, LLVMValueRef v);
 
 base_local_ctx_t::base_local_ctx_t(base_global_ctx_t &_global)
@@ -255,8 +266,19 @@ base_local_ctx_t::base_local_ctx_t(base_global_ctx_t &_global)
 
     set_obtain_alias_hook(base_obtain_alias_default, this);
     set_lookup_alias_hook(base_lookup_alias_default, this);
+
+#ifdef NEW_ADOPT
+
+    set_try_to_adopt_hook(base_try_to_adopt_default, this);
+    set_try_to_convert_hook(base_try_to_convert_default, this);
+
+#else
+
     set_adopt_result_hook(base_adopt_result_default, this);
     set_convert_to_type_hook(v_convert_to_type_default, this);
+
+#endif
+
     set_make_temporary_hook(v_make_temporary_default, this);
 }
 
@@ -553,8 +575,19 @@ static v_quark_t obtain_alias_q;
 static v_quark_t lookup_alias_q;
 static v_quark_t obtain_module_q;
 static v_quark_t finish_module_q;
+
+#ifdef NEW_ADOPT
+
+static v_quark_t try_to_adopt_q;
+static v_quark_t try_to_convert_q;
+
+#else
+
 static v_quark_t adopt_result_q;
 static v_quark_t convert_to_type_q;
+
+#endif
+
 static v_quark_t make_temporary_q;
 
 //---------------------------------------------------------------------
@@ -609,6 +642,40 @@ base_local_ctx_t::set_finish_module_hook(finish_module_t fun, void *aux)
     set_hook(this, finish_module_q, (void *)fun, aux);
 }
 
+
+#ifdef NEW_ADOPT
+
+
+//---------------------------------------------------------------------
+try_to_adopt_t
+base_local_ctx_t::get_try_to_adopt_hook(void **paux)
+{
+    return  try_to_adopt_t(get_hook(this, try_to_adopt_q, paux));
+}
+
+void
+base_local_ctx_t::set_try_to_adopt_hook(try_to_adopt_t fun, void *aux)
+{
+    set_hook(this, try_to_adopt_q, (void *)fun, aux);
+}
+
+//---------------------------------------------------------------------
+try_to_convert_t
+base_local_ctx_t::get_try_to_convert_hook(void **paux)
+{
+    return  try_to_convert_t(get_hook(this, try_to_convert_q, paux));
+}
+
+void
+base_local_ctx_t::set_try_to_convert_hook(try_to_convert_t fun, void *aux)
+{
+    set_hook(this, try_to_convert_q, (void *)fun, aux);
+}
+
+
+#else
+
+
 //---------------------------------------------------------------------
 adopt_result_t
 base_local_ctx_t::get_adopt_result_hook(void **paux)
@@ -634,6 +701,10 @@ base_local_ctx_t::set_convert_to_type_hook(convert_to_type_t fun, void *aux)
 {
     set_hook(this, convert_to_type_q, (void *)fun, aux);
 }
+
+
+#endif
+
 
 //---------------------------------------------------------------------
 make_temporary_t
@@ -845,6 +916,83 @@ base_lookup_alias_default(void *void_ctx, v_quark_t name)
     return  name;
 }
 
+
+#ifdef NEW_ADOPT
+
+
+static bool
+base_try_to_adopt_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
+{
+    auto &lctx = *(reinterpret_cast<base_local_ctx_t *>(void_ctx));
+    auto &gctx = lctx.global_ctx;
+
+    switch(intptr_t(lctx.result_type))
+    {
+    case -1:        //- UNREFERENCE_TAG ...
+
+        if (type->kind() == v_type_t::k_reference)
+        {
+            auto et = static_cast<v_type_reference_t *>(type)->element_type();
+
+            if (et->kind() == v_type_t::k_array)
+            {
+                //- Special case for C-like array-to-pointer "promotion"...
+
+                et = static_cast<v_type_array_t *>(et)->element_type();
+
+                auto as = static_cast<v_type_reference_t *>(type)->address_space();
+
+                lctx.result_type = gctx.make_pointer_type(et, as);
+
+                value = lctx.convert_to_type(type, value, lctx.result_type);
+
+                break;
+            }
+
+            lctx.result_type = et;
+
+            value = LLVMBuildLoad2(gctx.builder, et->llvm_type(), value, "tmp");
+
+            break;
+        }
+
+        if (type->kind() == v_type_t::k_array)
+        {
+            //- Special case for C-like array-to-pointer "promotion"...
+
+            auto et = static_cast<v_type_array_t *>(type)->element_type();
+
+            lctx.result_type = gctx.make_pointer_type(et, 0);
+
+            value = lctx.convert_to_type(type, value, lctx.result_type);
+
+            break;
+        }
+
+        //- Fallthrough!
+
+    case  0:        //- INVIOLABLE_TAG ...
+
+        lctx.result_type = type;
+
+        break;
+
+    default:        //- Adopt...
+
+        if (lctx.result_type == type)   break;
+
+        return  lctx.try_to_convert(type, value, lctx.result_type, &lctx.result_value);
+    }
+
+    lctx.result_value = value;
+
+    return true;
+}
+
+
+#else
+
+
 static void
 base_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 {
@@ -958,6 +1106,10 @@ base_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
     lctx.result_value = value;
 }
 
+
+#endif
+
+
 }
 
 //---------------------------------------------------------------------
@@ -1000,6 +1152,34 @@ base_local_ctx_t::pop_variables(void)
 
     vars_stack.pop_front();
 }
+
+
+#ifdef NEW_ADOPT
+
+
+//---------------------------------------------------------------------
+void
+base_local_ctx_t::adopt_result(v_type_t *type, LLVMValueRef value)
+{
+    if (try_to_adopt(type, value))  return;
+
+    throw std::runtime_error("Impossible to adopt!");
+}
+
+
+//---------------------------------------------------------------------
+LLVMValueRef
+base_local_ctx_t::convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
+{
+    LLVMValueRef v1;
+
+    if (try_to_convert(t0, v0, t1, &v1))  return v1;
+
+    throw std::runtime_error("Impossible to convert!");
+}
+
+
+#endif
 
 
 //---------------------------------------------------------------------
@@ -1088,6 +1268,31 @@ base_local_ctx_t::pop_temporaries(void)
 //---------------------------------------------------------------------
 extern "C"
 {
+
+
+#ifdef NEW_ADOPT
+
+
+//---------------------------------------------------------------------
+static bool
+base_try_to_convert_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef *pv1)
+{
+
+
+
+
+
+
+
+
+
+
+    return false;
+}
+
+
+#else
+
 
 //---------------------------------------------------------------------
 static LLVMValueRef
@@ -1182,6 +1387,10 @@ v_convert_to_type_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_type_
 
     return  LLVMBuildCast(gctx.builder, opcode, v0, t1->llvm_type(), "");
 }
+
+
+#endif
+
 
 //---------------------------------------------------------------------
 static LLVMValueRef
@@ -1614,13 +1823,24 @@ voidc_global_ctx_t::static_initialize(void)
 
     voidc_typenames_q = q("voidc.typenames_dict");
 
-    obtain_alias_q    = q("voidc.hook_obtain_alias");
-    lookup_alias_q    = q("voidc.hook_lookup_alias");
-    obtain_module_q   = q("voidc.hook_obtain_module");
-    finish_module_q   = q("voidc.hook_finish_module");
+    obtain_alias_q  = q("voidc.hook_obtain_alias");
+    lookup_alias_q  = q("voidc.hook_lookup_alias");
+    obtain_module_q = q("voidc.hook_obtain_module");
+    finish_module_q = q("voidc.hook_finish_module");
+
+#ifdef NEW_ADOPT
+
+    try_to_adopt_q   = q("voidc.hook_try_to_adopt");
+    try_to_convert_q = q("voidc.hook_try_to_convert");
+
+#else
+
     adopt_result_q    = q("voidc.hook_adopt_result");
     convert_to_type_q = q("voidc.hook_convert_to_type");
-    make_temporary_q  = q("voidc.hook_make_temporary");
+
+#endif
+
+    make_temporary_q = q("voidc.hook_make_temporary");
 
 #if LLVM_VERSION_MAJOR < 18
     llvm_stacksave_q                     = q("llvm.stacksave");
@@ -1791,14 +2011,22 @@ voidc_global_ctx_t::prepare_module_for_jit(LLVMModuleRef module)
 //---------------------------------------------------------------------
 //- Voidc Local Context
 //---------------------------------------------------------------------
+#ifndef NEW_ADOPT
+
 static void voidc_adopt_result_default(void *, v_type_t *type, LLVMValueRef value);
+
+#endif
 
 voidc_local_ctx_t::voidc_local_ctx_t(voidc_global_ctx_t &global)
   : voidc_template_ctx_t(global)
 {
     compiler = make_level_0_voidc_compiler();
 
+#ifndef NEW_ADOPT
+
     set_adopt_result_hook(voidc_adopt_result_default, this);
+
+#endif
 
     auto es = LLVMOrcLLJITGetExecutionSession(voidc_global_ctx_t::jit);
 
@@ -1873,6 +2101,20 @@ voidc_local_ctx_t::find_symbol_value(v_quark_t raw_name_q)
 extern "C"
 {
 
+
+#ifdef NEW_ADOPT
+
+
+static bool
+voidc_try_to_adopt_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
+{
+    return false;
+}
+
+
+#else
+
+
 static void
 voidc_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 {
@@ -1911,6 +2153,10 @@ voidc_adopt_result_default(void *void_ctx, v_type_t *type, LLVMValueRef value)
 
     base_adopt_result_default(void_ctx, type, value);           //- Sic!
 }
+
+
+#endif
+
 
 }
 
@@ -2988,6 +3234,33 @@ v_set_result_value(LLVMValueRef val)
     lctx.result_value = val;
 }
 
+
+#ifdef NEW_ADOPT
+
+
+//---------------------------------------------------------------------
+try_to_adopt_t
+v_get_try_to_adopt_hook(void **paux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return lctx.get_try_to_adopt_hook(paux);
+}
+
+void
+v_set_try_to_adopt_hook(try_to_adopt_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.set_try_to_adopt_hook(fun, aux);
+}
+
+
+#else
+
+
 //---------------------------------------------------------------------
 adopt_result_t
 v_get_adopt_result_hook(void **paux)
@@ -3007,6 +3280,10 @@ v_set_adopt_result_hook(adopt_result_t fun, void *aux)
     lctx.set_adopt_result_hook(fun, aux);
 }
 
+
+#endif
+
+
 void
 v_adopt_result(v_type_t *type, LLVMValueRef value)
 {
@@ -3015,6 +3292,33 @@ v_adopt_result(v_type_t *type, LLVMValueRef value)
 
     lctx.adopt_result(type, value);
 }
+
+
+#ifdef NEW_ADOPT
+
+
+//---------------------------------------------------------------------
+try_to_convert_t
+v_get_try_to_convert_hook(void **paux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    return lctx.get_try_to_convert_hook(paux);
+}
+
+void
+v_set_try_to_convert_hook(try_to_convert_t fun, void *aux)
+{
+    auto &gctx = *voidc_global_ctx_t::target;
+    auto &lctx = *gctx.local_ctx;
+
+    lctx.set_try_to_convert_hook(fun, aux);
+}
+
+
+#else
+
 
 //---------------------------------------------------------------------
 convert_to_type_t
@@ -3034,6 +3338,10 @@ v_set_convert_to_type_hook(convert_to_type_t fun, void *aux)
 
     lctx.set_convert_to_type_hook(fun, aux);
 }
+
+
+#endif
+
 
 LLVMValueRef
 v_convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
