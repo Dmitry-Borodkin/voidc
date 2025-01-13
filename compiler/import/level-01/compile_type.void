@@ -792,16 +792,11 @@
 
         val = v_alloca(LLVMValueRef, 3);
 
-        val[0] := LLVMConstInt(int_, 0, 0);
-        val[1] := val[0];
-
-        astr_const_ptr = LLVMBuildInBoundsGEP2(builder, astr_const_type, astr_glob, val, 2, "astr_const_ptr");
-
         sstr_set_data_f   = v_obtain_function("v_std_string_set_data", lltyp);
         sstr_set_data_ft_ = v_load(lltyp);
 
         val[0] := ctx[stk_string];
-        val[1] := astr_const_ptr;
+        val[1] := astr_glob;
         val[2] := LLVMConstInt(size_t_, astr_size, 0);
 
         LLVMBuildCall2(builder, sstr_set_data_ft_, sstr_set_data_f, val, 3, "");

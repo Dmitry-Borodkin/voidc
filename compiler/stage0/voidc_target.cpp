@@ -1277,6 +1277,136 @@ extern "C"
 static bool
 base_try_to_convert_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef *pv1)
 {
+    if (t0 == t1)
+    {
+        //- No conversion...
+
+        *pv1 = v0;
+
+        return true;
+    }
+
+    auto &lctx = *(reinterpret_cast<base_local_ctx_t *>(void_ctx));
+    auto &gctx = lctx.global_ctx;
+
+    //- Primary scalar conversions
+
+    {   LLVMOpcode opcode = LLVMOpcode(0);
+
+        if (v_type_is_floating_point(t0)  &&  v_type_is_floating_point(t1))
+        {
+            auto w0 = v_type_floating_point_get_width(t0);
+            auto w1 = v_type_floating_point_get_width(t1);
+
+            if (w0 < w1)  return false;
+
+            //- Floating point -> floating point
+
+            opcode = LLVMFPExt;
+        }
+        else if (v_type_is_integer(t0))
+        {
+            bool t0_signed = v_type_integer_is_signed(t0);
+
+            if (v_type_is_floating_point(t1))
+            {
+                //- Integer -> floating point
+
+                if (t0_signed)  opcode = LLVMSIToFP;
+                else            opcode = LLVMUIToFP;
+            }
+            else if (v_type_is_integer(t1))
+            {
+                auto w0 = v_type_integer_get_width(t0);
+                auto w1 = v_type_integer_get_width(t1);
+
+                if (w0 < w1)  return false;
+
+                //- Integer -> integer
+
+                if (t0_signed)  opcode = LLVMSExt;
+                else            opcode = LLVMZExt;
+            }
+        }
+
+        if (opcode)
+        {
+            *pv1 = LLVMBuildCast(gctx.builder, opcode, v0, t1->llvm_type(), "");
+
+            return true;
+        }
+    }
+
+    auto t0_k = t0->kind();
+    auto t1_k = t1->kind();
+
+    if (t0_k == v_type_t::k_pointer  &&  t1_k == v_type_t::k_pointer)
+    {
+        if (static_cast<v_type_refptr_t *>(t1)->element_type() != gctx.void_type)
+        {
+            return false;
+        }
+
+        //- *T -> *void
+
+        *pv1 = LLVMBuildPointerCast(gctx.builder, v0, t1->llvm_type(), "");
+
+        return true;
+    }
+
+    //- Primary(?) reference conversions
+
+    bool t0_reference = (t0_k == v_type_t::k_reference);
+    bool t1_reference = (t1_k == v_type_t::k_reference);
+
+    v_type_t *et0 = (t0_reference  ?  static_cast<v_type_refptr_t *>(t0)->element_type()  :  nullptr);
+    v_type_t *et1 = (t1_reference  ?  static_cast<v_type_refptr_t *>(t1)->element_type()  :  nullptr);
+
+    bool t0_ref_array = (t0_reference  &&  et0->kind() == v_type_t::k_array);
+
+    if (t0_reference)
+    {
+        if (t0_ref_array)
+        {
+            if (t1_k == v_type_t::k_pointer)
+            {
+                auto e0 = static_cast<v_type_array_t *>(et0)->element_type();
+
+                auto e1 = static_cast<v_type_refptr_t *>(t1)->element_type();
+
+                if (e0 == e1  ||  e1 == gctx.void_type)         //- Sic!
+                {
+                    //- *T[_] -> *T,  or  *T[_] ->> *void
+
+                    *pv1 = LLVMBuildPointerCast(gctx.builder, v0, t1->llvm_type(), "");
+
+                    return true;
+                }
+            }
+        }
+        else if (et0 == t1)
+        {
+            //- &T -> T
+
+            *pv1 = LLVMBuildLoad2(gctx.builder, t0->llvm_type(), v0, "");
+
+            return true;
+        }
+    }
+    else if (t1_reference)
+    {
+        if (t0 == et1)
+        {
+            //- T -> &T
+
+
+
+
+
+
+        }
+
+    }
 
 
 
@@ -1284,6 +1414,52 @@ base_try_to_convert_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_typ
 
 
 
+
+
+
+
+
+    switch(t0_k)
+    {
+    case v_type_t::k_f16:
+    case v_type_t::k_f32:
+    case v_type_t::k_f64:
+    case v_type_t::k_f128:
+      {
+
+
+
+
+      }
+
+    case v_type_t::k_int:
+    case v_type_t::k_uint:
+      {
+      }
+
+    case v_type_t::k_pointer:
+      {
+
+
+      }
+
+    case v_type_t::k_reference:
+      {
+
+
+      }
+
+    case v_type_t::k_array:
+      {
+
+
+      }
+
+
+
+
+
+    }
 
 
 
@@ -1307,8 +1483,6 @@ v_convert_to_type_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_type_
     {
         LLVMValueRef v1 = 0;
 
-        v_type_t *t;
-
         if (auto tr = dynamic_cast<v_type_reference_t *>(t0))
         {
             if (auto ta = dynamic_cast<v_type_array_t *>(tr->element_type()))
@@ -1316,8 +1490,6 @@ v_convert_to_type_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_type_
                 //- C-like array-to-pointer "promotion" (from reference)...
 
                 v1 = v0;
-
-                t = ta;
             }
         }
         else if (t0->kind() == v_type_t::k_array)
@@ -1340,18 +1512,9 @@ v_convert_to_type_default(void *void_ctx, v_type_t *t0, LLVMValueRef v0, v_type_
             {
                 v1 = lctx.make_temporary(t0, v0);
             }
-
-            t = t0;
         }
 
-        if (v1)
-        {
-            auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
-
-            LLVMValueRef val[2] = { n0, n0 };
-
-            return  LLVMBuildInBoundsGEP2(gctx.builder, t->llvm_type(), v1, val, 2, "");
-        }
+        if (v1)   return  LLVMBuildPointerCast(gctx.builder, v1, t1->llvm_type(), "");
     }
 
     //- Just simple scalar "promotions" ...
@@ -2782,18 +2945,13 @@ voidc_compile_load_object_file_to_jit(LLVMMemoryBufferRef membuf, bool is_local,
 
     LLVMValueRef val[3];
 
-    val[0] = LLVMConstInt(gctx.int_type->llvm_type(), 0, 0);
-    val[1] = val[0];
-
-    auto membuf_const_ptr = LLVMBuildInBoundsGEP2(gctx.builder, membuf_const_type, membuf_glob, val, 2, "membuf_const_ptr");
-
     v_type_t    *t;
     LLVMValueRef f;
 
     lctx.obtain_identifier(voidc_object_file_load_to_jit_internal_helper_q, t, f);
     assert(f);
 
-    val[0] = membuf_const_ptr;
+    val[0] = membuf_glob;
     val[1] = LLVMConstInt(gctx.size_t_type->llvm_type(), membuf_size, 0);
     val[2] = LLVMConstInt(gctx.bool_type->llvm_type(), is_local, 0);
 

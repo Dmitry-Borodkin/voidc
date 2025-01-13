@@ -586,10 +586,12 @@ VOIDC_DLLEXPORT_BEGIN_FUNCTION
 
 v_type_t *v_type_get_scalar_type(v_type_t *type);
 
-bool      v_type_is_floating_point(v_type_t *type);
+bool     v_type_is_floating_point(v_type_t *type);
+unsigned v_type_floating_point_get_width(v_type_t *type);
 
-unsigned  v_type_floating_point_get_width(v_type_t *type);
-
+bool     v_type_is_integer(v_type_t *type);
+bool     v_type_integer_is_signed(v_type_t *type);
+unsigned v_type_integer_get_width(v_type_t *type);
 
 VOIDC_DLLEXPORT_END
 

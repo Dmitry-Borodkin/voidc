@@ -616,15 +616,11 @@ v_cast(void *, const visitor_t *vis, const ast_base_t *self)
         {
             //- C-like array-to-pointer "promotion" (from reference)...
 
-            auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
-
-            LLVMValueRef val[2] = { n0, n0 };
-
             auto et = static_cast<v_type_array_t *>(pst->element_type())->element_type();
 
             src_type  = gctx.make_pointer_type(et, pst->address_space());
 
-            src_value = LLVMBuildInBoundsGEP2(gctx.builder, et->llvm_type(), src_value, val, 2, "");
+            src_value = LLVMBuildPointerCast(gctx.builder, src_value, src_type->llvm_type(), "");
         }
         else
         {
@@ -663,11 +659,7 @@ v_cast(void *, const visitor_t *vis, const ast_base_t *self)
                 v1 = lctx.make_temporary(src_type, src_value);
             }
 
-            auto n0 = LLVMConstNull(gctx.int_type->llvm_type());
-
-            LLVMValueRef val[2] = { n0, n0 };
-
-            v = LLVMBuildInBoundsGEP2(gctx.builder, src_type->llvm_type(), v1, val, 2, "");
+            v = LLVMBuildPointerCast(gctx.builder, v1, dst_type->llvm_type(), "");
         }
         else
         {
