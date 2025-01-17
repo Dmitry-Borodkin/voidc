@@ -501,8 +501,7 @@ my_compile_unit_var_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_base_
         block
         {
             if (LLVMIsUndef(v)) v_break();
-
-            if (v == LLVMConstNull(v_type_get_llvm_type(t)))  v_break();
+            if (LLVMIsNull(v))  v_break();
 
             if (!ctx.global_flag)
             {

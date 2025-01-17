@@ -145,9 +145,7 @@ op_table: &op_table_item_t[] :=
 //---------------------------------------------------------------------
 op_table_ctor: () ~> void
 {
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-    defer v_terminate(sstr);
+    sstr = v_make_object(v_std_string_t);
 
     int_ = v_type_get_llvm_type(int);
 
@@ -308,9 +306,7 @@ op_assign_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                    t0: *v_type_t, v0: LLVMValueRef, qh: v_quark_t, q: v_quark_t,
                    rhs: *v_ast_expr_t) ~> void
 {
-    elhs = v_alloca(v_ast_expr_t);
-    v_initialize(elhs);
-    defer v_terminate(elhs);
+    elhs = v_make_object(v_ast_expr_t);
 
     v_ast_make_expr_compiled(elhs, t0, v0);
 
@@ -392,9 +388,7 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 //printf("op_binary_helper: start\n");
 //defer printf("op_binary_helper: stop\n");
 
-    elhs = v_alloca(v_ast_expr_t);
-    v_initialize(elhs);
-    defer v_terminate(elhs);
+    elhs = v_make_object(v_ast_expr_t);
 
     v_ast_make_expr_compiled(elhs, t0, v0);
 
@@ -428,9 +422,7 @@ op_binary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     t1 = v_get_result_type();
     v1 = v_get_result_value();
 
-    erhs = v_alloca(v_ast_expr_t);
-    v_initialize(erhs);
-    defer v_terminate(erhs);
+    erhs = v_make_object(v_ast_expr_t);
 
     v_ast_make_expr_compiled(erhs, t1, v1);
 
@@ -521,9 +513,7 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
 {
     r: &LLVMValueRef := 0;
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
     ctx: &*void := v_undef();
 
@@ -533,9 +523,7 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
 
         v_ast_make_expr_compiled(expr, t0, v0);
 
-        erhs = v_alloca(v_ast_expr_t);
-        v_initialize(erhs);
-        defer v_terminate(erhs);
+        erhs = v_make_object(v_ast_expr_t);
 
         v_ast_make_expr_compile_spy(erhs, ast[1], t1, v1);
 
@@ -573,9 +561,7 @@ op_relation_helper: (*void, vis: *voidc_visitor_t,
         {
             //- Got overloading!
 
-            elhs = v_alloca(v_ast_expr_t);
-            v_initialize(elhs);
-            defer v_terminate(elhs);
+            elhs = v_make_object(v_ast_expr_t);
 
             v_ast_make_expr_compiled(elhs, t0, v0);
 
@@ -842,9 +828,7 @@ op_unary_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
                   t0: *v_type_t, v0: LLVMValueRef, qh: v_quark_t, q: v_quark_t
                  ) ~> void
 {
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
     v_ast_make_expr_compiled(expr, t0, v0);
 
@@ -1012,9 +996,7 @@ compile_expr_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 
     if (fun)
     {
-        expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
+        expr = v_make_object(v_ast_expr_t);
 
         v_ast_make_expr_compiled(expr, t, v);
 
@@ -1099,9 +1081,7 @@ op_postfix_index_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
         pack_ptrs = v_malloc(*v_ast_base_t, 1+count);
         defer v_free(pack_ptrs);
 
-        expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
+        expr = v_make_object(v_ast_expr_t);
 
         v_ast_make_expr_compiled(expr, agg_t, agg_v);
 
@@ -1130,9 +1110,7 @@ op_postfix_index_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
         arg_ptrs = v_malloc(*v_ast_expr_t, 1+arg_count);
         defer v_free(arg_ptrs);
 
-        expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
+        expr = v_make_object(v_ast_expr_t);
 
         v_ast_make_expr_compiled(expr, agg_t, agg_v);
 

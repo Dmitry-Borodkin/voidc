@@ -149,9 +149,7 @@
     v_add_parameter_name(f, 2, "value", LLVMValueRef);
 }
 {
-    a = v_alloca(v_std_any_t);
-    v_initialize(a);
-    defer v_terminate(a);
+    a = v_make_object(v_std_any_t);
 
     v_std_any_set_value(a, v_cast(value, intptr_t));
 

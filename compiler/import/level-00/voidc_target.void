@@ -150,10 +150,11 @@
     v_export_type("LLVMTargetDataRef", layout_ref);
 }
 
-{   typ0 = v_alloca(v_type_ptr, 4);
+{   typ0 = v_alloca(v_type_ptr, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
 
     void_ptr_ptr = v_pointer_type(void_ptr, 0);
 
@@ -264,25 +265,34 @@
     ft = v_function_type(LLVMValueRef, typ0, 3, false);
     v_export_symbol_type("v_convert_to_type", ft);
 
-    v_store(void_ptr,     typ0);            //- Context
-    v_store(v_type_ptr,   typ1);            //- Source type
-    v_store(LLVMValueRef, typ2);            //- Source value
-    v_store(v_type_ptr,   typ3);            //- Destination type
+    v_store(void_ptr,         typ0);        //- Context
+    v_store(v_type_ptr,       typ1);        //- Source type
+    v_store(LLVMValueRef,     typ2);        //- Source value
+    v_store(v_type_ptr,       typ3);        //- Destination type
+    v_store(LLVMValueRef_ptr, typ4);        //- Result value
 
-    ctt_ft = v_function_type(LLVMValueRef, typ0, 4, false);
+    ctt_ft = v_function_type(bool, typ0, 5, false);
 
     ctt_ft_ptr = v_pointer_type(ctt_ft, 0);
 
     v_store(void_ptr_ptr, typ0);            //- ctx
 
     ft = v_function_type(ctt_ft_ptr, typ0, 1, false);
-    v_export_symbol_type("v_get_convert_to_type_hook", ft);
+    v_export_symbol_type("v_get_try_to_convert_hook", ft);
 
     v_store(ctt_ft_ptr,   typ0);            //- fun
     v_store(void_ptr,     typ1);            //- ctx
 
     ft = v_function_type(void, typ0, 2, false);
-    v_export_symbol_type("v_set_convert_to_type_hook", ft);
+    v_export_symbol_type("v_set_try_to_convert_hook", ft);
+
+    v_store(v_type_ptr,       typ0);        //- Source type
+    v_store(LLVMValueRef,     typ1);        //- Source value
+    v_store(v_type_ptr,       typ2);        //- Destination type
+    v_store(LLVMValueRef_ptr, typ3);        //- Result value
+
+    ft = v_function_type(bool, typ0, 4, false);
+    v_export_symbol_type("v_try_to_convert", ft);
 
     //-------------------------------------------------------------
     v_store(char_ptr,     typ0);            //- Constant/variable name
@@ -568,20 +578,26 @@
     v_store(v_type_ptr,   typ1);            //- Type
     v_store(LLVMValueRef, typ2);            //- Value
 
-    ar_ft = v_function_type(void, typ0, 3, false);
+    ar_ft = v_function_type(bool, typ0, 3, false);
 
     ar_ft_ptr = v_pointer_type(ar_ft, 0);
 
     v_store(void_ptr_ptr, typ0);            //- ctx
 
     ft = v_function_type(ar_ft_ptr, typ0, 1, false);
-    v_export_symbol_type("v_get_adopt_result_hook", ft);
+    v_export_symbol_type("v_get_try_to_adopt_hook", ft);
 
     v_store(ar_ft_ptr,    typ0);            //- fun
     v_store(void_ptr,     typ1);            //- ctx
 
     ft = v_function_type(void, typ0, 2, false);
-    v_export_symbol_type("v_set_adopt_result_hook", ft);
+    v_export_symbol_type("v_set_try_to_adopt_hook", ft);
+
+    v_store(v_type_ptr,   typ0);            //-
+    v_store(LLVMValueRef, typ1);            //-
+
+    ft = v_function_type(bool, typ0, 2, false);
+    v_export_symbol_type("v_try_to_adopt", ft);
 }
 
 

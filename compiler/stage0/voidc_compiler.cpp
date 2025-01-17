@@ -282,7 +282,8 @@ void compile_expr_integer(void *, const visitor_t *vis, const ast_base_t *self)
         {
             assert(w);      //- Sic!
 
-            t = gctx.make_int_type(w);
+            if (num > 0)    t = gctx.make_uint_type(w-1);
+            else            t = gctx.make_int_type(w);
 
             v = LLVMConstInt(t->llvm_type(), (long long)num, true);
         }

@@ -255,9 +255,7 @@ dict_enc_term: (dict: &v_myz_dict_enc_t) ~> void
 private
 dict_enc_expand: (dict: &v_myz_dict_enc_t) ~> &v_myz_enc_t
 {
-    item = v_alloca(v_ast_base_t);
-    v_initialize(item);
-    defer v_terminate(item);
+    item = v_make_object(v_ast_base_t);
 
     v_ast_make_generic(item, 0, v_myz_enc_t.sizeof);
 
@@ -388,9 +386,7 @@ dict_dec_term: (dict: &v_myz_dict_dec_t) ~> void
 private
 dict_dec_expand: (dict: &v_myz_dict_dec_t) ~> &v_myz_dec_t
 {
-    item = v_alloca(v_ast_base_t);
-    v_initialize(item);
-    defer v_terminate(item);
+    item = v_make_object(v_ast_base_t);
 
     v_ast_make_generic(item, 0, v_myz_dec_t.sizeof);
 

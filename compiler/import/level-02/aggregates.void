@@ -317,9 +317,7 @@ voidc_enable_aggregates: () ~> void
     voidc_enable_definitions();         //- Sic!
 
 
-    any_braces = v_alloca(v_std_any_t);
-    v_initialize(any_braces);
-    defer v_terminate(any_braces);
+    any_braces = v_make_object(v_std_any_t);
 
     v_std_any_set_pointer(any_braces, &v_op_braces);
 

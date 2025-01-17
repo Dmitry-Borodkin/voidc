@@ -133,9 +133,7 @@ voidc_internal_create_inline_function_data: (flags: intptr_t, fun_name: *const c
 
     data.quark := v_quark_from_string(fun_name);
 
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-    defer v_terminate(sstr);
+    sstr = v_make_object(v_std_string_t);
 
     v_std_string_set(sstr, "v.inlining.");
 
@@ -210,9 +208,7 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
     v_set_obtain_module_hook(obtain_module_for_inlining, &mod);
 
 
-    inner_stmt_list = v_alloca(v_ast_stmt_list_t);
-    v_initialize(inner_stmt_list);
-    defer v_terminate(inner_stmt_list);
+    inner_stmt_list = v_make_object(v_ast_stmt_list_t);
 
     stmt_list = voidc_definitions_context_get_stmt_list();
 
@@ -231,17 +227,13 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
     private = qualif & qf_private;
     export  = (export_flag  ||  qualif & qf_export)  &&  !private  &&  !hidden_flag;
 
-    inner_self = v_alloca(v_ast_generic_list_t);
-    v_initialize(inner_self);
-    defer v_terminate(inner_self);
+    inner_self = v_make_object(v_ast_generic_list_t);
 
     if (private)
     {
         tag = v_ast_base_get_tag(self);
 
-        expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
+        expr = v_make_object(v_ast_expr_t);
 
         v_ast_make_expr_integer(expr, 0);
 
@@ -329,13 +321,8 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
 
     if (!stmt_list)  v_return();
 
-    expr = v_alloca(v_ast_expr_t, 5);
-    v_initialize(expr, 5);
-    defer v_terminate(expr, 5);
-
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+    expr = v_make_object(v_ast_expr_t, 5);
+    stmt = v_make_object(v_ast_stmt_t);
 
     v_ast_make_expr_integer(expr+0, flags);
 
@@ -381,9 +368,7 @@ struct v_finish_module_ctx_t
 private
 finish_module_inlining: (void_ctx: *void, module: LLVMModuleRef) ~> void
 {
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-    defer v_terminate(sstr);
+    sstr = v_make_object(v_std_string_t);
 
     llvm_ctx = v_target_get_llvm_ctx();
 
@@ -516,9 +501,7 @@ voidc_enable_inlining: () ~> void
     v_return_if(v_peg_grammar_get_value(gr0, "qf_alwaysinline"));
 
 
-    any = v_alloca(v_std_any_t, 2);
-    v_initialize(any, 2);
-    defer v_terminate(any, 2);
+    any = v_make_object(v_std_any_t, 2);
 
     any_qf_inlinehint   = any + 0;
     any_qf_alwaysinline = any + 1;

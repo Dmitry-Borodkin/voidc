@@ -61,9 +61,7 @@ mk_stmt_while_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     cstm = v_list_get_item(cond, cond_len-1);
 
 
-    cexp = v_alloca(v_ast_expr_t);
-    v_initialize(cexp);
-    defer v_terminate(cexp);
+    cexp = v_make_object(v_ast_expr_t);
 
     qname = v_ast_stmt_get_name_q(cstm);
 
@@ -81,9 +79,7 @@ mk_stmt_while_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
 
     stmp_len = cond_len + 1;
 
-    stmp = v_alloca(v_ast_stmt_t, stmp_len);
-    v_initialize(stmp, stmp_len);
-    defer v_terminate(stmp, stmp_len);
+    stmp = v_make_object(v_ast_stmt_t, stmp_len);
 
 
     //- stmp_cond - if
@@ -112,9 +108,7 @@ mk_stmt_while_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
             ++i;
         }
 
-        slst = v_alloca(v_ast_stmt_list_t);
-        v_initialize(slst);
-        defer v_terminate(slst);
+        slst = v_make_object(v_ast_stmt_list_t);
 
         v_make_list(slst, stmp+0, stmp_len);
 
@@ -190,9 +184,7 @@ mk_stmt_for_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t
     //-     }
     //- }
 
-    etmp = v_alloca(v_ast_expr_t, 9);
-    v_initialize(etmp, 9);
-    defer v_terminate(etmp, 9);
+    etmp = v_make_object(v_ast_expr_t, 9);
 
     e_break_for_var = etmp+2;
     e_break_for     = etmp+3;
@@ -252,9 +244,7 @@ mk_stmt_for_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t
     }
 
 
-    stmp = v_alloca(v_ast_stmt_t, stmp_len);
-    v_initialize(stmp, stmp_len);
-    defer v_terminate(stmp, stmp_len);
+    stmp = v_make_object(v_ast_stmt_t, stmp_len);
 
 
     //- stmp_cond+0 - if
@@ -286,9 +276,7 @@ mk_stmt_for_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t
     v_copy(stmp+4, stmt);
 
 
-    slst = v_alloca(v_ast_stmt_list_t);
-    v_initialize(slst);
-    defer v_terminate(slst);
+    slst = v_make_object(v_ast_stmt_list_t);
 
     v_make_list(slst, stmp+0, 5);
 
@@ -395,9 +383,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_an
     cstm = v_list_get_item(cond, cond_len-1);
 
 
-    cexp = v_alloca(v_ast_expr_t);
-    v_initialize(cexp);
-    defer v_terminate(cexp);
+    cexp = v_make_object(v_ast_expr_t);
 
     qname = v_ast_stmt_get_name_q(cstm);
 
@@ -416,9 +402,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_an
     stmp_len = cond_len + 1;
 
 
-    stmp = v_alloca(v_ast_stmt_t, stmp_len);
-    v_initialize(stmp, stmp_len);
-    defer v_terminate(stmp, stmp_len);
+    stmp = v_make_object(v_ast_stmt_t, stmp_len);
 
 
     //- stmp_cond+0 - if
@@ -445,9 +429,7 @@ mk_stmt_if_then_else_2_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_an
         }
     }
 
-    slst = v_alloca(v_ast_stmt_list_t);
-    v_initialize(slst);
-    defer v_terminate(slst);
+    slst = v_make_object(v_ast_stmt_list_t);
 
     v_make_list(slst, stmp+0, cond_len+1);
 
@@ -473,9 +455,7 @@ mk_stmt_switch_2_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, s
 
     estm_len: &size_t := v_list_get_size(estm);
 
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
+    etmp = v_make_object(v_ast_expr_t);
 
     {   stmt = v_list_get_item(estm, estm_len-1);
 
@@ -497,9 +477,7 @@ mk_stmt_switch_2_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, s
     stmp_len = estm_len + 1;
 
 
-    stmp = v_alloca(v_ast_stmt_t, stmp_len);
-    v_initialize(stmp, stmp_len);
-    defer v_terminate(stmp, stmp_len);
+    stmp = v_make_object(v_ast_stmt_t, stmp_len);
 
 
     //- stmp_estm+0 - switch
@@ -525,9 +503,7 @@ mk_stmt_switch_2_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, s
     }
 
 
-    slst = v_alloca(v_ast_stmt_list_t);
-    v_initialize(slst);
-    defer v_terminate(slst);
+    slst = v_make_object(v_ast_stmt_list_t);
 
     v_make_list(slst, stmp+0, stmp_len);
 

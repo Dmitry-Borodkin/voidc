@@ -550,6 +550,9 @@ coerce_to_type: (vis: *voidc_visitor_t, t0: *v_type_t, v0: LLVMValueRef, t1: *v_
 {
     if (t0 == t1)   v_return(v0);
 
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
     l = get_coe_map_list(t0, full_dir_q, t1);
 
     v_assert(l);
@@ -587,6 +590,9 @@ coerce_to_type: (vis: *voidc_visitor_t, t0: *v_type_t, v0: LLVMValueRef, t1: *v_
 
     v_assert(t == t1);
 
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
     v_return(v);
 }
 
@@ -595,6 +601,9 @@ private
 cast_to_type: (vis: *voidc_visitor_t, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t) ~> LLVMValueRef
 {
     if (t0 == t1)   v_return(v0);
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
 
     l = get_coe_map_list(t0, full_rev_q, t1);
 
@@ -633,6 +642,9 @@ cast_to_type: (vis: *voidc_visitor_t, t0: *v_type_t, v0: LLVMValueRef, t1: *v_ty
 
     v_assert(t == t1);
 
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
     v_return(v);
 }
 
@@ -665,35 +677,86 @@ lookup_coe_over: (t: *v_type_t, q: v_quark_t) ~> *v_type_t
 //- ...
 //---------------------------------------------------------------------
 private
-convert_to_type_ctx_t = struct
+try_to_convert_ctx_t = struct
 {
-    fun: *((*void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t) ~> LLVMValueRef);
+    fun: *((*void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, pv1: *LLVMValueRef) ~> bool);
 
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
-my_convert_to_type: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t) ~> LLVMValueRef
+my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, pv1: *LLVMValueRef) ~> bool
 {
-    if (t0 == t1)   v_return(v0);
+    if (t0 == t1)
+    {
+        *pv1 := v0;
+
+        v_return(true);
+    }
 
     if (get_coe_map_list(t0, full_dir_q, t1))
     {
-        ttag = v_get_result_type();
-        vtag = v_get_result_value();
-
         v = coerce_to_type(v_get_compiler(), t0, v0, t1);
 
-        v_set_result_type(ttag);
-        v_set_result_value(vtag);
+        *pv1 := v;
 
-        v_return(v);
+        v_return(true);
     }
 
-    ctx = *(aux: *convert_to_type_ctx_t);
+    if (v_type_is_reference(t0))
+    {
+        et0 = v_type_refptr_get_element_type(t0);
 
-    v_return(ctx.fun(ctx.aux, t0, v0, t1));
+        if (get_coe_map_list(et0, full_dir_q, t1))
+        {
+            v = v_convert_to_type(t0, v0, et0);
+
+            v = coerce_to_type(v_get_compiler(), et0, v, t1);
+
+            *pv1 := v;
+
+            v_return(true);
+        }
+
+        if (v_type_is_reference(t1))
+        {
+            et1 = v_type_refptr_get_element_type(t1);
+
+            if (get_coe_map_list(et0, full_dir_q, et1))
+            {
+                v = v_convert_to_type(t0, v0, et0);
+
+                v = coerce_to_type(v_get_compiler(), et0, v, et1);
+
+                v = v_convert_to_type(et1, v, t1);
+
+                *pv1 := v;
+
+                v_return(true);
+            }
+        }
+    }
+
+    if (v_type_is_reference(t1))
+    {
+        et1 = v_type_refptr_get_element_type(t1);
+
+        if (get_coe_map_list(t0, full_dir_q, et1))
+        {
+            v = coerce_to_type(v_get_compiler(), t0, v0, et1);
+
+            v = v_convert_to_type(et1, v, t1);
+
+            *pv1 := v;
+
+            v_return(true);
+        }
+    }
+
+    ctx = *(aux: *try_to_convert_ctx_t);
+
+    v_return(ctx.fun(ctx.aux, t0, v0, t1, pv1));
 }
 
 
@@ -1342,7 +1405,7 @@ enable_voidc_ast_coercions: () ~> void
 private
 coercions_ctx_t = struct
 {
-    convert:  convert_to_type_ctx_t;
+    convert:  try_to_convert_ctx_t;
     cast:     my_cast_intrinsic_ctx_t;
     assign:   op_assign_helper_ctx_t;
     binary:   op_binary_helper_ctx_t;
@@ -1368,9 +1431,9 @@ voidc_enable_coercions_compiler: () ~> void
     //-----------------------------------------------------------------
     ctx = *v_malloc(coercions_ctx_t) := 0;
 
-    ctx.convert.fun := v_get_convert_to_type_hook(&ctx.convert.aux);
+    ctx.convert.fun := v_get_try_to_convert_hook(&ctx.convert.aux);
 
-    v_set_convert_to_type_hook(my_convert_to_type, &ctx.convert);
+    v_set_try_to_convert_hook(my_try_to_convert, &ctx.convert);
 
     void_fun = v_get_intrinsic("v_cast", &ctx.cast.aux);
 

@@ -129,9 +129,7 @@ echo_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     args = v_ast_expr_call_get_arg_list(call);
 
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-    defer v_terminate(sstr);
+    sstr = v_make_object(v_std_string_t);
 
     pos_start_q = v_quark_from_string("pos_start");
     pos_end_q   = v_quark_from_string("pos_end");

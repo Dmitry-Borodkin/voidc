@@ -29,10 +29,6 @@
 
 
 //---------------------------------------------------------------------
-//#define NEW_ADOPT
-
-
-//---------------------------------------------------------------------
 class base_local_ctx_t;
 
 extern "C"
@@ -44,18 +40,8 @@ extern "C"
     typedef v_quark_t (*obtain_alias_t)(void *ctx, v_quark_t qname, bool _export);
     typedef v_quark_t (*lookup_alias_t)(void *ctx, v_quark_t qname);
 
-#ifdef NEW_ADOPT
-
     typedef bool (*try_to_adopt_t)(void *ctx, v_type_t *type, LLVMValueRef value);
     typedef bool (*try_to_convert_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef *pv1);
-
-#else
-
-    typedef void (*adopt_result_t)(void *ctx, v_type_t *type, LLVMValueRef value);
-
-    typedef LLVMValueRef (*convert_to_type_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
-
-#endif
 
     typedef LLVMValueRef (*make_temporary_t)(void *ctx, v_type_t *t, LLVMValueRef v);
 
@@ -318,8 +304,6 @@ public:
     v_type_t    *result_type  = nullptr;
     LLVMValueRef result_value = nullptr;
 
-#ifdef NEW_ADOPT
-
     try_to_adopt_t get_try_to_adopt_hook(void **paux);
     void           set_try_to_adopt_hook(try_to_adopt_t fun, void *aux);
 
@@ -333,24 +317,7 @@ public:
 
     void adopt_result(v_type_t *type, LLVMValueRef value);
 
-#else
-
-    adopt_result_t get_adopt_result_hook(void **paux);
-    void           set_adopt_result_hook(adopt_result_t fun, void *aux);
-
-    void adopt_result(v_type_t *type, LLVMValueRef value)
-    {
-        void *aux;
-        auto *fun = get_adopt_result_hook(&aux);
-
-        fun(aux, type, value);
-    }
-
-#endif
-
 public:
-
-#ifdef NEW_ADOPT
 
     try_to_convert_t get_try_to_convert_hook(void **paux);
     void             set_try_to_convert_hook(try_to_convert_t fun, void *aux);
@@ -364,21 +331,6 @@ public:
     }
 
     LLVMValueRef convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
-
-#else
-
-    convert_to_type_t get_convert_to_type_hook(void **paux);
-    void              set_convert_to_type_hook(convert_to_type_t fun, void *aux);
-
-    LLVMValueRef convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1)
-    {
-        void *aux;
-        auto *fun = get_convert_to_type_hook(&aux);
-
-        return fun(aux, t0, v0, t1);
-    }
-
-#endif
 
 public:
     make_temporary_t get_make_temporary_hook(void **paux);

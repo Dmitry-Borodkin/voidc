@@ -84,9 +84,7 @@ v_literal_integer_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t)
 
     src: &*const char := v_ast_expr_string_get_string(arg0);        //- Value string (source)
 
-    dst = v_alloca(v_std_string_t);
-    v_initialize(dst);
-    defer v_terminate(dst);
+    dst = v_make_object(v_std_string_t);
 
     if (src[0] == '-')
     {
@@ -212,9 +210,7 @@ v_literal_real_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~>
 
     src: &*const char := v_ast_expr_string_get_string(arg0);        //- Value string (source)
 
-    dst = v_alloca(v_std_string_t);
-    v_initialize(dst);
-    defer v_terminate(dst);
+    dst = v_make_object(v_std_string_t);
 
     loop
     {
@@ -245,16 +241,12 @@ mk_numeric_literal_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t,
 
     qname = v_std_any_get_value(v_quark_t, any+2);
 
-    expr = v_alloca(v_ast_expr_t, 2);
-    v_initialize(expr, 2);
-    defer v_terminate(expr, 2);
+    expr = v_make_object(v_ast_expr_t, 2);
 
     v_ast_make_expr_string(expr+0, str0);
     v_ast_make_expr_string(expr+1, str1);
 
-    lst = v_alloca(v_ast_expr_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_expr_list_t);
 
     v_make_list(lst, expr, 2);
 
@@ -294,9 +286,7 @@ voidc_enable_literals: () ~> void
     v_return_if(v_peg_grammar_get_parser(gr0, "real_literal", 0));
 
 
-    any = v_alloca(v_std_any_t, 2);
-    v_initialize(any, 2);
-    defer v_terminate(any, 2);
+    any = v_make_object(v_std_any_t, 2);
 
     any_integer = any + 0;
     any_real    = any + 1;

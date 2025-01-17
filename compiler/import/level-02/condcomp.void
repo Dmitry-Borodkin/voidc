@@ -65,15 +65,11 @@ mk_unit_ccif_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
         v_return();
     }
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
     if (cond)   v_copy(expr, cond);
 
-    ccif = v_alloca(v_ast_generic_list_t);
-    v_initialize(ccif);
-    defer v_terminate(ccif);
+    ccif = v_make_object(v_ast_generic_list_t);
 
     if (list)   v_list_append(ccif, list, (expr: *v_ast_base_t));
     else        v_make_list(ccif, unit_ccif_list_q, (expr: *v_ast_base_t));
@@ -98,15 +94,11 @@ mk_stmt_ccif_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
         v_return();
     }
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
     if (cond)   v_copy(expr, cond);
 
-    ccif = v_alloca(v_ast_generic_list_t);
-    v_initialize(ccif);
-    defer v_terminate(ccif);
+    ccif = v_make_object(v_ast_generic_list_t);
 
     if (list)   v_list_append(ccif, list, (expr: *v_ast_base_t));
     else        v_make_list(ccif, stmt_ccif_list_q, (expr: *v_ast_base_t));
@@ -131,15 +123,11 @@ mk_expr_ccif_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
         v_return();
     }
 
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
+    etmp = v_make_object(v_ast_expr_t);
 
     if (cond)   v_copy(etmp, cond);
 
-    ccif = v_alloca(v_ast_generic_list_t);
-    v_initialize(ccif);
-    defer v_terminate(ccif);
+    ccif = v_make_object(v_ast_generic_list_t);
 
     if (list)   v_list_append(ccif, list, (etmp: *v_ast_base_t));
     else        v_make_list(ccif, expr_ccif_list_q, (etmp: *v_ast_base_t));
@@ -405,15 +393,11 @@ mk_cc_message_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     tstr = v_std_any_get_pointer(v_std_string_t,    any+1);
     elst = v_std_any_get_pointer(v_ast_expr_list_t, any+2);
 
-    list = v_alloca(v_ast_generic_list_t);
-    v_initialize(list);
-    defer v_terminate(list);
+    list = v_make_object(v_ast_generic_list_t);
 
     v_make_list_nil(list, cc_message_q);
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
     filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
 
@@ -446,9 +430,7 @@ mk_cc_do_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_t) ~
 {
     elst = v_std_any_get_pointer(v_ast_expr_list_t, any+0);
 
-    list = v_alloca(v_ast_generic_list_t);
-    v_initialize(list);
-    defer v_terminate(list);
+    list = v_make_object(v_ast_generic_list_t);
 
     v_make_list(list, cc_do_q, (elst: *v_ast_base_t));
 
@@ -464,15 +446,11 @@ mk_cc_assert_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
 {
     expr = v_std_any_get_pointer(v_ast_expr_t, any+0);
 
-    list = v_alloca(v_ast_generic_list_t);
-    v_initialize(list);
-    defer v_terminate(list);
+    list = v_make_object(v_ast_generic_list_t);
 
     v_make_list(list, cc_assert_q, (expr: *v_ast_base_t));
 
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
+    etmp = v_make_object(v_ast_expr_t);
 
     filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
 
@@ -481,9 +459,7 @@ mk_cc_assert_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size_
 
     line = v_peg_get_line_column(ps, 0);
 
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-    defer v_terminate(sstr);
+    sstr = v_make_object(v_std_string_t);
 
     v_peg_take_string(sstr, ps, pe);
 
@@ -533,17 +509,13 @@ my_expr_make_postfix_grammar_action: (ret: *v_std_any_t, aux: *void, any: *v_std
 
     if (v_ast_expr_identifier_get_name_q(efun) != q_assert) v_return();
 
-    args = v_alloca(v_ast_expr_list_t);
-    v_initialize(args);
-    defer v_terminate(args);
+    args = v_make_object(v_ast_expr_list_t);
 
     arg0 = v_list_get_item(elst, 0);
 
     v_make_list(args, arg0);        //- Sic!
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
     filename = v_target_local_ctx_get_filename(v_target_get_local_ctx());
 
@@ -552,9 +524,7 @@ my_expr_make_postfix_grammar_action: (ret: *v_std_any_t, aux: *void, any: *v_std
 
     line = v_peg_get_line_column(ps, 0);
 
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-    defer v_terminate(sstr);
+    sstr = v_make_object(v_std_string_t);
 
     v_peg_take_string(sstr, ps, pe);
 
@@ -753,9 +723,7 @@ v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
 #endif
 
-    list = v_alloca(v_ast_expr_list_t);
-    v_initialize(list);
-    defer v_terminate(list);
+    list = v_make_object(v_ast_expr_list_t);
 
     v_make_list_nil(list);
 
@@ -763,9 +731,7 @@ v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
     v_list_append(list, list, filename);
     v_list_append(list, list, eline);
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
 #if (v_defined(_WIN32))
 
@@ -783,9 +749,7 @@ v_assert_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t) ~> void
 
     v_ast_make_expr_call(expr, expr, list);
 
-    stmt = v_alloca(v_ast_stmt_t, 2);
-    v_initialize(stmt, 2);
-    defer v_terminate(stmt, 2);
+    stmt = v_make_object(v_ast_stmt_t, 2);
 
     v_ast_make_stmt(stmt+1, "", expr);
 

@@ -46,6 +46,8 @@
     v_add_type("type_ref",  v_reference_type(v_type_ptr, 0));
     v_add_type("value_ref", v_reference_type(LLVMValueRef, 0));
 
+    v_add_type("value_ptr", v_pointer_type(LLVMValueRef, 0));
+
 
     q_ref = v_reference_type(v_quark_t, 0);
 
@@ -671,38 +673,161 @@
 
 
 //---------------------------------------------------------------------
-//- convert_to_type - utility...
+//- convertible_scalars - utility...
 //---------------------------------------------------------------------
 {
-    typ0 = v_alloca(v_type_ptr, 4);
+    typ0 = v_alloca(v_type_ptr, 3);
+    typ1 = v_getelementptr(typ0, 1);
+    typ2 = v_getelementptr(typ0, 2);
+
+    v_store(v_type_ptr,   typ0);
+    v_store(LLVMValueRef, typ1);
+    v_store(v_type_ptr,   typ2);
+
+    ft = v_function_type(LLVMOpcode, typ0, 3, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("convertible_scalars", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t", v_type_ptr);
+    v_add_parameter_name(f, 1, "v", LLVMValueRef);
+    v_add_parameter_name(f, 2, "u", v_type_ptr);
+}
+{
+    if (v_type_is_floating_point(t))
+    {
+        if (v_type_is_floating_point(u))
+        {
+            w0 = v_type_floating_point_get_width(t);
+            w1 = v_type_floating_point_get_width(u);
+
+            if (v_icmp(LLVMIntULT, w0, w1)) v_return(LLVMFPExt);
+
+            if (v_icmp(LLVMIntEQ, w0, w1))  v_return(LLVMUserOp1);      //- Means: T == U
+        }
+
+        v_return(0);
+    }
+
+    if (v_type_is_integer(t))
+    {
+        if (v_type_is_floating_point(u))
+        {
+            if (v_type_integer_is_signed(t))  v_return(LLVMSIToFP);
+            else                              v_return(LLVMUIToFP);
+        }
+        else if (v_type_is_integer(u))
+        {
+            w0 = v_type_integer_get_width(t);
+            w1 = v_type_integer_get_width(u);
+
+            if (v_icmp(LLVMIntULT, w0, w1))
+            {
+                if (v_type_integer_is_signed(t))  v_return(LLVMSExt);
+                else                              v_return(LLVMZExt);
+            }
+
+            if (v_icmp(LLVMIntEQ, w0, w1))  v_return(LLVMUserOp1);      //- Kinda, T == U
+        }
+        else if (v) if (LLVMIsNull(v)) if (v_type_is_pointer(u))
+        {
+            v_return(LLVMIntToPtr);             //- Means: 0 -> *T
+        }
+
+        v_return(0);
+    }
+
+    if (v_type_is_pointer(t))
+    {
+        if (v_type_is_pointer(u))
+        {
+            e = v_type_refptr_get_element_type(u);
+
+            if (v_type_is_void(e))  v_return(LLVMUserOp2);      //- Means: *T -> *void
+        }
+    }
+
+    v_return(0);
+}
+
+//---------------------------------------------------------------------
+//- convertible_vectors - utility...
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr, 2);
+    typ1 = v_getelementptr(typ0, 1);
+
+    v_store(v_type_ptr, typ0);
+    v_store(v_type_ptr, typ1);
+
+    ft = v_function_type(LLVMOpcode, typ0, 2, false);
+
+    //-----------------------------------------------------------------
+    f = v_function_hack("convertible_vectors", ft);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "t", v_type_ptr);
+    v_add_parameter_name(f, 1, "u", v_type_ptr);
+}
+{
+    //- assert(v_type_is_vector(t));
+    //- assert(v_type_is_vector(u));
+
+    s0 = v_type_vector_is_scalable(t);
+    s1 = v_type_vector_is_scalable(u);
+
+    if (v_icmp(LLVMIntNE, s0, s1))  v_return(0);
+
+    w0 = v_type_vector_get_size(t);
+    w1 = v_type_vector_get_size(u);
+
+    if (v_icmp(LLVMIntNE, w0, w1))  v_return(0);
+
+    e0 = v_type_vector_get_element_type(t);
+    e1 = v_type_vector_get_element_type(u);
+
+    v_return(convertible_scalars(e0, 0, e1));
+}
+
+
+//---------------------------------------------------------------------
+//- try_to_convert - utility...
+//---------------------------------------------------------------------
+{
+    typ0 = v_alloca(v_type_ptr, 5);
     typ1 = v_getelementptr(typ0, 1);
     typ2 = v_getelementptr(typ0, 2);
     typ3 = v_getelementptr(typ0, 3);
+    typ4 = v_getelementptr(typ0, 4);
 
     v_store(void_ptr,     typ0);
     v_store(v_type_ptr,   typ1);
     v_store(LLVMValueRef, typ2);
     v_store(v_type_ptr,   typ3);
+    v_store(value_ptr,    typ4);
 
-    ft = v_function_type(LLVMValueRef, typ0, 4, false);
+    ft = v_function_type(bool, typ0, 5, false);
 
     //-----------------------------------------------------------------
-    //- convert_to_type_ctx_t ...
+    //- try_to_convert_ctx_t ...
     //-----------------------------------------------------------------
     v_store(v_pointer_type(ft, 0), typ0);
     v_store(void_ptr,              typ1);
 
     ctx_t = v_struct_type(typ0, 2, false);
 
-    v_add_type("convert_to_type_ft",      ft);
-    v_add_type("convert_to_type_ctx_t",   ctx_t);
-    v_add_type("convert_to_type_ctx_ptr", v_pointer_type(ctx_t, 0));
+    v_add_type("try_to_convert_ft",      ft);
+    v_add_type("try_to_convert_ctx_t",   ctx_t);
+    v_add_type("try_to_convert_ctx_ptr", v_pointer_type(ctx_t, 0));
 }
 
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("convert_to_type", convert_to_type_ft);
+    f = v_function_hack("try_to_convert", try_to_convert_ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
@@ -710,89 +835,277 @@
     v_add_parameter_name(f, 1, "type",     v_type_ptr);
     v_add_parameter_name(f, 2, "value",    LLVMValueRef);
     v_add_parameter_name(f, 3, "to_type",  v_type_ptr);
+    v_add_parameter_name(f, 4, "to_value", value_ptr);
 }
 {
-    if (v_icmp(LLVMIntEQ, type, to_type))   v_return(value);
+    //- Primary conversions (->)
 
-    st0 = v_type_get_scalar_type(type);
-    st1 = v_type_get_scalar_type(to_type);
-
-    //- st1 must be "bigger or equal" than st0 ...
-
-    opcode = v_reference(v_alloca(LLVMOpcode));
-
-    v_assign(opcode, 0);
-
-    if (v_icmp(LLVMIntEQ, st0, st1))    //- No conversion...
+    if (v_type_is_vector(to_type))
     {
-        v_assign(opcode, LLVMBitCast);
-    }
-    else
-    {
-        if (v_type_is_floating_point(st1))
+        e1 = v_type_vector_get_element_type(to_type);
+
+        if (v_icmp(LLVMIntEQ, type, e1))
         {
-            if (v_type_is_floating_point(st0))
+            //- T -> V(T)
+
+            t = v_reference(v_alloca(v_type_ptr));
+            v = v_reference(v_alloca(LLVMValueRef));
+
+            v_assign(t, to_type);
+            v_assign(v, value);
+
+            vectorize_scalar(type, v, t, v);
+
+            v_store(v, to_value);
+
+            v_return(true);
+        }
+
+        if (v_type_is_vector(type))
+        {
+            opcode = convertible_vectors(type, to_type);
+
+            if (opcode) ;
+            else v_return(false);
+
+            //- V(T) -> V(U)
+
+            builder = v_target_get_builder();
+
+            to_type_ = v_type_get_llvm_type(to_type);
+
+            switch(opcode)
             {
-                v_assign(opcode, LLVMFPExt);
+            case LLVMUserOp1:       //- Kinda, T == U
+
+                v_store(value, to_value);
+                v_break();
+
+            case LLVMUserOp2:       //- *T -> *void
+
+                v_store(LLVMBuildPointerCast(builder, value, to_type_, ""), to_value);
+                v_break();
+
+            case LLVMIntToPtr:      //- 0 -> *T
+
+                v_store(LLVMConstNull(to_type_), to_value);
+                v_break();
+
+            default:
+
+                v_store(LLVMBuildCast(builder, opcode, value, to_type_, ""), to_value);
             }
-            else if (v_type_is_integer(st0))
+
+            v_return(true);
+        }
+    }
+
+    //- Combined conversions (->>)
+
+    block
+    {
+        t0_reference = v_type_is_reference(type);
+        t1_reference = v_type_is_reference(to_type);
+
+        et0 = v_reference(v_alloca(v_type_ptr));
+        et1 = v_reference(v_alloca(v_type_ptr));
+
+        if (t0_reference) v_assign(et0, v_type_refptr_get_element_type(type));
+        if (t1_reference) v_assign(et1, v_type_refptr_get_element_type(to_type));
+
+        e1 = v_reference(v_alloca(v_type_ptr));
+
+        if (t1_reference)
+        {
+            if (v_type_is_vector(et1)) ;
+            else v_break();
+
+            v_assign(e1, v_type_vector_get_element_type(et1));
+        }
+        else
+        {
+            if (v_type_is_vector(to_type)) ;
+            else v_break();
+
+            v_assign(e1, v_type_vector_get_element_type(to_type));
+        }
+
+        if (t0_reference)
+        {
+            if (v_type_is_vector(et0))
             {
-                if (v_type_integer_is_signed(st0))  v_assign(opcode, LLVMSIToFP);
-                else                                v_assign(opcode, LLVMUIToFP);
+                //- &V(T) ->> ...
+
+                if (t1_reference)
+                {
+                    if (convertible_vectors(et0, et1)) ;
+                    else v_break();
+
+                    //- &V(T) ->> &V(U)     (!)
+
+                    v = v_convert_to_type(type, value, et1);        //- &V(T) ->> V(U)      (!)
+
+                    v = v_convert_to_type(et1, v, to_type);         //- V(U) -> &V(U)
+
+                    v_store(v, to_value);
+                }
+                else
+                {
+                    if (convertible_vectors(et0, to_type)) ;
+                    else v_break();
+
+                    //- &V(T) ->> V(U)      (!)
+
+                    v = v_convert_to_type(type, value, et0);        //- &V(T) -> V(T)
+
+                    v = v_convert_to_type(et0, v, to_type);         //- V(T) ->> V(U)       (!)
+
+                    v_store(v, to_value);
+                }
+            }
+            else
+            {
+                //- &T ->> ...
+
+                if (t1_reference)
+                {
+                    if (v_icmp(LLVMIntEQ, et0, e1))
+                    {
+                        //- &T ->> &V(T)
+
+                        v = v_convert_to_type(type, value, et1);        //- &T ->> V(T)
+
+                        v = v_convert_to_type(et1, v, to_type);         //- V(T) -> &V(T)
+
+                        v_store(v, to_value);
+                    }
+                    else
+                    {
+                        if (convertible_scalars(et0, 0, e1)) ;
+                        else v_break();
+
+                        //- &T ->> &V(U)        (!)
+
+                        v = v_convert_to_type(type, value, et1);        //- &T ->> V(U)     (!)
+
+                        v = v_convert_to_type(et1, v, to_type);         //- V(U) -> &V(U)
+
+                        v_store(v, to_value);
+                    }
+                }
+                else
+                {
+                    if (v_icmp(LLVMIntEQ, et0, e1))
+                    {
+                        //- &T ->> V(T)
+
+                        v = v_convert_to_type(type, value, e1);         //- &T -> T
+
+                        v = v_convert_to_type(e1, v, to_type);          //- T -> V(T)
+
+                        v_store(v, to_value);
+                    }
+                    else
+                    {
+                        if (convertible_scalars(et0, 0, e1)) ;
+                        else v_break();
+
+                        //- &T ->> V(U)         (!)
+
+                        v = v_convert_to_type(type, value, e1);         //- &T ->> U        (!)
+
+                        v = v_convert_to_type(e1, v, to_type);          //- U -> V(U)
+
+                        v_store(v, to_value);
+                    }
+                }
             }
         }
-        else if (v_type_is_integer(st0))
+        else    //- type is NOT reference
         {
-            if (v_type_integer_is_signed(st0))  v_assign(opcode, LLVMSExt);
-            else                                v_assign(opcode, LLVMZExt);
+            if (v_type_is_vector(type))
+            {
+                if (t1_reference) ;
+                else v_break();
+
+                e0 = v_type_vector_get_element_type(type);
+
+                if (convertible_scalars(e0, 0, e1)) ;
+                else v_break();
+
+                //- V(T) ->> &V(U)      (!)
+
+                v = v_convert_to_type(type, value, et1);        //- V(T) -> V(U)        (!)
+
+                v = v_convert_to_type(et1, v, to_type);         //- V(U) -> &V(U)
+
+                v_store(v, to_value);
+            }
+            else
+            {
+                //- T ->> ...
+
+                if (t1_reference)
+                {
+                    if (v_icmp(LLVMIntEQ, type, e1))
+                    {
+                        //- T ->> &V(T)
+
+                        v = v_convert_to_type(type, value, et1);        //- T -> V(T)
+
+                        v = v_convert_to_type(et1, v, to_type);         //- V(T) -> &V(T)
+
+                        v_store(v, to_value);
+                    }
+                    else
+                    {
+                        if (convertible_scalars(type, value, e1)) ;
+                        else v_break();
+
+                        //- T ->> &V(U)         (!)
+
+                        v = v_convert_to_type(type, value, et1);        //- T ->> V(U)      (!)
+
+                        v = v_convert_to_type(e1, v, to_type);          //- V(U) -> &V(U)
+
+                        v_store(v, to_value);
+                    }
+                }
+                else
+                {
+                    if (convertible_scalars(type, value, e1)) ;
+                    else v_break();
+
+                    //- T ->> V(U)          (!)
+
+                    w = v_type_vector_get_size(to_type);
+                    s = v_type_vector_is_scalable(to_type);
+
+                    et = v_reference(v_alloca(v_type_ptr));
+
+                    if (s)  v_assign(et, v_svector_type(type, w));
+                    else    v_assign(et, v_vector_type(type, w));
+
+                    v = v_convert_to_type(type, value, et);         //- T -> V(T)
+
+                    v = v_convert_to_type(et, v, to_type);          //- V(T) -> V(U)        (!)
+
+                    v_store(v, to_value);
+                }
+            }
         }
+
+        v_return(true);     //- Sic!
     }
 
-    if (opcode) ;
-    else
-    {
-        ctx = v_cast(void_ctx, convert_to_type_ctx_ptr);
+    //- Default treatment...
 
-        fun = v_load(v_getelementptr(ctx, 0, 0));
-        aux = v_load(v_getelementptr(ctx, 0, 1));
+    ctx = v_cast(void_ctx, try_to_convert_ctx_ptr);
 
-        v_return( fun(aux, type, value, to_type) );
-    }
+    fun = v_load(v_getelementptr(ctx, 0, 0));
+    aux = v_load(v_getelementptr(ctx, 0, 1));
 
-    is_vec0 = v_type_is_vector(type);
-    is_vec1 = v_type_is_vector(to_type);
-
-    builder = v_target_get_builder();
-
-    if (v_icmp(LLVMIntEQ, is_vec0, is_vec1))
-    {
-        to_type_ = v_type_get_llvm_type(to_type);
-
-        v_return(LLVMBuildCast(builder, opcode, value, to_type_, ""));
-    }
-
-    //- So, we must have:  (is_vec1 && !is_vec0)
-
-    v = v_reference(v_alloca(LLVMValueRef));
-
-    if (v_icmp(LLVMIntEQ, st0, st1))
-    {
-        v_assign(v, value);
-    }
-    else
-    {
-        st1_ = v_type_get_llvm_type(st1);
-
-        v_assign(v, LLVMBuildCast(builder, opcode, value, st1_, ""));
-    }
-
-    t = v_reference(v_alloca(v_type_ptr));
-
-    v_assign(t, to_type);
-
-    vectorize_scalar(st1, v, t, v);
-
-    v_return(v);
+    v_return( fun(aux, type, value, to_type, to_value) );
 }
 
 
@@ -4345,14 +4658,14 @@
 
 
     //-------------------------------------------------------------
-    saved_ctx = v_malloc(convert_to_type_ctx_t);
+    saved_ctx = v_malloc(try_to_convert_ctx_t);
 
     saved_ctx_fun = v_getelementptr(saved_ctx, 0, 0);
     saved_ctx_ctx = v_getelementptr(saved_ctx, 0, 1);
 
-    v_store(v_get_convert_to_type_hook(saved_ctx_ctx), saved_ctx_fun);
+    v_store(v_get_try_to_convert_hook(saved_ctx_ctx), saved_ctx_fun);
 
-    v_set_convert_to_type_hook(convert_to_type, saved_ctx);
+    v_set_try_to_convert_hook(try_to_convert, saved_ctx);
 
     v_add_local_cleaner(free, saved_ctx);
 

@@ -79,13 +79,8 @@ mk_projection_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     prec  = obj[1];
 
 
-    pay = v_alloca(v_ast_generic_list_t);
-    v_initialize(pay);
-    defer v_terminate(pay);
-
-    id = v_alloca(v_ast_expr_t);
-    v_initialize(id);
-    defer v_terminate(id);
+    pay = v_make_object(v_ast_generic_list_t);
+    id  = v_make_object(v_ast_expr_t);
 
     v_ast_make_expr_identifier(id, v_std_string_get(name));
 
@@ -94,9 +89,7 @@ mk_projection_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     if (args) v_list_append(pay, pay, (args: *v_ast_base_t));
 
 
-    op1 = v_alloca(v_ast_expr_t);
-    v_initialize(op1);
-    defer v_terminate(op1);
+    op1 = v_make_object(v_ast_expr_t);
 
     v_ast_make_operator_unary(op1, quark, prec, (pay: *v_ast_base_t));
 
@@ -147,9 +140,7 @@ op_postfix_dot_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
         fun := v_util_lookup_overload(q, t0, &ctx);
         v_assert(fun);
 
-        expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
+        expr = v_make_object(v_ast_expr_t);
 
         v_ast_make_expr_compiled(expr, t0, v0);
 
@@ -174,9 +165,7 @@ op_postfix_dot_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
         v_set_result_value(0);
     }
 
-    {   expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
+    {   expr = v_make_object(v_ast_expr_t);
 
         arg_count: &unsigned := 1;
 
@@ -241,9 +230,7 @@ op_postfix_dot_agent: (vis: *voidc_visitor_t, self: *v_ast_base_t,
     q0: &v_quark_t := v_undef();
     q1: &v_quark_t := v_undef();
 
-    {   sstr = v_alloca(v_std_string_t);
-        v_initialize(sstr);
-        defer v_terminate(sstr);
+    {   sstr = v_make_object(v_std_string_t);
 
         v_std_string_set(sstr, ".");
 
@@ -310,9 +297,7 @@ op_postfix_to_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
     {
         //- Got overloading!
 
-        expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
+        expr = v_make_object(v_ast_expr_t);
 
         v_ast_make_expr_compiled(expr, t0, v0);
 
@@ -445,9 +430,7 @@ voidc_enable_projections: () ~> void
     v_return_if(v_peg_grammar_get_action(gr0, "mk_projection", 0));
 
 
-    any = v_alloca(v_std_any_t, 2);
-    v_initialize(any, 2);
-    defer v_terminate(any, 2);
+    any = v_make_object(v_std_any_t, 2);
 
     any_dot = any + 0;
     any_to  = any + 1;

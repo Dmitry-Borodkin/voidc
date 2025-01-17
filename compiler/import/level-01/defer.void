@@ -9,11 +9,15 @@
     v_import("llvm-c/Core.void");
 
     v_import("function_hack.void");
+    v_import("if_then_else.void");
+    v_import("block.void");
     v_import("grammar.void");
     v_import("expression.void");
 }
 
-{   voidc_enable_statement_grammar();
+{   voidc_enable_statement_if_then_else();
+    voidc_enable_statement_block();
+    voidc_enable_statement_grammar();
     voidc_enable_expression();
 }
 
@@ -26,6 +30,13 @@
     q = v_quark_ptr_from_string;
 
     v_add_symbol("voidc_internal_branch_target_leave_q", q_ref, q("voidc.internal_branch_target_leave"));
+
+    v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
+    v_add_symbol("size_t_q",        q_ref, q("size_t"));
+
+    v_add_symbol("q_alloca",     q_ref, q("v_alloca"));
+    v_add_symbol("q_initialize", q_ref, q("v_initialize"));
+    v_add_symbol("q_terminate",  q_ref, q("v_terminate"));
 }
 
 //---------------------------------------------------------------------
@@ -265,6 +276,122 @@
 
 
 //---------------------------------------------------------------------
+//- v_make_object - utility...
+//---------------------------------------------------------------------
+{
+    //-----------------------------------------------------------------
+    f = v_function_hack("v_make_object_intrinsic", voidc_intrinsic_t);
+
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
+    v_add_parameter_name(f, 0, "aux",  void_ptr);
+    v_add_parameter_name(f, 1, "vis",  voidc_visitor_ptr);
+    v_add_parameter_name(f, 2, "self", v_ast_base_ptr);
+}
+{
+    args = v_ast_expr_call_get_arg_list(v_cast(self, *v_ast_expr_t));
+
+    ttag = v_get_result_type();
+    vtag = v_get_result_value();
+
+    static_type_t = v_find_type_q(q_static_type_t);
+
+    builder = v_target_get_builder();
+
+    v_set_result_type(static_type_t);
+    v_set_result_value(0);
+
+    arg0 = v_list_get_item(args, 0);                //- Type
+
+    v_ast_accept_visitor(v_cast(arg0, *v_ast_base_t), vis);
+
+    type = v_cast(v_get_result_value(), *v_type_t);
+
+    size_t_type = v_find_type_q(size_t_q);
+
+    count = v_reference(v_alloca(LLVMValueRef));
+
+    if (v_list_get_size(args) > 1)
+    {
+        v_set_result_type(v_find_type_q(size_t_q));
+        v_set_result_value(0);
+
+        arg1 = v_list_get_item(args, 1);                //- Counter
+
+        v_ast_accept_visitor(v_cast(arg1, *v_ast_base_t), vis);
+
+        count := v_get_result_value();
+    }
+    else
+    {
+        count := LLVMConstInt(v_type_get_llvm_type(size_t_type), 1, false);
+    }
+
+    expr = v_alloca(v_ast_expr_t, 2);
+    v_initialize(expr, 2);
+
+    v_ast_make_expr_compiled(expr+0, static_type_t, v_cast(type, LLVMValueRef));
+
+    v_ast_make_expr_compiled(expr+1, size_t_type, count);
+
+    list = v_alloca(v_ast_expr_list_t);
+    v_initialize(list);
+
+    v_make_list(list, expr, 2);
+
+    v_ast_make_expr_identifier_q(expr+0, q_alloca);
+
+    v_ast_make_expr_call(expr+0, expr+0, list);         //- v_alloca
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(v_cast(expr+0, *v_ast_base_t), vis);
+
+    t = v_get_result_type();
+    v = v_get_result_value();
+
+    v_ast_make_expr_compiled(expr+0, t, v);
+
+    v_make_list(list, expr, 2);
+
+    v_ast_make_expr_identifier_q(expr+0, q_initialize);
+
+    v_ast_make_expr_call(expr+0, expr+0, list);         //- v_initialize
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(v_cast(expr+0, *v_ast_base_t), vis);
+
+    v_ast_make_expr_identifier_q(expr+0, q_terminate);
+
+    v_ast_make_expr_call(expr+0, expr+0, list);         //- v_terminate
+
+    stmt = v_alloca(v_ast_stmt_t);
+    v_initialize(stmt);
+
+    v_ast_make_stmt(stmt, "", expr);
+
+    v_ast_make_stmt_defer(stmt, stmt);                  //- defer
+
+    v_set_result_type(INVIOLABLE_TAG);
+    v_set_result_value(0);
+
+    v_ast_accept_visitor(v_cast(stmt, *v_ast_base_t), vis);
+
+    v_set_result_type(ttag);
+    v_set_result_value(vtag);
+
+    v_adopt_result(t, v);
+
+    v_terminate(stmt);
+    v_terminate(list);
+    v_terminate(expr, 2);
+}
+
+
+//---------------------------------------------------------------------
 //- Enable statement defer compiler
 //---------------------------------------------------------------------
 {
@@ -282,6 +409,8 @@
     v_store(quark, v_getelementptr(voidc_ast_stmt_defer_vtable, 0, 2));
 
     voidc_visitor_set_method(vis, vis, quark, compile_ast_stmt_defer_t, 0);
+
+    v_add_intrinsic("v_make_object", v_make_object_intrinsic, 0);
 }
 
 

@@ -86,22 +86,21 @@
     v_add_symbol("q_static_type_t", q_ref, q("v_static_type_t"));
 }
 
-{   typ = v_alloca(v_type_ptr, 6);
+{   typ = v_alloca(v_type_ptr, 4);
 
     typ[0] := void_ptr;
     typ[1] := v_type_ptr;
     typ[2] := LLVMValueRef;
-    typ[3] := v_type_ptr;
 
-    ft = v_function_type(LLVMValueRef, typ, 4, false);
+    ft = v_function_type(bool, typ, 3, false);
 
     typ[0] := v_pointer_type(ft, 0);
     typ[1] := void_ptr;
 
     ctx_t = v_struct_type(typ, 2, false);
 
-    v_add_type("convert_to_type_ft",    ft);
-    v_add_type("convert_to_type_ctx_t", ctx_t);
+    v_add_type("try_to_adopt_ft",    ft);
+    v_add_type("try_to_adopt_ctx_t", ctx_t);
 
     typ[0] := void_ptr;
     typ[1] := LLVMValueRef;
@@ -110,7 +109,7 @@
 
     ft = v_function_type(void, typ, 4, false);
 
-    v_add_type("v_prepare_function_parameters_ft",    ft);
+    v_add_type("v_prepare_function_parameters_ft", ft);
 }
 
 
@@ -123,7 +122,7 @@
     typ[1] := bool;                                 //- "export_flag"
     typ[2] := LLVMModuleRef;                        //- "saved_module"
     typ[3] := LLVMModuleRef;                        //- "defn_module"
-    typ[4] := convert_to_type_ctx_t;                //- "convert_ctx"
+    typ[4] := try_to_adopt_ctx_t;                   //- "adopt_ctx"
     typ[5] := v_ast_stmt_list_ptr;                  //- "stmt_list"
     typ[6] := LLVMModuleRef;                        //- "mod_const"
 
@@ -140,7 +139,7 @@
     v_add_constant("ctx_export_flag",  int, LLVMConstInt(int_, 1, 0));
     v_add_constant("ctx_saved_module", int, LLVMConstInt(int_, 2, 0));
     v_add_constant("ctx_defn_module",  int, LLVMConstInt(int_, 3, 0));
-    v_add_constant("ctx_convert_ctx",  int, LLVMConstInt(int_, 4, 0));
+    v_add_constant("ctx_adopt_ctx",    int, LLVMConstInt(int_, 4, 0));
     v_add_constant("ctx_stmt_list",    int, LLVMConstInt(int_, 5, 0));
     v_add_constant("ctx_mod_const",    int, LLVMConstInt(int_, 6, 0));
 
@@ -229,9 +228,7 @@
     v_add_parameter_name(f, 0, "ctx", ctx_ptr);
 }
 {
-    any = v_alloca(v_std_any_t);
-    v_initialize(any);
-    defer v_terminate(any);
+    any = v_make_object(v_std_any_t);
 
     v_std_any_set_value(any, v_cast(ctx, intptr_t));
 
@@ -439,16 +436,12 @@
     key  = v_std_any_get_pointer(v_ast_expr_t, any+0);
     type = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
-    expr = v_alloca(v_ast_expr_t, 2);
-    v_initialize(expr, 2);
-    defer v_terminate(expr, 2);
+    expr = v_make_object(v_ast_expr_t, 2);
 
     if (key)    v_copy(expr+0, key);
     if (type)   v_copy(expr+1, type);
 
-    lst = v_alloca(v_ast_expr_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_expr_list_t);
 
     v_make_list(lst, expr, 2);
 
@@ -477,9 +470,7 @@
 
     item = v_std_any_get_pointer(v_ast_expr_list_t, any+1);
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     if (list)   v_list_append(lst, list, v_cast(item, v_ast_base_ptr));
     else
@@ -535,17 +526,13 @@
 
     name = v_std_any_get_pointer(v_std_string_t, any+1);
 
-    ast = v_alloca(v_ast_base_t, 2);
-    v_initialize(ast, 2);
-    defer v_terminate(ast, 2);
+    ast = v_make_object(v_ast_base_t, 2);
 
     v_ast_make_expr_integer(v_cast(&ast[0], v_ast_expr_ptr), qualif);
 
     v_ast_make_expr_identifier(v_cast(&ast[1], v_ast_expr_ptr), v_std_string_get(name));
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     v_make_list(lst, 0, ast, 2);
 
@@ -575,9 +562,7 @@
     args = v_std_any_get_pointer(v_ast_expr_t, any+1);
     type = v_std_any_get_pointer(v_ast_expr_t, any+2);
 
-    ast = v_alloca(v_ast_base_t, 4);
-    v_initialize(ast, 4);
-    defer v_terminate(ast, 4);
+    ast = v_make_object(v_ast_base_t, 4);
 
     v_copy(ast+0, v_list_get_item(q_id, 0));
     v_copy(ast+1, v_list_get_item(q_id, 1));
@@ -585,9 +570,7 @@
     v_copy(ast+2, v_cast(args, v_ast_base_ptr));
     v_copy(ast+3, v_cast(type, v_ast_base_ptr));
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     v_make_list(lst, unit_fun_defn_q, ast, 4);
 
@@ -614,15 +597,11 @@
     head = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
     body = v_std_any_get_pointer(v_ast_stmt_list_t,    any+1);
 
-    ast = v_alloca(v_ast_base_t);
-    v_initialize(ast);
-    defer v_terminate(ast);
+    ast = v_make_object(v_ast_base_t);
 
     if (body)   v_copy(ast, v_cast(body, v_ast_base_ptr));
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     v_list_append(lst, head, ast, 1);
 
@@ -649,21 +628,15 @@
     head = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
     expr = v_std_any_get_pointer(v_ast_expr_t,         any+1);
 
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+    stmt = v_make_object(v_ast_stmt_t);
 
     v_ast_make_stmt_call(stmt, 0, q_return, expr, 1);
 
-    slst = v_alloca(v_ast_stmt_list_t);
-    v_initialize(slst);
-    defer v_terminate(slst);
+    slst = v_make_object(v_ast_stmt_list_t);
 
     v_make_list(slst, stmt);
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     v_list_append(lst, head, v_cast(slst, v_ast_base_ptr));
 
@@ -692,9 +665,7 @@
 
     expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
-    ast = v_alloca(v_ast_base_t, 4);
-    v_initialize(ast, 4);
-    defer v_terminate(ast, 4);
+    ast = v_make_object(v_ast_base_t, 4);
 
     type  = v_cast(ast+2, v_ast_expr_ptr);
     value = v_cast(ast+3, v_ast_expr_ptr);
@@ -728,9 +699,7 @@
     v_copy(ast+0, v_list_get_item(q_id, 0));
     v_copy(ast+1, v_list_get_item(q_id, 1));
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     v_make_list(lst, unit_var_defn_q, ast, 4);
 
@@ -759,9 +728,7 @@
     type  = v_std_any_get_pointer(v_ast_expr_t, any+1);
     value = v_std_any_get_pointer(v_ast_expr_t, any+2);
 
-    ast = v_alloca(v_ast_base_t, 4);
-    v_initialize(ast, 4);
-    defer v_terminate(ast, 4);
+    ast = v_make_object(v_ast_base_t, 4);
 
     v_copy(ast+0, v_list_get_item(q_id, 0));
     v_copy(ast+1, v_list_get_item(q_id, 1));
@@ -770,9 +737,7 @@
 
     v_copy(ast+3, v_cast(value, v_ast_base_ptr));
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     v_make_list(lst, unit_val_defn_q, ast, 4);
 
@@ -800,9 +765,7 @@
     list = v_std_any_get_pointer(v_ast_generic_list_t, any+0);
     item = v_std_any_get_pointer(v_ast_base_t,         any+1);
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     if (list)   v_list_append(lst, list, item);
     else
@@ -839,18 +802,14 @@
 
     line = v_peg_get_line_column(pos, &column);
 
-    ast = v_alloca(v_ast_base_t, 3);
-    v_initialize(ast, 3);
-    defer v_terminate(ast, 3);
+    ast = v_make_object(v_ast_base_t, 3);
 
     v_copy(&ast[0], v_cast(list, v_ast_base_ptr));
 
     v_ast_make_expr_integer(v_cast(&ast[1], v_ast_expr_ptr), v_cast(line,   intptr_t));
     v_ast_make_expr_integer(v_cast(&ast[2], v_ast_expr_ptr), v_cast(column, intptr_t));
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     v_make_list(lst, defn_list_unit_q, ast, 3);
 
@@ -879,9 +838,7 @@
 
     expr = v_std_any_get_pointer(v_ast_expr_t, any+1);
 
-    ast = v_alloca(v_ast_base_t, 2);
-    v_initialize(ast, 2);
-    defer v_terminate(ast, 2);
+    ast = v_make_object(v_ast_base_t, 2);
 
     type  = v_cast(ast+0, v_ast_expr_ptr);
     value = v_cast(ast+1, v_ast_expr_ptr);
@@ -912,17 +869,9 @@
         v_copy(ast0+1, v_list_get_item(arg_list, 2));
     }
 
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
-
-    lst = v_alloca(v_ast_expr_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
-
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
+    stmt = v_make_object(v_ast_stmt_t);
+    lst  = v_make_object(v_ast_expr_list_t);
+    etmp = v_make_object(v_ast_expr_t);
 
     if (v_empty(value))     //- Declaration
     {
@@ -974,25 +923,19 @@
     type = v_std_any_get_pointer(v_ast_expr_t, any+1);
     expr = v_std_any_get_pointer(v_ast_expr_t, any+2);
 
-    lst = v_alloca(v_ast_expr_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_expr_list_t);
 
     v_make_list(lst, expr, 1);
 
     v_list_append(lst, lst, type, 1);
 
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
+    etmp = v_make_object(v_ast_expr_t);
 
     v_ast_make_expr_identifier_q(etmp, q_internal_val_defn);
 
     v_ast_make_expr_call(etmp, etmp, lst);
 
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+    stmt = v_make_object(v_ast_stmt_t);
 
     v_ast_make_stmt(stmt, v_std_string_get(name), etmp);
 
@@ -1001,36 +944,38 @@
 
 
 //---------------------------------------------------------------------
-//- convert_to_type - utility...
+//- try_to_adopt - utility...
 //---------------------------------------------------------------------
 {
     //-----------------------------------------------------------------
-    f = v_function_hack("convert_to_type", convert_to_type_ft);
+    f = v_function_hack("try_to_adopt", try_to_adopt_ft);
 
     LLVMSetLinkage(f, LLVMPrivateLinkage);
 
     v_add_parameter_name(f, 0, "void_ctx", void_ptr);
     v_add_parameter_name(f, 1, "type",     v_type_ptr);
     v_add_parameter_name(f, 2, "value",    LLVMValueRef);
-    v_add_parameter_name(f, 3, "to_type",  v_type_ptr);
 }
 {
-    if (type == to_type)  v_return(value);
-
     block
     {
+        to_type = v_get_result_type();
+
+        if (to_type == INVIOLABLE_TAG  ||  to_type == UNREFERENCE_TAG)  v_break();
+
         if (!v_type_is_generic(to_type))  v_break();
 
         if (v_type_generic_get_cons(to_type) != voidc_incomplete_array_type_tag)  v_break();
 
-        v_set_result_type(type);        //- Sic!!!
+        v_set_result_type(type);        //- Sic !!!
+        v_set_result_value(value);
 
-        v_return(value);
+        v_return(true);
     }
 
-    ctx = *v_cast(void_ctx, *convert_to_type_ctx_t);
+    ctx = *v_cast(void_ctx, *try_to_adopt_ctx_t);
 
-    v_return( ctx[0](ctx[1], type, value, to_type) );
+    v_return( ctx[0](ctx[1], type, value) );
 }
 
 
@@ -1200,9 +1145,7 @@
 
     lst = v_cast(v_list_get_item(list, 0), v_ast_expr_list_ptr);
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
     v_copy(expr, v_list_get_item(lst, 0));
 
@@ -1356,17 +1299,9 @@
     if (private  ||  !stmt_list)  v_return();
 
 
-    expr = v_alloca(v_ast_expr_t, 3);
-    v_initialize(expr, 3);
-    defer v_terminate(expr, 3);
-
-    elst = v_alloca(v_ast_expr_list_t);
-    v_initialize(elst);
-    defer v_terminate(elst);
-
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+    expr = v_make_object(v_ast_expr_t, 3);
+    elst = v_make_object(v_ast_expr_list_t);
+    stmt = v_make_object(v_ast_stmt_t);
 
 
     v_ast_make_expr_integer(expr+0, v_cast(fun_type, intptr_t));        //- Sic!!!
@@ -1431,9 +1366,7 @@
     args = v_cast(v_list_get_item(args, 1), v_ast_generic_list_ptr);
 
     //-------------------------------------------------------------
-    {   expr = v_alloca(v_ast_expr_t);
-        v_initialize(expr);
-        defer v_terminate(expr);
+    {   expr = v_make_object(v_ast_expr_t);
 
         v_ast_make_expr_op_binary(expr, v_op_infix_tildeto, v_cast(params, v_ast_expr_ptr), v_cast(ret_type, v_ast_expr_ptr));
 
@@ -1538,17 +1471,9 @@
     if (private  ||  !stmt_list)  v_return();
 
 
-    expr = v_alloca(v_ast_expr_t, 3);
-    v_initialize(expr, 3);
-    defer v_terminate(expr, 3);
-
-    elst = v_alloca(v_ast_expr_list_t);
-    v_initialize(elst);
-    defer v_terminate(elst);
-
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+    expr = v_make_object(v_ast_expr_t, 3);
+    elst = v_make_object(v_ast_expr_list_t);
+    stmt = v_make_object(v_ast_stmt_t);
 
 
     v_ast_make_expr_integer(expr+0, v_cast(var_type, intptr_t));        //- Sic!!!
@@ -1660,17 +1585,9 @@
     if (private  ||  !stmt_list)  v_return();
 
 
-    expr = v_alloca(v_ast_expr_t, 3);
-    v_initialize(expr, 3);
-    defer v_terminate(expr, 3);
-
-    elst = v_alloca(v_ast_expr_list_t);
-    v_initialize(elst);
-    defer v_terminate(elst);
-
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+    expr = v_make_object(v_ast_expr_t, 3);
+    elst = v_make_object(v_ast_expr_list_t);
+    stmt = v_make_object(v_ast_stmt_t);
 
 
     typ = *v_alloca(*void);
@@ -1974,13 +1891,8 @@
         //---------------------------------------------------------
         if (mod_const)
         {
-            expr = v_alloca(v_ast_expr_t, 2);
-            v_initialize(expr, 2);
-            defer v_terminate(expr, 2);
-
-            stmt = v_alloca(v_ast_stmt_t);
-            v_initialize(stmt);
-            defer v_terminate(stmt);
+            expr = v_make_object(v_ast_expr_t, 2);
+            stmt = v_make_object(v_ast_stmt_t);
 
             m = LLVMWriteBitcodeToMemoryBuffer(mod_const);
 
@@ -2331,6 +2243,8 @@
     //-----------------------------------------------------------------
     f = v_function_hack("v_undef_intrinsic", voidc_intrinsic_t);
 
+    LLVMSetLinkage(f, LLVMPrivateLinkage);
+
     v_add_parameter_name(f, 0, "aux",     void_ptr);
     v_add_parameter_name(f, 1, "visitor", voidc_visitor_ptr);
     v_add_parameter_name(f, 2, "self",    v_ast_base_ptr);
@@ -2390,11 +2304,11 @@
     v_add_local_cleaner(free, &def_ctx);
 
     //-------------------------------------------------------------
-    convert_ctx = def_ctx[ctx_convert_ctx];
+    adopt_ctx = def_ctx[ctx_adopt_ctx];
 
-    convert_ctx[0] := v_get_convert_to_type_hook(&convert_ctx[1]);
+    adopt_ctx[0] := v_get_try_to_adopt_hook(&adopt_ctx[1]);
 
-    v_set_convert_to_type_hook(convert_to_type, &convert_ctx);
+    v_set_try_to_adopt_hook(try_to_adopt, &adopt_ctx);
 
     //-----------------------------------------------------------------
     v_set_prepare_function_parameters_hook(v_prepare_function_parameters_default, 0);
@@ -2478,9 +2392,7 @@
     voidc_enable_expression();          //- Sic!
 
 
-    any = v_alloca(v_std_any_t, 6);
-    v_initialize(any, 6);
-    defer v_terminate(any, 6);
+    any = v_make_object(v_std_any_t, 6);
 
     any_tildeto  = any + 0;
     any_const    = any + 1;

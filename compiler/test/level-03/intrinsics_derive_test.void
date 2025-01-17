@@ -85,9 +85,7 @@ N: &int := 7;
 
     N *= 2;
 
-    b = v_alloca(unique_ptr_int, N);
-    v_initialize(b, N);
-    defer v_terminate(b, N);
+    b = v_make_object(unique_ptr_int, N);
 
     for (i: &int := 0; i < N; ++i)
     {

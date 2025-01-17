@@ -118,9 +118,7 @@ v_ast_make_expr_union: (ret: *v_ast_expr_t,
                         export: bool
                        ) ~> void
 {
-    etmp = v_alloca(v_ast_expr_t);
-    v_initialize(etmp);
-    defer v_terminate(etmp);
+    etmp = v_make_object(v_ast_expr_t);
 
     v_ast_make_generic(etmp, &ast_expr_union_vtable, v_ast_expr_union_t.sizeof);
 
@@ -146,9 +144,7 @@ mk_expr_union_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t, size
     name   = v_std_any_get_pointer(v_ast_expr_t, any+0);
     body   = v_std_any_get_pointer(v_ast_stmt_list_t, any+1);
 
-    expr = v_alloca(v_ast_expr_t);
-    v_initialize(expr);
-    defer v_terminate(expr);
+    expr = v_make_object(v_ast_expr_t);
 
     v_ast_make_expr_union(expr, name, body, false);         //- NOT export!
 
@@ -177,9 +173,7 @@ mk_unit_union_defn_grammar_action: (ret: *v_std_any_t, *void, any: *v_std_any_t,
         obj.export := true;
     }
 
-    lst = v_alloca(v_ast_generic_list_t);
-    v_initialize(lst);
-    defer v_terminate(lst);
+    lst = v_make_object(v_ast_generic_list_t);
 
     v_make_list(lst, unit_union_defn_q, (expr: *v_ast_base_t), 1);
 
@@ -232,9 +226,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
             union_name := v_ast_expr_string_get_string(&obj.name);
         }
 
-        sstr = v_alloca(v_std_string_t);
-        v_initialize(sstr);
-        defer v_terminate(sstr);
+        sstr = v_make_object(v_std_string_t);
 
         v_std_string_set(sstr, "union.");
 
@@ -251,9 +243,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
 
     N: &unsigned := 0;
 
-    hstr = v_alloca(v_std_string_t);
-    v_initialize(hstr);
-    defer v_terminate(hstr);
+    hstr = v_make_object(v_std_string_t);
 
     types: &**v_type_t := 0;
     defer if (types)  v_free(types);
@@ -340,9 +330,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
 
         tref = v_reference_type(type, 0);
 
-        sstr = v_alloca(v_std_string_t, 2);
-        v_initialize(sstr, 2);
-        defer v_terminate(sstr, 2);
+        sstr = v_make_object(v_std_string_t, 2);
 
         for (i: &int := 0; i < N; ++i)
         {
@@ -393,17 +381,9 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
     if (!stmt_list)  v_return();
 
 
-    expr = v_alloca(v_ast_expr_t, 3);
-    v_initialize(expr, 3);
-    defer v_terminate(expr, 3);
-
-    elst = v_alloca(v_ast_expr_list_t);
-    v_initialize(elst);
-    defer v_terminate(elst);
-
-    stmt = v_alloca(v_ast_stmt_t);
-    v_initialize(stmt);
-    defer v_terminate(stmt);
+    expr = v_make_object(v_ast_expr_t, 3);
+    elst = v_make_object(v_ast_expr_list_t);
+    stmt = v_make_object(v_ast_stmt_t);
 
 
     v_ast_make_expr_integer(expr+0, (type: intptr_t));          //- Sic!!!
@@ -439,9 +419,7 @@ compile_expr_union: (aux: *void, vis: *voidc_visitor_t,
     v_list_append(stmt_list, stmt_list, stmt);
 
 
-    sstr = v_alloca(v_std_string_t);
-    v_initialize(sstr);
-    defer v_terminate(sstr);
+    sstr = v_make_object(v_std_string_t);
 
     for (i: &int := 0; i < N; ++i)
     {
