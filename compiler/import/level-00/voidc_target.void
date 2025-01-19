@@ -13,6 +13,7 @@
 
     ft = v_function_type(v_type_ptr, typ0, 2, false);
     v_add_symbol("v_pointer_type", ft, 0);
+    v_add_symbol("v_reference_type", ft, 0);
 
     //-------------------------------------------------------------
     voidc_clear_unit_buffer();
@@ -258,18 +259,21 @@
     v_export_symbol_type("v_obtain_identifier_q", ft);
 
     //-------------------------------------------------------------
-    v_store(v_type_ptr,   typ0);            //- Source type
-    v_store(LLVMValueRef, typ1);            //- Source value
-    v_store(v_type_ptr,   typ2);            //- Destination type
+    LLVMValueRef_ref = v_reference_type(LLVMValueRef, 0);
 
-    ft = v_function_type(LLVMValueRef, typ0, 3, false);
+    v_store(v_type_ptr,       typ0);        //- Source type
+    v_store(LLVMValueRef,     typ1);        //- Source value
+    v_store(v_type_ptr,       typ2);        //- Destination type
+    v_store(LLVMValueRef_ref, typ3);        //- Result value
+
+    ft = v_function_type(void, typ0, 4, false);
     v_export_symbol_type("v_convert_to_type", ft);
 
     v_store(void_ptr,         typ0);        //- Context
     v_store(v_type_ptr,       typ1);        //- Source type
     v_store(LLVMValueRef,     typ2);        //- Source value
     v_store(v_type_ptr,       typ3);        //- Destination type
-    v_store(LLVMValueRef_ptr, typ4);        //- Result value
+    v_store(LLVMValueRef_ref, typ4);        //- Result value
 
     ctt_ft = v_function_type(bool, typ0, 5, false);
 
@@ -289,7 +293,7 @@
     v_store(v_type_ptr,       typ0);        //- Source type
     v_store(LLVMValueRef,     typ1);        //- Source value
     v_store(v_type_ptr,       typ2);        //- Destination type
-    v_store(LLVMValueRef_ptr, typ3);        //- Result value
+    v_store(LLVMValueRef_ref, typ3);        //- Result value
 
     ft = v_function_type(bool, typ0, 4, false);
     v_export_symbol_type("v_try_to_convert", ft);

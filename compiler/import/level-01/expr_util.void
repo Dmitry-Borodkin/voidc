@@ -46,8 +46,6 @@
     v_add_type("type_ref",  v_reference_type(v_type_ptr, 0));
     v_add_type("value_ref", v_reference_type(LLVMValueRef, 0));
 
-    v_add_type("value_ptr", v_pointer_type(LLVMValueRef, 0));
-
 
     q_ref = v_reference_type(v_quark_t, 0);
 
@@ -807,7 +805,7 @@
     v_store(v_type_ptr,   typ1);
     v_store(LLVMValueRef, typ2);
     v_store(v_type_ptr,   typ3);
-    v_store(value_ptr,    typ4);
+    v_store(value_ref,    typ4);
 
     ft = v_function_type(bool, typ0, 5, false);
 
@@ -835,7 +833,7 @@
     v_add_parameter_name(f, 1, "type",     v_type_ptr);
     v_add_parameter_name(f, 2, "value",    LLVMValueRef);
     v_add_parameter_name(f, 3, "to_type",  v_type_ptr);
-    v_add_parameter_name(f, 4, "to_value", value_ptr);
+    v_add_parameter_name(f, 4, "to_value", value_ref);
 }
 {
     //- Primary conversions (->)
@@ -856,7 +854,7 @@
 
             vectorize_scalar(type, v, t, v);
 
-            v_store(v, to_value);
+            v_assign(to_value, v);
 
             v_return(true);
         }
@@ -878,22 +876,22 @@
             {
             case LLVMUserOp1:       //- Kinda, T == U
 
-                v_store(value, to_value);
+                v_assign(to_value, value);
                 v_break();
 
             case LLVMUserOp2:       //- *T -> *void
 
-                v_store(LLVMBuildPointerCast(builder, value, to_type_, ""), to_value);
+                v_assign(to_value, LLVMBuildPointerCast(builder, value, to_type_, ""));
                 v_break();
 
             case LLVMIntToPtr:      //- 0 -> *T
 
-                v_store(LLVMConstNull(to_type_), to_value);
+                v_assign(to_value, LLVMConstNull(to_type_));
                 v_break();
 
             default:
 
-                v_store(LLVMBuildCast(builder, opcode, value, to_type_, ""), to_value);
+                v_assign(to_value, LLVMBuildCast(builder, opcode, value, to_type_, ""));
             }
 
             v_return(true);
@@ -901,6 +899,10 @@
     }
 
     //- Combined conversions (->>)
+
+    vv = v_reference(v_alloca(LLVMValueRef));
+
+    v_assign(vv, 0);        //- Just scratch...
 
     block
     {
@@ -943,11 +945,8 @@
 
                     //- &V(T) ->> &V(U)     (!)
 
-                    v = v_convert_to_type(type, value, et1);        //- &V(T) ->> V(U)      (!)
-
-                    v = v_convert_to_type(et1, v, to_type);         //- V(U) -> &V(U)
-
-                    v_store(v, to_value);
+                    v_convert_to_type(type, value, et1, vv);            //- &V(T) ->> V(U)      (!)
+                    v_convert_to_type(et1, vv, to_type, to_value);      //- V(U) -> &V(U)
                 }
                 else
                 {
@@ -956,11 +955,8 @@
 
                     //- &V(T) ->> V(U)      (!)
 
-                    v = v_convert_to_type(type, value, et0);        //- &V(T) -> V(T)
-
-                    v = v_convert_to_type(et0, v, to_type);         //- V(T) ->> V(U)       (!)
-
-                    v_store(v, to_value);
+                    v_convert_to_type(type, value, et0, vv);            //- &V(T) -> V(T)
+                    v_convert_to_type(et0, vv, to_type, to_value);      //- V(T) ->> V(U)       (!)
                 }
             }
             else
@@ -973,11 +969,8 @@
                     {
                         //- &T ->> &V(T)
 
-                        v = v_convert_to_type(type, value, et1);        //- &T ->> V(T)
-
-                        v = v_convert_to_type(et1, v, to_type);         //- V(T) -> &V(T)
-
-                        v_store(v, to_value);
+                        v_convert_to_type(type, value, et1, vv);        //- &T ->> V(T)
+                        v_convert_to_type(et1, vv, to_type, to_value);  //- V(T) -> &V(T)
                     }
                     else
                     {
@@ -986,11 +979,8 @@
 
                         //- &T ->> &V(U)        (!)
 
-                        v = v_convert_to_type(type, value, et1);        //- &T ->> V(U)     (!)
-
-                        v = v_convert_to_type(et1, v, to_type);         //- V(U) -> &V(U)
-
-                        v_store(v, to_value);
+                        v_convert_to_type(type, value, et1, vv);        //- &T ->> V(U)     (!)
+                        v_convert_to_type(et1, vv, to_type, to_value);  //- V(U) -> &V(U)
                     }
                 }
                 else
@@ -999,11 +989,8 @@
                     {
                         //- &T ->> V(T)
 
-                        v = v_convert_to_type(type, value, e1);         //- &T -> T
-
-                        v = v_convert_to_type(e1, v, to_type);          //- T -> V(T)
-
-                        v_store(v, to_value);
+                        v_convert_to_type(type, value, e1, vv);         //- &T -> T
+                        v_convert_to_type(e1, vv, to_type, to_value);   //- T -> V(T)
                     }
                     else
                     {
@@ -1012,11 +999,8 @@
 
                         //- &T ->> V(U)         (!)
 
-                        v = v_convert_to_type(type, value, e1);         //- &T ->> U        (!)
-
-                        v = v_convert_to_type(e1, v, to_type);          //- U -> V(U)
-
-                        v_store(v, to_value);
+                        v_convert_to_type(type, value, e1, vv);         //- &T ->> U        (!)
+                        v_convert_to_type(e1, vv, to_type, to_value);   //- U -> V(U)
                     }
                 }
             }
@@ -1035,11 +1019,8 @@
 
                 //- V(T) ->> &V(U)      (!)
 
-                v = v_convert_to_type(type, value, et1);        //- V(T) -> V(U)        (!)
-
-                v = v_convert_to_type(et1, v, to_type);         //- V(U) -> &V(U)
-
-                v_store(v, to_value);
+                v_convert_to_type(type, value, et1, vv);                //- V(T) -> V(U)        (!)
+                v_convert_to_type(et1, vv, to_type, to_value);          //- V(U) -> &V(U)
             }
             else
             {
@@ -1051,11 +1032,8 @@
                     {
                         //- T ->> &V(T)
 
-                        v = v_convert_to_type(type, value, et1);        //- T -> V(T)
-
-                        v = v_convert_to_type(et1, v, to_type);         //- V(T) -> &V(T)
-
-                        v_store(v, to_value);
+                        v_convert_to_type(type, value, et1, vv);        //- T -> V(T)
+                        v_convert_to_type(et1, vv, to_type, to_value);  //- V(T) -> &V(T)
                     }
                     else
                     {
@@ -1064,11 +1042,8 @@
 
                         //- T ->> &V(U)         (!)
 
-                        v = v_convert_to_type(type, value, et1);        //- T ->> V(U)      (!)
-
-                        v = v_convert_to_type(e1, v, to_type);          //- V(U) -> &V(U)
-
-                        v_store(v, to_value);
+                        v_convert_to_type(type, value, et1, vv);        //- T ->> V(U)      (!)
+                        v_convert_to_type(e1, vv, to_type, to_value);   //- V(U) -> &V(U)
                     }
                 }
                 else
@@ -1086,11 +1061,8 @@
                     if (s)  v_assign(et, v_svector_type(type, w));
                     else    v_assign(et, v_vector_type(type, w));
 
-                    v = v_convert_to_type(type, value, et);         //- T -> V(T)
-
-                    v = v_convert_to_type(et, v, to_type);          //- V(T) -> V(U)        (!)
-
-                    v_store(v, to_value);
+                    v_convert_to_type(type, value, et, vv);             //- T -> V(T)
+                    v_convert_to_type(et, vv, to_type, to_value);       //- V(T) -> V(U)        (!)
                 }
             }
         }
@@ -1214,7 +1186,7 @@
         {
             //- Convert val0 to typ1
 
-            v_assign(val0, v_convert_to_type(typ0, val0, typ1));
+            v_convert_to_type(typ0, val0, typ1, val0);
 
             v_assign(typ0, typ1);
         }
@@ -1222,7 +1194,7 @@
         {
             //- Convert val1 to typ0
 
-            v_assign(val1, v_convert_to_type(typ1, val1, typ0));
+            v_convert_to_type(typ1, val1, typ0, val1);
 
             v_assign(typ1, typ0);
         }
@@ -1236,7 +1208,7 @@
         {
             //- Convert val1 to st_com
 
-            v_assign(val1, v_convert_to_type(typ1, val1, st_com));
+            v_convert_to_type(typ1, val1, st_com, val1);
         }
 
         v_assign(typ1, typ0);       //- Sic!
@@ -1247,7 +1219,7 @@
         {
             //- Convert val0 to typ1
 
-            v_assign(val0, v_convert_to_type(typ0, val0, typ1));
+            v_convert_to_type(typ0, val0, typ1, val0);
         }
 
         v_return();
@@ -1259,7 +1231,7 @@
         {
             //- Convert val0 to st_com
 
-            v_assign(val0, v_convert_to_type(typ0, val0, st_com));
+            v_convert_to_type(typ0, val0, st_com, val0);
         }
 
         v_assign(typ0, typ1);       //- Sic!
@@ -1270,7 +1242,7 @@
         {
             //- Convert val1 to typ0
 
-            v_assign(val1, v_convert_to_type(typ1, val1, typ0));
+            v_convert_to_type(typ1, val1, typ0, val1);
         }
 
         v_return();
@@ -1772,7 +1744,7 @@
     }
     else if (v_type_is_pointer(v_type_get_scalar_type(e0)))
     {
-        v_assign(v1, v_convert_to_type(t1, v1, e0));
+        v_convert_to_type(t1, v1, e0, v1);
     }
 
     LLVMBuildStore(builder, v1, v0);

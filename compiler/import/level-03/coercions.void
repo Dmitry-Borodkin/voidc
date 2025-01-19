@@ -679,18 +679,18 @@ lookup_coe_over: (t: *v_type_t, q: v_quark_t) ~> *v_type_t
 private
 try_to_convert_ctx_t = struct
 {
-    fun: *((*void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, pv1: *LLVMValueRef) ~> bool);
+    fun: *((*void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, v1: &LLVMValueRef) ~> bool);
 
     aux: *void;
 };
 
 //---------------------------------------------------------------------
 private
-my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, pv1: *LLVMValueRef) ~> bool
+my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, v1: &LLVMValueRef) ~> bool
 {
     if (t0 == t1)
     {
-        *pv1 := v0;
+        v1 := v0;
 
         v_return(true);
     }
@@ -699,10 +699,12 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
     {
         v = coerce_to_type(v_get_compiler(), t0, v0, t1);
 
-        *pv1 := v;
+        v1 := v;
 
         v_return(true);
     }
+
+    vv: &LLVMValueRef := 0;         //- Just scratch...
 
     if (v_type_is_reference(t0))
     {
@@ -710,11 +712,9 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
 
         if (get_coe_map_list(et0, full_dir_q, t1))
         {
-            v = v_convert_to_type(t0, v0, et0);
+            v_convert_to_type(t0, v0, et0, vv);
 
-            v = coerce_to_type(v_get_compiler(), et0, v, t1);
-
-            *pv1 := v;
+            v1 := coerce_to_type(v_get_compiler(), et0, vv, t1);
 
             v_return(true);
         }
@@ -725,13 +725,11 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
 
             if (get_coe_map_list(et0, full_dir_q, et1))
             {
-                v = v_convert_to_type(t0, v0, et0);
+                v_convert_to_type(t0, v0, et0, vv);
 
-                v = coerce_to_type(v_get_compiler(), et0, v, et1);
+                vv := coerce_to_type(v_get_compiler(), et0, vv, et1);
 
-                v = v_convert_to_type(et1, v, t1);
-
-                *pv1 := v;
+                v_convert_to_type(et1, vv, t1, v1);
 
                 v_return(true);
             }
@@ -744,11 +742,9 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
 
         if (get_coe_map_list(t0, full_dir_q, et1))
         {
-            v = coerce_to_type(v_get_compiler(), t0, v0, et1);
+            vv := coerce_to_type(v_get_compiler(), t0, v0, et1);
 
-            v = v_convert_to_type(et1, v, t1);
-
-            *pv1 := v;
+            v_convert_to_type(et1, vv, t1, v1);
 
             v_return(true);
         }
@@ -756,7 +752,7 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
 
     ctx = *(aux: *try_to_convert_ctx_t);
 
-    v_return(ctx.fun(ctx.aux, t0, v0, t1, pv1));
+    v_return(ctx.fun(ctx.aux, t0, v0, t1, v1));
 }
 
 

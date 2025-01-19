@@ -41,7 +41,7 @@ extern "C"
     typedef v_quark_t (*lookup_alias_t)(void *ctx, v_quark_t qname);
 
     typedef bool (*try_to_adopt_t)(void *ctx, v_type_t *type, LLVMValueRef value);
-    typedef bool (*try_to_convert_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef *pv1);
+    typedef bool (*try_to_convert_t)(void *ctx, v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef &v1);
 
     typedef LLVMValueRef (*make_temporary_t)(void *ctx, v_type_t *t, LLVMValueRef v);
 
@@ -322,15 +322,15 @@ public:
     try_to_convert_t get_try_to_convert_hook(void **paux);
     void             set_try_to_convert_hook(try_to_convert_t fun, void *aux);
 
-    bool try_to_convert(v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef *pv1)
+    bool try_to_convert(v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef &v1)
     {
         void *aux;
         auto *fun = get_try_to_convert_hook(&aux);
 
-        return  fun(aux, t0, v0, t1, pv1);
+        return  fun(aux, t0, v0, t1, v1);
     }
 
-    LLVMValueRef convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1);
+    void convert_to_type(v_type_t *t0, LLVMValueRef v0, v_type_t *t1, LLVMValueRef &v1);
 
 public:
     make_temporary_t get_make_temporary_hook(void **paux);

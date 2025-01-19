@@ -132,7 +132,7 @@ v_literal_integer_intrinsic: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t)
         log:  (float(64)) ~> float(64);
         ceil: (float(64)) ~> float(64);
 
-        w = (ceil(len * (log(radix) / log(2))) : unsigned) + 1;
+        w = (ceil(len * (log(radix) / log(2))) : unsigned);     //- ???
 
         _int      = v_find_type_q(int_q);
         _unsigned = v_find_type_q(unsigned_q);

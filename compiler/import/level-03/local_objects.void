@@ -230,7 +230,7 @@ my_try_to_adopt_ctx_t = struct
 private
 my_try_to_convert_ctx_t = struct
 {
-    fun: *((*void, *v_type_t, LLVMValueRef, *v_type_t, *LLVMValueRef) ~> bool);
+    fun: *((*void, *v_type_t, LLVMValueRef, *v_type_t, &LLVMValueRef) ~> bool);
     aux: *void;
 };
 
@@ -888,7 +888,7 @@ my_try_to_adopt: (aux: *void, type: *v_type_t, value: LLVMValueRef) ~> bool
 
         if (to_type != type)
         {
-            value := v_convert_to_type(type, value, to_type);        //- ?
+            v_convert_to_type(type, value, to_type, value);          //- ???
         }
 
         if (v_type_is_special(to_type, q_initialize))          //- Sic!
@@ -930,11 +930,11 @@ my_try_to_adopt: (aux: *void, type: *v_type_t, value: LLVMValueRef) ~> bool
 //- try_to_convert ...
 //---------------------------------------------------------------------
 private
-my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, pv1: *LLVMValueRef) ~> bool
+my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, v1: &LLVMValueRef) ~> bool
 {
     if (t0 == t1)
     {
-        *pv1 := v0;
+        v1 := v0;
 
         v_return(true);
     }
@@ -949,7 +949,7 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
 
                 //- Kinda, NOP
 
-                *pv1 := v0;
+                v1 := v0;
 
                 v_return(true);
             }
@@ -999,7 +999,7 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
                 v_set_result_type(ttag);
                 v_set_result_value(vtag);
 
-                *pv1 := v;
+                v1 := v;
 
                 v_return(true);
             }
@@ -1010,7 +1010,7 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
 
     ctx = (aux: *local_objects_ctx_t)->try_to_convert;
 
-    v_return(ctx.fun(ctx.aux, t0, v0, t1, pv1));
+    v_return(ctx.fun(ctx.aux, t0, v0, t1, v1));
 }
 
 
