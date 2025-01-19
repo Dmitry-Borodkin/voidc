@@ -888,7 +888,11 @@ my_try_to_adopt: (aux: *void, type: *v_type_t, value: LLVMValueRef) ~> bool
 
         if (to_type != type)
         {
-            v_convert_to_type(type, value, to_type, value);          //- ???
+            vv: &LLVMValueRef := 0;
+
+            v_convert_to_type(type, value, to_type, vv);
+
+            value := vv;
         }
 
         if (v_type_is_special(to_type, q_initialize))          //- Sic!
@@ -964,42 +968,9 @@ my_try_to_convert: (aux: *void, t0: *v_type_t, v0: LLVMValueRef, t1: *v_type_t, 
             {
                 //- T -> &T,    T - object
 
-                //- Create temporary clone ...
+                //- Kinda, NOP ???
 
-                ttag = v_get_result_type();
-                vtag = v_get_result_value();
-
-                stmt = v_make_object(v_ast_stmt_t);
-
-                v = v_make_temporary(et1, 0);
-
-                voidc_make_special_intrinsic_call(stmt, q_initialize, et1, v, 0);
-
-                vis = v_get_compiler();
-
-                v_set_result_type(INVIOLABLE_TAG);
-                v_set_result_value(0);
-
-                v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
-
-                voidc_make_special_intrinsic_call(stmt, q_copy, et1, v, v0);        //- Sic!
-
-                v_set_result_type(INVIOLABLE_TAG);
-                v_set_result_value(0);
-
-                v_ast_accept_visitor((stmt: *v_ast_base_t), vis);
-
-                if (v_type_is_special(et1, q_terminate))
-                {
-                    ctx = *v_malloc(my_temporary_cleaner_ctx_t) := {et1, v};
-
-                    v_add_temporary_cleaner(my_temporary_cleaner, &ctx);
-                }
-
-                v_set_result_type(ttag);
-                v_set_result_value(vtag);
-
-                v1 := v;
+                v1 := v0;
 
                 v_return(true);
             }
