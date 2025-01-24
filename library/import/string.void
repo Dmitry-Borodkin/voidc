@@ -1,0 +1,435 @@
+//---------------------------------------------------------------------
+//- Copyright (C) 2020-2025 Dmitry Borodkin <borodkin.dn@gmail.com>
+//- SDPX-License-Identifier: LGPL-3.0-or-later
+//---------------------------------------------------------------------
+{ voidc_import("libvoidc.void"); }
+{ voidc_make_header("string"); }
+//---------------------------------------------------------------------
+
+{   gctx = v_target_get_global_ctx();
+    vctx = v_target_get_voidc_global_ctx();
+
+    is_voidc_v: &LLVMValueRef := v_undef();
+
+    if (gctx == vctx)   is_voidc_v := v_find_constant_value("true");
+    else                is_voidc_v := v_find_constant_value("false");
+
+    v_add_constant("IS_VOIDC", v_uint_type(1), is_voidc_v);
+
+    v_target_set_global_ctx(vctx);
+
+    v_add_symbol("cur_gctx", v_target_global_ctx_t, gctx);
+
+    v_target_set_global_ctx(gctx);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+struct v_string_impl_t
+{
+    _data: *char;
+    _size: size_t;
+
+    union
+    {
+        local: char[16];
+
+        capacity: size_t;
+    };
+};
+
+//---------------------------------------------------------------------
+#if (IS_VOIDC)
+
+  v_string_t = v_std_string_t;
+
+  alwaysinline
+  (_.impl): (s: &v_string_t) ~> &v_string_impl_t  =  *(&s : *v_string_impl_t);
+
+#else
+
+  v_string_t = v_string_impl_t;
+
+  alwaysinline
+  (_.impl): (s: &v_string_t) ~> &v_string_impl_t  =  s;
+
+#endif
+
+
+//---------------------------------------------------------------------
+alwaysinline
+(_.is_long): (s: &v_string_impl_t) ~> bool  =  s._data != s[2].local;
+
+
+//---------------------------------------------------------------------
+strlen: (*const char) ~> size_t;
+
+memcpy: (*void, *const void, size_t) ~> *void;
+memset: (*void, int, size_t) ~> *void;
+
+realloc: (*void, size_t) ~> *void;
+
+
+//---------------------------------------------------------------------
+#if (!IS_VOIDC)
+
+  inlinehint
+  (v_initialize(_)): (dst: *v_string_t, count: size_t) ~> void
+  {
+      for (i: &size_t := 0; i < count; ++i)
+      {
+          di = dst[i].impl;
+
+          di._data := di[2].local;
+          di._size := 0;
+          di[2].local[0] := 0;
+      }
+  }
+
+  inlinehint
+  (v_terminate(_)): (dst: *v_string_t, count: size_t) ~> void
+  {
+      for (i: &size_t := 0; i < count; ++i)
+      {
+          di = dst[i].impl;
+
+          if (di.is_long) v_free(di._data);
+      }
+  }
+
+  inlinehint
+  (v_copy(_)): (dst: *v_string_t, src: *const v_string_t, count: size_t) ~> void
+  {
+      for (i: &size_t := 0; i < count; ++i)
+      {
+          di = dst[i].impl;
+          si = src[i].impl;
+
+          if (di.is_long) v_free(di._data);
+
+          sz = si._size;
+
+          di._size := sz;
+
+          sz1 = sz + 1;
+
+          if (si.is_long)
+          {
+              csz = (sz1 + 15) & ~15;
+
+              di._data := v_malloc(char, csz);
+
+              di[2].capacity := csz - 1;
+          }
+          else
+          {
+              di._data := di[2].local;
+          }
+
+          memcpy(di._data, si._data, sz1);
+      }
+  }
+
+  inlinehint
+  (v_move(_)): (dst: *v_string_t, src: *v_string_t, count: size_t) ~> void
+  {
+      for (i: &size_t := 0; i < count; ++i)
+      {
+          di = dst[i].impl;
+          si = src[i].impl;
+
+          if (di.is_long) v_free(di._data);
+
+          sz = si._size;
+
+          di._size := sz;
+
+          if (si.is_long)
+          {
+              di._data := si._data;
+
+              di[2].capacity := si[2].capacity;
+
+              si._data := si[2].local;
+          }
+          else
+          {
+              di._data := di[2].local;
+
+              memcpy(di._data, si._data, sz+1);
+          }
+
+          si._size := 0;
+          si[2].local[0] := 0;
+      }
+  }
+
+#endif
+
+
+//---------------------------------------------------------------------
+alwaysinline
+(_.data): (s: v_string_t) ~> *char  =  (&s)->impl._data;
+
+alwaysinline
+(_.size): (s: v_string_t) ~> size_t  =  (&s)->impl._size;
+
+inlinehint
+(_.capacity): (s: v_string_t) ~> size_t
+{
+    s = (&s)->impl;
+
+    if (s.is_long)  v_return(s[2].capacity);
+    else            v_return(15);
+}
+
+
+//---------------------------------------------------------------------
+inlinehint
+(_.set_data()): (str: &v_string_t, s: *const char, len: size_t) ~> void
+{
+    str_impl = str.impl;
+
+    if (len > str.capacity)
+    {
+        if (str_impl.is_long) v_free(str.data);
+
+        csz = (len + (1+15)) & ~15;
+
+        str_impl._data := v_malloc(char, csz);
+        str_impl[2].capacity := csz - 1;
+    }
+
+    memcpy(str_impl._data, s, len);
+
+    str_impl._data[len] := 0;
+
+    str_impl._size := len;
+}
+
+inlinehint
+(_.set()): (str: &v_string_t, s: *const char) ~> void
+{
+    str.set_data(s, strlen(s));
+}
+
+
+//---------------------------------------------------------------------
+inlinehint
+(_.append_data()): (str: &v_string_t, s: *const char, len: size_t) ~> void
+{
+    if (len == 0) v_return();
+
+    str_impl = str.impl;
+
+    sz = str.size;
+
+    sz_len = sz + len;
+
+    if (sz_len > str.capacity)
+    {
+        csz = (sz_len + (1+15)) & ~15;
+
+        if (str_impl.is_long)
+        {
+            str_impl._data := (realloc(str_impl._data, csz) : *char);
+        }
+        else
+        {
+            d = v_malloc(char, csz);
+
+            memcpy(d, str_impl._data, sz);
+
+            str_impl._data := d;
+        }
+
+        str_impl[2].capacity := csz - 1;
+    }
+
+    memcpy(str_impl._data+sz, s, len);
+
+    str_impl._data[sz_len] := 0;
+
+    str_impl._size := sz_len;
+}
+
+inlinehint
+(_.append()): (str: &v_string_t, s: *const char) ~> void
+{
+    str.append_data(s, strlen(s));
+}
+
+
+//---------------------------------------------------------------------
+alwaysinline
+(_.append_char()): (str: &v_string_t, c: char) ~> void
+{
+    str.append_data(&c, 1);
+}
+
+inlinehint
+(_.append_char32()): (str: &v_string_t, c: char32_t) ~> void
+{
+    r: &int := v_undef();
+
+    if (c <= 0x7FF)
+    {
+        if (c <= 0x7F)  r := 0;
+        else            r := 1;
+    }
+    else
+    {
+        if (c <= 0xFFFF)  r := 2;
+        else              r := 3;
+    }
+
+    d = v_alloca(char, r+1);
+
+    if (r == 0)
+    {
+        d[0] := (c & 0x7F : char);
+    }
+    else
+    {
+        c: &char32_t := c;
+
+        for (j: &int := 0; j < r; ++j)
+        {
+            d[r-j] := (0x80 | (c & 0x3F) : char);
+
+            c >>= 6;
+        }
+
+        d[0] := ((0x1E << (6-r)) | (c & (0x3F >> r)) : char);
+    }
+
+    str.append_data(d, r+1);
+}
+
+
+//---------------------------------------------------------------------
+inlinehint
+(_.append_number()): (str: &v_string_t, n: intptr_t) ~> void
+{
+    buf: &char[24] := v_undef();
+
+    sprintf: (*char, *const char, ...) ~> int;
+
+    len = sprintf(buf, "%zd", n);
+
+    str.append_data(buf, len);
+}
+
+
+//---------------------------------------------------------------------
+//- ...
+//---------------------------------------------------------------------
+alwaysinline
+v_internal_adopt_to_string: (s: *const char) ~> v_string_t
+{
+    ret = v_get_return_value();
+
+    ret.set(s);
+}
+
+
+//---------------------------------------------------------------------
+{ v_target_set_global_ctx(v_target_get_voidc_global_ctx()); }
+
+//=====================================================================
+{ voidc_unit_begin_module("string_module"); }
+
+
+//---------------------------------------------------------------------
+private
+try_to_adopt_ctx_t = struct
+{
+    fun: *((*void, *v_type_t, LLVMValueRef) ~> bool);
+    aux: *void;
+
+    string_type: *v_type_t;
+    char_type:   *v_type_t;
+};
+
+//---------------------------------------------------------------------
+private
+try_to_adopt_to_string: (aux: *void, t0: *v_type_t, v0: LLVMValueRef) ~> bool
+{
+    ctx = *(aux: *try_to_adopt_ctx_t);
+
+    string_type = ctx.string_type;
+    char_type   = ctx.char_type;
+
+    t1 = v_get_result_type();
+
+    if ((INVIOLABLE_TAG != t1 != UNREFERENCE_TAG
+        )  &&
+        (t1 == string_type  ||
+         v_type_is_reference(t1)  &&  v_type_refptr_get_element_type(t1) == string_type
+        )  &&
+        ((v_type_is_pointer(t0)  &&  v_type_refptr_get_element_type(t0) == char_type)  ||
+         (v_type_is_array(t0)  &&  v_type_array_get_element_type(t0) == char_type)
+        )
+       )
+    {
+        //- Got it...
+
+        expr: &v_ast_expr_t      := {};
+        list: &v_ast_expr_list_t := {};
+
+        v_ast_make_expr_compiled(&expr, t0, v0);
+
+        v_make_list(&list, &expr);
+
+        v_ast_make_expr_identifier(&expr, "v_internal_adopt_to_string");
+
+        v_ast_make_expr_call(&expr, &expr, &list);
+
+        v_ast_accept_visitor(&expr, v_get_compiler());
+
+        v_return(true);
+    }
+
+    //- Default treatment...
+
+    v_return(ctx.fun(ctx.aux, t0, v0));
+}
+
+//---------------------------------------------------------------------
+v_internal_try_to_adopt_to_string_effort: (*void) ~> void
+{
+    ctx = v_malloc(try_to_adopt_ctx_t);
+
+    ctx->fun := v_get_try_to_adopt_hook(&ctx->aux);
+
+    ctx->string_type := v_find_type("v_string_t");
+    ctx->char_type   := v_int_type(8);
+
+    v_set_try_to_adopt_hook(try_to_adopt_to_string, ctx);
+
+    free: (*void) ~> void;
+
+    v_add_local_cleaner(free, ctx);
+}
+
+
+//---------------------------------------------------------------------
+{   if (v_find_symbol_value("v_internal_try_to_adopt_to_string_effort"))
+    {
+        voidc_skip_object_file_load(1);
+    }
+}
+
+//=====================================================================
+{ voidc_unit_end_module(); }
+
+
+//---------------------------------------------------------------------
+{   v_target_set_global_ctx(cur_gctx);
+
+    v_export_effort(v_internal_try_to_adopt_to_string_effort, 0);
+}
+
+

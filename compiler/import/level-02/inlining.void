@@ -332,6 +332,8 @@ compile_unit_inline_fun_defn: (aux: *void, vis: *voidc_visitor_t, self: *v_ast_b
 
     if (mod)
     {
+        v_verify_module(mod);                       //- Sic !!!
+
         m = LLVMWriteBitcodeToMemoryBuffer(mod);
 
         sz = LLVMGetBufferSize(m);
