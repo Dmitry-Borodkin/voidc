@@ -27,7 +27,8 @@
 //---------------------------------------------------------------------
 //- ...
 //---------------------------------------------------------------------
-struct v_string_impl_t
+private
+v_string_impl_t = struct
 {
     _data: *char;
     _size: size_t;
@@ -45,22 +46,22 @@ struct v_string_impl_t
 
   v_string_t = v_std_string_t;
 
-  alwaysinline
-  (_.impl): (s: &v_string_t) ~> &v_string_impl_t  =  *(&s : *v_string_impl_t);
+  private
+  #define (_.impl): (s: &v_string_t) ~> &v_string_impl_t  =  *(&s : *v_string_impl_t);
 
 #else
 
   v_string_t = v_string_impl_t;
 
-  alwaysinline
-  (_.impl): (s: &v_string_t) ~> &v_string_impl_t  =  s;
+  private
+  #define (_.impl): (s: &v_string_t) ~> &v_string_impl_t  =  s;
 
 #endif
 
 
 //---------------------------------------------------------------------
-alwaysinline
-(_.is_long): (s: &v_string_impl_t) ~> bool  =  s._data != s[2].local;
+private
+#define (_.is_long): (s: &v_string_impl_t) ~> bool  =  s._data != s[2].local;
 
 
 //---------------------------------------------------------------------
@@ -188,7 +189,7 @@ inlinehint
 
 //---------------------------------------------------------------------
 inlinehint
-(_.set_data()): (str: &v_string_t, s: *const char, len: size_t) ~> void
+(_.set_data()): (str: &v_string_t, s: *const char, len: size_t) ~> &v_string_t  =
 {
     str_impl = str.impl;
 
@@ -207,20 +208,19 @@ inlinehint
     str_impl._data[len] := 0;
 
     str_impl._size := len;
-}
+
+    str
+};
 
 inlinehint
-(_.set()): (str: &v_string_t, s: *const char) ~> void
-{
-    str.set_data(s, strlen(s));
-}
+(_.set()): (str: &v_string_t, s: *const char) ~> &v_string_t  =  str.set_data(s, strlen(s));
 
 
 //---------------------------------------------------------------------
 inlinehint
-(_.append_data()): (str: &v_string_t, s: *const char, len: size_t) ~> void
+(_.append_data()): (str: &v_string_t, s: *const char, len: size_t) ~> &v_string_t  =
 {
-    if (len == 0) v_return();
+    if (len == 0) v_return(str);
 
     str_impl = str.impl;
 
@@ -253,24 +253,20 @@ inlinehint
     str_impl._data[sz_len] := 0;
 
     str_impl._size := sz_len;
-}
+
+    str
+};
 
 inlinehint
-(_.append()): (str: &v_string_t, s: *const char) ~> void
-{
-    str.append_data(s, strlen(s));
-}
+(_.append()): (str: &v_string_t, s: *const char) ~> &v_string_t  =  str.append_data(s, strlen(s));
 
 
 //---------------------------------------------------------------------
 alwaysinline
-(_.append_char()): (str: &v_string_t, c: char) ~> void
-{
-    str.append_data(&c, 1);
-}
+(_.append_char()): (str: &v_string_t, c: char) ~> &v_string_t  =  str.append_data(&c, 1);
 
 inlinehint
-(_.append_char32()): (str: &v_string_t, c: char32_t) ~> void
+(_.append_char32()): (str: &v_string_t, c: char32_t) ~> &v_string_t  =
 {
     r: &int := v_undef();
 
@@ -305,13 +301,13 @@ inlinehint
         d[0] := ((0x1E << (6-r)) | (c & (0x3F >> r)) : char);
     }
 
-    str.append_data(d, r+1);
-}
+    str.append_data(d, r+1)
+};
 
 
 //---------------------------------------------------------------------
 inlinehint
-(_.append_number()): (str: &v_string_t, n: intptr_t) ~> void
+(_.append_number()): (str: &v_string_t, n: intptr_t) ~> &v_string_t  =
 {
     buf: &char[24] := v_undef();
 
@@ -319,8 +315,8 @@ inlinehint
 
     len = sprintf(buf, "%zd", n);
 
-    str.append_data(buf, len);
-}
+    str.append_data(buf, len)
+};
 
 
 //---------------------------------------------------------------------
