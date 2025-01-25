@@ -131,13 +131,11 @@ struct va_list { (*void)[va_list_size]; };
 
 #if (v_defined(_WIN32))
 
-  export
-  v_internal_va_list_ref = va_list;
+  export va_list_ref = va_list;
 
 #else
 
-  export
-  v_internal_va_list_ref = &va_list;
+  export va_list_ref = &va_list;
 
 #endif
 
