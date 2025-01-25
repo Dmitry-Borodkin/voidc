@@ -129,6 +129,18 @@
 export
 struct va_list { (*void)[va_list_size]; };
 
+#if (v_defined(_WIN32))
+
+  export
+  v_internal_va_list_ref = va_list;
+
+#else
+
+  export
+  v_internal_va_list_ref = &va_list;
+
+#endif
+
 
 //---------------------------------------------------------------------
 {   va_list_ref = v_reference_type(v_find_type_q(va_list_q), 0);
