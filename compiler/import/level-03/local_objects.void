@@ -823,6 +823,9 @@ my_llvm_build_call_helper: (*void, vis: *voidc_visitor_t, self: *v_ast_base_t,
 private
 my_try_to_adopt: (aux: *void, type: *v_type_t, value: LLVMValueRef) ~> bool
 {
+//printf("my_try_to_adopt: start\n");
+//defer printf("my_try_to_adopt: stop\n");
+
     ttag = v_get_result_type();
     vtag = v_get_result_value();
 

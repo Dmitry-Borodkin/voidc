@@ -9,10 +9,12 @@
 {   gctx = v_target_get_global_ctx();
     vctx = v_target_get_voidc_global_ctx();
 
-    is_voidc_v: &LLVMValueRef := v_undef();
+//    is_voidc_v: &LLVMValueRef := v_undef();
+//
+//    if (gctx == vctx)   is_voidc_v := v_find_constant_value("true");
+//    else                is_voidc_v := v_find_constant_value("false");
 
-    if (gctx == vctx)   is_voidc_v := v_find_constant_value("true");
-    else                is_voidc_v := v_find_constant_value("false");
+    is_voidc_v = v_find_constant_value("false");
 
     v_add_constant("IS_VOIDC", v_uint_type(1), is_voidc_v);
 
@@ -25,7 +27,7 @@
 
 
 //---------------------------------------------------------------------
-//- ...
+//- Implementation in GCC style...
 //---------------------------------------------------------------------
 private
 v_string_impl_t = struct
@@ -44,7 +46,7 @@ v_string_impl_t = struct
 //---------------------------------------------------------------------
 #if (IS_VOIDC)
 
-  v_string_t = v_std_string_t;
+  v_string_t = v_std_string_t;          //- ???
 
   private
   #define (_.impl): (s: &v_string_t) ~> &v_string_impl_t  =  *(&s : *v_string_impl_t);
@@ -353,23 +355,50 @@ try_to_adopt_ctx_t = struct
 private
 try_to_adopt_to_string: (aux: *void, t0: *v_type_t, v0: LLVMValueRef) ~> bool
 {
+//printf("try_to_adopt_to_string: start\n");
+//defer printf("try_to_adopt_to_string: stop\n");
+
     ctx = *(aux: *try_to_adopt_ctx_t);
 
     string_type = ctx.string_type;
     char_type   = ctx.char_type;
 
-    t1 = v_get_result_type();
-
-    if ((INVIOLABLE_TAG != t1 != UNREFERENCE_TAG
-        )  &&
-        (t1 == string_type  ||
-         v_type_is_reference(t1)  &&  v_type_refptr_get_element_type(t1) == string_type
-        )  &&
-        ((v_type_is_pointer(t0)  &&  v_type_refptr_get_element_type(t0) == char_type)  ||
-         (v_type_is_array(t0)  &&  v_type_array_get_element_type(t0) == char_type)
-        )
-       )
+    block
     {
+        t1 = v_get_result_type();
+
+        if (t1 == INVIOLABLE_TAG)  v_break();
+        if (t1 == UNREFERENCE_TAG) v_break();
+
+        check: &bool := true;
+
+        block
+        {
+
+            if (t1 == string_type)  v_break();
+
+            if (v_type_is_reference(t1)  &&  v_type_refptr_get_element_type(t1) == string_type)  v_break();
+
+            check := false;
+        }
+
+        if (!check)  v_break();
+
+        block
+        {
+            tt: &*v_type_t := t0;
+
+            if (v_type_is_reference(t0))  tt := v_type_refptr_get_element_type(t0);
+
+            if (v_type_is_pointer(tt)  &&  v_type_refptr_get_element_type(tt) == char_type)  v_break();
+
+            if (v_type_is_array(tt)  &&  v_type_array_get_element_type(tt) == char_type)  v_break();
+
+            check := false;
+        }
+
+        if (!check)  v_break();
+
         //- Got it...
 
         expr: &v_ast_expr_t      := {};
@@ -396,14 +425,15 @@ try_to_adopt_to_string: (aux: *void, t0: *v_type_t, v0: LLVMValueRef) ~> bool
 //---------------------------------------------------------------------
 v_internal_try_to_adopt_to_string_effort: (*void) ~> void
 {
+    //- TODO: Check for "mainline" ...
+
     ctx = v_malloc(try_to_adopt_ctx_t);
 
     ctx->fun := v_get_try_to_adopt_hook(&ctx->aux);
+    v_set_try_to_adopt_hook(try_to_adopt_to_string, ctx);
 
     ctx->string_type := v_find_type("v_string_t");
     ctx->char_type   := v_int_type(8);
-
-    v_set_try_to_adopt_hook(try_to_adopt_to_string, ctx);
 
     free: (*void) ~> void;
 
