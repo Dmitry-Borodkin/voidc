@@ -374,7 +374,6 @@ try_to_adopt_to_string: (aux: *void, t0: *v_type_t, v0: LLVMValueRef) ~> bool
 
         block
         {
-
             if (t1 == string_type)  v_break();
 
             if (v_type_is_reference(t1)  &&  v_type_refptr_get_element_type(t1) == string_type)  v_break();
@@ -425,7 +424,7 @@ try_to_adopt_to_string: (aux: *void, t0: *v_type_t, v0: LLVMValueRef) ~> bool
 //---------------------------------------------------------------------
 v_internal_try_to_adopt_to_string_effort: (*void) ~> void
 {
-    //- TODO: Check for "mainline" ...
+    v_assert(v_find_constant("voidc.internal.local_objects_enabled", 0, 0));        //- Sic !?!
 
     ctx = v_malloc(try_to_adopt_ctx_t);
 
