@@ -634,7 +634,7 @@ byte = uint(8);
 union IntRep
 {
     i: int;
-    r: byte[0];
+    r: byte[int.sizeof];
 };
 
 {   ir: &IntRep := v_undef();
